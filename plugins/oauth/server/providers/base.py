@@ -148,7 +148,7 @@ class ProviderBase(model_importer.ModelImporter):
         # Create the user if it's still not found
         if not user:
             policy = cls.model('setting').get(SettingKey.REGISTRATION_POLICY)
-            if policy != 'open':
+            if policy == 'closed':
                 raise RestException(
                     'Registration on this instance is closed. Contact an '
                     'administrator to create an account for you.')
