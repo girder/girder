@@ -169,10 +169,10 @@ girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id
     }, this));
 });
 
-girder.router.route('useraccount/:id/verify/:token', 'accountVerify', function (id, token) {
+girder.router.route('useraccount/:id/verification/:token', 'accountVerify', function (id, token) {
     girder.restRequest({
-        path: 'user/verify/' + id,
-        type: 'GET',
+        path: 'user/' + id + '/verification',
+        type: 'PUT',
         data: {token: token},
         error: null
     }).done(_.bind(function (resp) {

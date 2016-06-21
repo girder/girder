@@ -254,7 +254,7 @@ class User(AccessControlledModel):
     def _sendVerificationEmail(self, user):
         token = self.model('token').createToken(
             user, days=1, scope=TokenScope.EMAIL_VERIFICATION)
-        url = '%s/#useraccount/%s/verify/%s' % (
+        url = '%s/#useraccount/%s/verification/%s' % (
             mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
         text = mail_utils.renderTemplate('emailVerification.mako', {
             'url': url
