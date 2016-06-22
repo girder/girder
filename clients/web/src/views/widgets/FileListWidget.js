@@ -102,7 +102,7 @@ girder.views.FileListWidget = girder.View.extend({
             parentItem: this.parentItem
         }));
 
-        this.$('.g-file-actions-container a[title]').tooltip({
+        this.$('.g-file-list-entry a[title]').tooltip({
             container: 'body',
             placement: 'auto',
             delay: 100

@@ -211,7 +211,7 @@ class GirderClient(object):
             self.token = resp['authToken']['token']
 
     def sendRestRequest(self, method, path, parameters=None, data=None,
-                        files=None):
+                        files=None, json=None):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -227,7 +227,12 @@ class GirderClient(object):
             Note that the path string should not begin or end with the path
             separator, '/'.
         :param parameters: A dictionary mapping strings to strings, to be used
-            as the key/value pairs in the request parameters
+            as the key/value pairs in the request parameters.
+        :param data: A dictionary, bytes or file-like object to send in the
+            body.
+        :param files: A dictonary of 'name' => file-like-objects
+            for multipart encoding upload.
+        :param json: A dictionary to send in the body as a JSON object.
         """
         if not parameters:
             parameters = {}
@@ -242,9 +247,8 @@ class GirderClient(object):
         url = self.urlBase + path
 
         # Make the request, passing parameters and authentication info
-        result = f(url, params=parameters, data=data, files=files, headers={
-            'Girder-Token': self.token
-        })
+        result = f(url, params=parameters, data=data, files=files, json=json,
+                   headers={'Girder-Token': self.token})
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in [200, 201]:
@@ -262,20 +266,21 @@ class GirderClient(object):
         """
         return self.sendRestRequest('GET', path, parameters)
 
-    def post(self, path, parameters=None, files=None, data=None):
+    def post(self, path, parameters=None, files=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'POST'
         HTTP method.
         """
         return self.sendRestRequest('POST', path, parameters, files=files,
-                                    data=data)
+                                    data=data, json=json)
 
-    def put(self, path, parameters=None, data=None):
+    def put(self, path, parameters=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PUT'
         HTTP method.
         """
-        return self.sendRestRequest('PUT', path, parameters, data=data)
+        return self.sendRestRequest('PUT', path, parameters, data=data,
+                                    json=json)
 
     def delete(self, path, parameters=None):
         """
@@ -284,12 +289,13 @@ class GirderClient(object):
         """
         return self.sendRestRequest('DELETE', path, parameters)
 
-    def patch(self, path, parameters=None, data=None):
+    def patch(self, path, parameters=None, data=None, json=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PATCH'
         HTTP method.
         """
-        return self.sendRestRequest('PATCH', path, parameters, data=data)
+        return self.sendRestRequest('PATCH', path, parameters, data=data,
+                                    json=json)
 
     def createResource(self, path, params):
         """
@@ -316,6 +322,21 @@ class GirderClient(object):
         """
         return self.get(path, params)
 
+    def listFile(self, itemId, limit=None):
+        """
+        Retrieves a file set from this item ID.
+
+        :param itemId: the item's ID
+        :param limit: the result set size limit.
+        """
+
+        params = {
+            'id': itemId,
+        }
+        if limit:
+            params['limit'] = limit
+        return self.listResource('item/%s/files' % itemId, params)
+
     def createItem(self, parentFolderId, name, description=''):
         """
         Creates and returns an item.
@@ -336,21 +357,24 @@ class GirderClient(object):
         """
         return self.getResource('item', itemId)
 
-    def listItem(self, folderId, text=None, name=None):
+    def listItem(self, folderId, text=None, name=None, limit=None):
         """
         Retrieves a item set from this folder ID.
 
         :param folderId: the parent folder's ID.
         :param text: query for full text search of items.
         :param name: query for exact name match of items.
+        :param limit: the result set size limit.
         """
         params = {
-            'folderId': folderId,
+            'folderId': folderId
         }
         if text:
             params['text'] = text
         if name:
             params['name'] = name
+        if limit:
+            params['limit'] = limit
 
         return self.listResource('item', params)
 
@@ -377,12 +401,15 @@ class GirderClient(object):
         """
         return self.getResource('folder', folderId)
 
-    def listFolder(self, parentId, parentFolderType='folder', name=None):
+    def listFolder(self, parentId, parentFolderType='folder', name=None,
+                   limit=None):
         """
         Retrieves a folder set from this parent ID.
 
         :param parentId: The parent's ID.
         :param parentFolderType: One of ('folder', 'user', 'collection').
+        :param name: query for exact name match of items.
+        :param limit: the result set size limit.
         """
         params = {
             'parentId': parentId,
@@ -391,6 +418,8 @@ class GirderClient(object):
 
         if name:
             params['name'] = name
+        if limit:
+            params['limit'] = limit
 
         return self.listResource('folder', params)
 
@@ -682,7 +711,7 @@ class GirderClient(object):
         :param metadata: dictionary of metadata to set on item.
         """
         path = 'item/' + itemId + '/metadata'
-        obj = self.put(path, data=json.dumps(metadata))
+        obj = self.put(path, json=metadata)
         return obj
 
     def addMetadataToFolder(self, folderId, metadata):
@@ -693,7 +722,7 @@ class GirderClient(object):
         :param metadata: dictionary of metadata to set on folder.
         """
         path = 'folder/' + folderId + '/metadata'
-        obj = self.put(path, data=json.dumps(metadata))
+        obj = self.put(path, json=metadata)
         return obj
 
     def _transformFilename(self, name):
@@ -712,15 +741,20 @@ class GirderClient(object):
         Download a file to the given local path.
 
         :param fileId: The ID of the Girder file to download.
-        :param path: The local path to write the file to.
+        :param path: The local path to write the file to, or
+            a file-like object.
         """
-        _safeMakedirs(os.path.dirname(path))
+        req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
+                           headers={'Girder-Token': self.token})
+        if isinstance(path, six.string_types):
+            _safeMakedirs(os.path.dirname(path))
 
-        with open(path, 'wb') as fd:
-            req = requests.get('%sfile/%s/download' % (self.urlBase, fileId),
-                               headers={'Girder-Token': self.token})
+            with open(path, 'wb') as fd:
+                for chunk in req.iter_content(chunk_size=65536):
+                    fd.write(chunk)
+        else:
             for chunk in req.iter_content(chunk_size=65536):
-                fd.write(chunk)
+                path.write(chunk)
 
     def downloadItem(self, itemId, dest, name=None):
         """

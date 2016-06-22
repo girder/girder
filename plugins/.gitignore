@@ -1,11 +1,13 @@
 /*
 !.gitignore
 !celery_jobs/
+!curation/
 !geospatial/
 !google_analytics/
 !gravatar/
 !hashsum_download/
 !hdfs_assetstore/
+!homepage/
 !item_licenses/
 !item_previews/
 !jobs/

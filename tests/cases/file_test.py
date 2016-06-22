@@ -18,6 +18,7 @@
 ###############################################################################
 
 import io
+import json
 import mock
 import moto
 import os
@@ -340,6 +341,14 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
+        # List files in the folder
+        testFolder = self.model('folder').load(test['_id'], force=True)
+        fileList = [(path, file['name'])
+                    for (path, file) in self.model('folder').fileList(
+                        testFolder, user=self.user,
+                        subpath=True, data=False)]
+        self.assertEqual(fileList, [(u'Test/random.bin', u'random.bin')])
+
         # Download the folder
         resp = self.request(
             path='/folder/%s/download' % str(self.privateFolder['_id']),
@@ -349,6 +358,45 @@ class FileTestCase(base.TestCase):
         self.assertTrue(zip.testzip() is None)
 
         extracted = zip.read('Private/Test/random.bin')
+        self.assertEqual(extracted, contents)
+
+        # Upload a known MIME-type file into the folder
+        contents = b'not a jpeg'
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': str(self.privateFolder['_id']),
+                'name': 'fake.jpeg',
+                'size': len(contents),
+                'mimeType': 'image/jpeg'
+            })
+        self.assertStatusOk(resp)
+
+        uploadId = resp.json['_id']
+
+        # Send the file contents
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'fake.jpeg', contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        # Download the folder with a MIME type filter
+        resp = self.request(
+            path='/folder/%s/download' % str(self.privateFolder['_id']),
+            method='GET', user=self.user, isJson=False, params={
+                'mimeFilter': json.dumps(['image/png', 'image/jpeg'])
+            })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="Private.zip"')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
+        self.assertTrue(zip.testzip() is None)
+
+        path = 'Private/fake.jpeg'
+        self.assertEqual(zip.namelist(), [path])
+        extracted = zip.read(path)
         self.assertEqual(extracted, contents)
 
     def _testDownloadCollection(self):
@@ -424,6 +472,46 @@ class FileTestCase(base.TestCase):
         zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
         # Zip file should have no entries
         self.assertFalse(zip.namelist())
+
+        # Upload a known MIME-type file into the collection
+        contents = b'not a jpeg'
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': test['_id'],
+                'name': 'fake.jpeg',
+                'size': len(contents),
+                'mimeType': 'image/jpeg'
+            })
+        self.assertStatusOk(resp)
+
+        uploadId = resp.json['_id']
+
+        # Send the file contents
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'fake.jpeg', contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        # Download the collection using a MIME type filter
+        path = '/collection/%s/download' % str(collection['_id'])
+        resp = self.request(
+            path=path, method='GET', user=self.user, isJson=False, params={
+                'mimeFilter': json.dumps(['image/png', 'image/jpeg'])
+            })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="Test Collection.zip"')
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
+        self.assertTrue(zip.testzip() is None)
+
+        # Only the jpeg should exist in the zip
+        path = 'Test Collection/Test Folder/fake.jpeg'
+        self.assertEqual(zip.namelist(), [path])
+        extracted = zip.read(path)
+        self.assertEqual(extracted, contents)
 
     def _testDeleteFile(self, file):
         """

@@ -1,8 +1,0 @@
----
-
-dependencies:
-  - role: git-cache
-    repo: git://github.com/girder/girder.git
-    version: "{{ girder_version }}"
-    variable_prefix: girder
-    state: present

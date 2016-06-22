@@ -1,9 +1,0 @@
----
-
-  - name: service | conf | generate
-    template:
-        src: service.conf.j2
-        dest: /etc/init/{{ name|mandatory }}.conf
-        backup: yes
-        mode: 0644
-

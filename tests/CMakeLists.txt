@@ -38,6 +38,7 @@ if(RUN_CORE_TESTS)
   add_python_test(routes)
   add_python_test(search)
   add_python_test(size)
+  add_python_test(stream BIND_SERVER TIMEOUT 90)
   add_python_test(system)
   add_python_test(token)
   add_python_test(user)
@@ -71,7 +72,7 @@ if(RUN_CORE_TESTS)
     EXTERNAL_DATA "test_file.txt"
   )
   add_python_test(external_data_plugin
-    EXTERNAL_DATA "test_file.txt" "plugins/has_external_data/test_file.txt"
+    EXTERNAL_DATA "plugins/has_external_data/test_file.txt"
   )
   set_property(TEST server_external_data_core PROPERTY LABELS girder_devel)
   set_property(TEST server_external_data_plugin PROPERTY LABELS girder_devel)

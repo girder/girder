@@ -30,7 +30,7 @@ from hashlib import sha512
 from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder.models.model_base import ValidationException, GirderException
-from girder import logger
+from girder import events, logger
 from girder.utility import mkdir, progress
 
 BUF_SIZE = 65536
@@ -325,6 +325,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         item = self.model('item').createItem(
             name=name, creator=user, folder=folder,
             reuseExisting=reuseExisting)
+        events.trigger('filesystem_assetstore_imported',
+                       {'id': item['_id'], 'type': 'item',
+                        'importPath': path})
         for fname in files:
             self.importFile(item, os.path.join(path, fname),
                             user, name=fname)
@@ -359,6 +362,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                     folder = self.model('folder').createFolder(
                         parent=parent, name=name, parentType=parentType,
                         creator=user, reuseExisting=True)
+                    events.trigger(
+                        'filesystem_assetstore_imported',
+                        {'id': folder['_id'], 'type': 'folder',
+                         'importPath': path})
                     self.importData(folder, 'folder', params={
                         'importPath': os.path.join(importPath, name)},
                         progress=progress, user=user,
@@ -373,6 +380,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 item = self.model('item').createItem(
                     name=name, creator=user, folder=parent,
                     reuseExisting=True)
+                events.trigger('filesystem_assetstore_imported',
+                               {'id': item['_id'], 'type': 'item',
+                                'importPath': path})
                 self.importFile(item, path, user, name=name)
 
     def findInvalidFiles(self, progress=progress.noProgress, filters=None,
