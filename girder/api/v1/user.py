@@ -245,7 +245,7 @@ class User(Resource):
         .param('email', 'The email of the user.')
         .param('admin', 'Is the user a site admin (admin access required)',
                required=False, dataType='boolean')
-        .param('status', 'The status of the user account.',
+        .param('status', 'The account status (admin access required)',
                required=False, enum=['pending', 'enabled', 'disabled'])
         .errorResponse()
         .errorResponse('You do not have write access for this user.', 403)
