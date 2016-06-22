@@ -60,11 +60,11 @@ function(python_tests_init)
     set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
     set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
 
-    set_property(TEST py_coverage PROPERTY LABELS girder_server)
-    set_property(TEST py_coverage_reset PROPERTY LABELS girder_server)
-    set_property(TEST py_coverage_combine PROPERTY LABELS girder_server)
-    set_property(TEST py_coverage_html PROPERTY LABELS girder_server)
-    set_property(TEST py_coverage_xml PROPERTY LABELS girder_server)
+    set_property(TEST py_coverage PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage_reset PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage_combine PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage_html PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage_xml PROPERTY LABELS girder_python)
   endif()
 endfunction()
 
@@ -75,7 +75,7 @@ function(add_python_style_test name input)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${FLAKE8_EXECUTABLE}" "--config=${flake8_config}" "${input}"
     )
-    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis girder_server)
+    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis girder_python)
   endif()
 endfunction()
 
@@ -154,5 +154,5 @@ function(add_python_test case)
     girder_ExternalData_add_target("${name}_data")
   endif()
 
-  set_property(TEST ${name} PROPERTY LABELS girder_server)
+  set_property(TEST ${name} PROPERTY LABELS girder_python)
 endfunction()
