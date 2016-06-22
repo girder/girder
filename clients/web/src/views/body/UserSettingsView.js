@@ -195,7 +195,7 @@ girder.router.route('useraccount/:id/verification/:token', 'accountVerify', func
         girder.events.trigger('g:alert', {
             icon: 'cancel',
             text: 'Could not verify email.',
-            type: 'error',
+            type: 'danger',
             timeout: 4000
         });
     }, this));

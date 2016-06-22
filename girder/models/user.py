@@ -49,7 +49,8 @@ class User(AccessControlledModel):
             '_id', 'login', 'public', 'firstName', 'lastName', 'admin',
             'created'))
         self.exposeFields(level=AccessType.ADMIN, fields=(
-            'size', 'email', 'groups', 'groupInvites'))
+            'size', 'email', 'groups', 'groupInvites', 'status',
+            'emailVerified'))
 
         events.bind('model.user.save.created',
                     CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)
@@ -226,6 +227,9 @@ class User(AccessControlledModel):
         :type public: bool
         :returns: The user document that was created.
         """
+        requireApproval = self.model('setting').get(
+            SettingKey.REGISTRATION_POLICY) == 'approve'
+
         user = {
             'login': login,
             'email': email,
@@ -233,7 +237,7 @@ class User(AccessControlledModel):
             'lastName': lastName,
             'created': datetime.datetime.utcnow(),
             'emailVerified': False,
-            'status': 'pending',
+            'status': 'pending' if requireApproval else 'active',
             'admin': admin,
             'size': 0,
             'groups': [],
