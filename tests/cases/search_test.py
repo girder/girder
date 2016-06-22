@@ -19,7 +19,10 @@
 
 from .. import base
 
+from girder.api.v1 import resource
 from girder.constants import AccessType
+from girder.models.model_base import AccessControlledModel
+from girder.utility.acl_mixin import AccessControlMixin
 
 
 def setUpModule():
@@ -235,3 +238,16 @@ class SearchTestCase(base.TestCase):
             '_id': str(item1['_id']),
             'name': item1['name']
         }, resp.json['item'][0])
+
+        # Check search for model that is not access controlled
+        self.assertNotIsInstance(
+            self.model('assetstore'), AccessControlledModel)
+        self.assertNotIsInstance(
+            self.model('assetstore'), AccessControlMixin)
+        resource.allowedSearchTypes.add('assetstore')
+        resp = self.request(path='/resource/search', params={
+            'q': 'Test',
+            'mode': 'prefix',
+            'types': '["assetstore"]'
+        }, user=user)
+        self.assertEqual(1, len(resp.json['assetstore']))
