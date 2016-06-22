@@ -406,7 +406,7 @@ def _createResponse(val):
         elif accept.value == 'text/html':  # pragma: no cover
             # Pretty-print and HTML-ify the response for the browser
             cherrypy.response.headers['Content-Type'] = 'text/html'
-            resp = json.dumps(val, indent=4, sort_keys=True,
+            resp = json.dumps(val, indent=4, sort_keys=True, allow_nan=False,
                               separators=(',', ': '), cls=JsonEncoder)
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
@@ -415,7 +415,8 @@ def _createResponse(val):
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
     cherrypy.response.headers['Content-Type'] = 'application/json'
-    return json.dumps(val, sort_keys=True, cls=JsonEncoder).encode('utf8')
+    return json.dumps(val, sort_keys=True, allow_nan=False,
+                      cls=JsonEncoder).encode('utf8')
 
 
 def _handleRestException(e):
