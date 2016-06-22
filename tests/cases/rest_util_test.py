@@ -37,6 +37,10 @@ class TestResource(object):
     def returnsDate(self, *args, **kwargs):
         return {'key': date}
 
+    @rest.endpoint
+    def returnsInf(self, *args, **kwargs):
+        return {'value': float('inf')}
+
 
 class RestUtilTestCase(unittest.TestCase):
     """
@@ -92,3 +96,8 @@ class RestUtilTestCase(unittest.TestCase):
         self.assertEqual(json.loads(resp), {
             'key': date.replace(tzinfo=pytz.UTC).isoformat()
         })
+
+        # Returning infinity or NaN floats should raise a reasonable exception
+        regex = 'Out of range float values are not JSON compliant'
+        with six.assertRaisesRegex(self, ValueError, regex):
+            resp = resource.returnsInf()
