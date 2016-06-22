@@ -504,14 +504,21 @@ class UserTestCase(base.TestCase):
         self.model('user').createUser(
             'admin', 'password', 'Admin', 'Admin', 'admin@example.com')
 
+        self.assertTrue(base.mockSmtp.waitForMail())
+        base.mockSmtp.getMail(parse=True)
+
+        self.model('user').createUser(
+            'user', 'password', 'User', 'User', 'user@example.com')
+
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail(parse=True)
+
         # cannot login without verifying email
-        resp = self.request('/user/authentication', basicAuth='admin:password')
+        resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatus(resp, 403)
         self.assertTrue(resp.json['extra'] == 'emailVerification')
 
         # get verification link
-        self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail(parse=True)
         body = msg.get_payload(decode=True).decode('utf8')
         link = re.search('<a href="(.*)">', body).group(1)
         parts = link.split('/')
@@ -524,7 +531,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # can now login
-        resp = self.request('/user/authentication', basicAuth='admin:password')
+        resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatusOk(resp)
 
     def testTemporaryPassword(self):
