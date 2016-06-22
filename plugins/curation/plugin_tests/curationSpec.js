@@ -23,9 +23,7 @@ function _goToCurationDialog() {
     runs(function () {
         $('a.g-curation-button:visible').click();
     });
-    waitsFor(function () {
-        return $('.g-curation-summary:visible').length === 1;
-    }, 'the curation dialog to appear');
+    girderTest.waitForDialog();
 }
 
 describe('test the curation ui', function () {
