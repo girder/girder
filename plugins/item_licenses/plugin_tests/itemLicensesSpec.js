@@ -127,11 +127,9 @@ describe('item_licenses plugin test', function () {
         }, 'the url state to change');
         girderTest.waitForDialog();
         waitsFor(function () {
-            return $('#g-name').val() !== '';
+            return $('#g-name').val() !== '' && $('button.g-save-item:visible').text() === 'Save';
         }, 'the dialog to be populated');
-        waitsFor(function () {
-            return $('button.g-save-item:visible').text() === 'Save';
-        }, 'the edit item dialog to appear');
+
         runs(function () {
             // Should list groups of licenses, plus "Unspecified" in dropdown
             expect($('#g-license optgroup').length).toBe(2);
