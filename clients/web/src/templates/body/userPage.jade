@@ -19,7 +19,7 @@
               a.g-approve-user(role="menuitem")
                 i.icon-ok-squared
                 | Approve account
-          else if user.get('status') === 'active'
+          else if user.get('status') === 'enabled'
             li(role="presentation")
               a.g-disable-user(role="menuitem")
                 i.icon-cancel
