@@ -252,6 +252,37 @@ class User(AccessControlledModel):
 
         return user
 
+    def canLogin(self, user):
+        """
+        Returns True if the user is allowed to login, e.g. email verification
+        is not required and admin approval is not required.
+        """
+        if self.emailVerificationRequired(user):
+            return False
+        if self.adminApprovalRequired(user):
+            return False
+        return True
+
+    def emailVerificationRequired(self, user):
+        """
+        Returns True if email verification is required and this user has not
+        yet verified their email address.
+        """
+        if not user.get('emailVerified', False):
+            return self.model('setting').get(
+                SettingKey.EMAIL_VERIFICATION) == 'required'
+        return False
+
+    def adminApprovalRequired(self, user):
+        """
+        Returns True if the registration policy requires admin approval and
+        this user has not yet been approved.
+        """
+        if user.get('status') != 'enabled':
+            return self.model('setting').get(
+                SettingKey.REGISTRATION_POLICY) == 'approve'
+        return False
+
     def _sendVerificationEmail(self, user):
         token = self.model('token').createToken(
             user, days=1, scope=TokenScope.EMAIL_VERIFICATION)

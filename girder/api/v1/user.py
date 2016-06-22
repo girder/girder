@@ -139,21 +139,15 @@ class User(Resource):
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
-            if not user.get('emailVerified', False):
-                emailVerificationRequired = self.model('setting').get(
-                    SettingKey.EMAIL_VERIFICATION) == 'required'
-                if emailVerificationRequired:
-                    raise RestException(
-                        'Email verification required.', code=403,
-                        extra='emailVerification')
+            if self.model('user').emailVerificationRequired(user):
+                raise RestException(
+                    'Email verification required.', code=403,
+                    extra='emailVerification')
 
-            if user.get('status') != 'enabled':
-                approvalRequired = self.model('setting').get(
-                    SettingKey.REGISTRATION_POLICY) == 'approve'
-                if approvalRequired:
-                    raise RestException(
-                        'Account approval required.', code=403,
-                        extra='accountApproval')
+            if self.model('user').adminApprovalRequired(user):
+                raise RestException(
+                    'Account approval required.', code=403,
+                    extra='accountApproval')
 
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
@@ -218,13 +212,7 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'], admin=admin)
 
-        emailVerificationRequired = self.model('setting').get(
-            SettingKey.EMAIL_VERIFICATION) == 'required'
-
-        approvalRequired = regPolicy == 'approve'
-
-        if currentUser is None and not emailVerificationRequired \
-                and not approvalRequired:
+        if not currentUser and self.model('user').canLogin(user):
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
             user['authToken'] = {
@@ -457,17 +445,25 @@ class User(Resource):
 
         user['emailVerified'] = True
         self.model('token').remove(token)
-        authToken = self.sendAuthTokenCookie(user)
+        self.model('user').save(user)
 
-        return {
-            'user': self.model('user').save(user),
-            'authToken': {
-                'token': authToken['_id'],
-                'expires': authToken['expires'],
-                'scope': authToken['scope']
-            },
-            'message': 'Email verification succeeded.'
-        }
+        if self.model('user').canLogin(user):
+            setattr(cherrypy.request, 'girderUser', user)
+            authToken = self.sendAuthTokenCookie(user)
+            return {
+                'user': user,
+                'authToken': {
+                    'token': authToken['_id'],
+                    'expires': authToken['expires'],
+                    'scope': authToken['scope']
+                },
+                'message': 'Email verification succeeded.'
+            }
+        else:
+            return {
+                'user': user,
+                'message': 'Email verification succeeded.'
+            }
 
     @access.public
     @describeRoute(
