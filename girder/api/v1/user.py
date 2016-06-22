@@ -245,6 +245,8 @@ class User(Resource):
         .param('email', 'The email of the user.')
         .param('admin', 'Is the user a site admin (admin access required)',
                required=False, dataType='boolean')
+        .param('status', 'The status of the user account.',
+               required=False, enum=['pending', 'enabled', 'disabled'])
         .errorResponse()
         .errorResponse('You do not have write access for this user.', 403)
         .errorResponse('Must be an admin to create an admin.', 403)
@@ -264,6 +266,15 @@ class User(Resource):
             else:
                 if newAdminState != user['admin']:
                     raise AccessException('Only admins may change admin state.')
+
+        # Only admins can change status
+        if 'status' in params:
+            newStatus = params['status']
+            if self.getCurrentUser()['admin']:
+                user['status'] = newStatus
+            else:
+                if newStatus != user['status']:
+                    raise AccessException('Only admins may change status.')
 
         return self.model('user').save(user)
 

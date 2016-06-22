@@ -94,6 +94,10 @@ class User(AccessControlledModel):
             raise ValidationException('Last name must not be empty.',
                                       'lastName')
 
+        if doc['status'] not in ('pending', 'enabled', 'disabled'):
+            raise ValidationException(
+                'Status must be pending, enabled, or disabled.', 'status')
+
         if '@' in doc['login']:
             # Hard-code this constraint so we can always easily distinguish
             # an email address from a login
@@ -237,7 +241,7 @@ class User(AccessControlledModel):
             'lastName': lastName,
             'created': datetime.datetime.utcnow(),
             'emailVerified': False,
-            'status': 'pending' if requireApproval else 'active',
+            'status': 'pending' if requireApproval else 'enabled',
             'admin': admin,
             'size': 0,
             'groups': [],
