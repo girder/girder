@@ -262,7 +262,7 @@ class User(AccessControlledModel):
     def canLogin(self, user):
         """
         Returns True if the user is allowed to login, e.g. email verification
-        is not required and admin approval is not required.
+        is not needed and admin approval is not needed.
         """
         if self.emailVerificationRequired(user):
             return False
@@ -295,9 +295,11 @@ class User(AccessControlledModel):
         return False
 
     def _sendApprovalEmail(self, user):
+        url = '%s/#user/%s' % (
+            mail_utils.getEmailUrlPrefix(), str(user['_id']))
         text = mail_utils.renderTemplate('accountApproval.mako', {
             'user': user,
-            'url': '', # TODO
+            'url': url
         })
         mail_utils.sendEmail(
             toAdmins=True,
