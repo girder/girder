@@ -254,6 +254,9 @@ class User(AccessControlledModel):
         if verifyEmail:
             self._sendVerificationEmail(user)
 
+        if requireApproval:
+            self._sendApprovalEmail(user)
+
         return user
 
     def canLogin(self, user):
@@ -290,6 +293,16 @@ class User(AccessControlledModel):
             return self.model('setting').get(
                 SettingKey.REGISTRATION_POLICY) == 'approve'
         return False
+
+    def _sendApprovalEmail(self, user):
+        text = mail_utils.renderTemplate('accountApproval.mako', {
+            'user': user,
+            'url': '', # TODO
+        })
+        mail_utils.sendEmail(
+            toAdmins=True,
+            subject='Girder: User registration approval',
+            text=text)
 
     def _sendVerificationEmail(self, user):
         token = self.model('token').createToken(
