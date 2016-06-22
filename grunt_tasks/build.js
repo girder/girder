@@ -232,7 +232,7 @@ module.exports = function (grunt) {
             },
             jade_core: {
                 files: ['clients/web/src/templates/**/*.jade'],
-                tasks: ['jade:core']
+                tasks: ['jade:core', 'uglify:app']
             }
         },
 
