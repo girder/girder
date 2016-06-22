@@ -4,15 +4,15 @@ python:
     - 3.4
 
 env:
-    - GIRDER_TEST_GROUP=server
-    - GIRDER_TEST_GROUP=client
+    - GIRDER_TEST_GROUP=python
+    - GIRDER_TEST_GROUP=browser
     - GIRDER_TEST_GROUP=packaging
     - GIRDER_TEST_GROUP=other
 
 matrix:
     exclude:
         - python: 3.4
-          env: GIRDER_TEST_GROUP=client
+          env: GIRDER_TEST_GROUP=browser
         - python: 3.4
           env: GIRDER_TEST_GROUP=other
 
@@ -46,7 +46,7 @@ before_install:
     - npm prune
     - pip install -U pip virtualenv
 install:
-    - if [ "$GIRDER_TEST_GROUP" == "server" -o "$GIRDER_TEST_GROUP" == "client" -o "$GIRDER_TEST_GROUP" == "other" ] ; then pip install -r requirements.txt -r requirements-dev.txt -e . ; fi
+    - if [ "$GIRDER_TEST_GROUP" == "python" -o "$GIRDER_TEST_GROUP" == "browser" -o "$GIRDER_TEST_GROUP" == "other" ] ; then pip install -r requirements.txt -r requirements-dev.txt -e . ; fi
     - npm install
 script:
     - mkdir _build
