@@ -245,12 +245,14 @@ class Item(Resource):
             raise RestException('Unsupported format.')
         if len(files) == 1 and format != 'zip':
             contentDisp = params.get('contentDisposition')
+            extraParameters = params.get('extraParameters')
             if (contentDisp is not None and
                contentDisp not in {'inline', 'attachment'}):
                 raise RestException('Unallowed contentDisposition type "%s".' %
                                     contentDisp)
             return self.model('file').download(files[0], offset,
-                                               contentDisposition=contentDisp)
+                                               contentDisposition=contentDisp,
+                                               extraParameters=extraParameters)
         else:
             return self._downloadMultifileItem(item, user)
 
