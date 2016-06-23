@@ -507,8 +507,9 @@ class UserTestCase(base.TestCase):
         user = self.model('user').createUser(
             'user', 'password', 'User', 'User', 'user@example.com')
 
+        # pop email
         self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail(parse=True)
+        base.mockSmtp.getMail(parse=True)
 
         # cannot login without being approved
         resp = self.request('/user/authentication', basicAuth='user:password')
