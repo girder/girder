@@ -53,6 +53,8 @@ class User(Resource):
         self.route('PUT', ('password', 'temporary'),
                    self.generateTemporaryPassword)
         self.route('DELETE', ('password',), self.resetPassword)
+        self.route('PUT', (':id', 'verification'), self.verifyEmail)
+        self.route('POST', ('verification',), self.sendVerificationEmail)
 
     @access.public
     @filtermodel(model='user')
@@ -137,6 +139,14 @@ class User(Resource):
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
+            if not user.get('emailVerified', False):
+                emailVerificationRequired = self.model('setting').get(
+                    SettingKey.EMAIL_VERIFICATION) == 'required'
+                if emailVerificationRequired:
+                    raise RestException(
+                        'Email verification required.', code=403,
+                        extra='emailVerification')
+
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
 
@@ -200,7 +210,10 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'], admin=admin)
 
-        if currentUser is None:
+        emailVerificationRequired = self.model('setting').get(
+            SettingKey.EMAIL_VERIFICATION) == 'required'
+
+        if currentUser is None and not emailVerificationRequired:
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
             user['authToken'] = {
@@ -411,3 +424,54 @@ class User(Resource):
             'nFolders': self.model('user').countFolders(
                 user, filterUser=self.getCurrentUser(), level=AccessType.READ)
         }
+
+    @access.public
+    @loadmodel(model='user', force=True)
+    @describeRoute(
+        Description('Verify an email address using a token.')
+        .param('id', 'The user ID to check.', paramType='path')
+        .param('token', 'The token to check.')
+        .errorResponse('The token is invalid or expired.', 401)
+    )
+    def verifyEmail(self, user, params):
+        self.requireParams('token', params)
+        token = self.model('token').load(
+            params['token'], force=True, objectId=False, exc=True)
+        delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
+        hasScope = self.model('token').hasScope(
+            token, TokenScope.EMAIL_VERIFICATION)
+
+        if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
+            raise AccessException('The token is invalid or expired.')
+
+        user['emailVerified'] = True
+        self.model('token').remove(token)
+        authToken = self.sendAuthTokenCookie(user)
+
+        return {
+            'user': self.model('user').save(user),
+            'authToken': {
+                'token': authToken['_id'],
+                'expires': authToken['expires'],
+                'scope': authToken['scope']
+            },
+            'message': 'Email verification succeeded.'
+        }
+
+    @access.public
+    @describeRoute(
+        Description('Send verification email.')
+        .param('login', 'Your login or email address.')
+        .errorResponse('That login is not registered.', 401)
+    )
+    def sendVerificationEmail(self, params):
+        self.requireParams('login', params)
+        login = params['login'].lower().strip()
+        loginField = 'email' if '@' in login else 'login'
+        user = self.model('user').findOne({loginField: login})
+
+        if not user:
+            raise RestException('That login is not registered.', 401)
+
+        self.model('user')._sendVerificationEmail(user)
+        return {'message': 'Sent verification email.'}

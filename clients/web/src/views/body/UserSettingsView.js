@@ -168,3 +168,27 @@ girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id
         girder.router.navigate('users', {trigger: true});
     }, this));
 });
+
+girder.router.route('useraccount/:id/verification/:token', 'accountVerify', function (id, token) {
+    girder.restRequest({
+        path: 'user/' + id + '/verification',
+        type: 'PUT',
+        data: {token: token},
+        error: null
+    }).done(_.bind(function (resp) {
+        resp.user.token = resp.authToken.token;
+        girder.eventStream.close();
+        girder.currentUser = new girder.models.UserModel(resp.user);
+        girder.eventStream.open();
+        girder.events.trigger('g:login-changed');
+        girder.events.trigger('g:navigateTo', girder.views.FrontPageView);
+        girder.events.trigger('g:alert', {
+            icon: 'ok',
+            text: 'Email verified.',
+            type: 'success',
+            timeout: 4000
+        });
+    }, this)).error(_.bind(function () {
+        girder.router.navigate('users', {trigger: true});
+    }, this));
+});

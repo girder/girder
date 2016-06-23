@@ -496,6 +496,37 @@ class UserTestCase(base.TestCase):
             resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
 
+    def testEmailVerification(self):
+        self.model('setting').set(SettingKey.EMAIL_VERIFICATION, 'required')
+
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
+
+        self.model('user').createUser(
+            'admin', 'password', 'Admin', 'Admin', 'admin@example.com')
+
+        # cannot login without verifying email
+        resp = self.request('/user/authentication', basicAuth='admin:password')
+        self.assertStatus(resp, 403)
+        self.assertTrue(resp.json['extra'] == 'emailVerification')
+
+        # get verification link
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail(parse=True)
+        body = msg.get_payload(decode=True).decode('utf8')
+        link = re.search('<a href="(.*)">', body).group(1)
+        parts = link.split('/')
+        userId = parts[-3]
+        token = parts[-1]
+
+        # verify email with token
+        path = '/user/' + userId + '/verification'
+        resp = self.request(path=path, method='PUT', params={'token': token})
+        self.assertStatusOk(resp)
+
+        # can now login
+        resp = self.request('/user/authentication', basicAuth='admin:password')
+        self.assertStatusOk(resp)
+
     def testTemporaryPassword(self):
         self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
                                       'user@user.com')

@@ -163,6 +163,13 @@ class Setting(Model):
                 'Registration policy must be either "open" or "closed".',
                 'value')
 
+    def validateCoreEmailVerification(self, doc):
+        doc['value'] = doc['value'].lower()
+        if doc['value'] not in ('required', 'optional', 'disabled'):
+            raise ValidationException(
+                'Email verification must be "required", "optional", or '
+                '"disabled".', 'value')
+
     def validateCoreSmtpHost(self, doc):
         if not doc['value']:
             raise ValidationException(
