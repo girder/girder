@@ -244,7 +244,7 @@ class Item(Resource):
         if format not in (None, '', 'zip'):
             raise RestException('Unsupported format.')
         if len(files) == 1 and format != 'zip':
-            contentDisp = params.get('contentDisposition', None)
+            contentDisp = params.get('contentDisposition')
             if (contentDisp is not None and
                contentDisp not in {'inline', 'attachment'}):
                 raise RestException('Unallowed contentDisposition type "%s".' %
