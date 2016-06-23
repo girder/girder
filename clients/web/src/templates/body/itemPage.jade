@@ -37,7 +37,10 @@
     | Info
   .g-item-size.g-info-list-entry
     i.icon-hdd
-    | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
+      if item.get('size') < 20000
+        | #{item.get('size')} bytes
+      else
+        | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
   .g-item-created.g-info-list-entry
     i.icon-clock
     | Created on #{girder.formatDate(item.get('created'), girder.DATE_SECOND)}
