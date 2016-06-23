@@ -37,7 +37,7 @@
     | Info
   .g-item-size.g-info-list-entry
     i.icon-hdd
-      if item.get('size') < 20000
+      if item.get('size') < 1024
         | #{item.get('size')} bytes
       else
         | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
