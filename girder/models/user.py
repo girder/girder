@@ -307,7 +307,17 @@ class User(AccessControlledModel):
         })
         mail_utils.sendEmail(
             toAdmins=True,
-            subject='Girder: User registration approval',
+            subject='Girder: Account pending approval',
+            text=text)
+
+    def _sendApprovedEmail(self, user):
+        text = mail_utils.renderTemplate('accountApproved.mako', {
+            'user': user,
+            'url': mail_utils.getEmailUrlPrefix()
+        })
+        mail_utils.sendEmail(
+            to=user.get('email'),
+            subject='Girder: Account approved',
             text=text)
 
     def _sendVerificationEmail(self, user):
