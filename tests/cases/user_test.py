@@ -497,20 +497,53 @@ class UserTestCase(base.TestCase):
         self._verifyAuthCookie(resp)
 
     def testAccountApproval(self):
-        self.model('user').createUser(
+        admin = self.model('user').createUser(
             'admin', 'password', 'Admin', 'Admin', 'admin@example.com')
 
         self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'approve')
 
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
 
-        self.model('user').createUser(
+        user = self.model('user').createUser(
             'user', 'password', 'User', 'User', 'user@example.com')
 
         self.assertTrue(base.mockSmtp.waitForMail())
         msg = base.mockSmtp.getMail(parse=True)
 
         # cannot login without being approved
+        resp = self.request('/user/authentication', basicAuth='user:password')
+        self.assertStatus(resp, 403)
+        self.assertTrue(resp.json['extra'] == 'accountApproval')
+
+        # approve account
+        path = '/user/%s' % user['_id']
+        resp = self.request(path=path, method='PUT', user=admin, params={
+            'firstName': user['firstName'],
+            'lastName': user['lastName'],
+            'email': user['email'],
+            'status': 'enabled'
+        })
+        self.assertStatusOk(resp)
+
+        # pop email
+        self.assertTrue(base.mockSmtp.waitForMail())
+        base.mockSmtp.getMail(parse=True)
+
+        # can now login
+        resp = self.request('/user/authentication', basicAuth='user:password')
+        self.assertStatusOk(resp)
+
+        # disable account
+        path = '/user/%s' % user['_id']
+        resp = self.request(path=path, method='PUT', user=admin, params={
+            'firstName': user['firstName'],
+            'lastName': user['lastName'],
+            'email': user['email'],
+            'status': 'disabled'
+        })
+        self.assertStatusOk(resp)
+
+        # cannot login again
         resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatus(resp, 403)
         self.assertTrue(resp.json['extra'] == 'accountApproval')
