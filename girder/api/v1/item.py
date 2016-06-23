@@ -233,6 +233,9 @@ class Item(Resource):
                'header disposition-type value, only applied for single file '
                'items.', required=False, enum=['inline', 'attachment'],
                default='attachment')
+        .param('extraParameters', 'Arbitrary data to send along with the '
+               'download request, only applied for single file '
+               'items..', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
