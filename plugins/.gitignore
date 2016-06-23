@@ -1,5 +1,6 @@
 /*
 !.gitignore
+!auto_join
 !celery_jobs/
 !curation/
 !geospatial/
