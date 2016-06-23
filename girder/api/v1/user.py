@@ -268,15 +268,13 @@ class User(Resource):
                     raise AccessException('Only admins may change admin state.')
 
         # Only admins can change status
-        if 'status' in params:
-            newStatus = params['status']
+        if 'status' in params and params['status'] != user['status']:
             if self.getCurrentUser()['admin']:
-                user['status'] = newStatus
-                if newStatus == 'enabled':
+                user['status'] = params['status']
+                if user['status'] == 'enabled':
                     self.model('user')._sendApprovedEmail(user)
             else:
-                if newStatus != user['status']:
-                    raise AccessException('Only admins may change status.')
+                raise AccessException('Only admins may change status.')
 
         return self.model('user').save(user)
 

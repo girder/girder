@@ -233,6 +233,8 @@ class User(AccessControlledModel):
         """
         requireApproval = self.model('setting').get(
             SettingKey.REGISTRATION_POLICY) == 'approve'
+        if admin:
+            requireApproval = False
 
         user = {
             'login': login,

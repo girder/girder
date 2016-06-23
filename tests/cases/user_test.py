@@ -496,6 +496,25 @@ class UserTestCase(base.TestCase):
             resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
 
+    def testAccountApproval(self):
+        self.model('user').createUser(
+            'admin', 'password', 'Admin', 'Admin', 'admin@example.com')
+
+        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'approve')
+
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
+
+        self.model('user').createUser(
+            'user', 'password', 'User', 'User', 'user@example.com')
+
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail(parse=True)
+
+        # cannot login without being approved
+        resp = self.request('/user/authentication', basicAuth='user:password')
+        self.assertStatus(resp, 403)
+        self.assertTrue(resp.json['extra'] == 'accountApproval')
+
     def testEmailVerification(self):
         self.model('setting').set(SettingKey.EMAIL_VERIFICATION, 'required')
 
