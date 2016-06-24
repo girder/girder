@@ -50,7 +50,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         self.exposeFields(level=AccessType.READ, fields=(
             '_id', 'size', 'updated', 'description', 'created', 'meta',
-            'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
+            'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId',
+            'copyOfItem'))
 
     def filter(self, *args, **kwargs):
         """
@@ -377,13 +378,13 @@ class Item(acl_mixin.AccessControlMixin, Model):
             folder=folder, name=name, creator=creator, description=description)
         # copy metadata and other extension values
         filteredItem = self.filter(newItem, creator)
-        updated = False
         for key in srcItem:
             if key not in filteredItem and key not in newItem:
                 newItem[key] = copy.deepcopy(srcItem[key])
-                updated = True
-        if updated:
-            self.save(newItem, triggerEvents=False)
+        # add a reference to the original item
+        newItem['copyOfItem'] = srcItem['_id']
+        self.save(newItem, triggerEvents=False)
+
         # Give listeners a chance to change things
         events.trigger('model.item.copy.prepare', (srcItem, newItem))
         # copy files
