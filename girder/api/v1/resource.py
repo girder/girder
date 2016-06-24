@@ -110,6 +110,7 @@ class Resource(BaseResource):
         Validate a JSON string listing resources.  The resources parameter is a
         JSON encoded dictionary with each key a model name and each value a
         list of ids that must be present in that model.
+
         :param params: a dictionary of parameters that must include 'resources'
         :param allowedModels: if present, an iterable of models that may be
                               included in the resources.
@@ -134,6 +135,7 @@ class Resource(BaseResource):
     def _getResourceModel(self, kind, funcName=None):
         """
         Load and return a model with a specific function or throw an exception.
+
         :param kind: the name of the model to load
         :param funcName: a function name to ensure that each model contains.
         :returns: the loaded model.
@@ -149,6 +151,7 @@ class Resource(BaseResource):
     def _lookUpToken(self, token, parentType, parent):
         """
         Find a particular child resource by name or throw an exception.
+
         :param token: the name of the child resource to find
         :param parentType: the type of the parent to search
         :param parent: the parent resource
@@ -180,7 +183,16 @@ class Resource(BaseResource):
         raise RestException('Child resource not found: %s(%s)->%s' % (
             parentType, parent.get('name', parent.get('_id')), token))
 
-    def _lookUpPath(self, path, user):
+    def _lookUpPath(self, path, user, test=False):
+        """
+        Look up a resource in the data hierarchy by path.
+
+        :param path: path of the resource
+        :param user: user with correct privileges to access path
+        :param test: defaults to false, when set to true
+            will return None instead of throwing exception when
+            path doesn't exist
+        """
         pathArray = [token for token in path.split('/') if token]
         model = pathArray[0]
 
@@ -190,15 +202,21 @@ class Resource(BaseResource):
             parent = self.model('user').findOne({'login': username})
 
             if parent is None:
-                raise RestException('User not found: %s' % username)
+                if test:
+                    return None
+                else:
+                    raise RestException('User not found: %s' % username)
 
         elif model == 'collection':
             collectionName = pathArray[1]
             parent = self.model('collection').findOne({'name': collectionName})
 
             if parent is None:
-                raise RestException(
-                    'Collection not found: %s' % collectionName)
+                if test:
+                    return None
+                else:
+                    raise RestException(
+                        'Collection not found: %s' % collectionName)
 
         else:
             raise RestException('Invalid path format')
@@ -210,7 +228,10 @@ class Resource(BaseResource):
                 document, model = self._lookUpToken(token, model, document)
                 self.model(model).requireAccess(document, user)
         except RestException:
-            raise RestException('Path not found: %s' % path)
+            if test:
+                return None
+            else:
+                raise RestException('Path not found: %s' % path)
 
         result = self.model(model).filter(document, user)
         return result
@@ -223,13 +244,18 @@ class Resource(BaseResource):
                'path starting with either "/user/[user name]", for a user\'s '
                'resources or "/collection/[collection name]", for resources '
                'under a collection.')
+        .param('test',
+               'Specify whether to return None instead of throwing an '
+               'exception when path doesn\'t exist.',
+               required=False, dataType='boolean', default=False)
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403)
     )
     def lookup(self, params):
         self.requireParams('path', params)
-        return self._lookUpPath(params['path'], self.getCurrentUser())
+        test = self.boolParam('test', params, default=False)
+        return self._lookUpPath(params['path'], self.getCurrentUser(), test)
 
     @access.cookie(force=True)
     @access.public(scope=TokenScope.DATA_READ)
