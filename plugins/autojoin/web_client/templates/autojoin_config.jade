@@ -13,6 +13,9 @@ p.g-autojoin-description
         th With access level
         th
     tbody
+      if !rules.length
+        tr
+          td.g-autojoin-empty(colspan=4) No rules defined.
       each rule, index in rules
         - var group = groupsById[rule.groupId]
         - var levelName = levelNames[rule.level]
