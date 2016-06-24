@@ -51,7 +51,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         self.exposeFields(level=AccessType.READ, fields=(
             '_id', 'size', 'updated', 'description', 'created', 'meta',
             'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId',
-            'originalItemId'))
+            'copyOfItem'))
 
     def filter(self, *args, **kwargs):
         """
@@ -382,7 +382,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             if key not in filteredItem and key not in newItem:
                 newItem[key] = copy.deepcopy(srcItem[key])
         # add a reference to the original item
-        newItem['originalItemId'] = srcItem['_id']
+        newItem['copyOfItem'] = srcItem['_id']
         self.save(newItem, triggerEvents=False)
 
         # Give listeners a chance to change things
