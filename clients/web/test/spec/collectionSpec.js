@@ -124,10 +124,12 @@ describe('Test collection actions', function () {
     });
 
     it('test that login dialog appears when anonymous loads a private collection', function () {
+        girderTest.waitForLoad();
         girderTest.anonymousLoadPage(true, privateCollectionFragment, true);
     });
 
     it('test that login dialog appears when anonymous loads a private folder in a private collection', function () {
+        girderTest.waitForLoad();
         girderTest.anonymousLoadPage(false, privateFolderFragment, true);
     });
 
