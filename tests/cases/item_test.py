@@ -621,6 +621,9 @@ class ItemTestCase(base.TestCase):
                                     'text': 'copied_item'})
         self.assertStatusOk(resp)
         self.assertEqual(newItem['_id'], resp.json[0]['_id'])
+        # Check that the provenance tag correctly points back
+        # to the original item
+        self.assertEqual(newItem['copyOfItem'], origItem['_id'])
         # Check if we can download the files from the old item and that they
         # are distinct from the files in the original item
         resp = self.request(path='/item/%s/files' % origItem['_id'],
