@@ -112,6 +112,20 @@ format. After enabling this plugin, visit the plugin configuration page
 to edit and preview the Markdown.
 
 
+Auto Join
+---------
+
+The Auto Join plugin allows you to define rules to automatically assign new
+users to groups based on their email address domain. Typically, this is used in
+conjunction with email verification.
+
+When a new user registers, each auto join rule is checked to see if the user's
+email address contains the rule pattern as a substring (case insensitive).
+
+If there is a match, the user is added to the group with the specified access
+level.
+
+
 Metadata Extractor
 ------------------
 
