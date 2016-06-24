@@ -21,7 +21,8 @@ def userCreated(event):
         if rule['pattern'].lower() not in email:
             continue
         group = ModelImporter.model('group').load(rule['groupId'], force=True)
-        ModelImporter.model('group').addUser(group, user, rule['level'])
+        if group:
+            ModelImporter.model('group').addUser(group, user, rule['level'])
 
 
 def load(info):
