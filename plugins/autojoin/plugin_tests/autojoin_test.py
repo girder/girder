@@ -2,7 +2,7 @@ from tests import base
 
 
 def setUpModule():
-    base.enabledPlugins.append('auto_join')
+    base.enabledPlugins.append('autojoin')
     base.startServer()
 
 
