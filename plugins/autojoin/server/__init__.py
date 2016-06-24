@@ -1,6 +1,7 @@
 from girder import events
 from girder.utility.model_importer import ModelImporter
 
+
 def validateSettings(event):
     """
     Allow the autojoin setting key.
