@@ -21,7 +21,7 @@
 from setuptools import setup, find_packages
 
 
-CLIENT_VERSION = '1.2.0'
+CLIENT_VERSION = '1.2.1'
 
 install_reqs = [
     'requests>=2.4.2',
