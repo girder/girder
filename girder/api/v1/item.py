@@ -235,7 +235,7 @@ class Item(Resource):
                default='attachment')
         .param('extraParameters', 'Arbitrary data to send along with the '
                'download request, only applied for single file '
-               'items..', required=False)
+               'items.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
