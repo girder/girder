@@ -71,6 +71,9 @@ Nginx can be used by adding a block such as:
         chunked_transfer_encoding off;
         proxy_read_timeout 600s;
         proxy_send_timeout 600s;
+        # proxy_request_buffering option only works on nginx >= 1.7.11
+        # but is necessary to support streaming requests
+        proxy_request_buffering off;
     }
 
 And under the containing ``server`` block, make sure to add the following rule:
