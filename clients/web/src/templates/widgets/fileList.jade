@@ -14,6 +14,8 @@ ul.g-file-list
       a.g-view-inline(title="View in browser", target="_blank",
                       href=file.downloadUrl({contentDisposition: 'inline'}))
         i.icon-eye
+      a.g-show-info(file-cid=file.cid, title="Show info")
+        i.icon-info
       if file.has('size')
         .g-file-size= girder.formatSize(file.get('size'))
       .g-file-actions-container(file-cid=file.cid)
