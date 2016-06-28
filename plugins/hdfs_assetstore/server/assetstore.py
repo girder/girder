@@ -114,7 +114,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
             }
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     contentDisposition=None, **kwargs):
+                     contentDisposition=None, extraParameters=None, **kwargs):
         if endByte is None or endByte > file['size']:
             endByte = file['size']
 

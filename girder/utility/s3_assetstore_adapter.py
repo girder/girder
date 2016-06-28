@@ -378,7 +378,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     contentDisposition=None, **kwargs):
+                     contentDisposition=None, extraParameters=None, **kwargs):
         """
         When downloading a single file with HTTP, we redirect to S3. Otherwise,
         e.g. when downloading as part of a zip stream, we connect to S3 and

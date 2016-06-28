@@ -218,7 +218,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     contentDisposition=None, **kwargs):
+                     contentDisposition=None, extraParameters=None, **kwargs):
         """
         Returns a generator function that will be used to stream the file from
         the database to the response.
