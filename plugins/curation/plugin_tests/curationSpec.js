@@ -24,6 +24,7 @@ function _goToCurationDialog() {
         $('a.g-curation-button:visible').click();
     });
     girderTest.waitForDialog();
+    girderTest.waitForDialog();
 }
 
 describe('test the curation ui', function () {
