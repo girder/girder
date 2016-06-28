@@ -3,8 +3,10 @@
  */
 girderTest.startApp();
 
+var registeredUsers = [];
+
 describe('Create an admin and non-admin user', function () {
-    var link, registeredUsers = [];
+    var link;
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
@@ -380,11 +382,11 @@ describe('test email verification', function() {
             $('.g-submit-settings').click();
         });
         waitsFor(function () {
-            return $('#g-alerts-container .alert-success').length > 0;
-        }, 'settings to save');
+            return girder.numberOutstandingRestRequests() === 0;
+        }, 'dialog rest requests to finish');
+        girderTest.logout()();
     });
     it('Try to login without verifying email', function() {
-        girderTest.logout()();
         runs(function () {
             expect(girder.currentUser).toBe(null);
         });
@@ -402,16 +404,96 @@ describe('test email verification', function() {
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-login').length > 0;
-        }, 'register dialog to appear');
+        }, 'login dialog to appear');
 
         runs(function () {
-            $('#g-login').val('nonadmin');
-            $('#g-password').val('password!');
+            $('#g-login').val('user2');
+            $('#g-password').val('password');
             $('#g-login-button').click();
         });
 
         waitsFor(function () {
-            return $('.g-validation-failed-message:visible').length > 0;
+            return $('.g-validation-failed-message:contains("Email verification")').length > 0;
         }, 'email verification message to appear');
+
+        runs(function () {
+            $("a[data-dismiss='modal']").click();
+        });
+    });
+});
+
+describe('test account approval', function() {
+    it('Turn on approval policy', function () {
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+        runs(function () {
+            $("a.g-nav-link[g-target='admin']").click();
+        });
+        waitsFor(function () {
+            return $('.g-server-config').length > 0;
+        }, 'admin page to load');
+        girderTest.waitForLoad();
+        runs(function () {
+            $('.g-server-config').click();
+        });
+        waitsFor(function () {
+            return $('input#g-core-cookie-lifetime').length > 0;
+        }, 'settings page to load');
+        girderTest.waitForLoad();
+        runs(function () {
+            $('#g-core-registration-policy').val('approve');
+            $('#g-core-email-verification').val('disabled');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return girder.numberOutstandingRestRequests() === 0;
+        }, 'dialog rest requests to finish');
+        runs(function () {
+            girder.router.navigate('user/' + registeredUsers[1].id,
+                                   {trigger: true});
+        });
+        waitsFor(function () {
+            return $('.g-disable-user').length > 0;
+        }, 'user page to load');
+        runs(function () {
+            $('.g-disable-user').click();
+        });
+        waitsFor(function () {
+            return girder.numberOutstandingRestRequests() === 0;
+        }, 'dialog rest requests to finish');
+        girderTest.logout()();
+    });
+    it('Try to login without approval', function() {
+        runs(function () {
+            expect(girder.currentUser).toBe(null);
+        });
+
+        waitsFor(function () {
+            return $('.g-login').length > 0;
+        }, 'Girder app to render');
+
+        girderTest.waitForLoad();
+
+        runs(function () {
+            $('.g-login').click();
+        });
+
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('input#g-login').length > 0;
+        }, 'login dialog to appear');
+
+        runs(function () {
+            $('#g-login').val('nonadmin');
+            $('#g-password').val('newpassword');
+            $('#g-login-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-validation-failed-message:contains("Account approval")').length > 0;
+        }, 'approval message to appear');
+
+        runs(function () {
+            $("a[data-dismiss='modal']").click();
+        });
     });
 });

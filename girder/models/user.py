@@ -49,7 +49,8 @@ class User(AccessControlledModel):
             '_id', 'login', 'public', 'firstName', 'lastName', 'admin',
             'created'))
         self.exposeFields(level=AccessType.ADMIN, fields=(
-            'size', 'email', 'groups', 'groupInvites'))
+            'size', 'email', 'groups', 'groupInvites', 'status',
+            'emailVerified'))
 
         events.bind('model.user.save.created',
                     CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)
@@ -92,6 +93,10 @@ class User(AccessControlledModel):
         if not doc['lastName']:
             raise ValidationException('Last name must not be empty.',
                                       'lastName')
+
+        if doc['status'] not in ('pending', 'enabled', 'disabled'):
+            raise ValidationException(
+                'Status must be pending, enabled, or disabled.', 'status')
 
         if '@' in doc['login']:
             # Hard-code this constraint so we can always easily distinguish
@@ -226,6 +231,11 @@ class User(AccessControlledModel):
         :type public: bool
         :returns: The user document that was created.
         """
+        requireApproval = self.model('setting').get(
+            SettingKey.REGISTRATION_POLICY) == 'approve'
+        if admin:
+            requireApproval = False
+
         user = {
             'login': login,
             'email': email,
@@ -233,6 +243,7 @@ class User(AccessControlledModel):
             'lastName': lastName,
             'created': datetime.datetime.utcnow(),
             'emailVerified': False,
+            'status': 'pending' if requireApproval else 'enabled',
             'admin': admin,
             'size': 0,
             'groups': [],
@@ -249,7 +260,67 @@ class User(AccessControlledModel):
         if verifyEmail:
             self._sendVerificationEmail(user)
 
+        if requireApproval:
+            self._sendApprovalEmail(user)
+
         return user
+
+    def canLogin(self, user):
+        """
+        Returns True if the user is allowed to login, e.g. email verification
+        is not needed and admin approval is not needed.
+        """
+        if self.emailVerificationRequired(user):
+            return False
+        if self.adminApprovalRequired(user):
+            return False
+        return True
+
+    def emailVerificationRequired(self, user):
+        """
+        Returns True if email verification is required and this user has not
+        yet verified their email address.
+        """
+        if user.get('admin'):
+            return False
+        if not user.get('emailVerified', False):
+            return self.model('setting').get(
+                SettingKey.EMAIL_VERIFICATION) == 'required'
+        return False
+
+    def adminApprovalRequired(self, user):
+        """
+        Returns True if the registration policy requires admin approval and
+        this user has not yet been approved.
+        """
+        if user.get('admin'):
+            return False
+        if user.get('status') != 'enabled':
+            return self.model('setting').get(
+                SettingKey.REGISTRATION_POLICY) == 'approve'
+        return False
+
+    def _sendApprovalEmail(self, user):
+        url = '%s/#user/%s' % (
+            mail_utils.getEmailUrlPrefix(), str(user['_id']))
+        text = mail_utils.renderTemplate('accountApproval.mako', {
+            'user': user,
+            'url': url
+        })
+        mail_utils.sendEmail(
+            toAdmins=True,
+            subject='Girder: Account pending approval',
+            text=text)
+
+    def _sendApprovedEmail(self, user):
+        text = mail_utils.renderTemplate('accountApproved.mako', {
+            'user': user,
+            'url': mail_utils.getEmailUrlPrefix()
+        })
+        mail_utils.sendEmail(
+            to=user.get('email'),
+            subject='Girder: Account approved',
+            text=text)
 
     def _sendVerificationEmail(self, user):
         token = self.model('token').createToken(

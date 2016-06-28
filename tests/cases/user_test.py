@@ -496,6 +496,59 @@ class UserTestCase(base.TestCase):
             resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
 
+    def testAccountApproval(self):
+        admin = self.model('user').createUser(
+            'admin', 'password', 'Admin', 'Admin', 'admin@example.com')
+
+        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'approve')
+
+        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
+
+        user = self.model('user').createUser(
+            'user', 'password', 'User', 'User', 'user@example.com')
+
+        # pop email
+        self.assertTrue(base.mockSmtp.waitForMail())
+        base.mockSmtp.getMail(parse=True)
+
+        # cannot login without being approved
+        resp = self.request('/user/authentication', basicAuth='user:password')
+        self.assertStatus(resp, 403)
+        self.assertTrue(resp.json['extra'] == 'accountApproval')
+
+        # approve account
+        path = '/user/%s' % user['_id']
+        resp = self.request(path=path, method='PUT', user=admin, params={
+            'firstName': user['firstName'],
+            'lastName': user['lastName'],
+            'email': user['email'],
+            'status': 'enabled'
+        })
+        self.assertStatusOk(resp)
+
+        # pop email
+        self.assertTrue(base.mockSmtp.waitForMail())
+        base.mockSmtp.getMail(parse=True)
+
+        # can now login
+        resp = self.request('/user/authentication', basicAuth='user:password')
+        self.assertStatusOk(resp)
+
+        # disable account
+        path = '/user/%s' % user['_id']
+        resp = self.request(path=path, method='PUT', user=admin, params={
+            'firstName': user['firstName'],
+            'lastName': user['lastName'],
+            'email': user['email'],
+            'status': 'disabled'
+        })
+        self.assertStatusOk(resp)
+
+        # cannot login again
+        resp = self.request('/user/authentication', basicAuth='user:password')
+        self.assertStatus(resp, 403)
+        self.assertTrue(resp.json['extra'] == 'accountApproval')
+
     def testEmailVerification(self):
         self.model('setting').set(SettingKey.EMAIL_VERIFICATION, 'required')
 
@@ -504,14 +557,21 @@ class UserTestCase(base.TestCase):
         self.model('user').createUser(
             'admin', 'password', 'Admin', 'Admin', 'admin@example.com')
 
+        self.assertTrue(base.mockSmtp.waitForMail())
+        base.mockSmtp.getMail(parse=True)
+
+        self.model('user').createUser(
+            'user', 'password', 'User', 'User', 'user@example.com')
+
+        self.assertTrue(base.mockSmtp.waitForMail())
+        msg = base.mockSmtp.getMail(parse=True)
+
         # cannot login without verifying email
-        resp = self.request('/user/authentication', basicAuth='admin:password')
+        resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatus(resp, 403)
         self.assertTrue(resp.json['extra'] == 'emailVerification')
 
         # get verification link
-        self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail(parse=True)
         body = msg.get_payload(decode=True).decode('utf8')
         link = re.search('<a href="(.*)">', body).group(1)
         parts = link.split('/')
@@ -524,7 +584,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # can now login
-        resp = self.request('/user/authentication', basicAuth='admin:password')
+        resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatusOk(resp)
 
     def testTemporaryPassword(self):
