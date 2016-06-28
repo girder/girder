@@ -20,7 +20,7 @@
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, loadmodel
 from girder import events
-from girder.constants import AccessType, AssetstoreType
+from girder.constants import AccessType, AssetstoreType, TokenScope
 from girder.api import access
 from girder.utility.progress import ProgressContext
 
@@ -130,7 +130,7 @@ class Assetstore(Resource):
         else:
             raise RestException('Invalid type parameter')
 
-    @access.admin
+    @access.admin(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='assetstore')
     @describeRoute(
         Description('Import existing data into an assetstore.')
