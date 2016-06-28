@@ -26,13 +26,13 @@ girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
 
 // launch modal when curation button is clicked
 girder.views.HierarchyWidget.prototype.events['click .g-curation-button'] = function (e) {
-    /* eslint-disable */
+    /* eslint-disable no-new */
     new girder.views.CurationDialog({
         el: $('#g-dialog-container'),
         parentView: this,
         folder: this.parentModel
     });
-    /* eslint-enable */
+    /* eslint-enable no-new */
 };
 
 // curation dialog
