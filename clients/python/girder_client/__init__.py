@@ -318,13 +318,13 @@ class GirderClient(object):
 
     def resourceLookup(self, path, test=False):
         """
-        Look up a and retrieve resource in the data hierarchy by path.
+        Look up and retrieve resource in the data hierarchy by path.
 
         :param path: The path of the resource. The path must be an absolute
             Unix path starting with either "/user/[user name]" or
             "/collection/[collection name]".
-        :param test: Whether or not to return None if the path does not
-            exists, rather than throwing an exception.
+        :param test: Whether or not to return None, if the path does not
+            exist, rather than throwing an exception.
         """
         return self.get('resource/lookup',
                         parameters={'path': path, 'test': test})
