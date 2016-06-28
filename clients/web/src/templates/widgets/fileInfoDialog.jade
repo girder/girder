@@ -18,10 +18,11 @@
           span MIME type:
           span.g-bold-part  #{file.get('mimeType') || 'unknown'}
 
-        .g-file-info-line(property="size")
-          i.icon-hdd
-          span Size:
-          span.g-bold-part  #{file.get('size')} bytes
+        if file.has('size')
+          .g-file-info-line(property="size")
+            i.icon-hdd
+            span Size:
+            span.g-bold-part  #{file.get('size')} bytes
 
         .g-file-info-line(property="id")
           i.icon-share
