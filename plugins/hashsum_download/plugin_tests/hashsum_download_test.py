@@ -234,3 +234,29 @@ class HashsumDownloadTest(base.TestCase):
                                  self.publicFile['mimeType'])
                 self.assertEqual(self.userData[10:30],
                                  self.getBody(resp, text=False))
+
+    def testKeyFile(self):
+        # Make sure sha512 appears in returned file documents
+        resp = self.request('/file/%s' % self.publicFile['_id'])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['sha512'], self.publicFile['sha512'])
+
+        template = '/file/%s/hashsum_file/%s'
+
+        # Test with bad algo
+        resp = self.request(template % (self.publicFile['_id'], 'foo'))
+        self.assertStatus(resp, 400)
+        six.assertRegex(self, resp.json['message'], '^Invalid algorithm "foo"')
+
+        # Should work with public file
+        resp = self.request(template % (self.publicFile['_id'], 'sha512'),
+                            isJson=False)
+        self.assertStatusOk(resp)
+        hash = self.getBody(resp)
+        self.assertEqual(hash, self.publicFile['sha512'])
+        self.assertEqual(len(hash), 128)
+
+        # Should not work with private file
+        resp = self.request(template % (self.privateFile['_id'], 'sha512'))
+        self.assertStatus(resp, 401)
+        six.assertRegex(self, resp.json['message'], '^Read access denied')
