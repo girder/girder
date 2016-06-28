@@ -30,7 +30,7 @@ girder.views.HierarchyWidget.prototype.events['click .g-curation-button'] = func
         el: $('#g-dialog-container'),
         parentView: this,
         folder: this.parentModel
-    }).render();
+    });
 };
 
 // curation dialog
