@@ -95,8 +95,8 @@ class HashedFile(File):
         Print an exception if a user requests an invalid checksum algorithm.
         """
         if algo not in self.supportedAlgorithms:
-            msg = 'Invalid algorithm ("%s"). Supported algorithm are: %s.'\
-                  % (algo, ', '.join(self.supportedAlgorithms))
+            msg = 'Invalid algorithm "%s". Supported algorithms: %s.' % (
+                algo, ', '.join(self.supportedAlgorithms))
             raise RestException(msg, code=400)
 
     def _getFirstFileByHash(self, algo, hash, user=None):
@@ -129,4 +129,5 @@ class HashedFile(File):
 
 def load(info):
     HashedFile(info['apiRoot'].file)
-    ModelImporter.model('file').exposeFields(AccessType.READ, {'sha512'})
+    ModelImporter.model('file').exposeFields(
+        level=AccessType.READ, fields=HashedFile.supportedAlgorithms)
