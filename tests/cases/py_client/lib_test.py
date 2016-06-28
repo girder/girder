@@ -485,15 +485,15 @@ class PythonClientTestCase(base.TestCase):
                          item['_id'])
 
         # Test invalid path, default
-        try:
+        with self.assertRaises(girder_client.HttpError) as cm:
             self.client.resourceLookup(testPath)
-        except girder_client.HttpError as e:
-            self.assertEqual(e.status, 400)
-            self.assertEqual(e.method, 'GET')
-            resp = json.loads(e.responseText)
-            self.assertEqual(resp['type'], 'rest')
-            self.assertEqual(resp['message'],
-                             'Path not found: %s' % (testInvalidPath))
+
+        self.assertEqual(cm.exception.status, 400)
+        self.assertEqual(e.method, 'GET')
+        resp = json.loads(e.responseText)
+        self.assertEqual(resp['type'], 'rest')
+        self.assertEqual(resp['message'],
+                         'Path not found: %s' % (testInvalidPath))
 
         # Test valid path, test = True
         self.assertEqual(self.client.resourceLookup(testPath,
@@ -511,12 +511,12 @@ class PythonClientTestCase(base.TestCase):
                          item['_id'])
 
         # Test invalid path, test = False
-        try:
+        with self.assertRaises(girder_client.HttpError) as cm:
             self.client.resourceLookup(testPath, test=False)
-        except girder_client.HttpError as e:
-            self.assertEqual(e.status, 400)
-            self.assertEqual(e.method, 'GET')
-            resp = json.loads(e.responseText)
-            self.assertEqual(resp['type'], 'rest')
-            self.assertEqual(resp['message'],
-                             'Path not found: %s' % (testInvalidPath))
+
+        self.assertEqual(cm.exception.status, 400)
+        self.assertEqual(e.method, 'GET')
+        resp = json.loads(e.responseText)
+        self.assertEqual(resp['type'], 'rest')
+        self.assertEqual(resp['message'],
+                         'Path not found: %s' % (testInvalidPath))
