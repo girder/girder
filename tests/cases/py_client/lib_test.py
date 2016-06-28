@@ -486,11 +486,11 @@ class PythonClientTestCase(base.TestCase):
 
         # Test invalid path, default
         with self.assertRaises(girder_client.HttpError) as cm:
-            self.client.resourceLookup(testPath)
+            self.client.resourceLookup(testInvalidPath)
 
         self.assertEqual(cm.exception.status, 400)
-        self.assertEqual(e.method, 'GET')
-        resp = json.loads(e.responseText)
+        self.assertEqual(cm.method, 'GET')
+        resp = json.loads(cm.responseText)
         self.assertEqual(resp['type'], 'rest')
         self.assertEqual(resp['message'],
                          'Path not found: %s' % (testInvalidPath))
@@ -512,11 +512,11 @@ class PythonClientTestCase(base.TestCase):
 
         # Test invalid path, test = False
         with self.assertRaises(girder_client.HttpError) as cm:
-            self.client.resourceLookup(testPath, test=False)
+            self.client.resourceLookup(testInvalidPath, test=False)
 
         self.assertEqual(cm.exception.status, 400)
-        self.assertEqual(e.method, 'GET')
-        resp = json.loads(e.responseText)
+        self.assertEqual(cm.method, 'GET')
+        resp = json.loads(cm.responseText)
         self.assertEqual(resp['type'], 'rest')
         self.assertEqual(resp['message'],
                          'Path not found: %s' % (testInvalidPath))
