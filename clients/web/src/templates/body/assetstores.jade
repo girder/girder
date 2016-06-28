@@ -11,13 +11,16 @@
   each assetstore in assetstores
     .g-assetstore-container.panel.panel-default(class=assetstore.get('current')? 'g-assetstore-current' : undefined)
       .panel-body
-        .g-assetstore-info-section(assetstore-type="#{assetstore.get('type')}" cid="#{assetstore.cid}")
+        .g-assetstore-info-section(assetstore-type=assetstore.get('type'), cid=assetstore.cid)
           div
             b Name:
             span.g-assetstore-name  #{assetstore.get('name')}
             if assetstore.get('current')
               span.g-assetstore-current-text
                 |  (Current assetstore)
+          div
+            b Unique ID:
+            span.g-assetstore-id  #{assetstore.id}
           if assetstore.get('type') === types.FILESYSTEM
             div
               b Type:
