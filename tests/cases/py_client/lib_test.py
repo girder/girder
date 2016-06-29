@@ -489,8 +489,8 @@ class PythonClientTestCase(base.TestCase):
             self.client.resourceLookup(testInvalidPath)
 
         self.assertEqual(cm.exception.status, 400)
-        self.assertEqual(cm.method, 'GET')
-        resp = json.loads(cm.responseText)
+        self.assertEqual(cm.exception.method, 'GET')
+        resp = json.loads(cm.exception.responseText)
         self.assertEqual(resp['type'], 'rest')
         self.assertEqual(resp['message'],
                          'Path not found: %s' % (testInvalidPath))
@@ -515,8 +515,8 @@ class PythonClientTestCase(base.TestCase):
             self.client.resourceLookup(testInvalidPath, test=False)
 
         self.assertEqual(cm.exception.status, 400)
-        self.assertEqual(cm.method, 'GET')
-        resp = json.loads(cm.responseText)
+        self.assertEqual(cm.exception.method, 'GET')
+        resp = json.loads(cm.exception.responseText)
         self.assertEqual(resp['type'], 'rest')
         self.assertEqual(resp['message'],
                          'Path not found: %s' % (testInvalidPath))
