@@ -26,6 +26,7 @@ import re
 import string
 
 from girder.constants import TerminalColor
+import girder.events
 
 try:
     from random import SystemRandom
@@ -88,6 +89,10 @@ class JsonEncoder(json.JSONEncoder):
     route return values when JSON is requested.
     """
     def default(self, obj):
+        event = girder.events.trigger('rest.json_encode', obj)
+        if len(event.responses):
+            return event.responses[-1]
+
         if isinstance(obj, set):
             return tuple(obj)
         elif isinstance(obj, datetime.datetime):
