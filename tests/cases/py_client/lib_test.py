@@ -496,19 +496,19 @@ class PythonClientTestCase(base.TestCase):
                          'Path not found: %s' % (testInvalidPath))
 
         # Test valid path, test = True
-        self.assertEqual(self.client.resourceLookup(testPath,
-                                                    test=True)['_id'],
-                         item['_id'])
+        self.assertEqual(
+            self.client.resourceLookup(testPath, test=True)['_id'],
+            item['_id'])
 
         # Test invalid path, test = True
-        self.assertEqual(self.client.resourceLookup(testInvalidPath,
-                                                    test=True),
-                         None)
+        self.assertEqual(
+            self.client.resourceLookup(testInvalidPath, test=True),
+            None)
 
         # Test valid path, test = False
-        self.assertEqual(self.client.resourceLookup(testPath,
-                                                    test=False)['_id'],
-                         item['_id'])
+        self.assertEqual(
+            self.client.resourceLookup(testPath, test=False)['_id'],
+            item['_id'])
 
         # Test invalid path, test = False
         with self.assertRaises(girder_client.HttpError) as cm:
