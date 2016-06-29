@@ -54,7 +54,7 @@ def getOrCreateAssetsFolder():
     collection = ModelImporter.model('collection').createCollection(
         NAME, public=False, reuseExisting=True)
     folder = ModelImporter.model('folder').createFolder(
-        collection, NAME, parentType='collection', public=False,
+        collection, NAME, parentType='collection', public=True,
         reuseExisting=True)
     return folder
 

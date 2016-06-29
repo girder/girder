@@ -25,7 +25,7 @@ girder.views.homepage_ConfigView = girder.View.extend({
                 parent: this.folder,
                 enableUploads: true,
                 maxUploadSize: 1024 * 1024 * 10,
-                allowedExtensions: ['png', 'jpeg', 'jpg', 'gif'],
+                allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
             });
             this.render();
             this.editor.val(resp['homepage.markdown']);
