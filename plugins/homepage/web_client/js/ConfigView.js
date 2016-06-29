@@ -13,20 +13,20 @@ girder.views.homepage_ConfigView = girder.View.extend({
     },
 
     initialize: function () {
-        this.editor = new girder.views.MarkdownWidget({
-            prefix: 'homepage',
-            placeholder: 'Enter Markdown for the homepage',
-            enableUploads: false,
-            parentView: this
-        });
-
         girder.restRequest({
             type: 'GET',
-            path: 'system/setting',
-            data: {
-                list: JSON.stringify(['homepage.markdown'])
-            }
+            path: 'homepage/markdown'
         }).done(_.bind(function (resp) {
+            this.folder = new girder.models.FolderModel({_id: resp.folderId});
+            this.editor = new girder.views.MarkdownWidget({
+                prefix: 'homepage',
+                placeholder: 'Enter Markdown for the homepage',
+                parentView: this,
+                parent: this.folder,
+                enableUploads: true,
+                maxUploadSize: 1024 * 1024 * 10,
+                allowedExtensions: ['png', 'jpeg', 'jpg', 'gif'],
+            });
             this.render();
             this.editor.val(resp['homepage.markdown']);
         }, this));
