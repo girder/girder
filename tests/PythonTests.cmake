@@ -83,7 +83,7 @@ function(add_python_test case)
   set(name "server_${case}")
 
   set(_options BIND_SERVER PY2_ONLY)
-  set(_args NAME PLUGIN SUBMODULE)
+  set(_args PLUGIN SUBMODULE)
   set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -103,12 +103,9 @@ function(add_python_test case)
     set(other_covg "")
   endif()
 
-  if(fn_NAME)
-    set(name ${fn_NAME})
-  endif()
-
   if(fn_SUBMODULE)
     set(module ${module}.${fn_SUBMODULE})
+    set(name ${name}.${fn_SUBMODULE})
   endif()
 
   if(PYTHON_COVERAGE)
