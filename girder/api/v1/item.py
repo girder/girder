@@ -233,6 +233,9 @@ class Item(Resource):
                'header disposition-type value, only applied for single file '
                'items.', required=False, enum=['inline', 'attachment'],
                default='attachment')
+        .param('extraParameters', 'Arbitrary data to send along with the '
+               'download request, only applied for single file '
+               'items.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -244,13 +247,15 @@ class Item(Resource):
         if format not in (None, '', 'zip'):
             raise RestException('Unsupported format.')
         if len(files) == 1 and format != 'zip':
-            contentDisp = params.get('contentDisposition', None)
+            contentDisp = params.get('contentDisposition')
+            extraParameters = params.get('extraParameters')
             if (contentDisp is not None and
                contentDisp not in {'inline', 'attachment'}):
                 raise RestException('Unallowed contentDisposition type "%s".' %
                                     contentDisp)
             return self.model('file').download(files[0], offset,
-                                               contentDisposition=contentDisp)
+                                               contentDisposition=contentDisp,
+                                               extraParameters=extraParameters)
         else:
             return self._downloadMultifileItem(item, user)
 
