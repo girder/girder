@@ -161,8 +161,22 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(path, method='POST', params=params, user=self.admin)
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
-                         'No such directory: /nonexistent/dir.')
+                         'Not found: /nonexistent/dir.')
 
+        # Test importing a single file
+        params['importPath'] = os.path.join(
+            ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'world.txt')
+        resp = self.request(path, method='POST', params=params, user=self.admin)
+        self.assertStatusOk(resp)
+        resp = self.request('/resource/lookup', user=self.admin, params={
+            'path': '/user/admin/Public/world.txt/world.txt'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_modelType'], 'file')
+        file = self.model('file').load(resp.json['_id'], force=True, exc=True)
+        self.assertTrue(os.path.isfile(file['path']))
+
+        # Test importing a directory
         params['importPath'] = os.path.join(
             ROOT_DIR, 'tests', 'cases', 'py_client')
         resp = self.request(path, method='POST', params=params, user=self.admin)

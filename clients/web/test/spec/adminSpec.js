@@ -313,8 +313,8 @@ describe('Test the assetstore page', function () {
 
         waitsFor(function () {
             return $('.g-validation-failed-message').text() ===
-                'No such directory: /invalid/path.';
-        });
+                'Not found: /invalid/path.';
+        }, 'not found message to appear');
 
         runs(function () {
             $('#g-filesystem-import-path').val('./tests/cases/py_client');
