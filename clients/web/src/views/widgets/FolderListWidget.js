@@ -35,8 +35,13 @@ girder.views.FolderListWidget = girder.View.extend({
     },
 
     render: function () {
+        var pathname = window.location.pathname;
+        var baseHash = window.location.hash.split('/').slice(0, 2).join('/');
+
         this.checked = [];
         this.$el.html(girder.templates.folderList({
+            pathname: pathname,
+            baseHash: baseHash,
             folders: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             checkboxes: this._checkboxes
