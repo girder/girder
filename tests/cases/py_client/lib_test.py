@@ -467,3 +467,56 @@ class PythonClientTestCase(base.TestCase):
 
         # Check we got the right request
         self.assertTrue(patchRequest['valid'])
+
+    def testResourceLookup(self):
+        # Creating item
+        itemName = 'SomethingReallyUnique'
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      itemName)
+
+        testPath = "user/%s/%s/%s" % (self.user['login'],
+                                      self.publicFolder['name'], itemName)
+        testInvalidPath = "user/%s/%s/%s" % (self.user['login'],
+                                             self.publicFolder['name'],
+                                             'RogueOne')
+
+        # Test valid path, default
+        self.assertEqual(self.client.resourceLookup(testPath)['_id'],
+                         item['_id'])
+
+        # Test invalid path, default
+        with self.assertRaises(girder_client.HttpError) as cm:
+            self.client.resourceLookup(testInvalidPath)
+
+        self.assertEqual(cm.exception.status, 400)
+        self.assertEqual(cm.exception.method, 'GET')
+        resp = json.loads(cm.exception.responseText)
+        self.assertEqual(resp['type'], 'rest')
+        self.assertEqual(resp['message'],
+                         'Path not found: %s' % (testInvalidPath))
+
+        # Test valid path, test = True
+        self.assertEqual(
+            self.client.resourceLookup(testPath, test=True)['_id'],
+            item['_id'])
+
+        # Test invalid path, test = True
+        self.assertEqual(
+            self.client.resourceLookup(testInvalidPath, test=True),
+            None)
+
+        # Test valid path, test = False
+        self.assertEqual(
+            self.client.resourceLookup(testPath, test=False)['_id'],
+            item['_id'])
+
+        # Test invalid path, test = False
+        with self.assertRaises(girder_client.HttpError) as cm:
+            self.client.resourceLookup(testInvalidPath, test=False)
+
+        self.assertEqual(cm.exception.status, 400)
+        self.assertEqual(cm.exception.method, 'GET')
+        resp = json.loads(cm.exception.responseText)
+        self.assertEqual(resp['type'], 'rest')
+        self.assertEqual(resp['message'],
+                         'Path not found: %s' % (testInvalidPath))
