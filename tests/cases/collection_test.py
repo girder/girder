@@ -64,6 +64,10 @@ class CollectionTestCase(base.TestCase):
         }
         self.collection = self.model('collection').createCollection(**coll)
 
+    def testEmptyCreator(self):
+        c = self.model('collection').createCollection('No Creator')
+        self.assertEqual(c['creatorId'], None)
+
     def testCreateAndListCollections(self):
         self.ensureRequiredParams(
             path='/collection', method='POST', required=['name'],
