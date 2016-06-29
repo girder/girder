@@ -13,14 +13,7 @@ girder.views.FileListWidget = girder.View.extend({
                 el: $('#g-dialog-container'),
                 model: this.collection.get(cid),
                 parentView: this
-            }).on('g:uploadFinished', function () {
-                girder.events.trigger('g:alert', {
-                    icon: 'ok',
-                    text: 'File contents updated.',
-                    type: 'success',
-                    timeout: 4000
-                });
-            }, this).render();
+            }).render();
         },
 
         'click a.g-update-contents': function (e) {
