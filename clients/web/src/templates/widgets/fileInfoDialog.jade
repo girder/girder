@@ -1,14 +1,14 @@
 .modal-dialog
   .modal-content
     .modal-header
-      button.close(data-dismiss="modal" aria-hidden="true") &times;
+      button.close(data-dismiss="modal", aria-hidden="true") &times;
       h4.modal-title File information
       .g-dialog-subtitle
         i.icon-doc-inv
         span= file.name()
     .modal-body
       .g-file-info-lines
-        .g-file-info-line(property='created')
+        .g-file-info-line(property="created")
           i.icon-clock
           span= 'Created '
           span.g-bold-part= girder.formatDate(file.get('created'), girder.DATE_SECOND)
