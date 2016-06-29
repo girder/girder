@@ -2,5 +2,6 @@ if file.has('sha512')
   .g-file-info-line(property="sha512")
     i.icon-barcode
     span SHA-512:
-    span.g-bold-part
-      a(href=keyfileUrl(file.id, 'sha512'))  #{abbreviate(file.get('sha512'))}
+    input.g-hash-textbox(readonly, type="text", value=file.get('sha512'))
+    a.g-keyfile-download(title="Download key file", href=keyfileUrl(file.id, 'sha512'))
+      i.icon-key-inv
