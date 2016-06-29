@@ -6,7 +6,7 @@ ul.g-item-list
       a.g-item-list-link.g-right-border(g-item-cid="#{item.cid}")
         i.icon-doc-text-inv
         | #{item.get('name')}
-      a.g-right-border(href=item.downloadUrl())
+      a(href=item.downloadUrl())
         i.icon-download
       a.g-view-inline(target="_blank" href=item.downloadUrl({contentDisposition: 'inline'}))
         i.icon-eye
