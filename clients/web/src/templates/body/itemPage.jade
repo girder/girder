@@ -13,7 +13,7 @@
           i.icon-down-dir
       ul.g-item-actions-menu.dropdown-menu.pull-right(role="menu")
         li(role="presentation")
-          a.g-download-item(role="menuitem", href="#{item.downloadUrl()}")
+          a.g-download-item(role="menuitem", href=item.downloadUrl())
             i.icon-download
             | Download item
         if (accessLevel >= girder.AccessType.WRITE)
@@ -28,8 +28,8 @@
               i.icon-trash
               | Delete item
 
-  .g-item-name.g-body-title #{item.get('name')}
-  .g-item-description.g-body-subtitle #{item.get('description')}
+  .g-item-name.g-body-title= item.name()
+  .g-item-description.g-body-subtitle= item.get('description')
 
 .g-item-info
   .g-item-info-header
@@ -37,10 +37,10 @@
     | Info
   .g-item-size.g-info-list-entry
     i.icon-hdd
-      if item.get('size') < 1024
-        | #{item.get('size')} bytes
-      else
-        | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
+    if item.get('size') < 1024
+      | #{item.get('size')} bytes
+    else
+      | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
   .g-item-created.g-info-list-entry
     i.icon-clock
     | Created on #{girder.formatDate(item.get('created'), girder.DATE_SECOND)}

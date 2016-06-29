@@ -377,6 +377,18 @@ def setRawResponse(val=True):
     cherrypy.request.girderRawResponse = val
 
 
+def setResponseHeader(header, value):
+    """
+    Set a response header to the given value.
+
+    :param header: The header name.
+    :type header: str
+    :param value: The value for the header.
+    :type value: str
+    """
+    cherrypy.response.headers[header] = value
+
+
 def rawResponse(fun):
     """
     This is a decorator that can be placed on REST route handlers, and is
