@@ -6,9 +6,10 @@ ul.g-item-list
       a.g-item-list-link.g-right-border(g-item-cid="#{item.cid}")
         i.icon-doc-text-inv
         | #{item.get('name')}
-      a(href=item.downloadUrl())
+      a(title="Download item" href=item.downloadUrl())
         i.icon-download
-      a.g-view-inline(target="_blank" href=item.downloadUrl({contentDisposition: 'inline'}))
+      a.g-view-inline(title="View in browser" target="_blank"
+                      href=item.downloadUrl({contentDisposition: 'inline'}))
         i.icon-eye
       .g-item-size #{girder.formatSize(item.get('size'))}
   if (hasMore)

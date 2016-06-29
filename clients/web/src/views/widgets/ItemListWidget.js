@@ -40,6 +40,12 @@ girder.views.ItemListWidget = girder.View.extend({
             checkboxes: this._checkboxes
         }));
 
+        this.$('.g-item-list-entry a[title]').tooltip({
+            container: 'body',
+            placement: 'auto',
+            delay: 100
+        });
+
         var view = this;
         this.$('.g-list-checkbox').change(function () {
             var cid = $(this).attr('g-item-cid');
