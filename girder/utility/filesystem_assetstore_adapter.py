@@ -333,8 +333,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                             user, name=fname)
 
     def _hasOnlyFiles(self, path, files):
-        return all(map(os.path.isfile, (os.path.join(path, fname)
-                                        for fname in files)))
+        return all(os.path.isfile(os.path.join(path, name)) for name in files)
 
     def _importFileToFolder(self, name, user, parent, parentType, path):
         if parentType != 'folder':
