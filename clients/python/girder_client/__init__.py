@@ -391,9 +391,20 @@ class GirderClient(object):
 
         return self.listResource('item', params)
 
+    def createCollection(self, name, description='', public=False):
+        """
+        Creates and returns a collection.
+        """
+        params = {
+            'name': name,
+            'description': description,
+            'public': public
+        }
+        return self.createResource('collection', params)
+
     def createFolder(self, parentId, name, description='', parentType='folder'):
         """
-        Creates and returns a folder
+        Creates and returns a folder.
 
         :param parentType: One of ('folder', 'user', 'collection')
         """
