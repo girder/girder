@@ -93,7 +93,7 @@ class MetadataExtractor(object):
         Attempts to read file as DICOM image and extract metadata.
         Upon successful read, metadata is set.
         """
-        
+
         try:
             dcMetadata = dicom.read_file(self.path, stop_before_pixels=True)
             if dcMetadata:
@@ -101,7 +101,7 @@ class MetadataExtractor(object):
                 for item in dcMetadata:
                     # pass forces rawDataElement to DataElement conversion
                     pass
-                    name = str(item.name).replace('.','')
+                    name = str(item.name).replace('.', '')
                     value = str(item.value)
                     self.metadata[name] = value
                 return True
@@ -109,7 +109,7 @@ class MetadataExtractor(object):
                 self.metadata = None
                 return False
 
-        except:
+        except dicom.filereader.InvalidDicomError:
             self.metadata = None
             return False
 
