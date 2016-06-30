@@ -83,7 +83,7 @@ function(add_python_test case)
   set(name "server_${case}")
 
   set(_options BIND_SERVER PY2_ONLY)
-  set(_args PLUGIN SUBMODULE)
+  set(_args DBNAME PLUGIN SUBMODULE)
   set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -124,7 +124,13 @@ function(add_python_test case)
     )
   endif()
 
-  string(REPLACE "." "_" _db_name ${name})
+  if(fn_DBNAME)
+    set(_db_name ${fn_DBNAME})
+  else()
+    set(_db_name ${name})
+  endif()
+
+  string(REPLACE "." "_" _db_name ${_db_name})
   set_property(TEST ${name} PROPERTY ENVIRONMENT
     "PYTHONPATH=$ENV{PYTHONPATH}${_separator}${pythonpath}${_separator}${PROJECT_SOURCE_DIR}/clients/python"
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${_db_name}"
