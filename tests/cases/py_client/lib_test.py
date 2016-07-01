@@ -176,6 +176,14 @@ class PythonClientTestCase(base.TestCase):
         self.client.createFolder(privateFolder['_id'], name='Subfolder')
         self.client.inheritAccessControlRecursive(privateFolder['_id'])
 
+        # Test collection creation and retrieval
+        c1 = self.client.createCollection('c1')
+        c2 = self.client.createCollection('c2')
+        cs = self.client.listCollection()
+        self.assertEqual(len(cs), 2)
+        self.assertIn(c1, cs)
+        self.assertIn(c2, cs)
+
     def testUploadCallbacks(self):
         callbackUser = self.model('user').createUser(
             firstName='Callback', lastName='Last', login='callback',
