@@ -70,6 +70,20 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise ValidationException(
                 'Unable to write into directory "%s".' % doc['root'])
 
+        if doc.get('perms') is None:
+            doc['perms'] = oct(stat.S_IRUSR | stat.S_IWUSR)
+        else:
+            try:
+                perms = int(doc['perms'], 8)
+                # Make sure that mode is still rw for user
+                if not perms & stat.S_IRUSR or \
+                        not perms & stat.S_IWUSR:
+                    raise ValidationException(
+                        'Default permissions must allow "rw" for user')
+            except ValueError:
+                raise ValidationException(
+                    'Default permissions must be an octal integer')
+
     @staticmethod
     def fileIndexFields():
         """
@@ -206,7 +220,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             # shutil.move works across filesystems
             shutil.move(upload['tempFile'], abspath)
             try:
-                os.chmod(abspath, stat.S_IRUSR | stat.S_IWUSR)
+                os.chmod(abspath, int(self.assetstore['perms'], 8))
             except OSError:
                 # some filesystems may not support POSIX permissions
                 pass

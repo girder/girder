@@ -79,11 +79,13 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
     fieldsMap[girder.AssetstoreType.FILESYSTEM] = {
         get: function () {
             return {
-                root: this.$('#g-edit-fs-root').val()
+                root: this.$('#g-edit-fs-root').val(),
+                perms: this.$('#g-edit-fs-perms').val()
             };
         },
         set: function () {
             this.$('#g-edit-fs-root').val(this.model.get('root'));
+            this.$('#g-edit-fs-perms').val(this.model.get('perms'));
         }
     };
 
