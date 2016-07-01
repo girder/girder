@@ -391,9 +391,41 @@ class GirderClient(object):
 
         return self.listResource('item', params)
 
-    def createFolder(self, parentId, name, description='', parentType='folder'):
+    def listCollection(self, limit=None):
         """
-        Creates and returns a folder
+        Retrieves a list of collections.
+
+        :param limit: the result set size limit.
+        """
+        params = {}
+        if limit:
+            params['limit'] = limit
+        return self.listResource('collection', params)
+
+    def getCollection(self, collectionId):
+        """
+        Retrieves a collection by its ID.
+
+        :param collectionId: A string containing the ID of the collection to
+            retrieve from Girder.
+        """
+        return self.getResource('collection', collectionId)
+
+    def createCollection(self, name, description='', public=False):
+        """
+        Creates and returns a collection.
+        """
+        params = {
+            'name': name,
+            'description': description,
+            'public': public
+        }
+        return self.createResource('collection', params)
+
+    def createFolder(self, parentId, name, description='', parentType='folder',
+                     public=None):
+        """
+        Creates and returns a folder.
 
         :param parentType: One of ('folder', 'user', 'collection')
         """
@@ -403,6 +435,8 @@ class GirderClient(object):
             'name': name,
             'description': description
         }
+        if public is not None:
+            params['public'] = public
         return self.createResource('folder', params)
 
     def getFolder(self, folderId):
