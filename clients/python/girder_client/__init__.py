@@ -391,6 +391,42 @@ class GirderClient(object):
 
         return self.listResource('item', params)
 
+    def listUser(self, limit=None):
+        """
+        Retrieves a list of users.
+
+        :param limit: the result set size limit.
+        """
+        params = {}
+        if limit:
+            params['limit'] = limit
+        return self.listResource('user', params)
+
+    def getUser(self, userId):
+        """
+        Retrieves a user by its ID.
+
+        :param userId: A string containing the ID of the user to
+            retrieve from Girder.
+        """
+        return self.getResource('user', userId)
+
+    def createUser(self, login, email, firstName, lastName, password,
+                   admin=None):
+        """
+        Creates and returns a user.
+        """
+        params = {
+            'login': login,
+            'email': email,
+            'firstName': firstName,
+            'lastName': lastName,
+            'password': password
+        }
+        if admin is not None:
+            params['admin'] = admin
+        return self.createResource('user', params)
+
     def listCollection(self, limit=None):
         """
         Retrieves a list of collections.
