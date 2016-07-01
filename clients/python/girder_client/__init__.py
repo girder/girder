@@ -402,6 +402,15 @@ class GirderClient(object):
             params['limit'] = limit
         return self.listResource('collection', params)
 
+    def getCollection(self, collectionId):
+        """
+        Retrieves a collection by its ID.
+
+        :param collectionId: A string containing the ID of the collection to
+            retrieve from Girder.
+        """
+        return self.getResource('collection', collectionId)
+
     def createCollection(self, name, description='', public=False):
         """
         Creates and returns a collection.
