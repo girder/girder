@@ -179,10 +179,11 @@ class PythonClientTestCase(base.TestCase):
         # Test collection creation and retrieval
         c1 = self.client.createCollection('c1')
         c2 = self.client.createCollection('c2')
-        cs = self.client.listCollection()
-        self.assertEqual(len(cs), 2)
-        self.assertIn(c1, cs)
-        self.assertIn(c2, cs)
+        collections = self.client.listCollection()
+        self.assertEqual(len(collections), 2)
+        ids = [c['_id'] for c in collections]
+        self.assertIn(c1['_id'], ids)
+        self.assertIn(c2['_id'], ids)
 
     def testUploadCallbacks(self):
         callbackUser = self.model('user').createUser(
