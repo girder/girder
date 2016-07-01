@@ -391,6 +391,17 @@ class GirderClient(object):
 
         return self.listResource('item', params)
 
+    def listCollection(self, limit=None):
+        """
+        Retrieves a list of collections.
+
+        :param limit: the result set size limit.
+        """
+        params = {}
+        if limit:
+            params['limit'] = limit
+        return self.listResource('collection', params)
+
     def createCollection(self, name, description='', public=False):
         """
         Creates and returns a collection.
