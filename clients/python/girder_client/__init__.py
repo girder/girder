@@ -27,6 +27,7 @@ import re
 import requests
 import six
 
+DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 
 _safeNameRegex = re.compile(r'^[/\\]+')
 
@@ -222,17 +223,22 @@ class GirderClient(object):
         not involve multipart file data that might need to be specially encoded
         or handled differently.
 
-        :param method: One of 'GET', 'POST', 'PUT', or 'DELETE'
+        :param method: The HTTP method to use in the request (GET, POST, etc.)
+        :type method: str
         :param path: A string containing the path elements for this request.
             Note that the path string should not begin or end with the path
             separator, '/'.
+        :type path: str
         :param parameters: A dictionary mapping strings to strings, to be used
             as the key/value pairs in the request parameters.
+        :type parameters: dict
         :param data: A dictionary, bytes or file-like object to send in the
             body.
         :param files: A dictonary of 'name' => file-like-objects
             for multipart encoding upload.
-        :param json: A dictionary to send in the body as a JSON object.
+        :type files: dict
+        :param json: A JSON object to send in the request body.
+        :type json: dict
         """
         if not parameters:
             parameters = {}
@@ -329,28 +335,41 @@ class GirderClient(object):
         return self.get('resource/lookup',
                         parameters={'path': path, 'test': test})
 
-    def listResource(self, path, params):
+    def listResource(self, path, params=None, limit=None, offset=None):
         """
-        search for a list of resources based on params.
+        This is a generator that will yield records using the given path and
+        params until exhausted. Paging of the records is done internally, but
+        can be overriden by manually passing a ``limit`` value to select only
+        a single page. Passing an ``offset`` will work in both single-page and
+        exhaustive modes.
         """
-        return self.get(path, params)
+        params = dict(params or {})
+        params['offset'] = offset or 0
+        params['limit'] = limit or DEFAULT_PAGE_LIMIT
+
+        while True:
+            records = self.get(path, params)
+            for record in records:
+                yield record
+
+            n = len(records)
+            if limit or n < params['limit']:
+                # Either a single slice was requested, or this is the last page
+                break
+
+            params['offset'] += n
 
     def listFile(self, itemId, limit=None, offset=None):
         """
-        Retrieves a file set from this item ID.
+        This is a generator that will yield files under the given itemId.
 
         :param itemId: the item's ID
         :param limit: the result set size limit.
+        :param offset: the result offset.
         """
-
-        params = {
+        return self.listResource('item/%s/files' % itemId, params={
             'id': itemId,
-        }
-        if limit is not None:
-            params['limit'] = limit
-        if offset is not None:
-            params['offset'] = offset
-        return self.listResource('item/%s/files' % itemId, params)
+        }, limit=limit, offset=offset)
 
     def createItem(self, parentFolderId, name, description=''):
         """
@@ -374,12 +393,13 @@ class GirderClient(object):
 
     def listItem(self, folderId, text=None, name=None, limit=None, offset=None):
         """
-        Retrieves a item set from this folder ID.
+        This is a generator that will yield all items under a given folder.
 
         :param folderId: the parent folder's ID.
         :param text: query for full text search of items.
         :param name: query for exact name match of items.
-        :param limit: the result set size limit.
+        :param limit: If requesting a specific slice, the length of the slice.
+        :param offset: Starting offset into the list.
         """
         params = {
             'folderId': folderId
@@ -388,25 +408,17 @@ class GirderClient(object):
             params['text'] = text
         if name:
             params['name'] = name
-        if limit is not None:
-            params['limit'] = limit
-        if offset is not None:
-            params['offset'] = offset
 
-        return self.listResource('item', params)
+        return self.listResource('item', params, limit=limit, offset=offset)
 
     def listUser(self, limit=None, offset=None):
         """
-        Retrieves a list of users.
+        This is a generator that will yield all users in the system.
 
-        :param limit: the result set size limit.
+        :param limit: If requesting a specific slice, the length of the slice.
+        :param offset: Starting offset into the list.
         """
-        params = {}
-        if limit is not None:
-            params['limit'] = limit
-        if offset is not None:
-            params['offset'] = offset
-        return self.listResource('user', params)
+        return self.listResource('user', limit=limit, offset=offset)
 
     def getUser(self, userId):
         """
@@ -435,16 +447,12 @@ class GirderClient(object):
 
     def listCollection(self, limit=None, offset=None):
         """
-        Retrieves a list of collections.
+        This is a generator that will yield all collections in the system.
 
-        :param limit: the result set size limit.
+        :param limit: If requesting a specific slice, the length of the slice.
+        :param offset: Starting offset into the list.
         """
-        params = {}
-        if limit is not None:
-            params['limit'] = limit
-        if offset is not None:
-            params['offset'] = offset
-        return self.listResource('collection', params)
+        return self.listResource('collection', limit=limit, offset=offset)
 
     def getCollection(self, collectionId):
         """
@@ -495,12 +503,14 @@ class GirderClient(object):
     def listFolder(self, parentId, parentFolderType='folder', name=None,
                    limit=None, offset=None):
         """
-        Retrieves a folder set from this parent ID.
+        This is a generator that will yield a list of folders based on the
+        filter parameters.
 
         :param parentId: The parent's ID.
         :param parentFolderType: One of ('folder', 'user', 'collection').
         :param name: query for exact name match of items.
-        :param limit: the result set size limit.
+        :param limit: If requesting a specific slice, the length of the slice.
+        :param offset: Starting offset into the list.
         """
         params = {
             'parentId': parentId,
@@ -509,12 +519,8 @@ class GirderClient(object):
 
         if name:
             params['name'] = name
-        if limit is not None:
-            params['limit'] = limit
-        if offset is not None:
-            params['offset'] = offset
 
-        return self.listResource('folder', params)
+        return self.listResource('folder', params, limit=limit, offset=offset)
 
     def getFolderAccess(self, folderId):
         """
@@ -818,9 +824,13 @@ class GirderClient(object):
         obj = self.put(path, json=metadata)
         return obj
 
-    def _transformFilename(self, name):
+    def transformFilename(self, name):
         """
-        Sanitize the filename a bit.
+        Sanitize a resource name from Girder into a name that is safe to use
+        as a filesystem path.
+
+        :param name: The name to transform.
+        :type name: str
         """
         if name in ('.', '..'):
             name = '_' + name
@@ -870,7 +880,7 @@ class GirderClient(object):
         first = True
         while True:
             files = self.get('item/%s/files' % itemId, parameters={
-                'limit': 50,
+                'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset
             })
 
@@ -878,20 +888,20 @@ class GirderClient(object):
                 if len(files) == 1 and files[0]['name'] == name:
                     self.downloadFile(
                         files[0]['_id'],
-                        os.path.join(dest, self._transformFilename(name)))
+                        os.path.join(dest, self.transformFilename(name)))
                     break
                 else:
-                    dest = os.path.join(dest, self._transformFilename(name))
+                    dest = os.path.join(dest, self.transformFilename(name))
                     _safeMakedirs(dest)
 
             for file in files:
                 self.downloadFile(
                     file['_id'],
-                    os.path.join(dest, self._transformFilename(file['name'])))
+                    os.path.join(dest, self.transformFilename(file['name'])))
 
             first = False
             offset += len(files)
-            if len(files) < 50:
+            if len(files) < DEFAULT_PAGE_LIMIT:
                 break
 
     def downloadFolderRecursive(self, folderId, dest):
@@ -905,7 +915,7 @@ class GirderClient(object):
 
         while True:
             folders = self.get('folder', parameters={
-                'limit': 50,
+                'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset,
                 'parentType': 'folder',
                 'parentId': folderId
@@ -913,13 +923,13 @@ class GirderClient(object):
 
             for folder in folders:
                 local = os.path.join(
-                    dest, self._transformFilename(folder['name']))
+                    dest, self.transformFilename(folder['name']))
                 _safeMakedirs(local)
 
                 self.downloadFolderRecursive(folder['_id'], local)
 
             offset += len(folders)
-            if len(folders) < 50:
+            if len(folders) < DEFAULT_PAGE_LIMIT:
                 break
 
         offset = 0
@@ -927,7 +937,7 @@ class GirderClient(object):
         while True:
             items = self.get('item', parameters={
                 'folderId': folderId,
-                'limit': 50,
+                'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset
             })
 
@@ -935,7 +945,7 @@ class GirderClient(object):
                 self.downloadItem(item['_id'], dest, name=item['name'])
 
             offset += len(items)
-            if len(items) < 50:
+            if len(items) < DEFAULT_PAGE_LIMIT:
                 break
 
     def inheritAccessControlRecursive(self, ancestorFolderId, access=None,
@@ -965,7 +975,7 @@ class GirderClient(object):
             self.setFolderAccess(ancestorFolderId, json.dumps(access), public)
 
             folders = self.get('folder', parameters={
-                'limit': 50,
+                'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset,
                 'parentType': 'folder',
                 'parentId': ancestorFolderId
@@ -976,7 +986,7 @@ class GirderClient(object):
                                                    public)
 
             offset += len(folders)
-            if len(folders) < 50:
+            if len(folders) < DEFAULT_PAGE_LIMIT:
                 break
 
     def add_folder_upload_callback(self, callback):
@@ -1020,9 +1030,9 @@ class GirderClient(object):
         """
         children = self.listFolder(parent_id, parent_type, name=folder_name)
 
-        if len(children):
-            return children[0]
-        else:
+        try:
+            return six.next(children)
+        except StopIteration:
             return self.createFolder(
                 parent_id, folder_name, parentType=parent_type)
 
@@ -1045,8 +1055,10 @@ class GirderClient(object):
         item = None
         if reuse_existing:
             children = self.listItem(parent_folder_id, name=name)
-            if len(children):
-                item = children[0]
+            try:
+                item = six.next(children)
+            except StopIteration:
+                pass
 
         if item is None:
             item = self.createItem(parent_folder_id, name, description='')
