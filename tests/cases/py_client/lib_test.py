@@ -191,6 +191,23 @@ class PythonClientTestCase(base.TestCase):
         self.assertFalse(c1['public'])
         self.assertTrue(c2['public'])
 
+        # Test user creation and retrieval
+        u1 = self.client.createUser(
+            'user1', 'user1@example.com', 'John', 'Doe', 'password', True)
+        u2 = self.client.createUser(
+            'user2', 'user2@example.com', 'John', 'Doe', 'password')
+        users = self.client.listUser()
+        self.assertEqual(len(users), 3)
+        ids = [u['_id'] for u in users]
+        self.assertIn(u1['_id'], ids)
+        self.assertIn(u2['_id'], ids)
+        u1 = self.client.getUser(u1['_id'])
+        u2 = self.client.getUser(u2['_id'])
+        self.assertEqual(u1['login'], 'user1')
+        self.assertEqual(u2['login'], 'user2')
+        self.assertTrue(u1['admin'])
+        self.assertFalse(u2['admin'])
+
     def testUploadCallbacks(self):
         callbackUser = self.model('user').createUser(
             firstName='Callback', lastName='Last', login='callback',
