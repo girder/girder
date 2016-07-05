@@ -343,11 +343,7 @@ class GirderClient(object):
         a single page. Passing an ``offset`` will work in both single-page and
         exhaustive modes.
         """
-        if params is None:
-            params = {}
-        else:
-            params = params.copy()
-
+        params = dict(params or {})
         params['offset'] = offset or 0
         params['limit'] = limit or DEFAULT_PAGE_LIMIT
 
