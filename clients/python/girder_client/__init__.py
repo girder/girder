@@ -335,7 +335,7 @@ class GirderClient(object):
         """
         return self.get(path, params)
 
-    def listFile(self, itemId, limit=None):
+    def listFile(self, itemId, limit=None, offset=None):
         """
         Retrieves a file set from this item ID.
 
@@ -346,8 +346,10 @@ class GirderClient(object):
         params = {
             'id': itemId,
         }
-        if limit:
+        if limit is not None:
             params['limit'] = limit
+        if offset is not None:
+            params['offset'] = offset
         return self.listResource('item/%s/files' % itemId, params)
 
     def createItem(self, parentFolderId, name, description=''):
@@ -370,7 +372,7 @@ class GirderClient(object):
         """
         return self.getResource('item', itemId)
 
-    def listItem(self, folderId, text=None, name=None, limit=None):
+    def listItem(self, folderId, text=None, name=None, limit=None, offset=None):
         """
         Retrieves a item set from this folder ID.
 
@@ -386,20 +388,24 @@ class GirderClient(object):
             params['text'] = text
         if name:
             params['name'] = name
-        if limit:
+        if limit is not None:
             params['limit'] = limit
+        if offset is not None:
+            params['offset'] = offset
 
         return self.listResource('item', params)
 
-    def listUser(self, limit=None):
+    def listUser(self, limit=None, offset=None):
         """
         Retrieves a list of users.
 
         :param limit: the result set size limit.
         """
         params = {}
-        if limit:
+        if limit is not None:
             params['limit'] = limit
+        if offset is not None:
+            params['offset'] = offset
         return self.listResource('user', params)
 
     def getUser(self, userId):
@@ -427,15 +433,17 @@ class GirderClient(object):
             params['admin'] = admin
         return self.createResource('user', params)
 
-    def listCollection(self, limit=None):
+    def listCollection(self, limit=None, offset=None):
         """
         Retrieves a list of collections.
 
         :param limit: the result set size limit.
         """
         params = {}
-        if limit:
+        if limit is not None:
             params['limit'] = limit
+        if offset is not None:
+            params['offset'] = offset
         return self.listResource('collection', params)
 
     def getCollection(self, collectionId):
@@ -485,7 +493,7 @@ class GirderClient(object):
         return self.getResource('folder', folderId)
 
     def listFolder(self, parentId, parentFolderType='folder', name=None,
-                   limit=None):
+                   limit=None, offset=None):
         """
         Retrieves a folder set from this parent ID.
 
@@ -501,8 +509,10 @@ class GirderClient(object):
 
         if name:
             params['name'] = name
-        if limit:
+        if limit is not None:
             params['limit'] = limit
+        if offset is not None:
+            params['offset'] = offset
 
         return self.listResource('folder', params)
 
