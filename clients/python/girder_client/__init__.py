@@ -353,7 +353,7 @@ class GirderClient(object):
                 yield record
 
             n = len(records)
-            if limit or not n or n < params['limit']:
+            if limit or n < params['limit']:
                 # Either a single slice was requested, or this is the last page
                 break
 
