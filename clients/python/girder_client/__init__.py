@@ -830,9 +830,13 @@ class GirderClient(object):
         obj = self.put(path, json=metadata)
         return obj
 
-    def _transformFilename(self, name):
+    def transformFilename(self, name):
         """
-        Sanitize the filename a bit.
+        Sanitize a resource name from Girder into a name that is safe to use
+        as a filesystem path.
+
+        :param name: The name to transform.
+        :type name: str
         """
         if name in ('.', '..'):
             name = '_' + name
@@ -890,16 +894,16 @@ class GirderClient(object):
                 if len(files) == 1 and files[0]['name'] == name:
                     self.downloadFile(
                         files[0]['_id'],
-                        os.path.join(dest, self._transformFilename(name)))
+                        os.path.join(dest, self.transformFilename(name)))
                     break
                 else:
-                    dest = os.path.join(dest, self._transformFilename(name))
+                    dest = os.path.join(dest, self.transformFilename(name))
                     _safeMakedirs(dest)
 
             for file in files:
                 self.downloadFile(
                     file['_id'],
-                    os.path.join(dest, self._transformFilename(file['name'])))
+                    os.path.join(dest, self.transformFilename(file['name'])))
 
             first = False
             offset += len(files)
@@ -927,7 +931,7 @@ class GirderClient(object):
 
             for folder in folders:
                 local = os.path.join(
-                    dest, self._transformFilename(folder['name']))
+                    dest, self.transformFilename(folder['name']))
                 _safeMakedirs(local)
 
                 self.downloadFolderRecursive(folder['_id'], local)
