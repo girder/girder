@@ -562,14 +562,26 @@ def _setCommonCORSHeaders():
     header present since browsers will simply ignore them if the request is not
     cross-origin.
     """
-    if not cherrypy.request.headers.get('origin'):
+    origin = cherrypy.request.headers.get('origin')
+    if not origin:
         # If there is no origin header, this is not a cross origin request
         return
 
-    origins = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
-    if origins:
-        cherrypy.response.headers['Access-Control-Allow-Origin'] = origins
+    allowed = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
+
+    if allowed:
         cherrypy.response.headers['Access-Control-Allow-Credentials'] = 'true'
+
+        allowed_list = [o.strip() for o in allowed.split(',')]
+        key = 'Access-Control-Allow-Origin'
+
+        if len(allowed_list) == 1:
+            cherrypy.response.headers[key] = allowed_list[0]
+        elif origin in allowed_list:
+            cherrypy.response.headers[key] = origin
+        else:
+            # They'll be rejected, this is purely for information
+            cherrypy.response.headers[key] = allowed
 
 
 class RestException(Exception):
