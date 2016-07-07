@@ -579,9 +579,6 @@ def _setCommonCORSHeaders():
             cherrypy.response.headers[key] = allowed_list[0]
         elif origin in allowed_list:
             cherrypy.response.headers[key] = origin
-        else:
-            # They'll be rejected, this is purely for information
-            cherrypy.response.headers[key] = allowed
 
 
 class RestException(Exception):
