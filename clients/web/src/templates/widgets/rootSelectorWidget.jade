@@ -1,0 +1,10 @@
+select.g-root-selector
+  each groupName in display
+    if groupName === 'Home' && home
+      option(value=home.id, selected=selected.id === home.id) Home
+    else if groupName in groups
+      - var group = groups[groupName];
+      optgroup(label=groupName)
+        each model in group
+          if home && model.id === home.id
+            option(value=model.id, data-group=groupName, selected=model.id === selected.id) #{format(mode)}
