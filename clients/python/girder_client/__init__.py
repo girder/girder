@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import datetime
 import errno
 import getpass
 import glob
@@ -334,6 +335,24 @@ class GirderClient(object):
         search for a list of resources based on params.
         """
         return self.get(path, params)
+
+    def setResourceTimestamp(self, id, type, created=None, updated=None):
+        """
+        Set the created or updated timestamps for a resource.
+        """
+        url = 'resource/%s/timestamp' % id
+        params = {
+            'type': type,
+        }
+        if created:
+            if isinstance(created, datetime.datetime):
+                created = created.strftime('%Y-%m-%d %H:%M:%S')
+            params['created'] = created
+        if updated:
+            if isinstance(updated, datetime.datetime):
+                updated = updated.strftime('%Y-%m-%d %H:%M:%S')
+            params['updated'] = updated
+        return self.put(url, parameters=params)
 
     def listFile(self, itemId, limit=None, offset=None):
         """

@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import datetime
 import json
 
 from ..describe import Description, describeRoute
@@ -43,6 +44,7 @@ class Resource(BaseResource):
         self.route('GET', ('search',), self.search)
         self.route('GET', ('lookup',), self.lookup)
         self.route('GET', (':id',), self.getResource)
+        self.route('PUT', (':id', 'timestamp'), self.setTimestamp)
         self.route('GET', ('download',), self.download)
         self.route('POST', ('download',), self.download)
         self.route('PUT', ('move',), self.moveResources)
@@ -379,6 +381,34 @@ class Resource(BaseResource):
             user = self.getCurrentUser()
             return model.load(id=id, user=user, level=AccessType.READ)
         return model.load(id=id)
+
+    @access.admin
+    @describeRoute(
+        Description('Set the created or updated timestamp for a resource.')
+        .param('id', 'The ID of the resource.', paramType='path')
+        .param('type', 'The type of the resource (item, file, etc.).')
+        .param('created', 'The new created timestamp.', required=False)
+        .param('updated', 'The new updated timestamp.', required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Access was denied for the resource.', 403)
+    )
+    def setTimestamp(self, id, params):
+        user = self.getCurrentUser()
+        model = self._getResourceModel(params['type'])
+        doc = model.load(id=id, user=user, level=AccessType.WRITE)
+        if not doc:
+            raise RestException('Resource not found.')
+        if 'created' in params:
+            if 'created' not in doc:
+                raise RestException('Resource has no "created" field.')
+            doc['created'] = datetime.datetime.strptime(
+                params['created'], '%Y-%m-%d %H:%M:%S')
+        if 'updated' in params:
+            if 'updated' not in doc:
+                raise RestException('Resource has no "updated" field.')
+            doc['updated'] = datetime.datetime.strptime(
+                params['updated'], '%Y-%m-%d %H:%M:%S')
+        return model.save(doc)
 
     def _prepareMoveOrCopy(self, params):
         user = self.getCurrentUser()
