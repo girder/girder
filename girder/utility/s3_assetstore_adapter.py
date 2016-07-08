@@ -89,6 +89,9 @@ def _generate_url_sigv4(self, expires_in, method, bucket='', key='',
     if version_id is not None:
         params['VersionId'] = version_id
 
+    if response_headers is not None:
+        params.update(response_headers)
+
     http_request = self.build_base_http_request(
         method, path, auth_path, headers=headers, host=host, params=params)
 
@@ -311,8 +314,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             upload['s3']['partNumber'] += 1
 
             key = mp.upload_part_from_file(
-                chunk, upload['s3']['partNumber'],
-                headers=self._getRequestHeaders(upload))
+                chunk, upload['s3']['partNumber'])
             upload['received'] += key.size
         else:
             key = bucket.new_key(upload['s3']['key'])
