@@ -13,7 +13,7 @@
  */
 girder.views.RootSelectorWidget = girder.View.extend({
     events: {
-        'change #g-select-root': '_selectRoot'
+        'change #g-root-selector': '_selectRoot'
     },
 
     /**
@@ -82,13 +82,15 @@ girder.views.RootSelectorWidget = girder.View.extend({
     render: function () {
         this._home = this.home || girder.currentUser;
 
-        girder.templates.rootSelectorWidget({
-            home: this._home,
-            groups: this.groups,
-            display: this.display,
-            selected: this.selected,
-            format: this._formatName
-        });
+        this.$el.html(
+            girder.templates.rootSelectorWidget({
+                home: this._home,
+                groups: this.groups,
+                display: this.display,
+                selected: this.selected,
+                format: this._formatName
+            })
+        );
     },
 
     /**
@@ -105,7 +107,6 @@ girder.views.RootSelectorWidget = girder.View.extend({
         } else if (this._home && this._home.id === id) {
             this.selected = this._home;
         }
-        this.selected = this.$(':selected').data('model');
         this.trigger('g:selected', {
             root: this.selected,
             group: group
@@ -144,7 +145,7 @@ girder.views.RootSelectorWidget = girder.View.extend({
      */
     fetch: function () {
         var reset = this.reset;
-        _.each(this.groups, function (name, collection) {
+        _.each(this.groups, function (collection) {
             collection.fetch(null, reset);
         });
     }

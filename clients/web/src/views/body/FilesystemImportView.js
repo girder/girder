@@ -20,10 +20,24 @@ girder.views.FilesystemImportView = girder.View.extend({
                 destinationType: destType,
                 progress: true
             });
-        }
+        },
+        'click .g-open-browser': '_openBrowser'
     },
 
     initialize: function (settings) {
+        this._browserWidgetView = new girder.views.BrowserWidget({
+            parentView: this,
+            title: 'Destination',
+            help: 'Browse to a location to select it as the destination.',
+            validate: function (id) {
+                if (!id) {
+                    return 'Please select a valid root.';
+                }
+            }
+        });
+        this.listenTo(this._browserWidgetView, 'g:saved', function (val) {
+            this.$('#g-filesystem-import-dest-id').val(val);
+        });
         this.assetstore = settings.assetstore;
         this.render();
     },
@@ -32,5 +46,9 @@ girder.views.FilesystemImportView = girder.View.extend({
         this.$el.html(girder.templates.filesystemImport({
             assetstore: this.assetstore
         }));
+    },
+
+    _openBrowser: function () {
+        this._browserWidgetView.setElement($('#g-dialog-container')).render();
     }
 });
