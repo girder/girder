@@ -69,6 +69,7 @@ install_reqs = [
     'PyYAML',
     'requests',
     'psutil',
+    'python-dateutil',
     'pytz',
     'six>=1.9'
 ]
