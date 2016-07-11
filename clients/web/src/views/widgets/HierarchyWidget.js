@@ -46,22 +46,23 @@ girder.views.HierarchyWidget = girder.View.extend({
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
         this.upload = settings.upload;
+        this.navigate = settings.navigate || false;
 
         this._showActions = _.has(settings, 'showActions') ? settings.showActions : true;
         this._showItems = _.has(settings, 'showItems') ? settings.showItems : true;
         this._checkboxes = _.has(settings, 'checkboxes') ? settings.checkboxes : true;
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
         this._appendPages = _.has(settings, 'appendPages') ? settings.appendPages : false;
-        this._onItemClick = settings.onItemClick || function (item) {
+        this._onItemClick = settings.onItemClick || (
+          this.navigate ? this.$.noop : function (item) {
             girder.router.navigate('item/' + item.get('_id'), {trigger: true});
-        };
+          });
 
         this.folderAccess = settings.folderAccess;
         this.folderCreate = settings.folderCreate;
         this.folderEdit = settings.folderEdit;
         this.itemCreate = settings.itemCreate;
         this.breadcrumbs = [this.parentModel];
-        this.navigate = settings.navigate || false;
 
         // Initialize the breadcrumb bar state
         this.breadcrumbView = new girder.views.HierarchyBreadcrumbView({
