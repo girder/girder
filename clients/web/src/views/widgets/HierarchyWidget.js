@@ -61,6 +61,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.folderEdit = settings.folderEdit;
         this.itemCreate = settings.itemCreate;
         this.breadcrumbs = [this.parentModel];
+        this.navigate = settings.navigate || false;
 
         // Initialize the breadcrumb bar state
         this.breadcrumbView = new girder.views.HierarchyBreadcrumbView({
@@ -85,6 +86,7 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id'),
             checkboxes: this._checkboxes,
+            navigate: this.navigate,
             parentView: this
         });
         this.folderListView.on('g:folderClicked', function (folder) {
@@ -134,6 +136,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.itemListView = new girder.views.ItemListWidget({
             folderId: this.parentModel.get('_id'),
             checkboxes: this._checkboxes,
+            navigate: this.navigate,
             parentView: this
         });
         this.itemListView.on('g:itemClicked', this._onItemClick, this)

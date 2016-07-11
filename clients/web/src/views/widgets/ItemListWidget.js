@@ -15,6 +15,7 @@ girder.views.ItemListWidget = girder.View.extend({
     initialize: function (settings) {
         this.checked = [];
         this._checkboxes = settings.checkboxes;
+        this.navigate = settings.navigate || false;
 
         new girder.views.LoadingAnimation({
             el: this.$el,
@@ -37,7 +38,8 @@ girder.views.ItemListWidget = girder.View.extend({
             items: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             girder: girder,
-            checkboxes: this._checkboxes
+            checkboxes: this._checkboxes,
+            navigate: this.navigate
         }));
 
         this.$('.g-item-list-entry a[title]').tooltip({

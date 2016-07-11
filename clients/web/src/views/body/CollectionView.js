@@ -77,6 +77,7 @@
                 folderEdit: this.folderEdit,
                 folderCreate: this.folderCreate,
                 itemCreate: this.itemCreate,
+                navigate: true,
                 parentView: this
             }).on('g:setCurrentModel', function () {
                 // When a user descends into the hierarchy, hide the collection

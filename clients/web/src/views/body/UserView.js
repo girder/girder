@@ -87,6 +87,7 @@
                 folderEdit: this.folderEdit,
                 folderCreate: this.folderCreate,
                 itemCreate: this.itemCreate,
+                navigate: true,
                 parentView: this
             });
         },
