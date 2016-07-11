@@ -27,8 +27,8 @@ girder.views.FilesystemImportView = girder.View.extend({
     initialize: function (settings) {
         this._browserWidgetView = new girder.views.BrowserWidget({
             parentView: this,
-            title: 'Destination',
-            help: 'Browse to a location to select it as the destination.',
+            titleText: 'Destination',
+            helpText: 'Browse to a location to select it as the destination.',
             validate: function (id) {
                 if (!id) {
                     return 'Please select a valid root.';

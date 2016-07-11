@@ -8,12 +8,25 @@ girder.views.BrowserWidget = girder.View.extend({
         'click .g-submit-button': '_submitButton'
     },
 
+    /**
+     * Initialize the widget.
+     * @param {object} settings
+     * @param {string} [titleText] Text to display in the modal header
+     * @param {string} [helpText] Info text to display below the hierarchy widget
+     * @param {boolean} [showItems=false] Show items in the hierarchy widget
+     * @param {boolean} [showPreview=true] Show a preview of the current object id
+     * @param {function} [validate] A validation function returning a string that is displayed on error
+     */
     initialize: function (settings) {
+        // store options
         settings = settings || {};
-        this.title = settings.title || 'Select an item';
+        this.titleText = settings.titleText || 'Select an item';
         this.validate = settings.validate || function () {};
-        this.help = settings.help;
+        this.helpText = settings.helpText;
         this.showItems = settings.showItems;
+        this.showPreview = settings.showPreview || true;
+
+        // generate the root selection view and listen to it's events
         this._rootSelectionView = new girder.views.RootSelectorWidget({
             parentView: this,
             display: ['Collections', 'Users']
@@ -27,12 +40,20 @@ girder.views.BrowserWidget = girder.View.extend({
     render: function () {
         this.$el.html(
             girder.templates.browserWidget({
-                title: this.title,
-                help: this.help
+                title: this.titleText,
+                help: this.helpText,
+                preview: this.showPreview
             })
         ).girderModal(this);
         this._renderRootSelection();
         return this;
+    },
+
+    /**
+     * Return the selected model id.
+     */
+    selectedModel: function () {
+        return this.$('#g-selected-model').val();
     },
 
     _renderRootSelection: function () {
@@ -83,9 +104,5 @@ girder.views.BrowserWidget = girder.View.extend({
             this.$el.modal('hide');
             this.trigger('g:saved', model);
         }
-    },
-
-    selectedModel: function () {
-        return this.$('#g-selected-model').val();
     }
 });
