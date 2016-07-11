@@ -16,6 +16,7 @@ girder.views.BrowserWidget = girder.View.extend({
      * @param {boolean} [showItems=false] Show items in the hierarchy widget
      * @param {boolean} [showPreview=true] Show a preview of the current object id
      * @param {function} [validate] A validation function returning a string that is displayed on error
+     * @param {object} [rootSelectorSettings] Settings passed to the root selector widget
      */
     initialize: function (settings) {
         // store options
@@ -27,10 +28,9 @@ girder.views.BrowserWidget = girder.View.extend({
         this.showPreview = settings.showPreview || true;
 
         // generate the root selection view and listen to it's events
-        this._rootSelectionView = new girder.views.RootSelectorWidget({
-            parentView: this,
-            display: ['Collections', 'Users']
-        });
+        this._rootSelectionView = new girder.views.RootSelectorWidget(_.extend({
+            parentView: this
+        }, settings.rootSelectorSettings));
         this.listenTo(this._rootSelectionView, 'g:selected', function (evt) {
             this._root = evt.root;
             this._renderHierarchyView();
@@ -86,6 +86,7 @@ girder.views.BrowserWidget = girder.View.extend({
     },
 
     _selectItem: function () {
+        // for future extensibility, do something when an item is clicked
     },
 
     _selectModel: function () {
