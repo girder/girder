@@ -314,7 +314,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             upload['s3']['partNumber'] += 1
 
             key = mp.upload_part_from_file(
-                chunk, upload['s3']['partNumber'])
+                chunk, upload['s3']['partNumber'],
+                headers={'Content-Type': upload.get('mimeType', '')})
             upload['received'] += key.size
         else:
             key = bucket.new_key(upload['s3']['key'])
