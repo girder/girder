@@ -10,9 +10,10 @@
       .g-hierarchy-widget-container.g-wait-for-root.form-group.hidden
       .help-block.g-wait-for-root.hidden
         | #{help}
-      .g-selected-model.g-wait-for-root.form-group.hidden
-        label(for='g-selected-model').control-label Selected id
-        input#g-selected-model.form-control(type='text' readonly)
+      if preview
+        .g-selected-model.g-wait-for-root.form-group.hidden
+          label(for='g-selected-model').control-label Selected id
+          input#g-selected-model.form-control(type='text' readonly)
       .g-validation-failed-message.hidden
 
     .modal-footer
