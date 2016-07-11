@@ -40,7 +40,7 @@ except NotImplementedError:  # pragma: no cover
 
 
 def parseTimestamp(x, naive=True):
-    '''
+    """
     Parse a datetime string using the python-dateutil package.
 
     If no timezone information is included, assume UTC. If timezone information
@@ -48,7 +48,7 @@ def parseTimestamp(x, naive=True):
 
     If naive is True (the default), drop the timezone information such that a
     naive datetime is returned.
-    '''
+    """
     dt = dateutil.parser.parse(x)
     if dt.tzinfo:
         dt = dt.astimezone(pytz.utc).replace(tzinfo=None)
