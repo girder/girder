@@ -18,7 +18,6 @@
 ###############################################################################
 
 import cherrypy
-import datetime
 import json
 
 from ..describe import Description, describeRoute
@@ -27,6 +26,7 @@ from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.models.model_base import AccessControlledModel
 from girder.utility import acl_mixin
+from girder.utility import parseTimestamp
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -401,13 +401,11 @@ class Resource(BaseResource):
         if 'created' in params:
             if 'created' not in doc:
                 raise RestException('Resource has no "created" field.')
-            doc['created'] = datetime.datetime.strptime(
-                params['created'], '%Y-%m-%d %H:%M:%S')
+            doc['created'] = parseTimestamp(params['created'])
         if 'updated' in params:
             if 'updated' not in doc:
                 raise RestException('Resource has no "updated" field.')
-            doc['updated'] = datetime.datetime.strptime(
-                params['updated'], '%Y-%m-%d %H:%M:%S')
+            doc['updated'] = parseTimestamp(params['updated'])
         return model.save(doc)
 
     def _prepareMoveOrCopy(self, params):

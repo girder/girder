@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import datetime
 import errno
 import getpass
 import glob
@@ -345,13 +344,9 @@ class GirderClient(object):
             'type': type,
         }
         if created:
-            if isinstance(created, datetime.datetime):
-                created = created.strftime('%Y-%m-%d %H:%M:%S')
-            params['created'] = created
+            params['created'] = str(created)
         if updated:
-            if isinstance(updated, datetime.datetime):
-                updated = updated.strftime('%Y-%m-%d %H:%M:%S')
-            params['updated'] = updated
+            params['updated'] = str(updated)
         return self.put(url, parameters=params)
 
     def listFile(self, itemId, limit=None, offset=None):
