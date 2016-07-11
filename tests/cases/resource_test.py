@@ -93,7 +93,7 @@ class ResourceTestCase(base.TestCase):
             resp.json[0]['_id'], user=user)
         self.adminPublicFolder = self.model('folder').load(
             resp.json[1]['_id'], user=user)
-        # Create a folder within the admin public forlder
+        # Create a folder within the admin public folder
         resp = self.request(
             path='/folder', method='POST', user=user, params={
                 'name': 'Folder 1', 'parentId': self.adminPublicFolder['_id']
@@ -698,3 +698,41 @@ class ResourceTestCase(base.TestCase):
             pass
         footer = zip.footer()
         self.assertEqual(footer[-6:], b'\xFF\xFF\xFF\xFF\x00\x00')
+
+    def testResourceTimestamps(self):
+        self._createFiles()
+
+        created = datetime.datetime(2000, 1, 1)
+        updated = datetime.datetime(2001, 1, 1)
+
+        # non-admin cannot use this endpoint
+        resp = self.request(
+            path='/resource/%s/timestamp' % self.collection['_id'],
+            method='PUT',
+            user=self.user,
+            params={
+                'type': 'collection',
+                'created': str(created),
+                'updated': str(updated),
+            })
+        self.assertStatus(resp, 403)
+
+        c = self.model('collection').load(self.collection['_id'], force=True)
+        self.assertNotEqual(c['created'], created)
+        self.assertNotEqual(c['updated'], updated)
+
+        # admin can change created timestamp
+        resp = self.request(
+            path='/resource/%s/timestamp' % self.collection['_id'],
+            method='PUT',
+            user=self.admin,
+            params={
+                'type': 'collection',
+                'created': str(created),
+                'updated': str(updated),
+            })
+        self.assertStatusOk(resp)
+
+        c = self.model('collection').load(self.collection['_id'], force=True)
+        self.assertEqual(c['created'], created)
+        self.assertEqual(c['updated'], updated)
