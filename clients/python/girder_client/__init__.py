@@ -359,6 +359,20 @@ class GirderClient(object):
 
             params['offset'] += n
 
+    def setResourceTimestamp(self, id, type, created=None, updated=None):
+        """
+        Set the created or updated timestamps for a resource.
+        """
+        url = 'resource/%s/timestamp' % id
+        params = {
+            'type': type,
+        }
+        if created:
+            params['created'] = str(created)
+        if updated:
+            params['updated'] = str(updated)
+        return self.put(url, parameters=params)
+
     def listFile(self, itemId, limit=None, offset=None):
         """
         This is a generator that will yield files under the given itemId.
