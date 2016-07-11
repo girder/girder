@@ -114,7 +114,7 @@ girder.views.RootSelectorWidget = girder.View.extend({
     },
 
     /**
-     * Called when a collections was modified.  Rerenders the view.
+     * Called when a collection is modified... rerenders the view.
      */
     _updateGroup: function (collection) {
         this.trigger('g:group', {
