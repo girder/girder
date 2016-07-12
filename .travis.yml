@@ -6,7 +6,6 @@ python:
 env:
     - GIRDER_TEST_GROUP=python
     - GIRDER_TEST_GROUP=browser
-    - GIRDER_TEST_GROUP=packaging
     - GIRDER_TEST_GROUP=other
 
 matrix:
