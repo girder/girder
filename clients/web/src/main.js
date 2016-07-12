@@ -6,6 +6,8 @@ import router from 'girder/router';
 
 import 'girder/utilities/jQuery'; // $.girderModal
 
+import * as girder from 'girder';
+
 // Some cross-browser globals
 if (!window.console) {
     window.console = {
@@ -31,4 +33,6 @@ $(function () {
         parentView: null
     });
     events.trigger('g:appload.after', mainApp);
+
+    window.girder = girder;
 });

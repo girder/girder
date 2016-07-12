@@ -25,19 +25,22 @@ module.exports = function (grunt) {
     var paths = {
         clients_web: path.join(__dirname, '../clients/web'),
         node_modules: path.join(__dirname, '../node_modules'),
-        web_src: path.join(__dirname, '../clients/web/src')
+        web_src: path.join(__dirname, '../clients/web/src'),
+        plugins: path.join(__dirname, '../plugins')
     };
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || false;
     // vvvvvv TESTING
     environment = 'dev'; debugJs = true;
     // ^^^^^^ TESTING
+
     var uglifyOptions = {
         ASCIIOnly: true,
         sourceMap: environment === 'dev',
         sourceMapIncludeSources: true,
         report: 'min'
     };
+
     function fileLoader() {
         return {
             loader: 'file-loader',
@@ -46,6 +49,7 @@ module.exports = function (grunt) {
             }
         };
     }
+
     function urlLoader(options) {
         options = options || {};
         var loader = {
@@ -59,6 +63,7 @@ module.exports = function (grunt) {
         }
         return loader;
     }
+
     var webpackOptions = {
         watch: false,      // use webpacks watcher (you need to keep the grunt process alive)
         keepalive: false,  // don't finish the grunt task (in combination with the watch option)
@@ -68,11 +73,8 @@ module.exports = function (grunt) {
         progress: false,    // show progress
         failOnError: true, // report error to grunt if webpack find errors; set to false if
                            // webpack errors are tolerable and grunt should continue
-        devtool: environment === 'dev' ? 'source-map' : false,
-        output: {
-            path: 'clients/web/static/built/',
-            filename: '[name].min.js'
-        },
+        // devtool: environment === 'dev' ? 'source-map' : false,
+        devtool: false, // FOR NOW
         stats: {
             children: false
         },
@@ -165,18 +167,6 @@ module.exports = function (grunt) {
                 $: 'jquery',
                 'window.jQuery': 'jquery'
             }),
-            new webpack.optimize.CommonsChunkPlugin({
-                name: 'girder.ext',
-                // See http://stackoverflow.com/a/29087883/250457
-                minChunks: function (module) {
-                    var include = module.resource &&
-                        module.resource.indexOf(paths.clients_web) === -1;
-                    if (include) {
-                        // console.log('[girder.ext] <=', module.resource.replace(paths.node_modules, ''));
-                    }
-                    return include;
-                }
-            }),
             new ExtractTextPlugin('[name].min.css', {
                 allChunks: true,
                 disable: false
@@ -220,33 +210,72 @@ module.exports = function (grunt) {
         );
     }
 
+    var webpackTask = {
+        options: webpackOptions,
+        app: {
+            entry: {
+                'girder.ext': [],
+                'girder.app': './clients/web/src/main.js'
+            },
+            output: {
+                path: 'clients/web/static/built/',
+                filename: '[name].min.js'
+            },
+            plugins: [
+                // See http://stackoverflow.com/a/29087883/250457
+                // new webpack.optimize.CommonsChunkPlugin({
+                //     name: 'girder.app',
+                //     minChunks: function (module) {
+                //         var include = module.resource &&
+                //             module.resource.indexOf(paths.clients_web) !== -1;
+                //         if (include) {
+                //           // console.log('[girder.app] <=', module.resource.replace(paths.node_modules, ''));
+                //         }
+                //         return include;
+                //     }
+                // }),
+                new webpack.optimize.CommonsChunkPlugin({
+                    name: 'girder.ext',
+                    minChunks: function (module) {
+                        var include = module.resource &&
+                            module.resource.indexOf(paths.clients_web) === -1 &&
+                            module.resource.indexOf(paths.plugins) === -1;
+                        if (include) {
+                          // console.log('[girder.ext] <=', module.resource.replace(paths.node_modules, ''));
+                        }
+                        return include;
+                    }
+                })
+            ]
+        }
+    };
+
+    // Create plugin tasks
+    grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
+        var plugin = path.basename(dir);
+        if (plugin !== 'gravatar') {
+            return;
+        }
+        var pluginTarget = 'plugins/' + plugin + '/plugin';
+        webpackTask.app.entry[pluginTarget] = './' + dir + '/web_client/js/main.js';
+        // grunt.log.writeln(('Found plugin: ' + plugin).bold);
+    });
+
     grunt.config.merge({
-        webpack: {
-            options: webpackOptions,
-            app: {
-                entry: {
-                    'girder.ext': [
-                        // 'd3/d3.js'
-                    ],
-                    'girder.app': [
-                        './clients/web/src/main.js'
-                    ]
-                }
-            }
-        },
+        webpack: webpackTask,
 
         // This should be replaced by webpack's own watch/hot-reload
-        watch: {
-            core: {
-                files: [
-                    'clients/web/src/**/*.js',
-                    'clients/static/built/templates.js',
-                    'clients/web/src/stylesheets/**/*.styl',
-                    'clients/web/src/templates/**/*.jade'
-                ],
-                tasks: ['webpack:app']
-            }
-        },
+        // watch: {
+        //     core: {
+        //         files: [
+        //             'clients/web/src/**/*.js',
+        //             'clients/static/built/templates.js',
+        //             'clients/web/src/stylesheets/**/*.styl',
+        //             'clients/web/src/templates/**/*.jade'
+        //         ],
+        //         tasks: ['webpack:app']
+        //     }
+        // },
 
         default: {
             'webpack:app': {

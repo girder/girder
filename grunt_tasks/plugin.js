@@ -18,9 +18,6 @@
  * Define tasks related to loading, configuring, and building plugins.
  */
 module.exports = function (grunt) {
-// DISABLE PLUGINS FOR NOW
-    return;
-// DISABLE PLUGINS FOR NOW
     var _ = require('underscore');
     var fs = require('fs');
     var path = require('path');
@@ -84,44 +81,44 @@ module.exports = function (grunt) {
             tasks: ['shell:' + pluginTarget]
         };
 
-        cfg.jade[pluginTarget] = {
-            files: [{
-                src: [pluginPath + '/web_client/templates/**/*.jade'],
-                dest: staticPath + '/templates.js'
-            }]
-        };
-        cfg.watch[pluginTarget + '-jade'] = {
-            files: [pluginPath + '/web_client/templates/**/*.jade'],
-            tasks: ['jade:' + pluginTarget]
-        };
+        // cfg.jade[pluginTarget] = {
+        //     files: [{
+        //         src: [pluginPath + '/web_client/templates/**/*.jade'],
+        //         dest: staticPath + '/templates.js'
+        //     }]
+        // };
+        // cfg.watch[pluginTarget + '-jade'] = {
+        //     files: [pluginPath + '/web_client/templates/**/*.jade'],
+        //     tasks: ['jade:' + pluginTarget]
+        // };
 
-        cfg.stylus[pluginTarget] = {
-            files: [{
-                src: [pluginPath + '/web_client/stylesheets/**/*.styl'],
-                dest: staticPath + '/plugin.min.css'
-            }]
-        };
-        cfg.watch[pluginTarget + '-stylus'] = {
-            files: [pluginPath + '/web_client/stylesheets/**/*.styl'],
-            tasks: ['stylus:' + pluginTarget]
-        };
+        // cfg.stylus[pluginTarget] = {
+        //     files: [{
+        //         src: [pluginPath + '/web_client/stylesheets/**/*.styl'],
+        //         dest: staticPath + '/plugin.min.css'
+        //     }]
+        // };
+        // cfg.watch[pluginTarget + '-stylus'] = {
+        //     files: [pluginPath + '/web_client/stylesheets/**/*.styl'],
+        //     tasks: ['stylus:' + pluginTarget]
+        // };
 
-        cfg.uglify[pluginTarget] = {
-            files: [{
-                src: [
-                    pluginPath + '/web_client/js/**/*.js',
-                    staticPath + '/templates.js'
-                ],
-                dest: staticPath + '/plugin.min.js'
-            }]
-        };
-        cfg.watch[pluginTarget + '-uglify'] = {
-            files: [
-                pluginPath + '/web_client/js/**/*.js',
-                staticPath + '/templates.js'
-            ],
-            tasks: ['uglify:' + pluginTarget]
-        };
+        // cfg.uglify[pluginTarget] = {
+        //     files: [{
+        //         src: [
+        //             pluginPath + '/web_client/js/**/*.js',
+        //             staticPath + '/templates.js'
+        //         ],
+        //         dest: staticPath + '/plugin.min.js'
+        //     }]
+        // };
+        // cfg.watch[pluginTarget + '-uglify'] = {
+        //     files: [
+        //         pluginPath + '/web_client/js/**/*.js',
+        //         staticPath + '/templates.js'
+        //     ],
+        //     tasks: ['uglify:' + pluginTarget]
+        // };
 
         cfg.copy[pluginTarget] = {
             files: [{
@@ -141,9 +138,9 @@ module.exports = function (grunt) {
         // the plugin itself appends tasks to this array
         cfg.plugin[plugin] = {
             tasks: [
-                'jade:' + pluginTarget,
-                'stylus:' + pluginTarget,
-                'uglify:' + pluginTarget,
+                // 'jade:' + pluginTarget,
+                // 'stylus:' + pluginTarget,
+                // 'uglify:' + pluginTarget,
                 'copy:' + pluginTarget
             ]
         };

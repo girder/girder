@@ -1,7 +1,13 @@
-/**
-* Administrative configuration view.
-*/
-girder.views.gravatar_ConfigView = girder.View.extend({
+import _ from 'underscore';
+
+import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
+import View from 'girder/views/View';
+import { events } from 'girder/events';
+import { restRequest } from 'girder/rest';
+
+import GravatarConfigTemplate from '../templates/gravatar_config.jade';
+
+var ConfigView = View.extend({
     events: {
         'submit #g-gravatar-settings-form': function (event) {
             event.preventDefault();
@@ -15,7 +21,7 @@ girder.views.gravatar_ConfigView = girder.View.extend({
     },
 
     initialize: function () {
-        girder.restRequest({
+        restRequest({
             type: 'GET',
             path: 'system/setting',
             data: {
@@ -30,10 +36,10 @@ girder.views.gravatar_ConfigView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.gravatar_config());
+        this.$el.html(GravatarConfigTemplate());
 
         if (!this.breadcrumb) {
-            this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
+            this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'Gravatar portraits',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
@@ -44,7 +50,7 @@ girder.views.gravatar_ConfigView = girder.View.extend({
     },
 
     _saveSettings: function (settings) {
-        girder.restRequest({
+        restRequest({
             type: 'PUT',
             path: 'system/setting',
             data: {
@@ -52,7 +58,7 @@ girder.views.gravatar_ConfigView = girder.View.extend({
             },
             error: null
         }).done(_.bind(function () {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
@@ -66,6 +72,4 @@ girder.views.gravatar_ConfigView = girder.View.extend({
     }
 });
 
-girder.router.route('plugins/gravatar/config', 'gravatarConfig', function () {
-    girder.events.trigger('g:navigateTo', girder.views.gravatar_ConfigView);
-});
+export default ConfigView;
