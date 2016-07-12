@@ -922,11 +922,11 @@ class GirderClient(object):
         """
         Download a folder recursively from Girder into a local directory.
 
-        :param folderId: Id of the Girder folder to download.
+        :param folderId: Id of the Girder folder or resource path to download.
         :param dest: The local download destination.
         """
         offset = 0
-
+        folderId = self._checkResourcePath(folderId)
         while True:
             folders = self.get('folder', parameters={
                 'limit': DEFAULT_PAGE_LIMIT,
@@ -1212,7 +1212,7 @@ class GirderClient(object):
 
         :param file_pattern: a glob pattern for files that will be uploaded,
             recursively copying any file folder structures.
-        :param parent_id: id of the parent in Girder.
+        :param parent_id: id of the parent in Girder or resource path.
         :param parent_type: one of (collection,folder,user), default of folder.
         :param leaf_folders_as_items: bool whether leaf folders should have all
             files uploaded as single items.
@@ -1220,6 +1220,7 @@ class GirderClient(object):
             the same name in the same location, or create a new one instead.
         """
         empty = True
+        parent_id = self._checkResourcePath(parent_id)
         for current_file in glob.iglob(file_pattern):
             empty = False
             current_file = os.path.normpath(current_file)
@@ -1243,3 +1244,10 @@ class GirderClient(object):
                     leaf_folders_as_items, reuse_existing)
         if empty:
             print('No matching files: ' + file_pattern)
+
+    def _checkResourcePath(self, objId):
+        if isinstance(objId, six.string_types) and objId.startswith('/'):
+            obj = self.resourceLookup(objId, test=True)
+            if obj is not None:
+                return obj['_id']
+        return objId

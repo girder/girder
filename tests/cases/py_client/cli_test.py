@@ -169,6 +169,11 @@ class PythonCliTestCase(base.TestCase):
                         username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
 
+        # Download again to same location, using path, we should not get errors
+        ret = invokeCli(('-c', 'download', '/user/mylogin/Public/testdata',
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+
         # Try uploading using API key
         ret = invokeCli(['--api-key', self.apiKey['key']] + args)
         self.assertEqual(ret['exitVal'], 0)
