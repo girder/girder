@@ -45,7 +45,7 @@ before_install:
     - npm prune
     - pip install -U pip virtualenv
 install:
-    - if [ "$GIRDER_TEST_GROUP" == "python" -o "$GIRDER_TEST_GROUP" == "browser" -o "$GIRDER_TEST_GROUP" == "other" ] ; then pip install -r requirements.txt -r requirements-dev.txt -e . ; fi
+    - pip install -r requirements.txt -r requirements-dev.txt -e .
     - npm install
 script:
     - mkdir _build
