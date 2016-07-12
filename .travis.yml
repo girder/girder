@@ -6,14 +6,11 @@ python:
 env:
     - GIRDER_TEST_GROUP=python
     - GIRDER_TEST_GROUP=browser
-    - GIRDER_TEST_GROUP=other
 
 matrix:
     exclude:
         - python: 3.4
           env: GIRDER_TEST_GROUP=browser
-        - python: 3.4
-          env: GIRDER_TEST_GROUP=other
 
 cache:
     directories:
@@ -30,7 +27,7 @@ before_install:
     - if [ ${TRAVIS_PYTHON_VERSION:0:1} == "3" ]; then export PY3="true"; else export PY2="true"; fi
     - if [ -n "${PY3}" ]; then export MONGO_VERSION=3.0.7; export PY_COVG="OFF"; else export MONGO_VERSION=2.6.11; export PY_COVG="ON"; export DEPLOY=true; fi
     - if [ -n "${PY3}" ]; then export IGNORE_PLUGINS=hdfs_assetstore,metadata_extractor; fi
-    - if [ "$GIRDER_TEST_GROUP" != "other" ] ; then CACHE=$HOME/.cache source ./scripts/install_mongo.sh ; fi
+    - CACHE=$HOME/.cache source ./scripts/install_mongo.sh
     - mkdir /tmp/db
     - (mongod --dbpath=/tmp/db >/dev/null 2>/dev/null || true ) &
     - mongod --version || true
