@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { events } from 'girder/events';
 import { restRequest } from 'girder/rest';
 
-import GravatarConfigTemplate from '../templates/gravatar_config.jade';
+import GravatarConfigTemplate from '../../templates/gravatar_config.jade';
 
 var ConfigView = View.extend({
     events: {
