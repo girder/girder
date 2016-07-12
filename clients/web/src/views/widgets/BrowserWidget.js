@@ -11,8 +11,9 @@ girder.views.BrowserWidget = girder.View.extend({
     /**
      * Initialize the widget.
      * @param {object} settings
-     * @param {string} [titleText] Text to display in the modal header
+     * @param {string} [titleText="Select an item"] Text to display in the modal header
      * @param {string} [helpText] Info text to display below the hierarchy widget
+     * @param {string} [submitText="Save"] Text to display on the submit button
      * @param {boolean} [showItems=false] Show items in the hierarchy widget
      * @param {boolean} [showPreview=true] Show a preview of the current object id
      * @param {function} [validate] A validation function returning a string that is displayed on error
@@ -26,6 +27,7 @@ girder.views.BrowserWidget = girder.View.extend({
         this.helpText = settings.helpText;
         this.showItems = settings.showItems;
         this.showPreview = settings.showPreview || true;
+        this.submitText = settings.submitText || 'Save';
 
         // generate the root selection view and listen to it's events
         this._rootSelectionView = new girder.views.RootSelectorWidget(_.extend({
@@ -42,7 +44,8 @@ girder.views.BrowserWidget = girder.View.extend({
             girder.templates.browserWidget({
                 title: this.titleText,
                 help: this.helpText,
-                preview: this.showPreview
+                preview: this.showPreview,
+                submit: this.submitText
             })
         ).girderModal(this);
         this._renderRootSelection();
