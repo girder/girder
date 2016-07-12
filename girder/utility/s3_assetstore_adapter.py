@@ -191,6 +191,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if upload['size'] <= 0:
             return upload
 
+        # collapse consecutive spaces in the filename into a single space
+        # this is due to a bug in S3 that does not properly handle filenames
+        # with multiple spaces in a row, resulting in a SignatureDoesNotMatch
+        # error
+        upload['name'] = re.sub('\s+', ' ', upload['name'])
+
         uid = uuid.uuid4().hex
         key = '/'.join(filter(None, (self.assetstore.get('prefix', ''),
                        uid[0:2], uid[2:4], uid)))
