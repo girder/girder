@@ -41,26 +41,23 @@ class LogLevelFilter(object):
 
 class LogFormatter(logging.Formatter):
     """
-    Custom formatter that adds useful information about the request to the logs
-    when an exception happens.
+    Custom formatter that adds useful information about the request to the logs when an exception
+    happens.
     """
     def formatException(self, exc):
         info = '\n'.join((
-            '  Request URL: %s %s' % (cherrypy.request.method.upper(),
-                                      cherrypy.url()),
+            '  Request URL: %s %s' % (cherrypy.request.method.upper(), cherrypy.url()),
             '  Query string: ' + cherrypy.request.query_string,
             '  Remote IP: ' + cherrypy.request.remote.ip
         ))
-        return ('%s\n'
-                'Additional info:\n'
-                '%s' % (logging.Formatter.formatException(self, exc), info))
+        return ('%s\nAdditional info:\n%s' % (logging.Formatter.formatException(self, exc), info))
 
 
 def getLogPaths():
     """
-    Return the paths to the error and info log files. These are returned as
-    a dict with "error" and "info" keys that point to the respective file,
-    as well as a "root" key pointing to the log root directory.
+    Return the paths to the error and info log files. These are returned as a dict with "error" and
+    "info" keys that point to the respective file, as well as a "root" key pointing to the log root
+    directory.
     """
     cfg = config.getConfig()
     logCfg = cfg.get('logging', {})

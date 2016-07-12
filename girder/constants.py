@@ -98,17 +98,16 @@ class AssetstoreType:
 
 class AccessType:
     """
-    Represents the level of access granted to a user or group on an
-    AccessControlledModel. Having a higher access level on a resource also
-    confers all of the privileges of the lower levels.
+    Represents the level of access granted to a user or group on an AccessControlledModel. Having a
+    higher access level on a resource also confers all of the privileges of the lower levels.
 
-    Semantically, READ access on a resource means that the user can see all
-    the information pertaining to the resource, but cannot modify it.
+    Semantically, READ access on a resource means that the user can see all the information
+    pertaining to the resource, but cannot modify it.
 
     WRITE access usually means the user can modify aspects of the resource.
 
-    ADMIN access confers total control; the user can delete the resource and
-    also manage permissions for other users on it.
+    ADMIN access confers total control; the user can delete the resource and also manage
+    permissions for other users on it.
     """
     NONE = -1
     READ = 0
@@ -127,8 +126,7 @@ class AccessType:
 
 class SettingKey:
     """
-    Core settings should be enumerated here by a set of constants corresponding
-    to sensible strings.
+    Core settings should be enumerated here by a set of constants corresponding to sensible strings.
     """
     PLUGINS_ENABLED = 'core.plugins_enabled'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
@@ -152,8 +150,7 @@ class SettingKey:
 
 class SettingDefault:
     """
-    Core settings that have a default should be enumerated here with the
-    SettingKey.
+    Core settings that have a default should be enumerated here with the SettingKey.
     """
     defaults = {
         SettingKey.PLUGINS_ENABLED: [],
@@ -168,8 +165,8 @@ class SettingDefault:
         # These headers are necessary to allow the web server to work with just
         # changes to the CORS origin
         SettingKey.CORS_ALLOW_HEADERS:
-            'Accept-Encoding, Authorization, Content-Disposition, '
-            'Content-Type, Cookie, Girder-Authorization, Girder-Token',
+            'Accept-Encoding, Authorization, Content-Disposition, Content-Type, Cookie, '
+            'Girder-Authorization, Girder-Token',
             # An apache server using reverse proxy would also need
             #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
             #  X-Forwarded-Host, Remote-Addr
@@ -190,9 +187,8 @@ class SortDir(object):
 
 class TokenScope:
     """
-    Constants for core token scope strings. Token scopes must not contain
-    spaces, since many services accept scope lists as a space-separated list
-    of strings.
+    Constants for core token scope strings. Token scopes must not contain spaces, since many
+    services accept scope lists as a space-separated list of strings.
     """
     ANONYMOUS_SESSION = 'core.anonymous_session'
     USER_AUTH = 'core.user_auth'
@@ -244,29 +240,29 @@ class TokenScope:
 
 TokenScope.describeScope(
     TokenScope.USER_INFO_READ, 'Read your user information',
-    'Allows clients to look up your user information, including private fields '
-    'such as email address.')
+    'Allows clients to look up your user information, including private fields such as email '
+    'address.')
 TokenScope.describeScope(
     TokenScope.DATA_READ, 'Read data',
     'Allows clients to read all data that you have access to.')
 TokenScope.describeScope(
     TokenScope.DATA_WRITE, 'Write data',
-    'Allows clients to edit data in the hierarchy and create new data anywhere '
-    'you have write access.')
+    'Allows clients to edit data in the hierarchy and create new data anywhere you have write '
+    'access.')
 TokenScope.describeScope(
-    TokenScope.DATA_OWN, 'Data ownership', 'Allows administrative control '
-    'on data you own, including setting access control and deletion.'
+    TokenScope.DATA_OWN, 'Data ownership', 'Allows administrative control on data you own, '
+    'including setting access control and deletion.'
 )
 
 TokenScope.describeScope(
-    TokenScope.PLUGINS_ENABLED_READ, 'See enabled plugins', 'Allows clients '
-    'to see the list of plugins enabled on the server.', admin=True)
+    TokenScope.PLUGINS_ENABLED_READ, 'See enabled plugins', 'Allows clients to see the list of '
+    'plugins enabled on the server.', admin=True)
 TokenScope.describeScope(
-    TokenScope.SETTINGS_READ, 'See system setting values', 'Allows clients to '
-    'view the value of any system setting.', admin=True)
+    TokenScope.SETTINGS_READ, 'See system setting values', 'Allows clients to view the value of '
+    'any system setting.', admin=True)
 TokenScope.describeScope(
-    TokenScope.ASSETSTORES_READ, 'View assetstores', 'Allows clients to see '
-    'all assetstore information.', admin=True)
+    TokenScope.ASSETSTORES_READ, 'View assetstores', 'Allows clients to see all assetstore '
+    'information.', admin=True)
 TokenScope.describeScope(
     TokenScope.PARTIAL_UPLOAD_READ, 'View unfinished uploads.',
     'Allows clients to see all partial uploads.', admin=True)
@@ -277,10 +273,9 @@ TokenScope.describeScope(
 
 class CoreEventHandler(object):
     """
-    This enum represents handler identifier strings for core event handlers.
-    If you wish to unbind a core event handler, use one of these as the
-    ``handlerName`` argument. Unbinding core event handlers can be used to
-    disable certain default functionalities.
+    This enum represents handler identifier strings for core event handlers. If you wish to unbind
+    a core event handler, use one of these as the ``handlerName`` argument. Unbinding core event
+    handlers can be used to disable certain default functionalities.
     """
     # For removing deleted user/group references from AccessControlledModel
     ACCESS_CONTROL_CLEANUP = 'core.cleanupDeletedEntity'
