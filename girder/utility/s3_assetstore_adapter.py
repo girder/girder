@@ -195,7 +195,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         # this is due to a bug in S3 that does not properly handle filenames
         # with multiple spaces in a row, resulting in a SignatureDoesNotMatch
         # error
-        upload['name'] = ' '.join(filter(None, upload['name'].split(' ')))
+        upload['name'] = re.sub('\s+', ' ', upload['name'])
 
         uid = uuid.uuid4().hex
         key = '/'.join(filter(None, (self.assetstore.get('prefix', ''),
