@@ -89,8 +89,7 @@ def stopServer():
 
 def dropTestDatabase(dropModels=True):
     """
-    Call this to clear all contents from the test database. Also forces models
-    to reload.
+    Call this to clear all contents from the test database. Also forces models to reload.
     """
     db_connection = getDbConnection()
 
@@ -107,6 +106,7 @@ def dropTestDatabase(dropModels=True):
 def dropGridFSDatabase(dbName):
     """
     Clear all contents from a gridFS database used as an assetstore.
+
     :param dbName: the name of the database to drop.
     """
     db_connection = getDbConnection()
@@ -115,8 +115,9 @@ def dropGridFSDatabase(dbName):
 
 def dropFsAssetstore(path):
     """
-    Delete all of the files in a filesystem assetstore.  This unlinks the path,
-    which is potentially dangerous.
+    Delete all of the files in a filesystem assetstore.  This unlinks the path, which is
+    potentially dangerous.
+
     :param path: the path to remove.
     """
     if os.path.isdir(path):
@@ -125,16 +126,16 @@ def dropFsAssetstore(path):
 
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
     """
-    Test case base class for the application. Adds helpful utilities for
-    database and HTTP communication.
+    Test case base class for the application. Adds helpful utilities for database and HTTP
+    communication.
     """
     def setUp(self, assetstoreType=None, dropModels=True):
         """
-        We want to start with a clean database each time, so we drop the test
-        database before each test. We then add an assetstore so the file model
-        can be used without 500 errors.
-        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.  For
-                               any other value, use a filesystem assetstore.
+        We want to start with a clean database each time, so we drop the test database before each
+        test. We then add an assetstore so the file model can be used without 500 errors.
+
+        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.  For any other value, use
+            a filesystem assetstore.
         """
         self.assetstoreType = assetstoreType
         dropTestDatabase(dropModels=dropModels)
@@ -146,25 +147,22 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             # within test methods
             gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName
             dropGridFSDatabase(gridfsDbName)
-            self.assetstore = self.model('assetstore'). \
-                createGridFsAssetstore(name='Test', db=gridfsDbName)
+            self.assetstore = self.model('assetstore').createGridFsAssetstore(
+                name='Test', db=gridfsDbName)
         elif assetstoreType == 'gridfsrs':
             gridfsDbName = 'girder_test_%s_rs_assetstore_auto' % assetstoreName
             mongo_replicaset.startMongoReplicaSet()
-            self.assetstore = self.model('assetstore'). \
-                createGridFsAssetstore(
-                name='Test', db=gridfsDbName,
-                mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
-                '127.0.0.1:27072', replicaset='replicaset')
+            self.assetstore = self.model('assetstore').createGridFsAssetstore(
+                name='Test', db=gridfsDbName, replicaset='replicaset',
+                mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,127.0.0.1:27072')
         elif assetstoreType == 's3':
-            self.assetstore = self.model('assetstore'). \
-                createS3Assetstore(name='Test', bucket='bucketname',
-                                   accessKeyId='test', secret='test',
-                                   service=mockS3Server.service)
+            self.assetstore = self.model('assetstore').createS3Assetstore(
+                name='Test', bucket='bucketname', accessKeyId='test', secret='test',
+                service=mockS3Server.service)
         else:
             dropFsAssetstore(assetstorePath)
-            self.assetstore = self.model('assetstore'). \
-                createFilesystemAssetstore(name='Test', root=assetstorePath)
+            self.assetstore = self.model('assetstore').createFilesystemAssetstore(
+                name='Test', root=assetstorePath)
 
         addr = ':'.join(map(str, mockSmtp.address))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
@@ -198,13 +196,11 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         code = str(code)
 
         if not response.output_status.startswith(code.encode()):
-            msg = 'Response status was %s, not %s.' % (response.output_status,
-                                                       code)
+            msg = 'Response status was %s, not %s.' % (response.output_status, code)
 
             if hasattr(response, 'json'):
                 msg += ' Response body was:\n%s' % json.dumps(
-                    response.json, sort_keys=True, indent=4,
-                    separators=(',', ': '))
+                    response.json, sort_keys=True, indent=4, separators=(',', ': '))
 
             self.fail(msg)
 
@@ -221,12 +217,11 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
     def assertRedirect(self, resp, url=None):
         """
-        Assert that we were given an HTTP redirect response, and optionally
-        assert that you were redirected to a specific URL.
+        Assert that we were given an HTTP redirect response, and optionally assert that you were
+        redirected to a specific URL.
 
         :param resp: The response object.
-        :param url: If you know the URL you expect to be redirected to, you
-            should pass it here.
+        :param url: If you know the URL you expect to be redirected to, you should pass it here.
         :type url: str
         """
         self.assertStatus(resp, 303)
@@ -237,8 +232,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
     def assertNotHasKeys(self, obj, keys):
         """
-        Assert that the given object does not have any of the given list of
-        keys.
+        Assert that the given object does not have any of the given list of keys.
 
         :param obj: The dictionary object.
         :param keys: The keys it must not contain.
@@ -272,8 +266,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         else:
             self.assertStatus(response, 403)
 
-        self.assertEqual('%s access denied for %s.' % (ls, modelName),
-                         response.json['message'])
+        self.assertEqual('%s access denied for %s.' % (ls, modelName), response.json['message'])
 
     def assertMissingParameter(self, response, param):
         """
@@ -283,8 +276,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param param: The name of the missing parameter.
         :type param: str
         """
-        self.assertEqual("Parameter '%s' is required." % param,
-                         response.json.get('message', ''))
+        self.assertEqual("Parameter '%s' is required." % param, response.json.get('message', ''))
         self.assertStatus(response, 400)
 
     def getSseMessages(self, resp):
@@ -293,11 +285,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             return ()
         return [json.loads(m.replace('data: ', '')) for m in messages]
 
-    def uploadFile(self, name, contents, user, parent, parentType='folder',
-                   mimeType=None):
+    def uploadFile(self, name, contents, user, parent, parentType='folder', mimeType=None):
         """
-        Upload a file. This is meant for small testing files, not very large
-        files that should be sent in multiple chunks.
+        Upload a file. This is meant for small testing files, not very large files that should be
+        sent in multiple chunks.
 
         :param name: The name of the file.
         :type name: str
@@ -339,8 +330,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         return self.model('file').load(file['_id'], force=True)
 
-    def ensureRequiredParams(self, path='/', method='GET', required=(),
-                             user=None):
+    def ensureRequiredParams(self, path='/', method='GET', required=(), user=None):
         """
         Ensure that a set of parameters is required by the endpoint.
 
@@ -351,8 +341,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         for exclude in required:
             params = dict.fromkeys([p for p in required if p != exclude], '')
-            resp = self.request(path=path, method=method, params=params,
-                                user=user)
+            resp = self.request(path=path, method=method, params=params, user=user)
             self.assertMissingParameter(resp, exclude)
 
     def _genToken(self, user):
@@ -379,11 +368,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             auth = base64.b64encode(basicAuth.encode('utf8'))
             headers.append((authHeader, 'Basic %s' % auth.decode()))
 
-    def request(self, path='/', method='GET', params=None, user=None,
-                prefix='/api/v1', isJson=True, basicAuth=None, body=None,
-                type=None, exception=False, cookie=None, token=None,
-                additionalHeaders=None, useHttps=False,
-                authHeader='Girder-Authorization'):
+    def request(self, path='/', method='GET', params=None, user=None, prefix='/api/v1', isJson=True,
+                basicAuth=None, body=None, type=None, exception=False, cookie=None, token=None,
+                additionalHeaders=None, useHttps=False, authHeader='Girder-Authorization'):
         """
         Make an HTTP request.
 
@@ -395,16 +382,14 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :type params: dict
         :param prefix: The prefix to use before the path.
         :param isJson: Whether the response is a JSON object.
-        :param basicAuth: A string to pass with the Authorization: Basic header
-                          of the form 'login:password'
+        :param basicAuth: A string to pass with the Authorization: Basic header of the form
+            'login:password'
         :param exception: Set this to True if a 500 is expected from this call.
         :param cookie: A custom cookie value to set.
-        :param token: If you want to use an existing token to login, pass
-            the token ID.
+        :param token: If you want to use an existing token to login, pass the token ID.
         :type token: str
-        :param additionalHeaders: A list of headers to add to the
-                                  request.  Each item is a tuple of the form
-                                  (header-name, header-value).
+        :param additionalHeaders: A list of headers to add to the request. Each item is a tuple of
+            the form (header-name, header-value).
         :param useHttps: If True, pretend to use HTTPS.
         :param authHeader: The HTTP request header to use for authentication.
         :type authHeader: str
@@ -423,8 +408,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 body = body.encode('utf8')
             qs = urllib.parse.urlencode(params).encode('utf8')
             if type is None:
-                headers.append(('Content-Type',
-                                'application/x-www-form-urlencoded'))
+                headers.append(('Content-Type', 'application/x-www-form-urlencoded'))
             else:
                 headers.append(('Content-Type', type))
                 qs = body
@@ -468,8 +452,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         Returns the response body as a text type or binary string.
 
         :param response: The response object from the server.
-        :param text: If true, treat the data as a text string, otherwise, treat
-                     as binary.
+        :param text: If true, treat the data as a text string, otherwise, treat as binary.
         """
         data = '' if text else b''
 
@@ -482,11 +465,11 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         return data
 
-    def multipartRequest(self, fields, files, path, method='POST', user=None,
-                         prefix='/api/v1', isJson=True):
+    def multipartRequest(self, fields, files, path, method='POST', user=None, prefix='/api/v1',
+                         isJson=True):
         """
-        Make an HTTP request with multipart/form-data encoding. This can be
-        used to send files with the request.
+        Make an HTTP request with multipart/form-data encoding. This can be used to send files with
+        the request.
 
         :param fields: List of (name, value) tuples.
         :param files: List of (name, filename, content) tuples.
@@ -530,8 +513,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 raise AssertionError('Did not receive JSON response')
 
         if response.output_status.startswith(b'500'):
-            raise AssertionError("Internal server error: %s" %
-                                 self.getBody(response))
+            raise AssertionError('Internal server error: %s' % self.getBody(response))
 
         return response
 
@@ -540,13 +522,11 @@ class MultipartFormdataEncoder(object):
     """
     This class is adapted from http://stackoverflow.com/a/18888633/2550451
 
-    It is used as a helper for creating multipart/form-data requests to
-    simulate file uploads.
+    It is used as a helper for creating multipart/form-data requests to simulate file uploads.
     """
     def __init__(self):
         self.boundary = uuid.uuid4().hex
-        self.contentType = \
-            'multipart/form-data; boundary=%s' % self.boundary
+        self.contentType = 'multipart/form-data; boundary=%s' % self.boundary
 
     @classmethod
     def u(cls, s):
@@ -561,8 +541,7 @@ class MultipartFormdataEncoder(object):
         for (key, value) in fields:
             key = self.u(key)
             yield encoder('--%s\r\n' % self.boundary)
-            yield encoder(self.u('Content-Disposition: form-data; '
-                                 'name="%s"\r\n') % key)
+            yield encoder(self.u('Content-Disposition: form-data; name="%s"\r\n') % key)
             yield encoder('\r\n')
             if isinstance(value, int) or isinstance(value, float):
                 value = str(value)
@@ -572,8 +551,8 @@ class MultipartFormdataEncoder(object):
             key = self.u(key)
             filename = self.u(filename)
             yield encoder('--%s\r\n' % self.boundary)
-            yield encoder(self.u('Content-Disposition: form-data; name="%s";'
-                          ' filename="%s"\r\n' % (key, filename)))
+            yield encoder(self.u('Content-Disposition: form-data; name="%s"; filename="%s"\r\n' % (
+                key, filename)))
             yield encoder('Content-Type: application/octet-stream\r\n')
             yield encoder('\r\n')
 
