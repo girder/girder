@@ -464,24 +464,24 @@ class PythonClientTestCase(base.TestCase):
 
         with httmock.HTTMock(mock):
             # download the file
-            obj = StringIO()
+            obj = six.BytesIO()
             client.downloadFile(file['_id'], obj)
             self.assertEqual(obj.getvalue(), expected)
             self.assertEqual(len(hits), 1)
             # this should hit the cache only
-            obj = StringIO()
+            obj = six.BytesIO()
             client.downloadFile(file['_id'], obj)
             self.assertEqual(obj.getvalue(), expected)
             self.assertEqual(len(hits), 1)
 
         expected = 'new file contents!'
         size = len(expected)
-        stream = StringIO(expected)
+        stream = six.BytesIO(expected)
         self.client.uploadFileContents(file['_id'], stream, size)
 
         with httmock.HTTMock(mock):
             # file should download again
-            obj = StringIO()
+            obj = six.BytesIO()
             client.downloadFile(file['_id'], obj)
             self.assertEqual(obj.getvalue(), expected)
             self.assertEqual(len(hits), 2)
