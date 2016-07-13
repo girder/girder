@@ -455,6 +455,7 @@ class PythonClientTestCase(base.TestCase):
 
         # track file downloads
         hits = []
+
         @httmock.urlmatch(path=r'.*/file/.+/download$')
         def mock(url, request):
             hits.append(url)
