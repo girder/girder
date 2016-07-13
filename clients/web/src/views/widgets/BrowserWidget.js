@@ -68,7 +68,7 @@ girder.views.BrowserWidget = girder.View.extend({
         if (this._hierarchyView) {
             this.stopListening(this._hierarchyView);
             this._hierarchyView.off();
-            this.$('.h-hierarchy-widget').empty();
+            this.$('.g-hierarchy-widget-container').empty();
         }
         if (!this._root) {
             return;
