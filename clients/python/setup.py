@@ -24,6 +24,7 @@ from setuptools import setup, find_packages
 CLIENT_VERSION = '1.3.0'
 
 install_reqs = [
+    'diskcache',
     'requests>=2.4.2',
     'six'
 ]

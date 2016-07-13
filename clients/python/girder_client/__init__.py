@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import diskcache
 import errno
 import getpass
 import glob
@@ -168,9 +169,7 @@ class GirderClient(object):
         if cacheSettings is None:
             self.cache = None
         else:
-            import diskcache
             self.cache = diskcache.Cache(**cacheSettings)
-
 
     def authenticate(self, username=None, password=None, interactive=False,
                      apiKey=None):
