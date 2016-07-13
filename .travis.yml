@@ -42,7 +42,7 @@ before_install:
     - npm prune
     - pip install -U pip virtualenv
 install:
-    - pip install -r requirements-dev.txt -e . -e .[plugins] -e clients/python
+    - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
     - npm install
 script:
     - mkdir _build
