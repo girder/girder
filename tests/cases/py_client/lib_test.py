@@ -556,3 +556,18 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(resp['type'], 'rest')
         self.assertEqual(resp['message'],
                          'Path not found: %s' % (testInvalidPath))
+
+    def testUploadWithPath(self):
+        testUser = self.model('user').createUser(
+            firstName='Jeffrey', lastName='Abrams', login='jjabrams',
+            password='password', email='jjabrams@email.com')
+        publicFolder = six.next(self.model('folder').childFolders(
+            parentType='user', parent=testUser, user=None, limit=1))
+        self.client.upload(self.libTestDir, '/user/jjabrams/Public')
+
+        parent = six.next(self.model('folder').childFolders(
+            parentType='folder', parent=publicFolder,
+            user=testUser, limit=0))
+        self.assertEqual([f['name'] for f in self.model('folder').childFolders(
+            parentType='folder', parent=parent,
+            user=testUser, limit=0)], ['sub0', 'sub1', 'sub2'])
