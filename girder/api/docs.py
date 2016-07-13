@@ -24,8 +24,7 @@ from girder.constants import TerminalColor
 
 models = collections.defaultdict(dict)
 # routes is dict of dicts of lists
-routes = collections.defaultdict(
-    functools.partial(collections.defaultdict, list))
+routes = collections.defaultdict(functools.partial(collections.defaultdict, list))
 
 
 def _toRoutePath(resource, route):
@@ -34,10 +33,7 @@ def _toRoutePath(resource, route):
     Swagger-compatible route path.
     """
     # Convert wildcard tokens from :foo form to {foo} form
-    convRoute = [
-        '{%s}' % token[1:] if token[0] == ':' else token
-        for token in route
-    ]
+    convRoute = ['{%s}' % token[1:] if token[0] == ':' else token for token in route]
     path = '/'.join(['', resource] + convRoute)
     return path
 
@@ -66,7 +62,7 @@ def addRouteDocs(resource, route, method, info, handler):
     :param method: The HTTP method for this route, e.g. "POST"
     :type method: str
     :param info: The information representing the API documentation, typically
-    from ``girder.api.describe.Description.asDict``.
+        from ``girder.api.describe.Description.asDict``.
     :type info: dict
     :param handler: The actual handler method for this route.
     :type handler: function

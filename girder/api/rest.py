@@ -64,8 +64,7 @@ def getApiUrl(url=None):
     In a request thread, call this to get the path to the root of the REST API.
     The returned path does *not* end in a forward slash.
 
-    :param url: URL from which to extract the base URL. If not specified, uses
-        `cherrypy.url()`
+    :param url: URL from which to extract the base URL. If not specified, uses `cherrypy.url()`
     """
     url = url or cherrypy.url()
     idx = url.find('/api/v1')
@@ -184,8 +183,7 @@ def getCurrentToken(allowCookie=False):
     if not tokenStr:
         return None
 
-    return ModelImporter.model('token').load(tokenStr, force=True,
-                                             objectId=False)
+    return ModelImporter.model('token').load(tokenStr, force=True, objectId=False)
 
 
 @_cacheAuthUser
@@ -194,12 +192,10 @@ def getCurrentUser(returnToken=False):
     Returns the currently authenticated user based on the token header or
     parameter.
 
-    :param returnToken: Whether we should return a tuple that also contains the
-                        token.
+    :param returnToken: Whether we should return a tuple that also contains the token.
     :type returnToken: bool
-    :returns: the user document from the database, or None if the user is not
-              logged in or the token is invalid or expired.  If
-              returnToken=True, returns a tuple of (user, token).
+    :returns: the user document from the database, or None if the user is not logged in or the
+        token is invalid or expired.  If returnToken=True, returns a tuple of (user, token).
     """
     event = events.trigger('auth.user.get')
     if event.defaultPrevented and len(event.responses) > 0:
@@ -213,8 +209,7 @@ def getCurrentUser(returnToken=False):
         else:
             return user
 
-    if (token is None or token['expires'] < datetime.datetime.utcnow() or
-            'userId' not in token):
+    if token is None or token['expires'] < datetime.datetime.utcnow() or 'userId' not in token:
         return retVal(None, token)
     else:
         try:
@@ -245,8 +240,7 @@ def requireAdmin(user, message=None):
 def getBodyJson():
     """
     For requests that are expected to contain a JSON body, this returns the
-    parsed value, or raises a :class:`girder.api.rest.RestException` for
-    invalid JSON.
+    parsed value, or raises a :class:`girder.api.rest.RestException` for invalid JSON.
     """
     try:
         return json.loads(cherrypy.request.body.read().decode('utf8'))
@@ -261,9 +255,8 @@ class loadmodel(ModelImporter):  # noqa: class name
     user. The underlying function is called with a modified set of keyword
     arguments that is transformed by the "map" parameter of this decorator.
 
-    :param map: Map of incoming parameter name to corresponding model arg name.
-        If None is passed, this will map the parameter named "id" to a kwarg
-        named the same as the "model" parameter.
+    :param map: Map of incoming parameter name to corresponding model arg name. If None is passed,
+        this will map the parameter named "id" to a kwarg named the same as the "model" parameter.
     :type map: dict or None
     :param model: The model name, e.g. 'folder'
     :type model: str
@@ -273,12 +266,10 @@ class loadmodel(ModelImporter):  # noqa: class name
     :type level: AccessType
     :param force: Force loading of the model (skip access check).
     :type force: bool
-    :param exc: Whether an exception should be raised for a nonexistent
-        resource.
+    :param exc: Whether an exception should be raised for a nonexistent resource.
     :type exc: bool
     """
-    def __init__(self, map=None, model=None, plugin='_core', level=None,
-                 force=False, exc=True):
+    def __init__(self, map=None, model=None, plugin='_core', level=None, force=False, exc=True):
         if map is None:
             self.map = {'id': model}
         else:
@@ -309,14 +300,12 @@ class loadmodel(ModelImporter):  # noqa: class name
                 if self.force:
                     kwargs[converted] = model.load(id, force=True)
                 elif self.level is not None:
-                    kwargs[converted] = model.load(
-                        id=id, level=self.level, user=getCurrentUser())
+                    kwargs[converted] = model.load(id=id, level=self.level, user=getCurrentUser())
                 else:
                     kwargs[converted] = model.load(id)
 
                 if kwargs[converted] is None and self.exc:
-                    raise RestException(
-                        'Invalid %s id (%s).' % (model.name, str(id)))
+                    raise RestException('Invalid %s id (%s).' % (model.name, str(id)))
 
             return fun(*args, **kwargs)
         return wrapped
@@ -358,8 +347,7 @@ class filtermodel(ModelImporter):  # noqa: class name
             elif isinstance(val, dict):
                 return model.filter(val, user, self.addFields)
             else:
-                raise Exception(
-                    'Cannot call filtermodel on return type: %s.' % type(val))
+                raise Exception('Cannot call filtermodel on return type: %s.' % type(val))
         return wrapped
 
 
@@ -418,8 +406,9 @@ def _createResponse(val):
         elif accept.value == 'text/html':  # pragma: no cover
             # Pretty-print and HTML-ify the response for the browser
             cherrypy.response.headers['Content-Type'] = 'text/html'
-            resp = json.dumps(val, indent=4, sort_keys=True, allow_nan=False,
-                              separators=(',', ': '), cls=JsonEncoder)
+            resp = json.dumps(
+                val, indent=4, sort_keys=True, allow_nan=False, separators=(',', ': '),
+                cls=JsonEncoder)
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
             return resp.encode('utf8')
@@ -427,8 +416,8 @@ def _createResponse(val):
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
     cherrypy.response.headers['Content-Type'] = 'application/json'
-    return json.dumps(val, sort_keys=True, allow_nan=False,
-                      cls=JsonEncoder).encode('utf8')
+    return json.dumps(
+        val, sort_keys=True, allow_nan=False, cls=JsonEncoder).encode('utf8')
 
 
 def _handleRestException(e):
@@ -478,8 +467,7 @@ def endpoint(fun):
     resulting from access denial, and also handles any unexpected errors
     using 500 status and including a useful traceback in those cases.
 
-    If you want a streamed response, simply return a generator function
-    from the inner method.
+    If you want a streamed response, simply return a generator function from the inner method.
     """
     @six.wraps(fun)
     def endpointDecorator(self, *args, **kwargs):
@@ -518,8 +506,10 @@ def endpoint(fun):
             logger.exception('500 Error')
             cherrypy.response.status = 500
             t, value, tb = sys.exc_info()
-            val = {'message': '%s: %s' % (t.__name__, repr(value)),
-                   'type': 'internal'}
+            val = {
+                'message': '%s: %s' % (t.__name__, repr(value)),
+               'type': 'internal'
+            }
             curConfig = config.getConfig()
             if curConfig['server']['mode'] != 'production':
                 # Unless we are in production mode, send a traceback too
@@ -551,8 +541,7 @@ def ensureTokenScopes(token, scope):
         raise AccessException(
             'Invalid token scope.\n'
             'Required: %s.\n'
-            'Allowed: %s' % (
-                ' '.join(scope), ' '.join(tokenModel.getAllowedScopes(token))))
+            'Allowed: %s' % (' '.join(scope), ' '.join(tokenModel.getAllowedScopes(token))))
 
 
 def _setCommonCORSHeaders():
@@ -604,8 +593,7 @@ class Resource(ModelImporter):
     exposed = True
 
     def __init__(self):
-        self._routes = collections.defaultdict(
-            lambda: collections.defaultdict(list))
+        self._routes = collections.defaultdict(lambda: collections.defaultdict(list))
 
     def _ensureInit(self):
         """
@@ -618,9 +606,8 @@ class Resource(ModelImporter):
         if not hasattr(self, '_routes'):
             Resource.__init__(self)
             print(TerminalColor.warning(
-                'WARNING: Resource subclass "%s" did not call '
-                '"Resource__init__()" from its constructor.' %
-                self.__class__.__name__))
+                'WARNING: Resource subclass "%s" did not call "Resource__init__()" from its '
+                'constructor.' % self.__class__.__name__))
 
     def route(self, method, route, handler, nodoc=False, resource=None):
         """
@@ -628,17 +615,15 @@ class Resource(ModelImporter):
 
         :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT', 'PATCH'
         :type method: str
-        :param route: The route, as a list of path params relative to the
-            resource root. Elements of this list starting with ':' are assumed
-            to be wildcards.
+        :param route: The route, as a list of path params relative to the resource root. Elements
+            of this list starting with ':' are assumed to be wildcards.
         :type route: tuple[str]
-        :param handler: The method to be called if the route and method are
-            matched by a request. Wildcards in the route will be expanded and
-            passed as kwargs with the same name as the wildcard identifier.
+        :param handler: The method to be called if the route and method are matched by a request.
+            Wildcards in the route will be expanded and passed as kwargs with the same name as the
+            wildcard identifier.
         :type handler: function
         :param nodoc: If your route intentionally provides no documentation,
             set this to True to disable the warning on startup.
-
         :type nodoc: bool
         :param resource: The name of the resource at the root of this route.
         """
@@ -666,8 +651,7 @@ class Resource(ModelImporter):
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
             print(TerminalColor.warning(
-                'WARNING: No description docs present for route %s %s' % (
-                    method, routePath)))
+                'WARNING: No description docs present for route %s %s' % (method, routePath)))
 
         # Warn if there is no access decorator on the handler function
         if not hasattr(handler, 'accessLevel'):
@@ -676,15 +660,13 @@ class Resource(ModelImporter):
                 'WARNING: No access level specified for route %s %s' % (
                     method, routePath)))
 
-        if method.lower() not in ('head', 'get') \
-            and hasattr(handler, 'cookieAuth') \
-            and not (isinstance(handler.cookieAuth, tuple) and
-                     handler.cookieAuth[1]):
+        if (method.lower() not in ('head', 'get')
+                and hasattr(handler, 'cookieAuth')
+                and not (isinstance(handler.cookieAuth, tuple) and handler.cookieAuth[1])):
             routePath = '/'.join([resource] + list(route))
             print(TerminalColor.warning(
-                  'WARNING: Cannot allow cookie authentication for '
-                  'route %s %s without specifying "force=True"' % (
-                      method, routePath)))
+              'WARNING: Cannot allow cookie authentication for route %s %s without specifying '
+              '"force=True"' % (method, routePath)))
 
     def removeRoute(self, method, route, handler=None, resource=None):
         """
@@ -692,12 +674,11 @@ class Resource(ModelImporter):
 
         :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
         :type method: str
-        :param route: The route, as a list of path params relative to the
-                      resource root. Elements of this list starting with ':'
-                      are assumed to be wildcards.
+        :param route: The route, as a list of path params relative to the resource root.
+            Elements of this list starting with ':' are assumed to be wildcards.
         :type route: tuple[str]
-        :param handler: The method called for the route; this is necessary to
-                        remove the documentation.
+        :param handler: The method called for the route; this is necessary to remove the
+            documentation.
         :type handler: function
         :param resource: the name of the resource at the root of this route.
         """
@@ -803,8 +784,8 @@ class Resource(ModelImporter):
             routeStr = '/'.join((resource, '/'.join(route))).rstrip('/')
             eventPrefix = '.'.join(('rest', method, routeStr))
 
-            event = events.trigger('.'.join((eventPrefix, 'before')),
-                                   kwargs, pre=self._defaultAccess)
+            event = events.trigger(
+                '.'.join((eventPrefix, 'before')), kwargs, pre=self._defaultAccess)
             if event.defaultPrevented and len(event.responses) > 0:
                 val = event.responses[0]
             else:
@@ -822,8 +803,7 @@ class Resource(ModelImporter):
 
             return val
 
-        raise RestException('No matching route for "%s %s"' % (
-            method.upper(), '/'.join(path)))
+        raise RestException('No matching route for "%s %s"' % (method.upper(), '/'.join(path)))
 
     def _matchRoute(self, path, route):
         """
@@ -906,8 +886,7 @@ class Resource(ModelImporter):
         """
         return setRawResponse(*args, **kwargs)
 
-    def getPagingParameters(self, params, defaultSortField=None,
-                            defaultSortDir=SortDir.ASCENDING):
+    def getPagingParameters(self, params, defaultSortField=None, defaultSortDir=SortDir.ASCENDING):
         """
         Pass the URL parameters into this function if the request is for a
         list of resources that should be paginated. It will return a tuple of
@@ -918,9 +897,8 @@ class Resource(ModelImporter):
 
         :param params: The URL query parameters.
         :type params: dict
-        :param defaultSortField: If the client did not pass a 'sort' parameter,
-            set this to choose a default sort field. If None, the results will
-            be returned unsorted.
+        :param defaultSortField: If the client did not pass a 'sort' parameter, set this to choose
+            a default sort field. If None, the results will be returned unsorted.
         :type defaultSortField: str or None
         :param defaultSortDir: Sort direction.
         :type defaultSortDir: girder.constants.SortDir
@@ -966,12 +944,10 @@ class Resource(ModelImporter):
         Returns the currently authenticated user based on the token header or
         parameter.
 
-        :param returnToken: Whether we should return a tuple that also contains
-                            the token.
+        :param returnToken: Whether we should return a tuple that also contains the token.
         :type returnToken: bool
-        :returns: The user document from the database, or None if the user
-                  is not logged in or the token is invalid or expired.
-                  If returnToken=True, returns a tuple of (user, token).
+        :returns: The user document from the database, or None if the user is not logged in or the
+            token is invalid or expired. If returnToken=True, returns a tuple of (user, token).
         """
         return getCurrentUser(returnToken)
 
@@ -1004,8 +980,8 @@ class Resource(ModelImporter):
         cherrypy.lib.caching.expires(0)
 
         allowHeaders = self.model('setting').get(SettingKey.CORS_ALLOW_HEADERS)
-        allowMethods = self.model('setting').get(SettingKey.CORS_ALLOW_METHODS)\
-            or 'GET, POST, PUT, HEAD, DELETE'
+        allowMethods = (self.model('setting').get(SettingKey.CORS_ALLOW_METHODS)
+            or 'GET, POST, PUT, HEAD, DELETE')
 
         cherrypy.response.headers['Access-Control-Allow-Methods'] = allowMethods
         cherrypy.response.headers['Access-Control-Allow-Headers'] = allowHeaders
@@ -1031,8 +1007,7 @@ class Resource(ModelImporter):
         # to do this (see http://fandry.blogspot.com/2012/03/
         # x-http-header-method-override-and-rest.html).  We might as well
         # support all three.
-        for key in ('X-HTTP-Method-Override', 'X-HTTP-Method',
-                    'X-Method-Override'):
+        for key in ('X-HTTP-Method-Override', 'X-HTTP-Method', 'X-Method-Override'):
             if key in cherrypy.request.headers:
                 method = cherrypy.request.headers[key]
         return self.handleRoute(method, path, params)
@@ -1088,8 +1063,8 @@ class boundHandler(object):  # noqa: class name
             self.ctx = _sharedContext
             self.func = ctx
         else:
-            raise Exception('ctx in boundhandler must be an instance of '
-                            'Resource or a function to be wrapped')
+            raise Exception(
+                'ctx in boundhandler must be an instance of Resource or a function to be wrapped')
 
     def __call__(self, *args, **kwargs):
         if self.func is not None:  # Used as a raw decorator

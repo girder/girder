@@ -93,8 +93,7 @@ def token(*args, **kwargs):
         @six.wraps(args[0])
         def wrapped(*iargs, **ikwargs):
             if not rest.getCurrentToken():
-                raise AccessException(
-                    'You must be logged in or have a valid auth token.')
+                raise AccessException('You must be logged in or have a valid auth token.')
             return args[0](*iargs, **ikwargs)
         wrapped.accessLevel = 'token'
         return wrapped
@@ -103,8 +102,7 @@ def token(*args, **kwargs):
             @six.wraps(fun)
             def wrapped(*iargs, **ikwargs):
                 if not rest.getCurrentToken():
-                    raise AccessException(
-                        'You must be logged in or have a valid auth token.')
+                    raise AccessException('You must be logged in or have a valid auth token.')
                 return fun(*iargs, **ikwargs)
             wrapped.accessLevel = 'token'
             wrapped.requiredScopes = kwargs.get('scope')
