@@ -908,7 +908,7 @@ class GirderClient(object):
         cacheKey = '\n'.join([self.urlBase, fileId, created])
 
         # see if file is in local cache
-        if self.cache:
+        if self.cache is not None:
             fp = self.cache.get(cacheKey, read=True)
             if fp:
                 with fp:
@@ -924,7 +924,7 @@ class GirderClient(object):
                 tmp.write(chunk)
 
         # save file in cache
-        if self.cache:
+        if self.cache is not None:
             with open(tmp.name, 'rb') as fp:
                 self.cache.set(cacheKey, fp, read=True)
 
