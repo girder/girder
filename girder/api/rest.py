@@ -508,7 +508,7 @@ def endpoint(fun):
             t, value, tb = sys.exc_info()
             val = {
                 'message': '%s: %s' % (t.__name__, repr(value)),
-               'type': 'internal'
+                'type': 'internal'
             }
             curConfig = config.getConfig()
             if curConfig['server']['mode'] != 'production':
@@ -660,13 +660,12 @@ class Resource(ModelImporter):
                 'WARNING: No access level specified for route %s %s' % (
                     method, routePath)))
 
-        if (method.lower() not in ('head', 'get')
-                and hasattr(handler, 'cookieAuth')
-                and not (isinstance(handler.cookieAuth, tuple) and handler.cookieAuth[1])):
+        if (method.lower() not in ('head', 'get') and hasattr(handler, 'cookieAuth') and
+                not (isinstance(handler.cookieAuth, tuple) and handler.cookieAuth[1])):
             routePath = '/'.join([resource] + list(route))
             print(TerminalColor.warning(
-              'WARNING: Cannot allow cookie authentication for route %s %s without specifying '
-              '"force=True"' % (method, routePath)))
+                'WARNING: Cannot allow cookie authentication for route %s %s without specifying '
+                '"force=True"' % (method, routePath)))
 
     def removeRoute(self, method, route, handler=None, resource=None):
         """
@@ -980,8 +979,8 @@ class Resource(ModelImporter):
         cherrypy.lib.caching.expires(0)
 
         allowHeaders = self.model('setting').get(SettingKey.CORS_ALLOW_HEADERS)
-        allowMethods = (self.model('setting').get(SettingKey.CORS_ALLOW_METHODS)
-            or 'GET, POST, PUT, HEAD, DELETE')
+        allowMethods = self.model('setting').get(SettingKey.CORS_ALLOW_METHODS) or \
+            'GET, POST, PUT, HEAD, DELETE'
 
         cherrypy.response.headers['Access-Control-Allow-Methods'] = allowMethods
         cherrypy.response.headers['Access-Control-Allow-Headers'] = allowHeaders

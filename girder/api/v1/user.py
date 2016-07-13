@@ -48,10 +48,8 @@ class User(Resource):
         self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
         self.route('PUT', (':id', 'password'), self.changeUserPassword)
-        self.route('GET', ('password', 'temporary', ':id'),
-                   self.checkTemporaryPassword)
-        self.route('PUT', ('password', 'temporary'),
-                   self.generateTemporaryPassword)
+        self.route('GET', ('password', 'temporary', ':id'), self.checkTemporaryPassword)
+        self.route('PUT', ('password', 'temporary'), self.generateTemporaryPassword)
         self.route('DELETE', ('password',), self.resetPassword)
         self.route('PUT', (':id', 'verification'), self.verifyEmail)
         self.route('POST', ('verification',), self.sendVerificationEmail)
@@ -61,15 +59,14 @@ class User(Resource):
     @describeRoute(
         Description('List or search for users.')
         .responseClass('User')
-        .param('text', "Pass this to perform a full text search for items.",
-               required=False)
+        .param('text', 'Pass this to perform a full text search for items.', required=False)
         .pagingParams(defaultSort='lastName')
     )
     def find(self, params):
         limit, offset, sort = self.getPagingParameters(params, 'lastName')
         return list(self.model('user').search(
-            text=params.get('text'), user=self.getCurrentUser(), offset=offset,
-            limit=limit, sort=sort))
+            text=params.get('text'), user=self.getCurrentUser(), offset=offset, limit=limit,
+            sort=sort))
 
     @access.public(scope=TokenScope.USER_INFO_READ)
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
@@ -104,8 +101,7 @@ class User(Resource):
     def login(self, params):
         """
         Login endpoint. Sends an auth cookie in the response on success.
-        The caller is expected to use HTTP Basic Authentication when calling
-        this endpoint.
+        The caller is expected to use HTTP Basic Authentication when calling this endpoint.
         """
         user, token = self.getCurrentUser(returnToken=True)
 
@@ -141,13 +137,11 @@ class User(Resource):
 
             if self.model('user').emailVerificationRequired(user):
                 raise RestException(
-                    'Email verification required.', code=403,
-                    extra='emailVerification')
+                    'Email verification required.', code=403, extra='emailVerification')
 
             if self.model('user').adminApprovalRequired(user):
                 raise RestException(
-                    'Account approval required.', code=403,
-                    extra='accountApproval')
+                    'Account approval required.', code=403, extra='accountApproval')
 
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
@@ -191,8 +185,7 @@ class User(Resource):
                        ' email already exists in the system.')
     )
     def createUser(self, params):
-        self.requireParams(
-            ('firstName', 'lastName', 'login', 'password', 'email'), params)
+        self.requireParams(('firstName', 'lastName', 'login', 'password', 'email'), params)
 
         currentUser = self.getCurrentUser()
 
@@ -208,9 +201,8 @@ class User(Resource):
                     'administrator to create an account for you.')
 
         user = self.model('user').createUser(
-            login=params['login'], password=params['password'],
-            email=params['email'], firstName=params['firstName'],
-            lastName=params['lastName'], admin=admin)
+            login=params['login'], password=params['password'], email=params['email'],
+            firstName=params['firstName'], lastName=params['lastName'], admin=admin)
 
         if not currentUser and self.model('user').canLogin(user):
             setattr(cherrypy.request, 'girderUser', user)
@@ -238,7 +230,7 @@ class User(Resource):
     @loadmodel(model='user', level=AccessType.WRITE)
     @filtermodel(model='user')
     @describeRoute(
-        Description("Update a user's information.")
+        Description('Update a user\'s information.')
         .param('id', 'The ID of the user.', paramType='path')
         .param('firstName', 'First name of the user.')
         .param('lastName', 'Last name of the user.')
@@ -315,10 +307,8 @@ class User(Resource):
             # If not the user's actual password, check for temp access token
             token = self.model('token').load(
                 params['old'], force=True, objectId=False, exc=False)
-            if (not token or not token.get('userId') or
-                    token['userId'] != user['_id'] or
-                    not self.model('token').hasScope(
-                        token, TokenScope.TEMPORARY_USER_AUTH)):
+            if (not token or not token.get('userId') or token['userId'] != user['_id'] or
+                    not self.model('token').hasScope(token, TokenScope.TEMPORARY_USER_AUTH)):
                 raise AccessException('Old password is incorrect.')
 
         self.model('user').setPassword(user, params['new'])
@@ -348,8 +338,7 @@ class User(Resource):
         html = mail_utils.renderTemplate('resetPassword.mako', {
             'password': randomPass
         })
-        mail_utils.sendEmail(to=email, subject='Girder: Password reset',
-                             text=html)
+        mail_utils.sendEmail(to=email, subject='Girder: Password reset', text=html)
         self.model('user').setPassword(user, randomPass)
         return {'message': 'Sent password reset email.'}
 
@@ -369,8 +358,7 @@ class User(Resource):
         if not user:
             raise RestException('That email is not registered.')
 
-        token = self.model('token').createToken(
-            user, days=1, scope=TokenScope.TEMPORARY_USER_AUTH)
+        token = self.model('token').createToken(user, days=1, scope=TokenScope.TEMPORARY_USER_AUTH)
 
         url = '%s/#useraccount/%s/token/%s' % (
             mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
@@ -379,8 +367,7 @@ class User(Resource):
             'url': url,
             'token': str(token['_id'])
         })
-        mail_utils.sendEmail(to=email, subject='Girder: Temporary access',
-                             text=html)
+        mail_utils.sendEmail(to=email, subject='Girder: Temporary access', text=html)
         return {'message': 'Sent temporary access email.'}
 
     @access.public
@@ -391,20 +378,16 @@ class User(Resource):
                     'information on the token and user.')
         .param('id', 'The user ID to check.', paramType='path')
         .param('token', 'The token to check.')
-        .errorResponse('The token does not grant temporary access to the '
-                       'specified user.', 401)
+        .errorResponse('The token does not grant temporary access to the specified user.', 401)
     )
     def checkTemporaryPassword(self, user, params):
         self.requireParams('token', params)
-        token = self.model('token').load(
-            params['token'], force=True, objectId=False, exc=True)
+        token = self.model('token').load(params['token'], force=True, objectId=False, exc=True)
         delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
-        hasScope = self.model('token').hasScope(
-            token, TokenScope.TEMPORARY_USER_AUTH)
+        hasScope = self.model('token').hasScope(token, TokenScope.TEMPORARY_USER_AUTH)
 
         if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
-            raise AccessException(
-                'The token does not grant temporary access to this user.')
+            raise AccessException('The token does not grant temporary access to this user.')
 
         # Temp auth is verified, send an actual auth token now. We keep the
         # temp token around since it can still be used on a subsequent request
@@ -445,11 +428,9 @@ class User(Resource):
     )
     def verifyEmail(self, user, params):
         self.requireParams('token', params)
-        token = self.model('token').load(
-            params['token'], force=True, objectId=False, exc=True)
+        token = self.model('token').load(params['token'], force=True, objectId=False, exc=True)
         delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
-        hasScope = self.model('token').hasScope(
-            token, TokenScope.EMAIL_VERIFICATION)
+        hasScope = self.model('token').hasScope(token, TokenScope.EMAIL_VERIFICATION)
 
         if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
             raise AccessException('The token is invalid or expired.')

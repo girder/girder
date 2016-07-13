@@ -68,14 +68,12 @@ class File(Resource):
         .param('parentType', 'Type being uploaded into (folder or item).')
         .param('parentId', 'The ID of the parent.')
         .param('name', 'Name of the file being created.')
-        .param('size', 'Size in bytes of the file.',
-               dataType='integer', required=False)
+        .param('size', 'Size in bytes of the file.', dataType='integer', required=False)
         .param('mimeType', 'The MIME type of the file.', required=False)
         .param('linkUrl', 'If this is a link file, pass its URL instead '
                'of size and mimeType using this parameter.', required=False)
         .param('reference', 'If included, this information is passed to the '
-               'data.process event when the upload is complete.',
-               required=False)
+               'data.process event when the upload is complete.', required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
         .errorResponse('Failed to create upload.', 500)
@@ -97,8 +95,8 @@ class File(Resource):
         if parentType not in ('folder', 'item'):
             raise RestException('The parentType must be "folder" or "item".')
 
-        parent = self.model(parentType).load(id=params['parentId'], user=user,
-                                             level=AccessType.WRITE, exc=True)
+        parent = self.model(parentType).load(
+            id=params['parentId'], user=user, level=AccessType.WRITE, exc=True)
 
         if 'linkUrl' in params:
             return self.model('file').filter(
@@ -109,20 +107,17 @@ class File(Resource):
             self.requireParams('size', params)
             try:
                 upload = self.model('upload').createUpload(
-                    user=user, name=params['name'], parentType=parentType,
-                    parent=parent, size=int(params['size']), mimeType=mimeType,
-                    reference=params.get('reference'))
+                    user=user, name=params['name'], parentType=parentType, parent=parent,
+                    size=int(params['size']), mimeType=mimeType, reference=params.get('reference'))
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(
-                        'Failed to create upload.',
-                        'girder.api.v1.file.create-upload-failed')
+                        'Failed to create upload.', 'girder.api.v1.file.create-upload-failed')
                 raise
             if upload['size'] > 0:
                 return upload
             else:
-                return self.model('file').filter(
-                    self.model('upload').finalizeUpload(upload), user)
+                return self.model('file').filter(self.model('upload').finalizeUpload(upload), user)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @describeRoute(
@@ -150,8 +145,8 @@ class File(Resource):
         # complete the upload.
         if upload['received'] != upload['size'] and 'behavior' not in upload:
             raise RestException(
-                'Server has only received %s bytes, but the file should be %s '
-                'bytes.' % (upload['received'], upload['size']))
+                'Server has only received %s bytes, but the file should be %s bytes.' % (
+                    upload['received'], upload['size']))
 
         file = self.model('upload').finalizeUpload(upload)
         extraKeys = file.get('additionalFinalizeKeys', ())
@@ -161,8 +156,7 @@ class File(Resource):
     @describeRoute(
         Description('Request required offset before resuming an upload.')
         .param('uploadId', 'The ID of the upload record.')
-        .errorResponse("The ID was invalid, or the offset did not match the "
-                       "server's record.")
+        .errorResponse('The ID was invalid, or the offset did not match the server\'s record.')
     )
     def requestOffset(self, params):
         """
@@ -187,12 +181,10 @@ class File(Resource):
         Description('Upload a chunk of a file with multipart/form-data.')
         .consumes('multipart/form-data')
         .param('uploadId', 'The ID of the upload record.', paramType='form')
-        .param('offset', 'Offset of the chunk in the file.', dataType='integer',
-               paramType='form')
+        .param('offset', 'Offset of the chunk in the file.', dataType='integer', paramType='form')
         .param('chunk', 'The actual bytes of the chunk. For external upload '
                'behaviors, this may be set to an opaque string that will be '
-               'handled by the assetstore adapter.',
-               dataType='File', paramType='body')
+               'handled by the assetstore adapter.', dataType='File', paramType='body')
         .errorResponse('ID was invalid.')
         .errorResponse('Received too many bytes.')
         .errorResponse('Chunk is smaller than the minimum size.')
@@ -240,19 +232,18 @@ class File(Resource):
         .notes('This endpoint also accepts the HTTP "Range" header for partial '
                'file downloads.')
         .param('id', 'The ID of the file.', paramType='path')
-        .param('offset', 'Start downloading at this offset in bytes within '
-               'the file.', dataType='integer', required=False)
+        .param('offset', 'Start downloading at this offset in bytes within the file.',
+               dataType='integer', required=False)
         .param('endByte', 'If you only wish to download part of the file, '
                'pass this as the index of the last byte to download. Unlike '
                'the HTTP Range header, the endByte parameter is non-inclusive, '
                'so you should set it to the index of the byte one past the '
-               'final byte you wish to receive.', dataType='integer',
-               required=False)
+               'final byte you wish to receive.', dataType='integer', required=False)
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value', required=False,
                enum=['inline', 'attachment'], default='attachment')
-        .param('extraParameters', 'Arbitrary data to send along with the '
-               'download request.', required=False)
+        .param('extraParameters', 'Arbitrary data to send along with the download request.',
+               required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
@@ -276,26 +267,23 @@ class File(Resource):
                 endByte = int(endByte)
 
         contentDisp = params.get('contentDisposition', None)
-        if (contentDisp is not None and
-           contentDisp not in {'inline', 'attachment'}):
-            raise RestException('Unallowed contentDisposition type "%s".' %
-                                contentDisp)
+        if contentDisp is not None and contentDisp not in ('inline', 'attachment'):
+            raise RestException('Unallowed contentDisposition type "%s".' % contentDisp)
 
         extraParameters = params.get('extraParameters')
 
-        return self.model('file').download(file, offset, endByte=endByte,
-                                           contentDisposition=contentDisp,
-                                           extraParameters=extraParameters)
+        return self.model('file').download(
+            file, offset, endByte=endByte, contentDisposition=contentDisp,
+            extraParameters=extraParameters)
 
     @access.cookie
     @access.public(scope=TokenScope.DATA_READ)
     @describeRoute(
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')
-        .param('name', 'The name of the file.  This is ignored.',
-               paramType='path')
-        .param('offset', 'Start downloading at this offset in bytes within '
-               'the file.', dataType='integer', required=False)
+        .param('name', 'The name of the file.  This is ignored.', paramType='path')
+        .param('offset', 'Start downloading at this offset in bytes within the file.',
+               dataType='integer', required=False)
         .notes('The name parameter doesn\'t alter the download.  Some '
                'download clients save files based on the last part of a path, '
                'and specifying the name satisfies those clients.')
@@ -346,8 +334,7 @@ class File(Resource):
     )
     def updateFile(self, file, params):
         file['name'] = params.get('name', file['name']).strip()
-        file['mimeType'] = params.get('mimeType',
-                                      (file.get('mimeType') or '').strip())
+        file['mimeType'] = params.get('mimeType', (file.get('mimeType') or '').strip())
         return self.model('file').updateFile(file)
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -357,10 +344,8 @@ class File(Resource):
         .param('id', 'The ID of the file.', paramType='path')
         .param('size', 'Size in bytes of the new file.', dataType='integer')
         .param('reference', 'If included, this information is passed to the '
-               'data.process event when the upload is complete.',
-               required=False)
-        .notes('After calling this, send the chunks just like you would with a '
-               'normal file upload.')
+               'data.process event when the upload is complete.', required=False)
+        .notes('After calling this, send the chunks just like you would with a normal file upload.')
     )
     def updateFileContents(self, file, params):
         self.requireParams('size', params)
@@ -368,14 +353,12 @@ class File(Resource):
 
         # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(
-            file=file, user=user, size=int(params['size']),
-            reference=params.get('reference'))
+            file=file, user=user, size=int(params['size']), reference=params.get('reference'))
 
         if upload['size'] > 0:
             return upload
         else:
-            return self.model('file').filter(
-                self.model('upload').finalizeUpload(upload), user)
+            return self.model('file').filter(self.model('upload').finalizeUpload(upload), user)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='file', level=AccessType.READ)
@@ -387,5 +370,4 @@ class File(Resource):
         .param('itemId', 'The item to copy the file to.', required=True)
     )
     def copy(self, file, item, params):
-        return self.model('file').copyFile(
-            file, self.getCurrentUser(), item=item)
+        return self.model('file').copyFile(file, self.getCurrentUser(), item=item)

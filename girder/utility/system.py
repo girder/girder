@@ -40,8 +40,9 @@ def _objectToDict(obj):
     """
     allowedTypes = [float, tuple] + list(six.string_types) + list(six.integer_types)
     return {
-        key: getattr(obj, key) for key in dir(obj) if not key.startswith('_') and
-            isinstance(getattr(obj, key), tuple(allowedTypes))
+        key: getattr(obj, key)
+        for key in dir(obj)
+        if not key.startswith('_') and isinstance(getattr(obj, key), tuple(allowedTypes))
     }
 
 

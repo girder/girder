@@ -49,8 +49,7 @@ class Collection(Resource):
     @describeRoute(
         Description('List or search for collections.')
         .responseClass('Collection')
-        .param('text', "Pass this to perform a text search for collections.",
-               required=False)
+        .param('text', 'Pass this to perform a text search for collections.', required=False)
         .pagingParams(defaultSort='name')
     )
     def find(self, params):
@@ -61,8 +60,7 @@ class Collection(Resource):
             return list(self.model('collection').textSearch(
                 params['text'], user=user, limit=limit, offset=offset))
 
-        return list(self.model('collection').list(
-            user=user, offset=offset, limit=limit, sort=sort))
+        return list(self.model('collection').list(user=user, offset=offset, limit=limit, sort=sort))
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='collection')
@@ -82,14 +80,12 @@ class Collection(Resource):
         user = self.getCurrentUser()
 
         if not self.model('collection').hasCreatePrivilege(user):
-            raise AccessException(
-                'You are not authorized to create collections.')
+            raise AccessException('You are not authorized to create collections.')
 
         public = self.boolParam('public', params, default=False)
 
         return self.model('collection').createCollection(
-            name=params['name'], description=params.get('description'),
-            public=public, creator=user)
+            name=params['name'], description=params.get('description'), public=public, creator=user)
 
     @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='collection', level=AccessType.READ)
@@ -124,15 +120,14 @@ class Collection(Resource):
     @describeRoute(
         Description('Download an entire collection as a zip archive.')
         .param('id', 'The ID of the collection.', paramType='path')
-        .param('mimeFilter', 'JSON list of MIME types to include.',
-               required=False)
+        .param('mimeFilter', 'JSON list of MIME types to include.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the collection.', 403)
     )
     def downloadCollection(self, collection, params):
+        name = collection['name'] + '.zip'
         cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] = \
-            'attachment; filename="%s%s"' % (collection['name'], '.zip')
+        cherrypy.response.headers['Content-Disposition'] = 'attachment; filename="%s' % name
 
         user = self.getCurrentUser()
         mimeFilter = params.get('mimeFilter')
@@ -146,9 +141,8 @@ class Collection(Resource):
 
         def stream():
             zip = ziputil.ZipGenerator(collection['name'])
-            for (path, file) in self.model('collection').fileList(
-                    collection, user=user, subpath=False,
-                    mimeFilter=mimeFilter):
+            for path, file in self.model('collection').fileList(
+                    collection, user=user, subpath=False, mimeFilter=mimeFilter):
                 for data in zip.addFile(file, path):
                     yield data
             yield zip.footer()
@@ -172,7 +166,7 @@ class Collection(Resource):
         Description('Set the access control list for a collection.')
         .param('id', 'The ID of the collection.', paramType='path')
         .param('access', 'The access control list as JSON.')
-        .param('public', "Whether the collection should be publicly visible.",
+        .param('public', 'Whether the collection should be publicly visible.',
                dataType='boolean', required=False)
         .param('recurse', 'Whether the policies should be applied to all '
                'folders under this collection as well.', dataType='boolean',
@@ -200,11 +194,10 @@ class Collection(Resource):
                              message='Calculating progress...') as ctx:
             if progress:
                 ctx.update(total=self.model('collection').subtreeCount(
-                    collection, includeItems=False, user=user,
-                    level=AccessType.ADMIN))
+                    collection, includeItems=False, user=user, level=AccessType.ADMIN))
             return self.model('collection').setAccessList(
-                collection, access, save=True, user=user, recurse=recurse,
-                progress=ctx, setPublic=public)
+                collection, access, save=True, user=user, recurse=recurse, progress=ctx,
+                setPublic=public)
 
     @access.user(scope=TokenScope.DATA_READ)
     @loadmodel(model='collection', level=AccessType.WRITE)
@@ -220,8 +213,7 @@ class Collection(Resource):
     )
     def updateCollection(self, collection, params):
         collection['name'] = params.get('name', collection['name']).strip()
-        collection['description'] = params.get(
-            'description', collection['description']).strip()
+        collection['description'] = params.get('description', collection['description']).strip()
 
         return self.model('collection').updateCollection(collection)
 

@@ -51,11 +51,9 @@ class ApiKey(Resource):
 
         if 'userId' in params and params['userId'] != str(user['_id']):
             self.requireAdmin(user)
-            user = self.model('user').load(
-                params['userId'], force=True, exc=True)
+            user = self.model('user').load(params['userId'], force=True, exc=True)
 
-        return list(self.model('api_key').list(
-            user, offset=offset, limit=limit, sort=sort))
+        return list(self.model('api_key').list(user, offset=offset, limit=limit, sort=sort))
 
     @access.user
     @filtermodel('api_key')
@@ -63,8 +61,8 @@ class ApiKey(Resource):
         Description('Create a new API key.')
         .param('name', 'Name for the API key.', required=False)
         .param('scope', 'JSON list of scopes for this key.', required=False)
-        .param('tokenDuration', 'Max number of days tokens created with this '
-               'key will last.', required=False)
+        .param('tokenDuration', 'Max number of days tokens created with this key will last.',
+               required=False)
         .param('active', 'Whether the key is currently active.', required=False,
                dataType='boolean', default=True)
         .errorResponse()
@@ -78,14 +76,12 @@ class ApiKey(Resource):
             try:
                 scope = json.loads(params['scope'])
             except ValueError:
-                raise RestException(
-                    'The "scope" parameter must be a JSON list.')
+                raise RestException('The "scope" parameter must be a JSON list.')
         else:
             scope = None
 
         return self.model('api_key').createApiKey(
-            user=self.getCurrentUser(), name=name, scope=scope, days=days,
-            active=active)
+            user=self.getCurrentUser(), name=name, scope=scope, days=days, active=active)
 
     @access.user
     @loadmodel(map={'id': 'apiKey'}, model='api_key', level=AccessType.WRITE)
@@ -95,8 +91,8 @@ class ApiKey(Resource):
         .param('id', 'The ID of the API key.', paramType='path')
         .param('name', 'Name for the key.', required=False)
         .param('scope', 'JSON list of scopes for this key.', required=False)
-        .param('tokenDuration', 'Max number of days tokens created with this '
-               'key will last.', required=False)
+        .param('tokenDuration', 'Max number of days tokens created with this key will last.',
+               required=False)
         .param('active', 'Whether the key is currently active.', required=False,
                dataType='boolean', default=True)
         .errorResponse()
@@ -104,15 +100,13 @@ class ApiKey(Resource):
     def updateKey(self, apiKey, params):
         apiKey['active'] = self.boolParam('active', params, apiKey['active'])
         apiKey['name'] = params.get('name', apiKey['name']).strip()
-        apiKey['tokenDuration'] = params.get(
-            'tokenDuration', apiKey['tokenDuration'])
+        apiKey['tokenDuration'] = params.get('tokenDuration', apiKey['tokenDuration'])
 
         if 'scope' in params:
             try:
                 apiKey['scope'] = json.loads(params['scope'])
             except ValueError:
-                raise RestException(
-                    'The "scope" parameter must be a JSON list.')
+                raise RestException('The "scope" parameter must be a JSON list.')
 
         return self.model('api_key').save(apiKey)
 
