@@ -460,21 +460,21 @@ class PythonClientTestCase(base.TestCase):
         def mock(url, request):
             hits.append(url)
 
-        expected = 'tests/cases/py_client/_libTestDir/sub0/f'
+        expected = b'tests/cases/py_client/_libTestDir/sub0/f'
 
         with httmock.HTTMock(mock):
             # download the file
             obj = six.BytesIO()
             client.downloadFile(file['_id'], obj)
-            self.assertEqual(obj.getvalue(), expected)
+            self.assertTrue(obj.getvalue().endswith(expected))
             self.assertEqual(len(hits), 1)
             # this should hit the cache only
             obj = six.BytesIO()
             client.downloadFile(file['_id'], obj)
-            self.assertEqual(obj.getvalue(), expected)
+            self.assertTrue(obj.getvalue().endswith(expected))
             self.assertEqual(len(hits), 1)
 
-        expected = 'new file contents!'
+        expected = b'new file contents!'
         size = len(expected)
         stream = six.BytesIO(expected)
         self.client.uploadFileContents(file['_id'], stream, size)
@@ -483,7 +483,7 @@ class PythonClientTestCase(base.TestCase):
             # file should download again
             obj = six.BytesIO()
             client.downloadFile(file['_id'], obj)
-            self.assertEqual(obj.getvalue(), expected)
+            self.assertTrue(obj.getvalue().endswith(expected))
             self.assertEqual(len(hits), 2)
 
     def testAddMetadataToItem(self):
