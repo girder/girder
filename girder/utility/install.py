@@ -64,15 +64,15 @@ def runNpmInstall(wd=None, dev=False, npm='npm'):
     """
     wd = wd or constants.PACKAGE_DIR
 
-    args = (npm, 'install', '--production', '--unsafe-perm') if not dev \
-        else (npm, 'install', '--unsafe-perm')
+    args = [npm, 'install', '--unsafe-perm']
+    if not dev:
+        args.append('--production')
 
     proc = subprocess.Popen(args, cwd=wd)
     proc.communicate()
 
     if proc.returncode != 0:
-        raise Exception('Web client install failed: npm install returned %s.' %
-                        proc.returncode)
+        raise Exception('Web client install failed: npm install returned %s.' % proc.returncode)
 
 
 def install_web(opts=None):
@@ -109,23 +109,19 @@ def install_plugin(opts):
 
         requirements = [os.path.join(pluginPath, 'requirements.txt')]
         if opts.development:
-            requirements.extend([os.path.join(pluginPath,
-                                              'requirements-dev.txt')])
+            requirements.extend([os.path.join(pluginPath, 'requirements-dev.txt')])
         for reqs in requirements:
             if os.path.isfile(reqs):
                 print(constants.TerminalColor.info(
-                    'Installing pip requirements for %s from %s.' %
-                    (name, reqs)))
+                    'Installing pip requirements for %s from %s.' % (name, reqs)))
 
                 if pip.main(['install', '-r', reqs]) != 0:
-                    raise Exception(
-                        'Failed to install pip requirements at %s.' % reqs)
+                    raise Exception('Failed to install pip requirements at %s.' % reqs)
 
         targetPath = os.path.join(getPluginDir(), name)
 
-        if (os.path.isdir(targetPath) and
-                os.path.samefile(pluginPath, targetPath) and not
-                opts.symlink ^ os.path.islink(targetPath)):
+        if (os.path.isdir(targetPath) and os.path.samefile(pluginPath, targetPath) and
+                not opts.symlink ^ os.path.islink(targetPath)):
             # If source and dest are the same, we are done for this plugin.
             # Note: ^ is a logical xor - not xor means only continue if
             # symlink and islink() are either both false, or both true
@@ -142,9 +138,9 @@ def install_plugin(opts):
                     shutil.rmtree(targetPath)
 
             else:
-                raise Exception('Plugin already exists at %s, use "-f" to '
-                                'overwrite the existing directory.' % (
-                                    targetPath, ))
+                raise Exception(
+                    'Plugin already exists at %s, use "-f" to overwrite the existing directory.' %
+                    targetPath)
         if opts.symlink:
             os.symlink(pluginPath, targetPath)
         else:

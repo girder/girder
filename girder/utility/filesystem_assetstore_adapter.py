@@ -57,8 +57,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         doc['root'] = os.path.expanduser(doc['root'])
 
         if not os.path.isabs(doc['root']):
-            raise ValidationException('You must provide an absolute path '
-                                      'for the root directory.', 'root')
+            raise ValidationException(
+                'You must provide an absolute path for the root directory.', 'root')
 
         try:
             mkdir(doc['root'])
@@ -67,8 +67,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             logger.exception(msg)
             raise ValidationException(msg)
         if not os.access(doc['root'], os.W_OK):
-            raise ValidationException(
-                'Unable to write into directory "%s".' % doc['root'])
+            raise ValidationException('Unable to write into directory "%s".' % doc['root'])
 
     @staticmethod
     def fileIndexFields():
@@ -90,12 +89,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             mkdir(self.tempDir)
         except OSError:
             self.unavailable = True
-            logger.exception('Failed to create filesystem assetstore '
-                             'directories %s' % self.tempDir)
+            logger.exception('Failed to create filesystem assetstore directories %s' % self.tempDir)
         if not os.access(self.assetstore['root'], os.W_OK):
             self.unavailable = True
-            logger.error('Could not write to assetstore root: %s',
-                         self.assetstore['root'])
+            logger.error('Could not write to assetstore root: %s', self.assetstore['root'])
 
     def capacityInfo(self):
         """
@@ -106,8 +103,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             usage = psutil.disk_usage(self.assetstore['root'])
             return {'free': usage.free, 'total': usage.total}
         except OSError:
-            logger.exception(
-                'Failed to get disk usage of %s' % self.assetstore['root'])
+            logger.exception('Failed to get disk usage of %s' % self.assetstore['root'])
         # If psutil.disk_usage fails or we can't query the assetstore's root
         # directory, just report nothing regarding disk capacity
         return {  # pragma: no cover
@@ -188,8 +184,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Moves the file into its permanent content-addressed location within the
         assetstore. Directory hierarchy yields 256^2 buckets.
         """
-        hash = hash_state.restoreHex(upload['sha512state'],
-                                     'sha512').hexdigest()
+        hash = hash_state.restoreHex(upload['sha512state'], 'sha512').hexdigest()
         dir = os.path.join(hash[0:2], hash[2:4])
         absdir = os.path.join(self.assetstore['root'], dir)
 
@@ -240,8 +235,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if not os.path.isfile(path):
             raise GirderException(
                 'File %s does not exist.' % path,
-                'girder.utility.filesystem_assetstore_adapter.'
-                'file-does-not-exist')
+                'girder.utility.filesystem_assetstore_adapter.file-does-not-exist')
 
         if headers:
             cherrypy.response.headers['Accept-Ranges'] = 'bytes'
@@ -312,25 +306,21 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         name = name or os.path.basename(path)
 
         file = self.model('file').createFile(
-            name=name, creator=user, item=item, reuseExisting=True,
-            assetstore=self.assetstore, mimeType=mimeType, size=stat.st_size,
-            saveFile=False)
+            name=name, creator=user, item=item, reuseExisting=True, assetstore=self.assetstore,
+            mimeType=mimeType, size=stat.st_size, saveFile=False)
         file['path'] = os.path.abspath(os.path.expanduser(path))
         file['mtime'] = stat.st_mtime
         file['imported'] = True
         return self.model('file').save(file)
 
-    def _importDataAsItem(self, name, user, folder, path, files,
-                          reuseExisting=True):
+    def _importDataAsItem(self, name, user, folder, path, files, reuseExisting=True):
         item = self.model('item').createItem(
-            name=name, creator=user, folder=folder,
-            reuseExisting=reuseExisting)
+            name=name, creator=user, folder=folder, reuseExisting=reuseExisting)
         events.trigger('filesystem_assetstore_imported',
                        {'id': item['_id'], 'type': 'item',
                         'importPath': path})
         for fname in files:
-            self.importFile(item, os.path.join(path, fname),
-                            user, name=fname)
+            self.importFile(item, os.path.join(path, fname), user, name=fname)
 
     def _hasOnlyFiles(self, path, files):
         return all(os.path.isfile(os.path.join(path, name)) for name in files)
@@ -338,8 +328,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     def _importFileToFolder(self, name, user, parent, parentType, path):
         if parentType != 'folder':
             raise ValidationException(
-                'Files cannot be imported directly underneath a %s.' %
-                parentType)
+                'Files cannot be imported directly underneath a %s.' % parentType)
 
         item = self.model('item').createItem(
             name=name, creator=user, folder=parent, reuseExisting=True)
@@ -364,8 +353,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         listDir = os.listdir(importPath)
         if leafFoldersAsItems and self._hasOnlyFiles(importPath, listDir):
-            self._importDataAsItem(os.path.basename(importPath.rstrip(os.sep)),
-                                   user, parent, importPath, listDir)
+            self._importDataAsItem(
+                os.path.basename(importPath.rstrip(os.sep)), user, parent, importPath, listDir)
             return
 
         for name in listDir:
@@ -374,27 +363,26 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
             if os.path.isdir(path):
                 localListDir = os.listdir(path)
-                if leafFoldersAsItems and self._hasOnlyFiles(
-                        path, localListDir):
-                    self._importDataAsItem(name, user, parent, path,
-                                           localListDir)
+                if leafFoldersAsItems and self._hasOnlyFiles(path, localListDir):
+                    self._importDataAsItem(name, user, parent, path, localListDir)
                 else:
                     folder = self.model('folder').createFolder(
-                        parent=parent, name=name, parentType=parentType,
-                        creator=user, reuseExisting=True)
+                        parent=parent, name=name, parentType=parentType, creator=user,
+                        reuseExisting=True)
                     events.trigger(
-                        'filesystem_assetstore_imported',
-                        {'id': folder['_id'], 'type': 'folder',
-                         'importPath': path})
+                        'filesystem_assetstore_imported', {
+                            'id': folder['_id'],
+                            'type': 'folder',
+                            'importPath': path
+                        })
                     self.importData(folder, 'folder', params={
-                        'importPath': os.path.join(importPath, name)},
-                        progress=progress, user=user,
-                        leafFoldersAsItems=leafFoldersAsItems)
+                        'importPath': os.path.join(importPath, name)
+                    }, progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems)
             else:
                 self._importFileToFolder(name, user, parent, parentType, path)
 
-    def findInvalidFiles(self, progress=progress.noProgress, filters=None,
-                         checkSize=True, **kwargs):
+    def findInvalidFiles(self, progress=progress.noProgress, filters=None, checkSize=True,
+                         **kwargs):
         """
         Goes through every file in this assetstore and finds those whose
         underlying data is missing or invalid. This is a generator function --

@@ -53,21 +53,18 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         if not doc.get('db', ''):
             raise ValidationException('Database name must not be empty.', 'db')
         if '.' in doc['db'] or ' ' in doc['db']:
-            raise ValidationException('Database name cannot contain spaces'
-                                      ' or periods.', 'db')
+            raise ValidationException('Database name cannot contain spaces or periods.', 'db')
 
         try:
             chunkColl = getDbConnection(
-                doc.get('mongohost', None), doc.get('replicaset', None),
-                autoRetry=False,
+                doc.get('mongohost', None), doc.get('replicaset', None), autoRetry=False,
                 serverSelectionTimeoutMS=10000)[doc['db']].chunk
             chunkColl.create_index([
                 ('uuid', pymongo.ASCENDING),
                 ('n', pymongo.ASCENDING)
             ], unique=True)
         except pymongo.errors.ServerSelectionTimeoutError as e:
-            raise ValidationException(
-                'Could not connect to the database: %s' % str(e))
+            raise ValidationException('Could not connect to the database: %s' % str(e))
 
         return doc
 
@@ -82,18 +79,15 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         super(GridFsAssetstoreAdapter, self).__init__(assetstore)
         try:
             self.chunkColl = getDbConnection(
-                self.assetstore.get('mongohost', None),
-                self.assetstore.get('replicaset', None)
+                self.assetstore.get('mongohost', None), self.assetstore.get('replicaset', None)
             )[self.assetstore['db']].chunk
         except pymongo.errors.ConnectionFailure:
-            logger.error('Failed to connect to GridFS assetstore %s',
-                         self.assetstore['db'])
+            logger.error('Failed to connect to GridFS assetstore %s', self.assetstore['db'])
             self.chunkColl = 'Failed to connect'
             self.unavailable = True
             return
         except pymongo.errors.ConfigurationError:
-            logger.exception('Failed to configure GridFS assetstore %s',
-                             self.assetstore['db'])
+            logger.exception('Failed to configure GridFS assetstore %s', self.assetstore['db'])
             self.chunkColl = 'Failed to configure'
             self.unavailable = True
             return
@@ -131,7 +125,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         if self.requestOffset(upload) > upload['received']:
             cursor = self.chunkColl.find({
                 'uuid': upload['chunkUuid'],
-                'n': {'$gte': upload['received'] // CHUNK_SIZE}
+                'n': {
+                    '$gte': upload['received'] // CHUNK_SIZE
+                }
             }, projection=['data']).sort('n', pymongo.ASCENDING)
             for result in cursor:
                 checksum.update(result['data'])
@@ -162,9 +158,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
                     'data': bson.binary.Binary(data)
                 })
             except pymongo.errors.DuplicateKeyError:
-                logger.info('Received a DuplicateKeyError while uploading, '
-                            'probably because we reconnected to the database '
-                            '(chunk uuid %s part %d)', upload['chunkUuid'], n)
+                logger.info(
+                    'Received a DuplicateKeyError while uploading, probably because we reconnected '
+                    'to the database (chunk uuid %s part %d)', upload['chunkUuid'], n)
             n += 1
             size += len(data)
             checksum.update(data)
@@ -177,7 +173,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             # everything we added
             self.chunkColl.delete_many({
                 'uuid': upload['chunkUuid'],
-                'n': {'$gte': startingN}
+                'n': {
+                    '$gte': startingN
+                }
             }, multi=True)
             raise
 
@@ -208,8 +206,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         Grab the final state of the checksum and set it on the file object,
         and write the generated UUID into the file itself.
         """
-        hash = hash_state.restoreHex(upload['sha512state'],
-                                     'sha512').hexdigest()
+        hash = hash_state.restoreHex(upload['sha512state'], 'sha512').hexdigest()
 
         file['sha512'] = hash
         file['chunkUuid'] = upload['chunkUuid']
@@ -217,8 +214,8 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return file
 
-    def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     contentDisposition=None, extraParameters=None, **kwargs):
+    def downloadFile(self, file, offset=0, headers=True, endByte=None, contentDisposition=None,
+                     extraParameters=None, **kwargs):
         """
         Returns a generator function that will be used to stream the file from
         the database to the response.
@@ -273,8 +270,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def deleteFile(self, file):
         """
-        Delete all of the chunks in the collection that correspond to the
-        given file.
+        Delete all of the chunks in the collection that correspond to the given file.
         """
         q = {
             'chunkUuid': file['chunkUuid'],

@@ -41,14 +41,12 @@ import importlib
 import pkg_resources
 from pkg_resources import iter_entry_points
 
-from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
-    TerminalColor
+from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, TerminalColor
 from girder.models.model_base import ValidationException
 from girder.utility import config as _config, mail_utils, mkdir
 
 
-def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
-                buildDag=True):
+def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None, buildDag=True):
     """
     Loads a set of plugins into the application.
 
@@ -67,8 +65,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
         rebuilding the DAG. Otherwise the dependency resolution and sorting
         will occur within this method.
     :type buildDag: bool
-    :returns: A 3-tuple containing the modified root, config, and apiRoot
-        objects.
+    :returns: A 3-tuple containing the modified root, config, and apiRoot objects.
     :rtype tuple:
     """
     # Register a pseudo-package for the root of all plugins. This must be
@@ -78,9 +75,8 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
 
     if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
         print(TerminalColor.warning(
-            'Warning: the plugin_directory setting is deprecated. Please use '
-            'the `girder-install plugin` command and remove this setting from '
-            'your config file.'))
+            'Warning: the plugin_directory setting is deprecated. Please use the `girder-install '
+            'plugin` command and remove this setting from your config file.'))
 
     if ROOT_PLUGINS_PACKAGE not in sys.modules:
         module = imp.new_module(ROOT_PLUGINS_PACKAGE)
@@ -94,12 +90,10 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
 
     for plugin in plugins:
         try:
-            root, appconf, apiRoot = loadPlugin(
-                plugin, root, appconf, apiRoot, curConfig=curConfig)
+            root, appconf, apiRoot = loadPlugin(plugin, root, appconf, apiRoot, curConfig=curConfig)
             print(TerminalColor.success('Loaded plugin "%s"' % plugin))
         except Exception:
-            print(TerminalColor.error(
-                'ERROR: Failed to load plugin "%s":' % plugin))
+            print(TerminalColor.error('ERROR: Failed to load plugin "%s":' % plugin))
             girder.logger.exception('Plugin load failure: %s' % plugin)
             traceback.print_exc()
 
@@ -221,9 +215,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
             }
 
             if pluginLoadMethod is None:
-                fp, pathname, description = imp.find_module(
-                    'server', [pluginDir]
-                )
+                fp, pathname, description = imp.find_module('server', [pluginDir])
                 module = imp.load_module(moduleName, fp, pathname, description)
                 module.PLUGIN_ROOT_DIR = pluginDir
                 girder.plugins.__dict__[name] = module
@@ -233,8 +225,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
                 sys.modules[moduleName] = module
                 pluginLoadMethod(info)
 
-            root, appconf, apiRoot = (
-                info['serverRoot'], info['config'], info['apiRoot'])
+            root, appconf, apiRoot = (info['serverRoot'], info['config'], info['apiRoot'])
 
         finally:
             if fp:
@@ -281,8 +272,7 @@ def getPluginDirs(curConfig=None):
         try:
             mkdir(pluginDir)
         except OSError:
-            print(TerminalColor.warning(
-                'Could not create plugin directory %s.' % pluginDir))
+            print(TerminalColor.warning('Could not create plugin directory %s.' % pluginDir))
 
             failedPluginDirs.add(pluginDir)
 
@@ -304,8 +294,7 @@ def getPluginDir(curConfig=None):
 
     pluginDirs = getPluginDirs(curConfig)
 
-    if 'plugins' in curConfig and \
-       'plugin_install_path' in curConfig['plugins']:
+    if 'plugins' in curConfig and 'plugin_install_path' in curConfig['plugins']:
         pluginDir = curConfig['plugins']['plugin_install_path']
     elif pluginDirs:
         pluginDir = pluginDirs[0]
@@ -330,26 +319,21 @@ def findEntryPointPlugins(allPlugins):
         data = {}
         try:
             if pkg_resources.resource_exists(entry_point.name, configJson):
-                with pkg_resources.resource_stream(
-                        entry_point.name, configJson) as conf:
+                with pkg_resources.resource_stream(entry_point.name, configJson) as conf:
                     try:
                         data = json.load(codecs.getreader('utf8')(conf))
                     except ValueError as e:
-                        print(
-                            TerminalColor.error(
-                                'ERROR: Plugin "%s": plugin.json is not valid '
-                                'JSON.' % entry_point.name))
+                        print(TerminalColor.error(
+                            'ERROR: Plugin "%s": plugin.json is not valid JSON.' %
+                            entry_point.name))
                         print(e)
             elif pkg_resources.resource_exists(entry_point.name, configYml):
-                with pkg_resources.resource_stream(
-                        entry_point.name, configYml) as conf:
+                with pkg_resources.resource_stream(entry_point.name, configYml) as conf:
                     try:
                         data = yaml.safe_load(conf)
                     except yaml.YAMLError as e:
-                        print(
-                            TerminalColor.error(
-                                'ERROR: Plugin "%s": plugin.yml is not valid '
-                                'YAML.' % entry_point.name))
+                        print(TerminalColor.error(
+                            'ERROR: Plugin "%s": plugin.yml is not valid YAML.' % entry_point.name))
                         print(e)
         except ImportError:
             pass
@@ -374,8 +358,7 @@ def findAllPlugins(curConfig=None):
         return allPlugins
 
     for pluginDir in pluginDirs:
-        dirs = [dir for dir in os.listdir(pluginDir) if os.path.isdir(
-            os.path.join(pluginDir, dir))]
+        dirs = [dir for dir in os.listdir(pluginDir) if os.path.isdir(os.path.join(pluginDir, dir))]
 
         for plugin in dirs:
             data = {}
@@ -386,20 +369,16 @@ def findAllPlugins(curConfig=None):
                     try:
                         data = json.load(conf)
                     except ValueError as e:
-                        print(
-                            TerminalColor.error(
-                                ('ERROR: Plugin "%s": '
-                                 'plugin.json is not valid JSON.') % plugin))
+                        print(TerminalColor.error(
+                            'ERROR: Plugin "%s": plugin.json is not valid JSON.') % plugin)
                         print(e)
             elif os.path.isfile(configYml):
                 with open(configYml) as conf:
                     try:
                         data = yaml.safe_load(conf)
                     except yaml.YAMLError as e:
-                        print(
-                            TerminalColor.error(
-                                ('ERROR: Plugin "%s": '
-                                 'plugin.yml is not valid YAML.') % plugin))
+                        print(TerminalColor.error(
+                            'ERROR: Plugin "%s": plugin.yml is not valid YAML.') % plugin)
                         print(e)
 
             allPlugins[plugin] = {
@@ -441,12 +420,11 @@ def toposort(data):
         if not ordered:
             break
         yield ordered
-        data = {item: (dep - ordered)
-                for item, dep in six.viewitems(data) if item not in ordered}
+        data = {item: (dep - ordered) for item, dep in six.viewitems(data) if item not in ordered}
     # Detect any cycles in the dependency graph.
     if data:
-        raise Exception('Cyclic dependencies detected:\n%s' % '\n'.join(
-                        repr(x) for x in six.viewitems(data)))
+        raise Exception(
+            'Cyclic dependencies detected:\n%s' % '\n'.join(repr(x) for x in six.viewitems(data)))
 
 
 def addChildNode(node, name, obj=None):
@@ -456,9 +434,8 @@ def addChildNode(node, name, obj=None):
     :param node: The parent node to add the child node to.
     :param name: The name of the child node in the URL path.
     :type name: str
-    :param obj: The object to place at this new node, or None if this child
-                should not be exposed as an endpoint, instead just used as
-                an intermediary hidden node.
+    :param obj: The object to place at this new node, or None if this child should not be exposed
+        as an endpoint, instead just used as an intermediary hidden node.
     :type obj: object or None
     :returns: The node that was created.
     """

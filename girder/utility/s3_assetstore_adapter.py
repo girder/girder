@@ -39,8 +39,7 @@ def authv4_determine_region_name(self, *args, **kwargs):
     """
     The boto method auth.S3HmacAuthV4Handler.determine_region_name fails when
     the url is an IP address or localhost.  For testing, we need to have this
-    succeed.  This wraps the boto function and, if it fails, adds a fall-back
-    value.
+    succeed.  This wraps the boto function and, if it fails, adds a fall-back value.
     """
     try:
         result = authv4_orig_determine_region_name(self, *args, **kwargs)
@@ -58,18 +57,14 @@ def required_auth_capability_wrapper(fun):
     return wrapper
 
 
-authv4_orig_determine_region_name = \
-    boto.auth.S3HmacAuthV4Handler.determine_region_name
-boto.auth.S3HmacAuthV4Handler.determine_region_name = \
-    authv4_determine_region_name
-boto.s3.connection.S3Connection._required_auth_capability = \
-    required_auth_capability_wrapper(
-        boto.s3.connection.S3Connection._required_auth_capability)
+authv4_orig_determine_region_name = boto.auth.S3HmacAuthV4Handler.determine_region_name
+boto.auth.S3HmacAuthV4Handler.determine_region_name = authv4_determine_region_name
+boto.s3.connection.S3Connection._required_auth_capability = required_auth_capability_wrapper(
+    boto.s3.connection.S3Connection._required_auth_capability)
 
 
-def _generate_url_sigv4(self, expires_in, method, bucket='', key='',
-                        headers=None, response_headers=None, version_id=None,
-                        iso_date=None, params=None):
+def _generate_url_sigv4(self, expires_in, method, bucket='', key='', headers=None,
+                        response_headers=None, version_id=None, iso_date=None, params=None):
     """
     The version of this method in boto.s3.connection.S3Connection does not
     support signing custom query parameters, which is necessary for presigning
@@ -95,8 +90,7 @@ def _generate_url_sigv4(self, expires_in, method, bucket='', key='',
     http_request = self.build_base_http_request(
         method, path, auth_path, headers=headers, host=host, params=params)
 
-    return self._auth_handler.presign(http_request, expires_in,
-                                      iso_date=iso_date)
+    return self._auth_handler.presign(http_request, expires_in, iso_date=iso_date)
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -122,22 +116,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             raise ValidationException('Bucket must not be empty.', 'bucket')
         if not doc.get('readOnly'):
             if not doc.get('secret'):
-                raise ValidationException(
-                    'Secret key must not be empty.', 'secret')
+                raise ValidationException('Secret key must not be empty.', 'secret')
             if not doc.get('accessKeyId'):
-                raise ValidationException(
-                    'Access key ID must not be empty.', 'accessKeyId')
+                raise ValidationException('Access key ID must not be empty.', 'accessKeyId')
         # construct a set of connection parameters based on the keys and the
         # service
         if 'service' not in doc:
             doc['service'] = ''
         if doc['service'] != '':
-            service = re.match("^((https?)://)?([^:/]+)(:([0-9]+))?$",
-                               doc['service'])
+            service = re.match('^((https?)://)?([^:/]+)(:([0-9]+))?$', doc['service'])
             if not service:
                 raise ValidationException(
-                    'The service must of the form [http[s]://](host domain)'
-                    '[:(port)].', 'service')
+                    'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
         doc['botoConnect'] = makeBotoConnectParams(
             doc['accessKeyId'], doc['secret'], doc['service'])
         # Make sure we can write into the given bucket using boto
@@ -147,20 +137,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 conn.get_bucket(bucket_name=doc['bucket'], validate=True)
             except Exception:
                 logger.exception('S3 assetstore validation exception')
-                raise ValidationException('Unable to connect to bucket "%s".' %
-                                          doc['bucket'], 'bucket')
+                raise ValidationException(
+                    'Unable to connect to bucket "%s".' % doc['bucket'], 'bucket')
         else:
             try:
-                bucket = conn.get_bucket(bucket_name=doc['bucket'],
-                                         validate=True)
+                bucket = conn.get_bucket(bucket_name=doc['bucket'], validate=True)
                 testKey = boto.s3.key.Key(
-                    bucket=bucket, name='/'.join(
-                        filter(None, (doc['prefix'], 'test'))))
+                    bucket=bucket, name='/'.join(filter(None, (doc['prefix'], 'test'))))
                 testKey.set_contents_from_string('')
             except Exception:
                 logger.exception('S3 assetstore validation exception')
-                raise ValidationException('Unable to write into bucket "%s".' %
-                                          doc['bucket'], 'bucket')
+                raise ValidationException(
+                    'Unable to write into bucket "%s".' % doc['bucket'], 'bucket')
 
         return doc
 
@@ -198,8 +186,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         upload['name'] = re.sub('\s+', ' ', upload['name'])
 
         uid = uuid.uuid4().hex
-        key = '/'.join(filter(None, (self.assetstore.get('prefix', ''),
-                       uid[0:2], uid[2:4], uid)))
+        key = '/'.join(filter(None, (self.assetstore.get('prefix', ''), uid[0:2], uid[2:4], uid)))
         path = '/%s/%s' % (self.assetstore['bucket'], key)
         headers = self._getRequestHeaders(upload)
 
@@ -224,9 +211,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             }
             queryParams = None
         url = self._botoGenerateUrl(
-            method=upload['s3']['request']['method'], key=key,
-            headers=dict(headers, **alsoSignHeaders), queryParams=queryParams,
-            chunkedUpload=chunked)
+            method=upload['s3']['request']['method'], key=key, chunkedUpload=chunked,
+            headers=dict(headers, **alsoSignHeaders), queryParams=queryParams)
         upload['s3']['request']['url'] = url
         upload['s3']['request']['headers'] = headers
         return upload
@@ -259,8 +245,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         length = min(self.CHUNK_LEN, upload['size'] - index * self.CHUNK_LEN)
 
         if 'contentLength' in info and int(info['contentLength']) != length:
-            raise ValidationException('Expected chunk size %d, but got %d.' % (
-                length, info['contentLength']))
+            raise ValidationException(
+                'Expected chunk size %d, but got %d.' % (length, info['contentLength']))
 
         if length <= 0:
             raise ValidationException('Invalid chunk length %d.' % length)
@@ -271,8 +257,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         }
 
         url = self._botoGenerateUrl(
-            method='PUT', key=upload['s3']['key'], queryParams=queryParams,
-            headers={
+            method='PUT', key=upload['s3']['key'], queryParams=queryParams, headers={
                 'Content-Length': length
             })
 
@@ -287,8 +272,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def _getBucket(self, validate=True):
         conn = botoConnectS3(self.assetstore['botoConnect'])
-        bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
-                             validate=validate)
+        bucket = conn.lookup(bucket_name=self.assetstore['bucket'], validate=validate)
 
         if not bucket:
             raise Exception('Could not connect to S3 bucket.')
@@ -311,8 +295,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 mp.key_name = upload['s3']['keyName']
             else:
                 mp = bucket.initiate_multipart_upload(
-                    upload['s3']['key'],
-                    headers=self._getRequestHeaders(upload))
+                    upload['s3']['key'], headers=self._getRequestHeaders(upload))
                 upload['s3']['uploadId'] = mp.id
                 upload['s3']['keyName'] = mp.key_name
                 upload['s3']['partNumber'] = 0
@@ -325,13 +308,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             upload['received'] += key.size
         else:
             key = bucket.new_key(upload['s3']['key'])
-            key.set_contents_from_file(chunk,
-                                       headers=self._getRequestHeaders(upload))
+            key.set_contents_from_file(chunk, headers=self._getRequestHeaders(upload))
 
             if key.size < upload['size']:
                 bucket.delete_key(key)
-                raise ValidationException('Uploads of this length must be sent '
-                                          'in a single chunk.')
+                raise ValidationException(
+                    'Uploads of this length must be sent in a single chunk.')
 
             upload['received'] = key.size
 
@@ -344,12 +326,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if upload['s3']['chunked']:
             raise ValidationException(
-                'You should not call requestOffset on a chunked direct-to-S3 '
-                'upload.')
+                'You should not call requestOffset on a chunked direct-to-S3 upload.')
 
         headers = self._getRequestHeaders(upload)
-        url = self._botoGenerateUrl(method='PUT', key=upload['s3']['key'],
-                                    headers=headers)
+        url = self._botoGenerateUrl(method='PUT', key=upload['s3']['key'], headers=headers)
         return {
             'method': 'PUT',
             'url': url,
@@ -386,8 +366,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 file['additionalFinalizeKeys'] = ('s3FinalizeRequest',)
         return file
 
-    def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     contentDisposition=None, extraParameters=None, **kwargs):
+    def downloadFile(self, file, offset=0, headers=True, endByte=None, contentDisposition=None,
+                     extraParameters=None, **kwargs):
         """
         When downloading a single file with HTTP, we redirect to S3. Otherwise,
         e.g. when downloading as part of a zip stream, we connect to S3 and
@@ -428,8 +408,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     yield ''
             return stream
 
-    def importData(self, parent, parentType, params, progress, user,
-                   bucket=None, **kwargs):
+    def importData(self, parent, parentType, params, progress, user, bucket=None, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
 
         if importPath and not importPath.endswith('/'):
@@ -445,8 +424,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if isinstance(obj, boto.s3.prefix.Prefix):
                 name = obj.name.rstrip('/').rsplit('/', 1)[-1]
                 folder = self.model('folder').createFolder(
-                    parent=parent, name=name, parentType=parentType,
-                    creator=user, reuseExisting=True)
+                    parent=parent, name=name, parentType=parentType, creator=user,
+                    reuseExisting=True)
                 self.importData(parent=folder, parentType='folder', params={
                     'importPath': obj.name
                 }, progress=progress, user=user, bucket=bucket, **kwargs)
@@ -457,8 +436,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
                 if parentType != 'folder':
                     raise ValidationException(
-                        'Keys cannot be imported directly underneath a %s.' %
-                        parentType)
+                        'Keys cannot be imported directly underneath a %s.' % parentType)
 
                 item = self.model('item').createItem(
                     name=name, creator=user, folder=parent, reuseExisting=True)
@@ -535,22 +513,19 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 getParams = {}
                 while True:
                     try:
-                        multipartUploads = bucket.get_all_multipart_uploads(
-                            **getParams)
+                        multipartUploads = bucket.get_all_multipart_uploads(**getParams)
                     except boto.exception.S3ResponseError:
                         break
                     if not len(multipartUploads):
                         break
                     for multipartUpload in multipartUploads:
                         if (multipartUpload.id == upload['s3']['uploadId'] and
-                                multipartUpload.key_name ==
-                                upload['s3']['key']):
+                                multipartUpload.key_name == upload['s3']['key']):
                             multipartUpload.cancel_upload()
                     if not multipartUploads.is_truncated:
                         break
                     getParams['key_marker'] = multipartUploads.next_key_marker
-                    getParams['upload_id_marker'] = \
-                        multipartUploads.next_upload_id_marker
+                    getParams['upload_id_marker'] = multipartUploads.next_upload_id_marker
 
     def untrackedUploads(self, knownUploads=None, delete=False):
         """
@@ -594,16 +569,19 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 # the key name was of the format /(prefix)/../../(id)
                 if not multipartUpload.key_name.startswith(prefix):
                     continue
-                unknown = {'s3': {'uploadId': multipartUpload.id,
-                                  'key': multipartUpload.key_name}}
+                unknown = {
+                    's3': {
+                        'uploadId': multipartUpload.id,
+                        'key': multipartUpload.key_name
+                    }
+                }
                 untrackedList.append(unknown)
                 if delete:
                     multipartUpload.cancel_upload()
             if not multipartUploads.is_truncated:
                 break
             getParams['key_marker'] = multipartUploads.next_key_marker
-            getParams['upload_id_marker'] = \
-                multipartUploads.next_upload_id_marker
+            getParams['upload_id_marker'] = multipartUploads.next_upload_id_marker
         return untrackedList
 
     def _uploadIsKnown(self, multipartUpload, knownUploads):
@@ -615,15 +593,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         :results: TRue if the upload is known.
         """
         for upload in knownUploads:
-            if ('s3' in upload and 'uploadId' in upload['s3'] and
-                    'key' in upload['s3']):
+            if 's3' in upload and 'uploadId' in upload['s3'] and 'key' in upload['s3']:
                 if (multipartUpload.id == upload['s3']['uploadId'] and
                         multipartUpload.key_name == upload['s3']['key']):
                     return True
         return False
 
-    def _botoGenerateUrl(self, key, method='GET', headers=None,
-                         queryParams=None, chunkedUpload=False):
+    def _botoGenerateUrl(self, key, method='GET', headers=None, queryParams=None,
+                         chunkedUpload=False):
         """
         Generate a URL to communicate with the S3 server.  This leverages the
         boto generate_url method, but has additional parameters to compensate
@@ -642,14 +619,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         conn = botoConnectS3(self.assetstore.get('botoConnect', {}))
 
         url = _generate_url_sigv4(
-            conn, expires_in=self.HMAC_TTL, method=method,
-            bucket=self.assetstore['bucket'], key=key, headers=headers,
-            params=queryParams)
+            conn, expires_in=self.HMAC_TTL, method=method, bucket=self.assetstore['bucket'],
+            key=key, headers=headers, params=queryParams)
         # Moto doesn't work with https, so convert to http if we are testing on
         # localhost, and multipart uploads require a very specific testing url
         config = self.assetstore.get('botoConnect', {})
-        if (not config.get('is_secure', True) and
-                config.get('host') == '127.0.0.1'):
+        if not config.get('is_secure', True) and config.get('host') == '127.0.0.1':
             if url.startswith('https://'):
                 url = 'http' + url[5:]
             if chunkedUpload:
@@ -669,8 +644,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         if self.assetstore['service']:
             return '/'.join((
-                self.assetstore['service'], self.assetstore['bucket'],
-                key.lstrip('/')))
+                self.assetstore['service'], self.assetstore['bucket'], key.lstrip('/')))
         else:
             service = 'https://%s.s3.amazonaws.com' % self.assetstore['bucket']
             return '/'.join((service, key.lstrip('/')))
@@ -757,5 +731,4 @@ def _deleteFileImpl(event):
         bucket.delete_key(key)
 
 
-events.bind('_s3_assetstore_delete_file', '_s3_assetstore_delete_file',
-            _deleteFileImpl)
+events.bind('_s3_assetstore_delete_file', '_s3_assetstore_delete_file', _deleteFileImpl)

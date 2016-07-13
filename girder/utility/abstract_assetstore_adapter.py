@@ -55,8 +55,8 @@ class AbstractAssetstoreAdapter(ModelImporter):
         capacity they have should override this method. Default behavior is to
         report both quantities as unknown.
 
-        :returns: A dict with 'free' and 'total' keys whose values are
-                  either bytes (ints) or None for an unknown quantity.
+        :returns: A dict with 'free' and 'total' keys whose values are either bytes (ints) or None
+            for an unknown quantity.
         """
         return {
             'free': None,
@@ -139,28 +139,26 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type offset: int
         :param headers: Flag for whether headers should be sent on the response.
         :type headers: bool
-        :param endByte: Final byte to download. If ``None``, downloads to the
-            end of the file.
+        :param endByte: Final byte to download. If ``None``, downloads to the end of the file.
         :type endByte: int or None
-        :param contentDisposition: Value for Content-Disposition response
-            header disposition-type value.
+        :param contentDisposition: Value for Content-Disposition response header disposition-type
+            value.
         :type contentDisposition: str or None
         :type extraParameters: str or None
         """
         raise NotImplementedError('Must override downloadFile in %s.' %
                                   self.__class__.__name__)  # pragma: no cover
 
-    def findInvalidFiles(self, progress=progress.noProgress, filters=None,
-                         checkSize=True, **kwargs):
+    def findInvalidFiles(self, progress=progress.noProgress, filters=None, checkSize=True,
+                         **kwargs):
         """
         Finds and yields any invalid files in the assetstore. It is left to
         the caller to decide what to do with them.
 
         :param progress: Pass a progress context to record progress.
         :type progress: :py:class:`girder.utility.progress.ProgressContext`
-        :param filters: Additional query dictionary to restrict the search for
-            files. There is no need to set the ``assetstoreId`` in the filters,
-            since that is done automatically.
+        :param filters: Additional query dictionary to restrict the search for files. There is no
+            need to set the ``assetstoreId`` in the filters, since that is done automatically.
         :type filters: dict or None
         :param checkSize: Whether to make sure the size of the underlying
             data matches the size of the file.
@@ -211,24 +209,21 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type offset: int
         :param endByte: The end byte of the download (non-inclusive).
         :type endByte: int
-        :param contentDisposition: Content-Disposition response header
-            disposition-type value, if None, Content-Disposition will
-            be set to 'attachment; filename=$filename'.
+        :param contentDisposition: Content-Disposition response header disposition-type value, if
+            None, Content-Disposition will be set to 'attachment; filename=$filename'.
         :type contentDisposition: str or None
         """
-        cherrypy.response.headers['Content-Type'] = \
-            file.get('mimeType') or 'application/octet-stream'
+        headers = cherrypy.response.headers
+
+        headers['Content-Type'] = file.get('mimeType') or 'application/octet-stream'
         if contentDisposition == 'inline':
-            cherrypy.response.headers['Content-Disposition'] = \
-                'inline; filename="%s"' % file['name']
+            headers['Content-Disposition'] = 'inline; filename="%s"' % file['name']
         else:
-            cherrypy.response.headers['Content-Disposition'] = \
-                'attachment; filename="%s"' % file['name']
-        cherrypy.response.headers['Content-Length'] = max(endByte - offset, 0)
+            headers['Content-Disposition'] = 'attachment; filename="%s"' % file['name']
+        headers['Content-Length'] = max(endByte - offset, 0)
 
         if (offset or endByte < file['size']) and file['size']:
-            cherrypy.response.headers['Content-Range'] = 'bytes %d-%d/%d' % (
-                offset, endByte - 1, file['size'])
+            headers['Content-Range'] = 'bytes %d-%d/%d' % (offset, endByte - 1, file['size'])
 
     def checkUploadSize(self, upload, chunkSize):
         """
@@ -236,8 +231,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         raises an exception, then the caller should clean up and reraise the
         exception.
 
-        :param upload: the dictionary of upload information.  The received and
-                       size values are used.
+        :param upload: the dictionary of upload information.  The received and size values are used.
         :param chunkSize: the chunk size that needs to be validated.
         :type chunkSize: a non-negative integer or None if unknown.
         """
@@ -248,8 +242,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         if upload['received'] + chunkSize > upload['size']:
             raise ValidationException('Received too many bytes.')
         if upload['received'] + chunkSize != upload['size'] and \
-                chunkSize < self.model('setting').get(
-                SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
+                chunkSize < self.model('setting').get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
             raise ValidationException('Chunk is smaller than the minimum size.')
 
     def cancelUpload(self, upload):
@@ -266,8 +259,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         List and optionally discard uploads that are in the assetstore but not
         in the known list.
 
-        :param knownUploads: a list of upload dictionaries of all known
-                             incomplete uploads.
+        :param knownUploads: a list of upload dictionaries of all known incomplete uploads.
         :type knownUploads: list
         :param delete: if True, delete any unknown uploads.
         :type delete: bool
@@ -281,12 +273,10 @@ class AbstractAssetstoreAdapter(ModelImporter):
         underlying storage medium can implement this method.
 
         :param parent: The parent object to import into.
-        :param parentType: The model type of the parent object (folder, user,
-            or collection).
+        :param parentType: The model type of the parent object (folder, user, or collection).
         :type parentType: str
-        :param params: Additional parameters required for the import process.
-            Typically includes an importPath field representing a root path
-            on the underlying storage medium.
+        :param params: Additional parameters required for the import process. Typically includes an
+            importPath field representing a root path on the underlying storage medium.
         :type params: dict
         :param progress: Object on which to record progress if possible.
         :type progress: :py:class:`girder.utility.progress.ProgressContext`
