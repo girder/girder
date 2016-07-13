@@ -7,6 +7,7 @@ Mako==1.0.4
 pymongo==3.2.2
 PyYAML==3.11
 psutil==4.2.0
+python-dateutil==2.5.3
 pytz==2016.4
 requests==2.10.0
 six==1.10.0
