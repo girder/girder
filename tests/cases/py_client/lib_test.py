@@ -459,7 +459,6 @@ class PythonClientTestCase(base.TestCase):
         @httmock.urlmatch(path=r'.*/file/.+/download$')
         def mock(url, request):
             hits.append(url)
-            return
 
         expected = 'tests/cases/py_client/_libTestDir/sub0/f'
 
