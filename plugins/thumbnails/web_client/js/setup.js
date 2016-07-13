@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 // Add create thumbnail link to each file in the file list
 girder.wrap(girder.views.FileListWidget, 'render', function (render) {
     render.call(this);

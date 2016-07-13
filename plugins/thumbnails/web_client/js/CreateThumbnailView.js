@@ -1,7 +1,10 @@
+import _ from 'underscore';
+import View from 'girder/views/View';
+
 /**
  * A dialog for creating thumbnails from a specific file.
  */
-girder.views.thumbnails_CreateThumbnailView = girder.View.extend({
+girder.views.thumbnails_CreateThumbnailView = View.extend({
     events: {
         'change .g-thumbnail-attach-container input[type="radio"]': function () {
             this.$('.g-target-result-container').empty();

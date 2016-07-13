@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 /**
  * Extends the core assetstore model to add HDFS-specific functionality.
  */

@@ -1,9 +1,11 @@
+import View from 'girder/views/View';
+
 /**
  * This widget provides a text field that will search any set of data types
  * and show matching results as the user types. Results can be clicked,
  * triggering a callback.
  */
-girder.views.vega_ConfigView = girder.View.extend({
+girder.views.vega_ConfigView = View.extend({
     initialize: function (settings) {
         this.render();
     },

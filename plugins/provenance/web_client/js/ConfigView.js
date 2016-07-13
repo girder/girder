@@ -1,9 +1,12 @@
+import _ from 'underscore';
+import View from 'girder/views/View';
+
 /**
  * This widget provides a text field that will search any set of data types
  * and show matching results as the user types. Results can be clicked,
  * triggering a callback.
  */
-girder.views.provenance_ConfigView = girder.View.extend({
+girder.views.provenance_ConfigView = View.extend({
     events: {
         'submit #g-provenance-form': function (event) {
             event.preventDefault();

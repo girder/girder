@@ -1,7 +1,10 @@
+import _ from 'underscore';
+import View from 'girder/views/View';
+
 /**
  * Show the default quota settings for users and collections.
  */
-girder.views.userQuota_ConfigView = girder.View.extend({
+girder.views.userQuota_ConfigView = View.extend({
     events: {
         'submit #g-user-quota-form': function (event) {
             event.preventDefault();

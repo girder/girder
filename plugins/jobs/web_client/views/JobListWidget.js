@@ -1,4 +1,19 @@
-girder.views.jobs_JobListWidget = girder.View.extend({
+import _ from 'underscore';
+
+import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+import View from 'girder/views/View';
+import { defineFlags, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
+import { eventStream } from 'girder/events';
+import { getCurrentUser } from 'girder/auth';
+import { SORT_DESC } from 'girder/constants';
+
+import JobCollection from '../collections/JobCollection';
+import jobs_jobListTemplate from '../templates/jobs_jobList.jade';
+import jobs_JobStatus from '../jobStatus';
+
+import '../stylesheets/jobList.styl';
+
+var jobs_JobListWidget = View.extend({
     events: {
         'click .g-job-trigger-link': function (e) {
             var cid = $(e.target).attr('cid');
@@ -7,14 +22,15 @@ girder.views.jobs_JobListWidget = girder.View.extend({
     },
 
     initialize: function (settings) {
+        var currentUser = getCurrentUser();
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
         this.filter = settings.filter || {
-            userId: girder.currentUser.id
+            userId: currentUser.id
         };
 
-        this.collection = new girder.collections.JobCollection();
+        this.collection = new JobCollection();
         this.collection.sortField = settings.sortField || 'created';
-        this.collection.sortDir = settings.sortDir || girder.SORT_DESC;
+        this.collection.sortDir = settings.sortDir || SORT_DESC;
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
         this.collection.on('g:changed', function () {
@@ -26,15 +42,15 @@ girder.views.jobs_JobListWidget = girder.View.extend({
         this.linkToJob = _.has(settings, 'linkToJob') ? settings.linkToJob : true;
         this.triggerJobClick = _.has(settings, 'triggerJobClick') ? settings.triggerJobClick : false;
 
-        this.paginateWidget = new girder.views.PaginateWidget({
+        this.paginateWidget = new PaginateWidget({
             collection: this.collection,
             parentView: this
         });
 
-        girder.eventStream.on('g:event.job_status', this._statusChange, this);
+        eventStream.on('g:event.job_status', this._statusChange, this);
     },
 
-    columnEnum: girder.defineFlags([
+    columnEnum: defineFlags([
         'COLUMN_STATUS_ICON',
         'COLUMN_TITLE',
         'COLUMN_UPDATED',
@@ -43,14 +59,16 @@ girder.views.jobs_JobListWidget = girder.View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(girder.templates.jobs_jobList({
+        this.$el.html(jobs_jobListTemplate({
             jobs: this.collection.toArray(),
             showHeader: this.showHeader,
             columns: this.columns,
             columnEnum: this.columnEnum,
             linkToJob: this.linkToJob,
             triggerJobClick: this.triggerJobClick,
-            girder: girder
+            jobs_JobStatus: jobs_JobStatus,
+            formatDate: formatDate,
+            DATE_SECOND: DATE_SECOND
         }));
 
         if (this.showPaging) {
@@ -70,14 +88,14 @@ girder.views.jobs_JobListWidget = girder.View.extend({
 
         if (this.columns & this.columnEnum.COLUMN_STATUS_ICON) {
             tr.find('td.g-status-icon-container').attr('status', job.status)
-              .find('i').removeClass().addClass(girder.jobs_JobStatus.icon(job.status));
+              .find('i').removeClass().addClass(jobs_JobStatus.icon(job.status));
         }
         if (this.columns & this.columnEnum.COLUMN_STATUS) {
-            tr.find('td.g-job-status-cell').text(girder.jobs_JobStatus.text(job.status));
+            tr.find('td.g-job-status-cell').text(jobs_JobStatus.text(job.status));
         }
         if (this.columns & this.columnEnum.COLUMN_UPDATED) {
             tr.find('td.g-job-updated-cell').text(
-                girder.formatDate(job.updated, girder.DATE_SECOND));
+                formatDate(job.updated, DATE_SECOND));
         }
 
         tr.addClass('g-highlight');
@@ -88,8 +106,4 @@ girder.views.jobs_JobListWidget = girder.View.extend({
     }
 });
 
-girder.router.route('jobs/user/:id', 'jobList', function (id) {
-    girder.events.trigger('g:navigateTo', girder.views.jobs_JobListWidget, {
-        filter: {userId: id}
-    });
-});
+export default jobs_JobListWidget;

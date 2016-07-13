@@ -253,11 +253,12 @@ module.exports = function (grunt) {
     // Create plugin tasks
     grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
         var plugin = path.basename(dir);
-        if (plugin !== 'gravatar') {
+        if (plugin !== 'gravatar' &&
+            plugin !== 'jobs') {
             return;
         }
         var pluginTarget = 'plugins/' + plugin + '/plugin';
-        webpackTask.app.entry[pluginTarget] = './' + dir + '/web_client/js/main.js';
+        webpackTask.app.entry[pluginTarget] = './' + dir + '/web_client/main.js';
         // grunt.log.writeln(('Found plugin: ' + plugin).bold);
     });
 

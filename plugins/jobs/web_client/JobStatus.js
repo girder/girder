@@ -1,14 +1,7 @@
-girder.models.JobModel = girder.AccessControlledModel.extend({
-    resourceName: 'job'
-});
-
-girder.collections.JobCollection = girder.Collection.extend({
-    resourceName: 'job',
-    model: girder.models.JobModel
-});
+import _ from 'underscore';
 
 // The same job status enum as the server.
-girder.jobs_JobStatus = {
+var jobs_JobStatus = {
     _map: {},
 
     text: function (status) {
@@ -44,7 +37,7 @@ girder.jobs_JobStatus = {
     }
 };
 
-girder.jobs_JobStatus.registerStatus({
+jobs_JobStatus.registerStatus({
     INACTIVE: {
         value: 0,
         text: 'Inactive',
@@ -77,16 +70,4 @@ girder.jobs_JobStatus.registerStatus({
     }
 });
 
-/**
- * Add an entry to the user dropdown menu to navigate to user's job list view.
- */
-girder.wrap(girder.views.LayoutHeaderUserView, 'render', function (render) {
-    render.call(this);
-
-    if (girder.currentUser) {
-        this.$('#g-user-action-menu>ul').prepend(girder.templates.jobs_userMenu({
-            href: '#jobs/user/' + girder.currentUser.id
-        }));
-    }
-    return this;
-});
+export default jobs_JobStatus;

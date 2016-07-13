@@ -1,8 +1,11 @@
+import _ from 'underscore';
+import View from 'girder/views/View';
+
 /**
  * Administrative configuration view. Shows the global-level settings for this
  * plugin for all of the supported oauth providers.
  */
-girder.views.oauth_ConfigView = girder.View.extend({
+girder.views.oauth_ConfigView = View.extend({
     events: {
         'submit .g-oauth-provider-form': function (event) {
             event.preventDefault();

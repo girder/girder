@@ -1,4 +1,7 @@
-girder.views.geospatial_ItemWidget = girder.View.extend({
+import _ from 'underscore';
+import View from 'girder/views/View';
+
+girder.views.geospatial_ItemWidget = View.extend({
     initialize: function (settings) {
         this.accessLevel = settings.accessLevel;
         this.item = settings.item;

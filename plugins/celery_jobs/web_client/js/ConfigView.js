@@ -1,7 +1,10 @@
+import _ from 'underscore';
+import View from 'girder/views/View';
+
 /**
  * Administrative configuration view.
  */
-girder.views.celery_jobs_ConfigView = girder.View.extend({
+girder.views.celery_jobs_ConfigView = View.extend({
     events: {
         'submit #g-celery-jobs-config-form': function (event) {
             event.preventDefault();

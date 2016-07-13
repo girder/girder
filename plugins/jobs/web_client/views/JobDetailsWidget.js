@@ -1,9 +1,21 @@
-girder.views.jobs_JobDetailsWidget = girder.View.extend({
+import _ from 'underscore';
+
+import TimelineWidget from 'girder/views/widgets/TimelineWidget';
+import View from 'girder/views/View';
+import { eventStream } from 'girder/events';
+import { formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
+
+import jobs_jobDetailsTemplate from '../templates/jobs_jobDetails.jade';
+import jobs_JobStatus from '../jobStatus';
+
+import '../stylesheets/jobDetails.styl';
+
+var jobs_JobDetailsWidget = View.extend({
     initialize: function (settings) {
         this.job = settings.job;
         this.job.on('change', this.render, this);
 
-        girder.eventStream.on('g:event.job_status', function (event) {
+        eventStream.on('g:event.job_status', function (event) {
             var job = event.data;
             if (job._id === this.job.id) {
                 this.job.set(job);
@@ -17,11 +29,13 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
 
     render: function () {
         var status = this.job.get('status');
-        this.$el.html(girder.templates.jobs_jobDetails({
+        this.$el.html(jobs_jobDetailsTemplate({
             job: this.job,
-            statusText: girder.jobs_JobStatus.text(status),
-            colorClass: 'g-job-color-' + girder.jobs_JobStatus.classAffix(status),
-            girder: girder,
+            statusText: jobs_JobStatus.text(status),
+            colorClass: 'g-job-color-' + jobs_JobStatus.classAffix(status),
+            jobs_JobStatus: jobs_JobStatus,
+            formatDate: formatDate,
+            DATE_SECOND: DATE_SECOND,
             _: _
         }));
 
@@ -46,12 +60,12 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
         }];
 
         segments = segments.concat(_.map(timestamps.slice(0, -1), function (stamp, i) {
-            var statusText = girder.jobs_JobStatus.text(stamp.status);
+            var statusText = jobs_JobStatus.text(stamp.status);
             return {
                 start: stamp.time,
                 end: timestamps[i + 1].time,
                 tooltip: statusText + ': %r s',
-                class: 'g-job-color-' + girder.jobs_JobStatus.classAffix(stamp.status)
+                class: 'g-job-color-' + jobs_JobStatus.classAffix(stamp.status)
             };
         }, this));
 
@@ -62,19 +76,19 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
         }];
 
         points = points.concat(_.map(timestamps, function (stamp) {
-            var statusText = girder.jobs_JobStatus.text(stamp.status);
+            var statusText = jobs_JobStatus.text(stamp.status);
             return {
                 time: stamp.time,
                 tooltip: 'Moved to ' + statusText + ' at ' +
                          new Date(stamp.time).toISOString(),
-                class: 'g-job-color-' + girder.jobs_JobStatus.classAffix(stamp.status)
+                class: 'g-job-color-' + jobs_JobStatus.classAffix(stamp.status)
             };
         }, this));
 
         var endTime = timestamps[timestamps.length - 1].time;
         var elapsed = (new Date(endTime) - new Date(startTime)) / 1000;
 
-        new girder.views.TimelineWidget({
+        new TimelineWidget({
             el: this.$('.g-job-timeline-container'),
             parentView: this,
             points: points,
@@ -87,13 +101,4 @@ girder.views.jobs_JobDetailsWidget = girder.View.extend({
     }
 });
 
-girder.router.route('job/:id', 'jobView', function (id) {
-    var job = new girder.models.JobModel({_id: id}).once('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.jobs_JobDetailsWidget, {
-            job: job,
-            renderImmediate: true
-        });
-    }, this).once('g:error', function () {
-        girder.router.navigate('collections', {trigger: true});
-    }, this).fetch();
-});
+export default jobs_JobDetailsWidget;

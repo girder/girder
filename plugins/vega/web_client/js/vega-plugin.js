@@ -1,8 +1,11 @@
+import _ from 'underscore';
+import View from 'girder/views/View';
+
 var vegaPlugin = {
     views: {}
 };
 
-vegaPlugin.views.VegaWidget = girder.View.extend({
+vegaPlugin.views.VegaWidget = View.extend({
     initialize: function (settings) {
         this.item = settings.item;
         this.accessLevel = settings.accessLevel;

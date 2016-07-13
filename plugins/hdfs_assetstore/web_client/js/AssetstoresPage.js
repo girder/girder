@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 girder.AssetstoreType.HDFS = 'hdfs';
 
 /**

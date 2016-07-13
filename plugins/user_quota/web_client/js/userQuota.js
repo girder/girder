@@ -1,3 +1,6 @@
+import _ from 'underscore';
+import View from 'girder/views/View';
+
 /* Quota and assetstore policy user interface */
 
 (function () {
@@ -156,7 +159,7 @@
     });
 }());
 
-girder.views.QuotaPolicies = girder.View.extend({
+girder.views.QuotaPolicies = View.extend({
     events: {
         'submit #g-policies-edit-form': function (e) {
             var fields;

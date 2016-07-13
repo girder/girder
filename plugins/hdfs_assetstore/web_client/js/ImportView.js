@@ -1,4 +1,6 @@
-girder.views.hdfs_assetstore_ImportView = girder.View.extend({
+import View from 'girder/views/View';
+
+girder.views.hdfs_assetstore_ImportView = View.extend({
     events: {
         'submit .g-hdfs-import-form': function (e) {
             e.preventDefault();

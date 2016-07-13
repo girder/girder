@@ -1,4 +1,7 @@
-girder.views.thumbnails_FlowView = girder.View.extend({
+import _ from 'underscore';
+import View from 'girder/views/View';
+
+girder.views.thumbnails_FlowView = View.extend({
     events: {
         'click .g-thumbnail-delete': function (e) {
             var container = $(e.currentTarget).parents('.g-thumbnail-container');

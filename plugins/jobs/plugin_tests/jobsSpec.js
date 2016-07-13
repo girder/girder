@@ -1,3 +1,5 @@
+import { events, eventStream } from 'girder/events';
+
 $(function () {
     /* Include the built version of the our templates.  This means that grunt
     * must be run to generate these before the test. */
@@ -65,7 +67,7 @@ $(function () {
                 expect($('.g-timeline-point')[3].className).toContain('g-job-color-success');
 
                 // Make sure view change happens when notification is sent for this job
-                girder.eventStream.trigger('g:event.job_status', {
+                eventStream.trigger('g:event.job_status', {
                     data: {
                         _id: 'foo',
                         status: girder.jobs_JobStatus.SUCCESS,
@@ -77,7 +79,7 @@ $(function () {
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe('log changed');
 
                 // Make sure view change only happens for the currently viewed job
-                girder.eventStream.trigger('g:event.job_status', {
+                eventStream.trigger('g:event.job_status', {
                     data: {
                         _id: 'bar',
                         status: girder.jobs_JobStatus.QUEUED,
@@ -134,7 +136,7 @@ $(function () {
                 expect($(rows[2]).text()).toContain('Queued');
 
                 // Simulate an SSE notification that changes a job status
-                girder.eventStream.trigger('g:event.job_status', {
+                eventStream.trigger('g:event.job_status', {
                     data: _.extend({}, jobs[0].attributes, {
                         status: 4
                     })

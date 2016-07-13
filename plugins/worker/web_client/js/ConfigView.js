@@ -1,8 +1,11 @@
+import _ from 'underscore';
+import View from 'girder/views/View';
+
 /**
  * Administrative configuration view. Shows the global-level settings for this
  * plugin.
  */
-girder.views.worker_ConfigView = girder.View.extend({
+girder.views.worker_ConfigView = View.extend({
     events: {
         'submit #g-worker-settings-form': function (event) {
             event.preventDefault();

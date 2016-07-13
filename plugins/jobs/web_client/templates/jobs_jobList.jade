@@ -15,7 +15,7 @@ table.g-jobs-list-table
       tr(jobId="#{job.id}")
         if columns & columnEnum.COLUMN_STATUS_ICON
           td.g-status-icon-container(status="#{job.get('status')}")
-            i(class="#{girder.jobs_JobStatus.icon(job.get('status'))}")
+            i(class="#{jobs_JobStatus.icon(job.get('status'))}")
         if columns & columnEnum.COLUMN_TITLE
           if triggerJobClick
             td
@@ -26,8 +26,8 @@ table.g-jobs-list-table
           else
             td= job.get('title')
         if columns & columnEnum.COLUMN_UPDATED
-          td.g-job-updated-cell= girder.formatDate(job.get('updated'), girder.DATE_SECOND)
+          td.g-job-updated-cell= formatDate(job.get('updated'), DATE_SECOND)
         if columns & columnEnum.COLUMN_STATUS
-          td.g-job-status-cell= girder.jobs_JobStatus.text(job.get('status'))
+          td.g-job-status-cell= jobs_JobStatus.text(job.get('status'))
 
 .g-job-pagination

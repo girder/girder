@@ -1,4 +1,7 @@
-girder.views.oauth_LoginView = girder.View.extend({
+import _ from 'underscore';
+import View from 'girder/views/View';
+
+girder.views.oauth_LoginView = View.extend({
     events: {
         'click .g-oauth-button': function (event) {
             var providerId = $(event.currentTarget).attr('g-provider');
