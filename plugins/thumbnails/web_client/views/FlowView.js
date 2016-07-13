@@ -1,20 +1,29 @@
 import _ from 'underscore';
-import View from 'girder/views/View';
 
-girder.views.thumbnails_FlowView = View.extend({
+import FileModel from 'girder/models/FileModel';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { confirm } from 'girder/utilities/MiscFunctions';
+import { events } from 'girder/events';
+
+import flowViewTemplate from '../templates/flowView.jade';
+
+import '../stylesheets/flowView.styl';
+
+var FlowView = View.extend({
     events: {
         'click .g-thumbnail-delete': function (e) {
             var container = $(e.currentTarget).parents('.g-thumbnail-container');
-            var file = new girder.models.FileModel({_id: container.attr('g-file-id')});
+            var file = new FileModel({_id: container.attr('g-file-id')});
 
-            girder.confirm({
+            confirm({
                 text: 'Are you sure you want to delete this thumbnail?',
                 yesText: 'Delete',
                 confirmCallback: _.bind(function () {
                     file.on('g:deleted', function () {
                         container.remove();
                     }).on('g:error', function () {
-                        girder.events.trigger('g:alert', {
+                        events.trigger('g:alert', {
                             icon: 'cancel',
                             text: 'Failed to delete thumbnail.',
                             type: 'danger',
@@ -28,14 +37,14 @@ girder.views.thumbnails_FlowView = View.extend({
 
     initialize: function (settings) {
         this.thumbnails = settings.thumbnails;
-        this.accessLevel = settings.accessLevel || girder.AccessType.READ;
+        this.accessLevel = settings.accessLevel || AccessType.READ;
     },
 
     render: function () {
-        this.$el.html(girder.templates.thumbnails_flowView({
+        this.$el.html(flowViewTemplate({
             thumbnails: this.thumbnails,
             accessLevel: this.accessLevel,
-            girder: girder
+            AccessType: AccessType
         }));
 
         this.$('.g-thumbnail-actions-container a').tooltip({
@@ -49,3 +58,5 @@ girder.views.thumbnails_FlowView = View.extend({
         });
     }
 });
+
+export default FlowView;

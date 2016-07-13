@@ -8,12 +8,12 @@ import { getCurrentUser } from 'girder/auth';
 import { SORT_DESC } from 'girder/constants';
 
 import JobCollection from '../collections/JobCollection';
-import jobs_jobListTemplate from '../templates/jobs_jobList.jade';
-import jobs_JobStatus from '../jobStatus';
+import jobListTemplate from '../templates/jobList.jade';
+import JobStatus from '../jobStatus';
 
 import '../stylesheets/jobList.styl';
 
-var jobs_JobListWidget = View.extend({
+var JobListWidget = View.extend({
     events: {
         'click .g-job-trigger-link': function (e) {
             var cid = $(e.target).attr('cid');
@@ -59,14 +59,14 @@ var jobs_JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(jobs_jobListTemplate({
+        this.$el.html(jobListTemplate({
             jobs: this.collection.toArray(),
             showHeader: this.showHeader,
             columns: this.columns,
             columnEnum: this.columnEnum,
             linkToJob: this.linkToJob,
             triggerJobClick: this.triggerJobClick,
-            jobs_JobStatus: jobs_JobStatus,
+            JobStatus: JobStatus,
             formatDate: formatDate,
             DATE_SECOND: DATE_SECOND
         }));
@@ -88,10 +88,10 @@ var jobs_JobListWidget = View.extend({
 
         if (this.columns & this.columnEnum.COLUMN_STATUS_ICON) {
             tr.find('td.g-status-icon-container').attr('status', job.status)
-              .find('i').removeClass().addClass(jobs_JobStatus.icon(job.status));
+              .find('i').removeClass().addClass(JobStatus.icon(job.status));
         }
         if (this.columns & this.columnEnum.COLUMN_STATUS) {
-            tr.find('td.g-job-status-cell').text(jobs_JobStatus.text(job.status));
+            tr.find('td.g-job-status-cell').text(JobStatus.text(job.status));
         }
         if (this.columns & this.columnEnum.COLUMN_UPDATED) {
             tr.find('td.g-job-updated-cell').text(
@@ -106,4 +106,4 @@ var jobs_JobListWidget = View.extend({
     }
 });
 
-export default jobs_JobListWidget;
+export default JobListWidget;

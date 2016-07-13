@@ -1,5 +1,8 @@
 import router from 'girder/router';
 import { events } from 'girder/events';
+import { exposePluginConfig } from 'girder/utilities/MiscFunctions';
+
+exposePluginConfig('gravatar', 'plugins/gravatar/config');
 
 import ConfigView from './views/ConfigView';
 router.route('plugins/gravatar/config', 'gravatarConfig', function () {

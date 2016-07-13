@@ -1,12 +1,12 @@
 import $ from 'jquery';
+import Backbone from 'backbone';
 
 import { getCurrentUser } from 'girder/auth';
-import Backbone from 'backbone';
 import { events } from 'girder/events';
 import router from 'girder/router';
 import View from 'girder/views/View';
 
-import LayoutGlobalNav from 'girder/templates/layout/layoutGlobalNav.jade';
+import LayoutGlobalNavTemplate from 'girder/templates/layout/layoutGlobalNav.jade';
 
 import 'girder/stylesheets/layout/globalNav.styl';
 
@@ -71,7 +71,7 @@ var LayoutGlobalNavView = View.extend({
                 });
             }
         }
-        this.$el.html(LayoutGlobalNav({
+        this.$el.html(LayoutGlobalNavTemplate({
             navItems: navItems
         }));
 

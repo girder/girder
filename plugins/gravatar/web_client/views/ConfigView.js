@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { events } from 'girder/events';
 import { restRequest } from 'girder/rest';
 
-import GravatarConfigTemplate from '../templates/gravatar_config.jade';
+import ConfigTemplate from '../templates/Config.jade';
 
 var ConfigView = View.extend({
     events: {
@@ -36,7 +36,7 @@ var ConfigView = View.extend({
     },
 
     render: function () {
-        this.$el.html(GravatarConfigTemplate());
+        this.$el.html(ConfigTemplate());
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({

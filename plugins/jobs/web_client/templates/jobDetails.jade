@@ -7,7 +7,7 @@
 .g-field-container
   .g-job-info-key.inline(property="status") Status:
   .g-job-status-badge(status=statusText.toLowerCase(), class=colorClass)
-    i(class=jobs_JobStatus.icon(job.get('status')))
+    i(class=JobStatus.icon(job.get('status')))
     |  #{statusText}
 if job.get('timestamps') && job.get('timestamps').length
   .g-field-container

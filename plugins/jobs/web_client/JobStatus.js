@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 // The same job status enum as the server.
-var jobs_JobStatus = {
+var JobStatus = {
     _map: {},
 
     text: function (status) {
@@ -37,7 +37,7 @@ var jobs_JobStatus = {
     }
 };
 
-jobs_JobStatus.registerStatus({
+JobStatus.registerStatus({
     INACTIVE: {
         value: 0,
         text: 'Inactive',
@@ -70,4 +70,4 @@ jobs_JobStatus.registerStatus({
     }
 });
 
-export default jobs_JobStatus;
+export default JobStatus;

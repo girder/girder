@@ -1,3 +1,4 @@
+import Backbone from 'backbone';
 
 girderTest.addCoveredScripts([
     '/static/built/plugins/geospatial/templates.js',

@@ -1,10 +1,19 @@
 import _ from 'underscore';
+
 import View from 'girder/views/View';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+
+import ThumbnailModel from '../models/ThumbnailModel';
+
+import createDialogTemplate from '../templates/createDialog.jade';
+import targetDescriptionTemplate from '../templates/targetDescription.jade';
+
+import '../stylesheets/createThumbnail.styl';
 
 /**
  * A dialog for creating thumbnails from a specific file.
  */
-girder.views.thumbnails_CreateThumbnailView = View.extend({
+var CreateThumbnailView = View.extend({
     events: {
         'change .g-thumbnail-attach-container input[type="radio"]': function () {
             this.$('.g-target-result-container').empty();
@@ -28,7 +37,7 @@ girder.views.thumbnails_CreateThumbnailView = View.extend({
             this.$('.g-validation-failed-message').empty();
             this.$('.g-submit-create-thumbnail').attr('disabled', 'disabled');
 
-            new girder.models.ThumbnailModel({
+            new ThumbnailModel({
                 width: Number(this.$('#g-thumbnail-width').val()) || 0,
                 height: Number(this.$('#g-thumbnail-height').val()) || 0,
                 crop: this.$('#g-thumbnail-crop').is(':checked'),
@@ -55,7 +64,7 @@ girder.views.thumbnails_CreateThumbnailView = View.extend({
         this.attachToType = 'item';
         this.attachToId = this.item.id;
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             placeholder: 'Start typing a name...',
             types: ['collection', 'folder', 'item', 'user'],
             parentView: this
@@ -64,7 +73,7 @@ girder.views.thumbnails_CreateThumbnailView = View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(girder.templates.thumbnails_createDialog({
+        this.$el.html(createDialogTemplate({
             file: this.file,
             item: this.item
         })).girderModal(this).on('shown.bs.modal', function () {
@@ -84,9 +93,12 @@ girder.views.thumbnails_CreateThumbnailView = View.extend({
         this.attachToId = target.id;
         this.$('.g-submit-create-thumbnail').removeClass('disabled');
 
-        this.$('.g-target-result-container').html(girder.templates.thumbnails_targetDescription({
+        this.$('.g-target-result-container').html(targetDescriptionTemplate({
             text: target.text,
             icon: target.icon
         }));
     }
 });
+
+export default CreateThumbnailView;
+

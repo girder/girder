@@ -2,11 +2,10 @@ import router from 'girder/router';
 import { events } from 'girder/events';
 
 import JobModel from './models/JobModel';
-
-import jobs_JobDetailsWidget from './views/JobDetailsWidget';
+import JobDetailsWidget from './views/JobDetailsWidget';
 router.route('job/:id', 'jobView', function (id) {
     var job = new JobModel({_id: id}).once('g:fetched', function () {
-        events.trigger('g:navigateTo', jobs_JobDetailsWidget, {
+        events.trigger('g:navigateTo', JobDetailsWidget, {
             job: job,
             renderImmediate: true
         });
@@ -15,9 +14,9 @@ router.route('job/:id', 'jobView', function (id) {
     }, this).fetch();
 });
 
-import jobs_JobListWidget from './views/JobListWidget';
+import JobListWidget from './views/JobListWidget';
 router.route('jobs/user/:id', 'jobList', function (id) {
-    events.trigger('g:navigateTo', jobs_JobListWidget, {
+    events.trigger('g:navigateTo', JobListWidget, {
         filter: {userId: id}
     });
 });

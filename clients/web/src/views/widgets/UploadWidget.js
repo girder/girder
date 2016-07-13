@@ -7,7 +7,6 @@ import { formatSize } from 'girder/utilities/MiscFunctions';
 import View from 'girder/views/View';
 
 import UploadWidgetTemplate from 'girder/templates/widgets/uploadWidget.jade';
-
 import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetNonModal.jade';
 
 import 'girder/stylesheets/widgets/uploadWidget.styl';

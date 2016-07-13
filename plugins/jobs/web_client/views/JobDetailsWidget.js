@@ -5,12 +5,12 @@ import View from 'girder/views/View';
 import { eventStream } from 'girder/events';
 import { formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
 
-import jobs_jobDetailsTemplate from '../templates/jobs_jobDetails.jade';
-import jobs_JobStatus from '../jobStatus';
+import jobDetailsTemplate from '../templates/jobDetails.jade';
+import JobStatus from '../jobStatus';
 
 import '../stylesheets/jobDetails.styl';
 
-var jobs_JobDetailsWidget = View.extend({
+var JobDetailsWidget = View.extend({
     initialize: function (settings) {
         this.job = settings.job;
         this.job.on('change', this.render, this);
@@ -29,11 +29,11 @@ var jobs_JobDetailsWidget = View.extend({
 
     render: function () {
         var status = this.job.get('status');
-        this.$el.html(jobs_jobDetailsTemplate({
+        this.$el.html(jobDetailsTemplate({
             job: this.job,
-            statusText: jobs_JobStatus.text(status),
-            colorClass: 'g-job-color-' + jobs_JobStatus.classAffix(status),
-            jobs_JobStatus: jobs_JobStatus,
+            statusText: JobStatus.text(status),
+            colorClass: 'g-job-color-' + JobStatus.classAffix(status),
+            JobStatus: JobStatus,
             formatDate: formatDate,
             DATE_SECOND: DATE_SECOND,
             _: _
@@ -60,12 +60,12 @@ var jobs_JobDetailsWidget = View.extend({
         }];
 
         segments = segments.concat(_.map(timestamps.slice(0, -1), function (stamp, i) {
-            var statusText = jobs_JobStatus.text(stamp.status);
+            var statusText = JobStatus.text(stamp.status);
             return {
                 start: stamp.time,
                 end: timestamps[i + 1].time,
                 tooltip: statusText + ': %r s',
-                class: 'g-job-color-' + jobs_JobStatus.classAffix(stamp.status)
+                class: 'g-job-color-' + JobStatus.classAffix(stamp.status)
             };
         }, this));
 
@@ -76,12 +76,12 @@ var jobs_JobDetailsWidget = View.extend({
         }];
 
         points = points.concat(_.map(timestamps, function (stamp) {
-            var statusText = jobs_JobStatus.text(stamp.status);
+            var statusText = JobStatus.text(stamp.status);
             return {
                 time: stamp.time,
                 tooltip: 'Moved to ' + statusText + ' at ' +
                          new Date(stamp.time).toISOString(),
-                class: 'g-job-color-' + jobs_JobStatus.classAffix(stamp.status)
+                class: 'g-job-color-' + JobStatus.classAffix(stamp.status)
             };
         }, this));
 
@@ -101,4 +101,4 @@ var jobs_JobDetailsWidget = View.extend({
     }
 });
 
-export default jobs_JobDetailsWidget;
+export default JobDetailsWidget;
