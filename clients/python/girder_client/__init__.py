@@ -928,12 +928,16 @@ class GirderClient(object):
             with open(tmp.name, 'rb') as fp:
                 self.cache.set(cacheKey, fp, read=True)
 
-        # save or stream file to caller
-        with open(tmp.name, 'rb') as fp:
-            self._copyFile(fp, path)
-
-        # delete the temp file
-        os.remove(tmp.name)
+        if isinstance(path, six.string_types):
+            # we can just rename the tempfile
+            _safeMakedirs(os.path.dirname(path))
+            os.rename(tmp.name, path)
+        else:
+            # write to file-like object
+            with open(tmp.name, 'rb') as fp:
+                self._copyFile(fp, path)
+            # delete the temp file
+            os.remove(tmp.name)
 
     def downloadItem(self, itemId, dest, name=None):
         """
