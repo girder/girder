@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import girder_client
 from setuptools import setup, find_packages
 
 install_reqs = [
@@ -28,10 +27,16 @@ install_reqs = [
 with open('README.rst') as f:
     readme = f.read()
 
+init = os.path.join(os.path.dirname(__file__), 'girder_client', '__init__.py')
+with open(init) as fd:
+    version = re.search(
+        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+        fd.read(), re.MULTILINE).group(1)
+
 # perform the install
 setup(
     name='girder-client',
-    version=girder_client.__version__,
+    version=version,
     description='Python client for interacting with Girder servers',
     long_description=readme,
     author='Kitware, Inc.',

@@ -17,9 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-import girder
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -96,10 +96,16 @@ if sys.version_info[0] == 2:
         ]
     })
 
+init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
+with open(init) as fd:
+    version = re.search(
+        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+        fd.read(), re.MULTILINE).group(1)
+
 # perform the install
 setup(
     name='girder',
-    version=girder.__version__,
+    version=version,
     description='Web-based data management platform',
     long_description=readme,
     author='Kitware, Inc.',
