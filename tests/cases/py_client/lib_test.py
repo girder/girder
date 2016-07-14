@@ -440,6 +440,52 @@ class PythonClientTestCase(base.TestCase):
         with open(path, 'rb') as f:
             self.assertEqual(f.read(), obj.read())
 
+    def testDownloadCache(self):
+        item = self.client.createItem(
+            self.publicFolder['_id'], 'SomethingEvenMoreUnique')
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        file = self.client.uploadFileToItem(item['_id'], path)
+
+        # create another client with caching enabled
+        cacheSettings = {'directory': os.path.join(self.libTestDir, 'cache')}
+        client = girder_client.GirderClient(
+            port=os.environ['GIRDER_PORT'], cacheSettings=cacheSettings)
+        client.authenticate(self.user['login'], self.password)
+        self.assertNotEqual(client.cache, None)
+
+        # track file downloads
+        hits = []
+
+        @httmock.urlmatch(path=r'.*/file/.+/download$')
+        def mock(url, request):
+            hits.append(url)
+
+        expected = b'tests/cases/py_client/_libTestDir/sub0/f'
+
+        with httmock.HTTMock(mock):
+            # download the file
+            obj = six.BytesIO()
+            client.downloadFile(file['_id'], obj)
+            self.assertTrue(obj.getvalue().endswith(expected))
+            self.assertEqual(len(hits), 1)
+            # this should hit the cache only
+            obj = six.BytesIO()
+            client.downloadFile(file['_id'], obj)
+            self.assertTrue(obj.getvalue().endswith(expected))
+            self.assertEqual(len(hits), 1)
+
+        expected = b'new file contents!'
+        size = len(expected)
+        stream = six.BytesIO(expected)
+        self.client.uploadFileContents(file['_id'], stream, size)
+
+        with httmock.HTTMock(mock):
+            # file should download again
+            obj = six.BytesIO()
+            client.downloadFile(file['_id'], obj)
+            self.assertTrue(obj.getvalue().endswith(expected))
+            self.assertEqual(len(hits), 2)
+
     def testAddMetadataToItem(self):
         item = self.client.createItem(self.publicFolder['_id'],
                                       'Itemty McItemFace', '')
