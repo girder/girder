@@ -935,7 +935,7 @@ class GirderClient(object):
         else:
             # write to file-like object
             with open(tmp.name, 'rb') as fp:
-                self._copyFile(fp, path)
+                shutil.copyfileobj(fp, path)
             # delete the temp file
             os.remove(tmp.name)
 
