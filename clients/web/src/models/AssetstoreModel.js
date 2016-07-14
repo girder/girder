@@ -25,5 +25,13 @@ girder.models.AssetstoreModel = girder.Model.extend({
         }, this));
 
         return this;
+    },
+
+    save: function () {
+        if (_.isNumber(this.get('perms'))) {
+            // Coerce to an octal string to disambiguate
+            this.set('perms', this.get('perms').toString(8));
+        }
+        girder.Model.prototype.save.call(this, arguments);
     }
 });

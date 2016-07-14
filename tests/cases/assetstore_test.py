@@ -74,6 +74,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertTrue(oldAssetstore['current'])
         self.assertEqual(oldAssetstore['name'], 'Test')
         self.assertEqual(oldAssetstore['type'], AssetstoreType.FILESYSTEM)
+        self.assertEqual(oldAssetstore['perms'], 0o600)
 
         params = {
             'name': 'Test',
@@ -110,12 +111,28 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(assetstore['name'], 'New Name')
         self.assertFalse(assetstore['current'])
 
-        # Set the new assetstore as current
+        # Test validation of file permissions
         params = {
             'name': assetstore['name'],
             'root': assetstore['root'],
-            'current': True
+            'current': True,
+            'perms': '384'
         }
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'], 'File permissions must be an octal integer.')
+
+        params['perms'] = '400'
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'], 'File permissions must allow "rw" for user.')
+
+        # Set the new assetstore as current
+        params['perms'] = '755'
         resp = self.request(path='/assetstore/%s' % assetstore['_id'],
                             method='PUT', user=self.admin, params=params)
         self.assertStatusOk(resp)
