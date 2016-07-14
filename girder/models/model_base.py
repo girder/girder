@@ -34,8 +34,8 @@ from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
-_allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
-    'modifiers', 'manipulate')
+_allowedFindArgs = (
+    'cursor_type', 'allow_partial_results', 'oplog_replay', 'modifiers', 'manipulate')
 
 
 class Model(ModelImporter):
