@@ -30,6 +30,8 @@ import shutil
 import six
 import tempfile
 
+__version__ = '1.3.1'
+
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 
 _safeNameRegex = re.compile(r'^[/\\]+')
