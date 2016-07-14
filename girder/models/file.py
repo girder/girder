@@ -33,20 +33,19 @@ class File(acl_mixin.AccessControlMixin, Model):
     def initialize(self):
         self.name = 'file'
         self.ensureIndices(
-            ['itemId', 'assetstoreId', 'exts'] +
-            assetstore_utilities.fileIndexFields())
+            ['itemId', 'assetstoreId', 'exts'] + assetstore_utilities.fileIndexFields())
         self.resourceColl = 'item'
         self.resourceParent = 'itemId'
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'mimeType', 'itemId', 'exts', 'name', 'created', 'creatorId',
-            'size', 'updated', 'linkUrl'))
+            '_id', 'mimeType', 'itemId', 'exts', 'name', 'created', 'creatorId', 'size', 'updated',
+            'linkUrl'))
 
         self.exposeFields(level=AccessType.SITE_ADMIN, fields=('assetstoreId',))
 
-        events.bind('model.file.save.created',
-                    CoreEventHandler.FILE_PROPAGATE_SIZE,
-                    self._propagateSizeToItem)
+        events.bind(
+            'model.file.save.created', CoreEventHandler.FILE_PROPAGATE_SIZE,
+            self._propagateSizeToItem)
 
     def remove(self, file, updateItemSize=True, **kwargs):
         """
@@ -55,9 +54,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         record from the database.
 
         :param file: The file document to remove.
-        :param updateItemSize: Whether to update the item size. Only set this
-            to False if you plan to delete the item and do not care about
-            updating its size.
+        :param updateItemSize: Whether to update the item size. Only set this to False if you
+            plan to delete the item and do not care about updating its size.
         """
         if file.get('assetstoreId'):
             assetstore = self.model('assetstore').load(file['assetstoreId'])
@@ -72,8 +70,8 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         Model.remove(self, file)
 
-    def download(self, file, offset=0, headers=True, endByte=None,
-                 contentDisposition=None, extraParameters=None):
+    def download(self, file, offset=0, headers=True, endByte=None, contentDisposition=None,
+                 extraParameters=None):
         """
         Use the appropriate assetstore adapter for whatever assetstore the
         file is stored in, and call downloadFile on it. If the file is a link
@@ -85,11 +83,9 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param headers: Whether to set headers (i.e. is this an HTTP request
             for a single file, or something else).
         :type headers: bool
-        :param endByte: Final byte to download. If ``None``, downloads to the
-            end of the file.
+        :param endByte: Final byte to download. If ``None``, downloads to the end of the file.
         :type endByte: int or None
-        :param contentDisposition: Content-Disposition response header
-            disposition-type value.
+        :param contentDisposition: Content-Disposition response header disposition-type value.
         :type contentDisposition: str or None
         :type extraParameters: str or None
         """
@@ -98,8 +94,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             return adapter.downloadFile(
                 file, offset=offset, headers=headers, endByte=endByte,
-                contentDisposition=contentDisposition,
-                extraParameters=extraParameters)
+                contentDisposition=contentDisposition, extraParameters=extraParameters)
         elif file.get('linkUrl'):
             if headers:
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
@@ -114,14 +109,12 @@ class File(acl_mixin.AccessControlMixin, Model):
         if doc.get('assetstoreId') is None:
             if 'linkUrl' not in doc:
                 raise ValidationException(
-                    'File must have either an assetstore ID or a link URL.',
-                    'linkUrl')
+                    'File must have either an assetstore ID or a link URL.', 'linkUrl')
             doc['linkUrl'] = doc['linkUrl'].strip()
 
             if not doc['linkUrl'].startswith(('http:', 'https:')):
                 raise ValidationException(
-                    'Linked file URL must start with http: or https:.',
-                    'linkUrl')
+                    'Linked file URL must start with http: or https:.', 'linkUrl')
         if 'name' not in doc or not doc['name']:
             raise ValidationException('File name must not be empty.', 'name')
 
@@ -146,8 +139,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         """
         if parentType == 'folder':
             # Create a new item with the name of the file.
-            item = self.model('item').createItem(
-                name=name, creator=creator, folder=parent)
+            item = self.model('item').createItem(name=name, creator=creator, folder=parent)
         elif parentType == 'item':
             item = parent
 
@@ -180,9 +172,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type item: dict
         :param sizeIncrement: The change in size to propagate.
         :type sizeIncrement: int
-        :param updateItemSize: Whether the item size should be updated. Set to
-            False if you plan to delete the item immediately and don't care to
-            update its size.
+        :param updateItemSize: Whether the item size should be updated. Set to False if you plan
+            to delete the item immediately and don't care to update its size.
         """
         if updateItemSize:
             # Propagate size up to item
@@ -200,8 +191,8 @@ class File(acl_mixin.AccessControlMixin, Model):
             '_id': item['baseParentId']
         }, field='size', amount=sizeIncrement, multi=False)
 
-    def createFile(self, creator, item, name, size, assetstore, mimeType=None,
-                   saveFile=True, reuseExisting=False):
+    def createFile(self, creator, item, name, size, assetstore, mimeType=None, saveFile=True,
+                   reuseExisting=False):
         """
         Create a new file record in the database.
 
@@ -244,8 +235,7 @@ class File(acl_mixin.AccessControlMixin, Model):
 
     def _propagateSizeToItem(self, event):
         """
-        This callback updates an item's size to include that of a newly-created
-        file.
+        This callback updates an item's size to include that of a newly-created file.
 
         This generally should not be called or overridden directly. This should
         not be unregistered, as that would cause item, folder, and collection
@@ -309,8 +299,7 @@ class File(acl_mixin.AccessControlMixin, Model):
 
     def isOrphan(self, file, user=None):
         """
-        Returns True if this file is orphaned (its item or attached entity is
-        missing).
+        Returns True if this file is orphaned (its item or attached entity is missing).
 
         :param file: The file to check.
         :type file: dict

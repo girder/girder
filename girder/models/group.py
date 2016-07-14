@@ -63,12 +63,12 @@ class Group(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'name', 'public', 'description', 'created', 'updated',
-            'addAllowed', '_addToGroupPolicy'))
+            '_id', 'name', 'public', 'description', 'created', 'updated', 'addAllowed',
+            '_addToGroupPolicy'))
 
-        events.bind('model.group.save.created',
-                    CoreEventHandler.GROUP_CREATOR_ACCESS,
-                    self._grantCreatorAccess)
+        events.bind(
+            'model.group.save.created', CoreEventHandler.GROUP_CREATOR_ACCESS,
+            self._grantCreatorAccess)
 
     def filter(self, *args, **kwargs):
         """
@@ -112,8 +112,7 @@ class Group(AccessControlledModel):
             q['_id'] = {'$ne': doc['_id']}
         duplicate = self.findOne(q, fields=['_id'])
         if duplicate is not None:
-            raise ValidationException('A group with that name already exists.',
-                                      field='name')
+            raise ValidationException('A group with that name already exists.', field='name')
 
         return doc
 
@@ -257,8 +256,7 @@ class Group(AccessControlledModel):
         :param sort: The sort field.
         """
         return self.model('user').find(
-            {'groupInvites.groupId': group['_id']},
-            limit=limit, offset=offset, sort=sort)
+            {'groupInvites.groupId': group['_id']}, limit=limit, offset=offset, sort=sort)
 
     def removeUser(self, group, user):
         """
@@ -318,8 +316,7 @@ class Group(AccessControlledModel):
 
     def _grantCreatorAccess(self, event):
         """
-        This callback makes the group creator an administrator member of the
-        group.
+        This callback makes the group creator an administrator member of the group.
 
         This generally should not be called or overridden directly, but it may
         be unregistered from the `model.group.save.created` event.
@@ -381,14 +378,11 @@ class Group(AccessControlledModel):
             return True
         elif level == AccessType.READ:
             # For read access, just check user document for membership or public
-            return doc.get('public', False) is True or\
-                doc['_id'] in user.get('groups', []) or\
-                doc['_id'] in [i['groupId'] for i in
-                               user.get('groupInvites', [])]
+            return (doc.get('public', False) is True or doc['_id'] in user.get('groups', []) or
+                    doc['_id'] in [i['groupId'] for i in user.get('groupInvites', [])])
         else:
             # Check the actual permissions document for >=WRITE access
-            return self._hasUserAccess(doc.get('access', {}).get('users', []),
-                                       user['_id'], level)
+            return self._hasUserAccess(doc.get('access', {}).get('users', []), user['_id'], level)
 
     def getAccessLevel(self, doc, user):
         """
@@ -411,8 +405,7 @@ class Group(AccessControlledModel):
 
             if doc['_id'] in user.get('groups', []):
                 level = AccessType.READ
-            elif doc['_id'] in [i['groupId'] for i in
-                                user.get('groupInvites', [])]:
+            elif doc['_id'] in [i['groupId'] for i in user.get('groupInvites', [])]:
                 return AccessType.READ
 
             for userAccess in access.get('users', []):
@@ -434,10 +427,8 @@ class Group(AccessControlledModel):
         """
         # save parameter not used?
         if level is not None and level > AccessType.READ:
-            doc = AccessControlledModel.setUserAccess(
-                self, doc, user, level, save=True)
+            doc = AccessControlledModel.setUserAccess(self, doc, user, level, save=True)
         else:
-            doc = AccessControlledModel.setUserAccess(
-                self, doc, user, level=None, save=True)
+            doc = AccessControlledModel.setUserAccess(self, doc, user, level=None, save=True)
 
         return doc

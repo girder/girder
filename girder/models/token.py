@@ -81,8 +81,7 @@ class Token(AccessControlledModel):
             self.setPublic(token, True, save=False)
         else:
             token['userId'] = user['_id']
-            self.setUserAccess(token, user=user, level=AccessType.ADMIN,
-                               save=False)
+            self.setUserAccess(token, user=user, level=AccessType.ADMIN, save=False)
 
         if apiKey is not None:
             token['apiKeyId'] = apiKey['_id']

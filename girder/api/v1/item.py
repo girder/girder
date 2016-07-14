@@ -147,7 +147,7 @@ class Item(Resource):
 
         if 'folderId' in params:
             folder = self.model('folder').load(
-                params['folderId'], user=self.getCurrentUser(), evel=AccessType.WRITE, exc=True)
+                params['folderId'], user=self.getCurrentUser(), level=AccessType.WRITE, exc=True)
             if folder['_id'] != item['folderId']:
                 self.model('item').move(item, folder)
 
@@ -183,7 +183,7 @@ class Item(Resource):
     def _downloadMultifileItem(self, item, user):
         name = item['name'] + '.zip'
         cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] = 'attachment; filename="%s%s"' % name
+        cherrypy.response.headers['Content-Disposition'] = 'attachment; filename="%s"' % name
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])

@@ -49,9 +49,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
         self.resourceParent = 'folderId'
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'size', 'updated', 'description', 'created', 'meta',
-            'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId',
-            'copyOfItem'))
+            '_id', 'size', 'updated', 'description', 'created', 'meta', 'creatorId', 'folderId',
+            'name', 'baseParentType', 'baseParentId', 'copyOfItem'))
 
     def filter(self, *args, **kwargs):
         """
@@ -115,16 +114,15 @@ class Item(acl_mixin.AccessControlMixin, Model):
         doc['lowerName'] = doc['name'].lower()
         return doc
 
-    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
-             force=False, fields=None, exc=False):
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True, force=False, fields=None,
+             exc=False):
         """
         Calls AccessControlMixin.load while doing some auto-correction.
 
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlledMixin.load`.
         """
-        doc = super(Item, self).load(id, level, user, objectId, force, fields,
-                                     exc)
+        doc = super(Item, self).load(id, level, user, objectId, force, fields, exc)
 
         if doc is not None and 'baseParentType' not in doc:
             pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
@@ -180,8 +178,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
             size += file.get('size', 0)
         delta = size-item.get('size', 0)
         if delta:
-            logger.info('Item %s was wrong size: was %d, is %d' % (
-                item['_id'], item['size'], size))
+            logger.info(
+                'Item %s was wrong size: was %d, is %d' % (item['_id'], item['size'], size))
             item['size'] = size
             self.update({'_id': item['_id']}, update={'$set': {'size': size}})
             self.propagateSizeChange(item, delta)
@@ -189,8 +187,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
     def childFiles(self, item, limit=0, offset=0, sort=None, **kwargs):
         """
-        Returns child files of the item.  Passes any kwargs to the find
-        function.
+        Returns child files of the item.  Passes any kwargs to the find function.
 
         :param item: The parent item.
         :param limit: Result limit.
@@ -201,8 +198,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             'itemId': item['_id']
         }
 
-        return self.model('file').find(
-            q, limit=limit, offset=offset, sort=sort, **kwargs)
+        return self.model('file').find(q, limit=limit, offset=offset, sort=sort, **kwargs)
 
     def remove(self, item, **kwargs):
         """
@@ -232,8 +228,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # Delete the item itself
         Model.remove(self, item)
 
-    def createItem(self, name, creator, folder, description='',
-                   reuseExisting=False):
+    def createItem(self, name, creator, folder, description='', reuseExisting=False):
         """
         Create a new item. The creator will be given admin access to it.
 
@@ -245,8 +240,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param creator: User document representing the creator of the item.
         :type creator: dict
         :param reuseExisting: If an item with the given name already exists
-            under the given folder, return that item rather than creating a
-            new one.
+            under the given folder, return that item rather than creating a new one.
         :type reuseExisting: bool
         :returns: The item document that was created.
         """
@@ -262,12 +256,13 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         if not isinstance(creator, dict) or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
-            raise GirderException('Creator must be a user.',
-                                  'girder.models.item.creator-not-user')
+            raise GirderException(
+                'Creator must be a user.', 'girder.models.item.creator-not-user')
 
         if 'baseParentType' not in folder:
-            pathFromRoot = self.parentsToRoot({'folderId': folder['_id']},
-                                              creator, force=True)
+            pathFromRoot = self.parentsToRoot({
+                'folderId': folder['_id']
+            }, creator, force=True)
             folder['baseParentType'] = pathFromRoot[0]['type']
             folder['baseParentId'] = pathFromRoot[0]['object']['_id']
 
@@ -304,8 +299,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         :param item: The item to set the metadata on.
         :type item: dict
-        :param metadata: A dictionary containing key-value pairs to add to
-                     the items meta field
+        :param metadata: A dictionary containing key-value pairs to add to the items meta field
         :type metadata: dict
         :returns: the item document
         """
@@ -351,8 +345,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         return folderIdsToRoot
 
-    def copyItem(self, srcItem, creator, name=None, folder=None,
-                 description=None):
+    def copyItem(self, srcItem, creator, name=None, folder=None, description=None):
         """
         Copy an item, including duplicating files and metadata.
 
@@ -396,8 +389,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
         events.trigger('model.item.copy.after', newItem)
         return newItem
 
-    def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None, data=True):
+    def fileList(self, doc, user=None, path='', includeMetadata=False, subpath=True,
+                 mimeFilter=None, data=True):
         """
         This function generates a list of 2-tuples whose first element is the
         relative path to the file from the item's root and whose second
@@ -407,20 +400,16 @@ class Item(acl_mixin.AccessControlMixin, Model):
         element will be the file document itself.
 
         :param doc: The item to list.
-        :param user: A user used to validate data that is returned.  This isn't
-                     used, but is present to be consistent across all model
-                     implementations of fileList.
+        :param user: A user used to validate data that is returned.  This isn't used, but is
+            present to be consistent across all model implementations of fileList.
         :param path: A path prefix to add to the results.
         :type path: str
-        :param includeMetadata: If True and there is any metadata, include a
-                                result which is the JSON string of the
-                                metadata.  This is given a name of
-                                metadata[-(number).json that is distinct from
-                                any file within the item.
+        :param includeMetadata: If True and there is any metadata, include a result which is the
+            JSON string of the metadata. This is given a name of metadata[-(number).json that is
+            distinct from any file within the item.
         :type includeMetadata: bool
-        :param subpath: If True and the item has more than one file, any
-                        metadata, or the sole file is not named the same as the
-                        item, then the returned paths include the item name.
+        :param subpath: If True and the item has more than one file, any metadata, or the sole file
+            is not named the same as the item, then the returned paths include the item name.
         :type subpath: bool
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
@@ -428,9 +417,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param data: If True return raw content of each file as stored in the
             assetstore, otherwise return file document.
         :type data: bool
-        :returns: Iterable over files in this item, where each element is a
-                  tuple of (path name of the file, stream function with file
-                  data or file object).
+        :returns: Iterable over files in this item, where each element is a tuple of (path name of
+            the file, stream function with file data or file object).
         :rtype: generator(str, func)
         """
         if subpath:
@@ -473,8 +461,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param user: The user for permissions.
         :type user: dict or None
         """
-        return not self.model('folder').load(
-            item.get('folderId'), user=user)
+        return not self.model('folder').load(item.get('folderId'), user=user)
 
     def updateSize(self, doc, user):
         """

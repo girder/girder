@@ -127,7 +127,7 @@ class Collection(Resource):
     def downloadCollection(self, collection, params):
         name = collection['name'] + '.zip'
         cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] = 'attachment; filename="%s' % name
+        cherrypy.response.headers['Content-Disposition'] = 'attachment; filename="%s"' % name
 
         user = self.getCurrentUser()
         mimeFilter = params.get('mimeFilter')

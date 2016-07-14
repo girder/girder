@@ -43,9 +43,8 @@ class Password(Model):
         :type alg: str - 'sha512' | 'bcrypt'
         :param password: The password to digest.
         :type password: str
-        :param salt: The salt to use. In the case of bcrypt,
-                     when storing the password, pass None;
-                     when testing the password, pass the hashed value.
+        :param salt: The salt to use. In the case of bcrypt, when storing the password, pass None;
+            when testing the password, pass the hashed value.
         :type salt: None or str
         :returns: The hashed value as a string.
         """
@@ -56,8 +55,7 @@ class Password(Model):
             try:
                 import bcrypt
             except ImportError:
-                raise Exception(
-                    'Bcrypt module is not installed. See girder.local.cfg.')
+                raise Exception('Bcrypt module is not installed. See girder.local.cfg.')
 
             password = password.encode('utf8')
 
@@ -113,8 +111,7 @@ class Password(Model):
                 'This user does not have a password. You must log in with an '
                 'external service, or reset your password.')
 
-        hash = self._digest(salt=user['salt'], alg=user['hashAlg'],
-                            password=password)
+        hash = self._digest(salt=user['salt'], alg=user['hashAlg'], password=password)
 
         if user['hashAlg'] == 'bcrypt':
             if isinstance(user['salt'], six.text_type):
@@ -128,23 +125,20 @@ class Password(Model):
         Encrypt and store the given password. The exact internal details and
         mechanisms used for storage are abstracted away, but the guarantee is
         made that once this method is called on a password and the returned salt
-        and algorithm are stored with the user document, calling
-        Password.authenticate() with that user document and the same password
-        will return True.
+        and algorithm are stored with the user document, calling Password.authenticate()
+        with that user document and the same password will return True.
 
         :param password: The password to encrypt and store.
         :type password: str
-        :returns: {tuple} (salt, hashAlg) The salt to store with the
-                  user document and the algorithm used for secure
-                  storage. Both should be stored in the corresponding
-                  user document as 'salt' and 'hashAlg' respectively.
+        :returns: a tuple of (salt, hashAlg), containing the salt to store with the user document
+            and the algorithm used for secure storage. Both should be stored in the corresponding
+            user document as 'salt' and 'hashAlg' respectively.
         """
         cur_config = config.getConfig()
 
         # Normally this would go in validate() but password is a special case.
         if not re.match(cur_config['users']['password_regex'], password):
-            raise ValidationException(
-                cur_config['users']['password_description'], 'password')
+            raise ValidationException(cur_config['users']['password_description'], 'password')
 
         alg = cherrypy.config['auth']['hash_alg']
         if alg == 'bcrypt':

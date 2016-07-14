@@ -28,23 +28,21 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from pymongo.errors import WriteError
 from girder import events
-from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
-    TEXT_SCORE_SORT_MAX
+from girder.constants import AccessType, CoreEventHandler, TerminalColor, TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
-                    'modifiers', 'manipulate')
+    'modifiers', 'manipulate')
 
 
 class Model(ModelImporter):
     """
     Model base class. Models are responsible for abstracting away the
     persistence layer. Each collection in the database should have its own
-    model. Methods that deal with database interaction belong in the
-    model layer.
+    model. Methods that deal with database interaction belong in the model layer.
     """
 
     def __init__(self):
@@ -83,11 +81,9 @@ class Model(ModelImporter):
             textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
             try:
                 self.collection.create_index(
-                    textIdx, weights=self._textIndex,
-                    default_language=self._textLanguage)
+                    textIdx, weights=self._textIndex, default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
-                print(
-                    TerminalColor.warning('WARNING: Text search not enabled.'))
+                print(TerminalColor.warning('WARNING: Text search not enabled.'))
 
     def exposeFields(self, level, fields):
         """
@@ -111,8 +107,7 @@ class Model(ModelImporter):
         """
         Hide a field, i.e. make sure it is not exposed via the default
         filtering method. Since the filter uses a white list, it is only ever
-        necessary to call this for fields that were added previously with
-        exposeFields().
+        necessary to call this for fields that were added previously with exposeFields().
 
         :param level: The access level to remove the fields from.
         :type level: AccessType
@@ -188,25 +183,23 @@ class Model(ModelImporter):
         """
         Models should implement this to validate the document before it enters
         the database. It must return the document with any necessary filters
-        applied, or throw a ValidationException if validation of the document
-        fails.
+        applied, or throw a ValidationException if validation of the document fails.
 
         :param doc: The document to validate before saving to the collection.
         :type doc: dict
         """
-        raise Exception('Must override validate() in %s model.'
-                        % self.__class__.__name__)  # pragma: no cover
+        raise Exception(
+            'Must override validate() in %s model.' % self.__class__.__name__)  # pragma: no cover
 
     def initialize(self):
         """
         Subclasses should override this and set the name of the collection as
         self.name. Also, they should set any indexed fields that they require.
         """
-        raise Exception('Must override initialize() in %s model'
-                        % self.__class__.__name__)  # pragma: no cover
+        raise Exception(
+            'Must override initialize() in %s model' % self.__class__.__name__)  # pragma: no cover
 
-    def find(self, query=None, offset=0, limit=0, timeout=None,
-             fields=None, sort=None, **kwargs):
+    def find(self, query=None, offset=0, limit=0, timeout=None, fields=None, sort=None, **kwargs):
         """
         Search the collection by a set of parameters. Passes any extra kwargs
         through to the underlying pymongo.collection.find function.
@@ -254,8 +247,7 @@ class Model(ModelImporter):
         kwargs = {k: kwargs[k] for k in kwargs if k in _allowedFindArgs}
         return self.collection.find_one(query, projection=fields, **kwargs)
 
-    def textSearch(self, query, offset=0, limit=0, sort=None, fields=None,
-                   filters=None, **kwargs):
+    def textSearch(self, query, offset=0, limit=0, sort=None, fields=None, filters=None, **kwargs):
         """
         Perform a full-text search against the text index for this collection.
 
@@ -263,8 +255,7 @@ class Model(ModelImporter):
         :type query: str
         :param filters: Any additional query operators to apply.
         :type filters: dict
-        :returns: A pymongo cursor. It is left to the caller to build the
-            results from the cursor.
+        :returns: A pymongo cursor. It is left to the caller to build the results from the cursor.
         """
         filters = filters or {}
         fields = fields or {}
@@ -283,16 +274,15 @@ class Model(ModelImporter):
 
         return cursor
 
-    def prefixSearch(self, query, offset=0, limit=0, sort=None, fields=None,
-                     filters=None, prefixSearchFields=None, **kwargs):
+    def prefixSearch(self, query, offset=0, limit=0, sort=None, fields=None, filters=None,
+                     prefixSearchFields=None, **kwargs):
         """
         Search for documents in this model's collection by a prefix string.
         The fields that will be searched based on this prefix must be set as
         the ``prefixSearchFields`` attribute of this model, which must be an
         iterable. Elements of this iterable must be either a string representing
         the field name, or a 2-tuple in which the first element is the field
-        name, and the second element is a string representing the regex search
-        options.
+        name, and the second element is a string representing the regex search options.
 
         :param query: The prefix string to look for.
         :type query: str
@@ -300,8 +290,7 @@ class Model(ModelImporter):
         :type filters: dict
         :param prefixSearchFields: To override the model's prefixSearchFields
             attribute for this invocation, pass an alternate iterable.
-        :returns: A pymongo cursor. It is left to the caller to build the
-            results from the cursor.
+        :returns: A pymongo cursor. It is left to the caller to build the results from the cursor.
         """
         filters = filters or {}
         filters['$or'] = filters.get('$or', [])
@@ -319,8 +308,7 @@ class Model(ModelImporter):
                     field: {'$regex': '^%s' % re.escape(query)}
                 })
 
-        return self.find(
-            filters, offset=offset, limit=limit, sort=sort, fields=fields)
+        return self.find(filters, offset=offset, limit=limit, sort=sort, fields=fields)
 
     def save(self, document, validate=True, triggerEvents=True):
         """
@@ -336,8 +324,7 @@ class Model(ModelImporter):
             pre- and post-save hooks.
         """
         if validate and triggerEvents:
-            event = events.trigger('.'.join(('model', self.name, 'validate')),
-                                   document)
+            event = events.trigger('.'.join(('model', self.name, 'validate')), document)
             if event.defaultPrevented:
                 validate = False
 
@@ -352,11 +339,9 @@ class Model(ModelImporter):
         isNew = '_id' not in document
         try:
             if isNew:
-                document['_id'] = \
-                    self.collection.insert_one(document).inserted_id
+                document['_id'] = self.collection.insert_one(document).inserted_id
             else:
-                self.collection.replace_one(
-                    {'_id': document['_id']}, document, True)
+                self.collection.replace_one({'_id': document['_id']}, document, True)
         except WriteError as e:
             raise ValidationException('Database save failed: %s' % e.details)
 
@@ -376,13 +361,12 @@ class Model(ModelImporter):
 
         For updating a single document, use the save() model method instead.
 
-        :param query: The query for finding documents to update. It's
-                      the same format as would be passed to find().
+        :param query: The query for finding documents to update. It's the same format as would
+            be passed to find().
         :type query: dict
         :param update: The update specifier.
         :type update: dict
-        :param multi: Whether to update a single document, or all matching
-            documents.
+        :param multi: Whether to update a single document, or all matching documents.
         :type multi: bool
         :returns: A pymongo UpdateResult object.
         """
@@ -394,8 +378,7 @@ class Model(ModelImporter):
     def increment(self, query, field, amount, **kwargs):
         """
         This is a specialization of the update method that atomically increments
-        a field by a given amount. Additional kwargs are passed directly through
-        to update.
+        a field by a given amount. Additional kwargs are passed directly through to update.
 
         :param query: The query selector for documents to update.
         :type query: dict
@@ -416,8 +399,7 @@ class Model(ModelImporter):
         """
         assert '_id' in document
 
-        event = events.trigger('.'.join(('model', self.name, 'remove')),
-                               document)
+        event = events.trigger('.'.join(('model', self.name, 'remove')), document)
         kwargsEvent = events.trigger(
             '.'.join(('model', self.name, 'remove_with_kwargs')), {
                 'document': document,
@@ -445,9 +427,9 @@ class Model(ModelImporter):
         :param objectId: Whether the id should be coerced to ObjectId type.
         :type objectId: bool
         :param fields: Fields list to include. Also can be a dict for
-                       exclusion. See pymongo docs for how to use this arg.
+            exclusion. See pymongo docs for how to use this arg.
         :param exc: Whether to raise a ValidationException if there is no
-                    document with the given id.
+            document with the given id.
         :type exc: bool
         :returns: The matching document, or None.
         """
@@ -458,13 +440,11 @@ class Model(ModelImporter):
             try:
                 id = ObjectId(id)
             except InvalidId:
-                raise ValidationException('Invalid ObjectId: %s' % id,
-                                          field='id')
+                raise ValidationException('Invalid ObjectId: %s' % id, field='id')
         doc = self.findOne({'_id': id}, fields=fields)
 
         if doc is None and exc is True:
-            raise ValidationException('No such %s: %s' % (self.name, id),
-                                      field='id')
+            raise ValidationException('No such %s: %s' % (self.name, id), field='id')
 
         return doc
 
@@ -515,19 +495,18 @@ class AccessControlledModel(Model):
     Any model that has access control requirements should inherit from
     this class. It enforces permission checking in the load() method
     and provides convenient methods for testing and requiring user permissions.
-    It also provides methods for setting access control policies on the
-    resource.
+    It also provides methods for setting access control policies on the resource.
     """
 
     def __init__(self):
         # Do the bindings before calling __init__(), in case a derived class
         # wants to change things in initialize()
-        events.bind('model.user.remove',
-                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
-                    self._cleanupDeletedEntity)
-        events.bind('model.group.remove',
-                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
-                    self._cleanupDeletedEntity)
+        events.bind(
+            'model.user.remove', CoreEventHandler.ACCESS_CONTROL_CLEANUP,
+            self._cleanupDeletedEntity)
+        events.bind(
+            'model.group.remove', CoreEventHandler.ACCESS_CONTROL_CLEANUP,
+            self._cleanupDeletedEntity)
         super(AccessControlledModel, self).__init__()
 
     def _cleanupDeletedEntity(self, event):
@@ -642,8 +621,7 @@ class AccessControlledModel(Model):
             doc['access'][entity] = []
 
         # First remove any existing permission level for this entity.
-        doc['access'][entity] = [perm for perm in doc['access'][entity]
-                                 if perm['id'] != id]
+        doc['access'][entity] = [perm for perm in doc['access'][entity] if perm['id'] != id]
 
         # Add in the new level for this entity unless we are removing access.
         if level is not None:
@@ -666,8 +644,7 @@ class AccessControlledModel(Model):
         :param public: Flag for public read access.
         :type public: bool
         :param save: Whether to save the object to the database afterward.
-                     Set this to False if you want to wait to save the
-                     document for performance reasons.
+            Set this to False if you want to wait to save the document for performance reasons.
         :type save: bool
         :returns: The updated resource document.
         """
@@ -699,12 +676,11 @@ class AccessControlledModel(Model):
             'users': [],
             'groups': []
         }
+        allLevels = (AccessType.READ, AccessType.WRITE, AccessType.ADMIN)
 
         for userAccess in access.get('users', []):
             if 'id' in userAccess and 'level' in userAccess:
-                if not userAccess['level'] in (AccessType.READ,
-                                               AccessType.WRITE,
-                                               AccessType.ADMIN):
+                if userAccess['level'] not in allLevels:
                     raise ValidationException('Invalid access level', 'access')
 
                 acList['users'].append({
@@ -716,9 +692,7 @@ class AccessControlledModel(Model):
 
         for groupAccess in access.get('groups', []):
             if 'id' in groupAccess and 'level' in groupAccess:
-                if not groupAccess['level'] in (AccessType.READ,
-                                                AccessType.WRITE,
-                                                AccessType.ADMIN):
+                if groupAccess['level'] not in allLevels:
                     raise ValidationException('Invalid access level', 'access')
 
                 acList['groups'].append({
@@ -744,11 +718,10 @@ class AccessControlledModel(Model):
         :param group: The group to grant or remove access to.
         :type group: dict
         :param level: What level of access the group should have. Set to None
-                      to remove all access for this group.
+            to remove all access for this group.
         :type level: AccessType or None
         :param save: Whether to save the object to the database afterward.
-                     Set this to False if you want to wait to save the
-                     document for performance reasons.
+            Set this to False if you want to wait to save the document for performance reasons.
         :type save: bool
         :returns: The updated resource document.
         """
@@ -811,8 +784,7 @@ class AccessControlledModel(Model):
 
         for user in acList['users'][:]:
             userDoc = self.model('user').load(
-                user['id'], force=True,
-                fields=['firstName', 'lastName', 'login'])
+                user['id'], force=True, fields=['firstName', 'lastName', 'login'])
             if not userDoc:
                 dirty = True
                 acList['users'].remove(user)
@@ -821,8 +793,7 @@ class AccessControlledModel(Model):
             user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
         for grp in acList['groups'][:]:
-            grpDoc = self.model('group').load(
-                grp['id'], force=True, fields=['name', 'description'])
+            grpDoc = self.model('group').load(grp['id'], force=True, fields=['name', 'description'])
             if not grpDoc:
                 dirty = True
                 acList['groups'].remove(grp)
@@ -845,11 +816,10 @@ class AccessControlledModel(Model):
         :param user: The user to grant or remove access to.
         :type user: dict
         :param level: What level of access the user should have. Set to None
-                      to remove all access for this user.
+            to remove all access for this user.
         :type level: AccessType or None
         :param save: Whether to save the object to the database afterward.
-                     Set this to False if you want to wait to save the
-                     document for performance reasons.
+            Set this to False if you want to wait to save the document for performance reasons.
         :type save: bool
         :returns: The modified resource document.
         """
@@ -882,11 +852,9 @@ class AccessControlledModel(Model):
         # If all that fails, descend into real permission checking.
         if 'access' in doc:
             perms = doc['access']
-            if self._hasGroupAccess(perms.get('groups', []),
-                                    user.get('groups', []), level):
+            if self._hasGroupAccess(perms.get('groups', []), user.get('groups', []), level):
                 return True
-            elif self._hasUserAccess(perms.get('users', []),
-                                     user['_id'], level):
+            elif self._hasUserAccess(perms.get('users', []), user['_id'], level):
                 return True
 
         return False
@@ -909,12 +877,12 @@ class AccessControlledModel(Model):
                 userid = str(user.get('_id', ''))
             else:
                 userid = None
-            raise AccessException("%s access denied for %s %s (user %s)." %
-                                  (perm, self.name, doc.get('_id', 'unknown'),
-                                   userid))
+            raise AccessException(
+                '%s access denied for %s %s (user %s).' % (
+                    perm, self.name, doc.get('_id', 'unknown'), userid))
 
-    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
-             force=False, fields=None, exc=False):
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True, force=False, fields=None,
+             exc=False):
         """
         Override of Model.load to also do permission checking.
 
@@ -924,15 +892,14 @@ class AccessControlledModel(Model):
         :type user: dict or None
         :param level: The required access type for the object.
         :type level: AccessType
-        :param force: If you explicitly want to circumvent access
-                      checking on this resource, set this to True.
+        :param force: If you explicitly want to circumvent access checking on this resource, set
+            this to True.
         :type force: bool
         :param objectId: Whether the id should be coerced to ObjectId type.
         :type objectId: bool
         :param fields: The subset of fields to load from the returned document,
             or None to return the full document.
-        :param exc: If not found, throw a ValidationException instead of
-            returning None.
+        :param exc: If not found, throw a ValidationException instead of returning None.
         :type exc: bool
         :raises ValidationException: If an invalid ObjectId is passed.
         :returns: The matching document, or None if no match exists.
@@ -943,8 +910,7 @@ class AccessControlledModel(Model):
         if not force and fields:
             loadFields = list(set(fields) | {'access', 'public'})
 
-        doc = Model.load(self, id=id, objectId=objectId, fields=loadFields,
-                         exc=exc)
+        doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)
@@ -969,8 +935,7 @@ class AccessControlledModel(Model):
         """
         cursor = self.find({}, sort=sort)
         return self.filterResultsByPermission(
-            cursor=cursor, user=user, level=AccessType.READ, limit=limit,
-            offset=offset)
+            cursor=cursor, user=user, level=AccessType.READ, limit=limit, offset=offset)
 
     def copyAccessPolicies(self, src, dest, save=False):
         """
@@ -992,8 +957,7 @@ class AccessControlledModel(Model):
             dest = self.save(dest)
         return dest
 
-    def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,
-                                  removeKeys=()):
+    def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0, removeKeys=()):
         """
         Given a database result cursor, this generator will yield only the
         results that the user has the given level of access on, respecting the
@@ -1007,8 +971,7 @@ class AccessControlledModel(Model):
         :type limit: int
         :param offset: The offset into the result set.
         :type offset: int
-        :param removeKeys: List of keys that should be removed from each
-                           matching document.
+        :param removeKeys: List of keys that should be removed from each matching document.
         :type removeKeys: list
         """
         hasAccess = functools.partial(self.hasAccess, user=user, level=level)
@@ -1021,8 +984,8 @@ class AccessControlledModel(Model):
                     del result[key]
             yield result
 
-    def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None, level=AccessType.READ):
+    def textSearch(self, query, user=None, filters=None, limit=0, offset=0, sort=None, fields=None,
+                   level=AccessType.READ):
         """
         Custom override of Model.textSearch to also force permission-based
         filtering. The parameters are the same as Model.textSearch.
@@ -1034,13 +997,12 @@ class AccessControlledModel(Model):
         """
         filters = filters or {}
 
-        cursor = Model.textSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
+        cursor = Model.textSearch(self, query=query, filters=filters, sort=sort, fields=fields)
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)
 
-    def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                     sort=None, fields=None, level=AccessType.READ):
+    def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0, sort=None,
+                     fields=None, level=AccessType.READ):
         """
         Custom override of Model.prefixSearch to also force permission-based
         filtering. The parameters are the same as Model.prefixSearch.
@@ -1052,8 +1014,7 @@ class AccessControlledModel(Model):
         """
         filters = filters or {}
 
-        cursor = Model.prefixSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
+        cursor = Model.prefixSearch(self, query=query, filters=filters, sort=sort, fields=fields)
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)
 

@@ -40,8 +40,7 @@ class Collection(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'name', 'description', 'public', 'created', 'updated',
-            'size'))
+            '_id', 'name', 'description', 'public', 'created', 'updated', 'size'))
 
     def filter(self, *args, **kwargs):
         """
@@ -61,8 +60,7 @@ class Collection(AccessControlledModel):
             doc['description'] = doc['description'].strip()
 
         if not doc['name']:
-            raise ValidationException(
-                'Collection name must not be empty.', 'name')
+            raise ValidationException('Collection name must not be empty.', 'name')
 
         # Ensure unique name for the collection
         q = {
@@ -72,8 +70,8 @@ class Collection(AccessControlledModel):
             q['_id'] = {'$ne': doc['_id']}
         duplicate = self.findOne(q, fields=['_id'])
         if duplicate is not None:
-            raise ValidationException('A collection with that name already '
-                                      'exists.', 'name')
+            raise ValidationException(
+                'A collection with that name already exists.', 'name')
 
         doc['lowerName'] = doc['name'].lower()
 
@@ -99,8 +97,7 @@ class Collection(AccessControlledModel):
         # Delete this collection
         AccessControlledModel.remove(self, collection)
         if progress:
-            progress.update(increment=1, message='Deleted collection ' +
-                            collection['name'])
+            progress.update(increment=1, message='Deleted collection ' + collection['name'])
 
     def createCollection(self, name, creator=None, description='', public=True,
                          reuseExisting=False):
@@ -140,8 +137,7 @@ class Collection(AccessControlledModel):
 
         self.setPublic(collection, public, save=False)
         if creator:
-            self.setUserAccess(
-                collection, user=creator, level=AccessType.ADMIN, save=False)
+            self.setUserAccess(collection, user=creator, level=AccessType.ADMIN, save=False)
 
         return self.save(collection)
 
@@ -158,8 +154,8 @@ class Collection(AccessControlledModel):
         # Validate and save the collection
         return self.save(collection)
 
-    def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None, data=True):
+    def fileList(self, doc, user=None, path='', includeMetadata=False, subpath=True,
+                 mimeFilter=None, data=True):
         """
         This function generates a list of 2-tuples whose first element is the
         relative path to the file from the collection's root and whose second
@@ -171,11 +167,9 @@ class Collection(AccessControlledModel):
         :param doc: the collection to list.
         :param user: a user used to validate data that is returned.
         :param path: a path prefix to add to the results.
-        :param includeMetadata: if True and there is any metadata, include a
-                                result which is the JSON string of the
-                                metadata.  This is given a name of
-                                metadata[-(number).json that is distinct from
-                                any file within the item.
+        :param includeMetadata: if True and there is any metadata, include a result which is the
+            JSON string of the metadata.  This is given a name of metadata[-(number).json that is
+            distinct from any file within the item.
         :param subpath: if True, add the collection's name to the path.
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
@@ -187,11 +181,11 @@ class Collection(AccessControlledModel):
         if subpath:
             path = os.path.join(path, doc['name'])
 
-        for folder in self.model('folder').childFolders(parentType='collection',
-                                                        parent=doc, user=user):
-            for (filepath, file) in self.model('folder').fileList(
-                    folder, user, path, includeMetadata, subpath=True,
-                    mimeFilter=mimeFilter, data=data):
+        for folder in self.model('folder').childFolders(
+                parentType='collection', parent=doc, user=user):
+            for filepath, file in self.model('folder').fileList(
+                    folder, user, path, includeMetadata, subpath=True, mimeFilter=mimeFilter,
+                    data=data):
                 yield (filepath, file)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):
@@ -213,21 +207,19 @@ class Collection(AccessControlledModel):
         }, fields=('access',))
 
         if level is not None:
-            folders = self.filterResultsByPermission(
-                cursor=folders, user=user, level=level)
+            folders = self.filterResultsByPermission(cursor=folders, user=user, level=level)
         count += sum(self.model('folder').subtreeCount(
             folder, includeItems=includeItems, user=user, level=level)
             for folder in folders)
         return count
 
-    def setAccessList(self, doc, access, save=False, recurse=False, user=None,
-                      progress=noProgress, setPublic=None):
+    def setAccessList(self, doc, access, save=False, recurse=False, user=None, progress=noProgress,
+                      setPublic=None):
         """
         Overrides AccessControlledModel.setAccessList to add a recursive
         option. When `recurse=True`, this will set the access list on all
         subfolders to which the given user has ADMIN access level. Any
-        subfolders that the given user does not have ADMIN access on will be
-        skipped.
+        subfolders that the given user does not have ADMIN access on will be skipped.
 
         :param doc: The collection to set access settings on.
         :type doc: collection
@@ -261,8 +253,8 @@ class Collection(AccessControlledModel):
 
             for folder in folders:
                 self.model('folder').setAccessList(
-                    folder, access, save=True, recurse=True, user=user,
-                    progress=progress, setPublic=setPublic)
+                    folder, access, save=True, recurse=True, user=user, progress=progress,
+                    setPublic=setPublic)
 
         return doc
 
@@ -300,8 +292,7 @@ class Collection(AccessControlledModel):
         :type collection: dict
         :param user: If performing access checks, the user to check against.
         :type user: dict or None
-        :param level: The required access level, or None to return the raw
-            top-level folder count.
+        :param level: The required access level, or None to return the raw top-level folder count.
         """
         fields = () if level is None else ('access', 'public')
 

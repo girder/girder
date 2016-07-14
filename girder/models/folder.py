@@ -24,8 +24,7 @@ import os
 import six
 
 from bson.objectid import ObjectId
-from .model_base import AccessControlledModel, ValidationException, \
-    GirderException
+from .model_base import AccessControlledModel, ValidationException, GirderException
 from girder import events
 from girder.constants import AccessType
 from girder.utility.progress import noProgress, setResponseTimeLimit

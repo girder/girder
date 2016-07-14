@@ -28,12 +28,14 @@ from girder.constants import TerminalColor
 _dbClients = {}
 
 if pymongo.version_tuple < (3,):
-    raise Exception('Your pymongo version (%s) is too old. Please update to '
-                    'pymongo 3.x.' % pymongo.version)
+    raise Exception(
+        'Your pymongo version (%s) is too old. Please update to pymongo 3.x.' % pymongo.version)
 
 
 def getDbConfig():
-    """Get the database configuration values from the cherrypy config."""
+    """
+    Get the database configuration values from the cherrypy config.
+    """
     cfg = config.getConfig()
     if 'database' in cfg:
         return cfg['database']
@@ -48,14 +50,12 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
     manage their own connection pools internally. Any extra kwargs you pass to
     this method will be passed through to the MongoClient.
 
-    :param uri: if specified, connect to this mongo db rather than the one in
-                the config.
+    :param uri: if specified, connect to this mongo db rather than the one in the config.
     :param replicaSet: if uri is specified, use this replica set.
     :param autoRetry: if this connection should automatically retry operations
         in the event of an AutoReconnect exception. If you're testing the
         connection, set this to False. If disabled, this also will not cache
-        the mongo client, so make sure to only disable if you're testing a
-        connection.
+        the mongo client, so make sure to only disable if you're testing a connection.
     :type autoRetry: bool
     """
     global _dbClients
@@ -84,8 +84,8 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
 
     if uri is None:
         dbUriRedacted = 'mongodb://localhost:27017/girder'
-        print(TerminalColor.warning('WARNING: No MongoDB URI specified, using '
-                                    'the default value'))
+        print(TerminalColor.warning(
+            'WARNING: No MongoDB URI specified, using the default value'))
 
         client = pymongo.MongoClient(dbUriRedacted, **clientOptions)
     else:
@@ -107,6 +107,6 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
     desc = ''
     if replicaSet:
         desc += ', replica set: %s' % replicaSet
-    print(TerminalColor.info('Connected to MongoDB: %s%s' % (dbUriRedacted,
-                                                             desc)))
+    print(TerminalColor.info(
+        'Connected to MongoDB: %s%s' % (dbUriRedacted, desc)))
     return client

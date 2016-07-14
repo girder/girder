@@ -38,8 +38,8 @@ class Assetstore(Model):
             q['_id'] = {'$ne': doc['_id']}
         duplicate = self.findOne(q, fields=['_id'])
         if duplicate is not None:
-            raise ValidationException('An assetstore with that name already '
-                                      'exists.', 'name')
+            raise ValidationException(
+                'An assetstore with that name already exists.', 'name')
 
         # Name must not be empty
         if not doc['name']:
@@ -73,8 +73,8 @@ class Assetstore(Model):
         """
         files = self.model('file').findOne({'assetstoreId': assetstore['_id']})
         if files is not None:
-            raise ValidationException('You may not delete an assetstore that '
-                                      'contains files.')
+            raise ValidationException(
+                'You may not delete an assetstore that contains files.')
         # delete partial uploads before we delete the store.
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         try:
@@ -127,8 +127,7 @@ class Assetstore(Model):
             'root': root
         })
 
-    def createGridFsAssetstore(self, name, db, mongohost=None,
-                               replicaset=None):
+    def createGridFsAssetstore(self, name, db, mongohost=None, replicaset=None):
         return self.save({
             'type': AssetstoreType.GRIDFS,
             'created': datetime.datetime.utcnow(),
@@ -138,8 +137,8 @@ class Assetstore(Model):
             'replicaset': replicaset
         })
 
-    def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix='',
-                           service='', readOnly=False):
+    def createS3Assetstore(self, name, bucket, accessKeyId, secret, prefix='', service='',
+                           readOnly=False):
         return self.save({
             'type': AssetstoreType.S3,
             'created': datetime.datetime.utcnow(),
@@ -154,23 +153,20 @@ class Assetstore(Model):
 
     def getCurrent(self):
         """
-        Returns the current assetstore. If none exists, this will raise a 500
-        exception.
+        Returns the current assetstore. If none exists, this will raise a 500 exception.
         """
         current = self.findOne({'current': True})
         if current is None:
             raise GirderException(
-                'No current assetstore is set.',
-                'girder.model.assetstore.no-current-assetstore')
+                'No current assetstore is set.', 'girder.model.assetstore.no-current-assetstore')
 
         return current
 
-    def importData(self, assetstore, parent, parentType, params, progress,
-                   user, **kwargs):
+    def importData(self, assetstore, parent, parentType, params, progress, user, **kwargs):
         """
         Calls the importData method of the underlying assetstore adapter.
         """
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         return adapter.importData(
-            parent=parent, parentType=parentType, params=params,
-            progress=progress, user=user, **kwargs)
+            parent=parent, parentType=parentType, params=params, progress=progress, user=user,
+            **kwargs)

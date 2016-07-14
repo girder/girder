@@ -91,8 +91,8 @@ class Notification(Model):
 
         return self.save(doc)
 
-    def initProgress(self, user, title, total=0, state=ProgressState.ACTIVE,
-                     current=0, message='', token=None, estimateTime=True):
+    def initProgress(self, user, title, total=0, state=ProgressState.ACTIVE, current=0, message='',
+                     token=None, estimateTime=True):
         """
         Create a "progress" type notification that can be updated anytime there
         is progress on some task. Progress records that are not updated for more
@@ -118,8 +118,7 @@ class Notification(Model):
         :param token: if the user is None, associate this notification with the
             specified session token.
         :param estimateTime: if True, generate an estimate of the total time
-            the task will take, if possible.  If False, never generate a time
-            estimate.
+            the task will take, if possible.  If False, never generate a time estimate.
         """
         data = {
             'title': title,
@@ -131,8 +130,7 @@ class Notification(Model):
         }
         expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
 
-        return self.createNotification('progress', data, user, expires,
-                                       token=token)
+        return self.createNotification('progress', data, user, expires, token=token)
 
     def updateProgress(self, record, save=True, **kwargs):
         """
@@ -143,8 +141,7 @@ class Notification(Model):
         :param total: Some numeric value representing the total task length. By
             convention, setting this <= 0 means progress on this task is
             indeterminate. Generally this shouldn't change except in cases where
-            progress on a task switches between indeterminate and determinate
-            state.
+            progress on a task switches between indeterminate and determinate state.
         :type total: int, long, or float
         :param state: Represents the state of the underlying task execution.
         :type state: ProgressState enum value.
@@ -181,8 +178,7 @@ class Notification(Model):
         record['updatedTime'] = time.time()
         if save:
             # Only update the time estimate if we are also saving
-            if (record['updatedTime'] > record['startTime'] and
-                    record['data']['estimateTime']):
+            if record['updatedTime'] > record['startTime'] and record['data']['estimateTime']:
                 if 'estimatedTotalTime' in record:
                     del record['estimatedTotalTime']
                 try:
@@ -190,8 +186,7 @@ class Notification(Model):
                     current = float(record['data']['current'])
                     if total >= current and total > 0 and current > 0:
                         record['estimatedTotalTime'] = (total * (
-                            record['updatedTime'] - record['startTime']) /
-                            current)
+                            record['updatedTime'] - record['startTime']) / current)
                 except ValueError:
                     pass
             return self.save(record)
@@ -202,10 +197,8 @@ class Notification(Model):
         """
         Get outstanding notifications for the given user.
 
-        :param user: The user requesting updates.  None to use the token
-            instead.
-        :param since: Limit results to entities that have been updated
-            since a certain timestamp.
+        :param user: The user requesting updates.  None to use the token instead.
+        :param since: Limit results to entities that have been updated since a certain timestamp.
         :type since: datetime
         :param token: if the user is None, the token requesting updated.
         """

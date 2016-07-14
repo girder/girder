@@ -33,8 +33,7 @@ class ApiKey(AccessControlledModel):
         self.ensureIndices(('userId', 'key'))
 
         self.exposeFields(level=AccessType.READ, fields={
-            '_id', 'active', 'created', 'key', 'lastUse', 'name', 'scope',
-            'tokenDuration', 'userId'
+            '_id', 'active', 'created', 'key', 'lastUse', 'name', 'scope', 'tokenDuration', 'userId'
         })
 
     def validate(self, doc):
@@ -50,8 +49,7 @@ class ApiKey(AccessControlledModel):
             if not isinstance(doc['scope'], (list, tuple)):
                 raise ValidationException('Scope must be a list, or None.')
             if not doc['scope']:
-                raise ValidationException(
-                    'Custom scope list must not be empty.')
+                raise ValidationException('Custom scope list must not be empty.')
 
         # Deactivating an already existing token
         if '_id' in doc and not doc['active']:
@@ -108,8 +106,7 @@ class ApiKey(AccessControlledModel):
             'active': active
         }
 
-        return self.setUserAccess(
-            apiKey, user, level=AccessType.ADMIN, save=True)
+        return self.setUserAccess(apiKey, user, level=AccessType.ADMIN, save=True)
 
     def createToken(self, key, days=None):
         """
@@ -128,8 +125,7 @@ class ApiKey(AccessControlledModel):
         if apiKey is None or not apiKey['active']:
             raise ValidationException('Invalid API key.')
 
-        cap = apiKey['tokenDuration'] or self.model('setting').get(
-            SettingKey.COOKIE_LIFETIME)
+        cap = apiKey['tokenDuration'] or self.model('setting').get(SettingKey.COOKIE_LIFETIME)
         days = min(float(days or cap), cap)
 
         user = self.model('user').load(apiKey['userId'], force=True)
