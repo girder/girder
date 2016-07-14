@@ -47,22 +47,19 @@ class Token(Resource):
     @access.public
     @describeRoute(
         Description('Get an anonymous session token for the system.')
-        .notes('If you are logged in, this will return a token associated '
-               'with that login.')
+        .notes('If you are logged in, this will return a token associated with that login.')
         .responseClass('Token')
     )
     def getSession(self, params):
         """
-        Create an anonymous session.  Sends an auth cookie in the response on
-        success.
+        Create an anonymous session.  Sends an auth cookie in the response on success.
         """
         token = self.getCurrentToken()
 
         # Only create and send new cookie if token isn't valid or will expire
         # soon
         if not token:
-            token = self.sendAuthTokenCookie(
-                None, scope=TokenScope.ANONYMOUS_SESSION)
+            token = self.sendAuthTokenCookie(None, scope=TokenScope.ANONYMOUS_SESSION)
 
         return {
             'token': token['_id'],

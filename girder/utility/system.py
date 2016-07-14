@@ -38,16 +38,16 @@ def _objectToDict(obj):
     :param obj: a python object or class.
     :returns: a dictionary of values for the object.
     """
-    return {key: getattr(obj, key) for key in dir(obj) if
-            not key.startswith('_') and
-            isinstance(getattr(obj, key),
-                       tuple([float, tuple] + list(six.string_types) +
-                             list(six.integer_types)))}
+    allowedTypes = [float, tuple] + list(six.string_types) + list(six.integer_types)
+    return {
+        key: getattr(obj, key)
+        for key in dir(obj)
+        if not key.startswith('_') and isinstance(getattr(obj, key), tuple(allowedTypes))
+    }
 
 
 def _computeSlowStatus(process, status, db):
-    status['diskPartitions'] = [_objectToDict(part) for part in
-                                psutil.disk_partitions()]
+    status['diskPartitions'] = [_objectToDict(part) for part in psutil.disk_partitions()]
     try:
         # This fails in travis's environment, so guard it
         status['diskIO'] = _objectToDict(psutil.disk_io_counters())
@@ -56,15 +56,13 @@ def _computeSlowStatus(process, status, db):
     # Report on the disk usage where the script is located
     if hasattr(girder, '__file__'):
         status['girderPath'] = os.path.abspath(girder.__file__)
-        status['girderDiskUsage'] = _objectToDict(
-            psutil.disk_usage(status['girderPath']))
+        status['girderDiskUsage'] = _objectToDict(psutil.disk_usage(status['girderPath']))
     # Report where our logs are and how much space is available for them
     status['logs'] = []
     for handler in logger.handlers:
         try:
             logInfo = {'path': handler.baseFilename}
-            logInfo['diskUsage'] = _objectToDict(
-                psutil.disk_usage(logInfo['path']))
+            logInfo['diskUsage'] = _objectToDict(psutil.disk_usage(logInfo['path']))
             status['logs'].append(logInfo)
         except Exception:
             # If we can't read information about the log, don't throw an
@@ -74,30 +72,25 @@ def _computeSlowStatus(process, status, db):
     try:
         # I don't know if this will work with a sharded database, so guard
         # it and don't throw an exception
-        status['mongoDbPath'] = getDbConnection().admin.command(
-            'getCmdLineOpts')['parsed']['storage']['dbPath']
-        status['mongoDbDiskUsage'] = _objectToDict(
-            psutil.disk_usage(status['mongoDbPath']))
+        opts = getDbConnection().admin.command('getCmdLineOpts')
+        status['mongoDbPath'] = opts['parsed']['storage']['dbPath']
+        status['mongoDbDiskUsage'] = _objectToDict(psutil.disk_usage(status['mongoDbPath']))
     except Exception:
         pass
 
     status['processDirectChildrenCount'] = len(process.children())
     status['processAllChildrenCount'] = len(process.children(True))
-    status['openFiles'] = [_objectToDict(file) for file in
-                           process.open_files()]
+    status['openFiles'] = [_objectToDict(file) for file in process.open_files()]
     # I'd rather see textual names for the family and type of connections,
     # so make a lookup table for them
-    connFamily = {getattr(socket, key): key for key in dir(socket)
-                  if key.startswith('AF_')}
-    connType = {getattr(socket, key): key for key in dir(socket)
-                if key.startswith('SOCK_')}
+    connFamily = {getattr(socket, key): key for key in dir(socket) if key.startswith('AF_')}
+    connType = {getattr(socket, key): key for key in dir(socket) if key.startswith('SOCK_')}
     connections = []
     for conn in process.connections():
         connDict = _objectToDict(conn)
         connDict.pop('raddr', None)
         connDict.pop('laddr', None)
-        connDict['family'] = connFamily.get(connDict['family'],
-                                            connDict['family'])
+        connDict['family'] = connFamily.get(connDict['family'], connDict['family'])
         connDict['type'] = connType.get(connDict['type'], connDict['type'])
         connections.append(connDict)
     status['connections'] = connections
@@ -199,7 +192,8 @@ class StatusMonitor(cherrypy.Tool):
     def callable(self):
         threadId = threading.current_thread().ident
         self.seenThreads[threadId] = {
-            'start': cherrypy.response.time, 'url': cherrypy.url()}
+            'start': cherrypy.response.time, 'url': cherrypy.url()
+        }
 
     def unregister(self):
         """Unregister the current thread."""
@@ -213,4 +207,4 @@ class StatusMonitor(cherrypy.Tool):
 
 
 cherrypy.tools.status = StatusMonitor()
-cherrypy.config.update({"tools.status.on": True})
+cherrypy.config.update({'tools.status.on': True})

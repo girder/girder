@@ -87,7 +87,7 @@ class InstallTestCase(base.TestCase):
             ]))
 
             self.assertEqual(len(p.mock_calls), 1)
-            self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
+            self.assertEqual(p.mock_calls[0][1][0][:2], ['npm', 'install'])
             self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
 
             self.assertTrue(os.path.exists(
@@ -182,7 +182,7 @@ class InstallTestCase(base.TestCase):
             ]))
 
             self.assertEqual(len(p.mock_calls), 1)
-            self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
+            self.assertEqual(p.mock_calls[0][1][0][:2], ['npm', 'install'])
             self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
 
             self.assertTrue(os.path.exists(
@@ -255,7 +255,7 @@ class InstallTestCase(base.TestCase):
             install.install_web()
 
             self.assertEqual(len(p.mock_calls), 1)
-            self.assertEqual(p.mock_calls[0][1][0][:2], ('npm', 'install'))
+            self.assertEqual(p.mock_calls[0][1][0][:2], ['npm', 'install'])
             self.assertEqual(p.mock_calls[0][2]['cwd'], constants.PACKAGE_DIR)
 
         with mock.patch(POPEN, return_value=ProcMock()):

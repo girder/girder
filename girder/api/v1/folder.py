@@ -52,13 +52,12 @@ class Folder(Resource):
     @describeRoute(
         Description('Search for folders by certain properties.')
         .responseClass('Folder')
-        .param('parentType', "Type of the folder's parent", required=False,
+        .param('parentType', 'Type of the folder\'s parent', required=False,
                enum=['folder', 'user', 'collection'])
-        .param('parentId', "The ID of the folder's parent.", required=False)
+        .param('parentId', 'The ID of the folder\'s parent.', required=False)
         .param('text', 'Pass to perform a text search.', required=False)
         .param('name', 'Pass to lookup a folder by exact name match. Must '
-               'pass parentType and parentId as well when using this.',
-               required=False)
+               'pass parentType and parentId as well when using this.', required=False)
         .pagingParams(defaultSort='name')
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403)
@@ -81,12 +80,10 @@ class Folder(Resource):
         if 'parentId' in params and 'parentType' in params:
             parentType = params['parentType'].lower()
             if parentType not in ('collection', 'folder', 'user'):
-                raise RestException('The parentType must be user, collection,'
-                                    ' or folder.')
+                raise RestException('The parentType must be user, collection, or folder.')
 
             parent = self.model(parentType).load(
-                id=params['parentId'], user=user, level=AccessType.READ,
-                exc=True)
+                id=params['parentId'], user=user, level=AccessType.READ, exc=True)
 
             filters = {}
             if params.get('text'):
@@ -97,12 +94,11 @@ class Folder(Resource):
                 filters['name'] = params['name']
 
             return list(self.model('folder').childFolders(
-                parentType=parentType, parent=parent, user=user,
-                offset=offset, limit=limit, sort=sort, filters=filters))
+                parentType=parentType, parent=parent, user=user, offset=offset, limit=limit,
+                sort=sort, filters=filters))
         elif 'text' in params:
             return list(self.model('folder').textSearch(
-                params['text'], user=user, limit=limit, offset=offset,
-                sort=sort))
+                params['text'], user=user, limit=limit, offset=offset, sort=sort))
         else:
             raise RestException('Invalid search mode.')
 
@@ -127,8 +123,7 @@ class Folder(Resource):
     @describeRoute(
         Description('Download an entire folder as a zip archive.')
         .param('id', 'The ID of the folder.', paramType='path')
-        .param('mimeFilter', 'JSON list of MIME types to include.',
-               required=False)
+        .param('mimeFilter', 'JSON list of MIME types to include.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
@@ -137,9 +132,9 @@ class Folder(Resource):
         Returns a generator function that will be used to stream out a zip
         file containing this folder's contents, filtered by permissions.
         """
+        name = folder['name'] + '.zip'
         cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] = \
-            'attachment; filename="%s%s"' % (folder['name'], '.zip')
+        cherrypy.response.headers['Content-Disposition'] = 'attachment; filename="%s"' % name
 
         user = self.getCurrentUser()
         mimeFilter = params.get('mimeFilter')
@@ -153,7 +148,7 @@ class Folder(Resource):
 
         def stream():
             zip = ziputil.ZipGenerator(folder['name'])
-            for (path, file) in self.model('folder').fileList(
+            for path, file in self.model('folder').fileList(
                     folder, user=user, subpath=False, mimeFilter=mimeFilter):
                 for data in zip.addFile(file, path):
                     yield data
@@ -171,17 +166,14 @@ class Folder(Resource):
         .param('description', 'Description for the folder.', required=False)
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
-        .param('parentId', 'Parent ID for the new parent of this folder.',
-               required=False)
+        .param('parentId', 'Parent ID for the new parent of this folder.', required=False)
         .errorResponse('ID was invalid.')
-        .errorResponse('Write access was denied for the folder or its new '
-                       'parent object.', 403)
+        .errorResponse('Write access was denied for the folder or its new parent object.', 403)
     )
     def updateFolder(self, folder, params):
         user = self.getCurrentUser()
         folder['name'] = params.get('name', folder['name']).strip()
-        folder['description'] = params.get(
-            'description', folder['description']).strip()
+        folder['description'] = params.get('description', folder['description']).strip()
 
         folder = self.model('folder').updateFolder(folder)
 
@@ -192,8 +184,7 @@ class Folder(Resource):
 
             parent = self.model(parentType).load(
                 params['parentId'], level=AccessType.WRITE, user=user, exc=True)
-            if (parentType, parent['_id']) !=\
-               (folder['parentCollection'], folder['parentId']):
+            if (parentType, parent['_id']) != (folder['parentCollection'], folder['parentId']):
                 folder = self.model('folder').move(folder, parent, parentType)
 
         return folder
@@ -205,14 +196,12 @@ class Folder(Resource):
         Description('Update the access control list for a folder.')
         .param('id', 'The ID of the folder.', paramType='path')
         .param('access', 'The JSON-encoded access control list.')
-        .param('public', "Whether the folder should be publicly visible.",
+        .param('public', 'Whether the folder should be publicly visible.',
                dataType='boolean', required=False)
-        .param('recurse', 'Whether the policies should be applied to all '
-               'subfolders under this folder as well.', dataType='boolean',
-               default=False, required=False)
-        .param('progress', 'If recurse is set to True, this controls whether '
-               'progress notifications will be sent.', dataType='boolean',
-               default=False, required=False)
+        .param('recurse', 'Whether the policies should be applied to all subfolders under this '
+               'folder as well.', dataType='boolean', default=False, required=False)
+        .param('progress', 'If recurse is set to True, this controls whether progress notifications'
+               ' will be sent.', dataType='boolean', default=False, required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403)
     )
@@ -233,26 +222,24 @@ class Folder(Resource):
                              message='Calculating progress...') as ctx:
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(
-                    folder, includeItems=False, user=user,
-                    level=AccessType.ADMIN))
+                    folder, includeItems=False, user=user, level=AccessType.ADMIN))
             return self.model('folder').setAccessList(
-                folder, access, save=True, recurse=recurse, user=user,
-                progress=ctx, setPublic=public)
+                folder, access, save=True, recurse=recurse, user=user, progress=ctx,
+                setPublic=public)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='folder')
     @describeRoute(
         Description('Create a new folder.')
         .responseClass('Folder')
-        .param('parentType', "Type of the folder's parent", required=False,
+        .param('parentType', 'Type of the folder\'s parent.', required=False,
                enum=['folder', 'user', 'collection'])
-        .param('parentId', "The ID of the folder's parent.")
-        .param('name', "Name of the folder.")
-        .param('description', "Description for the folder.", required=False)
-        .param('public', """Whether the folder should be publicly visible. By
-               default, inherits the value from parent folder, or in the
-               case of user or collection parentType, defaults to False.""",
-               required=False, dataType='boolean')
+        .param('parentId', 'The ID of the folder\'s parent.')
+        .param('name', 'Name of the folder.')
+        .param('description', 'Description for the folder.', required=False)
+        .param('public', 'Whether the folder should be publicly visible. By default, inherits the '
+               'value from parent folder, or in the case of user or collection parentType, '
+               'defaults to False.', required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
     )
@@ -278,13 +265,11 @@ class Folder(Resource):
         public = self.boolParam('public', params, default=None)
 
         if parentType not in ('folder', 'user', 'collection'):
-            raise RestException('Set parentType to collection, folder, '
-                                'or user.')
+            raise RestException('Set parentType to collection, folder, or user.')
 
         model = self.model(parentType)
 
-        parent = model.load(id=params['parentId'], user=user,
-                            level=AccessType.WRITE, exc=True)
+        parent = model.load(id=params['parentId'], user=user, level=AccessType.WRITE, exc=True)
 
         return self.model('folder').createFolder(
             parent=parent, name=name, parentType=parentType, creator=user,
@@ -320,16 +305,16 @@ class Folder(Resource):
     @describeRoute(
         Description('Delete a folder by ID.')
         .param('id', 'The ID of the folder.', paramType='path')
-        .param('progress', 'Whether to record progress on this task. Default '
-               'is false.', required=False, dataType='boolean')
+        .param('progress', 'Whether to record progress on this task. Default is false.',
+               required=False, dataType='boolean')
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403)
     )
     def deleteFolder(self, folder, params):
         progress = self.boolParam('progress', params, default=False)
-        with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Deleting folder %s' % folder['name'],
-                             message='Calculating folder size...') as ctx:
+        with ProgressContext(
+                progress, user=self.getCurrentUser(), title='Deleting folder %s' % folder['name'],
+                message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder))
@@ -344,8 +329,7 @@ class Folder(Resource):
         .responseClass('Folder')
         .notes('Set metadata fields to null in order to delete them.')
         .param('id', 'The ID of the folder.', paramType='path')
-        .param('body', 'A JSON object containing the metadata keys to add',
-               paramType='body')
+        .param('body', 'A JSON object containing the metadata keys to add.', paramType='body')
         .errorResponse('ID was invalid.')
         .errorResponse('Invalid JSON passed in request body.')
         .errorResponse('Metadata key name was invalid.')
@@ -357,8 +341,8 @@ class Folder(Resource):
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if '.' in k or k[0] == '$':
-                raise RestException('The key name %s must not contain a '
-                                    'period or begin with a dollar sign.' % k)
+                raise RestException(
+                    'The key name %s must not contain a period or begin with a dollar sign.' % k)
 
         return self.model('folder').setMetadata(folder, metadata)
 
@@ -379,8 +363,8 @@ class Folder(Resource):
                of user or collection parentType, defaults to False.  If
                'original', use the value of the original folder.""",
                required=False, enum=[True, False, 'original'])
-        .param('progress', 'Whether to record progress on this task. Default '
-               'is false.', required=False, dataType='boolean')
+        .param('progress', 'Whether to record progress on this task. Default is false.',
+               required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the original folder.', 403)
@@ -399,16 +383,15 @@ class Folder(Resource):
         description = params.get('description', None)
         public = params.get('public', None)
         progress = self.boolParam('progress', params, default=False)
-        with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Copying folder %s' % folder['name'],
-                             message='Calculating folder size...') as ctx:
+        with ProgressContext(
+                progress, user=self.getCurrentUser(), title='Copying folder %s' % folder['name'],
+                message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder))
             return self.model('folder').copyFolder(
-                folder, creator=user, name=name, parentType=parentType,
-                parent=parent, description=description, public=public,
-                progress=ctx)
+                folder, creator=user, name=name, parentType=parentType, parent=parent,
+                description=description, public=public, progress=ctx)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.WRITE)
@@ -417,16 +400,16 @@ class Folder(Resource):
         .notes('Cleans out all the items and subfolders from under a folder, '
                'but does not remove the folder itself.')
         .param('id', 'The ID of the folder to clean.', paramType='path')
-        .param('progress', 'Whether to record progress on this task. Default '
-               'is false.', required=False, dataType='boolean', default=False)
+        .param('progress', 'Whether to record progress on this task. Default is false.',
+               required=False, dataType='boolean', default=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the folder.', 403)
     )
     def deleteContents(self, folder, params):
         progress = self.boolParam('progress', params, default=False)
-        with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Clearing folder %s' % folder['name'],
-                             message='Calculating folder size...') as ctx:
+        with ProgressContext(
+                progress, user=self.getCurrentUser(), title='Clearing folder %s' % folder['name'],
+                message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
                 ctx.update(total=self.model('folder').subtreeCount(folder) - 1)

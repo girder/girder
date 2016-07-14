@@ -58,8 +58,8 @@ class Notification(Resource):
                'they occur.  When no notification occurs for the timeout '
                'duration, the stream is closed. '
                '<p>This connection can stay open indefinitely long.')
-        .param('timeout', 'The duration without a notification before the '
-               'stream is closed.', dataType='integer', required=False)
+        .param('timeout', 'The duration without a notification before the stream is closed.',
+               dataType='integer', required=False)
         .errorResponse()
         .errorResponse('You are not logged in.', 403)
     )
@@ -87,8 +87,7 @@ class Notification(Resource):
             wait = MIN_POLL_INTERVAL
             while cherrypy.engine.state == cherrypy.engine.states.STARTED:
                 wait = min(wait + MIN_POLL_INTERVAL, MAX_POLL_INTERVAL)
-                for event in self.model('notification').get(
-                        user, lastUpdate, token=token):
+                for event in self.model('notification').get(user, lastUpdate, token=token):
                     if lastUpdate is None or event['updated'] > lastUpdate:
                         lastUpdate = event['updated']
                     wait = MIN_POLL_INTERVAL

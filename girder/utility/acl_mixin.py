@@ -40,8 +40,8 @@ class AccessControlMixin(object):
     resourceColl = None
     resourceParent = None
 
-    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
-             force=False, fields=None, exc=False):
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True, force=False, fields=None,
+             exc=False):
         """
         Calls Model.load on the current item, and then attempts to load the
         resourceParent which the user must have access to in order to load this
@@ -73,10 +73,8 @@ class AccessControlMixin(object):
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlledModel.hasAccess`.
         """
-        resource = self.model(self.resourceColl) \
-                       .load(resource[self.resourceParent], force=True)
-        return self.model(self.resourceColl).hasAccess(resource, user=user,
-                                                       level=level)
+        resource = self.model(self.resourceColl).load(resource[self.resourceParent], force=True)
+        return self.model(self.resourceColl).hasAccess(resource, user=user, level=level)
 
     def requireAccess(self, doc, user=None, level=AccessType.READ):
         """
@@ -96,12 +94,11 @@ class AccessControlMixin(object):
                 userid = str(user.get('_id', ''))
             else:
                 userid = None
-            raise AccessException("%s access denied for %s %s (user %s)." %
-                                  (perm, self.name, doc.get('_id', 'unknown'),
-                                   userid))
+            raise AccessException(
+                '%s access denied for %s %s (user %s).' % (
+                    perm, self.name, doc.get('_id', 'unknown'), userid))
 
-    def filterResultsByPermission(self, cursor, user, level, limit, offset,
-                                  removeKeys=()):
+    def filterResultsByPermission(self, cursor, user, level, limit, offset, removeKeys=()):
         """
         Yields filtered results from the cursor based on the access control
         existing for the resourceParent.
@@ -121,11 +118,9 @@ class AccessControlMixin(object):
 
             # if the resourceId is not cached, check for permission "level"
             # and set the cache
-            resource = self.model(self.resourceColl).load(resourceId,
-                                                          force=True)
-            resourceAccessCache[resourceId] = \
-                self.model(self.resourceColl).hasAccess(
-                    resource, user=user, level=level)
+            resource = self.model(self.resourceColl).load(resourceId, force=True)
+            resourceAccessCache[resourceId] = self.model(self.resourceColl).hasAccess(
+                resource, user=user, level=level)
 
             return resourceAccessCache[resourceId]
 
@@ -137,12 +132,11 @@ class AccessControlMixin(object):
                     del result[key]
             yield result
 
-    def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None, level=AccessType.READ):
+    def textSearch(self, query, user=None, filters=None, limit=0, offset=0, sort=None, fields=None,
+                   level=AccessType.READ):
         filters = filters or {}
 
-        cursor = Model.textSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
+        cursor = Model.textSearch(self, query=query, filters=filters, sort=sort, fields=fields)
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)
 
@@ -159,7 +153,6 @@ class AccessControlMixin(object):
         """
         filters = filters or {}
 
-        cursor = Model.prefixSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
+        cursor = Model.prefixSearch(self, query=query, filters=filters, sort=sort, fields=fields)
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)

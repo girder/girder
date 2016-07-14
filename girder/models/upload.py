@@ -36,8 +36,8 @@ class Upload(Model):
     def initialize(self):
         self.name = 'upload'
 
-    def uploadFromFile(self, obj, size, name, parentType=None, parent=None,
-                       user=None, mimeType=None, reference=None):
+    def uploadFromFile(self, obj, size, name, parentType=None, parent=None, user=None,
+                       mimeType=None, reference=None):
         """
         This method wraps the entire upload process into a single function to
         facilitate "internal" uploads from a file-like object. Example:
@@ -64,7 +64,7 @@ class Upload(Model):
         :param mimeType: MIME type of the file.
         :type mimeType: str
         :param reference: An optional reference string that will be sent to the
-                          data.process event.
+            data.process event.
         :type reference: str
         """
         upload = self.createUpload(
@@ -144,12 +144,10 @@ class Upload(Model):
 
             # Delete the previous file contents from the containing assetstore
             assetstore_utilities.getAssetstoreAdapter(
-                self.model('assetstore').load(
-                    file['assetstoreId'])).deleteFile(file)
+                self.model('assetstore').load(file['assetstoreId'])).deleteFile(file)
 
             item = self.model('item').load(file['itemId'], force=True)
-            self.model('file').propagateSizeChange(
-                item, upload['size'] - file['size'])
+            self.model('file').propagateSizeChange(item, upload['size'] - file['size'])
 
             # Update file info
             file['creatorId'] = upload['userId']
@@ -163,8 +161,7 @@ class Upload(Model):
                     name=upload['name'], creator={'_id': upload['userId']},
                     folder={'_id': upload['parentId']})
             elif upload['parentType'] == 'item':
-                item = self.model('item').load(
-                    id=upload['parentId'], force=True)
+                item = self.model('item').load(id=upload['parentId'], force=True)
             else:
                 item = None
 
@@ -226,8 +223,7 @@ class Upload(Model):
         :param file: The file record to update.
         :param user: The user performing this upload.
         :param size: The size of the new file contents.
-        :param reference: An optional reference string that will be sent to the
-                          data.process event.
+        :param reference: An optional reference string that will be sent to the data.process event.
         :type reference: str
         """
         assetstore = self.getTargetAssetstore('file', file)
@@ -250,8 +246,7 @@ class Upload(Model):
         upload = adapter.initUpload(upload)
         return self.save(upload)
 
-    def createUpload(self, user, name, parentType, parent, size, mimeType=None,
-                     reference=None):
+    def createUpload(self, user, name, parentType, parent, size, mimeType=None, reference=None):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent
@@ -270,7 +265,7 @@ class Upload(Model):
         :param mimeType: The mimeType of the file.
         :type mimeType: str
         :param reference: An optional reference string that will be sent to the
-                          data.process event.
+            data.process event.
         :type reference: str
         :returns: The upload document that was created.
         """
@@ -315,7 +310,7 @@ class Upload(Model):
         :param offset: Offset into the results.
         :param sort: The sort direction.
         :param filters: if not None, a dictionary that can contain ids that
-                        must match the uploads, plus an minimumAge value.
+            must match the uploads, plus an minimumAge value.
         """
         query = {}
         if filters:
@@ -333,7 +328,7 @@ class Upload(Model):
                 query['updated'] = {
                     '$lte': datetime.datetime.utcnow() -
                     datetime.timedelta(days=float(filters['minimumAge']))
-                    }
+                }
         # Perform the find; we'll do access-based filtering of the result
         # set afterward.
         return self.find(query, limit=limit, sort=sort, offset=offset)
@@ -379,8 +374,7 @@ class Upload(Model):
                 continue
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
             try:
-                results.extend(adapter.untrackedUploads(
-                    knownUploads, delete=(action == 'delete')))
+                results.extend(adapter.untrackedUploads(knownUploads, delete=(action == 'delete')))
             except ValidationException:
                 # this assetstore is currently unreachable, so skip it
                 pass

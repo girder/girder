@@ -18,16 +18,15 @@
 ###############################################################################
 
 """
-This module contains the Girder events framework. It maintains a global mapping
-of events to listeners, and contains utilities for callers to handle or trigger
-events identified by a name.
+This module contains the Girder events framework. It maintains a global mapping of events to
+listeners, and contains utilities for callers to handle or trigger events identified by a name.
 
 Listeners should bind to events by calling:
 
     ``girder.events.bind('event.name', 'my.handler', handlerFunction)``
 
-And events should be fired in one of two ways; if the event should be handled
-synchronously, fire it with:
+And events should be fired in one of two ways; if the event should be handled synchronously, fire
+it with:
 
     ``girder.events.trigger('event.name', info)``
 
@@ -35,10 +34,9 @@ And if the event should be handled asynchronously, use:
 
     ``girder.events.daemon.trigger('event.name', info, callback)``
 
-For obvious reasons, the asynchronous method does not return a value to the
-caller. Instead, the caller may optionally pass the callback argument as a
-function to be called when the task is finished. That callback function will
-receive the Event object as its only argument.
+For obvious reasons, the asynchronous method does not return a value to the caller. Instead, the
+caller may optionally pass the callback argument as a function to be called when the task is
+finished. That callback function will receive the Event object as its only argument.
 """
 
 import contextlib
@@ -52,11 +50,10 @@ from six.moves import queue
 
 class Event(object):
     """
-    An Event object is created when an event is triggered. It is passed to
-    each of the listeners of the event, which have a chance to add information
-    to the event, and also optionally stop the event from being further
-    propagated to other listeners, and also optionally instruct the caller that
-    it should not execute its default behavior.
+    An Event object is created when an event is triggered. It is passed to each of the listeners of
+    the event, which have a chance to add information to the event, and also optionally stop the
+    event from being further propagated to other listeners, and also optionally instruct the caller
+    that it should not execute its default behavior.
     """
 
     # We might have a lot of events, so we use __slots__ to make them smaller
@@ -81,28 +78,27 @@ class Event(object):
 
     def preventDefault(self):
         """
-        This can be used to instruct the triggerer of the event that the default
-        behavior it would normally perform should not be performed. The
-        semantics of this action are specific to the context of the event
-        being handled, but a common use of this method is for a plugin to
-        provide an alternate behavior that will replace the normal way the
-        event is handled by the core system.
+        This can be used to instruct the triggerer of the event that the default behavior it would
+        normally perform should not be performed. The semantics of this action are specific to the
+        context of the event being handled, but a common use of this method is for a plugin to
+        provide an alternate behavior that will replace the normal way the event is handled by the
+        core system.
         """
         self.defaultPrevented = True
         return self
 
     def stopPropagation(self):
         """
-        Listeners should call this on the event they were passed in order to
-        stop any other listeners to the event from being executed.
+        Listeners should call this on the event they were passed in order to stop any other
+        listeners to the event from being executed.
         """
         self.propagate = False
         return self
 
     def addResponse(self, response):
         """
-        Listeners that wish to return data back to the caller who triggered this
-        event should call this to append their own response to the event.
+        Listeners that wish to return data back to the caller who triggered this event should call
+        this to append their own response to the event.
 
         :param response: The response value, which can be any type.
         """
@@ -111,9 +107,8 @@ class Event(object):
 
 class AsyncEventsThread(threading.Thread):
     """
-    This class is used to execute the pipeline for events asynchronously.
-    This should not be invoked directly by callers; instead, they should use
-    girder.events.daemon.trigger().
+    This class is used to execute the pipeline for events asynchronously. This should not be invoked
+    directly by callers; instead, they should use girder.events.daemon.trigger().
     """
     def __init__(self):
         threading.Thread.__init__(self)
@@ -123,9 +118,8 @@ class AsyncEventsThread(threading.Thread):
 
     def run(self):
         """
-        Loops over all queued events. If the queue is empty, this thread gets
-        put to sleep until someone calls trigger() on it with a new event to
-        dispatch.
+        Loops over all queued events. If the queue is empty, this thread gets put to sleep until
+        someone calls trigger() on it with a new event to dispatch.
         """
         print(TerminalColor.info('Started asynchronous event manager thread.'))
 
@@ -136,8 +130,7 @@ class AsyncEventsThread(threading.Thread):
                 if isinstance(callback, types.FunctionType):
                     callback(event)
             except Exception:
-                girder.logger.exception(
-                    'In handler for event "%s":' % eventName)
+                girder.logger.exception('In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
         print(TerminalColor.info('Stopped asynchronous event manager thread.'))
@@ -153,33 +146,29 @@ class AsyncEventsThread(threading.Thread):
 
     def stop(self):
         """
-        Gracefully stops this thread. Will finish the currently processing
-        event before stopping.
+        Gracefully stops this thread. Will finish the currently processing event before stopping.
         """
         self.terminate = True
 
 
 def bind(eventName, handlerName, handler):
     """
-    Bind a listener (handler) to the event identified by eventName. It is
-    convention that plugins will use their own name as the handlerName, so that
-    the trigger() caller can see which plugin(s) responded to the event.
+    Bind a listener (handler) to the event identified by eventName. It is convention that plugins
+    will use their own name as the handlerName, so that the trigger() caller can see which plugin(s)
+    responded to the event.
 
     :param eventName: The name that identifies the event.
     :type eventName: str
     :param handlerName: The name that identifies the handler calling bind().
     :type handlerName: str
-    :param handler: The function that will be called when the event is fired.
-                    It must accept a single argument, which is the Event that
-                    was created by trigger(). This function should not return
-                    a value; any data that it needs to pass back to the
-                    triggerer should be passed via the addResponse() method of
-                    the Event.
+    :param handler: The function that will be called when the event is fired. It must accept a
+        single argument, which is the Event that was created by trigger(). This function should not
+        return a value; any data that it needs to pass back to the triggerer should be passed via
+        the addResponse() method of the Event.
     :type handler: function
     """
     if eventName in _deprecated:
-        girder.logger.warning('event "%s" is deprecated; %s' %
-                              (eventName, _deprecated[eventName]))
+        girder.logger.warning('event "%s" is deprecated; %s' % (eventName, _deprecated[eventName]))
 
     if eventName not in _mapping:
         _mapping[eventName] = []
@@ -212,9 +201,8 @@ def unbindAll():
     """
     Clears the entire event map. All bound listeners will be unbound.
 
-     .. warning:: This will also disable internal event listeners, which are
-       necessary for normal Girder functionality. This function should generally
-       never be called outside of testing.
+     .. warning:: This will also disable internal event listeners, which are necessary for normal
+       Girder functionality. This function should generally never be called outside of testing.
     """
     _mapping.clear()
 
@@ -235,21 +223,19 @@ def bound(eventName, handlerName, handler):
 
 def trigger(eventName, info=None, pre=None, async=False):
     """
-    Fire an event with the given name. All listeners bound on that name will be
-    called until they are exhausted or one of the handlers calls the
-    stopPropagation() method on the event.
+    Fire an event with the given name. All listeners bound on that name will be called until they
+    are exhausted or one of the handlers calls the stopPropagation() method on the event.
 
     :param eventName: The name that identifies the event.
     :type eventName: str
-    :param info: The info argument to pass to the handler function. The type of
-        this argument is opaque, and can be anything.
-    :param pre: A function that will be executed prior to the handler being
-        executed. It will receive a dict with a "handler" key, (the function),
-        "info" key (the info arg to this function), and "eventName" and
-        "handlerName" values.
+    :param info: The info argument to pass to the handler function. The type of this argument is
+        opaque, and can be anything.
+    :param pre: A function that will be executed prior to the handler being executed. It will
+        receive a dict with a "handler" key, (the function), "info" key (the info arg to this
+        function), and "eventName" and "handlerName" values.
     :type pre: function or None
-    :param async: Whether this event is executing on the background daemon
-        (True) or on the request thread (False).
+    :param async: Whether this event is executing on the background daemon (True) or on the request
+        thread (False).
     :type async: bool
     """
     e = Event(eventName, info, async=async)
@@ -267,8 +253,7 @@ def trigger(eventName, info=None, pre=None, async=False):
 
 
 _deprecated = {
-    'assetstore.adapter.get':
-        'use girder.utility.assetstore_utilities.setAssetstoreAdapter instead'
+    'assetstore.adapter.get': 'use girder.utility.assetstore_utilities.setAssetstoreAdapter instead'
 }
 
 _mapping = {}

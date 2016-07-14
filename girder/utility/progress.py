@@ -38,8 +38,7 @@ class ProgressContext(ModelImporter):
 
     :param on: Whether to record progress.
     :type on: bool
-    :param interval: Minimum time interval at which to write updates to the
-        database, in seconds.
+    :param interval: Minimum time interval at which to write updates to the database, in seconds.
     :type interval: int or float
     :param user: The user creating this progress.
     :type user: dict
@@ -74,7 +73,7 @@ class ProgressContext(ModelImporter):
             state = ProgressState.ERROR
             message = 'Error'
             if isinstance(excValue, (ValidationException, RestException)):
-                message = 'Error: '+excValue.message
+                message = 'Error: %s' % excValue.message
 
         self.model('notification').updateProgress(
             self.progress, state=state, message=message,
@@ -97,8 +96,7 @@ class ProgressContext(ModelImporter):
         if not self.on:
             return
         save = (time.time() - self._lastSave > self.interval) or force
-        self.progress = self.model('notification').updateProgress(
-            self.progress, save, **kwargs)
+        self.progress = self.model('notification').updateProgress(self.progress, save, **kwargs)
 
         if save:
             self._lastSave = time.time()
@@ -119,8 +117,8 @@ def setResponseTimeLimit(duration=600, onlyExtend=True):
     generally need to call this function.
 
     :param duration: additional duration in seconds to allow for the response.
-    :param onlyExtend: if True, only ever increase the timeout.  If False, the
-                       new duration always replaces the old one.
+    :param onlyExtend: if True, only ever increase the timeout.  If False, the new duration always
+        replaces the old one.
     """
     if cherrypy.response and getattr(cherrypy.response, 'time'):
         newTimeout = time.time() - cherrypy.response.time + duration

@@ -88,14 +88,12 @@ class Description(object):
 
         :param name: name of the parameter used in the REST query.
         :param description: explanation of the parameter.
-        :param paramType: how is the parameter sent.  One of 'query', 'path',
-                          'body', 'header', or 'form'.
-        :param dataType: the data type expected in the parameter.  This is one
-                         of 'integer', 'long', 'float', 'double', 'string',
-                         'byte', 'boolean', 'date', 'dateType', 'array', or
-                         'File'.
-        :param required: True if the request will fail if this parameter is not
-                         present, False if the parameter is optional.
+        :param paramType: how is the parameter sent.  One of 'query', 'path', 'body', 'header', or
+            'form'.
+        :param dataType: the data type expected in the parameter.  This is one of 'integer', 'long',
+            'float', 'double', 'string', 'byte', 'boolean', 'date', 'dateType', 'array', or 'File'.
+        :param required: True if the request will fail if this parameter is not present, False if
+            the parameter is optional.
         :param enum: a fixed list of possible values for the field.
         """
         if dataType == 'int':
@@ -135,18 +133,16 @@ class Description(object):
         :param defaultLimit: The default page size.
         :type defaultLimit: int
         """
-        self.param('limit', 'Result set size limit.', default=defaultLimit,
-                   required=False, dataType='int')
-        self.param('offset', 'Offset into result set.', default=0,
-                   required=False, dataType='int')
+        self.param(
+            'limit', 'Result set size limit.', default=defaultLimit, required=False, dataType='int')
+        self.param('offset', 'Offset into result set.', default=0, required=False, dataType='int')
 
         if defaultSort is not None:
-            self.param('sort', 'Field to sort the result set by.',
-                       default=defaultSort, required=False)
             self.param(
-                'sortdir', 'Sort order: 1 for ascending, -1 for descending.',
-                required=False, dataType='int', enum=(1, -1),
-                default=defaultSortDir)
+                'sort', 'Field to sort the result set by.', default=defaultSort, required=False)
+            self.param(
+                'sortdir', 'Sort order: 1 for ascending, -1 for descending.', required=False,
+                dataType='int', enum=(1, -1), default=defaultSortDir)
         return self
 
     def consumes(self, value):
@@ -176,8 +172,7 @@ class ApiDocs(WebrootBase):
     """
     def __init__(self, templatePath=None):
         if not templatePath:
-            templatePath = os.path.join(constants.PACKAGE_DIR,
-                                        'api', 'api_docs.mako')
+            templatePath = os.path.join(constants.PACKAGE_DIR, 'api', 'api_docs.mako')
         super(ApiDocs, self).__init__(templatePath)
 
         self.vars = {
@@ -203,14 +198,14 @@ class Describe(Resource):
         return {
             'apiVersion': API_VERSION,
             'swaggerVersion': SWAGGER_VERSION,
-            'apis': [{'path': '/%s' % resource}
-                     for resource in sorted(six.viewkeys(docs.routes))]
+            'apis': [{'path': '/%s' % resource} for resource in sorted(six.viewkeys(docs.routes))]
         }
 
     def _compareRoutes(self, routeOp1, routeOp2):
         """
         Order routes based on path.  Alphabetize this, treating parameters as
         before fixed paths.
+
         :param routeOp1: tuple of (route, op) to compare
         :param routeOp2: tuple of (route, op) to compare
         :returns: negative if routeOp1<routeOp2, positive if routeOp1>routeOp2.
@@ -218,13 +213,13 @@ class Describe(Resource):
         # replacing { with ' ' is a simple way to make ASCII sort do what we
         # want for routes.  We would have to do more work if we allow - in
         # routes
-        return _cmp(routeOp1[0].replace('{', ' '),
-                    routeOp2[0].replace('{', ' '))
+        return _cmp(routeOp1[0].replace('{', ' '), routeOp2[0].replace('{', ' '))
 
     def _compareOperations(self, op1, op2):
         """
         Order operations in our preferred method order.  methods not in our
         list are put afterwards and sorted alphabetically.
+
         :param op1: first operation dictionary to compare.
         :param op2: second operation dictionary to compare.
         :returns: negative if op1<op2, positive if op1>op2.
@@ -249,8 +244,7 @@ class Describe(Resource):
             'models': dict(docs.models[resource], **docs.models[None]),
             'apis': [{
                 'path': route,
-                'operations': sorted(
-                    op, key=functools.cmp_to_key(self._compareOperations))
+                'operations': sorted(op, key=functools.cmp_to_key(self._compareOperations))
                 } for route, op in sorted(
                     six.viewitems(docs.routes[resource]),
                     key=functools.cmp_to_key(self._compareRoutes))

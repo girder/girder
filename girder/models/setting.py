@@ -60,26 +60,23 @@ class Setting(Model):
         all transitive dependencies to the enabled list.
         """
         if not isinstance(doc['value'], list):
-            raise ValidationException(
-                'Plugins enabled setting must be a list.', 'value')
+            raise ValidationException('Plugins enabled setting must be a list.', 'value')
 
         # Add all transitive dependencies and store in toposorted order
         doc['value'] = list(plugin_utilities.getToposortedPlugins(doc['value']))
 
     def validateCoreAddToGroupPolicy(self, doc):
         doc['value'] = doc['value'].lower()
-        if doc['value'] not in ('never', 'noadmin', 'nomod', 'yesadmin',
-                                'yesmod', ''):
+        if doc['value'] not in ('never', 'noadmin', 'nomod', 'yesadmin', 'yesmod', ''):
             raise ValidationException(
-                'Add to group policy must be one of "never", "noadmin", '
-                '"nomod", "yesadmin", or "yesmod".', 'value')
+                'Add to group policy must be one of "never", "noadmin", "nomod", "yesadmin", or '
+                '"yesmod".', 'value')
 
     def validateCoreCollectionCreatePolicy(self, doc):
         value = doc['value']
 
         if not isinstance(value, dict):
-            raise ValidationException('Collection creation policy must be a '
-                                      'JSON object.')
+            raise ValidationException('Collection creation policy must be a JSON object.')
 
         for i, groupId in enumerate(value.get('groups', ())):
             self.model('group').load(groupId, force=True, exc=True)
@@ -98,8 +95,7 @@ class Setting(Model):
                 return
         except ValueError:
             pass  # We want to raise the ValidationException
-        raise ValidationException(
-            'Cookie lifetime must be an integer > 0.', 'value')
+        raise ValidationException('Cookie lifetime must be an integer > 0.', 'value')
 
     def validateCoreCorsAllowMethods(self, doc):
         if isinstance(doc['value'], six.string_types):
@@ -109,8 +105,7 @@ class Setting(Model):
             doc['value'] = ", ".join(methods)
             return
         raise ValidationException(
-            'Allowed methods must be a comma-separated list or an empty '
-            'string.', 'value')
+            'Allowed methods must be a comma-separated list or an empty string.', 'value')
 
     def validateCoreCorsAllowHeaders(self, doc):
         if isinstance(doc['value'], six.string_types):
@@ -120,8 +115,7 @@ class Setting(Model):
             doc['value'] = ", ".join(headers)
             return
         raise ValidationException(
-            'Allowed headers must be a comma-separated list or an empty '
-            'string.', 'value')
+            'Allowed headers must be a comma-separated list or an empty string.', 'value')
 
     def validateCoreCorsAllowOrigin(self, doc):
         if isinstance(doc['value'], six.string_types):
@@ -132,8 +126,8 @@ class Setting(Model):
             doc['value'] = ", ".join(origins)
             return
         raise ValidationException(
-            'Allowed origin must be a comma-separated list of base urls or * '
-            'or an empty string.', 'value')
+            'Allowed origin must be a comma-separated list of base urls or * or an empty string.',
+            'value')
 
     def validateCoreEmailFromAddress(self, doc):
         if not doc['value']:
@@ -144,14 +138,11 @@ class Setting(Model):
         if isinstance(doc['value'], six.string_types):
             doc['value'] = doc['value'].strip()
             return
-        raise ValidationException(
-            'Email host must be a string.', 'value')
+        raise ValidationException('Email host must be a string.', 'value')
 
     def defaultCoreEmailHost(self):
-        if (cherrypy.request and cherrypy.request.local and
-                cherrypy.request.local.name):
-            host = '://'.join((cherrypy.request.scheme,
-                               cherrypy.request.local.name))
+        if cherrypy.request and cherrypy.request.local and cherrypy.request.local.name:
+            host = '://'.join((cherrypy.request.scheme, cherrypy.request.local.name))
             if cherrypy.request.local.port != 80:
                 host += ':%d' % cherrypy.request.local.port
             return host
@@ -160,20 +151,17 @@ class Setting(Model):
         doc['value'] = doc['value'].lower()
         if doc['value'] not in ('open', 'closed', 'approve'):
             raise ValidationException(
-                'Registration policy must be "open", "closed", or "approve".',
-                'value')
+                'Registration policy must be "open", "closed", or "approve".', 'value')
 
     def validateCoreEmailVerification(self, doc):
         doc['value'] = doc['value'].lower()
         if doc['value'] not in ('required', 'optional', 'disabled'):
             raise ValidationException(
-                'Email verification must be "required", "optional", or '
-                '"disabled".', 'value')
+                'Email verification must be "required", "optional", or "disabled".', 'value')
 
     def validateCoreSmtpHost(self, doc):
         if not doc['value']:
-            raise ValidationException(
-                'SMTP host must not be blank.', 'value')
+            raise ValidationException('SMTP host must not be blank.', 'value')
 
     def validateCoreSmtpPort(self, doc):
         try:
@@ -187,8 +175,7 @@ class Setting(Model):
     def validateCoreSmtpEncryption(self, doc):
         if not doc['value'] in ['none', 'starttls', 'ssl']:
             raise ValidationException(
-                'SMTP encryption must be one of "none", "starttls", or "ssl".',
-                'value')
+                'SMTP encryption must be one of "none", "starttls", or "ssl".', 'value')
 
     def validateCoreSmtpUsername(self, doc):
         # any string is acceptable
@@ -206,14 +193,12 @@ class Setting(Model):
         except ValueError:
             pass  # We want to raise the ValidationException
         raise ValidationException(
-            'Upload minimum chunk size must be an integer >= 0.',
-            'value')
+            'Upload minimum chunk size must be an integer >= 0.', 'value')
 
     def validateCoreUserDefaultFolders(self, doc):
         if doc['value'] not in ('public_private', 'none'):
             raise ValidationException(
-                'User default folders must be either "public_private" or '
-                '"none".', 'value')
+                'User default folders must be either "public_private" or "none".', 'value')
 
     def get(self, key, default='__default__'):
         """
@@ -255,8 +240,7 @@ class Setting(Model):
 
     def unset(self, key):
         """
-        Remove the setting for this key. If no such setting exists, this is
-        a no-op.
+        Remove the setting for this key. If no such setting exists, this is a no-op.
 
         :param key: The key identifying the setting to be removed.
         :type key: str
@@ -270,8 +254,8 @@ class Setting(Model):
 
         :param key: The key identifying the setting.
         :type key: str
-        :returns: The default value if the key is present in both SettingKey
-                  and referenced in SettingDefault; otherwise None.
+        :returns: The default value if the key is present in both SettingKey and referenced in
+            SettingDefault; otherwise None.
         """
         default = None
         if key in SettingDefault.defaults:

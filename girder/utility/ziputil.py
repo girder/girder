@@ -108,8 +108,8 @@ class ZipInfo(object):
         dostime = dt[3] << 11 | dt[4] << 5 | (dt[5] // 2)
 
         header = struct.pack(
-            b'<4s2B4HLLL2H', b'PK\003\004', self.extractVersion, 0, 0x8,
-            self.compressType, dostime, dosdate, 0, 0, 0, len(self.filename), 0)
+            b'<4s2B4HLLL2H', b'PK\003\004', self.extractVersion, 0, 0x8, self.compressType, dostime,
+            dosdate, 0, 0, 0, len(self.filename), 0)
         return header + self.filename
 
 
@@ -123,8 +123,6 @@ class ZipGenerator(object):
         :param rootPath: The root path for all files within this archive.
         :type rootPath: str
         :param compression: Whether files in this archive should be compressed.
-
-        :type
         """
         if compression == DEFLATE and not zlib:
             raise RuntimeError('Missing zlib module')  # pragma: no cover
@@ -162,8 +160,7 @@ class ZipGenerator(object):
         header.fileSize = fileSize = 0
         yield self._advanceOffset(header.fileHeader())
         if header.compressType == DEFLATE:
-            compressor = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION,
-                                          zlib.DEFLATED, -15)
+            compressor = zlib.compressobj(zlib.Z_DEFAULT_COMPRESSION, zlib.DEFLATED, -15)
         else:
             compressor = None
 
@@ -221,8 +218,7 @@ class ZipGenerator(object):
                 headerOffset = header.headerOffset
 
             if extra:
-                extraData = struct.pack(
-                    b'<hh' + b'q'*len(extra), 1, 8*len(extra), *extra)
+                extraData = struct.pack(b'<hh' + b'q'*len(extra), 1, 8*len(extra), *extra)
                 extractVersion = max(45, header.extractVersion)
                 createVersion = max(45, header.createVersion)
             else:
@@ -231,10 +227,9 @@ class ZipGenerator(object):
                 createVersion = header.createVersion
 
             centdir = struct.pack(
-                b'<4s4B4HLLL5HLL', b'PK\001\002', createVersion,
-                header.createSystem, extractVersion, 0, 0x8,
-                header.compressType, dostime, dosdate, header.crc, compressSize,
-                fileSize, len(header.filename), len(extraData), 0, 0, 0,
+                b'<4s4B4HLLL5HLL', b'PK\001\002', createVersion, header.createSystem,
+                extractVersion, 0, 0x8, header.compressType, dostime, dosdate, header.crc,
+                compressSize, fileSize, len(header.filename), len(extraData), 0, 0, 0,
                 header.externalAttr, headerOffset)
 
             data.append(self._advanceOffset(centdir))
@@ -247,8 +242,7 @@ class ZipGenerator(object):
 
         if pos1 > Z64_LIMIT or size > Z64_LIMIT or count >= Z_FILECOUNT_LIMIT:
             zip64endrec = struct.pack(
-                b'<4sqhhLLqqqq', b'PK\x06\x06', 44, 45, 45, 0, 0, count, count,
-                size, pos1)
+                b'<4sqhhLLqqqq', b'PK\x06\x06', 44, 45, 45, 0, 0, count, count, size, pos1)
             data.append(self._advanceOffset(zip64endrec))
 
             zip64locrec = struct.pack(b'<4sLqL', b'PK\x06\x07', 0, pos2, 1)
@@ -258,8 +252,7 @@ class ZipGenerator(object):
             size = min(size, 0xFFFFFFFF)
             offsetVal = min(offsetVal, 0xFFFFFFFF)
 
-        endrec = struct.pack(b'<4s4H2LH', b'PK\005\006', 0, 0, count, count,
-                             size, offsetVal, 0)
+        endrec = struct.pack(b'<4s4H2LH', b'PK\005\006', 0, 0, count, count, size, offsetVal, 0)
         data.append(self._advanceOffset(endrec))
 
         return b''.join(data)

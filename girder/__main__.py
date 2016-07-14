@@ -27,22 +27,18 @@ except ImportError:
     # Update python path to ensure server respawning works. See #732
     source_root_dir = os.path.dirname(os.path.dirname(__file__))
     import sys
-    cherrypy.engine.log("[Girder] Appending source root dir to 'sys.path': %s"
-                        % source_root_dir)
+    cherrypy.engine.log("[Girder] Appending source root dir to 'sys.path': %s" % source_root_dir)
     sys.path.append(source_root_dir)
     from girder.utility import server
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Girder: data management platform for the web.')
-    parser.add_argument("-t", "--testing", help="run in testing mode",
-                        action="store_true")
-    parser.add_argument("-d", "--database",
-                        help="to what database url should Girder connect")
-    parser.add_argument("-p", "--port",
-                        help="on what port should Girder serve")
+    parser = argparse.ArgumentParser(description='Girder: data management platform for the web.')
+    parser.add_argument("-t", "--testing", help="run in testing mode", action="store_true")
+    parser.add_argument("-d", "--database", help="to what database url should Girder connect")
+    parser.add_argument("-p", "--port", help="on what port should Girder serve")
     args = parser.parse_args()
+
     if args.database:
         cherrypy.config['database']['uri'] = args.database
     if args.port:

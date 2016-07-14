@@ -47,10 +47,8 @@ class Item(Resource):
     @describeRoute(
         Description('Search for an item by certain properties.')
         .responseClass('Item')
-        .param('folderId', "Pass this to list all items in a folder.",
-               required=False)
-        .param('text', "Pass this to perform a full text search for items.",
-               required=False)
+        .param('folderId', 'Pass this to list all items in a folder.', required=False)
+        .param('text', 'Pass this to perform a full text search for items.', required=False)
         .param('name', 'Pass to lookup an item by exact name match. Must '
                'pass folderId as well when using this.', required=False)
         .pagingParams(defaultSort='lowerName')
@@ -73,8 +71,8 @@ class Item(Resource):
         user = self.getCurrentUser()
 
         if 'folderId' in params:
-            folder = self.model('folder').load(id=params['folderId'], user=user,
-                                               level=AccessType.READ, exc=True)
+            folder = self.model('folder').load(
+                id=params['folderId'], user=user, level=AccessType.READ, exc=True)
             filters = {}
             if params.get('text'):
                 filters['$text'] = {
@@ -84,12 +82,10 @@ class Item(Resource):
                 filters['name'] = params['name']
 
             return list(self.model('folder').childItems(
-                folder=folder, limit=limit, offset=offset, sort=sort,
-                filters=filters))
+                folder=folder, limit=limit, offset=offset, sort=sort, filters=filters))
         elif 'text' in params:
             return list(self.model('item').textSearch(
-                params['text'], user=user, limit=limit, offset=offset,
-                sort=sort))
+                params['text'], user=user, limit=limit, offset=offset, sort=sort))
         else:
             raise RestException('Invalid search mode.')
 
@@ -113,7 +109,7 @@ class Item(Resource):
         .responseClass('Item')
         .param('folderId', 'The ID of the parent folder.')
         .param('name', 'Name for the item.')
-        .param('description', "Description for the item.", required=False)
+        .param('description', 'Description for the item.', required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
@@ -124,8 +120,8 @@ class Item(Resource):
         name = params['name'].strip()
         description = params.get('description', '').strip()
 
-        folder = self.model('folder').load(id=params['folderId'], user=user,
-                                           level=AccessType.WRITE, exc=True)
+        folder = self.model('folder').load(
+            id=params['folderId'], user=user, level=AccessType.WRITE, exc=True)
 
         return self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
@@ -139,22 +135,19 @@ class Item(Resource):
         .param('id', 'The ID of the item.', paramType='path')
         .param('name', 'Name for the item.', required=False)
         .param('description', 'Description for the item.', required=False)
-        .param('folderId', 'Pass this to move the item to a new folder.',
-               required=False)
+        .param('folderId', 'Pass this to move the item to a new folder.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item or folder.', 403)
     )
     def updateItem(self, item, params):
         item['name'] = params.get('name', item['name']).strip()
-        item['description'] = params.get(
-            'description', item['description']).strip()
+        item['description'] = params.get('description', item['description']).strip()
 
         self.model('item').updateItem(item)
 
         if 'folderId' in params:
             folder = self.model('folder').load(
-                params['folderId'], user=self.getCurrentUser(),
-                level=AccessType.WRITE, exc=True)
+                params['folderId'], user=self.getCurrentUser(), level=AccessType.WRITE, exc=True)
             if folder['_id'] != item['folderId']:
                 self.model('item').move(item, folder)
 
@@ -168,8 +161,7 @@ class Item(Resource):
         .responseClass('Item')
         .notes('Set metadata fields to null in order to delete them.')
         .param('id', 'The ID of the item.', paramType='path')
-        .param('body', 'A JSON object containing the metadata keys to add',
-               paramType='body')
+        .param('body', 'A JSON object containing the metadata keys to add', paramType='body')
         .errorResponse('ID was invalid.')
         .errorResponse('Invalid JSON passed in request body.')
         .errorResponse('Metadata key name was invalid.')
@@ -181,23 +173,21 @@ class Item(Resource):
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if not len(k):
-                raise RestException('Key names must be at least one character '
-                                    'long.')
+                raise RestException('Key names must be at least one character long.')
             if '.' in k or k[0] == '$':
-                raise RestException('The key name %s must not contain a period '
-                                    'or begin with a dollar sign.' % k)
+                raise RestException(
+                    'The key name %s must not contain a period or begin with a dollar sign.' % k)
 
         return self.model('item').setMetadata(item, metadata)
 
     def _downloadMultifileItem(self, item, user):
+        name = item['name'] + '.zip'
         cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] =\
-            'attachment; filename="%s%s"' % (item['name'], '.zip')
+        cherrypy.response.headers['Content-Disposition'] = 'attachment; filename="%s"' % name
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
-            for (path, file) in self.model('item').fileList(item,
-                                                            subpath=False):
+            for path, file in self.model('item').fileList(item, subpath=False):
                 for data in zip.addFile(file, path):
                     yield data
             yield zip.footer()
@@ -227,15 +217,12 @@ class Item(Resource):
         .param('id', 'The ID of the item.', paramType='path')
         .param('format', 'If unspecified, items with one file are downloaded '
                'as that file, and other items are downloaded as a zip '
-               'archive.  If \'zip\', a zip archive is always sent.',
-               required=False)
+               'archive.  If \'zip\', a zip archive is always sent.', required=False)
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value, only applied for single file '
-               'items.', required=False, enum=['inline', 'attachment'],
-               default='attachment')
+               'items.', required=False, enum=['inline', 'attachment'], default='attachment')
         .param('extraParameters', 'Arbitrary data to send along with the '
-               'download request, only applied for single file '
-               'items.', required=False)
+               'download request, only applied for single file items.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -249,13 +236,10 @@ class Item(Resource):
         if len(files) == 1 and format != 'zip':
             contentDisp = params.get('contentDisposition')
             extraParameters = params.get('extraParameters')
-            if (contentDisp is not None and
-               contentDisp not in {'inline', 'attachment'}):
-                raise RestException('Unallowed contentDisposition type "%s".' %
-                                    contentDisp)
-            return self.model('file').download(files[0], offset,
-                                               contentDisposition=contentDisp,
-                                               extraParameters=extraParameters)
+            if contentDisp is not None and contentDisp not in ('inline', 'attachment'):
+                raise RestException('Unallowed contentDisposition type "%s".' % contentDisp)
+            return self.model('file').download(
+                files[0], offset, contentDisposition=contentDisp, extraParameters=extraParameters)
         else:
             return self._downloadMultifileItem(item, user)
 
@@ -291,7 +275,7 @@ class Item(Resource):
         .param('id', 'The ID of the original item.', paramType='path')
         .param('folderId', 'The ID of the parent folder.', required=False)
         .param('name', 'Name for the new item.', required=False)
-        .param('description', "Description for the new item.", required=False)
+        .param('description', 'Description for the new item.', required=False)
         .errorResponse()
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the original item.', 403)
@@ -309,9 +293,7 @@ class Item(Resource):
         user = self.getCurrentUser()
         name = params.get('name', None)
         folderId = params.get('folderId', item['folderId'])
-        folder = self.model('folder').load(
-            id=folderId, user=user, level=AccessType.WRITE, exc=True)
+        folder = self.model('folder').load(id=folderId, user=user, level=AccessType.WRITE, exc=True)
         description = params.get('description', None)
         return self.model('item').copyItem(
-            item, creator=user, name=name, folder=folder,
-            description=description)
+            item, creator=user, name=name, folder=folder, description=description)

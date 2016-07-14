@@ -38,8 +38,7 @@ def getEmailUrlPrefix():
     """
     host = ModelImporter.model('setting').get(SettingKey.EMAIL_HOST, '')
     if not host:
-        host = '://'.join((cherrypy.request.scheme,
-                           cherrypy.request.local.name))
+        host = '://'.join((cherrypy.request.scheme, cherrypy.request.local.name))
         if cherrypy.request.local.port != 80:
             host += ':%d' % cherrypy.request.local.port
 
@@ -95,8 +94,8 @@ def sendEmail(to=None, subject=None, text=None, toAdmins=False, bcc=None):
             bcc = (bcc,)
 
     if not to and not bcc:
-        raise Exception('You must specify email recipients via "to" or "bcc", '
-                        'or use toAdmins=True.')
+        raise Exception(
+            'You must specify email recipients via "to" or "bcc", or use toAdmins=True.')
 
     if isinstance(text, six.text_type):
         text = text.encode('utf8')
@@ -135,8 +134,7 @@ def addTemplateDirectory(dir, prepend=False):
 
 
 class _SMTPConnection(object):
-    def __init__(self, host, port=None, encryption=None,
-                 username=None, password=None):
+    def __init__(self, host, port=None, encryption=None, username=None, password=None):
         self.host = host
         self.port = port
         self.encryption = encryption
@@ -174,8 +172,7 @@ def _sendmail(event):
         password=setting.get(SettingKey.SMTP_PASSWORD, None)
     )
 
-    logger.info('Sending email to %s through %s',
-                ', '.join(recipients), smtp.host)
+    logger.info('Sending email to %s through %s', ', '.join(recipients), smtp.host)
 
     with smtp:
         smtp.send(msg['From'], recipients, msg.as_string())

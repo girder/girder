@@ -41,8 +41,7 @@ def _loadModel(model, module, plugin):
     try:
         constructor = getattr(imported, className)
     except AttributeError:  # pragma: no cover
-        raise Exception('Incorrect model class name "%s" for model "%s".' % (
-            className, module))
+        raise Exception('Incorrect model class name "%s" for model "%s".' % (className, module))
 
     _modelInstances[plugin][model] = constructor()
 
@@ -67,13 +66,11 @@ class ModelImporter(object):
         Call this to get the instance of the specified model. It will be
         lazy-instantiated.
 
-        :param model: The name of the model to get. This is the module
-                      name, e.g. "folder". The class name must be the
-                      upper-camelcased version of that module name, e.g.
-                      "Folder".
+        :param model: The name of the model to get. This is the module name, e.g. "folder". The
+            class name must be the upper-camelcased version of that module name, e.g. "Folder".
         :type model: string
-        :param plugin: If the model you wish to load is a model within a plugin,
-                       set this to the name of the plugin containing the model.
+        :param plugin: If the model you wish to load is a model within a plugin, set this to the
+            name of the plugin containing the model.
         :returns: The instantiated model, which is a singleton.
         """
         global _modelInstances
