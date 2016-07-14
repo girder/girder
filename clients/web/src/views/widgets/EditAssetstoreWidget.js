@@ -85,7 +85,7 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
         },
         set: function () {
             this.$('#g-edit-fs-root').val(this.model.get('root'));
-            this.$('#g-edit-fs-perms').val(this.model.get('perms'));
+            this.$('#g-edit-fs-perms').val((this.model.get('perms') || 0600).toString(8));
         }
     };
 

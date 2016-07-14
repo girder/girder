@@ -30,7 +30,7 @@
               span.g-assetstore-root  #{assetstore.get('root')}
             div
               b File creation permissions (octal):
-              span.g-assetstore-perms  #{assetstore.get('perms')}
+              span.g-assetstore-perms  #{(assetstore.get('perms') || 0600).toString(8)}
           else if assetstore.get('type') === types.GRIDFS
             div
               b Type:
