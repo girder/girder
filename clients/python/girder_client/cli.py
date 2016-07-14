@@ -18,7 +18,7 @@
 ###############################################################################
 
 import argparse
-from girder_client import GirderClient
+from girder_client import GirderClient, config
 
 
 class GirderCli(GirderClient):
@@ -41,11 +41,12 @@ class GirderCli(GirderClient):
         """
         super(GirderCli, self).__init__(
             host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl)
-        interactive = password is None
+        interactive = password is None and \
+            config.get("girder_client", "password") is None
 
         if apiKey:
             self.authenticate(apiKey=apiKey)
-        elif username:
+        else:
             self.authenticate(username, password, interactive=interactive)
 
 

@@ -29,6 +29,24 @@ import requests
 import shutil
 import six
 import tempfile
+from six.moves.configparser import SafeConfigParser
+
+_config_defaults = {
+    'host': 'localhost',
+    'scheme':  'http',
+    'apiRoot': '/api/v1',
+    'apiUrl': None,
+    'port': None,
+    'apiKey': None,
+    'username': None,
+    'password': None,
+}
+CONFIG_DIR = os.environ.get(
+    'XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config'))
+config = SafeConfigParser(_config_defaults, allow_no_value=True)
+config.read([os.path.join(CONFIG_DIR, "girder-cli.conf")])
+if not config.has_section("girder_client"):
+    config.add_section("girder_client")
 
 __version__ = '2.0.0'
 __license__ = 'Apache 2.0'
@@ -147,16 +165,23 @@ class GirderClient(object):
         :param cacheSettings: Settings to use with the diskcache library, or
             None to disable caching.
         """
-        if apiUrl is None:
+        configApiUrl = config.get('girder_client', 'apiUrl')
+        if apiUrl is None and configApiUrl is None:
             if apiRoot is None:
-                apiRoot = '/api/v1'
-
-            self.scheme = scheme or 'http'
-            self.host = host or 'localhost'
-            self.port = port or (443 if scheme == 'https' else 80)
+                apiRoot = config.get('girder_client', 'apiRoot')
+            self.scheme = scheme or config.get('girder_client', 'scheme')
+            self.host = host or config.get('girder_client', 'host')
+            try:
+                configPort = config.getint('girder_client', 'port')
+            except TypeError:
+                configPort = None
+            self.port = port or configPort or \
+                (443 if self.scheme == 'https' else 80)
 
             self.urlBase = '%s://%s:%s%s' % (
                 self.scheme, self.host, str(self.port), apiRoot)
+        elif configApiUrl is not None:
+            self.urlBase = configApiUrl
         else:
             self.urlBase = apiUrl
 
@@ -205,9 +230,15 @@ class GirderClient(object):
         :param apiKey: Pass this to use an API key instead of username/password authentication.
         :type apiKey: str
         """
+        configApiKey = config.get("girder_client", "apiKey")
         if apiKey:
             resp = self.post('api_key/token', parameters={
                 'key': apiKey
+            })
+            self.token = resp['authToken']['token']
+        elif configApiKey:
+            resp = self.post('api_key/token', parameters={
+                'key': configApiKey
             })
             self.token = resp['authToken']['token']
         else:
@@ -216,6 +247,8 @@ class GirderClient(object):
                     username = six.moves.input('Login or email: ')
                 password = getpass.getpass('Password for %s: ' % username)
 
+            username = username or config.get("girder_client", "username")
+            password = password or config.get("girder_client", "password")
             if username is None or password is None:
                 raise Exception('A user name and password are required')
 
