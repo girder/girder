@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+import re
 from setuptools import setup, find_packages
 
 install_reqs = [
