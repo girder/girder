@@ -94,8 +94,8 @@ class PythonClientTestCase(base.TestCase):
         base.TestCase.tearDown(self)
 
     def getPublicFolder(self, user):
-            folders = self.client.listFolder(
-                parentId=user['_id'], parentFolderType='user', name='Public')
+            folders = list(self.client.listFolder(
+                parentId=user['_id'], parentFolderType='user', name='Public'))
             self.assertEqual(len(folders), 1)
 
             return folders[0]
@@ -147,8 +147,8 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(flag)
 
         # Test some folder routes
-        folders = self.client.listFolder(
-            parentId=user['_id'], parentFolderType='user')
+        folders = list(self.client.listFolder(
+            parentId=user['_id'], parentFolderType='user'))
         self.assertEqual(len(folders), 2)
 
         privateFolder = publicFolder = None
@@ -179,7 +179,7 @@ class PythonClientTestCase(base.TestCase):
         # Test collection creation and retrieval
         c1 = self.client.createCollection('c1', public=False)
         c2 = self.client.createCollection('c2', public=True)
-        collections = self.client.listCollection()
+        collections = list(self.client.listCollection())
         self.assertEqual(len(collections), 2)
         ids = [c['_id'] for c in collections]
         self.assertIn(c1['_id'], ids)
@@ -190,6 +190,23 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(c2['name'], 'c2')
         self.assertFalse(c1['public'])
         self.assertTrue(c2['public'])
+
+        # Test user creation and retrieval
+        u1 = self.client.createUser(
+            'user1', 'user1@example.com', 'John', 'Doe', 'password', True)
+        u2 = self.client.createUser(
+            'user2', 'user2@example.com', 'John', 'Doe', 'password')
+        users = list(self.client.listUser())
+        self.assertEqual(len(users), 3)
+        ids = [u['_id'] for u in users]
+        self.assertIn(u1['_id'], ids)
+        self.assertIn(u2['_id'], ids)
+        u1 = self.client.getUser(u1['_id'])
+        u2 = self.client.getUser(u2['_id'])
+        self.assertEqual(u1['login'], 'user1')
+        self.assertEqual(u2['login'], 'user2')
+        self.assertTrue(u1['admin'])
+        self.assertFalse(u2['admin'])
 
     def testUploadCallbacks(self):
         callbackUser = self.model('user').createUser(
@@ -390,15 +407,19 @@ class PythonClientTestCase(base.TestCase):
         path = os.path.join(self.libTestDir, 'sub1', 'f1')
         file2 = self.client.uploadFileToItem(item['_id'], path)
 
-        # Get files from item
-        files = self.client.listFile(item['_id'])
+        # Test that pagination is handled for us internally
+        old = girder_client.DEFAULT_PAGE_LIMIT
+        girder_client.DEFAULT_PAGE_LIMIT = 1
 
-        file1Id = files[0]['_id']
-        file2Id = files[1]['_id']
+        # Get files from item
+        files = list(self.client.listFile(item['_id']))
 
         self.assertEqual(len(files), 2)
-        self.assertEqual(file1['_id'], file1Id)
-        self.assertEqual(file2['_id'], file2Id)
+
+        self.assertEqual(file1['_id'], files[0]['_id'])
+        self.assertEqual(file2['_id'], files[1]['_id'])
+
+        girder_client.DEFAULT_PAGE_LIMIT = old
 
     def testDownloadInline(self):
         # Creating item
@@ -535,3 +556,18 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(resp['type'], 'rest')
         self.assertEqual(resp['message'],
                          'Path not found: %s' % (testInvalidPath))
+
+    def testUploadWithPath(self):
+        testUser = self.model('user').createUser(
+            firstName='Jeffrey', lastName='Abrams', login='jjabrams',
+            password='password', email='jjabrams@email.com')
+        publicFolder = six.next(self.model('folder').childFolders(
+            parentType='user', parent=testUser, user=None, limit=1))
+        self.client.upload(self.libTestDir, '/user/jjabrams/Public')
+
+        parent = six.next(self.model('folder').childFolders(
+            parentType='folder', parent=publicFolder,
+            user=testUser, limit=0))
+        self.assertEqual([f['name'] for f in self.model('folder').childFolders(
+            parentType='folder', parent=parent,
+            user=testUser, limit=0)], ['sub0', 'sub1', 'sub2'])

@@ -27,8 +27,19 @@ import re
 import requests
 import six
 
+DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 
 _safeNameRegex = re.compile(r'^[/\\]+')
+
+
+def _compareDicts(x, y):
+    """
+    Compare two dictionaries with metadata.
+
+    :param x: First metadata item.
+    :param y: Second metadata item.
+    """
+    return len(x) == len(y) == len(set(x.items()) & set(y.items()))
 
 
 def _safeMakedirs(path):
@@ -147,6 +158,8 @@ class GirderClient(object):
             self.blacklist = []
         self.folder_upload_callbacks = []
         self.item_upload_callbacks = []
+        self.incomingMetadata = {}
+        self.localMetadata = {}
 
     def authenticate(self, username=None, password=None, interactive=False,
                      apiKey=None):
@@ -222,17 +235,22 @@ class GirderClient(object):
         not involve multipart file data that might need to be specially encoded
         or handled differently.
 
-        :param method: One of 'GET', 'POST', 'PUT', or 'DELETE'
+        :param method: The HTTP method to use in the request (GET, POST, etc.)
+        :type method: str
         :param path: A string containing the path elements for this request.
             Note that the path string should not begin or end with the path
             separator, '/'.
+        :type path: str
         :param parameters: A dictionary mapping strings to strings, to be used
             as the key/value pairs in the request parameters.
+        :type parameters: dict
         :param data: A dictionary, bytes or file-like object to send in the
             body.
         :param files: A dictonary of 'name' => file-like-objects
             for multipart encoding upload.
-        :param json: A dictionary to send in the body as a JSON object.
+        :type files: dict
+        :param json: A JSON object to send in the request body.
+        :type json: dict
         """
         if not parameters:
             parameters = {}
@@ -329,26 +347,55 @@ class GirderClient(object):
         return self.get('resource/lookup',
                         parameters={'path': path, 'test': test})
 
-    def listResource(self, path, params):
+    def listResource(self, path, params=None, limit=None, offset=None):
         """
-        search for a list of resources based on params.
+        This is a generator that will yield records using the given path and
+        params until exhausted. Paging of the records is done internally, but
+        can be overriden by manually passing a ``limit`` value to select only
+        a single page. Passing an ``offset`` will work in both single-page and
+        exhaustive modes.
         """
-        return self.get(path, params)
+        params = dict(params or {})
+        params['offset'] = offset or 0
+        params['limit'] = limit or DEFAULT_PAGE_LIMIT
 
-    def listFile(self, itemId, limit=None):
+        while True:
+            records = self.get(path, params)
+            for record in records:
+                yield record
+
+            n = len(records)
+            if limit or n < params['limit']:
+                # Either a single slice was requested, or this is the last page
+                break
+
+            params['offset'] += n
+
+    def setResourceTimestamp(self, id, type, created=None, updated=None):
         """
-        Retrieves a file set from this item ID.
+        Set the created or updated timestamps for a resource.
+        """
+        url = 'resource/%s/timestamp' % id
+        params = {
+            'type': type,
+        }
+        if created:
+            params['created'] = str(created)
+        if updated:
+            params['updated'] = str(updated)
+        return self.put(url, parameters=params)
+
+    def listFile(self, itemId, limit=None, offset=None):
+        """
+        This is a generator that will yield files under the given itemId.
 
         :param itemId: the item's ID
         :param limit: the result set size limit.
+        :param offset: the result offset.
         """
-
-        params = {
+        return self.listResource('item/%s/files' % itemId, params={
             'id': itemId,
-        }
-        if limit:
-            params['limit'] = limit
-        return self.listResource('item/%s/files' % itemId, params)
+        }, limit=limit, offset=offset)
 
     def createItem(self, parentFolderId, name, description=''):
         """
@@ -370,14 +417,15 @@ class GirderClient(object):
         """
         return self.getResource('item', itemId)
 
-    def listItem(self, folderId, text=None, name=None, limit=None):
+    def listItem(self, folderId, text=None, name=None, limit=None, offset=None):
         """
-        Retrieves a item set from this folder ID.
+        This is a generator that will yield all items under a given folder.
 
         :param folderId: the parent folder's ID.
         :param text: query for full text search of items.
         :param name: query for exact name match of items.
-        :param limit: the result set size limit.
+        :param limit: If requesting a specific slice, the length of the slice.
+        :param offset: Starting offset into the list.
         """
         params = {
             'folderId': folderId
@@ -386,21 +434,51 @@ class GirderClient(object):
             params['text'] = text
         if name:
             params['name'] = name
-        if limit:
-            params['limit'] = limit
 
-        return self.listResource('item', params)
+        return self.listResource('item', params, limit=limit, offset=offset)
 
-    def listCollection(self, limit=None):
+    def listUser(self, limit=None, offset=None):
         """
-        Retrieves a list of collections.
+        This is a generator that will yield all users in the system.
 
-        :param limit: the result set size limit.
+        :param limit: If requesting a specific slice, the length of the slice.
+        :param offset: Starting offset into the list.
         """
-        params = {}
-        if limit:
-            params['limit'] = limit
-        return self.listResource('collection', params)
+        return self.listResource('user', limit=limit, offset=offset)
+
+    def getUser(self, userId):
+        """
+        Retrieves a user by its ID.
+
+        :param userId: A string containing the ID of the user to
+            retrieve from Girder.
+        """
+        return self.getResource('user', userId)
+
+    def createUser(self, login, email, firstName, lastName, password,
+                   admin=None):
+        """
+        Creates and returns a user.
+        """
+        params = {
+            'login': login,
+            'email': email,
+            'firstName': firstName,
+            'lastName': lastName,
+            'password': password
+        }
+        if admin is not None:
+            params['admin'] = admin
+        return self.createResource('user', params)
+
+    def listCollection(self, limit=None, offset=None):
+        """
+        This is a generator that will yield all collections in the system.
+
+        :param limit: If requesting a specific slice, the length of the slice.
+        :param offset: Starting offset into the list.
+        """
+        return self.listResource('collection', limit=limit, offset=offset)
 
     def getCollection(self, collectionId):
         """
@@ -449,14 +527,16 @@ class GirderClient(object):
         return self.getResource('folder', folderId)
 
     def listFolder(self, parentId, parentFolderType='folder', name=None,
-                   limit=None):
+                   limit=None, offset=None):
         """
-        Retrieves a folder set from this parent ID.
+        This is a generator that will yield a list of folders based on the
+        filter parameters.
 
         :param parentId: The parent's ID.
         :param parentFolderType: One of ('folder', 'user', 'collection').
         :param name: query for exact name match of items.
-        :param limit: the result set size limit.
+        :param limit: If requesting a specific slice, the length of the slice.
+        :param offset: Starting offset into the list.
         """
         params = {
             'parentId': parentId,
@@ -465,10 +545,8 @@ class GirderClient(object):
 
         if name:
             params['name'] = name
-        if limit:
-            params['limit'] = limit
 
-        return self.listResource('folder', params)
+        return self.listResource('folder', params, limit=limit, offset=offset)
 
     def getFolderAccess(self, folderId):
         """
@@ -772,9 +850,13 @@ class GirderClient(object):
         obj = self.put(path, json=metadata)
         return obj
 
-    def _transformFilename(self, name):
+    def transformFilename(self, name):
         """
-        Sanitize the filename a bit.
+        Sanitize a resource name from Girder into a name that is safe to use
+        as a filesystem path.
+
+        :param name: The name to transform.
+        :type name: str
         """
         if name in ('.', '..'):
             name = '_' + name
@@ -824,7 +906,7 @@ class GirderClient(object):
         first = True
         while True:
             files = self.get('item/%s/files' % itemId, parameters={
-                'limit': 50,
+                'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset
             })
 
@@ -832,34 +914,36 @@ class GirderClient(object):
                 if len(files) == 1 and files[0]['name'] == name:
                     self.downloadFile(
                         files[0]['_id'],
-                        os.path.join(dest, self._transformFilename(name)))
+                        os.path.join(dest, self.transformFilename(name)))
                     break
                 else:
-                    dest = os.path.join(dest, self._transformFilename(name))
+                    dest = os.path.join(dest, self.transformFilename(name))
                     _safeMakedirs(dest)
 
             for file in files:
                 self.downloadFile(
                     file['_id'],
-                    os.path.join(dest, self._transformFilename(file['name'])))
+                    os.path.join(dest, self.transformFilename(file['name'])))
 
             first = False
             offset += len(files)
-            if len(files) < 50:
+            if len(files) < DEFAULT_PAGE_LIMIT:
                 break
 
-    def downloadFolderRecursive(self, folderId, dest):
+    def downloadFolderRecursive(self, folderId, dest, sync=False):
         """
         Download a folder recursively from Girder into a local directory.
 
-        :param folderId: Id of the Girder folder to download.
+        :param folderId: Id of the Girder folder or resource path to download.
         :param dest: The local download destination.
+        :param sync: If True, check if item exists in local metadata
+            cache and skip download provided that metadata is identical.
         """
         offset = 0
-
+        folderId = self._checkResourcePath(folderId)
         while True:
             folders = self.get('folder', parameters={
-                'limit': 50,
+                'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset,
                 'parentType': 'folder',
                 'parentId': folderId
@@ -867,13 +951,13 @@ class GirderClient(object):
 
             for folder in folders:
                 local = os.path.join(
-                    dest, self._transformFilename(folder['name']))
+                    dest, self.transformFilename(folder['name']))
                 _safeMakedirs(local)
 
                 self.downloadFolderRecursive(folder['_id'], local)
 
             offset += len(folders)
-            if len(folders) < 50:
+            if len(folders) < DEFAULT_PAGE_LIMIT:
                 break
 
         offset = 0
@@ -881,16 +965,44 @@ class GirderClient(object):
         while True:
             items = self.get('item', parameters={
                 'folderId': folderId,
-                'limit': 50,
+                'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset
             })
 
             for item in items:
+                _id = item['_id']
+                self.incomingMetadata[_id] = item
+                if sync and _id in self.localMetadata and \
+                        _compareDicts(item, self.localMetadata[_id]):
+                    continue
                 self.downloadItem(item['_id'], dest, name=item['name'])
 
             offset += len(items)
-            if len(items) < 50:
+            if len(items) < DEFAULT_PAGE_LIMIT:
                 break
+
+    def saveLocalMetadata(self, dest):
+        """
+        Dumps item metadata collected during a folder download.
+
+        :param dest: The local download destination.
+        """
+
+        with open(os.path.join(dest, '.girder_metadata'), 'w') as fh:
+            fh.write(json.dumps(self.incomingMetadata))
+
+    def loadLocalMetadata(self, dest):
+        """
+        Reads item metadata from a local folder.
+
+        :param dest: The local download destination.
+        """
+
+        try:
+            with open(os.path.join(dest, '.girder_metadata'), 'r') as fh:
+                self.localMetadata = json.loads(fh.read())
+        except (IOError, OSError):
+            print('Local metadata does not exists. Falling back to download.')
 
     def inheritAccessControlRecursive(self, ancestorFolderId, access=None,
                                       public=None):
@@ -919,7 +1031,7 @@ class GirderClient(object):
             self.setFolderAccess(ancestorFolderId, json.dumps(access), public)
 
             folders = self.get('folder', parameters={
-                'limit': 50,
+                'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset,
                 'parentType': 'folder',
                 'parentId': ancestorFolderId
@@ -930,7 +1042,7 @@ class GirderClient(object):
                                                    public)
 
             offset += len(folders)
-            if len(folders) < 50:
+            if len(folders) < DEFAULT_PAGE_LIMIT:
                 break
 
     def add_folder_upload_callback(self, callback):
@@ -974,9 +1086,9 @@ class GirderClient(object):
         """
         children = self.listFolder(parent_id, parent_type, name=folder_name)
 
-        if len(children):
-            return children[0]
-        else:
+        try:
+            return six.next(children)
+        except StopIteration:
             return self.createFolder(
                 parent_id, folder_name, parentType=parent_type)
 
@@ -999,8 +1111,10 @@ class GirderClient(object):
         item = None
         if reuse_existing:
             children = self.listItem(parent_folder_id, name=name)
-            if len(children):
-                item = children[0]
+            try:
+                item = six.next(children)
+            except StopIteration:
+                pass
 
         if item is None:
             item = self.createItem(parent_folder_id, name, description='')
@@ -1140,7 +1254,7 @@ class GirderClient(object):
 
         :param file_pattern: a glob pattern for files that will be uploaded,
             recursively copying any file folder structures.
-        :param parent_id: id of the parent in Girder.
+        :param parent_id: id of the parent in Girder or resource path.
         :param parent_type: one of (collection,folder,user), default of folder.
         :param leaf_folders_as_items: bool whether leaf folders should have all
             files uploaded as single items.
@@ -1148,6 +1262,7 @@ class GirderClient(object):
             the same name in the same location, or create a new one instead.
         """
         empty = True
+        parent_id = self._checkResourcePath(parent_id)
         for current_file in glob.iglob(file_pattern):
             empty = False
             current_file = os.path.normpath(current_file)
@@ -1171,3 +1286,10 @@ class GirderClient(object):
                     leaf_folders_as_items, reuse_existing)
         if empty:
             print('No matching files: ' + file_pattern)
+
+    def _checkResourcePath(self, objId):
+        if isinstance(objId, six.string_types) and objId.startswith('/'):
+            obj = self.resourceLookup(objId, test=True)
+            if obj is not None:
+                return obj['_id']
+        return objId
