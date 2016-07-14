@@ -7,6 +7,15 @@ girder.views.FileListWidget = girder.View.extend({
             this.collection.fetchNextPage();
         },
 
+        'click a.g-show-info': function (e) {
+            var cid = $(e.currentTarget).attr('file-cid');
+            new girder.views.FileInfoWidget({
+                el: $('#g-dialog-container'),
+                model: this.collection.get(cid),
+                parentView: this
+            }).render();
+        },
+
         'click a.g-update-contents': function (e) {
             var cid = $(e.currentTarget).parent().attr('file-cid');
             this.uploadDialog(cid);
@@ -102,7 +111,7 @@ girder.views.FileListWidget = girder.View.extend({
             parentItem: this.parentItem
         }));
 
-        this.$('.g-file-actions-container a[title]').tooltip({
+        this.$('.g-file-list-entry a[title]').tooltip({
             container: 'body',
             placement: 'auto',
             delay: 100

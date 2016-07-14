@@ -102,7 +102,8 @@ class Collection(AccessControlledModel):
             progress.update(increment=1, message='Deleted collection ' +
                             collection['name'])
 
-    def createCollection(self, name, creator, description='', public=True):
+    def createCollection(self, name, creator=None, description='', public=True,
+                         reuseExisting=False):
         """
         Create a new collection.
 
@@ -114,22 +115,33 @@ class Collection(AccessControlledModel):
         :type public: bool
         :param creator: The user who is creating this collection.
         :type creator: dict
+        :param reuseExisting: If a collection with the given name already exists
+            return that collection rather than creating a new one.
+        :type reuseExisting: bool
         :returns: The collection document that was created.
         """
+        if reuseExisting:
+            existing = self.findOne({
+                'name': name
+            })
+            if existing:
+                return existing
+
         now = datetime.datetime.utcnow()
 
         collection = {
             'name': name,
             'description': description,
-            'creatorId': creator['_id'],
+            'creatorId': creator['_id'] if creator else None,
             'created': now,
             'updated': now,
             'size': 0
         }
 
         self.setPublic(collection, public, save=False)
-        self.setUserAccess(collection, user=creator, level=AccessType.ADMIN,
-                           save=False)
+        if creator:
+            self.setUserAccess(
+                collection, user=creator, level=AccessType.ADMIN, save=False)
 
         return self.save(collection)
 
@@ -147,9 +159,14 @@ class Collection(AccessControlledModel):
         return self.save(collection)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True):
+                 subpath=True, mimeFilter=None, data=True):
         """
-        Generate a list of files within this collection's folders.
+        This function generates a list of 2-tuples whose first element is the
+        relative path to the file from the collection's root and whose second
+        element depends on the value of the `data` flag. If `data=True`, the
+        second element will be a generator that will generate the bytes of the
+        file data as stored in the assetstore. If `data=False`, the second
+        element is the file document itself.
 
         :param doc: the collection to list.
         :param user: a user used to validate data that is returned.
@@ -160,6 +177,12 @@ class Collection(AccessControlledModel):
                                 metadata[-(number).json that is distinct from
                                 any file within the item.
         :param subpath: if True, add the collection's name to the path.
+        :param mimeFilter: Optional list of MIME types to filter by. Set to
+            None to include all files.
+        :type mimeFilter: list or tuple
+        :param data: If True return raw content of each file as stored in the
+            assetstore, otherwise return file document.
+        :type data: bool
         """
         if subpath:
             path = os.path.join(path, doc['name'])
@@ -167,7 +190,8 @@ class Collection(AccessControlledModel):
         for folder in self.model('folder').childFolders(parentType='collection',
                                                         parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
-                    folder, user, path, includeMetadata, subpath=True):
+                    folder, user, path, includeMetadata, subpath=True,
+                    mimeFilter=mimeFilter, data=data):
                 yield (filepath, file)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):
@@ -292,3 +316,29 @@ class Collection(AccessControlledModel):
         else:
             return sum(1 for _ in folderModel.filterResultsByPermission(
                 cursor=folders, user=user, level=level))
+
+    def updateSize(self, doc, user):
+        """
+        Recursively recomputes the size of this collection and its underlying
+        folders and fixes the sizes as needed.
+
+        :param doc: The collection.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
+        size = 0
+        fixes = 0
+        folders = self.model('folder').childFolders(doc, 'collection', user)
+        for folder in folders:
+            # fix folder size if needed
+            _, f = self.model('folder').updateSize(folder, user)
+            fixes += f
+            # get total recursive folder size
+            folder = self.model('folder').load(folder['_id'], user=user)
+            size += self.model('folder').getSizeRecursive(folder)
+        # fix value if incorrect
+        if size != doc.get('size'):
+            self.update({'_id': doc['_id']}, update={'$set': {'size': size}})
+            fixes += 1
+        return size, fixes

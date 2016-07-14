@@ -6,8 +6,10 @@ girder.views.ResetPasswordView = girder.View.extend({
         'submit #g-reset-password-form': function (e) {
             e.preventDefault();
             girder.restRequest({
-                path: 'user/password/temporary?email=' + this.$('#g-email')
-                    .val().trim(),
+                path: 'user/password/temporary',
+                data: {
+                    email: this.$('#g-email').val().trim()
+                },
                 type: 'PUT',
                 error: null // don't do default error behavior
             }).done(_.bind(function () {

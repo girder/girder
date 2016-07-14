@@ -126,7 +126,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
                                   self.__class__.__name__)  # pragma: no cover
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     contentDisposition=None):
+                     contentDisposition=None, extraParameters=None, **kwargs):
         """
         This method is in charge of returning a value to the RESTful endpoint
         that can be used to download the file. This can return a generator
@@ -145,6 +145,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :param contentDisposition: Value for Content-Disposition response
             header disposition-type value.
         :type contentDisposition: str or None
+        :type extraParameters: str or None
         """
         raise NotImplementedError('Must override downloadFile in %s.' %
                                   self.__class__.__name__)  # pragma: no cover

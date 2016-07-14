@@ -46,7 +46,7 @@ import threading
 import types
 
 from .constants import TerminalColor
-from girder import logger
+import girder
 from six.moves import queue
 
 
@@ -136,7 +136,8 @@ class AsyncEventsThread(threading.Thread):
                 if isinstance(callback, types.FunctionType):
                     callback(event)
             except Exception:
-                logger.exception('In handler for event "%s":' % eventName)
+                girder.logger.exception(
+                    'In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
         print(TerminalColor.info('Stopped asynchronous event manager thread.'))
@@ -176,7 +177,10 @@ def bind(eventName, handlerName, handler):
                     the Event.
     :type handler: function
     """
-    global _mapping
+    if eventName in _deprecated:
+        girder.logger.warning('event "%s" is deprecated; %s' %
+                              (eventName, _deprecated[eventName]))
+
     if eventName not in _mapping:
         _mapping[eventName] = []
 
@@ -195,7 +199,6 @@ def unbind(eventName, handlerName):
     :param handlerName: The name that identifies the handler calling bind().
     :type handlerName: str
     """
-    global _mapping
     if eventName not in _mapping:
         return
 
@@ -213,8 +216,7 @@ def unbindAll():
        necessary for normal Girder functionality. This function should generally
        never be called outside of testing.
     """
-    global _mapping
-    _mapping = {}
+    _mapping.clear()
 
 
 @contextlib.contextmanager
@@ -250,7 +252,6 @@ def trigger(eventName, info=None, pre=None, async=False):
         (True) or on the request thread (False).
     :type async: bool
     """
-    global _mapping
     e = Event(eventName, info, async=async)
     for handler in _mapping.get(eventName, ()):
         e.currentHandlerName = handler['name']
@@ -264,6 +265,11 @@ def trigger(eventName, info=None, pre=None, async=False):
 
     return e
 
+
+_deprecated = {
+    'assetstore.adapter.get':
+        'use girder.utility.assetstore_utilities.setAssetstoreAdapter instead'
+}
 
 _mapping = {}
 daemon = AsyncEventsThread()

@@ -85,16 +85,18 @@ girder.Collection = Backbone.Collection.extend({
             this.params = params || {};
         }
 
+        var limit = this.pageLimit > 0 ? this.pageLimit + 1 : 0;
+
         var xhr = girder.restRequest({
             path: this.altUrl || this.resourceName,
             data: _.extend({
-                limit: this.pageLimit + 1,
+                limit: limit,
                 offset: this.offset,
                 sort: this.sortField,
                 sortdir: this.sortDir
             }, this.params)
         }).done(_.bind(function (list) {
-            if (list.length > this.pageLimit) {
+            if (this.pageLimit > 0 && list.length > this.pageLimit) {
                 // This means we have more pages to display still. Pop off
                 // the extra that we fetched.
                 list.pop();

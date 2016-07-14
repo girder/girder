@@ -74,6 +74,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertTrue(oldAssetstore['current'])
         self.assertEqual(oldAssetstore['name'], 'Test')
         self.assertEqual(oldAssetstore['type'], AssetstoreType.FILESYSTEM)
+        self.assertEqual(oldAssetstore['perms'], 0o600)
 
         params = {
             'name': 'Test',
@@ -110,12 +111,28 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(assetstore['name'], 'New Name')
         self.assertFalse(assetstore['current'])
 
-        # Set the new assetstore as current
+        # Test validation of file permissions
         params = {
             'name': assetstore['name'],
             'root': assetstore['root'],
-            'current': True
+            'current': True,
+            'perms': '384'
         }
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'], 'File permissions must be an octal integer.')
+
+        params['perms'] = '400'
+        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
+                            method='PUT', user=self.admin, params=params)
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'], 'File permissions must allow "rw" for user.')
+
+        # Set the new assetstore as current
+        params['perms'] = '755'
         resp = self.request(path='/assetstore/%s' % assetstore['_id'],
                             method='PUT', user=self.admin, params=params)
         self.assertStatusOk(resp)
@@ -161,8 +178,22 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(path, method='POST', params=params, user=self.admin)
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
-                         'No such directory: /nonexistent/dir.')
+                         'Not found: /nonexistent/dir.')
 
+        # Test importing a single file
+        params['importPath'] = os.path.join(
+            ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'world.txt')
+        resp = self.request(path, method='POST', params=params, user=self.admin)
+        self.assertStatusOk(resp)
+        resp = self.request('/resource/lookup', user=self.admin, params={
+            'path': '/user/admin/Public/world.txt/world.txt'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['_modelType'], 'file')
+        file = self.model('file').load(resp.json['_id'], force=True, exc=True)
+        self.assertTrue(os.path.isfile(file['path']))
+
+        # Test importing a directory
         params['importPath'] = os.path.join(
             ROOT_DIR, 'tests', 'cases', 'py_client')
         resp = self.request(path, method='POST', params=params, user=self.admin)

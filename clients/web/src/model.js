@@ -114,10 +114,18 @@ girder.Model = Backbone.Model.extend({
     /**
      * Get the path for downloading this resource via the API. Can be used
      * as the href property of a direct download link.
+     * @param params {Object} list of key-value parameters to include in the
+     *    query string.
      */
-    downloadUrl: function () {
-        return girder.apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
+    downloadUrl: function (params) {
+        var url = girder.apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
             this.get('_id') + '/download';
+
+        if (params) {
+            url += '?' + $.param(params);
+        }
+
+        return url;
     },
 
     /**

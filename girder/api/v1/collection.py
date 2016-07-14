@@ -124,6 +124,8 @@ class Collection(Resource):
     @describeRoute(
         Description('Download an entire collection as a zip archive.')
         .param('id', 'The ID of the collection.', paramType='path')
+        .param('mimeFilter', 'JSON list of MIME types to include.',
+               required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the collection.', 403)
     )
@@ -133,11 +135,20 @@ class Collection(Resource):
             'attachment; filename="%s%s"' % (collection['name'], '.zip')
 
         user = self.getCurrentUser()
+        mimeFilter = params.get('mimeFilter')
+        if mimeFilter:
+            try:
+                mimeFilter = json.loads(mimeFilter)
+                if not isinstance(mimeFilter, list):
+                    raise ValueError()
+            except ValueError:
+                raise RestException('The mimeFilter must be a JSON list.')
 
         def stream():
             zip = ziputil.ZipGenerator(collection['name'])
             for (path, file) in self.model('collection').fileList(
-                    collection, user=user, subpath=False):
+                    collection, user=user, subpath=False,
+                    mimeFilter=mimeFilter):
                 for data in zip.addFile(file, path):
                     yield data
             yield zip.footer()

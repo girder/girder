@@ -14,3 +14,4 @@ __pycache__
 ### PyCharm ###
 .idea/
 .PyCharm50/
+.eslintcache

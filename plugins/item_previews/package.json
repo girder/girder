@@ -1,0 +1,11 @@
+{
+  "name": "girder-item-previews",
+  "version": "1.0.0",
+  "description": "Preview items such as images, JSON, and GeoJSON files in a folder.",
+  "keywords": [
+    "girder",
+    "preview",
+    "previews"
+  ],
+  "license": "Apache-2.0"
+}

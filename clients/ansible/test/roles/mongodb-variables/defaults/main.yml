@@ -1,6 +1,0 @@
----
-
-    mongodb_net_interface: eth0
-    mongodb_port: 27017
-    state: started
-

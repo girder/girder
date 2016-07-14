@@ -48,6 +48,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.email_from_address',
             'core.email_host',
             'core.registration_policy',
+            'core.email_verification',
             'core.smtp_host',
             'core.smtp.port',
             'core.smtp.encryption',

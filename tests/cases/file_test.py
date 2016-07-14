@@ -18,6 +18,7 @@
 ###############################################################################
 
 import io
+import json
 import mock
 import moto
 import os
@@ -31,6 +32,7 @@ from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.models.model_base import AccessException
+from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import (makeBotoConnectParams,
                                                   S3AssetstoreAdapter)
 from six.moves import urllib
@@ -340,6 +342,14 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
+        # List files in the folder
+        testFolder = self.model('folder').load(test['_id'], force=True)
+        fileList = [(path, file['name'])
+                    for (path, file) in self.model('folder').fileList(
+                        testFolder, user=self.user,
+                        subpath=True, data=False)]
+        self.assertEqual(fileList, [(u'Test/random.bin', u'random.bin')])
+
         # Download the folder
         resp = self.request(
             path='/folder/%s/download' % str(self.privateFolder['_id']),
@@ -349,6 +359,45 @@ class FileTestCase(base.TestCase):
         self.assertTrue(zip.testzip() is None)
 
         extracted = zip.read('Private/Test/random.bin')
+        self.assertEqual(extracted, contents)
+
+        # Upload a known MIME-type file into the folder
+        contents = b'not a jpeg'
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': str(self.privateFolder['_id']),
+                'name': 'fake.jpeg',
+                'size': len(contents),
+                'mimeType': 'image/jpeg'
+            })
+        self.assertStatusOk(resp)
+
+        uploadId = resp.json['_id']
+
+        # Send the file contents
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'fake.jpeg', contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        # Download the folder with a MIME type filter
+        resp = self.request(
+            path='/folder/%s/download' % str(self.privateFolder['_id']),
+            method='GET', user=self.user, isJson=False, params={
+                'mimeFilter': json.dumps(['image/png', 'image/jpeg'])
+            })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="Private.zip"')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
+        self.assertTrue(zip.testzip() is None)
+
+        path = 'Private/fake.jpeg'
+        self.assertEqual(zip.namelist(), [path])
+        extracted = zip.read(path)
         self.assertEqual(extracted, contents)
 
     def _testDownloadCollection(self):
@@ -424,6 +473,46 @@ class FileTestCase(base.TestCase):
         zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
         # Zip file should have no entries
         self.assertFalse(zip.namelist())
+
+        # Upload a known MIME-type file into the collection
+        contents = b'not a jpeg'
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': test['_id'],
+                'name': 'fake.jpeg',
+                'size': len(contents),
+                'mimeType': 'image/jpeg'
+            })
+        self.assertStatusOk(resp)
+
+        uploadId = resp.json['_id']
+
+        # Send the file contents
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', 'fake.jpeg', contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+
+        # Download the collection using a MIME type filter
+        path = '/collection/%s/download' % str(collection['_id'])
+        resp = self.request(
+            path=path, method='GET', user=self.user, isJson=False, params={
+                'mimeFilter': json.dumps(['image/png', 'image/jpeg'])
+            })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.headers['Content-Disposition'],
+                         'attachment; filename="Test Collection.zip"')
+        self.assertEqual(resp.headers['Content-Type'], 'application/zip')
+        zip = zipfile.ZipFile(io.BytesIO(self.getBody(resp, text=False)), 'r')
+        self.assertTrue(zip.testzip() is None)
+
+        # Only the jpeg should exist in the zip
+        path = 'Test Collection/Test Folder/fake.jpeg'
+        self.assertEqual(zip.namelist(), [path])
+        extracted = zip.read(path)
+        self.assertEqual(extracted, contents)
 
     def _testDeleteFile(self, file):
         """
@@ -509,6 +598,7 @@ class FileTestCase(base.TestCase):
 
         self.assertTrue(os.path.isfile(abspath))
         self.assertEqual(os.stat(abspath).st_size, file['size'])
+        self.assertEqual(os.stat(abspath).st_mode & 0o777, DEFAULT_PERMS)
 
         # Make sure access control is enforced on download
         resp = self.request(
@@ -547,6 +637,17 @@ class FileTestCase(base.TestCase):
         self._testDownloadFolder()
         self._testDownloadCollection()
 
+        # Change file permissions for the assetstore
+        params = {
+            'name': 'test assetstore',
+            'root': root,
+            'current': True,
+            'perms': '732'
+        }
+        resp = self.request(path='/assetstore/%s' % self.assetstore['_id'],
+                            method='PUT', user=self.user, params=params)
+        self.assertStatusOk(resp)
+
         # Test updating of the file contents
         newContents = 'test'
         resp = self.request(
@@ -570,6 +671,9 @@ class FileTestCase(base.TestCase):
         abspath = os.path.join(root, file['path'])
         self.assertTrue(os.path.isfile(abspath))
         self._testDownloadFile(file, newContents)
+
+        # Make sure new permissions are respected
+        self.assertEqual(os.stat(abspath).st_mode & 0o777, 0o732)
 
         # Test updating an empty file
         resp = self.request(
@@ -603,7 +707,7 @@ class FileTestCase(base.TestCase):
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
 
-    def testGridFsAssetstore(self):
+    def atestGridFsAssetstore(self):
         """
         Test usage of the GridFS assetstore type.
         """
@@ -646,7 +750,7 @@ class FileTestCase(base.TestCase):
         self._testCopyFile(copyTestFile)
 
     @moto.mock_s3bucket_path
-    def testS3Assetstore(self):
+    def atestS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
         mock_s3.createBucket(botoParams, 'b')
 

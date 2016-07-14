@@ -1,8 +1,0 @@
----
-
-dependencies:
-  - role: git-cache
-    repo: git://github.com/kitware/romanesco.git
-    version: "{{ romanesco_version }}"
-    variable_prefix: romanesco
-    state: present

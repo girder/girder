@@ -19,6 +19,25 @@ form.g-settings-form(role="form")
           selected=((settings['core.registration_policy'] ||
           defaults['core.registration_policy']) === "closed")
           ) Closed registration
+        option(value="approve",
+          selected=((settings['core.registration_policy'] ||
+          defaults['core.registration_policy']) === "approve")
+          ) Admin approval required
+    .form-group
+      label(for="g-core-email-verification") Email verification
+      select#g-core-email-verification.form-control.input-sm
+        option(value="required",
+          selected=((settings['core.email_verification'] ||
+          defaults['core.email_verification']) === "required")
+          ) Required
+        option(value="optional",
+          selected=((settings['core.email_verification'] ||
+          defaults['core.email_verification']) === "optional")
+          ) Optional
+        option(value="disabled",
+          selected=((settings['core.email_verification'] ||
+          defaults['core.email_verification']) === "disabled")
+          ) Disabled
     .form-group
       label(for="g-core-add-to-group-policy") Allow members to be directly added to groups
       select#g-core-add-to-group-policy.form-control.input-sm

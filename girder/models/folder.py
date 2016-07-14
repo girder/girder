@@ -624,9 +624,14 @@ class Folder(AccessControlledModel):
         return count
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True):
+                 subpath=True, mimeFilter=None, data=True):
         """
-        Generate a list of files within this folder.
+        This function generates a list of 2-tuples whose first element is the
+        relative path to the file from the folder's root and whose second
+        element depends on the value of the `data` flag. If `data=True`, the
+        second element will be a generator that will generate the bytes of the
+        file data as stored in the assetstore. If `data=False`, the second
+        element is the file document itself.
 
         :param doc: The folder to list.
         :param user: The user used for access.
@@ -640,26 +645,34 @@ class Folder(AccessControlledModel):
         :type includeMetadata: bool
         :param subpath: if True, add the folder's name to the path.
         :type subpath: bool
+        :param mimeFilter: Optional list of MIME types to filter by. Set to
+            None to include all files.
+        :type mimeFilter: list or tuple
+        :param data: If True return raw content of each file as stored in the
+            assetstore, otherwise return file document.
+        :type data: bool
         :returns: Iterable over files in this folder, where each element is a
                   tuple of (path name of the file, stream function with file
-                  data).
+                  data or file object).
         :rtype: generator(str, func)
         """
         if subpath:
             path = os.path.join(path, doc['name'])
-        metadataFile = "girder-folder-metadata.json"
+        metadataFile = 'girder-folder-metadata.json'
         for sub in self.childFolders(parentType='folder', parent=doc,
                                      user=user):
             if sub['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.fileList(
-                    sub, user, path, includeMetadata, subpath=True):
+                    sub, user, path, includeMetadata, subpath=True,
+                    mimeFilter=mimeFilter, data=data):
                 yield (filepath, file)
         for item in self.childItems(folder=doc):
             if item['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.model('item').fileList(
-                    item, user, path, includeMetadata):
+                    item, user, path, includeMetadata, mimeFilter=mimeFilter,
+                    data=data):
                 yield (filepath, file)
         if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():
@@ -818,3 +831,43 @@ class Folder(AccessControlledModel):
                     progress=progress, setPublic=setPublic)
 
         return doc
+
+    def isOrphan(self, folder, user=None):
+        """
+        Returns True if this folder is orphaned (its parent is missing).
+
+        :param folder: The folder to check.
+        :type folder: dict
+        :param user: The user for permissions.
+        :type user: dict or None
+        """
+        return not self.model(folder.get('parentCollection')).load(
+            folder.get('parentId'), user=user)
+
+    def updateSize(self, doc, user):
+        """
+        Recursively recomputes the size of this folder and its underlying
+        folders and fixes the sizes as needed.
+
+        :param doc: The folder.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
+        size = 0
+        fixes = 0
+        # recursively fix child folders but don't include their size
+        children = self.childFolders(doc, 'folder', user)
+        for child in children:
+            _, f = self.model('folder').updateSize(child, user)
+            fixes += f
+        # get correct size from child items
+        for item in self.childItems(doc):
+            s, f = self.model('item').updateSize(item, user)
+            size += s
+            fixes += f
+        # fix value if incorrect
+        if size != doc.get('size'):
+            self.update({'_id': doc['_id']}, update={'$set': {'size': size}})
+            fixes += 1
+        return size, fixes

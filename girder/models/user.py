@@ -23,8 +23,9 @@ import re
 
 from .model_base import AccessControlledModel, ValidationException
 from girder import events
-from girder.constants import AccessType, CoreEventHandler, SettingKey
-from girder.utility import config
+from girder.constants import AccessType, CoreEventHandler, SettingKey, \
+    TokenScope
+from girder.utility import config, mail_utils
 
 
 class User(AccessControlledModel):
@@ -48,7 +49,8 @@ class User(AccessControlledModel):
             '_id', 'login', 'public', 'firstName', 'lastName', 'admin',
             'created'))
         self.exposeFields(level=AccessType.ADMIN, fields=(
-            'size', 'email', 'groups', 'groupInvites'))
+            'size', 'email', 'groups', 'groupInvites', 'status',
+            'emailVerified'))
 
         events.bind('model.user.save.created',
                     CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)
@@ -91,6 +93,10 @@ class User(AccessControlledModel):
         if not doc['lastName']:
             raise ValidationException('Last name must not be empty.',
                                       'lastName')
+
+        if doc['status'] not in ('pending', 'enabled', 'disabled'):
+            raise ValidationException(
+                'Status must be pending, enabled, or disabled.', 'status')
 
         if '@' in doc['login']:
             # Hard-code this constraint so we can always easily distinguish
@@ -225,6 +231,11 @@ class User(AccessControlledModel):
         :type public: bool
         :returns: The user document that was created.
         """
+        requireApproval = self.model('setting').get(
+            SettingKey.REGISTRATION_POLICY) == 'approve'
+        if admin:
+            requireApproval = False
+
         user = {
             'login': login,
             'email': email,
@@ -232,6 +243,7 @@ class User(AccessControlledModel):
             'lastName': lastName,
             'created': datetime.datetime.utcnow(),
             'emailVerified': False,
+            'status': 'pending' if requireApproval else 'enabled',
             'admin': admin,
             'size': 0,
             'groups': [],
@@ -241,7 +253,87 @@ class User(AccessControlledModel):
         self.setPassword(user, password, save=False)
         self.setPublic(user, public, save=False)
 
-        return self.save(user)
+        user = self.save(user)
+
+        verifyEmail = self.model('setting').get(
+            SettingKey.EMAIL_VERIFICATION) != 'disabled'
+        if verifyEmail:
+            self._sendVerificationEmail(user)
+
+        if requireApproval:
+            self._sendApprovalEmail(user)
+
+        return user
+
+    def canLogin(self, user):
+        """
+        Returns True if the user is allowed to login, e.g. email verification
+        is not needed and admin approval is not needed.
+        """
+        if self.emailVerificationRequired(user):
+            return False
+        if self.adminApprovalRequired(user):
+            return False
+        return True
+
+    def emailVerificationRequired(self, user):
+        """
+        Returns True if email verification is required and this user has not
+        yet verified their email address.
+        """
+        if user.get('admin'):
+            return False
+        if not user.get('emailVerified', False):
+            return self.model('setting').get(
+                SettingKey.EMAIL_VERIFICATION) == 'required'
+        return False
+
+    def adminApprovalRequired(self, user):
+        """
+        Returns True if the registration policy requires admin approval and
+        this user has not yet been approved.
+        """
+        if user.get('admin'):
+            return False
+        if user.get('status') != 'enabled':
+            return self.model('setting').get(
+                SettingKey.REGISTRATION_POLICY) == 'approve'
+        return False
+
+    def _sendApprovalEmail(self, user):
+        url = '%s/#user/%s' % (
+            mail_utils.getEmailUrlPrefix(), str(user['_id']))
+        text = mail_utils.renderTemplate('accountApproval.mako', {
+            'user': user,
+            'url': url
+        })
+        mail_utils.sendEmail(
+            toAdmins=True,
+            subject='Girder: Account pending approval',
+            text=text)
+
+    def _sendApprovedEmail(self, user):
+        text = mail_utils.renderTemplate('accountApproved.mako', {
+            'user': user,
+            'url': mail_utils.getEmailUrlPrefix()
+        })
+        mail_utils.sendEmail(
+            to=user.get('email'),
+            subject='Girder: Account approved',
+            text=text)
+
+    def _sendVerificationEmail(self, user):
+        token = self.model('token').createToken(
+            user, days=1, scope=TokenScope.EMAIL_VERIFICATION)
+        url = '%s/#useraccount/%s/verification/%s' % (
+            mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
+        text = mail_utils.renderTemplate('emailVerification.mako', {
+            'url': url
+        })
+        mail_utils.sendEmail(
+            to=user.get('email'),
+            subject='Girder: Email verification',
+            text=text)
 
     def _grantSelfAccess(self, event):
         """
@@ -278,9 +370,14 @@ class User(AccessControlledModel):
                 privateFolder, user, AccessType.ADMIN, save=True)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True):
+                 subpath=True, data=True):
         """
-        Generate a list of files within this user's folders.
+        This function generates a list of 2-tuples whose first element is the
+        relative path to the file from the user's folders root and whose second
+        element depends on the value of the `data` flag. If `data=True`, the
+        second element will be a generator that will generate the bytes of the
+        file data as stored in the assetstore. If `data=False`, the second
+        element is the file document itself.
 
         :param doc: the user to list.
         :param user: a user used to validate data that is returned.
@@ -291,13 +388,17 @@ class User(AccessControlledModel):
                                 metadata[-(number).json that is distinct from
                                 any file within the item.
         :param subpath: if True, add the user's name to the path.
+        :param data: If True return raw content of each file as stored in the
+            assetstore, otherwise return file document.
+        :type data: bool
         """
         if subpath:
             path = os.path.join(path, doc['login'])
         for folder in self.model('folder').childFolders(parentType='user',
                                                         parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
-                    folder, user, path, includeMetadata, subpath=True):
+                    folder, user, path, includeMetadata, subpath=True,
+                    data=data):
                 yield (filepath, file)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):
@@ -353,3 +454,29 @@ class User(AccessControlledModel):
         else:
             return sum(1 for _ in folderModel.filterResultsByPermission(
                 cursor=folders, user=filterUser, level=level))
+
+    def updateSize(self, doc, user):
+        """
+        Recursively recomputes the size of this user and its underlying
+        folders and fixes the sizes as needed.
+
+        :param doc: The user.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
+        size = 0
+        fixes = 0
+        folders = self.model('folder').childFolders(doc, 'user', user)
+        for folder in folders:
+            # fix folder size if needed
+            _, f = self.model('folder').updateSize(folder, user)
+            fixes += f
+            # get total recursive folder size
+            folder = self.model('folder').load(folder['_id'], user=user)
+            size += self.model('folder').getSizeRecursive(folder)
+        # fix value if incorrect
+        if size != doc.get('size'):
+            self.update({'_id': doc['_id']}, update={'$set': {'size': size}})
+            fixes += 1
+        return size, fixes

@@ -84,8 +84,8 @@ class MailTestCase(base.TestCase):
         except Exception as e:
             x = 1
             self.assertEqual(
-                e.args[0], 'You must specify a "to" address or list of '
-                'addresses or set toAdmins=True when calling sendEmail.')
+                e.args[0], 'You must specify email recipients via "to" or '
+                '"bcc", or use toAdmins=True.')
 
         self.assertEqual(x, 1)
 
@@ -105,3 +105,11 @@ class MailTestCase(base.TestCase):
         self.assertTrue(base.mockSmtp.waitForMail())
         message = base.mockSmtp.getMail(parse=True)
         self.assertEqual(message.get_payload(decode=True), text.encode('utf8'))
+
+    def testBcc(self):
+        bcc = ('a@a.com', 'b@b.com')
+        mail_utils.sendEmail(to='first@a.com', bcc=bcc, subject='hi', text='hi')
+        self.assertTrue(base.mockSmtp.waitForMail())
+        message = base.mockSmtp.getMail(parse=True)
+        self.assertEqual(message['To'], 'first@a.com')
+        self.assertEqual(message['Bcc'], ', '.join(bcc))

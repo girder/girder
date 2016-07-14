@@ -26,6 +26,7 @@ from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.models.model_base import AccessControlledModel
 from girder.utility import acl_mixin
+from girder.utility import parseTimestamp
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -43,6 +44,7 @@ class Resource(BaseResource):
         self.route('GET', ('search',), self.search)
         self.route('GET', ('lookup',), self.lookup)
         self.route('GET', (':id',), self.getResource)
+        self.route('PUT', (':id', 'timestamp'), self.setTimestamp)
         self.route('GET', ('download',), self.download)
         self.route('POST', ('download',), self.download)
         self.route('PUT', ('move',), self.moveResources)
@@ -110,6 +112,7 @@ class Resource(BaseResource):
         Validate a JSON string listing resources.  The resources parameter is a
         JSON encoded dictionary with each key a model name and each value a
         list of ids that must be present in that model.
+
         :param params: a dictionary of parameters that must include 'resources'
         :param allowedModels: if present, an iterable of models that may be
                               included in the resources.
@@ -134,6 +137,7 @@ class Resource(BaseResource):
     def _getResourceModel(self, kind, funcName=None):
         """
         Load and return a model with a specific function or throw an exception.
+
         :param kind: the name of the model to load
         :param funcName: a function name to ensure that each model contains.
         :returns: the loaded model.
@@ -149,6 +153,7 @@ class Resource(BaseResource):
     def _lookUpToken(self, token, parentType, parent):
         """
         Find a particular child resource by name or throw an exception.
+
         :param token: the name of the child resource to find
         :param parentType: the type of the parent to search
         :param parent: the parent resource
@@ -180,7 +185,16 @@ class Resource(BaseResource):
         raise RestException('Child resource not found: %s(%s)->%s' % (
             parentType, parent.get('name', parent.get('_id')), token))
 
-    def _lookUpPath(self, path, user):
+    def _lookUpPath(self, path, user, test=False):
+        """
+        Look up a resource in the data hierarchy by path.
+
+        :param path: path of the resource
+        :param user: user with correct privileges to access path
+        :param test: defaults to false, when set to true
+            will return None instead of throwing exception when
+            path doesn't exist
+        """
         pathArray = [token for token in path.split('/') if token]
         model = pathArray[0]
 
@@ -190,15 +204,21 @@ class Resource(BaseResource):
             parent = self.model('user').findOne({'login': username})
 
             if parent is None:
-                raise RestException('User not found: %s' % username)
+                if test:
+                    return None
+                else:
+                    raise RestException('User not found: %s' % username)
 
         elif model == 'collection':
             collectionName = pathArray[1]
             parent = self.model('collection').findOne({'name': collectionName})
 
             if parent is None:
-                raise RestException(
-                    'Collection not found: %s' % collectionName)
+                if test:
+                    return None
+                else:
+                    raise RestException(
+                        'Collection not found: %s' % collectionName)
 
         else:
             raise RestException('Invalid path format')
@@ -210,7 +230,10 @@ class Resource(BaseResource):
                 document, model = self._lookUpToken(token, model, document)
                 self.model(model).requireAccess(document, user)
         except RestException:
-            raise RestException('Path not found: %s' % path)
+            if test:
+                return None
+            else:
+                raise RestException('Path not found: %s' % path)
 
         result = self.model(model).filter(document, user)
         return result
@@ -223,13 +246,18 @@ class Resource(BaseResource):
                'path starting with either "/user/[user name]", for a user\'s '
                'resources or "/collection/[collection name]", for resources '
                'under a collection.')
-        .errorResponse(('Path is invalid.',
-                        'Path refers to a resource that does not exist.'))
+        .param('test',
+               'Specify whether to return None instead of throwing an '
+               'exception when path doesn\'t exist.',
+               required=False, dataType='boolean', default=False)
+        .errorResponse('Path is invalid.')
+        .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403)
     )
     def lookup(self, params):
         self.requireParams('path', params)
-        return self._lookUpPath(params['path'], self.getCurrentUser())
+        test = self.boolParam('test', params, default=False)
+        return self._lookUpPath(params['path'], self.getCurrentUser(), test)
 
     @access.cookie(force=True)
     @access.public(scope=TokenScope.DATA_READ)
@@ -353,6 +381,32 @@ class Resource(BaseResource):
             user = self.getCurrentUser()
             return model.load(id=id, user=user, level=AccessType.READ)
         return model.load(id=id)
+
+    @access.admin
+    @describeRoute(
+        Description('Set the created or updated timestamp for a resource.')
+        .param('id', 'The ID of the resource.', paramType='path')
+        .param('type', 'The type of the resource (item, file, etc.).')
+        .param('created', 'The new created timestamp.', required=False)
+        .param('updated', 'The new updated timestamp.', required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Access was denied for the resource.', 403)
+    )
+    def setTimestamp(self, id, params):
+        user = self.getCurrentUser()
+        model = self._getResourceModel(params['type'])
+        doc = model.load(id=id, user=user, level=AccessType.WRITE)
+        if not doc:
+            raise RestException('Resource not found.')
+        if 'created' in params:
+            if 'created' not in doc:
+                raise RestException('Resource has no "created" field.')
+            doc['created'] = parseTimestamp(params['created'])
+        if 'updated' in params:
+            if 'updated' not in doc:
+                raise RestException('Resource has no "updated" field.')
+            doc['updated'] = parseTimestamp(params['updated'])
+        return model.save(doc)
 
     def _prepareMoveOrCopy(self, params):
         user = self.getCurrentUser()

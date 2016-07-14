@@ -17,12 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
+import os
+from inspect import getmembers, ismethod, getargspec
+
 # Ansible's module magic requires this to be
 # 'from ansible.module_utils.basic import *' otherwise it will error out. See:
 # https://github.com/ansible/ansible/blob/v1.9.4-1/lib/ansible/module_common.py#L41-L59
 # For more information on this magic. For now we noqa to prevent flake8 errors
 from ansible.module_utils.basic import *  # noqa
-from inspect import getmembers, ismethod, getargspec
 
 try:
     from girder_client import GirderClient, AuthenticationError, HttpError
@@ -31,7 +34,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.1"
+__version__ = "0.2.3"
 
 DOCUMENTATION = '''
 ---
@@ -59,6 +62,18 @@ options:
         default: '/api/v1'
         description:
             - path on server corresponding to the root of Girder REST API
+
+    apiUrl:
+        required: false
+        default: None
+        description:
+            - full URL base of the girder instance API
+    apiKey:
+        required: false
+        default: None
+        description:
+            - pass in an apiKey instead of username/password
+
 
     scheme:
         required: false
@@ -899,7 +914,7 @@ class Resource(object):
             try:
                 # If we can't create the item,  try and return
                 # The item with the same name
-                ret = self.resource_by_name[args['name']]
+                ret = self.resource_by_name[kwargs['name']]
             except KeyError:
                 raise htErr
         return ret
@@ -1010,7 +1025,7 @@ class ItemResource(Resource):
 class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
-    _include_methods = ['get', 'put', 'post', 'delete',
+    _include_methods = ['get', 'put', 'post', 'delete', 'patch',
                         'plugins', 'user', 'assetstore',
                         'collection', 'folder', 'item', 'files',
                         'group']
@@ -1043,7 +1058,7 @@ class GirderClientModule(GirderClient):
 
         super(GirderClientModule, self).__init__(
             **{p: self.module.params[p] for p in
-               ['host', 'port', 'apiRoot',
+               ['host', 'port', 'apiRoot', 'apiUrl',
                 'scheme', 'dryrun', 'blacklist']
                if module.params[p] is not None})
         # If a username and password are set
@@ -1052,6 +1067,14 @@ class GirderClientModule(GirderClient):
                 self.authenticate(
                     username=self.module.params['username'],
                     password=self.module.params['password'])
+
+            except AuthenticationError:
+                self.fail("Could not Authenticate!")
+
+        elif self.module.params['apiKey'] is not None:
+            try:
+                self.authenticate(
+                    apiKey=self.module.params['apiKey'])
 
             except AuthenticationError:
                 self.fail("Could not Authenticate!")
@@ -1571,6 +1594,13 @@ class GirderClientModule(GirderClient):
 
         return ret
 
+    # Handles patch correctly by dumping the data as a string before passing
+    # it on to requests See:
+    # http://docs.python-requests.org/en/master/user/quickstart/#more-complicated-post-requests
+    def patch(self, path, parameters=None, data=None):
+        super(GirderClientModule, self).patch(path, parameters=parameters,
+                                              data=json.dumps(data))
+
     assetstore_types = {
         "filesystem": 0,
         "girdfs": 1,
@@ -1715,6 +1745,7 @@ def main():
         'host': dict(),
         'port': dict(),
         'apiRoot': dict(),
+        'apiUrl': dict(),
         'scheme': dict(),
         'dryrun': dict(),
         'blacklist': dict(),
@@ -1723,6 +1754,7 @@ def main():
         'username': dict(),
         'password': dict(),
         'token':    dict(),
+        'apiKey': dict(),
 
         # General
         'state': dict(default="present", choices=['present', 'absent'])
@@ -1733,10 +1765,10 @@ def main():
     for method in gcm.required_one_of:
         argument_spec[method] = dict(type=gcm.spec[method]['type'])
 
-    module = AnsibleModule(
+    module = AnsibleModule(  # noqa
         argument_spec=argument_spec,
         required_one_of=[gcm.required_one_of,
-                         ["token", "username", "user"]],
+                         ["token", "username", "user", "apiKey"]],
         required_together=[["username", "password"]],
         mutually_exclusive=gcm.required_one_of,
         supports_check_mode=False)

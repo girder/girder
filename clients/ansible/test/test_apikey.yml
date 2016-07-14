@@ -1,0 +1,59 @@
+- hosts: girder
+  tasks:
+
+    # Add an initial user - this user will be admin
+    - name: Create 'admin' User
+      girder:
+        port: 8080
+        user:
+          firstName: "Chris"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+    - name: Create apiKey
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        post:
+          path: "api_key"
+          data:
+            name: test_key
+            scope: null
+            tokenDuration: 7
+      register: token
+
+    - set_fact:
+        apiKey: "{{ token['gc_return']['key'] }}"
+        apiKeyId: "{{ token['gc_return']['_id'] }}"
+
+    - name: Create collection
+      girder:
+        port: 8080
+        apiKey: "{{ apiKey }}"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+      register: test_collection
+
+    - name: Delete the test collection
+      girder:
+        port: 8080
+        apiKey: "{{ apiKey }}"
+        collection:
+          id: "{{ test_collection['gc_return']['_id'] }}"
+          name: "Test Collection"
+        state: absent
+
+
+    - name: Delete apiKey
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        delete:
+          path: "api_key/{{ apiKeyId }}"

@@ -127,6 +127,8 @@ class Folder(Resource):
     @describeRoute(
         Description('Download an entire folder as a zip archive.')
         .param('id', 'The ID of the folder.', paramType='path')
+        .param('mimeFilter', 'JSON list of MIME types to include.',
+               required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
@@ -140,11 +142,19 @@ class Folder(Resource):
             'attachment; filename="%s%s"' % (folder['name'], '.zip')
 
         user = self.getCurrentUser()
+        mimeFilter = params.get('mimeFilter')
+        if mimeFilter:
+            try:
+                mimeFilter = json.loads(mimeFilter)
+                if not isinstance(mimeFilter, list):
+                    raise ValueError()
+            except ValueError:
+                raise RestException('The mimeFilter must be a JSON list.')
 
         def stream():
             zip = ziputil.ZipGenerator(folder['name'])
             for (path, file) in self.model('folder').fileList(
-                    folder, user=user, subpath=False):
+                    folder, user=user, subpath=False, mimeFilter=mimeFilter):
                 for data in zip.addFile(file, path):
                     yield data
             yield zip.footer()
