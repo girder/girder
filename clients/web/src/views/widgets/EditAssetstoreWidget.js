@@ -84,11 +84,7 @@ girder.views.EditAssetstoreWidget = girder.View.extend({
             };
         },
         set: function () {
-            if (this.model.get('perms')) {
-                var permStr = this.model.get('perms').toString(8);
-            } else {
-                var permStr = '600';
-            }
+            var permStr = this.model.get('perms') ? this.model.get('perms').toString(8) : '600';
             this.$('#g-edit-fs-perms').val(permStr);
             this.$('#g-edit-fs-root').val(this.model.get('root'));
         }
