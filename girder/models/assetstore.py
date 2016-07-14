@@ -119,12 +119,13 @@ class Assetstore(Model):
         assetstore['hasFiles'] = (self.model('file').findOne(
             {'assetstoreId': assetstore['_id']}) is not None)
 
-    def createFilesystemAssetstore(self, name, root):
+    def createFilesystemAssetstore(self, name, root, perms=None):
         return self.save({
             'type': AssetstoreType.FILESYSTEM,
             'created': datetime.datetime.utcnow(),
             'name': name,
-            'root': root
+            'root': root,
+            'perms': perms
         })
 
     def createGridFsAssetstore(self, name, db, mongohost=None,

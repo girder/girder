@@ -81,6 +81,8 @@ class Assetstore(Resource):
         .param('type', 'Type of the assetstore.')
         .param('root', 'Root path on disk (for filesystem type).',
                required=False)
+        .param('perms', 'File creation permissions (for filesystem type).',
+               required=False)
         .param('db', 'Database name (for GridFS type)', required=False)
         .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
         .param('replicaset', 'Replica set name (for GridFS type)',
@@ -111,8 +113,9 @@ class Assetstore(Resource):
 
         if assetstoreType == AssetstoreType.FILESYSTEM:
             self.requireParams('root', params)
+            perms = params.get('perms', None)
             return self.model('assetstore').createFilesystemAssetstore(
-                name=params['name'], root=params['root'])
+                name=params['name'], root=params['root'], perms=perms)
         elif assetstoreType == AssetstoreType.GRIDFS:
             self.requireParams('db', params)
             return self.model('assetstore').createGridFsAssetstore(
@@ -181,6 +184,8 @@ class Assetstore(Resource):
         .param('name', 'Unique name for the assetstore')
         .param('root', 'Root path on disk (for Filesystem type)',
                required=False)
+        .param('perms', 'File creation permissions (for Filesystem type)',
+               required=False)
         .param('db', 'Database name (for GridFS type)', required=False)
         .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
         .param('replicaset', 'Replica set name (for GridFS type)',
@@ -214,6 +219,8 @@ class Assetstore(Resource):
         if assetstore['type'] == AssetstoreType.FILESYSTEM:
             self.requireParams('root', params)
             assetstore['root'] = params['root']
+            if 'perms' in params:
+                assetstore['perms'] = params['perms']
         elif assetstore['type'] == AssetstoreType.GRIDFS:
             self.requireParams('db', params)
             assetstore['db'] = params['db']
