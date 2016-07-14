@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import girder
 import json
 import os
 import shutil
@@ -56,9 +57,6 @@ class InstallWithOptions(install):
 
 with open('README.rst') as f:
     readme = f.read()
-
-with open('package.json') as f:
-    version = json.load(f)['version']
 
 install_reqs = [
     'bcrypt',
@@ -101,7 +99,7 @@ if sys.version_info[0] == 2:
 # perform the install
 setup(
     name='girder',
-    version=version,
+    version=girder.__version__,
     description='Web-based data management platform',
     long_description=readme,
     author='Kitware, Inc.',
