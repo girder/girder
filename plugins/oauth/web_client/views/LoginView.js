@@ -1,8 +1,13 @@
 import _ from 'underscore';
+
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
+import { splitRoute } from 'girder/utilities/DialogHelper';
 
-girder.views.oauth_LoginView = View.extend({
+import LoginTemplate from '../templates/login.jade';
+import '../stylesheets/login.styl';
+
+var LoginView = View.extend({
     events: {
         'click .g-oauth-button': function (event) {
             var providerId = $(event.currentTarget).attr('g-provider');
@@ -12,8 +17,7 @@ girder.views.oauth_LoginView = View.extend({
     },
 
     initialize: function (settings) {
-        var redirect = settings.redirect ||
-                       girder.dialogs.splitRoute(window.location.href).base;
+        var redirect = settings.redirect || splitRoute(window.location.href).base;
         this.modeText = settings.modeText || 'log in';
 
         restRequest({
@@ -37,14 +41,13 @@ girder.views.oauth_LoginView = View.extend({
                 btn.providerId = provider.id;
                 btn.text = provider.name;
                 buttons.push(btn);
-            }
-            else {
+            } else {
                 console.warn('Unsupported OAuth2 provider: ' + provider.id);
             }
         }, this);
 
         if (buttons.length) {
-            this.$el.append(girder.templates.oauth_login({
+            this.$el.append(LoginTemplate({
                 modeText: this.modeText,
                 buttons: buttons
             }));
@@ -70,3 +73,5 @@ girder.views.oauth_LoginView = View.extend({
         }
     }
 });
+
+export default LoginView;

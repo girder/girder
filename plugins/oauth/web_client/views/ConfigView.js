@@ -1,20 +1,19 @@
 import _ from 'underscore';
 
+import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
+import { apiRoot, restRequest } from 'girder/rest';
 import { events } from 'girder/events';
-import router from 'girder/router';
 
-/**
- * Administrative configuration view. Shows the global-level settings for this
- * plugin for all of the supported oauth providers.
- */
-girder.views.oauth_ConfigView = View.extend({
+import ConfigTemplate from '../templates/config.jade';
+import '../stylesheets/config.styl';
+
+var ConfigView = View.extend({
     events: {
         'submit .g-oauth-provider-form': function (event) {
             event.preventDefault();
             var providerId = $(event.target).attr('provider-id');
-            this.$('#g-oauth-provider-' + providerId  + '-error-message').empty();
+            this.$('#g-oauth-provider-' + providerId + '-error-message').empty();
 
             this._saveSettings(providerId, [{
                 key: 'oauth.' + providerId + '_client_id',
@@ -76,7 +75,7 @@ girder.views.oauth_ConfigView = View.extend({
             type: 'GET',
             path: 'system/setting',
             data: {
-              list: JSON.stringify(settingKeys)
+                list: JSON.stringify(settingKeys)
             }
         }).done(_.bind(function (resp) {
             this.settingVals = resp;
@@ -86,20 +85,20 @@ girder.views.oauth_ConfigView = View.extend({
 
     render: function () {
         var origin = window.location.protocol + '//' + window.location.host,
-            apiRoot = girder.apiRoot;
+            api_root = apiRoot;
 
-        if (apiRoot.substring(0, 1) !== '/') {
-            apiRoot = '/' + apiRoot;
+        if (api_root.substring(0, 1) !== '/') {
+            api_root = '/' + api_root;
         }
 
-        this.$el.html(girder.templates.oauth_config({
+        this.$el.html(ConfigTemplate({
             origin: origin,
-            apiRoot: apiRoot,
+            apiRoot: api_root,
             providers: this.providers
         }));
 
         if (!this.breadcrumb) {
-            this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
+            this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'OAuth login',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
@@ -147,6 +146,5 @@ girder.views.oauth_ConfigView = View.extend({
     }
 });
 
-router.route('plugins/oauth/config', 'oauthConfig', function () {
-    events.trigger('g:navigateTo', girder.views.oauth_ConfigView);
-});
+export default ConfigView;
+

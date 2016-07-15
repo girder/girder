@@ -1,14 +1,11 @@
 import _ from 'underscore';
 
+import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
 import router from 'girder/router';
 
-/**
- * Administrative configuration view. Shows the global-level settings for this
- * plugin.
- */
 girder.views.worker_ConfigView = View.extend({
     events: {
         'submit #g-worker-settings-form': function (event) {

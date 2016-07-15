@@ -5,9 +5,6 @@ import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
 import router from 'girder/router';
 
-/**
- * Show the default quota settings for users and collections.
- */
 girder.views.userQuota_ConfigView = View.extend({
     events: {
         'submit #g-user-quota-form': function (event) {

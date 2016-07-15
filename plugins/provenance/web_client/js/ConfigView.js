@@ -1,15 +1,11 @@
 import _ from 'underscore';
 
+import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
 import router from 'girder/router';
 
-/**
- * This widget provides a text field that will search any set of data types
- * and show matching results as the user types. Results can be clicked,
- * triggering a callback.
- */
 girder.views.provenance_ConfigView = View.extend({
     events: {
         'submit #g-provenance-form': function (event) {

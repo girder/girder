@@ -1,22 +1,27 @@
 import { wrap } from 'girder/utilities/PluginUtils';
+import { getCurrentUser } from 'girder/auth';
+
+import OAuthLoginView from './views/LoginView';
 
 /**
  * We want to add some additional stuff to the login view when it is shown.
  */
-wrap(girder.views.LoginView, 'render', function (render) {
+import LoginView from 'girder/views/layout/LoginView';
+wrap(LoginView, 'render', function (render) {
     render.call(this);
-    new girder.views.oauth_LoginView({
+    new OAuthLoginView({
         el: this.$('.modal-body'),
         parentView: this
     });
     return this;
 });
 
-wrap(girder.views.RegisterView, 'render', function (render) {
+import RegisterView from 'girder/views/layout/RegisterView';
+wrap(RegisterView, 'render', function (render) {
     render.call(this);
 
-    if (!girder.currentUser) {
-        new girder.views.oauth_LoginView({
+    if (!getCurrentUser()) {
+        new OAuthLoginView({
             el: this.$('.modal-body'),
             parentView: this,
             modeText: 'register automatically'
@@ -25,5 +30,3 @@ wrap(girder.views.RegisterView, 'render', function (render) {
 
     return this;
 });
-
-girder.exposePluginConfig('oauth', 'plugins/oauth/config');

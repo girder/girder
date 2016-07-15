@@ -259,6 +259,7 @@ module.exports = function (grunt) {
             plugin !== 'geospatial' &&
             plugin !== 'google_analytics' &&
             plugin !== 'hdfs_assetstore' &&
+            plugin !== 'oauth' &&
             plugin !== 'jobs') {
             return;
         }
