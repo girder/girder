@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
 
 girder.views.oauth_LoginView = View.extend({
     events: {
@@ -15,7 +16,7 @@ girder.views.oauth_LoginView = View.extend({
                        girder.dialogs.splitRoute(window.location.href).base;
         this.modeText = settings.modeText || 'log in';
 
-        girder.restRequest({
+        restRequest({
             path: 'oauth/provider',
             data: {
                 redirect: redirect,

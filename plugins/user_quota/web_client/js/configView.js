@@ -1,5 +1,8 @@
 import _ from 'underscore';
+
 import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
+import { events } from 'girder/events';
 
 /**
  * Show the default quota settings for users and collections.
@@ -23,7 +26,7 @@ girder.views.userQuota_ConfigView = View.extend({
         }
     },
     initialize: function () {
-        girder.restRequest({
+        restRequest({
             type: 'GET',
             path: 'system/setting',
             data: {
@@ -67,7 +70,7 @@ girder.views.userQuota_ConfigView = View.extend({
     },
 
     _saveSettings: function (settings) {
-        girder.restRequest({
+        restRequest({
             type: 'PUT',
             path: 'system/setting',
             data: {
@@ -75,7 +78,7 @@ girder.views.userQuota_ConfigView = View.extend({
             },
             error: null
         }).done(_.bind(function () {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
@@ -91,7 +94,7 @@ girder.views.userQuota_ConfigView = View.extend({
 
 girder.router.route(
     'plugins/user_quota/config', 'userQuotaConfig', function () {
-        girder.events.trigger('g:navigateTo',
+        events.trigger('g:navigateTo',
                               girder.views.userQuota_ConfigView);
     });
 

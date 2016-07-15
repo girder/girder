@@ -1,3 +1,6 @@
+import { restRequest } from 'girder/rest';
+import { events } from 'girder/events';
+
 $(function () {
     /* Include the built version of the our templates.  This means that grunt
      * must be run to generate these before the test. */
@@ -8,12 +11,12 @@ $(function () {
     $('<link/>', {rel: 'stylesheet', type: 'text/css',
                   href: '/static/built/plugins/provenance/plugin.min.css'
     }).appendTo('head');
-    girder.events.trigger('g:appload.before');
+    events.trigger('g:appload.before');
     var app = new girder.App({
         el: 'body',
         parentView: null
     });
-    girder.events.trigger('g:appload.after');
+    events.trigger('g:appload.after');
 });
 
 describe('test the provenance plugin', function () {
@@ -50,7 +53,7 @@ describe('test the provenance plugin', function () {
             $('#g-provenance-form input.btn-primary').click();
         });
         waitsFor(function () {
-            var resp = girder.restRequest({
+            var resp = restRequest({
                 path: 'system/setting',
                 type: 'GET',
                 data: {key: 'provenance.resources'},

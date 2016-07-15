@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
 
 /* Quota and assetstore policy user interface */
 
@@ -55,7 +56,7 @@ import View from 'girder/views/View';
              * model.
              */
             updateQuotaPolicy: function () {
-                girder.restRequest({
+                restRequest({
                     path: this.resourceName + '/' + this.get('_id') + '/quota',
                     type: 'PUT',
                     error: null,
@@ -81,7 +82,7 @@ import View from 'girder/views/View';
                     this.fetchAssetstores(force);
                 });
                 if (!this.get('quotaPolicy') || force) {
-                    girder.restRequest({
+                    restRequest({
                         path: this.resourceName + '/' + this.get('_id') + '/quota',
                         type: 'GET'
                     }).done(_.bind(function (resp) {
@@ -125,7 +126,7 @@ import View from 'girder/views/View';
             fetchDefaultQuota: function (force) {
                 if (girder.currentUser.get('admin') &&
                         (!this.get('defaultQuota') || force)) {
-                    girder.restRequest({
+                    restRequest({
                         path: 'system/setting',
                         type: 'GET',
                         data: {

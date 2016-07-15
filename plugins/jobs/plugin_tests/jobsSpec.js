@@ -13,12 +13,12 @@ $(function () {
         '/static/built/plugins/jobs/plugin.min.css'
     );
 
-    girder.events.trigger('g:appload.before');
+    events.trigger('g:appload.before');
     var app = new girder.App({
         el: 'body',
         parentView: null
     });
-    girder.events.trigger('g:appload.after');
+    events.trigger('g:appload.after');
 
     describe('Unit test the job detail widget.', function () {
         it('Show a job detail widget.', function () {

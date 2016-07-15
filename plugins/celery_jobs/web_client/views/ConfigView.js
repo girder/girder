@@ -1,10 +1,18 @@
 import _ from 'underscore';
+
+import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
+import { events } from 'girder/events';
+import { restRequest } from 'girder/rest';
+
+import ConfigTemplate from '../templates/Config.jade';
+import '../stylesheets/config.styl';
 
 /**
  * Administrative configuration view.
  */
-girder.views.celery_jobs_ConfigView = View.extend({
+var ConfigView = View.extend({
     events: {
         'submit #g-celery-jobs-config-form': function (event) {
             event.preventDefault();
@@ -23,7 +31,7 @@ girder.views.celery_jobs_ConfigView = View.extend({
         }
     },
     initialize: function () {
-        girder.restRequest({
+        restRequest({
             type: 'GET',
             path: 'system/setting',
             data: {
@@ -38,14 +46,13 @@ girder.views.celery_jobs_ConfigView = View.extend({
             this.$('#celery_jobs_broker').val(resp['celery_jobs.broker_url']);
             this.$('#celery_jobs_app_main').val(resp['celery_jobs.app_main']);
             this.$('#celery_jobs_user_id').val(resp['celery_jobs.celery_user_id']);
-
         }, this));
     },
 
     render: function () {
-        this.$el.html(girder.templates.celery_jobs_config());
+        this.$el.html(ConfigTemplate());
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             el: this.$('.g-celery-user-select-container'),
             placeholder: 'Search for celery user...',
             types: ['user'],
@@ -53,7 +60,7 @@ girder.views.celery_jobs_ConfigView = View.extend({
         }).off().on('g:resultClicked', this._setCeleryUser, this).render();
 
         if (!this.breadcrumb) {
-            this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
+            this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'Celery jobs',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
@@ -69,7 +76,7 @@ girder.views.celery_jobs_ConfigView = View.extend({
     },
 
     _saveSettings: function (settings) {
-        girder.restRequest({
+        restRequest({
             type: 'PUT',
             path: 'system/setting',
             data: {
@@ -77,7 +84,7 @@ girder.views.celery_jobs_ConfigView = View.extend({
             },
             error: null
         }).done(_.bind(function (resp) {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
@@ -90,6 +97,5 @@ girder.views.celery_jobs_ConfigView = View.extend({
     }
 });
 
-girder.router.route('plugins/celery_jobs/config', 'celeryJobsConfig', function () {
-    girder.events.trigger('g:navigateTo', girder.views.celery_jobs_ConfigView);
-});
+
+export default ConfigView;

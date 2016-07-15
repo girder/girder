@@ -1,4 +1,5 @@
 import View from 'girder/views/View';
+import { events } from 'girder/events';
 
 /**
  * This widget provides a text field that will search any set of data types
@@ -26,7 +27,7 @@ girder.views.vega_ConfigView = View.extend({
 });
 
 girder.router.route('plugins/vega/config', 'vegaConfig', function () {
-    girder.events.trigger('g:navigateTo', girder.views.vega_ConfigView);
+    events.trigger('g:navigateTo', girder.views.vega_ConfigView);
 });
 
 girder.exposePluginConfig('vega', 'plugins/vega/config');

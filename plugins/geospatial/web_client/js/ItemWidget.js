@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
 
 girder.views.geospatial_ItemWidget = View.extend({
     initialize: function (settings) {
@@ -22,7 +23,7 @@ girder.views.geospatial_ItemWidget = View.extend({
 
 girder.wrap(girder.models.ItemModel, 'fetch', function (fetch) {
     fetch.call(this);
-    girder.restRequest({
+    restRequest({
         path: this.resourceName + '/' + this.get('_id') + '/geospatial',
         error: null
     }).done(_.bind(function (resp) {

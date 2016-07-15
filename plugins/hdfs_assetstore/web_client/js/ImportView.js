@@ -1,4 +1,5 @@
 import View from 'girder/views/View';
+import { events } from 'girder/events';
 
 girder.views.hdfs_assetstore_ImportView = View.extend({
     events: {
@@ -40,7 +41,7 @@ girder.router.route('hdfs_assetstore/:id/import', 'hdfsImport', function (id) {
     var assetstore = new girder.models.AssetstoreModel({
         _id: id
     }).once('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.hdfs_assetstore_ImportView, {
+        events.trigger('g:navigateTo', girder.views.hdfs_assetstore_ImportView, {
             model: assetstore
         });
     }).once('g:error', function () {

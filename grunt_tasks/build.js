@@ -254,6 +254,7 @@ module.exports = function (grunt) {
     grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
         var plugin = path.basename(dir);
         if (plugin !== 'gravatar' &&
+            plugin !== 'celery_jobs' &&
             plugin !== 'thumbnails' &&
             plugin !== 'jobs') {
             return;

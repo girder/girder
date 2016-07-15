@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import { restRequest } from 'girder/rest';
 
 /**
  * Extends the core assetstore model to add HDFS-specific functionality.
@@ -7,7 +8,7 @@ import _ from 'underscore';
     var prototype = girder.models.AssetstoreModel.prototype;
 
     prototype.hdfsImport = function (params) {
-        girder.restRequest({
+        restRequest({
             path: 'hdfs_assetstore/' + this.get('_id') + '/import',
             type: 'PUT',
             data: params,

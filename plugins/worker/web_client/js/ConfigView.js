@@ -1,5 +1,8 @@
 import _ from 'underscore';
+
 import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
+import { events } from 'girder/events';
 
 /**
  * Administrative configuration view. Shows the global-level settings for this
@@ -22,7 +25,7 @@ girder.views.worker_ConfigView = View.extend({
     },
 
     initialize: function () {
-        girder.restRequest({
+        restRequest({
             type: 'GET',
             path: 'system/setting',
             data: {
@@ -55,7 +58,7 @@ girder.views.worker_ConfigView = View.extend({
     },
 
     _saveSettings: function (settings) {
-        girder.restRequest({
+        restRequest({
             type: 'PUT',
             path: 'system/setting',
             data: {
@@ -63,7 +66,7 @@ girder.views.worker_ConfigView = View.extend({
             },
             error: null
         }).done(_.bind(function (resp) {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
@@ -77,7 +80,7 @@ girder.views.worker_ConfigView = View.extend({
 });
 
 girder.router.route('plugins/worker/config', 'workerCfg', function () {
-    girder.events.trigger('g:navigateTo', girder.views.worker_ConfigView);
+    events.trigger('g:navigateTo', girder.views.worker_ConfigView);
 });
 
 girder.exposePluginConfig('worker', 'plugins/worker/config');

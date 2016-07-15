@@ -1,5 +1,7 @@
 /* globals girderTest, runs, waitsFor, expect, describe, it */
 
+import { restRequest } from 'girder/rest';
+
 /* Include the built version of the our templates.  This means that grunt
  * must be run to generate these before the test. */
 girderTest.addCoveredScripts([
@@ -226,7 +228,7 @@ describe('test the user quota plugin', function () {
             $('#g-user-quota-form input.btn-primary').click();
         });
         waitsFor(function () {
-            var resp = girder.restRequest({
+            var resp = restRequest({
                 path: 'system/setting',
                 type: 'GET',
                 data: {key: 'user_quota.default_user_quota'},
@@ -385,7 +387,7 @@ describe('test the user quota plugin', function () {
             $('#g-user-quota-form input.btn-primary').click();
         });
         waitsFor(function () {
-            var resp = girder.restRequest({
+            var resp = restRequest({
                 path: 'system/setting',
                 type: 'GET',
                 data: {key: 'user_quota.default_collection_quota'},
