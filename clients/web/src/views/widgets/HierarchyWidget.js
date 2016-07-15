@@ -54,9 +54,9 @@ girder.views.HierarchyWidget = girder.View.extend({
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
         this._appendPages = _.has(settings, 'appendPages') ? settings.appendPages : false;
         this._onItemClick = settings.onItemClick || (
-          this.navigate ? this.$.noop : function (item) {
-            girder.router.navigate('item/' + item.get('_id'), {trigger: true});
-          });
+            this.navigate ? this.$.noop : function (item) {
+                girder.router.navigate('item/' + item.id, {trigger: true});
+            });
 
         this.folderAccess = settings.folderAccess;
         this.folderCreate = settings.folderCreate;
@@ -91,10 +91,12 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentView: this
         });
         this.folderListView.on('g:folderClicked', function (folder) {
-            this.descend(folder);
+            if (!this.navigate) {
+                this.descend(folder);
 
-            if (this.uploadWidget) {
-                this.uploadWidget.folder = folder;
+                if (this.uploadWidget) {
+                    this.uploadWidget.folder = folder;
+                }
             }
         }, this).off('g:checkboxesChanged')
                 .on('g:checkboxesChanged', this.updateChecked, this)
