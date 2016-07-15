@@ -257,6 +257,7 @@ module.exports = function (grunt) {
             plugin !== 'celery_jobs' &&
             plugin !== 'thumbnails' &&
             plugin !== 'geospatial' &&
+            plugin !== 'google_analytics' &&
             plugin !== 'jobs') {
             return;
         }

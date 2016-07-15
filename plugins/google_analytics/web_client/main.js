@@ -2,6 +2,9 @@ import _ from 'underscore';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
 
+import './lib/backbone.analytics';
+import './routes';
+
 events.on('g:appload.after', function () {
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -16,4 +19,17 @@ events.on('g:appload.after', function () {
             ga('create', resp.google_analytics_id, 'none');
         }
     }, this));
+});
+
+/**
+ * Add analytics for the hierarchy widget specifically since it routes without
+ * triggering (calling navigate without {trigger: true}).
+ */
+events.on('g:hierarchy.route', function (args) {
+    var curRoute = args.route;
+    if (!/^\//.test(curRoute)) {
+        curRoute = '/' + curRoute;
+    }
+    /*global ga*/
+    ga('send', 'pageview', curRoute);
 });

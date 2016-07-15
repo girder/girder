@@ -1,14 +1,14 @@
 import _ from 'underscore';
 
+import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
+import { restRequest } from 'girder/rest';
 
-/**
- * Administrative configuration view. Shows the global-level settings for this
- * plugin for setting the Google Analytics tracking ID.
- */
-girder.views.google_analytics_ConfigView = View.extend({
+import ConfigTemplate from '../templates/config.jade';
+import '../stylesheets/config.styl';
+
+var ConfigView = View.extend({
     events: {
         'submit #g-google_analytics-form': function (event) {
             event.preventDefault();
@@ -36,10 +36,10 @@ girder.views.google_analytics_ConfigView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.google_analytics_config());
+        this.$el.html(ConfigTemplate());
 
         if (!this.breadcrumb) {
-            this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
+            this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'Google Analytics',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
@@ -72,6 +72,5 @@ girder.views.google_analytics_ConfigView = View.extend({
     }
 });
 
-girder.router.route('plugins/google_analytics/config', 'google_analyticsConfig', function () {
-    events.trigger('g:navigateTo', girder.views.google_analytics_ConfigView);
-});
+export default ConfigView;
+
