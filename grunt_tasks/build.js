@@ -256,6 +256,7 @@ module.exports = function (grunt) {
         if (plugin !== 'gravatar' &&
             plugin !== 'celery_jobs' &&
             plugin !== 'thumbnails' &&
+            plugin !== 'geospatial' &&
             plugin !== 'jobs') {
             return;
         }

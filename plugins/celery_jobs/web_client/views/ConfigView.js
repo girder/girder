@@ -6,12 +6,9 @@ import View from 'girder/views/View';
 import { events } from 'girder/events';
 import { restRequest } from 'girder/rest';
 
-import ConfigTemplate from '../templates/Config.jade';
+import ConfigTemplate from '../templates/config.jade';
 import '../stylesheets/config.styl';
 
-/**
- * Administrative configuration view.
- */
 var ConfigView = View.extend({
     events: {
         'submit #g-celery-jobs-config-form': function (event) {
@@ -96,6 +93,5 @@ var ConfigView = View.extend({
         }, this));
     }
 });
-
 
 export default ConfigView;
