@@ -3,6 +3,7 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
+import router from 'girder/router';
 
 /**
  * This widget provides a text field that will search any set of data types
@@ -73,7 +74,7 @@ girder.views.provenance_ConfigView = View.extend({
     }
 });
 
-girder.router.route('plugins/provenance/config', 'provenanceConfig', function () {
+router.route('plugins/provenance/config', 'provenanceConfig', function () {
     events.trigger('g:navigateTo', girder.views.provenance_ConfigView);
 });
 

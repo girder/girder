@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import View from 'girder/views/View';
+import { wrap } from 'girder/utilities/PluginUtils';
 
 var vegaPlugin = {
     views: {}
@@ -41,7 +42,7 @@ vegaPlugin.views.VegaWidget = View.extend({
     }
 });
 
-girder.wrap(girder.views.ItemView, 'render', function (render) {
+wrap(girder.views.ItemView, 'render', function (render) {
     this.model.getAccessLevel(_.bind(function (accessLevel) {
         // Because the passthrough call to render() also does an async call to
         // getAccessLevel(), wait until this one completes before invoking that

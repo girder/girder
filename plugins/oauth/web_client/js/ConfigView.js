@@ -3,6 +3,7 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
+import router from 'girder/router';
 
 /**
  * Administrative configuration view. Shows the global-level settings for this
@@ -146,6 +147,6 @@ girder.views.oauth_ConfigView = View.extend({
     }
 });
 
-girder.router.route('plugins/oauth/config', 'oauthConfig', function () {
+router.route('plugins/oauth/config', 'oauthConfig', function () {
     events.trigger('g:navigateTo', girder.views.oauth_ConfigView);
 });

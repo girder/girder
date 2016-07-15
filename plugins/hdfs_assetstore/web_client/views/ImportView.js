@@ -1,7 +1,10 @@
 import View from 'girder/views/View';
-import { events } from 'girder/events';
+import router from 'girder/router';
 
-girder.views.hdfs_assetstore_ImportView = View.extend({
+import ImportTemplate from '../templates/import.jade';
+import '../stylesheets/import.styl';
+
+var ImportView = View.extend({
     events: {
         'submit .g-hdfs-import-form': function (e) {
             e.preventDefault();
@@ -12,7 +15,7 @@ girder.views.hdfs_assetstore_ImportView = View.extend({
                 parentId = this.$('#g-hdfs-import-dest-id').val();
 
             this.model.off().on('g:imported', function () {
-                girder.router.navigate(parentType + '/' + parentId, {trigger: true});
+                router.navigate(parentType + '/' + parentId, {trigger: true});
             }, this).on('g:error', function (err) {
                 this.$('.g-submit-hdfs-import').removeClass('disabled');
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
@@ -30,21 +33,10 @@ girder.views.hdfs_assetstore_ImportView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.hdfs_assetstore_import({
+        this.$el.html(ImportTemplate({
             assetstore: this.model
         }));
     }
 });
 
-girder.router.route('hdfs_assetstore/:id/import', 'hdfsImport', function (id) {
-    // Fetch the folder by id, then render the view.
-    var assetstore = new girder.models.AssetstoreModel({
-        _id: id
-    }).once('g:fetched', function () {
-        events.trigger('g:navigateTo', girder.views.hdfs_assetstore_ImportView, {
-            model: assetstore
-        });
-    }).once('g:error', function () {
-        girder.router.navigate('assetstores', {trigger: true});
-    }).fetch();
-});
+export default ImportView;

@@ -1,24 +1,29 @@
 import _ from 'underscore';
 
-girder.AssetstoreType.HDFS = 'hdfs';
+import { wrap } from 'girder/utilities/PluginUtils';
+import { AssetstoreType } from 'girder/constants';
+
+AssetstoreType.HDFS = 'hdfs';
 
 /**
  * Adds HDFS-specific info and an import button to the assetstore list view.
  */
-girder.wrap(girder.views.AssetstoresView, 'render', function (render) {
+import AssetstoresView from 'girder/views/body/AssetstoresView';
+import InfoTemplate from './templates/info.jade';
+import ImportButtonTemplate from './templates/importButton.jade';
+wrap(AssetstoresView, 'render', function (render) {
     render.call(this);
 
-    var selector = '.g-assetstore-info-section[assetstore-type="' +
-        girder.AssetstoreType.HDFS + '"]';
+    var selector = '.g-assetstore-info-section[assetstore-type="' + AssetstoreType.HDFS + '"]';
 
     _.each(this.$(selector), function (el) {
         var $el = $(el),
             assetstore = this.collection.get($el.attr('cid'));
-        $el.append(girder.templates.hdfs_assetstore_info({
+        $el.append(InfoTemplate({
             assetstore: assetstore
         }));
         $el.parent().find('.g-assetstore-buttons').append(
-            girder.templates.hdfs_assetstore_importButton({
+            ImportButtonTemplate({
                 assetstore: assetstore
             })
         );
@@ -32,15 +37,17 @@ girder.wrap(girder.views.AssetstoresView, 'render', function (render) {
 /**
  * Add UI for creating new HDFS assetstore.
  */
-girder.wrap(girder.views.NewAssetstoreWidget, 'render', function (render) {
+import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
+import CreateTemplate from './templates/create.jade';
+wrap(NewAssetstoreWidget, 'render', function (render) {
     render.call(this);
 
-    this.$('#g-assetstore-accordion').append(girder.templates.hdfs_assetstore_create());
+    this.$('#g-assetstore-accordion').append(CreateTemplate());
 });
 
-girder.views.NewAssetstoreWidget.prototype.events['submit #g-new-hdfs-form'] = function (e) {
+NewAssetstoreWidget.prototype.events['submit #g-new-hdfs-form'] = function (e) {
     this.createAssetstore(e, this.$('#g-new-hdfs-error'), {
-        type: girder.AssetstoreType.HDFS,
+        type: AssetstoreType.HDFS,
         name: this.$('#g-new-hdfs-name').val(),
         path: this.$('#g-new-hdfs-path').val(),
         effectiveUser: this.$('#g-new-hdfs-user').val(),
@@ -53,19 +60,21 @@ girder.views.NewAssetstoreWidget.prototype.events['submit #g-new-hdfs-form'] = f
 /**
  * Adds HDFS-specific fields to the edit dialog.
  */
-girder.wrap(girder.views.EditAssetstoreWidget, 'render', function (render) {
+import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
+import EditFieldsTemplate from './templates/editFields.jade';
+wrap(EditAssetstoreWidget, 'render', function (render) {
     render.call(this);
 
-    if (this.model.get('type') === girder.AssetstoreType.HDFS) {
+    if (this.model.get('type') === AssetstoreType.HDFS) {
         this.$('.g-assetstore-form-fields').append(
-            girder.templates.hdfs_assetstore_editFields({
+            EditFieldsTemplate({
                 assetstore: this.model
             })
         );
     }
 });
 
-girder.views.EditAssetstoreWidget.prototype.fieldsMap.hdfs = {
+EditAssetstoreWidget.prototype.fieldsMap.hdfs = {
     get: function () {
         return {
             hdfsHost: this.$('#g-edit-hdfs-host').val(),

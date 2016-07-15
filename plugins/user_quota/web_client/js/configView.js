@@ -3,6 +3,7 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
+import router from 'girder/router';
 
 /**
  * Show the default quota settings for users and collections.
@@ -92,7 +93,7 @@ girder.views.userQuota_ConfigView = View.extend({
     }
 });
 
-girder.router.route(
+router.route(
     'plugins/user_quota/config', 'userQuotaConfig', function () {
         events.trigger('g:navigateTo',
                               girder.views.userQuota_ConfigView);

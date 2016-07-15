@@ -3,6 +3,7 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
+import router from 'girder/router';
 
 /**
  * Administrative configuration view. Shows the global-level settings for this
@@ -79,7 +80,7 @@ girder.views.worker_ConfigView = View.extend({
     }
 });
 
-girder.router.route('plugins/worker/config', 'workerCfg', function () {
+router.route('plugins/worker/config', 'workerCfg', function () {
     events.trigger('g:navigateTo', girder.views.worker_ConfigView);
 });
 
