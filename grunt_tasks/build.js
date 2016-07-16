@@ -260,6 +260,7 @@ module.exports = function (grunt) {
             plugin !== 'google_analytics' &&
             plugin !== 'hdfs_assetstore' &&
             plugin !== 'oauth' &&
+            plugin !== 'provenance' &&
             plugin !== 'jobs') {
             return;
         }

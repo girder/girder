@@ -57,7 +57,7 @@ girder.views.userQuota_ConfigView = View.extend({
             }
         }}));
         if (!this.breadcrumb) {
-            this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
+            this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'User and collection quotas and policies',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
@@ -90,10 +90,12 @@ girder.views.userQuota_ConfigView = View.extend({
     }
 });
 
+import { exposePluginConfig } from 'girder/utilities/MiscFunctions';
+
 router.route(
     'plugins/user_quota/config', 'userQuotaConfig', function () {
         events.trigger('g:navigateTo',
                               girder.views.userQuota_ConfigView);
     });
 
-girder.exposePluginConfig('user_quota', 'plugins/user_quota/config');
+exposePluginConfig('user_quota', 'plugins/user_quota/config');

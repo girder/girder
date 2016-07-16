@@ -4,9 +4,10 @@ import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBread
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
-import router from 'girder/router';
 
-girder.views.provenance_ConfigView = View.extend({
+import ConfigTemplate from '../templates/config.jade';
+
+var ConfigView = View.extend({
     events: {
         'submit #g-provenance-form': function (event) {
             event.preventDefault();
@@ -34,10 +35,10 @@ girder.views.provenance_ConfigView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.provenance_config());
+        this.$el.html(ConfigTemplate());
 
         if (!this.breadcrumb) {
-            this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
+            this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'Provenance tracker',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
@@ -70,8 +71,4 @@ girder.views.provenance_ConfigView = View.extend({
     }
 });
 
-router.route('plugins/provenance/config', 'provenanceConfig', function () {
-    events.trigger('g:navigateTo', girder.views.provenance_ConfigView);
-});
-
-girder.exposePluginConfig('provenance', 'plugins/provenance/config');
+export default ConfigView;

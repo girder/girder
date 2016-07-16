@@ -12,7 +12,7 @@ girder.views.vega_ConfigView = View.extend({
         this.$el.html(girder.templates.vega_config());
 
         if (!this.breadcrumb) {
-            this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
+            this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'Vega file visualizer',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
@@ -23,8 +23,10 @@ girder.views.vega_ConfigView = View.extend({
     }
 });
 
+import { exposePluginConfig } from 'girder/utilities/MiscFunctions';
+
 router.route('plugins/vega/config', 'vegaConfig', function () {
     events.trigger('g:navigateTo', girder.views.vega_ConfigView);
 });
 
-girder.exposePluginConfig('vega', 'plugins/vega/config');
+exposePluginConfig('vega', 'plugins/vega/config');

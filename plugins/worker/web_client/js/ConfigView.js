@@ -43,7 +43,7 @@ girder.views.worker_ConfigView = View.extend({
         this.$el.html(girder.templates.worker_config());
 
         if (!this.breadcrumb) {
-            this.breadcrumb = new girder.views.PluginConfigBreadcrumbWidget({
+            this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'Remote worker',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
@@ -77,8 +77,10 @@ girder.views.worker_ConfigView = View.extend({
     }
 });
 
+import { exposePluginConfig } from 'girder/utilities/MiscFunctions';
+
 router.route('plugins/worker/config', 'workerCfg', function () {
     events.trigger('g:navigateTo', girder.views.worker_ConfigView);
 });
 
-girder.exposePluginConfig('worker', 'plugins/worker/config');
+exposePluginConfig('worker', 'plugins/worker/config');
