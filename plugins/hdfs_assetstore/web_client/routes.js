@@ -2,13 +2,13 @@ import AssetstoreModel from 'girder/models/AssetstoreModel';
 import router from 'girder/router';
 import { events } from 'girder/events';
 
-import ImportView from './views/ImportView';
+import HdfsAssetstoreImportView from './views/HdfsAssetstoreImportView';
 router.route('hdfs_assetstore/:id/import', 'hdfsImport', function (id) {
     // Fetch the folder by id, then render the view.
     var assetstore = new AssetstoreModel({
         _id: id
     }).once('g:fetched', function () {
-        events.trigger('g:navigateTo', ImportView, {
+        events.trigger('g:navigateTo', HdfsAssetstoreImportView, {
             model: assetstore
         });
     }).once('g:error', function () {

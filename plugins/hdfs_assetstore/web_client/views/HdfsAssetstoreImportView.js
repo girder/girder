@@ -1,10 +1,10 @@
 import View from 'girder/views/View';
 import router from 'girder/router';
 
-import ImportTemplate from '../templates/import.jade';
-import '../stylesheets/import.styl';
+import HdfsAssetstoreImportViewTemplate from '../templates/hdfsAssetstoreImportView.jade';
+import '../stylesheets/hdfsAssetstoreImportView.styl';
 
-var ImportView = View.extend({
+var HdfsAssetstoreImportView = View.extend({
     events: {
         'submit .g-hdfs-import-form': function (e) {
             e.preventDefault();
@@ -33,10 +33,10 @@ var ImportView = View.extend({
     },
 
     render: function () {
-        this.$el.html(ImportTemplate({
+        this.$el.html(HdfsAssetstoreImportViewTemplate({
             assetstore: this.model
         }));
     }
 });
 
-export default ImportView;
+export default HdfsAssetstoreImportView;

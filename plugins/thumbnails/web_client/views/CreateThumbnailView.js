@@ -6,10 +6,10 @@ import 'girder/utilities/jQuery'; // $.girderModal
 
 import ThumbnailModel from '../models/ThumbnailModel';
 
-import createDialogTemplate from '../templates/createDialog.jade';
-import targetDescriptionTemplate from '../templates/targetDescription.jade';
+import CreateThumbnailViewDialogTemplate from '../templates/createThumbnailViewDialog.jade';
+import CreateThumbnailViewTargetDescriptionTemplate from '../templates/createThumbnailViewTargetDescription.jade';
 
-import '../stylesheets/createThumbnail.styl';
+import '../stylesheets/createThumbnailView.styl';
 
 /**
  * A dialog for creating thumbnails from a specific file.
@@ -74,7 +74,7 @@ var CreateThumbnailView = View.extend({
 
     render: function () {
         var view = this;
-        this.$el.html(createDialogTemplate({
+        this.$el.html(CreateThumbnailViewDialogTemplate({
             file: this.file,
             item: this.item
         })).girderModal(this).on('shown.bs.modal', function () {
@@ -94,7 +94,7 @@ var CreateThumbnailView = View.extend({
         this.attachToId = target.id;
         this.$('.g-submit-create-thumbnail').removeClass('disabled');
 
-        this.$('.g-target-result-container').html(targetDescriptionTemplate({
+        this.$('.g-target-result-container').html(CreateThumbnailViewTargetDescriptionTemplate({
             text: target.text,
             icon: target.icon
         }));

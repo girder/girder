@@ -1,2 +1,5 @@
 import './routes';
-import './wrap';
+
+// Extends and overrides API
+import './views/LoginView';
+import './views/RegisterView';

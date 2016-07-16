@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { events } from 'girder/events';
 import { restRequest } from 'girder/rest';
 
-import ConfigTemplate from '../templates/config.jade';
+import ConfigViewTemplate from '../templates/configView.jade';
 
 var ConfigView = View.extend({
     events: {
@@ -36,7 +36,7 @@ var ConfigView = View.extend({
     },
 
     render: function () {
-        this.$el.html(ConfigTemplate());
+        this.$el.html(ConfigViewTemplate());
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({

@@ -6,7 +6,7 @@ import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/utilities/MiscFunctions';
 import { events } from 'girder/events';
 
-import flowViewTemplate from '../templates/flowView.jade';
+import FlowViewTemplate from '../templates/flowView.jade';
 
 import '../stylesheets/flowView.styl';
 
@@ -41,7 +41,7 @@ var FlowView = View.extend({
     },
 
     render: function () {
-        this.$el.html(flowViewTemplate({
+        this.$el.html(FlowViewTemplate({
             thumbnails: this.thumbnails,
             accessLevel: this.accessLevel,
             AccessType: AccessType

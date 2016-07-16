@@ -1,77 +1,13 @@
-import _ from 'underscore';
+import LoginView from 'girder/views/layout/LoginView';
+import { wrap } from 'girder/utilities/PluginUtils';
 
-import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
-import { splitRoute } from 'girder/utilities/DialogHelper';
+import OAuthLoginView from './OAuthLoginView';
 
-import LoginTemplate from '../templates/login.jade';
-import '../stylesheets/login.styl';
-
-var LoginView = View.extend({
-    events: {
-        'click .g-oauth-button': function (event) {
-            var providerId = $(event.currentTarget).attr('g-provider');
-            var provider = _.findWhere(this.providers, {id: providerId});
-            window.location = provider.url;
-        }
-    },
-
-    initialize: function (settings) {
-        var redirect = settings.redirect || splitRoute(window.location.href).base;
-        this.modeText = settings.modeText || 'log in';
-
-        restRequest({
-            path: 'oauth/provider',
-            data: {
-                redirect: redirect,
-                list: true
-            }
-        }).done(_.bind(function (resp) {
-            this.providers = resp;
-            this.render();
-        }, this));
-    },
-
-    render: function () {
-        var buttons = [];
-        _.each(this.providers, function (provider) {
-            var btn = this._buttons[provider.id];
-
-            if (btn) {
-                btn.providerId = provider.id;
-                btn.text = provider.name;
-                buttons.push(btn);
-            } else {
-                console.warn('Unsupported OAuth2 provider: ' + provider.id);
-            }
-        }, this);
-
-        if (buttons.length) {
-            this.$el.append(LoginTemplate({
-                modeText: this.modeText,
-                buttons: buttons
-            }));
-        }
-    },
-
-    _buttons: {
-        google: {
-            icon: 'gplus',
-            class: 'g-oauth-button-google'
-        },
-        github: {
-            icon: 'github-circled',
-            class: 'g-oauth-button-github'
-        },
-        bitbucket: {
-            icon: 'bitbucket',
-            class: 'g-oauth-button-bitbucket'
-        },
-        linkedin: {
-            icon: 'linkedin',
-            class: 'g-oauth-button-linkedin'
-        }
-    }
+wrap(LoginView, 'render', function (render) {
+    render.call(this);
+    new OAuthLoginView({
+        el: this.$('.modal-body'),
+        parentView: this
+    });
+    return this;
 });
-
-export default LoginView;

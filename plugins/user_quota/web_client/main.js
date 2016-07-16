@@ -1,7 +1,10 @@
-import './models/CollectionModel'; // extends API
-import './models/UserModel'; // extends API
-import './routes';
 import './stylesheets/userQuota.styl'; // used by both QuotaPoliciesWidget and ConfigView
-import './views/CollectionView'; // extends API
-import './views/UploadWidget'; // override uploadNextFile()
-import './views/UserView'; // extends API
+
+import './routes';
+
+// Extends and overrides API
+import './models/CollectionModel';
+import './models/UserModel';
+import './views/CollectionView';
+import './views/UploadWidget';
+import './views/UserView';

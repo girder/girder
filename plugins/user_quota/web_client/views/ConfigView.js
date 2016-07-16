@@ -6,7 +6,7 @@ import { events } from 'girder/events';
 import { restRequest } from 'girder/rest';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 
-import ConfigTemplate from '../templates/config.jade';
+import ConfigViewTemplate from '../templates/configView.jade';
 
 var ConfigView = View.extend({
     events: {
@@ -45,7 +45,7 @@ var ConfigView = View.extend({
             this.settings['user_quota.default_user_quota']);
         var collectionSizeInfo = sizeToValueAndUnits(
             this.settings['user_quota.default_collection_quota']);
-        this.$el.html(ConfigTemplate({resources: {
+        this.$el.html(ConfigViewTemplate({resources: {
             user: {
                 model: 'user',
                 name: 'User',

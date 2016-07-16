@@ -8,10 +8,10 @@ import { getCurrentUser } from 'girder/auth';
 import { SORT_DESC } from 'girder/constants';
 
 import JobCollection from '../collections/JobCollection';
-import jobListTemplate from '../templates/jobList.jade';
+import JobListWidgetTemplate from '../templates/jobListWidget.jade';
 import JobStatus from '../jobStatus';
 
-import '../stylesheets/jobList.styl';
+import '../stylesheets/jobListWidget.styl';
 
 var JobListWidget = View.extend({
     events: {
@@ -59,7 +59,7 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(jobListTemplate({
+        this.$el.html(JobListWidgetTemplate({
             jobs: this.collection.toArray(),
             showHeader: this.showHeader,
             columns: this.columns,

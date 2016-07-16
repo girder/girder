@@ -6,8 +6,8 @@ import View from 'girder/views/View';
 import { events } from 'girder/events';
 import { restRequest } from 'girder/rest';
 
-import ConfigTemplate from '../templates/config.jade';
-import '../stylesheets/config.styl';
+import ConfigViewTemplate from '../templates/configView.jade';
+import '../stylesheets/configView.styl';
 
 var ConfigView = View.extend({
     events: {
@@ -47,7 +47,7 @@ var ConfigView = View.extend({
     },
 
     render: function () {
-        this.$el.html(ConfigTemplate());
+        this.$el.html(ConfigViewTemplate());
 
         this.searchWidget = new SearchFieldWidget({
             el: this.$('.g-celery-user-select-container'),

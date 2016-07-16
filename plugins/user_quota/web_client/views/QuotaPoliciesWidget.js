@@ -8,7 +8,7 @@ import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversio
 
 import 'girder/utilities/jQuery'; // $.girderModal
 
-import QuotaPoliciesTemplate from '../templates/quotaPolicies.jade';
+import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.jade';
 
 var QuotaPoliciesWidget = View.extend({
     events: {
@@ -131,7 +131,7 @@ var QuotaPoliciesWidget = View.extend({
         } else {
             defaultQuotaString = formatSize(defaultQuota);
         }
-        modal = this.$el.html(QuotaPoliciesTemplate({
+        modal = this.$el.html(QuotaPoliciesWidgetTemplate({
             currentUser: currentUser,
             model: view.model,
             modelType: view.modelType,

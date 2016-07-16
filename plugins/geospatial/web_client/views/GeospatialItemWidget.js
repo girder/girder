@@ -1,9 +1,9 @@
 import View from 'girder/views/View';
 
-import ItemTemplate from '../templates/item.jade';
-import '../stylesheets/item.styl';
+import GeospatialItemWidgetTemplate from '../templates/geospatialItemWidget.jade';
+import '../stylesheets/geospatialItemWidget.styl';
 
-var ItemWidget = View.extend({
+var GeospatialItemWidget = View.extend({
     initialize: function (settings) {
         this.accessLevel = settings.accessLevel;
         this.item = settings.item;
@@ -13,11 +13,11 @@ var ItemWidget = View.extend({
         this.render();
     },
     render: function () {
-        this.$el.html(ItemTemplate({
+        this.$el.html(GeospatialItemWidgetTemplate({
             item: this.item
         }));
         return this;
     }
 });
 
-export default ItemWidget;
+export default GeospatialItemWidget;

@@ -5,10 +5,10 @@ import View from 'girder/views/View';
 import { eventStream } from 'girder/events';
 import { formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
 
-import jobDetailsTemplate from '../templates/jobDetails.jade';
+import JobDetailsWidgetTemplate from '../templates/jobDetailsWidget.jade';
 import JobStatus from '../jobStatus';
 
-import '../stylesheets/jobDetails.styl';
+import '../stylesheets/jobDetailsWidget.styl';
 
 var JobDetailsWidget = View.extend({
     initialize: function (settings) {
@@ -29,7 +29,7 @@ var JobDetailsWidget = View.extend({
 
     render: function () {
         var status = this.job.get('status');
-        this.$el.html(jobDetailsTemplate({
+        this.$el.html(JobDetailsWidgetTemplate({
             job: this.job,
             statusText: JobStatus.text(status),
             colorClass: 'g-job-color-' + JobStatus.classAffix(status),

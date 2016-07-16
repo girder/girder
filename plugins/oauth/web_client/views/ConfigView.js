@@ -5,8 +5,8 @@ import View from 'girder/views/View';
 import { apiRoot, restRequest } from 'girder/rest';
 import { events } from 'girder/events';
 
-import ConfigTemplate from '../templates/config.jade';
-import '../stylesheets/config.styl';
+import ConfigViewTemplate from '../templates/configView.jade';
+import '../stylesheets/configView.styl';
 
 var ConfigView = View.extend({
     events: {
@@ -91,7 +91,7 @@ var ConfigView = View.extend({
             api_root = '/' + api_root;
         }
 
-        this.$el.html(ConfigTemplate({
+        this.$el.html(ConfigViewTemplate({
             origin: origin,
             apiRoot: api_root,
             providers: this.providers
