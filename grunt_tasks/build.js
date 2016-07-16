@@ -261,6 +261,7 @@ module.exports = function (grunt) {
             plugin !== 'hdfs_assetstore' &&
             plugin !== 'oauth' &&
             plugin !== 'provenance' &&
+            plugin !== 'user_quota' &&
             plugin !== 'jobs') {
             return;
         }

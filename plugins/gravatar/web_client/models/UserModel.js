@@ -11,5 +11,3 @@ UserModel.prototype.getGravatarUrl = function (size) {
             '/gravatar?size=' + size;
     }
 };
-
-export default UserModel;

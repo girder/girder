@@ -1,23 +1,26 @@
 import _ from 'underscore';
 
+import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
-import router from 'girder/router';
+import { restRequest } from 'girder/rest';
+import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 
-girder.views.userQuota_ConfigView = View.extend({
+import ConfigTemplate from '../templates/config.jade';
+
+var ConfigView = View.extend({
     events: {
         'submit #g-user-quota-form': function (event) {
             event.preventDefault();
             this.$('#g-user-quota-error-message').empty();
             this._saveSettings([{
                 key: 'user_quota.default_user_quota',
-                value: girder.userQuota.valueAndUnitsToSize(
+                value: valueAndUnitsToSize(
                     this.$('.g-sizeValue[model=user]').val(),
                     this.$('.g-sizeUnits[model=user]').val())
             }, {
                 key: 'user_quota.default_collection_quota',
-                value: girder.userQuota.valueAndUnitsToSize(
+                value: valueAndUnitsToSize(
                     this.$('.g-sizeValue[model=collection]').val(),
                     this.$('.g-sizeUnits[model=collection]').val())
             }]);
@@ -38,11 +41,11 @@ girder.views.userQuota_ConfigView = View.extend({
     },
 
     render: function () {
-        var userSizeInfo = girder.userQuota.sizeToValueAndUnits(
+        var userSizeInfo = sizeToValueAndUnits(
             this.settings['user_quota.default_user_quota']);
-        var collectionSizeInfo = girder.userQuota.sizeToValueAndUnits(
+        var collectionSizeInfo = sizeToValueAndUnits(
             this.settings['user_quota.default_collection_quota']);
-        this.$el.html(girder.templates.userQuotaConfig({resources: {
+        this.$el.html(ConfigTemplate({resources: {
             user: {
                 model: 'user',
                 name: 'User',
@@ -90,12 +93,4 @@ girder.views.userQuota_ConfigView = View.extend({
     }
 });
 
-import { exposePluginConfig } from 'girder/utilities/MiscFunctions';
-
-router.route(
-    'plugins/user_quota/config', 'userQuotaConfig', function () {
-        events.trigger('g:navigateTo',
-                              girder.views.userQuota_ConfigView);
-    });
-
-exposePluginConfig('user_quota', 'plugins/user_quota/config');
+export default ConfigView;

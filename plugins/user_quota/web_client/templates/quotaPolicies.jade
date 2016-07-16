@@ -4,7 +4,7 @@
       .modal-header
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         h4.modal-title
-          if girder.currentUser.get('admin')
+          if currentUser.get('admin')
             | Quota and Assetstore Policies for #{name}
           else
             | Quota for #{name}
@@ -13,7 +13,7 @@
           b Quota:
           span.g-quota-capacity #{capacityString}
           .g-quota-capacity-chart
-        if girder.currentUser.get('admin')
+        if currentUser.get('admin')
           .form-group
             label.control-label(for="g-sizeValue") File Size Quota
             p.g-quota-description
@@ -60,7 +60,7 @@
               option(value='none', selected=(quotaPolicy.fallbackAssetstore === 'none')) None
           .g-validation-failed-message
       .modal-footer
-        if girder.currentUser.get('admin')
+        if currentUser.get('admin')
           a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
           button.g-save-policies.btn.btn-small.btn-primary(type="submit")
             i.icon-edit

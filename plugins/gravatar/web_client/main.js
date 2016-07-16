@@ -1,2 +1,2 @@
-import './models/UserModel'; // extends UserModel API
+import './models/UserModel'; // extends API
 import './routes';
