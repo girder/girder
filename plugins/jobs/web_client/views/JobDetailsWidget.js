@@ -6,7 +6,7 @@ import { eventStream } from 'girder/events';
 import { formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
 
 import JobDetailsWidgetTemplate from '../templates/jobDetailsWidget.jade';
-import JobStatus from '../jobStatus';
+import JobStatus from '../JobStatus';
 
 import '../stylesheets/jobDetailsWidget.styl';
 

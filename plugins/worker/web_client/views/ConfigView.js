@@ -4,9 +4,10 @@ import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBread
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
-import router from 'girder/router';
 
-girder.views.worker_ConfigView = View.extend({
+import ConfigViewTemplate from '../templates/configView.jade';
+
+var ConfigView = View.extend({
     events: {
         'submit #g-worker-settings-form': function (event) {
             event.preventDefault();
@@ -40,7 +41,7 @@ girder.views.worker_ConfigView = View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.worker_config());
+        this.$el.html(ConfigViewTemplate());
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({
@@ -77,10 +78,4 @@ girder.views.worker_ConfigView = View.extend({
     }
 });
 
-import { exposePluginConfig } from 'girder/utilities/MiscFunctions';
-
-router.route('plugins/worker/config', 'workerCfg', function () {
-    events.trigger('g:navigateTo', girder.views.worker_ConfigView);
-});
-
-exposePluginConfig('worker', 'plugins/worker/config');
+export default ConfigView;

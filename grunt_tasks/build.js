@@ -17,6 +17,7 @@
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var path              = require('path');
 var webpack           = require('webpack');
+var fs                = require('fs');
 
 /**
  * Define tasks that bundle and compile files for deployment.
@@ -140,11 +141,20 @@ module.exports = function (grunt) {
         // context: path.resolve(__dirname, 'web_external', 'src'),
         resolve: {
             alias: {
+                'girder_plugins': paths.plugins, // can not use 'plugins' key apparently :(
                 'girder': paths.web_src
             },
             extensions: ['.styl', '.css', '.jade', '.js', ''],
-            modules: [paths.clients_web, paths.node_modules],
-            modulesDirectories: [paths.web_src, paths.node_modules]
+            modules: [
+                paths.clients_web,
+                paths.plugins,
+                paths.node_modules
+            ]
+            // modulesDirectories: [
+            //     paths.web_src,
+            //     paths.plugins,
+            //     paths.node_modules
+            // ]
         },
         node: {
             canvas: 'empty',
@@ -253,22 +263,12 @@ module.exports = function (grunt) {
     // Create plugin tasks
     grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
         var plugin = path.basename(dir);
-        if (plugin !== 'gravatar' &&
-            plugin !== 'celery_jobs' &&
-            plugin !== 'thumbnails' &&
-            plugin !== 'geospatial' &&
-            plugin !== 'google_analytics' &&
-            plugin !== 'hdfs_assetstore' &&
-            plugin !== 'oauth' &&
-            plugin !== 'provenance' &&
-            plugin !== 'user_quota' &&
-            plugin !== 'vega' &&
-            plugin !== 'jobs') {
-            return;
-        }
         var pluginTarget = 'plugins/' + plugin + '/plugin';
-        webpackTask.app.entry[pluginTarget] = './' + dir + '/web_client/main.js';
-        // grunt.log.writeln(('Found plugin: ' + plugin).bold);
+        var main =  './' + dir + '/web_client/main.js';
+        if (fs.existsSync(main)) {
+            // grunt.log.writeln(('Using: ' + main).bold);
+            webpackTask.app.entry[pluginTarget] = main;
+        }
     });
 
     grunt.config.merge({

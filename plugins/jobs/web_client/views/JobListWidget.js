@@ -9,7 +9,7 @@ import { SORT_DESC } from 'girder/constants';
 
 import JobCollection from '../collections/JobCollection';
 import JobListWidgetTemplate from '../templates/jobListWidget.jade';
-import JobStatus from '../jobStatus';
+import JobStatus from '../JobStatus';
 
 import '../stylesheets/jobListWidget.styl';
 

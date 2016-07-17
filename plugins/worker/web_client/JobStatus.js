@@ -1,4 +1,4 @@
-import JobStatus from 'jobs/web_client/JobStatus';
+import JobStatus from 'girder_plugins/jobs/web_client/JobStatus';
 
 JobStatus.registerStatus({
     WORKER_FETCHING_INPUT: {
