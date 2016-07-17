@@ -34,10 +34,17 @@ import 'bootstrap/js/modal';
             }
         }
         if (view !== 'close') {
-            this.off().modal().find('[data-dismiss="modal"]')
-                .unbind('click').click(function () {
+            this.off();
+            // It seems as if $foo.girderModal().on('shown.bs.modal', callback)
+            // does not trigger the callback because the call to modal() below is showing
+            // the modal (and sending the 'shown.bs.modal' event) *before* we get to
+            // reaach register the event in .on('shown.bs.modal', cb). Let's show
+            // the modal in the next animation frame to fix this behavior for now.
+            setTimeout(function () {
+                that.modal().find('[data-dismiss="modal"]').unbind('click').click(function () {
                     that.modal('hide');
                 });
+            }, 0);
             if (view !== false) {
                 view.delegateEvents();
             }
