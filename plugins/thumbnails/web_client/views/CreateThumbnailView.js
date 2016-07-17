@@ -2,6 +2,8 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+
+import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal
 
 import ThumbnailModel from '../models/ThumbnailModel';

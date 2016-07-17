@@ -1,15 +1,15 @@
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { events } from 'girder/events';
-import router from 'girder/router';
 
-girder.views.vega_ConfigView = View.extend({
+import ConfigViewTemplate from '../templates/configView.jade';
+
+var ConfigView = View.extend({
     initialize: function (settings) {
         this.render();
     },
 
     render: function () {
-        this.$el.html(girder.templates.vega_config());
+        this.$el.html(ConfigViewTemplate());
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({
@@ -23,10 +23,4 @@ girder.views.vega_ConfigView = View.extend({
     }
 });
 
-import { exposePluginConfig } from 'girder/utilities/MiscFunctions';
-
-router.route('plugins/vega/config', 'vegaConfig', function () {
-    events.trigger('g:navigateTo', girder.views.vega_ConfigView);
-});
-
-exposePluginConfig('vega', 'plugins/vega/config');
+export default ConfigView;

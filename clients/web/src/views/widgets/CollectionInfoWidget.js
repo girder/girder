@@ -3,6 +3,7 @@ import View from 'girder/views/View';
 
 import CollectionInfoDialogTemplate from 'girder/templates/widgets/collectionInfoDialog.jade';
 
+import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal
 
 /**

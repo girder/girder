@@ -3,6 +3,7 @@ import View from 'girder/views/View';
 
 import FolderInfoDialogTemplate from 'girder/templates/widgets/folderInfoDialog.jade';
 
+import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal
 
 /**

@@ -17,6 +17,7 @@ import accessEntryTemplate from 'girder/templates/widgets/accessEntry.jade';
 import 'girder/stylesheets/widgets/accessWidget.styl';
 
 import 'bootstrap/js/tooltip';
+
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal
 

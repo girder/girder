@@ -262,6 +262,7 @@ module.exports = function (grunt) {
             plugin !== 'oauth' &&
             plugin !== 'provenance' &&
             plugin !== 'user_quota' &&
+            plugin !== 'vega' &&
             plugin !== 'jobs') {
             return;
         }

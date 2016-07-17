@@ -26,6 +26,7 @@ import 'girder/routes';
 import 'girder/stylesheets/layout/global.styl';
 import 'girder/stylesheets/layout/layout.styl';
 
+import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal
 
 import 'bootstrap/dist/css/bootstrap.css';

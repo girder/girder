@@ -17,7 +17,7 @@
     "bootstrap": "3.3.6",
     "bootstrap-switch": "3.3.2",
     "colors": "0.6.2",
-    "d3": "3.4.8",
+    "d3": "3.5.9",
     "eonasdan-bootstrap-datetimepicker": "~4.15",
     "event-source": "0.1.1",
     "grunt": "~0.4.5",
@@ -38,8 +38,10 @@
     "remarkable": "1.6.2",
     "sprintf-js": "1.0.2",
     "swagger-ui": "2.0.22",
+    "topojson": "^1.6.26",
     "toposort": "~0.2",
-    "underscore": "~1.5"
+    "underscore": "~1.5",
+    "vega": "^2.6.0"
   },
   "devDependencies": {
     "argv": "0.0.2",

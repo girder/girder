@@ -15,9 +15,9 @@ import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.ja
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/dropdown';
-import 'bootstrap/js/modal';
 import 'bootstrap/js/tooltip';
 
+import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal
 
 var InviteUserDialog = View.extend({
