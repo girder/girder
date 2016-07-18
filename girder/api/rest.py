@@ -242,14 +242,26 @@ def requireAdmin(user, message=None):
         raise AccessException(message or 'Administrator access required.')
 
 
-def getBodyJson():
+def getBodyJson(allowConstants=False):
     """
     For requests that are expected to contain a JSON body, this returns the
     parsed value, or raises a :class:`girder.api.rest.RestException` for
     invalid JSON.
+
+    :param allowConstants: Whether the keywords Infinity, -Infinity, and NaN
+        should be allowed. These keywords are valid JavaScript and will parse
+        to the correct float values, but are not valid in strict JSON.
+    :type allowConstants: bool
     """
+    if allowConstants:
+        _parseConstants = None
+    else:
+        def _parseConstants(val):
+            raise RestException('Error: "%s" is not valid JSON.' % val)
+
+    text = cherrypy.request.body.read().decode('utf8')
     try:
-        return json.loads(cherrypy.request.body.read().decode('utf8'))
+        return json.loads(text, parse_constant=_parseConstants)
     except ValueError:
         raise RestException('Invalid JSON passed in request body.')
 
