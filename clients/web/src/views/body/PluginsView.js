@@ -1,10 +1,12 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { restartServer, confirm, getPluginConfigRoute } from 'girder/utilities/MiscFunctions';
-import { restRequest, cancelRestRequests } from 'girder/rest';
 import router from 'girder/router';
 import View from 'girder/views/View';
+import { confirm } from 'girder/utilities/DialogHelper';
+import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
+import { restartServer } from 'girder/utilities/Server';
+import { restRequest, cancelRestRequests } from 'girder/rest';
 
 import PluginsTemplate from 'girder/templates/body/plugins.jade';
 
@@ -73,9 +75,8 @@ var PluginsView = View.extend({
         }));
 
         var view = this;
-        this.$('.g-plugin-switch').bootstrapSwitch({
-            offText: '&nbsp;'
-        }).off('switchChange.bootstrapSwitch')
+        this.$('.g-plugin-switch').bootstrapSwitch()
+          .off('switchChange.bootstrapSwitch')
           .on('switchChange.bootstrapSwitch', function (event, state) {
               var plugin = $(event.currentTarget).attr('key');
               if (state === true) {

@@ -1,10 +1,10 @@
 import _ from 'underscore';
 
-import { events } from 'girder/events';
 import UserModel from 'girder/models/UserModel';
+import { events } from 'girder/events';
 import { restRequest } from 'girder/rest';
 
-// This definitely need some fixing/testing, as it seems that
+// TODO: this might need some fixing/testing, as it seems that
 // girder.corsAuth could be an override. See login doc below.
 var corsAuth = false;
 

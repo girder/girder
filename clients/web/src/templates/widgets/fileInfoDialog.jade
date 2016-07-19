@@ -1,0 +1,33 @@
+.modal-dialog
+  .modal-content
+    .modal-header
+      button.close(data-dismiss="modal", aria-hidden="true") &times;
+      h4.modal-title File information
+      .g-dialog-subtitle
+        i.icon-doc-inv
+        span= file.name()
+    .modal-body
+      .g-file-info-lines
+        .g-file-info-line(property="created")
+          i.icon-clock
+          span= 'Created '
+          span.g-bold-part= formatDate(file.get('created'), DATE_SECOND)
+
+        .g-file-info-line(property="mimeType")
+          i.icon-info
+          span MIME type:
+          span.g-bold-part  #{file.get('mimeType') || 'unknown'}
+
+        if file.has('size')
+          .g-file-info-line(property="size")
+            i.icon-hdd
+            span Size:
+            span.g-bold-part  #{file.get('size')} bytes
+
+        .g-file-info-line(property="id")
+          i.icon-share
+          span Unique ID:
+          span.g-bold-part  #{file.id}
+
+    .modal-footer
+      a.btn.btn-small.btn-default(data-dismiss="modal") Close

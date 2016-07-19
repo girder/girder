@@ -1,9 +1,8 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-
 import TaskProgressWidget from 'girder/views/widgets/TaskProgressWidget';
+import View from 'girder/views/View';
 
 import LayoutProgressAreaTemplate from 'girder/templates/layout/layoutProgressArea.jade';
 

@@ -1,8 +1,8 @@
 import $ from 'jquery';
 
 import App from 'girder/app';
-import { events } from 'girder/events';
 import router from 'girder/router';
+import { events } from 'girder/events';
 
 import 'bootstrap/js/modal';
 import 'girder/utilities/jQuery'; // $.girderModal

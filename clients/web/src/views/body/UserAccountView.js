@@ -1,13 +1,14 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { getCurrentUser, setCurrentUser } from 'girder/auth';
+import ApiKeyListWidget from 'girder/views/widgets/ApiKeyListWidget';
+import router from 'girder/router';
+import UserModel from 'girder/models/UserModel';
+import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { events, eventStream } from 'girder/events';
-import UserModel from 'girder/models/UserModel';
+import { getCurrentUser, setCurrentUser } from 'girder/auth';
 import { restRequest, cancelRestRequests } from 'girder/rest';
-import router from 'girder/router';
-import View from 'girder/views/View';
 
 import UserAccountTemplate from 'girder/templates/body/userAccount.jade';
 
@@ -96,18 +97,23 @@ var UserAccountView = View.extend({
         this.tab = settings.tab || 'info';
         this.user = settings.user || getCurrentUser();
         this.isCurrentUser = getCurrentUser() &&
-            settings.user.get('_id') === getCurrentUser().get('_id');
+            settings.user.id === getCurrentUser().id;
 
         this.model = this.user;
         this.temporary = settings.temporary;
 
-        if (!this.user ||
-                this.user.getAccessLevel() < AccessType.WRITE) {
+        if (!this.user || this.user.getAccessLevel() < AccessType.WRITE) {
             router.navigate('users', {trigger: true});
             return;
         }
 
         cancelRestRequests('fetch');
+
+        this.apiKeyListWidget = new ApiKeyListWidget({
+            user: this.user,
+            parentView: this
+        });
+
         this.render();
     },
 
@@ -126,12 +132,15 @@ var UserAccountView = View.extend({
 
         _.each($('.g-account-tabs>li>a'), function (el) {
             var tabLink = $(el);
-            var view = this;
-            tabLink.tab().on('shown.bs.tab', function (e) {
-                view.tab = $(e.currentTarget).attr('name');
-                router.navigate('useraccount/' +
-                    view.model.get('_id') + '/' + view.tab);
-            });
+            tabLink.tab().on('shown.bs.tab', _.bind(function (e) {
+                this.tab = $(e.currentTarget).attr('name');
+                router.navigate('useraccount/' + this.model.id + '/' + this.tab);
+
+                if (this.tab === 'apikeys') {
+                    this.apiKeyListWidget.setElement(
+                        this.$('.g-api-keys-list-container')).render();
+                }
+            }, this));
 
             if (tabLink.attr('name') === this.tab) {
                 tabLink.tab('show');

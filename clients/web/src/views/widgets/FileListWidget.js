@@ -1,14 +1,15 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { AccessType } from 'girder/constants';
-import { events } from 'girder/events';
-import FileCollection from 'girder/collections/FileCollection';
-import { confirm, formatSize } from 'girder/utilities/MiscFunctions';
-import View from 'girder/views/View';
-
 import EditFileWidget from 'girder/views/widgets/EditFileWidget';
+import FileCollection from 'girder/collections/FileCollection';
+import FileInfoWidget from 'girder/views/widgets/FileInfoWidget';
 import UploadWidget from 'girder/views/widgets/UploadWidget';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { confirm } from 'girder/utilities/DialogHelper';
+import { formatSize } from 'girder/utilities/MiscFunctions';
+import { events } from 'girder/events';
 
 import FileListTemplate from 'girder/templates/widgets/fileList.jade';
 
@@ -21,6 +22,15 @@ var FileListWidget = View.extend({
     events: {
         'click a.g-show-more-files': function () {
             this.collection.fetchNextPage();
+        },
+
+        'click a.g-show-info': function (e) {
+            var cid = $(e.currentTarget).attr('file-cid');
+            new FileInfoWidget({
+                el: $('#g-dialog-container'),
+                model: this.collection.get(cid),
+                parentView: this
+            }).render();
         },
 
         'click a.g-update-contents': function (e) {
@@ -119,7 +129,7 @@ var FileListWidget = View.extend({
             parentItem: this.parentItem
         }));
 
-        this.$('.g-file-actions-container a[title]').tooltip({
+        this.$('.g-file-list-entry a[title]').tooltip({
             container: 'body',
             placement: 'auto',
             delay: 100

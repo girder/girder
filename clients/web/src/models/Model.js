@@ -119,10 +119,18 @@ var Model = Backbone.Model.extend({
     /**
      * Get the path for downloading this resource via the API. Can be used
      * as the href property of a direct download link.
+     * @param params {Object} list of key-value parameters to include in the
+     *    query string.
      */
-    downloadUrl: function () {
-        return apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
+    downloadUrl: function (params) {
+        var url = apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
             this.get('_id') + '/download';
+
+        if (params) {
+            url += '?' + $.param(params);
+        }
+
+        return url;
     },
 
     /**
@@ -180,147 +188,4 @@ var Model = Backbone.Model.extend({
 
 });
 
-/**
- * Models corresponding to AccessControlledModels on the server should extend
- * from this object. It provides utilities for managing and storing the
- * access control list on
- */
-var AccessControlledModel = Model.extend({
-    /**
-     * Saves the access control list on this model to the server. Saves the
-     * state of whatever this model's "access" parameter is set to, which
-     * should be an object of the form:
-     *    {groups: [{id: <groupId>, level: <accessLevel>}, ...],
-     *     users: [{id: <userId>, level: <accessLevel>}, ...]}
-     * The "public" attribute of this model should also be set as a boolean.
-     * When done, triggers the 'g:accessListSaved' event on the model.
-     */
-    updateAccess: function (params) {
-        if (this.altUrl === null && this.resourceName === null) {
-            alert('Error: You must set an altUrl or a resourceName on your model.');
-            return;
-        }
-
-        restRequest({
-            path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
-            type: 'PUT',
-            data: _.extend({
-                access: JSON.stringify(this.get('access')),
-                public: this.get('public')
-            }, params || {})
-        }).done(_.bind(function () {
-            this.trigger('g:accessListSaved');
-        }, this)).error(_.bind(function (err) {
-            this.trigger('g:error', err);
-        }, this));
-
-        return this;
-    },
-
-    /**
-     * Fetches the access control list from the server, and sets it as the
-     * access property.
-     * @param force By default, this only fetches access if it hasn't already
-     *              been set on the model. If you want to force a refresh
-     *              anyway, set this param to true.
-     */
-    fetchAccess: function (force) {
-        if (this.altUrl === null && this.resourceName === null) {
-            alert('Error: You must set an altUrl or a resourceName on your model.');
-            return;
-        }
-
-        if (!this.get('access') || force) {
-            restRequest({
-                path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
-                type: 'GET'
-            }).done(_.bind(function (resp) {
-                if (resp.access) {
-                    this.set(resp);
-                } else {
-                    this.set('access', resp);
-                }
-                this.trigger('g:accessFetched');
-            }, this)).error(_.bind(function (err) {
-                this.trigger('g:error', err);
-            }, this));
-        } else {
-            this.trigger('g:accessFetched');
-        }
-
-        return this;
-    }
-});
-
-var MetadataMixin = {
-    _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
-        opts = opts || {};
-        restRequest({
-            path: opts.path ||
-                ((this.altUrl || this.resourceName) + '/' + this.get('_id') + '/metadata'),
-            contentType: 'application/json',
-            data: JSON.stringify(metadata),
-            type: 'PUT',
-            error: null
-        }).done(_.bind(function (resp) {
-            this.set(opts.field || 'meta', resp.meta);
-            if (_.isFunction(successCallback)) {
-                successCallback();
-            }
-        }, this)).error(_.bind(function (err) {
-            err.message = err.responseJSON.message;
-            if (_.isFunction(errorCallback)) {
-                errorCallback(err);
-            }
-        }, this));
-    },
-
-    addMetadata: function (key, value, successCallback, errorCallback, opts) {
-        opts = opts || {};
-        var datum = {};
-        datum[key] = value;
-        var meta = this.get(opts.field || 'meta');
-        if (meta && _.has(meta, key)) {
-            if (_.isFunction(errorCallback)) {
-                errorCallback({message: key + ' is already a metadata key'});
-            }
-        } else {
-            this._sendMetadata(datum, successCallback, errorCallback, opts);
-        }
-    },
-
-    removeMetadata: function (key, successCallback, errorCallback, opts) {
-        var datum = {};
-        datum[key] = null;
-        this._sendMetadata(datum, successCallback, errorCallback, opts);
-    },
-
-    editMetadata: function (newKey, oldKey, value, successCallback, errorCallback, opts) {
-        opts = opts || {};
-
-        if (newKey === oldKey) {
-            var datum = {};
-            datum[newKey] = value;
-            this._sendMetadata(datum, successCallback, errorCallback, opts);
-        } else {
-            if (_.has(this.get(opts.field || 'meta'), newKey)) {
-                if (_.isFunction(errorCallback)) {
-                    errorCallback({message: newKey + ' is already a metadata key'});
-                }
-            } else {
-                var metas = {};
-                metas[oldKey] = null;
-                metas[newKey] = value;
-                this._sendMetadata(metas, successCallback, errorCallback, opts);
-            }
-        }
-    }
-};
-
 export default Model;
-export {
-    Model,
-    AccessControlledModel,
-    MetadataMixin
-};
-

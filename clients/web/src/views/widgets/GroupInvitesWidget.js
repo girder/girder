@@ -1,10 +1,10 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/utilities/MiscFunctions';
 import router from 'girder/router';
 import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { confirm } from 'girder/utilities/DialogHelper';
 
 import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.jade';
 

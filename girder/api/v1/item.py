@@ -22,12 +22,12 @@ import cherrypy
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, filtermodel, loadmodel
 from girder.utility import ziputil
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from girder.api import access
 
 
 class Item(Resource):
-    """API endpoint for items"""
+
     def __init__(self):
         super(Item, self).__init__()
         self.resourceName = 'item'
@@ -42,11 +42,11 @@ class Item(Resource):
         self.route('POST', (':id', 'copy'), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='item')
     @describeRoute(
         Description('Search for an item by certain properties.')
-        .responseClass('Item')
+        .responseClass('Item', array=True)
         .param('folderId', "Pass this to list all items in a folder.",
                required=False)
         .param('text', "Pass this to perform a full text search for items.",
@@ -93,7 +93,7 @@ class Item(Resource):
         else:
             raise RestException('Invalid search mode.')
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)
     @filtermodel(model='item')
     @describeRoute(
@@ -106,7 +106,7 @@ class Item(Resource):
     def getItem(self, item, params):
         return item
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='item')
     @describeRoute(
         Description('Create a new item.')
@@ -130,7 +130,7 @@ class Item(Resource):
         return self.model('item').createItem(
             folder=folder, name=name, creator=user, description=description)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.WRITE)
     @filtermodel(model='item')
     @describeRoute(
@@ -160,7 +160,7 @@ class Item(Resource):
 
         return item
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.WRITE)
     @filtermodel(model='item')
     @describeRoute(
@@ -170,9 +170,9 @@ class Item(Resource):
         .param('id', 'The ID of the item.', paramType='path')
         .param('body', 'A JSON object containing the metadata keys to add',
                paramType='body')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Invalid JSON passed in request body.')
-        .errorResponse('Metadata key name was invalid.')
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the item.', 403)
     )
     def setMetadata(self, item, params):
@@ -203,12 +203,12 @@ class Item(Resource):
             yield zip.footer()
         return stream
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)
     @filtermodel(model='file')
     @describeRoute(
         Description('Get the files within an item.')
-        .responseClass('File')
+        .responseClass('File', array=True)
         .param('id', 'The ID of the item.', paramType='path')
         .pagingParams(defaultSort='name')
         .errorResponse('ID was invalid.')
@@ -220,7 +220,7 @@ class Item(Resource):
             item=item, limit=limit, offset=offset, sort=sort))
 
     @access.cookie
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)
     @describeRoute(
         Description('Download the contents of an item.')
@@ -233,6 +233,9 @@ class Item(Resource):
                'header disposition-type value, only applied for single file '
                'items.', required=False, enum=['inline', 'attachment'],
                default='attachment')
+        .param('extraParameters', 'Arbitrary data to send along with the '
+               'download request, only applied for single file '
+               'items.', required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -244,17 +247,19 @@ class Item(Resource):
         if format not in (None, '', 'zip'):
             raise RestException('Unsupported format.')
         if len(files) == 1 and format != 'zip':
-            contentDisp = params.get('contentDisposition', None)
+            contentDisp = params.get('contentDisposition')
+            extraParameters = params.get('extraParameters')
             if (contentDisp is not None and
                contentDisp not in {'inline', 'attachment'}):
                 raise RestException('Unallowed contentDisposition type "%s".' %
                                     contentDisp)
             return self.model('file').download(files[0], offset,
-                                               contentDisposition=contentDisp)
+                                               contentDisposition=contentDisp,
+                                               extraParameters=extraParameters)
         else:
             return self._downloadMultifileItem(item, user)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.WRITE)
     @describeRoute(
         Description('Delete an item by ID.')
@@ -266,7 +271,7 @@ class Item(Resource):
         self.model('item').remove(item)
         return {'message': 'Deleted item %s.' % item['name']}
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='item', level=AccessType.READ)
     @describeRoute(
         Description('Get the path to the root of the item\'s hierarchy.')
@@ -277,7 +282,7 @@ class Item(Resource):
     def rootpath(self, item, params):
         return self.model('item').parentsToRoot(item, self.getCurrentUser())
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.READ)
     @filtermodel(model='item')
     @describeRoute(
@@ -287,10 +292,10 @@ class Item(Resource):
         .param('folderId', 'The ID of the parent folder.', required=False)
         .param('name', 'Name for the new item.', required=False)
         .param('description', "Description for the new item.", required=False)
-        .errorResponse()
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied on the original item.', 403)
-        .errorResponse('Write access was denied on the parent folder.', 403)
+        .errorResponse(('A parameter was invalid.',
+                        'ID was invalid.'))
+        .errorResponse('Read access was denied on the original item.\n\n'
+                       'Write access was denied on the parent folder.', 403)
     )
     def copyItem(self, item, params):
         """

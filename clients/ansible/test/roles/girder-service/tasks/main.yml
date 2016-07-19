@@ -1,8 +1,0 @@
----
-
-  - name: girder | service
-    service:
-        name: girder
-        state: "{{ state }}"
-    when: notify_services|bool
-

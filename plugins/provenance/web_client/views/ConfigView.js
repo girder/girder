@@ -2,8 +2,8 @@ import _ from 'underscore';
 
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
 import { events } from 'girder/events';
+import { restRequest } from 'girder/rest';
 
 import ConfigViewTemplate from '../templates/configView.jade';
 

@@ -1,9 +1,9 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
+import View from 'girder/views/View';
 import { AssetstoreType } from 'girder/constants';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import View from 'girder/views/View';
 
 import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.jade';
 
@@ -90,10 +90,13 @@ var fieldsMap = EditAssetstoreWidget.prototype.fieldsMap;
 fieldsMap[AssetstoreType.FILESYSTEM] = {
     get: function () {
         return {
-            root: this.$('#g-edit-fs-root').val()
+            root: this.$('#g-edit-fs-root').val(),
+            perms: this.$('#g-edit-fs-perms').val()
         };
     },
     set: function () {
+        var permStr = this.model.get('perms') ? this.model.get('perms').toString(8) : '600';
+        this.$('#g-edit-fs-perms').val(permStr);
         this.$('#g-edit-fs-root').val(this.model.get('root'));
     }
 };
@@ -135,4 +138,3 @@ fieldsMap[AssetstoreType.S3] = {
 };
 
 export default EditAssetstoreWidget;
-

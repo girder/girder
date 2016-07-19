@@ -2,7 +2,8 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import FolderModel from 'girder/models/FolderModel';
-import { Model, MetadataMixin } from 'girder/models/Model';
+import MetadataMixin from 'girder/models/MetadataMixin';
+import Model from 'girder/models/Model';
 import { restRequest } from 'girder/rest';
 
 var ItemModel = Model.extend({

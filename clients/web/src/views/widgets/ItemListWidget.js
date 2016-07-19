@@ -2,10 +2,9 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import ItemCollection from 'girder/collections/ItemCollection';
-import { formatSize } from 'girder/utilities/MiscFunctions';
-import View from 'girder/views/View';
-
 import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import View from 'girder/views/View';
+import { formatSize } from 'girder/utilities/MiscFunctions';
 
 import ItemListTemplate from 'girder/templates/widgets/itemList.jade';
 
@@ -50,6 +49,12 @@ var ItemListWidget = View.extend({
             formatSize: formatSize,
             checkboxes: this._checkboxes
         }));
+
+        this.$('.g-item-list-entry a[title]').tooltip({
+            container: 'body',
+            placement: 'auto',
+            delay: 100
+        });
 
         var view = this;
         this.$('.g-list-checkbox').change(function () {

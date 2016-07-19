@@ -23,9 +23,18 @@ form.g-filesystem-import-form
       option(value="collection") Collection
   .form-group
     label(for="g-filesystem-import-dest-id") Destination ID
-    input.form-control.input-sm#g-filesystem-import-dest-id(
-      type="text"
-      placeholder="Existing folder, user, or collection ID to use as the destination")
+    .input-group.input-group-sm
+      input.form-control.input-sm#g-filesystem-import-dest-id(
+        type="text"
+        placeholder="Existing folder, user, or collection ID to use as the destination")
+      .input-group-btn
+        button.g-open-browser.btn.btn-default(type="button")
+          i.icon-folder-open
+  .form-group
+    label(for="g-filesystem-import-leaf-items") Leaf Folders as Items
+    select.form-control#g-filesystem-import-leaf-items
+      option(value="false") False
+      option(value="true") True
   .g-validation-failed-message
   button.g-submit-assetstore-import.btn.btn-success(type="submit")
     i.icon-link-ext

@@ -1,16 +1,15 @@
 import _ from 'underscore';
 
-import { AccessType } from 'girder/constants';
-import { events } from 'girder/events';
 import FolderModel from 'girder/models/FolderModel';
-import { confirm } from 'girder/utilities/MiscFunctions';
-import { cancelRestRequests } from 'girder/rest';
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import router from 'girder/router';
 import UserModel from 'girder/models/UserModel';
-import View from 'girder/views/View';
-
-import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import UsersView from 'girder/views/body/UsersView';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { cancelRestRequests } from 'girder/rest';
+import { confirm } from 'girder/utilities/DialogHelper';
+import { events } from 'girder/events';
 
 import UserPageTemplate from 'girder/templates/body/userPage.jade';
 
@@ -40,6 +39,21 @@ var UserView = View.extend({
                     });
                 }, this)
             });
+        },
+
+        'click a.g-approve-user': function () {
+            this._setAndSave(
+                {status: 'enabled'}, 'Approved user account.');
+        },
+
+        'click a.g-disable-user': function () {
+            this._setAndSave(
+                {status: 'disabled'}, 'Disabled user account.');
+        },
+
+        'click a.g-enable-user': function () {
+            this._setAndSave(
+                {status: 'enabled'}, 'Enabled user account.');
         }
     },
 
@@ -110,6 +124,25 @@ var UserView = View.extend({
         this.itemCreate = false;
 
         return this;
+    },
+
+    _setAndSave: function (data, message) {
+        this.model.set(data);
+        this.model.off('g:saved').on('g:saved', function () {
+            events.trigger('g:alert', {
+                icon: 'ok',
+                text: message,
+                type: 'success',
+                timeout: 4000
+            });
+            this.render();
+        }, this).off('g:error').on('g:error', function (err) {
+            events.trigger('g:alert', {
+                icon: 'cancel',
+                text: err.responseJSON.message,
+                type: 'danger'
+            });
+        }).save();
     }
 }, {
     /**

@@ -23,7 +23,7 @@ import json
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, filtermodel, loadmodel
 from girder.api import access
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -47,11 +47,11 @@ class Folder(Resource):
         self.route('POST', (':id', 'copy'), self.copyFolder)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='folder')
     @describeRoute(
         Description('Search for folders by certain properties.')
-        .responseClass('Folder')
+        .responseClass('Folder', array=True)
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
@@ -106,7 +106,7 @@ class Folder(Resource):
         else:
             raise RestException('Invalid search mode.')
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='folder', level=AccessType.READ)
     @describeRoute(
         Description('Get detailed information about a folder.')
@@ -122,11 +122,13 @@ class Folder(Resource):
         }
 
     @access.cookie
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='folder', level=AccessType.READ)
     @describeRoute(
         Description('Download an entire folder as a zip archive.')
         .param('id', 'The ID of the folder.', paramType='path')
+        .param('mimeFilter', 'JSON list of MIME types to include.',
+               required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
@@ -140,17 +142,25 @@ class Folder(Resource):
             'attachment; filename="%s%s"' % (folder['name'], '.zip')
 
         user = self.getCurrentUser()
+        mimeFilter = params.get('mimeFilter')
+        if mimeFilter:
+            try:
+                mimeFilter = json.loads(mimeFilter)
+                if not isinstance(mimeFilter, list):
+                    raise ValueError()
+            except ValueError:
+                raise RestException('The mimeFilter must be a JSON list.')
 
         def stream():
             zip = ziputil.ZipGenerator(folder['name'])
             for (path, file) in self.model('folder').fileList(
-                    folder, user=user, subpath=False):
+                    folder, user=user, subpath=False, mimeFilter=mimeFilter):
                 for data in zip.addFile(file, path):
                     yield data
             yield zip.footer()
         return stream
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.WRITE)
     @filtermodel(model='folder')
     @describeRoute(
@@ -188,7 +198,7 @@ class Folder(Resource):
 
         return folder
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @filtermodel(model='folder', addFields={'access'})
     @describeRoute(
@@ -229,7 +239,7 @@ class Folder(Resource):
                 folder, access, save=True, recurse=recurse, user=user,
                 progress=ctx, setPublic=public)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='folder')
     @describeRoute(
         Description('Create a new folder.')
@@ -239,9 +249,9 @@ class Folder(Resource):
         .param('parentId', "The ID of the folder's parent.")
         .param('name', "Name of the folder.")
         .param('description', "Description for the folder.", required=False)
-        .param('public', """Whether the folder should be publicly visible. By
-               default, inherits the value from parent folder, or in the
-               case of user or collection parentType, defaults to False.""",
+        .param('public', "Whether the folder should be publicly visible. By "
+               "default, inherits the value from parent folder, or in the "
+               "case of user or collection parentType, defaults to False.",
                required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
@@ -280,7 +290,7 @@ class Folder(Resource):
             parent=parent, name=name, parentType=parentType, creator=user,
             description=description, public=public)
 
-    @access.public
+    @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='folder', level=AccessType.READ)
     @filtermodel(model='folder')
     @describeRoute(
@@ -293,7 +303,7 @@ class Folder(Resource):
     def getFolder(self, folder, params):
         return folder
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @describeRoute(
         Description('Get the access control list for a folder.')
@@ -305,7 +315,7 @@ class Folder(Resource):
     def getFolderAccess(self, folder, params):
         return self.model('folder').getFullAccessList(folder)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_OWN)
     @loadmodel(model='folder', level=AccessType.ADMIN)
     @describeRoute(
         Description('Delete a folder by ID.')
@@ -326,7 +336,7 @@ class Folder(Resource):
             self.model('folder').remove(folder, progress=ctx)
         return {'message': 'Deleted folder %s.' % folder['name']}
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.WRITE)
     @filtermodel(model='folder')
     @describeRoute(
@@ -336,9 +346,9 @@ class Folder(Resource):
         .param('id', 'The ID of the folder.', paramType='path')
         .param('body', 'A JSON object containing the metadata keys to add',
                paramType='body')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Invalid JSON passed in request body.')
-        .errorResponse('Metadata key name was invalid.')
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the folder.', 403)
     )
     def setMetadata(self, folder, params):
@@ -352,7 +362,7 @@ class Folder(Resource):
 
         return self.model('folder').setMetadata(folder, metadata)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.READ)
     @filtermodel(model='folder')
     @describeRoute(
@@ -364,17 +374,17 @@ class Folder(Resource):
         .param('parentId', 'The ID of the parent document.', required=False)
         .param('name', 'Name for the new folder.', required=False)
         .param('description', "Description for the new folder.", required=False)
-        .param('public', """Whether the folder should be publicly visible.  By
-               default, inherits the value from parent folder, or in the case
-               of user or collection parentType, defaults to False.  If
-               'original', use the value of the original folder.""",
+        .param('public', "Whether the folder should be publicly visible. By "
+               "default, inherits the value from parent folder, or in the case "
+               "of user or collection parentType, defaults to False. If "
+               "'original', use the value of the original folder.",
                required=False, enum=[True, False, 'original'])
         .param('progress', 'Whether to record progress on this task. Default '
                'is false.', required=False, dataType='boolean')
-        .errorResponse()
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied on the original folder.', 403)
-        .errorResponse('Write access was denied on the parent.', 403)
+        .errorResponse(('A parameter was invalid.',
+                        'ID was invalid.'))
+        .errorResponse('Read access was denied on the original folder.\n\n'
+                       'Write access was denied on the parent.', 403)
     )
     def copyFolder(self, folder, params):
         user = self.getCurrentUser()
@@ -400,7 +410,7 @@ class Folder(Resource):
                 parent=parent, description=description, public=public,
                 progress=ctx)
 
-    @access.user
+    @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='folder', level=AccessType.WRITE)
     @describeRoute(
         Description('Remove all contents from a folder.')

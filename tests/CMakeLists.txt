@@ -16,6 +16,7 @@ if(RUN_CORE_TESTS)
   # start it first, so that if we have parallelism it doesn't hold things up much
   add_python_test(upload RESOURCE_LOCKS replicaset)
   add_python_test(api_describe)
+  add_python_test(api_key)
   add_python_test(access)
   add_python_test(assetstore)
   add_python_test(collection)
@@ -37,6 +38,7 @@ if(RUN_CORE_TESTS)
   add_python_test(routes)
   add_python_test(search)
   add_python_test(size)
+  add_python_test(stream BIND_SERVER TIMEOUT 90)
   add_python_test(system)
   add_python_test(token)
   add_python_test(user)
@@ -63,6 +65,7 @@ if(RUN_CORE_TESTS)
   add_web_client_test(datetime_widget "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dateTimeWidgetSpec.js")
   add_web_client_test(empty_layout "${PROJECT_SOURCE_DIR}/clients/web/test/spec/emptyLayoutSpec.js")
   add_web_client_test(swagger "${PROJECT_SOURCE_DIR}/clients/web/test/spec/swaggerSpec.js" BASEURL "/api/v1" NOCOVERAGE)
+  add_web_client_test(browser "${PROJECT_SOURCE_DIR}/clients/web/test/spec/browserSpec.js")
 
   # Add tests for the local TestData module
   add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
@@ -70,7 +73,7 @@ if(RUN_CORE_TESTS)
     EXTERNAL_DATA "test_file.txt"
   )
   add_python_test(external_data_plugin
-    EXTERNAL_DATA "test_file.txt" "plugins/has_external_data/test_file.txt"
+    EXTERNAL_DATA "plugins/has_external_data/test_file.txt"
   )
   set_property(TEST server_external_data_core PROPERTY LABELS girder_devel)
   set_property(TEST server_external_data_plugin PROPERTY LABELS girder_devel)

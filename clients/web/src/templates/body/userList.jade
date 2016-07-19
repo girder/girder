@@ -14,11 +14,19 @@ each user in users
         i.icon-clock
         | Joined on
         span.g-user-joined-date  #{formatDate(user.get('created'), DATE_DAY)}
-      if (user.get('size') !== undefined)
+      if user.get('size') !== undefined
         .g-space-used
           i.icon-floppy
           | Currently using
           span.g-user-space-used  #{formatSize(user.get('size'))}
+      if user.get('status') === 'disabled'
+        .g-user-status
+          i.icon-cancel-circled
+          | Account disabled
+      else if user.get('status') === 'pending'
+        .g-user-status
+          i.icon-attention-circled
+          | Account pending approval
     .g-user-title
       a.g-user-link(g-user-cid=user.cid)
         b= user.name()

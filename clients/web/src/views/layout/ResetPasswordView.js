@@ -1,9 +1,9 @@
 import _ from 'underscore';
 
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
-import { restRequest } from 'girder/rest';
 import View from 'girder/views/View';
+import { events } from 'girder/events';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import { restRequest } from 'girder/rest';
 
 import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
 
@@ -18,8 +18,10 @@ var ResetPasswordView = View.extend({
         'submit #g-reset-password-form': function (e) {
             e.preventDefault();
             restRequest({
-                path: 'user/password/temporary?email=' + this.$('#g-email')
-                    .val().trim(),
+                path: 'user/password/temporary',
+                data: {
+                    email: this.$('#g-email').val().trim()
+                },
                 type: 'PUT',
                 error: null // don't do default error behavior
             }).done(_.bind(function () {

@@ -14,6 +14,23 @@ function wrap(obj, funcName, wrapper) {
     obj.prototype[funcName] = _.wrap(obj.prototype[funcName], wrapper);
 }
 
+var _pluginConfigRoutes = {};
+
+/**
+ * Expose a plugin configuration page via the admin plugins page.
+ * @param pluginName The canonical plugin name, i.e. its directory name
+ * @param route The route to trigger that will render the plugin config.
+ */
+function exposePluginConfig(pluginName, route) {
+    _pluginConfigRoutes[pluginName] = route;
+}
+
+function getPluginConfigRoute(pluginName) {
+    return _pluginConfigRoutes[pluginName];
+}
+
 export {
+  exposePluginConfig,
+  getPluginConfigRoute,
   wrap
 };

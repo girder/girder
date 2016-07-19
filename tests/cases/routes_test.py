@@ -138,3 +138,19 @@ class RoutesTestCase(base.TestCase):
         self.assertEqual(resp.headers['Access-Control-Allow-Headers'],
                          SettingDefault.defaults[SettingKey.CORS_ALLOW_HEADERS])
         self.assertEqual(resp.headers['Access-Control-Allow-Methods'], 'POST')
+
+        # Set multiple allowed origins
+        self.model('setting').set(SettingKey.CORS_ALLOW_ORIGIN,
+                                  'http://foo.com, http://bar.com')
+        resp = self.request(
+            path='/dummy/test', method='GET', additionalHeaders=[
+                ('Origin', 'http://bar.com')
+            ], isJson=False)
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
+                         'http://bar.com')
+
+        resp = self.request(
+            path='/dummy/test', method='GET', additionalHeaders=[
+                ('Origin', 'http://invalid.com')
+            ], isJson=False)
+        self.assertNotIn('Access-Control-Allow-Origin', resp.headers)

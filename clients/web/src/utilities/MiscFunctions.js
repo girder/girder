@@ -3,13 +3,6 @@ import _ from 'underscore';
 import Remarkable from 'remarkable';
 
 import { MONTHS } from 'girder/constants';
-import { events } from 'girder/events';
-import { restRequest } from 'girder/rest';
-
-import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.jade';
-
-import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
 
 /**
  * This file contains utility functions for general use in the application
@@ -53,7 +46,7 @@ function formatDate(datestr, resolution) {
  * prefixes.
  */
 function formatSize(sizeBytes) {
-    if (sizeBytes < 20000) {
+    if (sizeBytes < 1024) {
         return sizeBytes + ' B';
     }
     var i, sizeVal = sizeBytes, precision = 1;
@@ -105,42 +98,6 @@ function formatCount(n, opts) {
 
     return n.toFixed(Math.max(0, precision)) + sep +
         ['', 'k', 'M', 'G', 'T'][Math.min(i, 4)];
-}
-
-/**
- * Prompt the user to confirm an action.
- * @param [text] The text to prompt the user with.
- * @param [yesText] The text for the confirm button.
- * @param [yesClass] Class string to apply to the confirm button.
- * @param [noText] The text for the no/cancel button.
- * @param [escapedHtml] If you want to render the text as HTML rather than
- *        plain text, set this to true to acknowledge that you have escaped any
- *        user-created data within the text to prevent XSS exploits.
- * @param confirmCallback Callback function when the user confirms the action.
- */
-function confirm(params) {
-    params = _.extend({
-        text: 'Are you sure?',
-        yesText: 'Yes',
-        yesClass: 'btn-danger',
-        noText: 'Cancel',
-        escapedHtml: false
-    }, params);
-    $('#g-dialog-container').html(ConfirmDialogTemplate({
-        params: params
-    })).girderModal(false);
-
-    var el = $('#g-dialog-container').find('.modal-body>p');
-    if (params.escapedHtml) {
-        el.html(params.text);
-    } else {
-        el.text(params.text);
-    }
-
-    $('#g-confirm-button').unbind('click').click(function () {
-        $('#g-dialog-container').modal('hide');
-        params.confirmCallback();
-    });
 }
 
 /**
@@ -196,52 +153,6 @@ function parseQueryString(queryString) {
     }
     return params;
 }
-
-/**
- * Restart the server, wait until it has restarted, then reload the current
- * page.
- */
-function restartServer() {
-    function waitForServer() {
-        restRequest({
-            type: 'GET',
-            path: 'system/version',
-            error: null
-        }).done(_.bind(function (resp) {
-            if (resp.serverStartDate !== restartServer._lastStartDate) {
-                restartServer._reloadWindow();
-            } else {
-                window.setTimeout(waitForServer, 1000);
-            }
-        })).error(_.bind(function () {
-            window.setTimeout(waitForServer, 1000);
-        }));
-    }
-
-    restRequest({
-        type: 'GET',
-        path: 'system/version'
-    }).done(_.bind(function (resp) {
-        restartServer._lastStartDate = resp.serverStartDate;
-        restartServer._callSystemRestart();
-        events.trigger('g:alert', {
-            icon: 'cw',
-            text: 'Restarting server',
-            type: 'warning',
-            timeout: 60000
-        });
-        waitForServer();
-    }));
-}
-
-/* Having these as object properties facilitates testing */
-restartServer._callSystemRestart = function () {
-    restRequest({type: 'PUT', path: 'system/restart'});
-};
-
-restartServer._reloadWindow = function () {
-    window.location.reload();
-};
 
 /**
  * Create a set of flags that can be OR'd (|) together to define a set of
@@ -300,21 +211,6 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.substring(1);
 }
 
-var _pluginConfigRoutes = {};
-
-/**
- * Expose a plugin configuration page via the admin plugins page.
- * @param pluginName The canonical plugin name, i.e. its directory name
- * @param route The route to trigger that will render the plugin config.
- */
-function exposePluginConfig(pluginName, route) {
-    _pluginConfigRoutes[pluginName] = route;
-}
-
-function getPluginConfigRoute(pluginName) {
-    return _pluginConfigRoutes[pluginName];
-}
-
 export {
     DATE_MONTH,
     DATE_DAY,
@@ -323,15 +219,11 @@ export {
     formatDate,
     formatSize,
     formatCount,
-    confirm,
     localeComparator,
     localeSort,
     getModelClassByName,
     parseQueryString,
-    restartServer,
     defineFlags,
     renderMarkdown,
-    capitalize,
-    exposePluginConfig,
-    getPluginConfigRoute
+    capitalize
 };

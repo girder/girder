@@ -3,15 +3,15 @@ import _ from 'underscore';
 
 import AssetstoreCollection from 'girder/collections/AssetstoreCollection';
 import AssetstoreModel from 'girder/models/AssetstoreModel';
-import { getCurrentUser } from 'girder/auth';
-import { AssetstoreType } from 'girder/constants';
-import { events } from 'girder/events';
-import { formatSize, confirm } from 'girder/utilities/MiscFunctions';
-import { cancelRestRequests } from 'girder/rest';
-import View from 'girder/views/View';
-
 import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
 import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
+import View from 'girder/views/View';
+import { AssetstoreType } from 'girder/constants';
+import { cancelRestRequests } from 'girder/rest';
+import { confirm } from 'girder/utilities/DialogHelper';
+import { events } from 'girder/events';
+import { formatSize } from 'girder/utilities/MiscFunctions';
+import { getCurrentUser } from 'girder/auth';
 
 import AssetstoresTemplate from 'girder/templates/body/assetstores.jade';
 

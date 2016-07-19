@@ -1,5 +1,5 @@
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import View from 'girder/views/View';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 
 import EditFileWidgetTemplate from 'girder/templates/widgets/editFileWidget.jade';
 

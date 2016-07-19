@@ -19,25 +19,60 @@
 
 from girder.api import access
 from girder.api.describe import describeRoute, Description
-from girder.api.rest import RestException
+from girder.api.rest import RestException, setRawResponse, setResponseHeader,\
+    loadmodel
 from girder.api.v1.file import File
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
+from girder.utility.model_importer import ModelImporter
 
 
 class HashedFile(File):
 
-    supportedAlgorithms = [
-        'sha512',
-    ]
+    supportedAlgorithms = {
+        'sha512'
+    }
 
-    def __init__(self, apiRoot):
+    def __init__(self, node):
         super(File, self).__init__()
 
-        self.resourceName = 'file'
-        apiRoot.file.route('GET', ('hashsum', ':algo', ':hash', 'download'),
-                           self.downloadWithHash)
+        node.route('GET', ('hashsum', ':algo', ':hash', 'download'),
+                   self.downloadWithHash)
+        node.route('GET', (':id', 'hashsum_file', ':algo'),
+                   self.downloadKeyFile)
 
-    @access.public
+    @access.cookie
+    @access.public(scope=TokenScope.DATA_READ)
+    @loadmodel(model='file', level=AccessType.READ)
+    @describeRoute(
+        Description('Download the hashsum key file for a given file.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('algo', 'The hashsum algorithm.', paramType='path',
+               enum=supportedAlgorithms)
+        .notes('This is meant to be used in conjunction with CMake\'s '
+               'ExternalData module.')
+        .errorResponse()
+        .errorResponse('Read access was denied on the file.', 403)
+    )
+    def downloadKeyFile(self, file, algo, params):
+        algo = algo.lower()
+        self._validateAlgo(algo)
+
+        if algo not in file:
+            raise RestException('This file does not have the %s hash '
+                                'computed.' % algo)
+        hash = file[algo]
+        name = '.'.join((file['name'], algo))
+
+        setResponseHeader('Content-Length', len(hash))
+        setResponseHeader('Content-Type', 'text/plain')
+        setResponseHeader('Content-Disposition',
+                          'attachment; filename="%s"' % name)
+        setRawResponse()
+
+        return hash
+
+    @access.cookie
+    @access.public(scope=TokenScope.DATA_READ)
     @describeRoute(
         Description('Download a file by its hash sum.')
         .param('algo', 'The type of the given hash sum. '
@@ -46,8 +81,7 @@ class HashedFile(File):
         .param('hash', 'The hexadecimal hash sum of the file to download. '
                        'This parameter is case insensitive.',
                paramType='path')
-        .errorResponse()
-        .errorResponse('Read access was denied on the file.', 403)
+        .errorResponse('No file with the given hash exists.')
     )
     def downloadWithHash(self, algo, hash, params):
         file = self._getFirstFileByHash(algo, hash)
@@ -55,6 +89,15 @@ class HashedFile(File):
             raise RestException('File not found.', code=404)
 
         return self.download(id=file['_id'], params=params)
+
+    def _validateAlgo(self, algo):
+        """
+        Print an exception if a user requests an invalid checksum algorithm.
+        """
+        if algo not in self.supportedAlgorithms:
+            msg = 'Invalid algorithm "%s". Supported algorithms: %s.' % (
+                algo, ', '.join(self.supportedAlgorithms))
+            raise RestException(msg, code=400)
 
     def _getFirstFileByHash(self, algo, hash, user=None):
         """
@@ -68,10 +111,7 @@ class HashedFile(File):
         :return: A file document.
         """
         algo = algo.lower()
-        if algo not in self.supportedAlgorithms:
-            msg = 'Invalid algorithm ("%s"). Supported algorithm are: %s.'\
-                  % (algo, self.supportedAlgorithms)
-            raise RestException(msg, code=400)
+        self._validateAlgo(algo)
 
         query = {algo: hash.lower()}  # Always convert to lower case
         fileModel = self.model('file')
@@ -88,4 +128,6 @@ class HashedFile(File):
 
 
 def load(info):
-    HashedFile(info['apiRoot'])
+    HashedFile(info['apiRoot'].file)
+    ModelImporter.model('file').exposeFields(
+        level=AccessType.READ, fields=HashedFile.supportedAlgorithms)

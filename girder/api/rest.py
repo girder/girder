@@ -34,6 +34,9 @@ from girder.utility.model_importer import ModelImporter
 from girder.utility import config, JsonEncoder
 from six.moves import range, urllib
 
+# Arbitrary buffer length for stream-reading request bodies
+READ_BUFFER_LEN = 65536
+
 
 def getUrlParts(url=None):
     """
@@ -71,6 +74,51 @@ def getApiUrl(url=None):
         raise GirderException('Could not determine API root in %s.' % url)
 
     return url[:idx + 7]
+
+
+def iterBody(length=READ_BUFFER_LEN, strictLength=False):
+    """
+    This is a generator that will read the request body a chunk at a time and
+    yield each chunk, abstracting details of the underlying HTTP server. This
+    function works regardless of whether the body was sent with a Content-Length
+    or using Transfer-Encoding: chunked, but the behavior is slightly different
+    in each case.
+
+    If `Content-Length` is provided, the `length` parameter is used to read the
+    body in chunks up to size `length`. This will block until end of stream or
+    the specified number of bytes is ready.
+
+    If `Transfer-Encoding: chunked` is used, the `length` parameter is ignored
+    by default, and the generator yields each chunk that is sent in the request
+    regardless of its length. However, if `strictLength` is set to True, it will
+    block until `length` bytes have been read or the end of the request.
+
+    :param length: Max buffer size to read per iteration if the request has a
+        known `Content-Length`.
+    :type length: int
+    :param strictLength: If the request is chunked, set this to True to block
+        until ``length`` bytes have been read or end-of-stream.
+    :type strictLength: bool
+    """
+    if cherrypy.request.headers.get('Transfer-Encoding') == 'chunked':
+        while True:
+            if strictLength:
+                buf = cherrypy.request.rfile.read(length)
+                if not buf:
+                    break
+            else:
+                cherrypy.request.rfile._fetch()
+                if cherrypy.request.rfile.closed:
+                    break
+                buf = cherrypy.request.rfile.buffer
+                cherrypy.request.rfile.buffer = b''
+            yield buf
+    elif 'Content-Length' in cherrypy.request.headers:
+        while True:
+            buf = cherrypy.request.body.read(length)
+            if not buf:
+                break
+            yield buf
 
 
 def _cacheAuthUser(fun):
@@ -329,6 +377,18 @@ def setRawResponse(val=True):
     cherrypy.request.girderRawResponse = val
 
 
+def setResponseHeader(header, value):
+    """
+    Set a response header to the given value.
+
+    :param header: The header name.
+    :type header: str
+    :param value: The value for the header.
+    :type value: str
+    """
+    cherrypy.response.headers[header] = value
+
+
 def rawResponse(fun):
     """
     This is a decorator that can be placed on REST route handlers, and is
@@ -358,7 +418,7 @@ def _createResponse(val):
         elif accept.value == 'text/html':  # pragma: no cover
             # Pretty-print and HTML-ify the response for the browser
             cherrypy.response.headers['Content-Type'] = 'text/html'
-            resp = json.dumps(val, indent=4, sort_keys=True,
+            resp = json.dumps(val, indent=4, sort_keys=True, allow_nan=False,
                               separators=(',', ': '), cls=JsonEncoder)
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
@@ -367,7 +427,8 @@ def _createResponse(val):
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
     cherrypy.response.headers['Content-Type'] = 'application/json'
-    return json.dumps(val, sort_keys=True, cls=JsonEncoder).encode('utf8')
+    return json.dumps(val, sort_keys=True, allow_nan=False,
+                      cls=JsonEncoder).encode('utf8')
 
 
 def _handleRestException(e):
@@ -501,14 +562,23 @@ def _setCommonCORSHeaders():
     header present since browsers will simply ignore them if the request is not
     cross-origin.
     """
-    if not cherrypy.request.headers.get('origin'):
+    origin = cherrypy.request.headers.get('origin')
+    if not origin:
         # If there is no origin header, this is not a cross origin request
         return
 
-    origins = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
-    if origins:
-        cherrypy.response.headers['Access-Control-Allow-Origin'] = origins
+    allowed = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
+
+    if allowed:
         cherrypy.response.headers['Access-Control-Allow-Credentials'] = 'true'
+
+        allowed_list = [o.strip() for o in allowed.split(',')]
+        key = 'Access-Control-Allow-Origin'
+
+        if len(allowed_list) == 1:
+            cherrypy.response.headers[key] = allowed_list[0]
+        elif origin in allowed_list:
+            cherrypy.response.headers[key] = origin
 
 
 class RestException(Exception):
@@ -909,13 +979,13 @@ class Resource(ModelImporter):
         """
         Helper method to send the authentication cookie
         """
-        days = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
+        days = float(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
         token = self.model('token').createToken(user, days=days, scope=scope)
 
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = str(token['_id'])
         cookie['girderToken']['path'] = '/'
-        cookie['girderToken']['expires'] = days * 3600 * 24
+        cookie['girderToken']['expires'] = int(days * 3600 * 24)
 
         return token
 
@@ -1009,10 +1079,26 @@ class boundHandler(object):  # noqa: class name
     ``self.boolParam``, ``self.requireParams``, etc.
     """
     def __init__(self, ctx=None):
-        self.ctx = ctx or _sharedContext
 
-    def __call__(self, fn):
-        @six.wraps(fn)
-        def wrapped(*args, **kwargs):
-            return fn(self.ctx, *args, **kwargs)
-        return wrapped
+        if ctx is None or isinstance(ctx, Resource):  # Used with arguments
+            self.ctx = ctx or _sharedContext
+            self.func = None
+
+        elif callable(ctx):  # Used as a raw decorator
+            self.ctx = _sharedContext
+            self.func = ctx
+        else:
+            raise Exception('ctx in boundhandler must be an instance of '
+                            'Resource or a function to be wrapped')
+
+    def __call__(self, *args, **kwargs):
+        if self.func is not None:  # Used as a raw decorator
+            return self.func(self.ctx, *args, **kwargs)
+
+        else:  # Used with arguments
+            fn = args[0]
+
+            @six.wraps(fn)
+            def wrapped(*fargs, **fkwargs):
+                return fn(self.ctx, *fargs, **fkwargs)
+            return wrapped

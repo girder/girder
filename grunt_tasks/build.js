@@ -30,10 +30,7 @@ module.exports = function (grunt) {
         plugins: path.join(__dirname, '../plugins')
     };
     var environment = grunt.option('env') || 'dev';
-    var debugJs = grunt.option('debug-js') || false;
-    // vvvvvv TESTING
-    environment = 'dev'; debugJs = true;
-    // ^^^^^^ TESTING
+    var debugJs = grunt.option('debug-js') || environment === 'dev';
 
     var uglifyOptions = {
         ASCIIOnly: true,
@@ -71,15 +68,13 @@ module.exports = function (grunt) {
         inline: false,     // embed the webpack-dev-server runtime into the bundle (default false)
         hot: false,        // adds HotModuleReplacementPlugin and switch the server to hot mode
         cache: true,
-        progress: false,    // show progress
+        progress: false,   // show progress
         failOnError: true, // report error to grunt if webpack find errors; set to false if
                            // webpack errors are tolerable and grunt should continue
-        // devtool: environment === 'dev' ? 'source-map' : false,
-        devtool: false, // FOR NOW
+        devtool: environment === 'dev' ? 'source-map' : false,
         stats: {
             children: false
         },
-        // context: __dirname,
         module: {
             loaders: [
                 { // Stylus
@@ -97,11 +92,17 @@ module.exports = function (grunt) {
                 },
                 { // CSS
                     test: /\.css$/,
-                    loaders: [ExtractTextPlugin.extract('style-loader'), 'css-loader']
+                    loaders: [
+                        ExtractTextPlugin.extract('style-loader'),
+                        'css-loader'
+                    ]
                 },
                 { // Jade
                     test: /\.jade$/,
-                    loader: 'jade-loader'
+                    loader: 'jade-loader',
+                    query: {
+                        doctype: 'html' // see @girder/pull/1469
+                    }
                 },
                 { // PNG, JPEG
                     test: /\.(png|jpg)$/,
@@ -129,19 +130,17 @@ module.exports = function (grunt) {
                 }
             ],
             noParse: [
-                // // Avoid warning:
-                // //   This seems to be a pre-built javascript file. Though this is
-                // //   possible, it's not recommended. Try to require the original source
-                // //   to get better results.
-                // // This needs fixing later, as Webpack works better when provided with source.
+                // Avoid warning:
+                //   This seems to be a pre-built javascript file. Though this is
+                //   possible, it's not recommended. Try to require the original source
+                //   to get better results.
+                // This needs fixing later, as Webpack works better when provided with source.
                 // /node_modules\/jade/,
                 // /node_modules\/remarkable/
             ]
         },
-        // context: path.resolve(__dirname, 'web_external', 'src'),
         resolve: {
             alias: {
-                'girder_plugins': paths.plugins, // can not use 'plugins' key apparently :(
                 'girder': paths.web_src
             },
             extensions: ['.styl', '.css', '.jade', '.js', ''],
@@ -150,7 +149,7 @@ module.exports = function (grunt) {
                 paths.plugins,
                 paths.node_modules
             ]
-            // modulesDirectories: [
+            // modulesDirectories: [ // deprecated in Webpack 2 beta, remove once 100% sure
             //     paths.web_src,
             //     paths.plugins,
             //     paths.node_modules
@@ -165,7 +164,7 @@ module.exports = function (grunt) {
             xmldom: 'empty'
         },
         plugins: [
-            new webpack.DefinePlugin({
+            new webpack.DefinePlugin({ // IMPORTANT
                 'process.env': {
                     'NODE_ENV': JSON.stringify(environment === 'dev' ? 'dev' : 'production')
                 }
@@ -177,9 +176,18 @@ module.exports = function (grunt) {
                 $: 'jquery',
                 'window.jQuery': 'jquery'
             }),
-            new ExtractTextPlugin('[name].min.css', {
+            new ExtractTextPlugin({
+                filename: '[name].min.css',
                 allChunks: true,
                 disable: false
+            }),
+            // https://github.com/webpack/webpack/issues/283
+            // https://github.com/webpack/webpack/issues/2061#issuecomment-228932941
+            // https://gist.github.com/sokra/27b24881210b56bbaff7#loader-options--minimize
+            // but unclear and confusing as to how far it has been implemented
+            new webpack.LoaderOptionsPlugin({
+                minimize: environment !== 'dev',
+                debug: debugJs
             })
         ]
     };
@@ -188,16 +196,7 @@ module.exports = function (grunt) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
     }
 
-    // new webpack.LoaderOptionsPlugin({
-    //     test: /\.css$/, // optionally pass test, include and exclude, default affects all loaders
-    //     minimize: true,
-    //     debug: false,
-    //     options: {
-    //         // pass stuff to the loader
-    //     }
-    // })
     if (debugJs) {
-        console.log('Building JS in debug mode'.yellow);
         uglifyOptions.beautify = {
             beautify: true
         };
@@ -233,6 +232,7 @@ module.exports = function (grunt) {
             },
             plugins: [
                 // See http://stackoverflow.com/a/29087883/250457
+                // TODO: there is still too much code going in each plugin.min.js
                 // new webpack.optimize.CommonsChunkPlugin({
                 //     name: 'girder.app',
                 //     minChunks: function (module) {
@@ -260,14 +260,16 @@ module.exports = function (grunt) {
         }
     };
 
-    // Create plugin tasks
+    // Add plugin entry points
     grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
         var plugin = path.basename(dir);
         var pluginTarget = 'plugins/' + plugin + '/plugin';
-        var main =  './' + dir + '/web_client/main.js';
+        var webClient = path.resolve('./' + dir + '/web_client');
+        var main =  webClient + '/main.js';
         if (fs.existsSync(main)) {
             // grunt.log.writeln(('Using: ' + main).bold);
             webpackTask.app.entry[pluginTarget] = main;
+            webpackTask.options.resolve.alias['plugins/' + plugin] = webClient;
         }
     });
 

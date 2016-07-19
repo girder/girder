@@ -20,7 +20,7 @@
 from ..describe import Description, describeRoute
 from ..rest import Resource, RestException, loadmodel
 from girder import events
-from girder.constants import AccessType, AssetstoreType
+from girder.constants import AccessType, AssetstoreType, TokenScope
 from girder.api import access
 from girder.utility.progress import ProgressContext
 
@@ -81,6 +81,8 @@ class Assetstore(Resource):
         .param('type', 'Type of the assetstore.')
         .param('root', 'Root path on disk (for filesystem type).',
                required=False)
+        .param('perms', 'File creation permissions (for filesystem type).',
+               required=False)
         .param('db', 'Database name (for GridFS type)', required=False)
         .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
         .param('replicaset', 'Replica set name (for GridFS type)',
@@ -111,8 +113,9 @@ class Assetstore(Resource):
 
         if assetstoreType == AssetstoreType.FILESYSTEM:
             self.requireParams('root', params)
+            perms = params.get('perms', None)
             return self.model('assetstore').createFilesystemAssetstore(
-                name=params['name'], root=params['root'])
+                name=params['name'], root=params['root'], perms=perms)
         elif assetstoreType == AssetstoreType.GRIDFS:
             self.requireParams('db', params)
             return self.model('assetstore').createGridFsAssetstore(
@@ -130,7 +133,7 @@ class Assetstore(Resource):
         else:
             raise RestException('Invalid type parameter')
 
-    @access.admin
+    @access.admin(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='assetstore')
     @describeRoute(
         Description('Import existing data into an assetstore.')
@@ -164,11 +167,13 @@ class Assetstore(Resource):
             exc=True)
 
         progress = self.boolParam('progress', params, default=False)
+        leafFoldersAsItems = self.boolParam('leafFoldersAsItems', params,
+                                            default=False)
         with ProgressContext(
                 progress, user=user, title='Importing data') as ctx:
             return self.model('assetstore').importData(
                 assetstore, parent=parent, parentType=parentType, params=params,
-                progress=ctx, user=user)
+                progress=ctx, user=user, leafFoldersAsItems=leafFoldersAsItems)
 
     @access.admin
     @loadmodel(model='assetstore')
@@ -178,6 +183,8 @@ class Assetstore(Resource):
         .param('id', 'The ID of the assetstore.', paramType='path')
         .param('name', 'Unique name for the assetstore')
         .param('root', 'Root path on disk (for Filesystem type)',
+               required=False)
+        .param('perms', 'File creation permissions (for Filesystem type)',
                required=False)
         .param('db', 'Database name (for GridFS type)', required=False)
         .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
@@ -212,6 +219,8 @@ class Assetstore(Resource):
         if assetstore['type'] == AssetstoreType.FILESYSTEM:
             self.requireParams('root', params)
             assetstore['root'] = params['root']
+            if 'perms' in params:
+                assetstore['perms'] = params['perms']
         elif assetstore['type'] == AssetstoreType.GRIDFS:
             self.requireParams('db', params)
             assetstore['db'] = params['db']
@@ -243,8 +252,8 @@ class Assetstore(Resource):
         Description('Delete an assetstore.')
         .notes('This will fail if there are any files in the assetstore.')
         .param('id', 'The ID of the assetstore.', paramType='path')
-        .errorResponse()
-        .errorResponse('The assetstore is not empty.')
+        .errorResponse(('A parameter was invalid.',
+                        'The assetstore is not empty.'))
         .errorResponse('You are not an administrator.', 403)
     )
     def deleteAssetstore(self, assetstore, params):

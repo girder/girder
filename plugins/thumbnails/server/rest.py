@@ -47,9 +47,8 @@ class Thumbnail(Resource):
         .param('attachToType', 'The type of resource to which this thumbnail is'
                ' attached.', enum=['folder', 'user', 'collection', 'item'])
         .errorResponse()
-        .errorResponse('Write access was denied on the attach destination.',
-                       403)
-        .errorResponse('Read access was denied on the file.', 403)
+        .errorResponse(('Write access was denied on the attach destination.',
+                        'Read access was denied on the file.'), 403)
     )
     def createThumbnail(self, file, params):
         self.requireParams(('attachToId', 'attachToType'), params)

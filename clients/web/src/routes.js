@@ -1,7 +1,8 @@
 import _ from 'underscore';
 
 import router from 'girder/router';
-import { events } from 'girder/events';
+import { events, eventStream } from 'girder/events';
+import { getCurrentUser, setCurrentUser } from 'girder/auth';
 import { restRequest } from 'girder/rest';
 
 /**
@@ -146,11 +147,62 @@ router.route('settings', 'settings', function () {
  * UserAccount
  */
 import UserAccountView from 'girder/views/body/UserAccountView';
+import UserModel from 'girder/models/UserModel';
 router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     UserAccountView.fetchAndInit(id, tab);
 });
 router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
-    UserAccountView.temporaryPassword(id, token);
+    restRequest({
+        path: 'user/password/temporary/' + id,
+        type: 'GET',
+        data: {token: token},
+        error: null
+    }).done(_.bind(function (resp) {
+        resp.user.token = resp.authToken.token;
+        eventStream.close();
+        setCurrentUser(new UserModel(resp.user));
+        eventStream.open();
+        events.trigger('g:login-changed');
+        events.trigger('g:navigateTo', UserAccountView, {
+            user: getCurrentUser(),
+            tab: 'password',
+            temporary: token
+        });
+    }, this)).error(_.bind(function () {
+        router.navigate('users', {trigger: true});
+    }, this));
+});
+
+router.route('useraccount/:id/verification/:token', 'accountVerify', function (id, token) {
+    restRequest({
+        path: 'user/' + id + '/verification',
+        type: 'PUT',
+        data: {token: token},
+        error: null
+    }).done(_.bind(function (resp) {
+        if (resp.authToken) {
+            resp.user.token = resp.authToken.token;
+            eventStream.close();
+            setCurrentUser(new UserModel(resp.user));
+            eventStream.open();
+            events.trigger('g:login-changed');
+        }
+        events.trigger('g:navigateTo', FrontPageView);
+        events.trigger('g:alert', {
+            icon: 'ok',
+            text: 'Email verified.',
+            type: 'success',
+            timeout: 4000
+        });
+    }, this)).error(_.bind(function () {
+        events.trigger('g:navigateTo', FrontPageView);
+        events.trigger('g:alert', {
+            icon: 'cancel',
+            text: 'Could not verify email.',
+            type: 'danger',
+            timeout: 4000
+        });
+    }, this));
 });
 
 /**

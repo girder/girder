@@ -1,8 +1,8 @@
 import _ from 'underscore';
 
 import AssetstoreCollection from 'girder/collections/AssetstoreCollection';
-import { restRequest } from 'girder/rest';
 import { getCurrentUser } from 'girder/auth';
+import { restRequest } from 'girder/rest';
 
 function extendModel(Model, modelType) {
     /* Saves the quota policy on this model to the server.  Saves the

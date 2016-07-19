@@ -1,6 +1,7 @@
 import _ from 'underscore';
-import { restRequest } from 'girder/rest';
+
 import { events } from 'girder/events';
+import { restRequest } from 'girder/rest';
 
 import './lib/backbone.analytics';
 import './routes';

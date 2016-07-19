@@ -1,8 +1,8 @@
 import _ from 'underscore';
 
-import { AccessControlledModel } from 'girder/models/Model';
-import { getCurrentUser } from 'girder/auth';
+import AccessControlledModel from 'girder/models/AccessControlledModel';
 import { AccessType } from 'girder/constants';
+import { getCurrentUser } from 'girder/auth';
 import { restRequest } from 'girder/rest';
 
 var GroupModel = AccessControlledModel.extend({

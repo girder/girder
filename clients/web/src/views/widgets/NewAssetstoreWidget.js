@@ -1,6 +1,6 @@
 import AssetstoreModel from 'girder/models/AssetstoreModel';
-import { AssetstoreType } from 'girder/constants';
 import View from 'girder/views/View';
+import { AssetstoreType } from 'girder/constants';
 
 import NewAssetstoreTemplate from 'girder/templates/widgets/newAssetstore.jade';
 

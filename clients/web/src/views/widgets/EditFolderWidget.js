@@ -1,11 +1,10 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import FolderModel from 'girder/models/FolderModel';
-import View from 'girder/views/View';
-
 import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
+import View from 'girder/views/View';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 
 import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.jade';
 

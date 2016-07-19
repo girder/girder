@@ -1,9 +1,8 @@
-import { getCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
+import { getCurrentUser } from 'girder/auth';
+import { wrap } from 'girder/utilities/PluginUtils';
 
 import QuotaPoliciesWidget from './QuotaPoliciesWidget';
-
-import { wrap } from 'girder/utilities/PluginUtils';
 
 function extendView(View, Template, modelType) {
     var eventSelector = 'click .g-' + modelType + '-policies';

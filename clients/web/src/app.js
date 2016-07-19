@@ -2,14 +2,6 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
-import { Layout } from 'girder/constants';
-import { splitRoute } from 'girder/utilities/DialogHelper';
-import { events, eventStream } from 'girder/events';
-import router from 'girder/router';
-import UserModel from 'girder/models/UserModel';
-import View from 'girder/views/View';
-
 import LayoutFooterView from 'girder/views/layout/FooterView';
 import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
 import LayoutHeaderView from 'girder/views/layout/HeaderView';
@@ -17,6 +9,12 @@ import LoginView from 'girder/views/layout/LoginView';
 import ProgressListView from 'girder/views/layout/ProgressListView';
 import RegisterView from 'girder/views/layout/RegisterView';
 import ResetPasswordView from 'girder/views/layout/ResetPasswordView';
+import UserModel from 'girder/models/UserModel';
+import View from 'girder/views/View';
+import { events, eventStream } from 'girder/events';
+import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
+import { Layout } from 'girder/constants';
+import { router, splitRoute } from 'girder/router';
 
 import AlertTemplate from 'girder/templates/layout/alert.jade';
 import LayoutTemplate from 'girder/templates/layout/layout.jade';
@@ -32,41 +30,87 @@ import 'girder/utilities/jQuery'; // $.girderModal
 import 'bootstrap/dist/css/bootstrap.css';
 
 var App = View.extend({
-    initialize: function () {
-        fetchCurrentUser()
-            .done(_.bind(function (user) {
-                this.headerView = new LayoutHeaderView({
-                    parentView: this
-                });
+    /**
+     * @param {object} [settings]
+     * @param {bool} [settings.start=true] Run start after initialization
+     */
+    initialize: function (settings) {
+        this._started = false;
+        settings = settings || {};
+        if (settings.start === undefined || settings.start) {
+            this.start();
+        }
+    },
 
-                this.globalNavView = new LayoutGlobalNavView({
-                    parentView: this
-                });
+    /**
+     * Start the application with optional components.
+     * @param {object} [settings]
+     * @param {bool} [settings.fetch=true] Fetch the current user modal
+     * @param {bool} [settings.render=true] Render the layout after starting
+     * @param {bool} [settings.history=true] Start backbone's history api
+     * @returns {$.Deferred} A promise-like object that resolves when the app is ready
+     */
+    start: function (settings) {
+        // start is a noop if the app is already running
+        var promise = new $.Deferred().resolve(null).promise();
+        if (this._started) {
+            return promise;
+        }
+        this._started = true;
 
-                this.footerView = new LayoutFooterView({
-                    parentView: this
-                });
+        // set defaults
+        settings = _.defaults(settings || {}, {
+            fetch: true,
+            render: true,
+            history: true
+        });
 
-                this.progressListView = new ProgressListView({
-                    eventStream: eventStream,
-                    parentView: this
-                });
+        // define a function to be run after fetching the user model
+        var afterFetch = _.bind(function (user) {
+            // TODO: this below is the old, pre-webpack code. eventStream is now a singleton
+            // imported from 'girder/events'. This mean it is not "re-newed" if start is
+            // called another time (is it, ever)
+            // girder.eventStream = new girder.EventStream({
+            //     timeout: girder.sseTimeout || null
+            // });
 
-                if (user) {
-                    setCurrentUser(new UserModel(user));
-                    eventStream.open();
-                }
+            this._createLayout();
 
-                this.layoutRenderMap = {};
-                this.layoutRenderMap[Layout.DEFAULT] = this._defaultLayout;
-                this.layoutRenderMap[Layout.EMPTY] = this._emptyLayout;
+            if (user) {
+                setCurrentUser(new UserModel(user));
+                eventStream.open();
+            }
+
+            if (settings.render) {
                 this.render();
+            }
 
-                // Once we've rendered the layout, we can start up the routing.
+            if (settings.history) {
                 Backbone.history.start({
                     pushState: false
                 });
-            }, this));
+            }
+        }, this);
+
+        // If fetching the user from the server then we return the jqxhr object
+        // from the request, otherwise just call the callback.
+        if (settings.fetch) {
+            promise = fetchCurrentUser()
+                .done(afterFetch);
+        } else {
+            afterFetch(null);
+        }
+
+        this.bindGirderEvents();
+        return promise;
+    },
+
+    /**
+     * Bind the application to the global event object.
+     */
+    bindGirderEvents: function () {
+        // Unbind any current handlers in case this happens to be called twice.
+        events.off(null, null, this);
 
         events.on('g:navigateTo', this.navigateTo, this);
         events.on('g:loginUi', this.loginDialog, this);
@@ -74,6 +118,33 @@ var App = View.extend({
         events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
         events.on('g:alert', this.alert, this);
         events.on('g:login', this.login, this);
+    },
+
+    /**
+     * Create the main layout views.
+     * @private
+     */
+    _createLayout: function () {
+        this.headerView = new LayoutHeaderView({
+            parentView: this
+        });
+
+        this.globalNavView = new LayoutGlobalNavView({
+            parentView: this
+        });
+
+        this.footerView = new LayoutFooterView({
+            parentView: this
+        });
+
+        this.progressListView = new ProgressListView({
+            eventStream: eventStream,
+            parentView: this
+        });
+
+        this.layoutRenderMap = {};
+        this.layoutRenderMap[Layout.DEFAULT] = this._defaultLayout;
+        this.layoutRenderMap[Layout.EMPTY] = this._emptyLayout;
     },
 
     _layout: 'default',

@@ -1,18 +1,17 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
+import AccessWidget from 'girder/views/widgets/AccessWidget';
 import CollectionModel from 'girder/models/CollectionModel';
-import { AccessType } from 'girder/constants';
-import { events } from 'girder/events';
+import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
 import FolderModel from 'girder/models/FolderModel';
-import { confirm } from 'girder/utilities/MiscFunctions';
-import { cancelRestRequests } from 'girder/rest';
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import router from 'girder/router';
 import View from 'girder/views/View';
-
-import AccessWidget from 'girder/views/widgets/AccessWidget';
-import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
-import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+import { AccessType } from 'girder/constants';
+import { cancelRestRequests } from 'girder/rest';
+import { confirm } from 'girder/utilities/DialogHelper';
+import { events } from 'girder/events';
 
 import CollectionPageTemplate from 'girder/templates/body/collectionPage.jade';
 

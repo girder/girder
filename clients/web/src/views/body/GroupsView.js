@@ -1,16 +1,15 @@
 import $ from 'jquery';
 
-import { getCurrentUser } from 'girder/auth';
+import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
 import GroupCollection from 'girder/collections/GroupCollection';
 import GroupModel from 'girder/models/GroupModel';
-import { formatDate, DATE_DAY } from 'girder/utilities/MiscFunctions';
-import { cancelRestRequests } from 'girder/rest';
-import router from 'girder/router';
-import View from 'girder/views/View';
-
-import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import View from 'girder/views/View';
+import { cancelRestRequests } from 'girder/rest';
+import { formatDate, DATE_DAY } from 'girder/utilities/MiscFunctions';
+import { getCurrentUser } from 'girder/auth';
 
 import GroupListTemplate from 'girder/templates/body/groupList.jade';
 

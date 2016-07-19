@@ -1,20 +1,20 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { AccessType } from 'girder/constants';
-import { handleClose } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
-import ItemModel from 'girder/models/ItemModel';
-import { confirm, formatSize, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
-import { cancelRestRequests } from 'girder/rest';
-import router from 'girder/router';
-import View from 'girder/views/View';
-
 import EditItemWidget from 'girder/views/widgets/EditItemWidget';
 import FileListWidget from 'girder/views/widgets/FileListWidget';
 import ItemBreadcrumbWidget from 'girder/views/widgets/ItemBreadcrumbWidget';
+import ItemModel from 'girder/models/ItemModel';
 import MetadataWidget from 'girder/views/widgets/MetadataWidget';
+import router from 'girder/router';
 import UploadWidget from 'girder/views/widgets/UploadWidget';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { cancelRestRequests } from 'girder/rest';
+import { confirm } from 'girder/utilities/DialogHelper';
+import { events } from 'girder/events';
+import { formatSize, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
+import { handleClose } from 'girder/utilities/DialogHelper';
 
 import ItemPageTemplate from 'girder/templates/body/itemPage.jade';
 

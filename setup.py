@@ -53,6 +53,7 @@ class InstallWithOptions(install):
                     os.path.join(dest, 'clients', 'web'))
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
+        self.mergeDir(os.path.join('scripts', 'node'), dest)
 
 with open('README.rst') as f:
     readme = f.read()
@@ -69,6 +70,7 @@ install_reqs = [
     'PyYAML',
     'requests',
     'psutil',
+    'python-dateutil',
     'pytz',
     'six>=1.9'
 ]
@@ -77,6 +79,7 @@ extras_reqs = {
     'celery_jobs': ['celery'],
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow'],
+    'worker': ['celery'],
     'plugins': ['celery', 'geojson', 'Pillow']
 }
 

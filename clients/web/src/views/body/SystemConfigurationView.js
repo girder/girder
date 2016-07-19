@@ -1,10 +1,9 @@
 import _ from 'underscore';
 
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import View from 'girder/views/View';
 import { events } from 'girder/events';
 import { restRequest, cancelRestRequests } from 'girder/rest';
-import View from 'girder/views/View';
-
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 
 import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.jade';
 
@@ -63,6 +62,7 @@ var SystemConfigurationView = View.extend({
             'core.email_from_address',
             'core.email_host',
             'core.registration_policy',
+            'core.email_verification',
             'core.smtp_host',
             'core.smtp.port',
             'core.smtp.encryption',

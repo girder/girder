@@ -255,7 +255,7 @@ class Model(ModelImporter):
         return self.collection.find_one(query, projection=fields, **kwargs)
 
     def textSearch(self, query, offset=0, limit=0, sort=None, fields=None,
-                   filters=None):
+                   filters=None, **kwargs):
         """
         Perform a full-text search against the text index for this collection.
 
@@ -284,7 +284,7 @@ class Model(ModelImporter):
         return cursor
 
     def prefixSearch(self, query, offset=0, limit=0, sort=None, fields=None,
-                     filters=None, prefixSearchFields=None):
+                     filters=None, prefixSearchFields=None, **kwargs):
         """
         Search for documents in this model's collection by a prefix string.
         The fields that will be searched based on this prefix must be set as
@@ -653,7 +653,7 @@ class AccessControlledModel(Model):
             })
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -676,7 +676,7 @@ class AccessControlledModel(Model):
         doc['public'] = public
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -731,7 +731,7 @@ class AccessControlledModel(Model):
         doc['access'] = acList
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -989,7 +989,7 @@ class AccessControlledModel(Model):
             dest['access'] = copy.deepcopy(src['access'])
 
         if save:
-            dest = self.save(dest, validate=False)
+            dest = self.save(dest)
         return dest
 
     def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,

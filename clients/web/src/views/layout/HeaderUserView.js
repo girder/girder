@@ -1,7 +1,7 @@
-import { logout, getCurrentUser } from 'girder/auth';
-import { events } from 'girder/events';
 import router from 'girder/router';
 import View from 'girder/views/View';
+import { events } from 'girder/events';
+import { logout, getCurrentUser } from 'girder/auth';
 
 import LayoutHeaderUserTemplate from 'girder/templates/layout/layoutHeaderUser.jade';
 

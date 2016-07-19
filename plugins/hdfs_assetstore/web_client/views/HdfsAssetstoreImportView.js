@@ -1,5 +1,5 @@
-import View from 'girder/views/View';
 import router from 'girder/router';
+import View from 'girder/views/View';
 
 import HdfsAssetstoreImportViewTemplate from '../templates/hdfsAssetstoreImportView.jade';
 import '../stylesheets/hdfsAssetstoreImportView.styl';

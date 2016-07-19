@@ -60,19 +60,23 @@ def fix_path(path):
 
 def runNpmInstall(wd=None, dev=False, npm='npm'):
     """
-    Use this to run `npm install` inside the package.
+    Use this to run `npm install` inside the package. Also builds the web code
+    using `npm run build`.
     """
     wd = wd or constants.PACKAGE_DIR
+    commands = []
 
-    args = (npm, 'install', '--production', '--unsafe-perm') if not dev \
-        else (npm, 'install', '--unsafe-perm')
+    commands.append((npm, 'install', '--unsafe-perm') if dev
+                    else (npm, 'install', '--production', '--unsafe-perm'))
+    commands.append((npm, 'run', 'build'))
 
-    proc = subprocess.Popen(args, cwd=wd)
-    proc.communicate()
+    for command in commands:
+        proc = subprocess.Popen(command, cwd=wd)
+        proc.communicate()
 
-    if proc.returncode != 0:
-        raise Exception('Web client install failed: npm install returned %s.' %
-                        proc.returncode)
+        if proc.returncode != 0:
+            raise Exception('Web client install failed: `%s` returned %s.' %
+                            (' '.join(command), proc.returncode))
 
 
 def install_web(opts=None):
@@ -143,7 +147,8 @@ def install_plugin(opts):
 
             else:
                 raise Exception('Plugin already exists at %s, use "-f" to '
-                                'overwrite the existing directory.')
+                                'overwrite the existing directory.' % (
+                                    targetPath, ))
         if opts.symlink:
             os.symlink(pluginPath, targetPath)
         else:

@@ -1,10 +1,10 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import FileModel from 'girder/models/FileModel';
-import { formatSize } from 'girder/utilities/MiscFunctions';
 import View from 'girder/views/View';
+import { formatSize } from 'girder/utilities/MiscFunctions';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 
 import UploadWidgetTemplate from 'girder/templates/widgets/uploadWidget.jade';
 import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetNonModal.jade';

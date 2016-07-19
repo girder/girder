@@ -1,5 +1,6 @@
-import { restRequest } from 'girder/rest';
+import App from 'girder/app';
 import { events } from 'girder/events';
+import { restRequest } from 'girder/rest';
 
 $(function () {
     /* Include the built version of the our templates.  This means that grunt
@@ -12,7 +13,7 @@ $(function () {
                   href: '/static/built/plugins/provenance/plugin.min.css'
     }).appendTo('head');
     events.trigger('g:appload.before');
-    var app = new girder.App({
+    var app = new App({
         el: 'body',
         parentView: null
     });

@@ -1,8 +1,8 @@
-import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from 'girder/auth';
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
+import { events } from 'girder/events';
+import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from 'girder/auth';
+import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 
 import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.jade';
 
@@ -41,15 +41,25 @@ var RegisterView = View.extend({
                 } else {
                     var authToken = user.get('authToken') || {};
 
-                    setCurrentUser(user);
-                    setCurrentToken(authToken.token);
+                    if (authToken.token) {
+                        setCurrentUser(user);
+                        setCurrentToken(authToken.token);
 
-                    if (corsAuth) {
-                        document.cookie = 'girderToken=' + getCurrentToken();
+                        if (corsAuth) {
+                            document.cookie = 'girderToken=' + getCurrentToken();
+                        }
+
+                        events.trigger('g:login');
+                    } else {
+                        events.trigger('g:alert', {
+                            icon: 'ok',
+                            text: 'Check your email to verify registration.',
+                            type: 'success',
+                            timeout: 4000
+                        });
                     }
 
                     handleClose('register', {replace: true});
-                    events.trigger('g:login');
                 }
 
                 this.$el.modal('hide');

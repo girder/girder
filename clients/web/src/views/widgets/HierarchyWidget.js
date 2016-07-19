@@ -1,16 +1,7 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { AccessType } from 'girder/constants';
-import { handleClose } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
-import ItemModel from 'girder/models/ItemModel';
-import { getModelClassByName, renderMarkdown, confirm, formatCount, capitalize } from 'girder/utilities/MiscFunctions';
-import { restRequest, apiRoot } from 'girder/rest';
-import router from 'girder/router';
-import View from 'girder/views/View';
 import * as allModels from 'girder/models';
-
 import AccessWidget from 'girder/views/widgets/AccessWidget';
 import CheckedMenuWidget from 'girder/views/widgets/CheckedMenuWidget';
 import CollectionInfoWidget from 'girder/views/widgets/CollectionInfoWidget';
@@ -20,8 +11,17 @@ import EditItemWidget from 'girder/views/widgets/EditItemWidget';
 import FolderInfoWidget from 'girder/views/widgets/FolderInfoWidget';
 import FolderListWidget from 'girder/views/widgets/FolderListWidget';
 import ItemListWidget from 'girder/views/widgets/ItemListWidget';
+import ItemModel from 'girder/models/ItemModel';
 import MetadataWidget from 'girder/views/widgets/MetadataWidget';
+import router from 'girder/router';
 import UploadWidget from 'girder/views/widgets/UploadWidget';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { confirm } from 'girder/utilities/DialogHelper';
+import { events } from 'girder/events';
+import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/utilities/MiscFunctions';
+import { handleClose } from 'girder/utilities/DialogHelper';
+import { restRequest, apiRoot } from 'girder/rest';
 
 import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.jade';
 import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.jade';

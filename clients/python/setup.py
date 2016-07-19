@@ -21,10 +21,11 @@
 from setuptools import setup, find_packages
 
 
-CLIENT_VERSION = '1.1.3'
+CLIENT_VERSION = '1.3.1'
 
 install_reqs = [
-    'requests',
+    'diskcache',
+    'requests>=2.4.2',
     'six'
 ]
 with open('README.rst') as f:

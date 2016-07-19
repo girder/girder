@@ -1,3 +1,4 @@
+import ApiKeyCollection from './ApiKeyCollection';
 import AssetstoreCollection from './AssetstoreCollection';
 import Collection from './Collection';
 import CollectionCollection from './CollectionCollection';
@@ -8,6 +9,7 @@ import ItemCollection from './ItemCollection';
 import UserCollection from './UserCollection';
 
 export {
+  ApiKeyCollection,
   AssetstoreCollection,
   Collection,
   CollectionCollection,

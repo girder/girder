@@ -1,22 +1,21 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import { getCurrentUser } from 'girder/auth';
-import { AccessType } from 'girder/constants';
-import { events } from 'girder/events';
-import GroupModel from 'girder/models/GroupModel';
-import { confirm } from 'girder/utilities/MiscFunctions';
-import { cancelRestRequests } from 'girder/rest';
-import router from 'girder/router';
-import UserCollection from 'girder/collections/UserCollection';
-import View from 'girder/views/View';
-
 import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
 import GroupAdminsWidget from 'girder/views/widgets/GroupAdminsWidget';
 import GroupInvitesWidget from 'girder/views/widgets/GroupInvitesWidget';
 import GroupMembersWidget from 'girder/views/widgets/GroupMembersWidget';
+import GroupModel from 'girder/models/GroupModel';
 import GroupModsWidget from 'girder/views/widgets/GroupModsWidget';
 import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import router from 'girder/router';
+import UserCollection from 'girder/collections/UserCollection';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { cancelRestRequests } from 'girder/rest';
+import { confirm } from 'girder/utilities/DialogHelper';
+import { events } from 'girder/events';
+import { getCurrentUser } from 'girder/auth';
 
 import GroupPageTemplate from 'girder/templates/body/groupPage.jade';
 

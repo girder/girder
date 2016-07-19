@@ -53,12 +53,14 @@ class User(Resource):
         self.route('PUT', ('password', 'temporary'),
                    self.generateTemporaryPassword)
         self.route('DELETE', ('password',), self.resetPassword)
+        self.route('PUT', (':id', 'verification'), self.verifyEmail)
+        self.route('POST', ('verification',), self.sendVerificationEmail)
 
     @access.public
     @filtermodel(model='user')
     @describeRoute(
         Description('List or search for users.')
-        .responseClass('User')
+        .responseClass('User', array=True)
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
         .pagingParams(defaultSort='lastName')
@@ -69,7 +71,7 @@ class User(Resource):
             text=params.get('text'), user=self.getCurrentUser(), offset=offset,
             limit=limit, sort=sort))
 
-    @access.public
+    @access.public(scope=TokenScope.USER_INFO_READ)
     @loadmodel(map={'id': 'userToGet'}, model='user', level=AccessType.READ)
     @filtermodel(model='user')
     @describeRoute(
@@ -82,7 +84,7 @@ class User(Resource):
     def getUser(self, userToGet, params):
         return userToGet
 
-    @access.public
+    @access.public(scope=TokenScope.USER_INFO_READ)
     @filtermodel(model='user')
     @describeRoute(
         Description('Retrieve the currently logged-in user information.')
@@ -137,6 +139,16 @@ class User(Resource):
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
+            if self.model('user').emailVerificationRequired(user):
+                raise RestException(
+                    'Email verification required.', code=403,
+                    extra='emailVerification')
+
+            if self.model('user').adminApprovalRequired(user):
+                raise RestException(
+                    'Account approval required.', code=403,
+                    extra='accountApproval')
+
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
 
@@ -144,7 +156,8 @@ class User(Resource):
             'user': self.model('user').filter(user, user),
             'authToken': {
                 'token': token['_id'],
-                'expires': token['expires']
+                'expires': token['expires'],
+                'scope': token['scope']
             },
             'message': 'Login succeeded.'
         }
@@ -183,13 +196,13 @@ class User(Resource):
 
         currentUser = self.getCurrentUser()
 
+        regPolicy = self.model('setting').get(SettingKey.REGISTRATION_POLICY)
+
         if currentUser is not None and currentUser['admin']:
             admin = self.boolParam('admin', params, default=False)
         else:
             admin = False
-            regPolicy = self.model('setting').get(
-                SettingKey.REGISTRATION_POLICY, default='open')
-            if regPolicy != 'open':
+            if regPolicy == 'closed':
                 raise RestException(
                     'Registration on this instance is closed. Contact an '
                     'administrator to create an account for you.')
@@ -199,7 +212,7 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'], admin=admin)
 
-        if currentUser is None:
+        if not currentUser and self.model('user').canLogin(user):
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
             user['authToken'] = {
@@ -232,9 +245,11 @@ class User(Resource):
         .param('email', 'The email of the user.')
         .param('admin', 'Is the user a site admin (admin access required)',
                required=False, dataType='boolean')
+        .param('status', 'The account status (admin access required)',
+               required=False, enum=['pending', 'enabled', 'disabled'])
         .errorResponse()
-        .errorResponse('You do not have write access for this user.', 403)
-        .errorResponse('Must be an admin to create an admin.', 403)
+        .errorResponse(('You do not have write access for this user.',
+                        'Must be an admin to create an admin.'), 403)
     )
     def updateUser(self, user, params):
         self.requireParams(('firstName', 'lastName', 'email'), params)
@@ -251,6 +266,15 @@ class User(Resource):
             else:
                 if newAdminState != user['admin']:
                     raise AccessException('Only admins may change admin state.')
+
+        # Only admins can change status
+        if 'status' in params and params['status'] != user['status']:
+            if self.getCurrentUser()['admin']:
+                user['status'] = params['status']
+                if user['status'] == 'enabled':
+                    self.model('user')._sendApprovedEmail(user)
+            else:
+                raise AccessException('Only admins may change status.')
 
         return self.model('user').save(user)
 
@@ -274,8 +298,8 @@ class User(Resource):
         Description('Change your password.')
         .param('old', 'Your current password or a temporary access token.')
         .param('new', 'Your new password.')
-        .errorResponse('You are not logged in.', 401)
-        .errorResponse('Your old password is incorrect.', 401)
+        .errorResponse(('You are not logged in.',
+                        'Your old password is incorrect.'), 401)
         .errorResponse('Your new password is invalid.')
     )
     def changePassword(self, params):
@@ -410,3 +434,62 @@ class User(Resource):
             'nFolders': self.model('user').countFolders(
                 user, filterUser=self.getCurrentUser(), level=AccessType.READ)
         }
+
+    @access.public
+    @loadmodel(model='user', force=True)
+    @describeRoute(
+        Description('Verify an email address using a token.')
+        .param('id', 'The user ID to check.', paramType='path')
+        .param('token', 'The token to check.')
+        .errorResponse('The token is invalid or expired.', 401)
+    )
+    def verifyEmail(self, user, params):
+        self.requireParams('token', params)
+        token = self.model('token').load(
+            params['token'], force=True, objectId=False, exc=True)
+        delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
+        hasScope = self.model('token').hasScope(
+            token, TokenScope.EMAIL_VERIFICATION)
+
+        if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
+            raise AccessException('The token is invalid or expired.')
+
+        user['emailVerified'] = True
+        self.model('token').remove(token)
+        self.model('user').save(user)
+
+        if self.model('user').canLogin(user):
+            setattr(cherrypy.request, 'girderUser', user)
+            authToken = self.sendAuthTokenCookie(user)
+            return {
+                'user': user,
+                'authToken': {
+                    'token': authToken['_id'],
+                    'expires': authToken['expires'],
+                    'scope': authToken['scope']
+                },
+                'message': 'Email verification succeeded.'
+            }
+        else:
+            return {
+                'user': user,
+                'message': 'Email verification succeeded.'
+            }
+
+    @access.public
+    @describeRoute(
+        Description('Send verification email.')
+        .param('login', 'Your login or email address.')
+        .errorResponse('That login is not registered.', 401)
+    )
+    def sendVerificationEmail(self, params):
+        self.requireParams('login', params)
+        login = params['login'].lower().strip()
+        loginField = 'email' if '@' in login else 'login'
+        user = self.model('user').findOne({loginField: login})
+
+        if not user:
+            raise RestException('That login is not registered.', 401)
+
+        self.model('user')._sendVerificationEmail(user)
+        return {'message': 'Sent verification email.'}

@@ -1,0 +1,5 @@
+{
+    "name": "Auto Join",
+    "description": "Automatically assign new users to groups based on their email domain",
+    "version": "0.1.0"
+}

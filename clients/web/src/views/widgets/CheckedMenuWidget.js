@@ -1,7 +1,6 @@
-import { AccessType } from 'girder/constants';
-import View from 'girder/views/View';
-
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
 
 import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.jade';
 

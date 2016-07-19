@@ -74,13 +74,8 @@ class CustomRootTestCase(base.TestCase):
         # Our custom API augmentations should still work
         resp = self.request('/describe')
         self.assertStatusOk(resp)
-        self.assertTrue('apis' in resp.json)
-        otherDocs = [x for x in resp.json['apis'] if x['path'] == '/other']
-        self.assertEqual(len(otherDocs), 1)
-
-        resp = self.request('/describe/other')
-        self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json['apis']), 1)
+        self.assertIn('paths', resp.json)
+        self.assertIn('/other', resp.json['paths'])
 
         resp = self.request('/other')
         self.assertStatusOk(resp)

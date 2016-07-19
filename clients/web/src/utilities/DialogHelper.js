@@ -1,32 +1,13 @@
 import $ from 'jquery';
 import Backbone from 'backbone';
 
+import { router, splitRoute } from 'girder/router';
 import { parseQueryString } from 'girder/utilities/MiscFunctions';
-import router from 'girder/router';
 
-function splitRoute(route) {
-    if (!route) {
-        return {base: '', name: ''};
-    }
-    var firstIndex = route.indexOf('?'),
-        lastIndex = route.lastIndexOf('?'),
-        dialogName,
-        baseRoute;
+import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.jade';
 
-    if (firstIndex === -1) {
-        baseRoute = route;
-    } else {
-        baseRoute = route.slice(0, firstIndex);
-    }
-
-    if (lastIndex === -1) {
-        dialogName = '';
-    } else {
-        dialogName = route.slice(lastIndex + 1);
-    }
-
-    return {name: dialogName, base: baseRoute};
-}
+import 'bootstrap/js/modal';
+import 'girder/utilities/jQuery'; // $.girderModal
 
 function handleClose(name, options, nameId) {
     if (!router.enabled()) {
@@ -71,8 +52,44 @@ function handleOpen(name, options, nameId) {
     }
 }
 
+/**
+ * Prompt the user to confirm an action.
+ * @param [text] The text to prompt the user with.
+ * @param [yesText] The text for the confirm button.
+ * @param [yesClass] Class string to apply to the confirm button.
+ * @param [noText] The text for the no/cancel button.
+ * @param [escapedHtml] If you want to render the text as HTML rather than
+ *        plain text, set this to true to acknowledge that you have escaped any
+ *        user-created data within the text to prevent XSS exploits.
+ * @param confirmCallback Callback function when the user confirms the action.
+ */
+function confirm(params) {
+    params = _.extend({
+        text: 'Are you sure?',
+        yesText: 'Yes',
+        yesClass: 'btn-danger',
+        noText: 'Cancel',
+        escapedHtml: false
+    }, params);
+    $('#g-dialog-container').html(ConfirmDialogTemplate({
+        params: params
+    })).girderModal(false);
+
+    var el = $('#g-dialog-container').find('.modal-body>p');
+    if (params.escapedHtml) {
+        el.html(params.text);
+    } else {
+        el.text(params.text);
+    }
+
+    $('#g-confirm-button').unbind('click').click(function () {
+        $('#g-dialog-container').modal('hide');
+        params.confirmCallback();
+    });
+}
+
 export {
-    splitRoute,
+    confirm,
     handleClose,
     handleOpen
 };

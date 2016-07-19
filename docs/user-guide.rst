@@ -270,3 +270,35 @@ User
 
 ``Users`` have ``ADMIN`` access on themselves, and have ``READ`` access on other
 ``Users``.
+
+API keys
+--------
+
+Like many web services, Girder's API is designed for programmatic interaction.
+API keys can facilitate these sorts of interactions -- they enable client applications
+to interact with the server on behalf of your user without actually authenticating with
+your password. They can also be granted restricted access to only a limited set of functionality
+of the API.
+
+Under the **My account** page, there is a tab called **API keys** where these keys can be
+created and managed. You can have many API keys; in fact, it's recommended to use a
+different key for each different client application that needs authenticated access
+to the Girder server. By convention, the **Name** field of API keys can be used to
+specify what application is making use of the key in a human-readable way, although
+you may name your keys however you want.
+
+Each API key can be used to gain authentication tokens just like when you log in
+with a username and password. If you want to limit the maximum amount of time that
+these tokens last, you can do so on a per-key basis, or leave the token duration
+field empty to use the server default.
+
+When creating and updating API keys, you can also select among two modes: you can
+either grant full access to the API key, which gives unrestricted API access as
+though you are logged in as your user, or you can choose limited functionality scopes
+from a list of checkboxes to restrict the sorts of actions that the key will allow.
+
+It is also possible to deactivate a key temporarily. If you deactivate an existing
+key, it will immediately delete all active tokens created with that key, and also
+stop that key from being able to create new tokens until you activate it once again.
+Alternatively, you can delete the key altogether, which will make the key and any
+tokens created with it never work again.

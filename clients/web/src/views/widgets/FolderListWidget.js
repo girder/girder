@@ -2,9 +2,8 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import FolderCollection from 'girder/collections/FolderCollection';
-import View from 'girder/views/View';
-
 import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import View from 'girder/views/View';
 
 import FolderListTemplate from 'girder/templates/widgets/folderList.jade';
 

@@ -1,5 +1,5 @@
-import { apiRoot } from 'girder/rest';
 import View from 'girder/views/View';
+import { apiRoot } from 'girder/rest';
 
 import LayoutFooterTemplate from 'girder/templates/layout/layoutFooter.jade';
 

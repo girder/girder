@@ -2,7 +2,7 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
-import { splitRoute } from 'girder/utilities/DialogHelper';
+import { splitRoute } from 'girder/router';
 
 import OAuthLoginViewTemplate from '../templates/oauthLoginView.jade';
 import '../stylesheets/oauthLoginView.styl';
