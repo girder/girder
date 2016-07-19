@@ -3,6 +3,7 @@
 !autojoin
 !celery_jobs/
 !curation/
+!dicom_metadata_extractor/
 !geospatial/
 !google_analytics/
 !gravatar/
