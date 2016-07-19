@@ -215,6 +215,16 @@ class Setting(Model):
                 'User default folders must be either "public_private" or '
                 '"none".', 'value')
 
+    def validateCoreUserDefaultPublic(self, doc):
+        if isinstance(doc['value'], bool):
+            return
+        if isinstance(doc['value'], six.string_types):
+            if doc['value'] in ['true', 'false']:
+                doc['value'] = (doc['value'] == 'true')
+                return
+        raise ValidationException('User default public must be a boolean (or '
+                                  '"true" or "false).', 'value')
+
     def get(self, key, default='__default__'):
         """
         Retrieve a setting by its key.

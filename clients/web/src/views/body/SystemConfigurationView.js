@@ -60,7 +60,8 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.cors.allow_headers',
             'core.add_to_group_policy',
             'core.collection_create_policy',
-            'core.user_default_folders'
+            'core.user_default_folders',
+            'core.user_default_public'
         ];
         this.settingsKeys = keys;
         girder.restRequest({

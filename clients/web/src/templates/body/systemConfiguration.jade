@@ -77,6 +77,21 @@ form.g-settings-form(role="form")
           selected=((settings['core.user_default_folders'] ||
           defaults['core.user_default_folders']) === "public_private")
           ) Yes, "Public" and "Private"
+    .form-group
+      label(for="g-core-user-default-public") Default visibility for new users
+      select#g-core-user-default-public.form-control.input-sm
+        option(value="true",
+          selected=(
+            settings['core.user_default_public'] === null ?
+            defaults['core.user_default_public'] === true :
+            settings['core.user_default_public'] === true)
+          ) Public
+        option(value="false",
+          selected=(
+            settings['core.user_default_public'] === null ?
+            defaults['core.user_default_public'] === false :
+            settings['core.user_default_public'] === false)
+          ) Private
   .g-settings-form-container
     h4 Email Creation
     .form-group
