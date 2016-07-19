@@ -39,6 +39,8 @@ class GirderCli(GirderClient):
         :param password: password to authenticate to Girder instance, leave
             this blank to be prompted.
         """
+        if not any((apiUrl, apiRoot, host, port, scheme)):
+            apiUrl = config.get('girder_client', 'apiUrl')
         super(GirderCli, self).__init__(
             host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl)
         interactive = password is None and \
@@ -46,8 +48,16 @@ class GirderCli(GirderClient):
 
         if apiKey:
             self.authenticate(apiKey=apiKey)
-        else:
+        elif username:
             self.authenticate(username, password, interactive=interactive)
+        else:
+            configApiKey = config.get('girder_client', 'apiKey')
+            if configApiKey:
+                self.authenticate(apiKey=configApiKey)
+            elif config.get('girder_client', 'username'):
+                self.authenticate(config.get('girder_client', 'username'),
+                                  config.get('girder_client', 'password'),
+                                  interactive=False)
 
 
 parser = argparse.ArgumentParser(
