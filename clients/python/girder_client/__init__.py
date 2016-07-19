@@ -29,7 +29,7 @@ import requests
 import shutil
 import six
 import tempfile
-from six.moves.configparser import SafeConfigParser
+from six.moves.configparser import ConfigParser
 
 _config_defaults = {
     'host': 'localhost',
@@ -43,7 +43,7 @@ _config_defaults = {
 }
 CONFIG_DIR = os.environ.get(
     'XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config'))
-config = SafeConfigParser(_config_defaults, allow_no_value=True)
+config = ConfigParser(_config_defaults, allow_no_value=True)
 config.read([os.path.join(CONFIG_DIR, "girder-cli.conf")])
 if not config.has_section("girder_client"):
     config.add_section("girder_client")
