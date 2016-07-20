@@ -250,8 +250,8 @@ class Resource(BaseResource):
                'Specify whether to return None instead of throwing an '
                'exception when path doesn\'t exist.',
                required=False, dataType='boolean', default=False)
-        .errorResponse('Path is invalid.')
-        .errorResponse('Path refers to a resource that does not exist.')
+        .errorResponse(('Path is invalid.',
+                        'Path refers to a resource that does not exist.'))
         .errorResponse('Read access was denied for the resource.', 403)
     )
     def lookup(self, params):
