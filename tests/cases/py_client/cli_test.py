@@ -120,12 +120,12 @@ class PythonCliTestCase(base.TestCase):
         self.assertNotEqual(ret['exitVal'], 0)
 
         ret = invokeCli(('-h',))
-        self.assertIn('usage: girder-client', ret['stdout'])
+        self.assertIn('usage: girder-cli', ret['stdout'])
         self.assertEqual(ret['exitVal'], 0)
 
     def testUploadDownload(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
-        args = ['-c', 'upload', str(self.publicFolder['_id']), localDir]
+        args = ['upload', str(self.publicFolder['_id']), localDir]
         with self.assertRaises(girder_client.HttpError):
             invokeCli(args)
 
@@ -133,7 +133,7 @@ class PythonCliTestCase(base.TestCase):
             invokeCli(['--api-key', '1234'] + args)
 
         # Test dry-run and blacklist options
-        ret = invokeCli(args + ['--dryrun', '--blacklist=hello.txt'],
+        ret = invokeCli(['--dryrun', '--blacklist=hello.txt'] + args,
                         username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         self.assertIn('Ignoring file hello.txt as it is blacklisted',
@@ -158,7 +158,7 @@ class PythonCliTestCase(base.TestCase):
 
         downloadDir = os.path.join(os.path.dirname(localDir), '_testDownload')
 
-        ret = invokeCli(('-c', 'download', str(subfolder['_id']), downloadDir),
+        ret = invokeCli(('download', str(subfolder['_id']), downloadDir),
                         username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         for downloaded in os.listdir(downloadDir):
@@ -167,12 +167,12 @@ class PythonCliTestCase(base.TestCase):
             self.assertIn(downloaded, toUpload)
 
         # Download again to same location, we should not get errors
-        ret = invokeCli(('-c', 'download', str(subfolder['_id']), downloadDir),
+        ret = invokeCli(('download', str(subfolder['_id']), downloadDir),
                         username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
 
         # Download again to same location, using path, we should not get errors
-        ret = invokeCli(('-c', 'download', '/user/mylogin/Public/testdata',
+        ret = invokeCli(('download', '/user/mylogin/Public/testdata',
                          downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
 
@@ -185,7 +185,7 @@ class PythonCliTestCase(base.TestCase):
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
         # Test localsync, it shouldn't touch files on 2nd pass
-        ret = invokeCli(('-c', 'localsync', str(subfolder['_id']),
+        ret = invokeCli(('localsync', str(subfolder['_id']),
                          downloadDir), username='mylogin',
                         password='password')
         self.assertEqual(ret['exitVal'], 0)
@@ -195,7 +195,7 @@ class PythonCliTestCase(base.TestCase):
             filename = os.path.join(downloadDir, fname)
             old_mtimes[fname] = os.path.getmtime(filename)
 
-        ret = invokeCli(('-c', 'localsync', str(subfolder['_id']),
+        ret = invokeCli(('localsync', str(subfolder['_id']),
                          downloadDir), username='mylogin',
                         password='password')
         self.assertEqual(ret['exitVal'], 0)
@@ -208,7 +208,7 @@ class PythonCliTestCase(base.TestCase):
 
     def testLeafFoldersAsItems(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
-        args = ['-c', 'upload', str(self.publicFolder['_id']), localDir,
+        args = ['upload', str(self.publicFolder['_id']), localDir,
                 '--leaf-folders-as-items']
 
         ret = invokeCli(args, username='mylogin', password='password')
