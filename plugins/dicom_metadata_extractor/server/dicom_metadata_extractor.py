@@ -18,7 +18,6 @@
 ###############################################################################
 
 import os
-import six
 import dicom
 
 try:
@@ -49,7 +48,6 @@ class DicomMetadataExtractor(object):
         self._extractMetadata()
 
         if self.metadata is not None:
-            print("\n\n\n\n\nEXTRACTING META\n\n\n\n\n\n")
             self._setMetadata()
 
     def _extractMetadata(self):
@@ -72,7 +70,7 @@ class DicomMetadataExtractor(object):
             else:
                 self.metadata = None
 
-        except dicom.filereader.InvalidDicomError as e:
+        except dicom.filereader.InvalidDicomError:
             self.metadata = None
 
     def _setMetadata(self):
@@ -112,8 +110,7 @@ class ServerDicomMetadataExtractor(DicomMetadataExtractor, ModelImporter):
         :param uploadedFile: file from which to extract metadata
         """
         path = os.path.join(assetstore['root'], uploadedFile['path'])
-        super(ServerDicomMetadataExtractor, self).__init__(path,
-                                                      uploadedFile['itemId'])
+        super(ServerDicomMetadataExtractor, self).__init__(path, uploadedFile['itemId'])
         self.userId = uploadedFile['creatorId']
 
     def _setMetadata(self):
@@ -121,8 +118,6 @@ class ServerDicomMetadataExtractor(DicomMetadataExtractor, ModelImporter):
         Attach metadata to item on server.
 
         """
-        print("\n\n\n\n SETTING METADATA\n\n\n\n\n\n")
         super(ServerDicomMetadataExtractor, self)._setMetadata()
         item = self.model('item').load(self.itemId, force=True)
         self.model('item').setMetadata(item, self.metadata)
-        print("\n\n\n\n SET METADATA\n\n\n\n\n\n")
