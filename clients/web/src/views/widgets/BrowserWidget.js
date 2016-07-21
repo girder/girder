@@ -1,9 +1,20 @@
+import _ from 'underscore';
+
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+import RootSelectorWidget from 'girder/views/widgets/RootSelectorWidget';
+import View from 'girder/views/View';
+
+import BrowserWidgetTemplate from 'girder/templates/widgets/browserWidget.jade';
+
+import 'bootstrap/js/modal';
+import 'girder/utilities/JQuery'; // $.girderModal
+
 /**
  * This widget provides the user with an interface similar to a filesystem
  * browser to pick a single user, collection, folder, or item from a
  * hierarchical view.
  */
-girder.views.BrowserWidget = girder.View.extend({
+var BrowserWidget = View.extend({
     events: {
         'click .g-submit-button': '_submitButton'
     },
@@ -30,7 +41,7 @@ girder.views.BrowserWidget = girder.View.extend({
         this.submitText = settings.submitText || 'Save';
 
         // generate the root selection view and listen to it's events
-        this._rootSelectionView = new girder.views.RootSelectorWidget(_.extend({
+        this._rootSelectionView = new RootSelectorWidget(_.extend({
             parentView: this
         }, settings.rootSelectorSettings));
         this.listenTo(this._rootSelectionView, 'g:selected', function (evt) {
@@ -41,7 +52,7 @@ girder.views.BrowserWidget = girder.View.extend({
 
     render: function () {
         this.$el.html(
-            girder.templates.browserWidget({
+            BrowserWidgetTemplate({
                 title: this.titleText,
                 help: this.helpText,
                 preview: this.showPreview,
@@ -74,7 +85,7 @@ girder.views.BrowserWidget = girder.View.extend({
             return;
         }
         this.$('.g-wait-for-root').removeClass('hidden');
-        this._hierarchyView = new girder.views.HierarchyWidget({
+        this._hierarchyView = new HierarchyWidget({
             parentView: this,
             parentModel: this._root,
             checkboxes: false,
@@ -110,3 +121,5 @@ girder.views.BrowserWidget = girder.View.extend({
         }
     }
 });
+
+export default BrowserWidget;

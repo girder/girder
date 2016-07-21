@@ -18,7 +18,7 @@
     <div id="g-global-info-staticroot" class="hide">${staticRoot}</div>
     <script src="${staticRoot}/built/girder.ext.min.js"></script>
     <script src="${staticRoot}/built/girder.app.min.js"></script>
-    <script src="${staticRoot}/built/girder.main.min.js"></script>
+    <!-- <script src="${staticRoot}/built/girder.main.min.js"></script> -->
     % for plugin in pluginJs:
     <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js"></script>
     % endfor

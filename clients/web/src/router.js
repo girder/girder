@@ -1,10 +1,15 @@
-girder.Router = Backbone.Router.extend({
+import Backbone from 'backbone';
+
+import { events } from 'girder/events';
+import { parseQueryString } from 'girder/utilities/MiscFunctions';
+
+var Router = Backbone.Router.extend({
     initialize: function () {
         this._enabled = true;
     },
 
     execute: function (callback, args) {
-        args.push(girder.parseQueryString(args.pop()));
+        args.push(parseQueryString(args.pop()));
         var queryString = args[args.length - 1];
         if (callback) {
             callback.apply(this, args);
@@ -12,11 +17,11 @@ girder.Router = Backbone.Router.extend({
 
         // handle "top level" dialogs
         if (queryString.dialog === 'login') {
-            girder.events.trigger('g:loginUi');
+            events.trigger('g:loginUi');
         } else if (queryString.dialog === 'register') {
-            girder.events.trigger('g:registerUi');
+            events.trigger('g:registerUi');
         } else if (queryString.dialog === 'resetpassword') {
-            girder.events.trigger('g:resetPasswordUi');
+            events.trigger('g:resetPasswordUi');
         }
     },
 
@@ -38,13 +43,34 @@ girder.Router = Backbone.Router.extend({
     }
 });
 
-girder.router = new girder.Router();
+var router = new Router();
 
-// When the back button is pressed, we want to close open modals.
-girder.router.on('route', function (route, params) {
-    if (!params.slice(-1)[0].dialog) {
-        $('.modal').girderModal('close');
+function splitRoute(route) {
+    if (!route) {
+        return {base: '', name: ''};
     }
-    // get rid of tooltips
-    $('.tooltip').remove();
-});
+    var firstIndex = route.indexOf('?'),
+        lastIndex = route.lastIndexOf('?'),
+        dialogName,
+        baseRoute;
+
+    if (firstIndex === -1) {
+        baseRoute = route;
+    } else {
+        baseRoute = route.slice(0, firstIndex);
+    }
+
+    if (lastIndex === -1) {
+        dialogName = '';
+    } else {
+        dialogName = route.slice(lastIndex + 1);
+    }
+
+    return {name: dialogName, base: baseRoute};
+}
+
+export default router;
+export {
+    router,
+    splitRoute
+};

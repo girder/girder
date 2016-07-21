@@ -1,3 +1,5 @@
+import { numberOutstandingRestRequests } from 'girder/rest';
+
 girderTest.addCoveredScripts([
     '/static/built/plugins/autojoin/templates.js',
     '/plugins/autojoin/web_client/js/setup.js',
@@ -65,7 +67,7 @@ describe('test the autojoin ui', function () {
         }, 'auto join config to display');
 
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return numberOutstandingRestRequests() === 0;
         }, 'rest requests to finish');
     });
 
@@ -77,7 +79,7 @@ describe('test the autojoin ui', function () {
             $('#g-autojoin-add').click();
         });
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return numberOutstandingRestRequests() === 0;
         }, 'rest requests to finish');
 
         runs(function () {
@@ -87,7 +89,7 @@ describe('test the autojoin ui', function () {
             $('#g-autojoin-add').click();
         });
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return numberOutstandingRestRequests() === 0;
         }, 'rest requests to finish');
 
         runs(function () {
@@ -97,14 +99,14 @@ describe('test the autojoin ui', function () {
             $('#g-autojoin-add').click();
         });
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return numberOutstandingRestRequests() === 0;
         }, 'rest requests to finish');
 
         runs(function () {
             $('#g-autojoin-save').click();
         });
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return numberOutstandingRestRequests() === 0;
         }, 'rest requests to finish');
     });
 

@@ -1,4 +1,35 @@
-girder.App = girder.View.extend({
+import $ from 'jquery';
+import _ from 'underscore';
+import Backbone from 'backbone';
+
+import LayoutFooterView from 'girder/views/layout/FooterView';
+import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
+import LayoutHeaderView from 'girder/views/layout/HeaderView';
+import LoginView from 'girder/views/layout/LoginView';
+import ProgressListView from 'girder/views/layout/ProgressListView';
+import RegisterView from 'girder/views/layout/RegisterView';
+import ResetPasswordView from 'girder/views/layout/ResetPasswordView';
+import UserModel from 'girder/models/UserModel';
+import View from 'girder/views/View';
+import { events, eventStream } from 'girder/events';
+import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
+import { Layout } from 'girder/constants';
+import { router, splitRoute } from 'girder/router';
+
+import AlertTemplate from 'girder/templates/layout/alert.jade';
+import LayoutTemplate from 'girder/templates/layout/layout.jade';
+
+import 'girder/routes';
+
+import 'girder/stylesheets/layout/global.styl';
+import 'girder/stylesheets/layout/layout.styl';
+
+import 'bootstrap/js/modal';
+import 'girder/utilities/JQuery'; // $.girderModal
+
+import 'bootstrap/dist/css/bootstrap.css';
+
+var App = View.extend({
     /**
      * @param {object} [settings]
      * @param {bool} [settings.start=true] Run start after initialization
@@ -36,15 +67,18 @@ girder.App = girder.View.extend({
 
         // define a function to be run after fetching the user model
         var afterFetch = _.bind(function (user) {
-            girder.eventStream = new girder.EventStream({
-                timeout: girder.sseTimeout || null
-            });
+            // TODO: this below is the old, pre-webpack code. eventStream is now a singleton
+            // imported from 'girder/events'. This mean it is not "re-newed" if start is
+            // called another time (is it, ever)
+            // girder.eventStream = new girder.EventStream({
+            //     timeout: girder.sseTimeout || null
+            // });
 
             this._createLayout();
 
             if (user) {
-                girder.currentUser = new girder.models.UserModel(user);
-                girder.eventStream.open();
+                setCurrentUser(new UserModel(user));
+                eventStream.open();
             }
 
             if (settings.render) {
@@ -61,7 +95,7 @@ girder.App = girder.View.extend({
         // If fetching the user from the server then we return the jqxhr object
         // from the request, otherwise just call the callback.
         if (settings.fetch) {
-            promise = girder.fetchCurrentUser()
+            promise = fetchCurrentUser()
                 .done(afterFetch);
         } else {
             afterFetch(null);
@@ -76,14 +110,14 @@ girder.App = girder.View.extend({
      */
     bindGirderEvents: function () {
         // Unbind any current handlers in case this happens to be called twice.
-        girder.events.off(null, null, this);
+        events.off(null, null, this);
 
-        girder.events.on('g:navigateTo', this.navigateTo, this);
-        girder.events.on('g:loginUi', this.loginDialog, this);
-        girder.events.on('g:registerUi', this.registerDialog, this);
-        girder.events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
-        girder.events.on('g:alert', this.alert, this);
-        girder.events.on('g:login', this.login, this);
+        events.on('g:navigateTo', this.navigateTo, this);
+        events.on('g:loginUi', this.loginDialog, this);
+        events.on('g:registerUi', this.registerDialog, this);
+        events.on('g:resetPasswordUi', this.resetPasswordDialog, this);
+        events.on('g:alert', this.alert, this);
+        events.on('g:login', this.login, this);
     },
 
     /**
@@ -91,27 +125,29 @@ girder.App = girder.View.extend({
      * @private
      */
     _createLayout: function () {
-        this.headerView = new girder.views.LayoutHeaderView({
+        this.headerView = new LayoutHeaderView({
             parentView: this
         });
 
-        this.globalNavView = new girder.views.LayoutGlobalNavView({
+        this.globalNavView = new LayoutGlobalNavView({
             parentView: this
         });
 
-        this.footerView = new girder.views.LayoutFooterView({
+        this.footerView = new LayoutFooterView({
             parentView: this
         });
 
-        this.progressListView = new girder.views.ProgressListView({
-            eventStream: girder.eventStream,
+        this.progressListView = new ProgressListView({
+            eventStream: eventStream,
             parentView: this
         });
 
         this.layoutRenderMap = {};
-        this.layoutRenderMap[girder.Layout.DEFAULT] = this._defaultLayout;
-        this.layoutRenderMap[girder.Layout.EMPTY] = this._emptyLayout;
+        this.layoutRenderMap[Layout.DEFAULT] = this._defaultLayout;
+        this.layoutRenderMap[Layout.EMPTY] = this._emptyLayout;
     },
+
+    _layout: 'default',
 
     _defaultLayout: {
         show: function () {
@@ -136,7 +172,7 @@ girder.App = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.layout());
+        this.$el.html(LayoutTemplate());
 
         this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
         this.headerView.setElement(this.$('#g-app-header-container')).render();
@@ -159,21 +195,21 @@ girder.App = girder.View.extend({
         opts = opts || {};
 
         if (opts.layout) {
-            if (girder.layout !== opts.layout) {
+            if (this._layout !== opts.layout) {
                 if (_.has(this.layoutRenderMap, opts.layout)) {
                     // set a layout if opts specifies one different from current
-                    this.layoutRenderMap[girder.layout].hide.call(this, opts);
-                    girder.layout = opts.layout;
-                    this.layoutRenderMap[girder.layout].show.call(this, opts);
+                    this.layoutRenderMap[this._layout].hide.call(this, opts);
+                    this._layout = opts.layout;
+                    this.layoutRenderMap[this._layout].show.call(this, opts);
                 } else {
                     console.error('Attempting to set unknown layout type: ' + opts.layout);
                 }
             }
-        } else if (girder.layout !== girder.Layout.DEFAULT) {
+        } else if (this._layout !== Layout.DEFAULT) {
             // reset to default as needed when nothing specified in opts
-            this.layoutRenderMap[girder.layout].hide.call(this, opts);
-            girder.layout = girder.Layout.DEFAULT;
-            this.layoutRenderMap[girder.layout].show.call(this, opts);
+            this.layoutRenderMap[this._layout].hide.call(this, opts);
+            this._layout = Layout.DEFAULT;
+            this.layoutRenderMap[this._layout].show.call(this, opts);
         }
 
         if (view) {
@@ -201,7 +237,7 @@ girder.App = girder.View.extend({
      * :returns: true if we have a current user.
      */
     closeDialogIfUser: function () {
-        if (girder.currentUser) {
+        if (getCurrentUser()) {
             $('.modal').girderModal('close');
             return true;
         }
@@ -216,7 +252,7 @@ girder.App = girder.View.extend({
             return;
         }
         if (!this.loginView) {
-            this.loginView = new girder.views.LoginView({
+            this.loginView = new LoginView({
                 el: this.$('#g-dialog-container'),
                 parentView: this
             });
@@ -229,7 +265,7 @@ girder.App = girder.View.extend({
             return;
         }
         if (!this.registerView) {
-            this.registerView = new girder.views.RegisterView({
+            this.registerView = new RegisterView({
                 el: this.$('#g-dialog-container'),
                 parentView: this
             });
@@ -242,7 +278,7 @@ girder.App = girder.View.extend({
             return;
         }
         if (!this.resetPasswordView) {
-            this.resetPasswordView = new girder.views.ResetPasswordView({
+            this.resetPasswordView = new ResetPasswordView({
                 el: this.$('#g-dialog-container'),
                 parentView: this
             });
@@ -260,7 +296,7 @@ girder.App = girder.View.extend({
      *                Default is 6000ms. Set to <= 0 to have no timeout.
      */
     alert: function (options) {
-        var el = $(girder.templates.alert({
+        var el = $(AlertTemplate({
             text: options.text,
             type: options.type || 'info',
             icon: options.icon
@@ -285,15 +321,17 @@ girder.App = girder.View.extend({
      * logout, we redirect to the front page.
      */
     login: function () {
-        var route = girder.dialogs.splitRoute(Backbone.history.fragment).base;
+        var route = splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
-        girder.eventStream.close();
+        eventStream.close();
 
-        if (girder.currentUser) {
-            girder.eventStream.open();
-            girder.router.navigate(route, {trigger: true});
+        if (getCurrentUser()) {
+            eventStream.open();
+            router.navigate(route, {trigger: true});
         } else {
-            girder.router.navigate('/', {trigger: true});
+            router.navigate('/', {trigger: true});
         }
     }
 });
+
+export default App;

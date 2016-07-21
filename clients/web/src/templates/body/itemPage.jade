@@ -2,7 +2,7 @@
 .g-item-header
 
   .pull-right
-    if (accessLevel >= girder.AccessType.WRITE)
+    if (accessLevel >= AccessType.WRITE)
       button.g-upload-into-item.btn.btn-sm.btn-success(title="Upload files into item")
         i.icon-upload
     .btn-group
@@ -16,7 +16,7 @@
           a.g-download-item(role="menuitem", href=item.downloadUrl())
             i.icon-download
             | Download item
-        if (accessLevel >= girder.AccessType.WRITE)
+        if (accessLevel >= AccessType.WRITE)
           li.divider(role="presentation")
           li(role="presentation")
             a.g-edit-item(role="menuitem")
@@ -40,13 +40,13 @@
     if item.get('size') < 1024
       | #{item.get('size')} bytes
     else
-      | #{girder.formatSize(item.get('size'))} (#{item.get('size')} bytes)
+      | #{formatSize(item.get('size'))} (#{item.get('size')} bytes)
   .g-item-created.g-info-list-entry
     i.icon-clock
-    | Created on #{girder.formatDate(item.get('created'), girder.DATE_SECOND)}
+    | Created on #{formatDate(item.get('created'), DATE_SECOND)}
   .g-item-updated.g-info-list-entry
     i.icon-clock
-    | Updated on #{girder.formatDate(item.get('updated'), girder.DATE_SECOND)}
+    | Updated on #{formatDate(item.get('updated'), DATE_SECOND)}
 
 .g-item-metadata
 

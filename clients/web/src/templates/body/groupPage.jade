@@ -1,6 +1,6 @@
 .g-group-header
   .btn-group.pull-right
-    if (isMember || isInvited || girder.currentUser || group.get('_accessLevel') >= girder.AccessType.ADMIN)
+    if (isMember || isInvited || getCurrentUser() || group.get('_accessLevel') >= AccessType.ADMIN)
       button.g-group-actions-button.btn.btn-default.dropdown-toggle(
           data-toggle="dropdown", title="Group actions")
           i.icon-users
@@ -17,18 +17,18 @@
             a.g-group-join(role="menuitem")
               i.icon-login
               | Join group
-        else if (girder.currentUser)
+        else if (getCurrentUser())
           li(role="presentation")
             a.g-group-request-invite(role="menuitem")
               i.icon-export
               | Request membership
-        if (group.get('_accessLevel') >= girder.AccessType.ADMIN)
+        if (group.get('_accessLevel') >= AccessType.ADMIN)
           li.divider(role="presentation")
           li(role="presentation")
             a.g-edit-group(role="menuitem")
               i.icon-edit
               | Edit group
-        if (group.get('_accessLevel') >= girder.AccessType.ADMIN)
+        if (group.get('_accessLevel') >= AccessType.ADMIN)
           li.divider(role="presentation")
           li(role="presentation")
             a.g-group-delete(role="menuitem")
@@ -39,7 +39,7 @@
   .g-group-description.g-body-subtitle #{group.get('description')}
   .g-clear-right
 
-if (girder.currentUser)
+if (getCurrentUser())
     if (isMember)
       .g-group-status-container.g-member
         i.icon-ok
@@ -63,7 +63,7 @@ if (girder.currentUser)
         i.icon-minus-circled
         |  You are not a member of this group.
         a.g-group-request-invite  Request membership
-    if (group.get('_accessLevel') >= girder.AccessType.ADMIN && !isAdmin)
+    if (group.get('_accessLevel') >= AccessType.ADMIN && !isAdmin)
       .g-group-status-container.g-admin
         i.icon-star
         |  You have <b>administrator</b> privileges.
@@ -98,7 +98,7 @@ ul.g-group-tabs.nav.nav-tabs
                 i.icon-user
                 |  #{user.name} (#{user.login})
               .g-group-member-controls.pull-right
-                if group.get('_accessLevel') >= girder.AccessType.WRITE
+                if group.get('_accessLevel') >= AccessType.WRITE
                   a.g-group-request-accept(title="Add to group")
                     i.icon-thumbs-up
                   a.g-group-request-deny(title="Deny request")

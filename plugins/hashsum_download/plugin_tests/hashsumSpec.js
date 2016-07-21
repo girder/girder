@@ -1,3 +1,9 @@
+import App from 'girder/app';
+import FileInfoWidget from 'girder/widgets/FileInfoWidget';
+import FileModel from 'girder/models/FileModel';
+import { apiRoot } from 'girder/rest';
+import { events } from 'girder/events';
+
 $(function () {
     girderTest.addCoveredScripts([
         '/static/built/plugins/hashsum_download/templates.js',
@@ -8,12 +14,12 @@ $(function () {
         '/static/built/plugins/hashsum_download/plugin.min.css'
     );
 
-    girder.events.trigger('g:appload.before');
-    var app = new girder.App({
+    events.trigger('g:appload.before');
+    var app = new App({
         el: 'body',
         parentView: null
     });
-    girder.events.trigger('g:appload.after');
+    events.trigger('g:appload.after');
 
     describe('Unit test the file view augmentation', function () {
         var file, files;
@@ -26,7 +32,7 @@ $(function () {
             });
 
             runs(function () {
-                file = new girder.models.FileModel({
+                file = new FileModel({
                     _id: 'fake_id',
                     size: 12345,
                     name: 'my_file.txt',
@@ -35,7 +41,7 @@ $(function () {
                     created: '2016-06-28T14:58:59.235000+00:00'
                 });
 
-                new girder.views.FileInfoWidget({
+                new FileInfoWidget({
                     model: file,
                     el: $('#g-dialog-container'),
                     parentView: app
@@ -49,7 +55,7 @@ $(function () {
                 expect(container.length).toBe(1);
                 expect($('input.g-hash-textbox', container).val()).toBe(sha512);
                 expect($('a.g-keyfile-download', container).attr('href')).toBe(
-                    girder.apiRoot + '/file/fake_id/hashsum_file/sha512'
+                    apiRoot + '/file/fake_id/hashsum_file/sha512'
                 );
             });
         });

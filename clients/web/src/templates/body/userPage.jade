@@ -1,6 +1,6 @@
 .g-user-header
 
-  if user.getAccessLevel() >= girder.AccessType.WRITE
+  if user.getAccessLevel() >= AccessType.WRITE
     .btn-group.pull-right
       button.g-user-actions-button.btn.btn-default.dropdown-toggle(
         data-toggle="dropdown", title="Item actions")
@@ -12,7 +12,7 @@
           a.g-edit-user(role="menuitem")
             i.icon-edit
             | Edit user
-        if user.getAccessLevel() >= girder.AccessType.ADMIN
+        if user.getAccessLevel() >= AccessType.ADMIN
           li.divider(role="presentation")
           if user.get('status') === 'pending'
             li(role="presentation")

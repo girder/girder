@@ -1,9 +1,39 @@
+import $ from 'jquery';
+
+import App from 'girder/app';
+import router from 'girder/router';
+import { events } from 'girder/events';
+
+import 'bootstrap/js/modal';
+import 'girder/utilities/JQuery'; // $.girderModal
+
+import * as girder from 'girder';
+
+// Some cross-browser globals
+if (!window.console) {
+    window.console = {
+        log: $.noop,
+        error: $.noop
+    };
+}
+
 // When all scripts are loaded, we invoke the application
 $(function () {
-    girder.events.trigger('g:appload.before');
-    girder.mainApp = new girder.App({
+    // When the back button is pressed, we want to close open modals.
+    router.on('route', function (route, params) {
+        if (!params.slice(-1)[0].dialog) {
+            $('.modal').girderModal('close');
+        }
+        // get rid of tooltips
+        $('.tooltip').remove();
+    });
+
+    events.trigger('g:appload.before');
+    var mainApp = new App({
         el: 'body',
         parentView: null
     });
-    girder.events.trigger('g:appload.after', girder.mainApp);
+    events.trigger('g:appload.after', mainApp);
+
+    window.girder = girder;
 });

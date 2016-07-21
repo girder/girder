@@ -1,5 +1,12 @@
-girder.models.FolderModel = girder.AccessControlledModel.extend({
+import _ from 'underscore';
+
+import AccessControlledModel from 'girder/models/AccessControlledModel';
+import MetadataMixin from 'girder/models/MetadataMixin';
+
+var FolderModel = AccessControlledModel.extend({
     resourceName: 'folder'
 });
 
-_.extend(girder.models.FolderModel.prototype, girder.models.MetadataMixin);
+_.extend(FolderModel.prototype, MetadataMixin);
+
+export default FolderModel;
