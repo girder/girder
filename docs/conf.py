@@ -15,15 +15,16 @@
 import os
 import sys
 
-# The full version, including alpha/beta/rc tags.
-release = '1.5.2'
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 ROOT_DIR = os.path.abspath('..')
 sys.path.insert(1, ROOT_DIR)
 sys.path.insert(1, os.path.join(ROOT_DIR, 'clients', 'python'))
+
+import girder
+
+release = girder.__version__
 
 
 # Creating mock imports so that readthedocs works even though building
@@ -78,7 +79,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Girder'
-copyright = u'2014-2015, Kitware'
+copyright = u'2014-2016, Kitware'
 
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])

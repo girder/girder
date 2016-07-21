@@ -290,7 +290,7 @@ are stored as releases inside the official
 recommended process for generating a new release is described here.
 
 1.  From the target commit, set the desired version number in ``package.json``
-    and ``docs/conf.py``.  Create a new commit and note the SHA; this will
+    and ``girder/__init__.py``. Create a new commit and note the SHA; this will
     become the release tag.
 
 2.  Ensure that all tests pass.
@@ -347,9 +347,9 @@ version. The rules for versioning the python client package are as follows:
 
 The process for releasing the python client is as follows:
 
-1.  Set the version number inside ``clients/python/setup.py`` according to the
-    above rules. It is set in the line near the top of the file that looks like
-    ``CLIENT_VERSION = 'x.y.z'``
+1.  Set the version number inside ``clients/python/girder_client/__init__.py`` according
+    to the above rules. It is set in the line near the top of the file that looks like
+    ``__version__ = 'x.y.z'``
 
 2.  Change to the ``clients/python`` directory of the source tree and build the
     package using the following commands.

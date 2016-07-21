@@ -1,2 +1,3 @@
+diskcache==1.6.7
 requests==2.10.0
 six==1.10.0

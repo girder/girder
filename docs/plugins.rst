@@ -126,6 +126,23 @@ If there is a match, the user is added to the group with the specified access
 level.
 
 
+Dicom Metadata Extractor
+------------------
+
+The metadata extractor plugin enables the extraction of metadata from uploaded
+dicom files. It is used as a server-side plugin that extracts metadata on the
+server when a file is added to a filesystem asset store local to the server.
+
+The server-side plugin requires the `pydicom <https://github.com/darcymason/pydicom>`_
+Python package to parse dicom files and extract metadata from them. This package
+may be installed using **pip** as follows: ::
+
+    pip install -e .[metadata_extractor]
+
+Once the packages are installed, the plugin may be enabled via the admin
+console on the server.
+
+
 Metadata Extractor
 ------------------
 

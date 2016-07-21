@@ -242,14 +242,26 @@ def requireAdmin(user, message=None):
         raise AccessException(message or 'Administrator access required.')
 
 
-def getBodyJson():
+def getBodyJson(allowConstants=False):
     """
     For requests that are expected to contain a JSON body, this returns the
     parsed value, or raises a :class:`girder.api.rest.RestException` for
     invalid JSON.
+
+    :param allowConstants: Whether the keywords Infinity, -Infinity, and NaN
+        should be allowed. These keywords are valid JavaScript and will parse
+        to the correct float values, but are not valid in strict JSON.
+    :type allowConstants: bool
     """
+    if allowConstants:
+        _parseConstants = None
+    else:
+        def _parseConstants(val):
+            raise RestException('Error: "%s" is not valid JSON.' % val)
+
+    text = cherrypy.request.body.read().decode('utf8')
     try:
-        return json.loads(cherrypy.request.body.read().decode('utf8'))
+        return json.loads(text, parse_constant=_parseConstants)
     except ValueError:
         raise RestException('Invalid JSON passed in request body.')
 
@@ -562,14 +574,23 @@ def _setCommonCORSHeaders():
     header present since browsers will simply ignore them if the request is not
     cross-origin.
     """
-    if not cherrypy.request.headers.get('origin'):
+    origin = cherrypy.request.headers.get('origin')
+    if not origin:
         # If there is no origin header, this is not a cross origin request
         return
 
-    origins = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
-    if origins:
-        cherrypy.response.headers['Access-Control-Allow-Origin'] = origins
+    allowed = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
+
+    if allowed:
         cherrypy.response.headers['Access-Control-Allow-Credentials'] = 'true'
+
+        allowed_list = [o.strip() for o in allowed.split(',')]
+        key = 'Access-Control-Allow-Origin'
+
+        if len(allowed_list) == 1:
+            cherrypy.response.headers[key] = allowed_list[0]
+        elif origin in allowed_list:
+            cherrypy.response.headers[key] = origin
 
 
 class RestException(Exception):

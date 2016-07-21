@@ -35,6 +35,9 @@ from girder.utility import mkdir, progress
 
 BUF_SIZE = 65536
 
+# Default permissions for the files written to the filesystem
+DEFAULT_PERMS = stat.S_IRUSR | stat.S_IWUSR
+
 
 class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     """
@@ -69,6 +72,23 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if not os.access(doc['root'], os.W_OK):
             raise ValidationException(
                 'Unable to write into directory "%s".' % doc['root'])
+
+        if not doc.get('perms'):
+            doc['perms'] = DEFAULT_PERMS
+        else:
+            try:
+                perms = doc['perms']
+                if not isinstance(perms, int):
+                    perms = int(doc['perms'], 8)
+
+                # Make sure that mode is still rw for user
+                if not perms & stat.S_IRUSR or not perms & stat.S_IWUSR:
+                    raise ValidationException(
+                        'File permissions must allow "rw" for user.')
+                doc['perms'] = perms
+            except ValueError:
+                raise ValidationException(
+                    'File permissions must be an octal integer.')
 
     @staticmethod
     def fileIndexFields():
@@ -206,7 +226,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             # shutil.move works across filesystems
             shutil.move(upload['tempFile'], abspath)
             try:
-                os.chmod(abspath, stat.S_IRUSR | stat.S_IWUSR)
+                os.chmod(abspath, self.assetstore.get('perms', DEFAULT_PERMS))
             except OSError:
                 # some filesystems may not support POSIX permissions
                 pass

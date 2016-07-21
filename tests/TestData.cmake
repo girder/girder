@@ -14,6 +14,7 @@ set(_plugin_build_data_path "${_build_data_path}/plugins")
 # set the default mirror
 set(ExternalData_URL_TEMPLATES
   "https://midas3.kitware.com/midas/api/rest?method=midas.bitstream.download&checksum=%(hash)&algorithm=%(algo)"
+  "https://data.kitware.com/api/v1/file/hashsum/%(algo)/%(hash)/download"
 )
 
 # Expose the absolute path to the data file source tree because

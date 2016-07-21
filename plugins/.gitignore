@@ -3,12 +3,14 @@
 !autojoin
 !celery_jobs/
 !curation/
+!dicom_metadata_extractor/
 !geospatial/
 !google_analytics/
 !gravatar/
 !hashsum_download/
 !hdfs_assetstore/
 !homepage/
+!item_licenses/
 !item_previews/
 !jobs/
 !jquery_widgets/
