@@ -7,8 +7,7 @@ import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 
 import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.jade';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 /**
  * This widget is used to create a new item or edit an existing one.

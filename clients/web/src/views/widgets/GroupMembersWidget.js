@@ -16,8 +16,7 @@ import 'bootstrap/js/collapse';
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 var InviteUserDialog = View.extend({
     events: {

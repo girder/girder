@@ -3,8 +3,7 @@ import _ from 'underscore';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 import ThumbnailModel from '../models/ThumbnailModel';
 

@@ -7,8 +7,7 @@ import { restRequest } from 'girder/rest';
 
 import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 /**
  * This view shows a modal dialog for resetting a forgotten password.

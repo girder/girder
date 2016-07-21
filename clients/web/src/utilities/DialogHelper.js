@@ -6,8 +6,7 @@ import { parseQueryString } from 'girder/utilities/MiscFunctions';
 
 import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.jade';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 function handleClose(name, options, nameId) {
     if (!router.enabled()) {

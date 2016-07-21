@@ -3,8 +3,7 @@ import { formatDate, DATE_SECOND, renderMarkdown, formatSize } from 'girder/util
 
 import CollectionInfoDialogTemplate from 'girder/templates/widgets/collectionInfoDialog.jade';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 /**
  * This view shows a dialog containing detailed collection information.

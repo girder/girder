@@ -39,6 +39,13 @@ module.exports = function (grunt) {
         report: 'min'
     };
 
+    var statsOptions = {
+        colors: true,
+        modules: true,
+        reasons: true,
+        errorDetails: true
+    };
+
     function fileLoader() {
         return {
             loader: 'file-loader',
@@ -68,7 +75,7 @@ module.exports = function (grunt) {
         inline: false,     // embed the webpack-dev-server runtime into the bundle (default false)
         hot: false,        // adds HotModuleReplacementPlugin and switch the server to hot mode
         cache: true,
-        progress: false,   // show progress
+        progress: true,   // show progress
         failOnError: true, // report error to grunt if webpack find errors; set to false if
                            // webpack errors are tolerable and grunt should continue
         devtool: environment === 'dev' ? 'source-map' : false,
@@ -230,6 +237,7 @@ module.exports = function (grunt) {
                 path: 'clients/web/static/built/',
                 filename: '[name].min.js'
             },
+            // stats: statsOptions,
             plugins: [
                 // See http://stackoverflow.com/a/29087883/250457
                 // TODO: there is still too much code going in each plugin.min.js

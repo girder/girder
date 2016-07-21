@@ -4,8 +4,7 @@ import App from 'girder/app';
 import router from 'girder/router';
 import { events } from 'girder/events';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 import * as girder from 'girder';
 

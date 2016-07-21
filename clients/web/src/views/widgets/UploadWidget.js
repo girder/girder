@@ -11,8 +11,7 @@ import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetN
 
 import 'girder/stylesheets/widgets/uploadWidget.styl';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 /**
  * This widget is used to upload files to a folder. Pass a folder model

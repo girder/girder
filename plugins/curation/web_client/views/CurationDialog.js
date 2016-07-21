@@ -9,8 +9,7 @@ import { restRequest } from 'girder/rest';
 import CurationDialogTemplate from '../templates/curationDialog.jade';
 import '../stylesheets/curationDialog.styl';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 var CurationDialog = View.extend({
     events: {

@@ -16,8 +16,7 @@ import 'girder/stylesheets/widgets/accessWidget.styl';
 
 import 'bootstrap/js/tooltip';
 
-import 'bootstrap/js/modal';
-import 'girder/utilities/JQuery'; // $.girderModal
+import 'girder/utilities/jquery/girderModal';
 
 /**
  * This view allows users to see and control access on a resource.
