@@ -4,7 +4,7 @@ import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import EditFileWidgetTemplate from 'girder/templates/widgets/editFileWidget.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This widget is used to edit file information.

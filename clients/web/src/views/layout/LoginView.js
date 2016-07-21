@@ -7,7 +7,7 @@ import { restRequest } from 'girder/rest';
 import LoginDialogTemplate from 'girder/templates/layout/loginDialog.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This view shows a login modal dialog.

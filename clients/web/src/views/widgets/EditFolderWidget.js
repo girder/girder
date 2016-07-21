@@ -9,7 +9,7 @@ import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This widget is used to create a new folder or edit an existing one.

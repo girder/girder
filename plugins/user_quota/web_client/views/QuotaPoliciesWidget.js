@@ -7,7 +7,7 @@ import { handleOpen, handleClose } from 'girder/utilities/DialogHelper';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.jade';
 

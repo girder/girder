@@ -4,7 +4,7 @@ import { formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
 import FileInfoDialogTemplate from 'girder/templates/widgets/fileInfoDialog.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This widget shows information about a single file in a modal dialog.

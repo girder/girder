@@ -7,7 +7,7 @@ import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This view shows a register modal dialog.

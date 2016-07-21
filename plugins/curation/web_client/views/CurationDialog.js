@@ -10,7 +10,7 @@ import CurationDialogTemplate from '../templates/curationDialog.jade';
 import '../stylesheets/curationDialog.styl';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 var CurationDialog = View.extend({
     events: {

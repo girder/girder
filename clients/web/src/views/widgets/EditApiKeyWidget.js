@@ -8,7 +8,7 @@ import { restRequest } from 'girder/rest';
 import EditApiKeyWidgetTemplate from 'girder/templates/widgets/editApiKeyWidget.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This widget is used to create a new API key or edit an existing one.

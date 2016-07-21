@@ -4,7 +4,7 @@ import { formatDate, formatSize, DATE_SECOND, renderMarkdown } from 'girder/util
 import FolderInfoDialogTemplate from 'girder/templates/widgets/folderInfoDialog.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This view shows a dialog container detailed folder information.

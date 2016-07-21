@@ -8,7 +8,7 @@ import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This widget is used to edit an existing assetstore.

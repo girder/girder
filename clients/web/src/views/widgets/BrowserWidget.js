@@ -7,7 +7,7 @@ import View from 'girder/views/View';
 import BrowserWidgetTemplate from 'girder/templates/widgets/browserWidget.jade';
 
 import 'bootstrap/js/modal';
-import 'girder/utilities/jQuery'; // $.girderModal
+import 'girder/utilities/JQuery'; // $.girderModal
 
 /**
  * This widget provides the user with an interface similar to a filesystem
