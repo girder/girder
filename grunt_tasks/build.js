@@ -31,6 +31,7 @@ module.exports = function (grunt) {
     };
     var environment = grunt.option('env') || 'dev';
     var debugJs = grunt.option('debug-js') || environment === 'dev';
+    var skipPlugins = grunt.option('skip-plugins');
 
     var uglifyOptions = {
         ASCIIOnly: true,
@@ -269,17 +270,19 @@ module.exports = function (grunt) {
     };
 
     // Add plugin entry points
-    grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
-        var plugin = path.basename(dir);
-        var pluginTarget = 'plugins/' + plugin + '/plugin';
-        var webClient = path.resolve('./' + dir + '/web_client');
-        var main =  webClient + '/main.js';
-        if (fs.existsSync(main)) {
-            // grunt.log.writeln(('Using: ' + main).bold);
-            webpackTask.app.entry[pluginTarget] = main;
-            webpackTask.options.resolve.alias['plugins/' + plugin] = webClient;
-        }
-    });
+    if (!skipPlugins) {
+        grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
+            var plugin = path.basename(dir);
+            var pluginTarget = 'plugins/' + plugin + '/plugin';
+            var webClient = path.resolve('./' + dir + '/web_client');
+            var main =  webClient + '/main.js';
+            if (fs.existsSync(main)) {
+                // grunt.log.writeln(('Using: ' + main).bold);
+                webpackTask.app.entry[pluginTarget] = main;
+                webpackTask.options.resolve.alias['plugins/' + plugin] = webClient;
+            }
+        });
+    }
 
     grunt.config.merge({
         webpack: webpackTask,

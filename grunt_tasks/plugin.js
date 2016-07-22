@@ -22,6 +22,11 @@ module.exports = function (grunt) {
     var fs = require('fs');
     var path = require('path');
 
+    var skipPlugins = grunt.option('skip-plugins');
+    if (skipPlugins) {
+        return;
+    }
+
     /**
      * Adds configuration for plugin related multitasks:
      *
