@@ -134,10 +134,10 @@ dicom files. It is used as a server-side plugin that extracts metadata on the
 server when a file is added to a filesystem asset store local to the server.
 
 The server-side plugin requires the `pydicom <https://github.com/darcymason/pydicom>`_
-Python package to parse dicom files and extract metadata from them. This package
+Python package to parse dicom files and extract metadata from them. pydicom
 may be installed using **pip** as follows: ::
 
-    pip install -e .[metadata_extractor]
+    pip install pydicom
 
 Once the packages are installed, the plugin may be enabled via the admin
 console on the server.
