@@ -23,9 +23,9 @@ from tests import base
 from girder.constants import ROOT_DIR
 
 
-class MetadataExtractorTestCase(base.TestCase):
+class DicomMetadataExtractorTestCase(base.TestCase):
     def setUp(self):
-        super(MetadataExtractorTestCase, self).setUp()
+        super(DicomMetadataExtractorTestCase, self).setUp()
         self.password = '3achAst5jaWRaCrU'
         self.user = self.model('user').createUser(
             'metadataextractor', self.password, 'Metadata', 'Extractor',
@@ -34,12 +34,13 @@ class MetadataExtractorTestCase(base.TestCase):
                                                     user=self.user)
         publicFolders = [folder for folder in folders if folder['public']]
         self.assertIsNotNone(publicFolders)
-        self.name = 'Girder_Favicon.png'
-        self.mimeType = 'image/png'
+        self.name = 'sample_dicom.dcm'
+        self.mimeType = 'application/dicom'
         self.item = self.model('item').createItem(self.name, self.user,
                                                   publicFolders[0])
-        self.path = os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'img',
-                                 self.name)
+        self.path = os.path.join(ROOT_DIR, 'plugins',
+                                 'dicom_metadata_extractor', 'plugiin_tests',
+                                 'data', self.name)
         upload = self.model('upload').createUpload(
             self.user, self.name, 'item', self.item, os.path.getsize(self.path),
             self.mimeType)

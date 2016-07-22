@@ -20,11 +20,11 @@
 import time
 
 from tests import base
-from . metadata_extractor_test import MetadataExtractorTestCase
+from . dicom_metadata_extractor_test import DicomMetadataExtractorTestCase
 
 
 def setUpModule():
-    base.enabledPlugins.append('metadata_extractor')
+    base.enabledPlugins.append('dicom_metadata_extractor')
     base.startServer()
 
 
@@ -32,8 +32,8 @@ def tearDownModule():
     base.stopServer()
 
 
-class ServerMetadataExtractorTestCase(MetadataExtractorTestCase):
-    def testServerMetadataExtractor(self):
+class ServerDicomMetadataExtractorTestCase(DicomMetadataExtractorTestCase):
+    def testServerDicomMetadataExtractor(self):
         startTime = time.time()
         while True:
             item = self.model('item').load(self.item['_id'], user=self.user)
@@ -46,3 +46,4 @@ class ServerMetadataExtractorTestCase(MetadataExtractorTestCase):
         self.assertEqual(item['name'], self.name)
         self.assertHasKeys(item, ['meta'])
         self.assertEqual(item['meta']['MIME type'], self.mimeType)
+        self.assertIsTrue(False)

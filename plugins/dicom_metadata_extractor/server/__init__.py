@@ -26,7 +26,7 @@ from . dicom_metadata_extractor import ServerDicomMetadataExtractor
 def handler(event):
     if event.info['assetstore']['type'] == AssetstoreType.FILESYSTEM:
         metadataExtractor = ServerDicomMetadataExtractor(event.info['assetstore'],
-                                                    event.info['file'])
+                                                         event.info['file'])
         metadataExtractor.extractMetadata()
 
 
