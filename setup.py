@@ -78,7 +78,7 @@ extras_reqs = {
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow'],
     'worker': ['celery'],
-    'plugins': ['celery', 'geojson', 'Pillow']
+    'plugins': ['celery', 'geojson', 'Pillow', 'pydicom']
 }
 
 if sys.version_info[0] == 2:
