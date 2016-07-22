@@ -56,8 +56,7 @@ class MetadataExtractor(object):
 
     def _extractMetadata(self):
         """
-        Extract metadata from file on client or server using hachoir-metadata
-        or pydicom for DICOM images.
+        Extract metadata from file on client or server using hachoir-metadata.
         """
 
         try:
@@ -84,7 +83,6 @@ class MetadataExtractor(object):
 
         except HachoirError:
             self.metadata = None
-
 
     def _setMetadata(self):
         """
