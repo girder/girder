@@ -35,15 +35,15 @@ class DicomMetadataExtractorTestCase(base.TestCase):
         publicFolders = [folder for folder in folders if folder['public']]
         self.assertIsNotNone(publicFolders)
         self.name = 'sample_dicom.dcm'
-        self.mimeType = 'application/dicom'
+        self.patiendId = '0522c0001'
         self.item = self.model('item').createItem(self.name, self.user,
                                                   publicFolders[0])
         self.path = os.path.join(ROOT_DIR, 'plugins',
-                                 'dicom_metadata_extractor', 'plugiin_tests',
+                                 'dicom_metadata_extractor', 'plugin_tests',
                                  'data', self.name)
         upload = self.model('upload').createUpload(
             self.user, self.name, 'item', self.item, os.path.getsize(self.path),
-            self.mimeType)
+            self.patiendId)
         with open(self.path, 'rb') as fd:
             uploadedFile = self.model('upload').handleChunk(upload, fd)
         self.assertHasKeys(uploadedFile,
