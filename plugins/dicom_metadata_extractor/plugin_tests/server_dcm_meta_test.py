@@ -45,4 +45,4 @@ class ServerDicomMetadataExtractorTestCase(DicomMetadataExtractorTestCase):
             time.sleep(0.1)
         self.assertEqual(item['name'], self.name)
         self.assertHasKeys(item, ['meta'])
-        self.assertEqual(item['meta']['Patient ID'], self.patiendId)
+        self.assertEqual(item['meta']['Patient ID'], self.patientId)
