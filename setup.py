@@ -74,7 +74,7 @@ install_reqs = [
 
 extras_reqs = {
     'celery_jobs': ['celery'],
-    'dicom_metadata_extractor': ['pydicom']
+    'dicom_metadata_extractor': ['pydicom'],
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow'],
     'worker': ['celery'],
