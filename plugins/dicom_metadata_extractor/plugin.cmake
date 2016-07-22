@@ -14,9 +14,7 @@
 #  limitations under the License.
 ###############################################################################
 
-# add_python_test(client_metadata_extractor PLUGIN metadata_extractor RESOURCE_LOCKS cherrypy PY2_ONLY)
 add_python_test(server_dcm_meta PLUGIN dicom_metadata_extractor)
-# add_python_test(server_metadata_extractor PLUGIN metadata_extractor RESOURCE_LOCKS cherrypy PY2_ONLY)
 
 add_python_style_test(python_static_analysis_dicom_metadata_extractor
                       "${PROJECT_SOURCE_DIR}/plugins/dicom_metadata_extractor/server")

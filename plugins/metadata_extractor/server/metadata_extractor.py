@@ -19,7 +19,6 @@
 
 import os
 import six
-import dicom
 
 from hachoir_core.error import HachoirError
 from hachoir_metadata import extractMetadata
@@ -62,8 +61,6 @@ class MetadataExtractor(object):
         """
 
         try:
-            if self._extractDicomMetadata():
-                return
             parser = createParser(six.text_type(self.path),
                                   six.binary_type(self.path))
 
@@ -88,30 +85,6 @@ class MetadataExtractor(object):
         except HachoirError:
             self.metadata = None
 
-    def _extractDicomMetadata(self):
-        """
-        Attempts to read file as DICOM image and extract metadata.
-        Upon successful read, metadata is set.
-        """
-
-        try:
-            dcMetadata = dicom.read_file(self.path, stop_before_pixels=True)
-            if dcMetadata:
-                self.metadata = dict()
-                for item in dcMetadata:
-                    # pass forces rawDataElement to DataElement conversion
-                    pass
-                    name = str(item.name).replace('.', '')
-                    value = str(item.value)
-                    self.metadata[name] = value
-                return True
-            else:
-                self.metadata = None
-                return False
-
-        except dicom.filereader.InvalidDicomError:
-            self.metadata = None
-            return False
 
     def _setMetadata(self):
         """
