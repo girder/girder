@@ -85,6 +85,11 @@ module.exports = function (grunt) {
         },
         module: {
             loaders: [
+                { // ES2015
+                    test: /\.js$/,
+                    loader: 'babel-loader',
+                    exclude: [paths.node_modules]
+                },
                 { // Stylus
                     test: /\.styl$/,
                     loaders: [
