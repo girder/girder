@@ -25,6 +25,9 @@ import os
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT
 from girder.utility import config, mkdir
 
+__version__ = '1.5.2'
+__license__ = 'Apache 2.0'
+
 
 class LogLevelFilter(object):
     """
