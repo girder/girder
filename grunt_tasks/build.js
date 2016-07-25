@@ -17,21 +17,14 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var nopt_fix = require('nopt-grunt-fix');
 
-var paths = require('./webpack.paths.js');
 var webpackConfig = require('./webpack.config.js');
 var webpackDevConfig = require('./webpack.dev.js');
 var webpackProdConfig = require('./webpack.prod.js');
 
-function getWatchFiles(dir) {
-    return [
-        path.join(dir, '**/*.js'),
-        path.join(dir, 'stylesheets/**/*.styl'),
-        path.join(dir, 'templates/**/*.jade')
-    ];
-}
-
 module.exports = function (grunt) {
+    nopt_fix(grunt);
     var environment = grunt.option('env') || 'dev';
     if (['dev', 'prod'].indexOf(environment) === -1) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
@@ -68,17 +61,15 @@ module.exports = function (grunt) {
                 keepalive: true
             })
         },
-        // The grunt-contrib-watch task below is one option for dev, as described here:
+        // The grunt-contrib-watch task can be used with webpack, as described here:
         // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
-        // but it could also be done using the webpack dev server.
-        // It is however A LOT SLOWER than using the built-in watch options in grunt-webpack
+        // BUT it is A LOT SLOWER than using the built-in watch options in grunt-webpack
         watch: {
-            app: {
-                files: getWatchFiles(paths.web_src),
-                tasks: ['warnWatch', isDev ? 'webpack:dev' : 'webpack:prod'],
+            warn: {
+                files: [],
+                tasks: 'warnWatch',
                 options: {
-                    atBegin: true,
-                    spawn: false
+                    atBegin: true
                 }
             }
         },
@@ -89,8 +80,9 @@ module.exports = function (grunt) {
         dependencies: ['version-info'] // which generates clients/web/src/version.js
     };
 
+    // Warn about not using grunt-contrib-watch, use webpack:watch or grunt --watch instead
     grunt.registerTask('warnWatch', function () {
-        grunt.log.warn('WARNING: the "watch" task is a lot slower than the "webpack:watch" or running grunt --watch'['yellow']);
+        grunt.log.warn('WARNING: the "watch" task will not build; use the "webpack:watch" task or run grunt --watch'['yellow']);
     });
 
     // Add plugin entry points (should be in webpack.config.js but skipPlugins is a grunt option)
