@@ -143,8 +143,8 @@ class GirderUploadCommand(GirderCommand):
         self._set_client(args)
         self.gc.upload(
             args.local_folder, args.parent_id, args.parent_type,
-            leaf_folders_as_items=args.leaf_folders_as_items,
-            reuse_existing=args.reuse)
+            leafFoldersAsItems=args.leaf_folders_as_items,
+            reuseExisting=args.reuse)
 
 
 class GirderDownloadCommand(GirderCommand):
