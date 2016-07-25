@@ -20,10 +20,12 @@
 import cherrypy
 import mimetypes
 import os
+import six
 
 import girder.events
 from girder import constants, logprint
 from girder.utility import plugin_utilities, model_importer
+from girder.utility.plugin_utilities import _plugin_webroots  # noqa
 from girder.utility import config
 from . import webroot
 
@@ -131,17 +133,68 @@ def configureServer(test=False, plugins=None, curConfig=None):
     return root, appconf
 
 
+def loadRouteTable():
+    """
+    Retrieves the route table from Girder and reconciles the state of it with the current
+    application state.
+
+    Reconciliation deals with 2 scenarios:
+    1) A plugin is no longer active (by being disabled or removed) and the route for the
+    plugin needs to be removed.
+    2) A webroot was added (a new plugin was enabled) and a default route needs to be added.
+
+    :returns: The non empty routes (as a dict of name -> route) to be mounted by CherryPy
+    during Girder's setup phase.
+    """
+    global _plugin_webroots
+    setting = model_importer.ModelImporter().model('setting')
+
+    def reconcileRouteTable(routeTable):
+        hasChanged = False
+
+        # 'girder' is a special route, which can't be removed
+        for name in routeTable.keys():
+            if name != 'girder' and name not in _plugin_webroots:
+                del routeTable[name]
+                hasChanged = True
+
+        for name in _plugin_webroots.keys():
+            if name not in routeTable:
+                routeTable[name] = os.path.join('/', name)
+                hasChanged = True
+
+        if hasChanged:
+            setting.set(constants.SettingKey.ROUTE_TABLE, routeTable)
+
+        return routeTable
+
+    routeTable = reconcileRouteTable(setting.get(constants.SettingKey.ROUTE_TABLE))
+
+    return {name: route for (name, route) in six.viewitems(routeTable) if route}
+
+
 def setup(test=False, plugins=None, curConfig=None):
     """
-    Configure and mount the Girder server under '/'.
+    Configure and mount the Girder server and plugins under the
+    appropriate routes.
+
+    See ROUTE_TABLE setting.
 
     :param test: Whether to start in test mode.
     :param plugins: List of plugins to enable.
     :param curConfig: The config object to update.
     """
-    root, appconf = configureServer(test, plugins, curConfig)
+    global _plugin_webroots
+    girderWebroot, appconf = configureServer(test, plugins, curConfig)
+    routeTable = loadRouteTable()
 
-    application = cherrypy.tree.mount(root, '/', appconf)
+    # Mount Girder
+    application = cherrypy.tree.mount(girderWebroot, routeTable['girder'], appconf)
+
+    # Mount everything else in the routeTable
+    for (name, route) in six.viewitems(routeTable):
+        if name != 'girder' and name in _plugin_webroots:
+            cherrypy.tree.mount(_plugin_webroots[name], route, appconf)
 
     if test:
         application.merge({'server': {'mode': 'testing'}})

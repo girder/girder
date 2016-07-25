@@ -148,6 +148,7 @@ class SettingKey:
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
+    ROUTE_TABLE = 'core.route_table'
 
 
 class SettingDefault:

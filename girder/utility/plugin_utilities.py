@@ -45,6 +45,8 @@ from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE
 from girder.models.model_base import ValidationException
 from girder.utility import mail_utils
 
+_plugin_webroots = {}
+
 
 def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
     """
@@ -356,6 +358,17 @@ def addChildNode(node, name, obj=None):
         hiddenNode = type('', (), dict(exposed=False))()
         setattr(node, name, hiddenNode)
         return hiddenNode
+
+
+def registerPluginWebroot(webroot, info):
+    """
+    Adds a webroot to the global registry for plugins based on
+    the plugin name.
+    """
+    global _plugin_webroots
+
+    if info['name']:
+        _plugin_webroots[info['name']] = webroot
 
 
 class config(object):  # noqa: class name

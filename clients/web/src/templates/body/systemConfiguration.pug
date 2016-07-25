@@ -121,6 +121,18 @@ form.g-settings-form(role="form")
           type="password", value=settings['core.smtp.password'] || '',
           placeholder=`Default: ${defaults['core.smtp.password'] || 'none'}`,
           title="The password, if any, used to authenticate to the SMTP server used to send emails.")
+  .g-settings-form-container
+    h4 Routing
+    p.
+      Altering routes requires a restart of the Girder server to take effect.
+    .form-group
+      each route, name in settings['core.route_table'] || defaults['core.route_table']
+        label #{name}
+        input.g-core-route-table.form-control.input-sm(
+          type="text",
+          value="#{route || ''}",
+          data-webroot-name="#{name}",
+          title="The path to place #{name}.")
   .panel-group#g-configuration-accordion
     .panel.panel-default
       .panel-heading(data-toggle="collapse",
