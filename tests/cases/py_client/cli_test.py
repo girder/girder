@@ -133,18 +133,15 @@ class PythonCliTestCase(base.TestCase):
             invokeCli(['--api-key', '1234'] + args)
 
         # Test dry-run and blacklist options
-        ret = invokeCli(['--dryrun', '--blacklist=hello.txt'] + args,
-                        username='mylogin', password='password')
+        ret = invokeCli(
+            args + ['--dry-run', '--blacklist=hello.txt'], username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        self.assertIn('Ignoring file hello.txt as it is blacklisted',
-                      ret['stdout'])
+        self.assertIn('Ignoring file hello.txt as it is blacklisted', ret['stdout'])
 
-        ret = invokeCli(args, username='mylogin', password='password',
-                        useApiUrl=True)
+        ret = invokeCli(args, username='mylogin', password='password', useApiUrl=True)
         self.assertEqual(ret['exitVal'], 0)
         six.assertRegex(
-            self, ret['stdout'],
-            'Creating Folder from .*tests/cases/py_client/testdata')
+            self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
         subfolder = six.next(self.model('folder').childFolders(
@@ -180,14 +177,12 @@ class PythonCliTestCase(base.TestCase):
         ret = invokeCli(['--api-key', self.apiKey['key']] + args)
         self.assertEqual(ret['exitVal'], 0)
         six.assertRegex(
-            self, ret['stdout'],
-            'Creating Folder from .*tests/cases/py_client/testdata')
+            self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
         # Test localsync, it shouldn't touch files on 2nd pass
         ret = invokeCli(('localsync', str(subfolder['_id']),
-                         downloadDir), username='mylogin',
-                        password='password')
+                         downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
 
         old_mtimes = {}
@@ -196,8 +191,7 @@ class PythonCliTestCase(base.TestCase):
             old_mtimes[fname] = os.path.getmtime(filename)
 
         ret = invokeCli(('localsync', str(subfolder['_id']),
-                         downloadDir), username='mylogin',
-                        password='password')
+                         downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
 
         for fname in os.listdir(downloadDir):
@@ -208,19 +202,16 @@ class PythonCliTestCase(base.TestCase):
 
     def testLeafFoldersAsItems(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
-        args = ['upload', str(self.publicFolder['_id']), localDir,
-                '--leaf-folders-as-items']
+        args = ['upload', str(self.publicFolder['_id']), localDir, '--leaf-folders-as-items']
 
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         six.assertRegex(
-            self, ret['stdout'],
-            'Creating Item from folder .*tests/cases/py_client/testdata')
+            self, ret['stdout'], 'Creating Item from folder .*tests/cases/py_client/testdata')
         self.assertIn('Adding file world.txt', ret['stdout'])
 
         # Test re-use existing case
         args.append('--reuse')
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        self.assertIn('File hello.txt already exists in parent Item',
-                      ret['stdout'])
+        self.assertIn('File hello.txt already exists in parent Item', ret['stdout'])
