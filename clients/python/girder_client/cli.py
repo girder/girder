@@ -32,8 +32,8 @@ class GirderCli(GirderClient):
                  scheme=None, apiUrl=None, apiKey=None):
         """
         Initialization function to create a GirderCli instance, will attempt
-        to authenticate with the designated Girder instance. Aside from username
-        and password, all other kwargs are passed directly through to the
+        to authenticate with the designated Girder instance. Aside from username, password,
+        and apiKey, all other kwargs are passed directly through to the
         :py:class:`girder_client.GirderClient` base class constructor.
 
         :param username: username to authenticate to Girder instance.
@@ -65,7 +65,7 @@ parser.add_argument('--api-root', required=False, default=None,
 
 subparsers = parser.add_subparsers(
     title='subcommands', dest='subcommand', description='Valid subcommands')
-subparsers.required=True
+subparsers.required = True
 
 _COMMON_OPTIONS = dict(
     reuse=dict(
