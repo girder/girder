@@ -90,8 +90,8 @@ _COMMON_OPTIONS = dict(
 
 
 class GirderCommandSubtype(type):
-    def __init__(self, name, b, d):
-        type.__init__(self, name, b, d)
+    def __init__(self, name, *args, **kwargs):
+        super(GirderCommandSubtype, self).__init__(name, *args, **kwargs)
         if self.name:
             sc = subparsers.add_parser(
                 self.name, description=self.description, help=self.description)

@@ -65,7 +65,7 @@ class AuthenticationError(RuntimeError):
 
 class IncorrectUploadLengthError(RuntimeError):
     def __init__(self, message, upload=None):
-        RuntimeError.__init__(self, message)
+        super(IncorrectUploadLengthError, self).__init__(message)
         self.upload = upload
 
 
@@ -74,7 +74,7 @@ class HttpError(Exception):
     Raised if the server returns an error status code from a request.
     """
     def __init__(self, status, text, url, method):
-        Exception.__init__(self, 'HTTP error %s: %s %s' % (status, method, url))
+        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url))
         self.status = status
         self.responseText = text
         self.url = url
