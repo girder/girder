@@ -18,6 +18,7 @@
 ###############################################################################
 
 import os
+import six
 import dicom
 
 try:
@@ -81,16 +82,18 @@ class DicomMetadataExtractor(object):
 
 
 class ClientDicomMetadataExtractor(DicomMetadataExtractor):
-    def __init__(self, client, path, itemId):
+    def __init__(self, client, fileId, itemId):
         """
         Initialize client metadata extractor.
 
         :param client: client instance
-        :param path: path of file from which to extract metadata on remote
-        client
+        :param fileId: file ID of file from which to extract metadata
         :param itemId: item ID of item containing file on server
         """
-        super(ClientDicomMetadataExtractor, self).__init__(path, itemId)
+        output = six.BytesIO()
+        client.downloadFile(fileId, output)
+        output.seek(0)
+        super(ClientDicomMetadataExtractor, self).__init__(output, itemId)
         self.client = client
 
     def _setMetadata(self):

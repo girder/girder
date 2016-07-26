@@ -44,8 +44,11 @@ class DicomMetadataExtractorTestCase(base.TestCase):
         upload = self.model('upload').createUpload(
             self.user, self.name, 'item', self.item, os.path.getsize(self.path),
             self.patientId)
+
         with open(self.path, 'rb') as fd:
             uploadedFile = self.model('upload').handleChunk(upload, fd)
+
+        self.fileId = str(uploadedFile['_id'])
         self.assertHasKeys(uploadedFile,
                            ['assetstoreId', 'created', 'creatorId', 'itemId',
                             'mimeType', 'name', 'size'])

@@ -142,6 +142,25 @@ may be installed using **pip** as follows: ::
 Once the packages are installed, the plugin may be enabled via the admin
 console on the server.
 
+In this example, we use the girder :doc:`python client <python-client>` to
+interact with the plugin's python API.
+Assuming ``girder_client.py`` and ``metadata_extractor.py`` are located in
+the module path, the following code fragment will extract metadata from a file
+with file ID ``fileId`` on girder that has been uploaded to ``itemId`` on the
+server: ::
+
+    from girder_client import GirderClient
+    from metadata_extractor import ClientMetadataExtractor
+
+    client = GirderClient(host='localhost', port=8080)
+    client.authenticate(login, password)
+
+    extractor = ClientMetadataExtractor(client, fileId, itemId)
+    extractor.extractMetadata()
+
+The user authenticating with ``login`` and ``password`` must have ``WRITE``
+access to the file located at ``itemId`` on the server.
+
 
 Metadata Extractor
 ------------------

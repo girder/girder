@@ -49,7 +49,7 @@ class ClientDicomMetadataExtractorTestCase(DicomMetadataExtractorTestCase):
 
         client = GirderClient('localhost', int(os.environ['GIRDER_PORT']))
         client.authenticate(self.user['login'], self.password)
-        extractor = ClientDicomMetadataExtractor(client, self.path, self.item['_id'])
+        extractor = ClientDicomMetadataExtractor(client, self.fileId, self.item['_id'])
         extractor.extractMetadata()
         sys.path.remove(clientPath)
         item = self.model('item').load(self.item['_id'], user=self.user)
