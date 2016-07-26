@@ -134,7 +134,7 @@ class PythonCliTestCase(base.TestCase):
 
         # Test dry-run and blacklist options
         ret = invokeCli(
-            args + ['--dryrun', '--blacklist=hello.txt'], username='mylogin', password='password')
+            args + ['--dry-run', '--blacklist=hello.txt'], username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         self.assertIn('Ignoring file hello.txt as it is blacklisted', ret['stdout'])
 

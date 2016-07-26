@@ -80,8 +80,8 @@ _COMMON_OPTIONS = dict(
     blacklist=dict(
         longname='--blacklist', required=False, default='',
         help='comma-separated list of filenames to ignore'),
-    dryrun=dict(
-        longname='--dryrun', required=False, action='store_true',
+    dry_run=dict(
+        longname='--dry-run', required=False, action='store_true',
         help='will not write anything to Girder, only report what would happen'
     ),
     parent_id=dict(short='parent_id', help='id of Girder parent target'),
@@ -129,7 +129,7 @@ class GirderCommand(object):
 class GirderUploadCommand(GirderCommand):
     name = 'upload'
     description = 'Upload files to Girder'
-    args = ('reuse', 'leaf_folders_as_items', 'blacklist', 'dryrun',
+    args = ('reuse', 'leaf_folders_as_items', 'blacklist', 'dry_run',
             'parent_type', 'parent_id', 'local_folder')
 
     def __call__(self, args):
@@ -137,7 +137,7 @@ class GirderUploadCommand(GirderCommand):
         self.gc.upload(
             args.local_folder, args.parent_id, args.parent_type,
             leafFoldersAsItems=args.leaf_folders_as_items, reuseExisting=args.reuse,
-            blacklist=args.blacklist.split(','), dryrun=args.dryrun)
+            blacklist=args.blacklist.split(','), dryRun=args.dry_run)
 
 
 class GirderDownloadCommand(GirderCommand):

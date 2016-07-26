@@ -1150,7 +1150,7 @@ class GirderClient(object):
         """
         self.uploadFileToItem(parentItemId, filePath)
 
-    def _uploadAsItem(self, localFile, parentFolderId, filePath, reuseExisting=False, dryrun=False):
+    def _uploadAsItem(self, localFile, parentFolderId, filePath, reuseExisting=False, dryRun=False):
         """Function for doing an upload of a file as an item.
         :param localFile: name of local file to upload
         :param parentFolderId: id of parent folder in Girder
@@ -1159,7 +1159,7 @@ class GirderClient(object):
             of the same name in the same location, or create a new one instead
         """
         print('Uploading Item from %s' % localFile)
-        if not dryrun:
+        if not dryRun:
             currentItem = self.loadOrCreateItem(
                 os.path.basename(localFile), parentFolderId, reuseExisting)
             self._uploadFileToItem(localFile, currentItem['_id'], filePath)
@@ -1168,7 +1168,7 @@ class GirderClient(object):
                 callback(currentItem, filePath)
 
     def _uploadFolderAsItem(self, localFolder, parentFolderId, reuseExisting=False, blacklist=None,
-                            dryrun=False):
+                            dryRun=False):
         """
         Take a folder and use its base name as the name of a new item. Then,
         upload its containing files into the new item as bitstreams.
@@ -1180,7 +1180,7 @@ class GirderClient(object):
         """
         blacklist = blacklist or []
         print('Creating Item from folder %s' % localFolder)
-        if not dryrun:
+        if not dryRun:
             item = self.loadOrCreateItem(
                 os.path.basename(localFolder), parentFolderId, reuseExisting)
 
@@ -1190,20 +1190,20 @@ class GirderClient(object):
         for (ind, currentFile) in enumerate(subdircontents):
             filepath = os.path.join(localFolder, currentFile)
             if currentFile in blacklist:
-                if dryrun:
+                if dryRun:
                     print('Ignoring file %s as blacklisted' % currentFile)
                 continue
             print('Adding file %s, (%d of %d) to Item' % (currentFile, ind + 1, filecount))
 
-            if not dryrun:
+            if not dryRun:
                 self._uploadFileToItem(currentFile, item['_id'], filepath)
 
-        if not dryrun:
+        if not dryRun:
             for callback in self._itemUploadCallbacks:
                 callback(item, localFolder)
 
     def _uploadFolderRecursive(self, localFolder, parentId, parentType, leafFoldersAsItems=False,
-                               reuseExisting=False, blacklist=None, dryrun=False):
+                               reuseExisting=False, blacklist=None, dryRun=False):
         """
         Function to recursively upload a folder and all of its descendants.
 
@@ -1222,17 +1222,17 @@ class GirderClient(object):
                     ('Attempting to upload a folder as an item under a %s. '
                      % parentType) + 'Items can only be added to folders.')
             else:
-                self._uploadFolderAsItem(localFolder, parentId, reuseExisting, dryrun=dryrun)
+                self._uploadFolderAsItem(localFolder, parentId, reuseExisting, dryRun=dryRun)
         else:
             filename = os.path.basename(localFolder)
             if filename in blacklist:
-                if dryrun:
+                if dryRun:
                     print('Ignoring file %s as it is blacklisted' % filename)
                 return
 
             print('Creating Folder from %s' % localFolder)
-            if dryrun:
-                # create a dryrun placeholder
+            if dryRun:
+                # create a dry run placeholder
                 folder = {'_id': 'dryrun'}
             else:
                 folder = self.loadOrCreateFolder(
@@ -1240,7 +1240,7 @@ class GirderClient(object):
 
             for entry in sorted(os.listdir(localFolder)):
                 if entry in blacklist:
-                    if dryrun:
+                    if dryRun:
                         print('Ignoring file %s as it is blacklisted' % entry)
                     continue
                 fullEntry = os.path.join(localFolder, entry)
@@ -1253,17 +1253,17 @@ class GirderClient(object):
                     # pass that as the parent_type
                     self._uploadFolderRecursive(
                         fullEntry, folder['_id'], 'folder', leafFoldersAsItems, reuseExisting,
-                        dryrun=dryrun)
+                        dryRun=dryRun)
                 else:
                     self._uploadAsItem(
-                        entry, folder['_id'], fullEntry, reuseExisting, dryrun=dryrun)
+                        entry, folder['_id'], fullEntry, reuseExisting, dryRun=dryRun)
 
-            if not dryrun:
+            if not dryRun:
                 for callback in self._folderUploadCallbacks:
                     callback(folder, localFolder)
 
     def upload(self, filePattern, parentId, parentType='folder', leafFoldersAsItems=False,
-               reuseExisting=False, blacklist=None, dryrun=False):
+               reuseExisting=False, blacklist=None, dryRun=False):
         """
         Upload a pattern of files.
 
@@ -1278,9 +1278,9 @@ class GirderClient(object):
             files uploaded as single items.
         :param reuseExisting: bool whether to accept an existing item of
             the same name in the same location, or create a new one instead.
-        :param dryrun: Set this to True to print out what actions would be taken, but
+        :param dryRun: Set this to True to print out what actions would be taken, but
             do not actually communicate with the server.
-        :type dryrun: bool
+        :type dryRun: bool
         """
         blacklist = blacklist or []
         empty = True
@@ -1290,7 +1290,7 @@ class GirderClient(object):
             currentFile = os.path.normpath(currentFile)
             filename = os.path.basename(currentFile)
             if filename in blacklist:
-                if dryrun:
+                if dryRun:
                     print('Ignoring file %s as it is blacklisted' % filename)
                 continue
             if os.path.isfile(currentFile):
@@ -1301,11 +1301,11 @@ class GirderClient(object):
                 else:
                     self._uploadAsItem(
                         os.path.basename(currentFile), parentId, currentFile, reuseExisting,
-                        dryrun=dryrun)
+                        dryRun=dryRun)
             else:
                 self._uploadFolderRecursive(
                     currentFile, parentId, parentType, leafFoldersAsItems, reuseExisting,
-                    blacklist=blacklist, dryrun=dryrun)
+                    blacklist=blacklist, dryRun=dryRun)
         if empty:
             print('No matching files: ' + filePattern)
 

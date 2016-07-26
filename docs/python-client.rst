@@ -83,9 +83,9 @@ type as follows ::
     girder-cli upload 54b6d41a8926486c0cbca459 test_folder --parent-type user
 
 To see what local folders and files on disk would be uploaded without actually
-uploading anything, add the ``--dryrun`` flag ::
+uploading anything, add the ``--dry-run`` flag ::
 
-    girder-cli upload 54b6d41a8926486c0cbca367 test_folder --dryrun
+    girder-cli upload 54b6d41a8926486c0cbca367 test_folder --dry-run
 
 To have leaf folders (those folders with no subfolders, only containing files)
 be uploaded to Girder as single Items with multiple Files, i.e. those leaf
