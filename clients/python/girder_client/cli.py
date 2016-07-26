@@ -69,7 +69,7 @@ subparsers.required = True
 
 # Arguments shared by multiple subcommands
 _commonArgs = {
-    '--parent_type': dict(
+    '--parent-type': dict(
         required=False, default='folder',
         help='type of Girder parent target, one of (collection, folder, user)'),
     'parent_id': dict(help='id of Girder parent target'),
