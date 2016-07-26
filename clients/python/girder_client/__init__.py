@@ -31,6 +31,7 @@ import six
 import tempfile
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
+REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
 
 _safeNameRegex = re.compile(r'^[/\\]+')
 
@@ -891,7 +892,7 @@ class GirderClient(object):
             '%sfile/%s/download' % (self.urlBase, fileId),
             stream=True, headers={'Girder-Token': self.token})
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            for chunk in req.iter_content(chunk_size=65536):
+            for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
                 tmp.write(chunk)
 
         # save file in cache
