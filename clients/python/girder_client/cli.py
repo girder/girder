@@ -18,7 +18,7 @@
 ###############################################################################
 
 import argparse
-from six import add_metaclass, string_types
+import six
 from girder_client import GirderClient
 
 
@@ -67,111 +67,64 @@ subparsers = parser.add_subparsers(
     title='subcommands', dest='subcommand', description='Valid subcommands')
 subparsers.required = True
 
-_COMMON_OPTIONS = dict(
-    reuse=dict(
-        longname='--reuse', action='store_true',
-        help='use existing items of same name at same location or create a new one'),
-    leaf_folders_as_items=dict(
-        longname='--leaf-folders-as-items', required=False, action='store_true',
-        help='upload all files in leaf folders to a single Item named after the folder'),
-    parent_type=dict(
-        longname='--parent-type', required=False, default='folder',
+# Arguments shared by multiple subcommands
+_commonArgs = {
+    '--parent_type': dict(
+        required=False, default='folder',
         help='type of Girder parent target, one of (collection, folder, user)'),
-    blacklist=dict(
-        longname='--blacklist', required=False, default='',
-        help='comma-separated list of filenames to ignore'),
-    dry_run=dict(
-        longname='--dry-run', required=False, action='store_true',
-        help='will not write anything to Girder, only report what would happen'
-    ),
-    parent_id=dict(short='parent_id', help='id of Girder parent target'),
-    local_folder=dict(short='local_folder', help='path to local target folder')
-)
+    'parent_id': dict(help='id of Girder parent target'),
+    'local_folder': dict(help='path to local target folder')
+}
 
+downloadParser = subparsers.add_parser('download', description='Download files from Girder')
 
-class GirderCommandSubtype(type):
-    def __init__(self, name, *args, **kwargs):
-        super(GirderCommandSubtype, self).__init__(name, *args, **kwargs)
-        if self.name:
-            sc = subparsers.add_parser(
-                self.name, description=self.description, help=self.description)
-            sc.set_defaults(func=self.run)
-            for arg in self.args:
-                if isinstance(arg, string_types):
-                    arg = _COMMON_OPTIONS[arg].copy()
-                argc = dict(arg.items())
-                argnames = []
-                if 'short' in argc:
-                    argnames.append(argc.pop('short'))
-                if 'longname' in argc:
-                    argnames.append(argc.pop('longname'))
-                sc.add_argument(*argnames, **argc)
+localsyncParser = subparsers.add_parser(
+    'localsync', description='Synchronize local folder with remote Girder folder')
 
+uploadParser = subparsers.add_parser('upload', description='Upload files to Girder')
+uploadParser.add_argument(
+    '--leaf-folders-as-items', required=False, action='store_true',
+    help='upload all files in leaf folders to a single Item named after the folder')
+uploadParser.add_argument(
+    '--reuse', required=False, action='store_true',
+    help='use existing items of same name at same location or create a new one')
+uploadParser.add_argument(
+    '--dry-run', required=False, action='store_true',
+    help='will not write anything to Girder, only report what would happen')
+uploadParser.add_argument(
+    '--blacklist', required=False, default='', help='comma-separated list of filenames to ignore')
 
-@add_metaclass(GirderCommandSubtype)
-class GirderCommand(object):
-    args = ()
-    name = None
-    description = ''
-    gc = None
-
-    @classmethod
-    def run(cls, args):
-        self = cls()
-        self(args)
-
-    def _setClient(self, args):
-        self.gc = GirderCli(
-            args.username, args.password, host=args.host, port=args.port, apiRoot=args.api_root,
-            scheme=args.scheme, apiUrl=args.api_url, apiKey=args.api_key)
-
-
-class GirderUploadCommand(GirderCommand):
-    name = 'upload'
-    description = 'Upload files to Girder'
-    args = ('reuse', 'leaf_folders_as_items', 'blacklist', 'dry_run',
-            'parent_type', 'parent_id', 'local_folder')
-
-    def __call__(self, args):
-        self._setClient(args)
-        self.gc.upload(
-            args.local_folder, args.parent_id, args.parent_type,
-            leafFoldersAsItems=args.leaf_folders_as_items, reuseExisting=args.reuse,
-            blacklist=args.blacklist.split(','), dryRun=args.dry_run)
-
-
-class GirderDownloadCommand(GirderCommand):
-    name = 'download'
-    description = 'Download files from Girder'
-    args = ('parent_type', 'parent_id', 'local_folder')
-
-    def __call__(self, args):
-        if args.parent_type != 'folder':
-            raise Exception('download command only accepts parent-type of folder')
-
-        self._setClient(args)
-        self.gc.downloadFolderRecursive(args.parent_id, args.local_folder)
-
-
-class GirderLocalsyncCommand(GirderCommand):
-    name = 'localsync'
-    description = 'Synchronize local folder with remote Girder folder'
-    args = ('parent_type', 'parent_id', 'local_folder')
-
-    def __call__(self, args):
-        if args.parent_type != 'folder':
-            raise Exception('localsync command only accepts parent-type of folder')
-
-        self._setClient(args)
-        self.gc.loadLocalMetadata(args.local_folder)
-        self.gc.downloadFolderRecursive(args.parent_id, args.local_folder, sync=True)
-        self.gc.saveLocalMetadata(args.local_folder)
+# For now, all subcommands conveniently share all the common options
+for name, kwargs in six.viewitems(_commonArgs):
+    uploadParser.add_argument(name, **kwargs)
+    downloadParser.add_argument(name, **kwargs)
+    localsyncParser.add_argument(name, **kwargs)
 
 
 def main():
     args = parser.parse_args()
-    args.func(args)
 
+    gc = GirderCli(
+        args.username, args.password, host=args.host, port=args.port, apiRoot=args.api_root,
+        scheme=args.scheme, apiUrl=args.api_url, apiKey=args.api_key)
+
+    if args.subcommand == 'upload':
+        gc.upload(
+            args.local_folder, args.parent_id, args.parent_type,
+            leafFoldersAsItems=args.leaf_folders_as_items, reuseExisting=args.reuse,
+            blacklist=args.blacklist.split(','), dryRun=args.dry_run)
+    elif args.subcommand == 'download':
+        if args.parent_type != 'folder':
+            raise Exception('download command only accepts parent-type of folder')
+
+        gc.downloadFolderRecursive(args.parent_id, args.local_folder)
+    elif args.subcommand == 'localsync':
+        if args.parent_type != 'folder':
+            raise Exception('localsync command only accepts parent-type of folder')
+
+        gc.loadLocalMetadata(args.local_folder)
+        gc.downloadFolderRecursive(args.parent_id, args.local_folder, sync=True)
+        gc.saveLocalMetadata(args.local_folder)
 
 if __name__ == '__main__':
     main()  # pragma: no cover
