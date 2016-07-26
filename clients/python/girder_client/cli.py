@@ -18,7 +18,6 @@
 ###############################################################################
 
 import argparse
-import sys
 from six import add_metaclass, string_types
 from girder_client import GirderClient
 
@@ -29,10 +28,10 @@ class GirderCli(GirderClient):
     RESTful api, specifically for performing uploads into a Girder instance.
     """
 
-    def __init__(self, username, password, dryrun, blacklist,
-                 host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
-                 apiKey=None):
-        """initialization function to create a GirderCli instance, will attempt
+    def __init__(self, username, password, host=None, port=None, apiRoot=None,
+                 scheme=None, apiUrl=None, apiKey=None):
+        """
+        Initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance. Aside from username
         and password, all other kwargs are passed directly through to the
         :py:class:`girder_client.GirderClient` base class constructor.
@@ -41,9 +40,8 @@ class GirderCli(GirderClient):
         :param password: password to authenticate to Girder instance, leave
             this blank to be prompted.
         """
-        GirderClient.__init__(self, host=host, port=port,
-                              apiRoot=apiRoot, scheme=scheme, dryrun=dryrun,
-                              blacklist=blacklist, apiUrl=apiUrl)
+        super(GirderCli, self).__init__(
+            host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl)
         interactive = password is None
 
         if apiKey:
@@ -64,44 +62,39 @@ parser.add_argument('--host', required=False, default=None)
 parser.add_argument('--port', required=False, default=None)
 parser.add_argument('--api-root', required=False, default=None,
                     help='relative path to the Girder REST API')
-parser.add_argument('--blacklist', default='', required=False,
-                    help='comma separated list of filenames to ignore'),
-parser.add_argument('--dryrun', action='store_true',
-                    help='will not write anything to Girder, only report'
-                    ' on what would happen'),
 
-
-subparsers = parser.add_subparsers(title='subcommands',
-                                   dest='subcommands',
-                                   description='Valid subcommands',)
+subparsers = parser.add_subparsers(
+    title='subcommands', dest='subcommands', description='Valid subcommands',)
 _COMMON_OPTIONS = dict(
-    reuse=dict(longname='--reuse', action='store_true',
-               help='use existing items of same name at same location'
-                    ' or create a new one'),
+    reuse=dict(
+        longname='--reuse', action='store_true',
+        help='use existing items of same name at same location or create a new one'),
     leaf_folders_as_items=dict(
-        longname='--leaf-folders-as-items', required=False,
-        action='store_true',
-        help='upload all files in leaf folders'
-             'to a single Item named after the folder'),
+        longname='--leaf-folders-as-items', required=False, action='store_true',
+        help='upload all files in leaf folders to a single Item named after the folder'),
     parent_type=dict(
         longname='--parent-type', required=False, default='folder',
-        help='type of Girder parent target, one of '
-             '(collection, folder, user)'),
+        help='type of Girder parent target, one of (collection, folder, user)'),
+    blacklist=dict(
+        longname='--blacklist', required=False, default='',
+        help='comma-separated list of filenames to ignore'),
+    dryrun=dict(
+        longname='--dryrun', required=False, action='store_true',
+        help='will not write anything to Girder, only report what would happen'
+    ),
     parent_id=dict(short='parent_id', help='id of Girder parent target'),
-    local_folder=dict(short='local_folder',
-                      help='path to local target folder'),
+    local_folder=dict(short='local_folder', help='path to local target folder')
 )
 
 
 class GirderCommandSubtype(type):
-    def __init__(cls, name, b, d):
-        type.__init__(cls, name, b, d)
-        if cls.name:
+    def __init__(self, name, b, d):
+        type.__init__(self, name, b, d)
+        if self.name:
             sc = subparsers.add_parser(
-                cls.name, description=cls.description,
-                help=cls.description)
-            sc.set_defaults(func=cls.run)
-            for arg in cls.args:
+                self.name, description=self.description, help=self.description)
+            sc.set_defaults(func=self.run)
+            for arg in self.args:
                 if isinstance(arg, string_types):
                     arg = _COMMON_OPTIONS[arg].copy()
                 argc = dict(arg.items())
@@ -125,26 +118,24 @@ class GirderCommand(object):
         self = cls()
         self(args)
 
-    def _set_client(self, args):
+    def _setClient(self, args):
         self.gc = GirderCli(
-            args.username, args.password, bool(args.dryrun),
-            args.blacklist.split(','), host=args.host, port=args.port,
-            apiRoot=args.api_root, scheme=args.scheme,
-            apiUrl=args.api_url, apiKey=args.api_key)
+            args.username, args.password, host=args.host, port=args.port, apiRoot=args.api_root,
+            scheme=args.scheme, apiUrl=args.api_url, apiKey=args.api_key)
 
 
 class GirderUploadCommand(GirderCommand):
     name = 'upload'
     description = 'Upload files to Girder'
-    args = ('reuse', 'leaf_folders_as_items',
+    args = ('reuse', 'leaf_folders_as_items', 'blacklist', 'dryrun',
             'parent_type', 'parent_id', 'local_folder')
 
     def __call__(self, args):
-        self._set_client(args)
+        self._setClient(args)
         self.gc.upload(
             args.local_folder, args.parent_id, args.parent_type,
-            leafFoldersAsItems=args.leaf_folders_as_items,
-            reuseExisting=args.reuse)
+            leafFoldersAsItems=args.leaf_folders_as_items, reuseExisting=args.reuse,
+            blacklist=args.blacklist.split(','), dryrun=args.dryrun)
 
 
 class GirderDownloadCommand(GirderCommand):
@@ -154,10 +145,9 @@ class GirderDownloadCommand(GirderCommand):
 
     def __call__(self, args):
         if args.parent_type != 'folder':
-            print('download command only accepts parent-type of folder')
-            sys.exit(0)
+            raise Exception('download command only accepts parent-type of folder')
 
-        self._set_client(args)
+        self._setClient(args)
         self.gc.downloadFolderRecursive(args.parent_id, args.local_folder)
 
 
@@ -168,24 +158,16 @@ class GirderLocalsyncCommand(GirderCommand):
 
     def __call__(self, args):
         if args.parent_type != 'folder':
-            print('localsync command only accepts parent-type of folder')
-            sys.exit(0)
+            raise Exception('localsync command only accepts parent-type of folder')
 
-        self._set_client(args)
+        self._setClient(args)
         self.gc.loadLocalMetadata(args.local_folder)
-        self.gc.downloadFolderRecursive(args.parent_id, args.local_folder,
-                                        sync=True)
+        self.gc.downloadFolderRecursive(args.parent_id, args.local_folder, sync=True)
         self.gc.saveLocalMetadata(args.local_folder)
 
 
 def main():
     args = parser.parse_args()
-    try:
-        getattr(args, "func")
-    except AttributeError:
-        parser.print_help()
-        sys.exit(1)
-
     args.func(args)
 
 
