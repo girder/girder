@@ -64,7 +64,9 @@ parser.add_argument('--api-root', required=False, default=None,
                     help='relative path to the Girder REST API')
 
 subparsers = parser.add_subparsers(
-    title='subcommands', dest='subcommands', description='Valid subcommands',)
+    title='subcommands', dest='subcommand', description='Valid subcommands')
+subparsers.required=True
+
 _COMMON_OPTIONS = dict(
     reuse=dict(
         longname='--reuse', action='store_true',
