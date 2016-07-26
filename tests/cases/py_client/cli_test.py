@@ -125,7 +125,7 @@ class PythonCliTestCase(base.TestCase):
 
     def testUploadDownload(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
-        args = ['upload', str(self.publicFolder['_id']), localDir]
+        args = ['upload', str(self.publicFolder['_id']), localDir, '--parent-type=folder']
         with self.assertRaises(girder_client.HttpError):
             invokeCli(args)
 
