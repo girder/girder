@@ -32,7 +32,15 @@ pip, you can use the special ``girder-cli`` executable: ::
 
 Otherwise you can equivalently just invoke the module directly: ::
 
-    python -m girder_client <arguments>
+    python -m girder_client <subcommand> <arguments>
+
+To see all available subcommands, run: ::
+
+    girder-cli --help
+
+For help with a specific subcommand, run: ::
+
+    girder-cli <subcommand> --help
 
 Specifying the Girder Instance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -42,7 +50,7 @@ you wish to connect to. The easiest way to do so is to pass the full URL to the
 REST API of the Girder instance you wish to connect to using the ``api-url``
 argument to ``girder-cli``. For example: ::
 
-    girder-cli --api-url http://localhost:8080/api/v1 ...
+    girder-cli --api-url http://localhost:8080/api/v1 <subcommand> ...
 
 You may also specify the URL in parts, using the ``host`` argument, and optional
 ``scheme``, ``port``, and ``api-root`` args. ::
@@ -56,44 +64,35 @@ Or... ::
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The girder_client can upload to an S3 Assetstore when uploading to a Girder server
-that is version 1.3.0 or later.
-
-The upload command, ``-c upload``, is the default, so the following two forms
-are equivalent ::
-
-    girder-cli
-    girder-cli -c upload
-
 To upload a folder hierarchy rooted at `test_folder` to the Girder Folder with
 id `54b6d41a8926486c0cbca367` ::
 
 
-    girder-cli 54b6d41a8926486c0cbca367 test_folder
+    girder-cli upload 54b6d41a8926486c0cbca367 test_folder
 
 When using the upload command, the default ``--parent-type``, meaning the type
 of resource the local folder will be created under in Girder, is Folder, so the
 following are equivalent ::
 
-    girder-cli 54b6d41a8926486c0cbca367 test_folder
-    girder-cli 54b6d41a8926486c0cbca367 test_folder --parent-type folder
+    girder-cli upload 54b6d41a8926486c0cbca367 test_folder
+    girder-cli upload 54b6d41a8926486c0cbca367 test_folder --parent-type folder
 
 To upload that same local folder to a Collection or User, specify the parent
 type as follows ::
 
-    girder-cli 54b6d41a8926486c0cbca459 test_folder --parent-type user
+    girder-cli upload 54b6d41a8926486c0cbca459 test_folder --parent-type user
 
 To see what local folders and files on disk would be uploaded without actually
 uploading anything, add the ``--dryrun`` flag ::
 
-    girder-cli 54b6d41a8926486c0cbca367 test_folder --dryrun
+    girder-cli upload 54b6d41a8926486c0cbca367 test_folder --dryrun
 
 To have leaf folders (those folders with no subfolders, only containing files)
 be uploaded to Girder as single Items with multiple Files, i.e. those leaf
 folders will be created as Items and all files within the leaf folders will be
 Files within those Items, add the ``--leaf-folders-as-items`` flag ::
 
-    girder-cli 54b6d41a8926486c0cbca367 test_folder --leaf-folders-as-items
+    girder-cli upload 54b6d41a8926486c0cbca367 test_folder --leaf-folders-as-items
 
 If you already have an existing Folder hierarchy in Girder which you have a
 superset of on your local disk (e.g. you previously uploaded a hierarchy to
@@ -103,12 +102,15 @@ Items for those that match folders and files on disk, by using the ``--reuse`` f
 
 ::
 
-    girder-cli 54b6d41a8926486c0cbca367 test_folder --reuse
+    girder-cli upload 54b6d41a8926486c0cbca367 test_folder --reuse
 
 To include a blacklist of file patterns that will not be uploaded, pass a comma
 separated list to the ``--blacklist`` arg ::
 
-    girder-cli 54b6d41a8926486c0cbca367 test_folder --blacklist .DS_Store
+    girder-cli upload 54b6d41a8926486c0cbca367 test_folder --blacklist .DS_Store
+
+.. note: The girder_client can upload to an S3 Assetstore when uploading to a Girder server
+         that is version 1.3.0 or later.
 
 Download a Folder hierarchy into a local folder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -116,7 +118,7 @@ Download a Folder hierarchy into a local folder
 To download a Girder Folder hierarchy rooted at Folder id
 `54b6d40b8926486c0cbca364` under the local folder `download_folder` ::
 
-    girder-cli -c download 54b6d40b8926486c0cbca364 download_folder
+    girder-cli download 54b6d40b8926486c0cbca364 download_folder
 
 Downloading is only supported from a parent type of Folder.
 
@@ -127,13 +129,13 @@ If the `download_folder` is a local copy of a Girder Folder hierarchy rooted at
 Folder id `54b6d40b8926486c0cbca364`, any change made to the Girder Folder remotely
 can be synchronized locally by ::
 
-    girder-cli -c localsync 54b6d40b8926486c0cbca364 download_folder
+    girder-cli localsync 54b6d40b8926486c0cbca364 download_folder
 
 This will only download new Items or Items that have been modified since the
 last download/localsync. Local files that are no longer present in the remote
 Girder Folder will not be removed. This command relies on a presence of
 metadata file `.metadata-girder` within `download_folder`, which is created
-upon `girder-cli -c download`. If `.metadata-girder` is not present,
+upon `girder-cli download`. If `.metadata-girder` is not present,
 `localsync` will fallback to `download`.
 
 The Python Client Library
@@ -171,20 +173,20 @@ and Items are uploaded to the Folder.
     import girder_client
     gc = girder_client.GirderClient()
 
-    def folder_callback(folder, filepath):
-        # assume we have a folder_metadata dict that has
+    def folderCallback(folder, filepath):
+        # assume we have a folderMetadata dict that has
         # filepath: metadata_dict_for_folder
-        gc.addMetadataToFolder(folder['_id'], folder_metadata[filepath])
+        gc.addMetadataToFolder(folder['_id'], folderMetadata[filepath])
 
-    def item_callback(item, filepath):
-        # assume we have an item_metadata dict that has
+    def itemCallback(item, filepath):
+        # assume we have an itemMetadata dict that has
         # filepath: metadata_dict_for_item
-        gc.addMetadataToItem(item['_id'], item_metadata[filepath])
+        gc.addMetadataToItem(item['_id'], itemMetadata[filepath])
 
     gc.authenticate('username', 'password')
-    gc.add_folder_upload_callback(folder_callback)
-    gc.add_item_upload_callback(item_callback)
-    gc.upload(local_folder, parent_id)
+    gc.addFolderUploadCallback(folderCallback)
+    gc.addItemUploadCallback(itemCallback)
+    gc.upload(localFolder, parentId)
 
 
 Further Examples and Function Level Documentation
