@@ -19,9 +19,10 @@
 
 from collections import OrderedDict
 import cherrypy
+import pymongo
 import six
 
-from ..constants import SettingDefault
+from ..constants import SettingDefault, TerminalColor
 from .model_base import Model, ValidationException
 from girder.utility import camelcase, plugin_utilities
 from bson.objectid import ObjectId
@@ -33,7 +34,50 @@ class Setting(Model):
     """
     def initialize(self):
         self.name = 'setting'
-        self.ensureIndices(['key'])
+        # We had been asking for an index on key, like so:
+        #   self.ensureIndices(['key'])
+        # We really want the index to be unique, which could be done:
+        #   self.ensureIndices([('key', {'unique': True})])
+        # We can't do it here, as we have to update and correct older installs,
+        # so this is handled in the reconnect method.
+
+    def reconnect(self):
+        """
+        Reconnect to the database and rebuild indices if necessary.  If a
+        unique index on key does not exist, make one, first discarding any
+        extant index on key and removing duplicate keys if necessary.
+        """
+        super(Setting, self).reconnect()
+        try:
+            indices = self.collection.index_information()
+        except pymongo.errors.OperationFailure:
+            indices = []
+        hasUniqueKeyIndex = False
+        presentKeyIndices = []
+        for index in indices:
+            if indices[index]['key'][0][0] == 'key':
+                if indices[index].get('unique'):
+                    hasUniqueKeyIndex = True
+                    break
+                presentKeyIndices.append(index)
+        if not hasUniqueKeyIndex:
+            for index in presentKeyIndices:
+                self.collection.drop_index(index)
+            duplicates = self.collection.aggregate([{
+                '$group': {'_id': '$key',
+                           'key': {'$first': '$key'},
+                           'ids': {'$addToSet': '$_id'},
+                           'count': {'$sum': 1}}}, {
+                '$match': {'count': {'$gt': 1}}}])
+            for duplicate in duplicates:
+                print(TerminalColor.warning(
+                    'Removing duplicate setting with key %s.' % (
+                        duplicate['key'])))
+                # Remove all of the duplicates.  Keep the item with the lowest
+                # id in Mongo.
+                for duplicateId in sorted(duplicate['ids'])[1:]:
+                    self.collection.delete_one({'_id': duplicateId})
+            self.collection.create_index('key', unique=True)
 
     def validate(self, doc):
         """
