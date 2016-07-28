@@ -300,7 +300,7 @@ class Setting(Model):
         if 'girder' not in doc['value'] or not doc['value']['girder']:
             raise ValidationException('Girder must be routeable.')
 
-        if not all([route.startswith('/') for route in nonEmptyRoutes]):
+        if not all(route.startswith('/') for route in nonEmptyRoutes):
             raise ValidationException('Routes must begin with a forward slash.')
 
         if len(nonEmptyRoutes) > len(set(nonEmptyRoutes)):
@@ -366,70 +366,3 @@ class Setting(Model):
         if doc['value'] not in ('public_private', 'none'):
             raise ValidationException(
                 'User default folders must be either "public_private" or "none".', 'value')
-
-    def get(self, key, default='__default__'):
-        """
-        Retrieve a setting by its key.
-
-        :param key: The key identifying the setting.
-        :type key: str
-        :param default: If no such setting exists, returns this value instead.
-        :returns: The value, or the default value if the key is not found.
-        """
-        setting = self.findOne({'key': key})
-        if setting is None:
-            if default is '__default__':
-                default = self.getDefault(key)
-            return default
-        else:
-            return setting['value']
-
-    def set(self, key, value):
-        """
-        Save a setting. If a setting for this key already exists, this will
-        replace the existing value.
-
-        :param key: The key identifying the setting.
-        :type key: str
-        :param value: The object to store for this setting.
-        :returns: The document representing the saved Setting.
-        """
-        setting = self.findOne({'key': key})
-        if setting is None:
-            setting = {
-                'key': key,
-                'value': value
-            }
-        else:
-            setting['value'] = value
-
-        return self.save(setting)
-
-    def unset(self, key):
-        """
-        Remove the setting for this key. If no such setting exists, this is
-        a no-op.
-
-        :param key: The key identifying the setting to be removed.
-        :type key: str
-        """
-        for setting in self.find({'key': key}):
-            self.remove(setting)
-
-    def getDefault(self, key):
-        """
-        Retrieve the system default for a value.
-
-        :param key: The key identifying the setting.
-        :type key: str
-        :returns: The default value if the key is present in both SettingKey
-                  and referenced in SettingDefault; otherwise None.
-        """
-        default = None
-        if key in SettingDefault.defaults:
-            default = SettingDefault.defaults[key]
-        else:
-            funcName = 'default'+camelcase(key)
-            if callable(getattr(self, funcName, None)):
-                default = getattr(self, funcName)()
-        return default

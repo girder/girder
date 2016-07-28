@@ -25,7 +25,6 @@ import six
 import girder.events
 from girder import constants, logprint
 from girder.utility import plugin_utilities, model_importer
-from girder.utility.plugin_utilities import _plugin_webroots  # noqa
 from girder.utility import config
 from . import webroot
 
@@ -146,7 +145,7 @@ def loadRouteTable():
     :returns: The non empty routes (as a dict of name -> route) to be mounted by CherryPy
     during Girder's setup phase.
     """
-    global _plugin_webroots
+    pluginWebroots = plugin_utilities.getPluginWebroots()
     setting = model_importer.ModelImporter().model('setting')
 
     def reconcileRouteTable(routeTable):
@@ -154,11 +153,11 @@ def loadRouteTable():
 
         # 'girder' is a special route, which can't be removed
         for name in routeTable.keys():
-            if name != 'girder' and name not in _plugin_webroots:
+            if name != 'girder' and name not in pluginWebroots:
                 del routeTable[name]
                 hasChanged = True
 
-        for name in _plugin_webroots.keys():
+        for name in pluginWebroots.keys():
             if name not in routeTable:
                 routeTable[name] = os.path.join('/', name)
                 hasChanged = True
@@ -184,7 +183,7 @@ def setup(test=False, plugins=None, curConfig=None):
     :param plugins: List of plugins to enable.
     :param curConfig: The config object to update.
     """
-    global _plugin_webroots
+    pluginWebroots = plugin_utilities.getPluginWebroots()
     girderWebroot, appconf = configureServer(test, plugins, curConfig)
     routeTable = loadRouteTable()
 
@@ -193,8 +192,8 @@ def setup(test=False, plugins=None, curConfig=None):
 
     # Mount everything else in the routeTable
     for (name, route) in six.viewitems(routeTable):
-        if name != 'girder' and name in _plugin_webroots:
-            cherrypy.tree.mount(_plugin_webroots[name], route, appconf)
+        if name != 'girder' and name in pluginWebroots:
+            cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 
     if test:
         application.merge({'server': {'mode': 'testing'}})
