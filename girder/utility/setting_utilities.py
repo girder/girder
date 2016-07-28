@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import six
+
 _validators = {}
 _defaultFunctions = {}
 
@@ -63,15 +65,18 @@ class validator(object):  # noqa: class name
     def __init__(self, key):
         """
         Create a decorator indicating that the wrapped function is responsible for
-        validating the given key.
+        validating the given key or set of keys.
 
-        :param key: The key that this function validates.
-        :type key: str
+        :param key: The key(s) that this function validates.
+        :type key: str or iterable of str
         """
-        self.key = key
+        if isinstance(key, six.string_types):
+            key = {key}
+        self.keys = key
 
     def __call__(self, fn):
-        registerValidator(self.key, fn)
+        for k in self.keys:
+            registerValidator(k, fn)
         return fn
 
 
@@ -79,13 +84,16 @@ class default(object):  # noqa: class name
     def __init__(self, key):
         """
         Create a decorator indicating that the wrapped function is responsible for
-        providing the default value for the given key.
+        providing the default value for the given key or set of keys.
 
-        :param key: The key that this function validates.
-        :type key: str
+        :param key: The key(s) that this function validates.
+        :type key: str or iterable of str
         """
-        self.key = key
+        if isinstance(key, six.string_types):
+            key = {key}
+        self.keys = key
 
     def __call__(self, fn):
-        registerDefaultFunction(self.key, fn)
+        for k in self.keys:
+            registerDefaultFunction(k, fn)
         return fn

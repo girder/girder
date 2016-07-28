@@ -1,13 +1,14 @@
 from girder import events
+from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
 
-def validateSettings(event):
+@setting_utilities.validator('autojoin')
+def validateSettings(doc):
     """
     Allow the autojoin setting key.
     """
-    if event.info['key'] == 'autojoin':
-        event.preventDefault().stopPropagation()
+    pass  # any value is valid
 
 
 def userCreated(event):
@@ -27,5 +28,4 @@ def userCreated(event):
 
 
 def load(info):
-    events.bind('model.setting.validate', 'autojoin', validateSettings)
     events.bind('model.user.save.created', 'autojoin', userCreated)
