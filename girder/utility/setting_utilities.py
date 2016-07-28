@@ -23,7 +23,7 @@ _validators = {}
 _defaultFunctions = {}
 
 
-def registerValidator(key, fn):
+def registerValidator(key, fn, replace=False):
     """
     Register a validator for a given setting key.
 
@@ -31,8 +31,20 @@ def registerValidator(key, fn):
     :type key: str
     :param fn: The function that will validate this key.
     :type fn: callable
+    :param replace: If a validator already exists for this key, set this to True to replace the
+        existing validator. The default is to add the new validator in addition to running the
+        old validation function.
+    :type replace: bool
     """
-    _validators[key] = fn
+    if not replace and key in _validators:
+        old = _validators[key]
+
+        def wrapper(doc):
+            fn(doc)
+            old(doc)
+        _validators[key] = wrapper
+    else:
+        _validators[key] = fn
 
 
 def getValidator(key):
@@ -62,7 +74,7 @@ def getDefaultFunction(key):
 
 
 class validator(object):  # noqa: class name
-    def __init__(self, key):
+    def __init__(self, key, replace=False):
         """
         Create a decorator indicating that the wrapped function is responsible for
         validating the given key or set of keys.
@@ -73,10 +85,11 @@ class validator(object):  # noqa: class name
         if isinstance(key, six.string_types):
             key = {key}
         self.keys = key
+        self.replace = replace
 
     def __call__(self, fn):
         for k in self.keys:
-            registerValidator(k, fn)
+            registerValidator(k, fn, replace=self.replace)
         return fn
 
 
