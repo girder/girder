@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
 import six
 import dicom
 
@@ -68,6 +67,7 @@ class DicomMetadataExtractor(object):
                         name = str(item.name).replace('.', '')
                         value = str(item.value)
                         self.metadata[name] = value
+                self.metadata['DICOM Elements Extracted'] = True
             else:
                 self.metadata = None
 
@@ -89,6 +89,7 @@ class ClientDicomMetadataExtractor(DicomMetadataExtractor):
         :param client: client instance
         :param fileId: file ID of file from which to extract metadata
         :param itemId: item ID of item containing file on server
+
         """
         output = six.BytesIO()
         client.downloadFile(fileId, output)
@@ -105,15 +106,17 @@ class ClientDicomMetadataExtractor(DicomMetadataExtractor):
 
 
 class ServerDicomMetadataExtractor(DicomMetadataExtractor, ModelImporter):
-    def __init__(self, assetstore, uploadedFile):
+    def __init__(self, uploadedFile):
         """
         Initialize server metadata extractor.
 
         :param assetstore: asset store containing file
         :param uploadedFile: file from which to extract metadata
+
         """
-        path = os.path.join(assetstore['root'], uploadedFile['path'])
-        super(ServerDicomMetadataExtractor, self).__init__(path, uploadedFile['itemId'])
+        stream = ModelImporter.model('file').download(uploadedFile, headers=False)
+        output = six.BytesIO(b''.join(stream()))
+        super(ServerDicomMetadataExtractor, self).__init__(output, uploadedFile['itemId'])
         self.userId = uploadedFile['creatorId']
 
     def _setMetadata(self):

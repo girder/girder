@@ -18,15 +18,21 @@
 ###############################################################################
 
 from girder import events
-from girder.constants import AssetstoreType
-
 from . dicom_metadata_extractor import ServerDicomMetadataExtractor
+from girder.utility.model_importer import ModelImporter
 
 
 def handler(event):
-    if event.info['assetstore']['type'] == AssetstoreType.FILESYSTEM:
-        metadataExtractor = ServerDicomMetadataExtractor(event.info['assetstore'],
-                                                         event.info['file'])
+    if event.info['file']['exts'] == ['dcm']:
+        itemId = event.info['file']['itemId']
+        itemModel = ModelImporter.model('item')
+        item = itemModel.load(itemId, force=True)
+        if 'meta' in item:
+            if 'DICOM Elements Extracted' in item['meta']:
+                if item['meta']['DICOM Elements Extracted']:
+                    return
+
+        metadataExtractor = ServerDicomMetadataExtractor(event.info['file'])
         metadataExtractor.extractMetadata()
 
 
