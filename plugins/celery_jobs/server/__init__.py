@@ -21,29 +21,29 @@ import celery
 
 from girder import events
 from girder.models.model_base import ValidationException
+from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 from girder.plugins.jobs.constants import JobStatus
 from .constants import PluginSettings
 
 
-def validateSettings(event):
-    if event.info['key'] == PluginSettings.BROKER_URL:
-        if not event.info['value']:
-            raise ValidationException(
-                'Celery broker URL must not be empty.', 'value')
-        event.preventDefault().stopPropagation()
-    if event.info['key'] == PluginSettings.APP_MAIN:
-        if not event.info['value']:
-            raise ValidationException(
-                'Celery app main name must not be empty.', 'value')
-        event.preventDefault().stopPropagation()
-    if event.info['key'] == PluginSettings.CELERY_USER_ID:
-        if not event.info['value']:
-            raise ValidationException(
-                'Celery user ID must not be empty.', 'value')
-        ModelImporter.model('user').load(
-            event.info['value'], force=True, exc=True)
-        event.preventDefault().stopPropagation()
+@setting_utilities.validator(PluginSettings.BROKER_URL)
+def validateBrokerUrl(doc):
+    if not doc['value']:
+        raise ValidationException('Celery broker URL must not be empty.', 'value')
+
+
+@setting_utilities.validator(PluginSettings.APP_MAIN)
+def validateAppMain(doc):
+    if not doc['value']:
+        raise ValidationException('Celery app main name must not be empty.', 'value')
+
+
+@setting_utilities.validator(PluginSettings.CELERY_USER_ID)
+def validateCeleryUserId(doc):
+    if not doc['value']:
+        raise ValidationException('Celery user ID must not be empty.', 'value')
+    ModelImporter.model('user').load(doc['value'], force=True, exc=True)
 
 
 def getCeleryUser():
@@ -78,5 +78,4 @@ def schedule(event):
 
 
 def load(info):
-    events.bind('model.setting.validate', 'celery_jobs', validateSettings)
     events.bind('jobs.schedule', 'celery_jobs', schedule)
