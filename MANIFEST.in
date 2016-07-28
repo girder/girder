@@ -10,6 +10,7 @@ recursive-include clients/web *
 recursive-include girder/mail_templates *
 recursive-include grunt_tasks *
 recursive-include plugins *
+recursive-include scripts/node *
 global-exclude *.pyc *.pyo *.cmake
 prune clients/web/static/built
 prune clients/web/dev

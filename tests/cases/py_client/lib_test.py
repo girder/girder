@@ -115,8 +115,7 @@ class PythonClientTestCase(base.TestCase):
         # Test authentication failure
         flag = False
         try:
-            self.client.authenticate(username=self.user['login'],
-                                     password='wrong')
+            self.client.authenticate(username=self.user['login'], password='wrong')
         except girder_client.AuthenticationError:
             flag = True
 
@@ -161,15 +160,13 @@ class PythonClientTestCase(base.TestCase):
         self.assertNotEqual(privateFolder, None)
         self.assertNotEqual(publicFolder, None)
 
-        self.assertEqual(self.client.getFolder(privateFolder['_id']),
-                         privateFolder)
+        self.assertEqual(self.client.getFolder(privateFolder['_id']), privateFolder)
 
         acl = self.client.getFolderAccess(privateFolder['_id'])
         self.assertIn('users', acl)
         self.assertIn('groups', acl)
 
-        self.client.setFolderAccess(privateFolder['_id'], json.dumps(acl),
-                                    public=False)
+        self.client.setFolderAccess(privateFolder['_id'], json.dumps(acl), public=False)
         self.assertEqual(acl, self.client.getFolderAccess(privateFolder['_id']))
 
         # Test recursive ACL propagation (not very robust test yet)
@@ -214,11 +211,11 @@ class PythonClientTestCase(base.TestCase):
             password='password', email='Callback@email.com')
         callbackPublicFolder = six.next(self.model('folder').childFolders(
             parentType='user', parent=callbackUser, user=None, limit=1))
-        callback_counts = {'folder': 0, 'item': 0}
+        callbackCounts = {'folder': 0, 'item': 0}
         folders = {}
         items = {}
         folders[self.libTestDir] = False
-        folder_count = 1     # 1 for self.libTestDir
+        folderCount = 1     # 1 for self.libTestDir
         item_count = 0
         for root, dirs, files in os.walk(self.libTestDir):
             for name in files:
@@ -226,35 +223,35 @@ class PythonClientTestCase(base.TestCase):
                 item_count += 1
             for name in dirs:
                 folders[os.path.join(root, name)] = False
-                folder_count += 1
+                folderCount += 1
 
-        def folder_callback(folder, filepath):
+        def folderCallback(folder, filepath):
             self.assertIn(filepath, six.viewkeys(folders))
             folders[filepath] = True
-            callback_counts['folder'] += 1
+            callbackCounts['folder'] += 1
 
-        def item_callback(item, filepath):
+        def itemCallback(item, filepath):
             self.assertIn(filepath, six.viewkeys(items))
             items[filepath] = True
-            callback_counts['item'] += 1
+            callbackCounts['item'] += 1
 
-        self.client.add_folder_upload_callback(folder_callback)
-        self.client.add_item_upload_callback(item_callback)
+        self.client.addFolderUploadCallback(folderCallback)
+        self.client.addItemUploadCallback(itemCallback)
         self.client.upload(self.libTestDir, callbackPublicFolder['_id'])
 
         # make sure counts are the same (callbacks not called more than once)
         # and that all folders and files have callbacks called on them
-        self.assertEqual(folder_count, callback_counts['folder'])
-        self.assertEqual(item_count, callback_counts['item'])
+        self.assertEqual(folderCount, callbackCounts['folder'])
+        self.assertEqual(item_count, callbackCounts['item'])
         self.assertTrue(all(six.viewvalues(items)))
         self.assertTrue(all(six.viewvalues(folders)))
 
-        # Upload again with reuse_existing on
+        # Upload again with reuseExisting on
         existingList = list(self.model('folder').childFolders(
             parentType='folder', parent=callbackPublicFolder,
             user=callbackUser, limit=0))
         self.client.upload(self.libTestDir, callbackPublicFolder['_id'],
-                           reuse_existing=True)
+                           reuseExisting=True)
         newList = list(self.model('folder').childFolders(
             parentType='folder', parent=callbackPublicFolder,
             user=callbackUser, limit=0))

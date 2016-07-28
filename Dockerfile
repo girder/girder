@@ -31,4 +31,5 @@ RUN pip install -e .[plugins]
 
 RUN npm install -g grunt-cli && npm cache clear
 RUN npm install --production --unsafe-perm && npm cache clear
+RUN npm run build
 ENTRYPOINT ["python", "-m", "girder"]

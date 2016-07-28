@@ -22,19 +22,19 @@ function jasmineTests() {
                 $('li#resource_system.resource .heading h2 a').click();
             });
             waitsFor(function () {
-                return $('#system_getVersion:visible').length > 0;
+                return $('#system_system_getVersion:visible').length > 0;
             }, 'end points to be visible');
             runs(function () {
-                $('#system_getVersion h3 a').click();
+                $('#system_system_getVersion h3 a').click();
             });
             waitsFor(function () {
-                return $('#system_getVersion .sandbox_header input.submit[name="commit"]:visible').length > 0;
+                return $('#system_system_getVersion .sandbox_header input.submit:visible').length > 0;
             }, 'version try out button to be visible');
             runs(function () {
-                $('#system_getVersion .sandbox_header input.submit[name="commit"]').click();
+                $('#system_system_getVersion .sandbox_header input.submit').click();
             });
             waitsFor(function () {
-                return $('#system_getVersion .response_body.json').text().indexOf('apiVersion') >= 0;
+                return $('#system_system_getVersion .response_body.json').text().indexOf('apiVersion') >= 0;
             }, 'version information was returned');
         });
     });

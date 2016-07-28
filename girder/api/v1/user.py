@@ -60,7 +60,7 @@ class User(Resource):
     @filtermodel(model='user')
     @describeRoute(
         Description('List or search for users.')
-        .responseClass('User')
+        .responseClass('User', array=True)
         .param('text', "Pass this to perform a full text search for items.",
                required=False)
         .pagingParams(defaultSort='lastName')
@@ -248,8 +248,8 @@ class User(Resource):
         .param('status', 'The account status (admin access required)',
                required=False, enum=['pending', 'enabled', 'disabled'])
         .errorResponse()
-        .errorResponse('You do not have write access for this user.', 403)
-        .errorResponse('Must be an admin to create an admin.', 403)
+        .errorResponse(('You do not have write access for this user.',
+                        'Must be an admin to create an admin.'), 403)
     )
     def updateUser(self, user, params):
         self.requireParams(('firstName', 'lastName', 'email'), params)
@@ -298,8 +298,8 @@ class User(Resource):
         Description('Change your password.')
         .param('old', 'Your current password or a temporary access token.')
         .param('new', 'Your new password.')
-        .errorResponse('You are not logged in.', 401)
-        .errorResponse('Your old password is incorrect.', 401)
+        .errorResponse(('You are not logged in.',
+                        'Your old password is incorrect.'), 401)
         .errorResponse('Your new password is invalid.')
     )
     def changePassword(self, params):

@@ -118,7 +118,7 @@ example, we have the following:
 After modifying the configuration, always remember to rebuild Girder by
 changing to the Girder directory and issuing the following command: ::
 
-    $ npm install
+    $ npm install && npm run build
 
 Docker Container
 ----------------
