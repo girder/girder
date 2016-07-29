@@ -17,7 +17,10 @@
 #  limitations under the License.
 #############################################################################
 
+import six
 from .. import base
+from girder.models.model_base import ValidationException
+from girder.utility import setting_utilities
 
 
 def setUpModule():
@@ -49,7 +52,7 @@ class SettingTestCase(base.TestCase):
                              if indices[index]['key'][0][0] == 'key'))
         coll.create_index('key')
         for val in range(3, 8):
-            coll.save({'key': 'duplicate', 'value': val})
+            coll.insert_one({'key': 'duplicate', 'value': val})
         # Check that we've broken things
         indices = coll.index_information()
         self.assertGreaterEqual(settingModel.get('duplicate'), 3)
@@ -67,3 +70,41 @@ class SettingTestCase(base.TestCase):
                          not indices[index].get('unique') for index in indices))
         self.assertEqual(settingModel.get('duplicate'), 3)
         self.assertEqual(settingModel.find({'key': 'duplicate'}).count(), 1)
+
+    def testValidators(self):
+        settingModel = self.model('setting')
+
+        @setting_utilities.validator('test.key1')
+        def key1v1(doc):
+            raise ValidationException('key1v1')
+
+        with six.assertRaisesRegex(self, ValidationException, '^key1v1$'):
+            settingModel.set('test.key1', '')
+
+        @setting_utilities.validator('test.key1')
+        def key1v2(doc):
+            raise ValidationException('key1v2')
+
+        with six.assertRaisesRegex(self, ValidationException, '^key1v2$'):
+            settingModel.set('test.key1', '')
+
+        @setting_utilities.validator('test.key2')
+        def key2v1(doc):
+            raise ValidationException('key2v1')
+
+        with six.assertRaisesRegex(self, ValidationException, '^key2v1$'):
+            settingModel.set('test.key2', '')
+
+        @setting_utilities.validator('test.key2', replace=True)
+        def key2v2(doc):
+            doc['value'] = 'modified'
+
+        setting = settingModel.set('test.key2', 'original')
+        self.assertEqual(setting['value'], 'modified')
+
+    def testDefault(self):
+        @setting_utilities.default('test.key')
+        def default():
+            return 'default value'
+
+        self.assertEqual(self.model('setting').get('test.key'), 'default value')

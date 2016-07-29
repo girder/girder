@@ -25,6 +25,7 @@ from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import loadmodel
 from girder.models.model_base import AccessType
+from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
 
@@ -69,14 +70,12 @@ def getGravatar(user, params):
     raise cherrypy.HTTPRedirect(user['gravatar_baseUrl'] + '&s=%d' % size)
 
 
-def _validateSettings(event):
-    if event.info['key'] == PluginSettings.DEFAULT_IMAGE:
-        event.preventDefault().stopPropagation()
-
-        # TODO should we update user collection to remove gravatar_baseUrl vals?
-        # Invalidate cached default image since setting changed
-        global _cachedDefaultImage
-        _cachedDefaultImage = None
+@setting_utilities.validator(PluginSettings.DEFAULT_IMAGE)
+def _validateDefaultImage(doc):
+    # TODO should we update user collection to remove gravatar_baseUrl vals?
+    # Invalidate cached default image since setting changed
+    global _cachedDefaultImage
+    _cachedDefaultImage = None
 
 
 def _userUpdate(event):
@@ -93,5 +92,4 @@ def load(info):
     ModelImporter.model('user').exposeFields(
         level=AccessType.READ, fields='gravatar_baseUrl')
 
-    events.bind('model.setting.validate', 'gravatar', _validateSettings)
     events.bind('model.user.save', 'gravatar', _userUpdate)
