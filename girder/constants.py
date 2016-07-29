@@ -148,6 +148,7 @@ class SettingKey:
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
+    USER_DEFAULT_PUBLIC = 'core.user_default_public'
 
 
 class SettingDefault:
@@ -179,7 +180,8 @@ class SettingDefault:
             'groups': [],
             'users': []
         },
-        SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
+        SettingKey.USER_DEFAULT_FOLDERS: 'public_private',
+        SettingKey.USER_DEFAULT_PUBLIC: True
     }
 
 

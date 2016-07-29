@@ -747,6 +747,46 @@ class UserTestCase(base.TestCase):
             set()
         )
 
+    def testDefaultUserPublic(self):
+        # Create user1 with a default public visibility
+        self.model('setting').set(SettingKey.USER_DEFAULT_PUBLIC, True)
+        user1 = self.model('user').createUser(
+            'testuser1', 'passwd', 'tst', 'usr', 'testuser1@user.com')
+
+        # Anonymous user should be able to see user1
+        resp = self.request(path='/user')
+        self.assertStatusOk(resp)
+        self.assertTrue(
+            any(user['login'] == 'testuser1' for user in resp.json))
+        resp = self.request(path='/user/%s' % user1['_id'])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['login'], 'testuser1')
+
+        # Create user1 with a default private visibility
+        self.model('setting').set(SettingKey.USER_DEFAULT_PUBLIC, False)
+        user2 = self.model('user').createUser(
+            'testuser2', 'passwd', 'tst', 'usr', 'testuser2@user.com')
+
+        # Anonymous user should not be able to see user2
+        resp = self.request(path='/user')
+        self.assertStatusOk(resp)
+        self.assertFalse(
+            any(user['login'] == 'testuser2' for user in resp.json))
+        resp = self.request(path='/user/%s' % user2['_id'])
+        self.assertStatus(resp, 401)
+
+        # Admin user should be able to see user 2
+        adminUser = self.model('user').createUser(
+            'adminuser', 'passwd', 'admin', 'usr', 'adminuser@user.com',
+            admin=True)
+        resp = self.request(path='/user', user=adminUser)
+        self.assertStatusOk(resp)
+        self.assertTrue(
+            any(user['login'] == 'testuser2' for user in resp.json))
+        resp = self.request(path='/user/%s' % user2['_id'], user=adminUser)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['login'], 'testuser2')
+
     def testAdminFlag(self):
         admin = self.model('user').createUser(
             'user1', 'passwd', 'tst', 'usr', 'user@user.com')
