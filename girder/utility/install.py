@@ -107,19 +107,17 @@ def install_plugin(opts):
         if not os.path.isdir(pluginPath):
             raise Exception('Invalid plugin directory: %s' % pluginPath)
 
-        requirements = [os.path.join(pluginPath, 'requirements.txt')]
-        if opts.development:
-            requirements.extend([os.path.join(pluginPath,
-                                              'requirements-dev.txt')])
-        for reqs in requirements:
-            if os.path.isfile(reqs):
-                print(constants.TerminalColor.info(
-                    'Installing pip requirements for %s from %s.' %
-                    (name, reqs)))
+        if not opts.skip_reqs:
+            requirements = [os.path.join(pluginPath, 'requirements.txt')]
+            if opts.development:
+                requirements.append(os.path.join(pluginPath, 'requirements-dev.txt'))
+            for reqs in requirements:
+                if os.path.isfile(reqs):
+                    print(constants.TerminalColor.info(
+                        'Installing pip requirements for %s from %s.' % (name, reqs)))
 
-                if pip.main(['install', '-r', reqs]) != 0:
-                    raise Exception(
-                        'Failed to install pip requirements at %s.' % reqs)
+                    if pip.main(['install', '-r', reqs]) != 0:
+                        raise Exception('Failed to install pip requirements at %s.' % reqs)
 
         targetPath = os.path.join(getPluginDir(), name)
 
@@ -142,15 +140,16 @@ def install_plugin(opts):
                     shutil.rmtree(targetPath)
 
             else:
-                raise Exception('Plugin already exists at %s, use "-f" to '
-                                'overwrite the existing directory.' % (
-                                    targetPath, ))
+                raise Exception(
+                    'Plugin already exists at %s, use "-f" to overwrite the existing directory.' %
+                    targetPath)
         if opts.symlink:
             os.symlink(pluginPath, targetPath)
         else:
             shutil.copytree(pluginPath, targetPath)
 
-    runNpmInstall(dev=opts.development, npm=opts.npm)
+    if not opts.skip_web:
+        runNpmInstall(dev=opts.development, npm=opts.npm)
 
 
 def main():
@@ -174,6 +173,12 @@ def main():
 
     plugin.add_argument('-s', '--symlink', action='store_true',
                         help='Install by symlinking to the plugin directory.')
+
+    plugin.add_argument('--skip-web', action='store_true',
+                        help='Skip the step of running the web client build.')
+
+    plugin.add_argument('--skip-reqs', action='store_true',
+                        help='Skip the step of pip installing the requirements.txt file.')
 
     plugin.add_argument('--dev', action='store_true',
                         dest='development',
