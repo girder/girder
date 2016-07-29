@@ -52,7 +52,7 @@ class SettingTestCase(base.TestCase):
                              if indices[index]['key'][0][0] == 'key'))
         coll.create_index('key')
         for val in range(3, 8):
-            coll.save({'key': 'duplicate', 'value': val})
+            coll.insert_one({'key': 'duplicate', 'value': val})
         # Check that we've broken things
         indices = coll.index_information()
         self.assertGreaterEqual(settingModel.get('duplicate'), 3)
@@ -101,3 +101,10 @@ class SettingTestCase(base.TestCase):
 
         setting = settingModel.set('test.key2', 'original')
         self.assertEqual(setting['value'], 'modified')
+
+    def testDefault(self):
+        @setting_utilities.default('test.key')
+        def default():
+            return 'default value'
+
+        self.assertEqual(self.model('setting').get('test.key'), 'default value')
