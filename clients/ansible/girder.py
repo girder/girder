@@ -1490,8 +1490,6 @@ class GirderClientModule(GirderClient):
             _id = ret['_id']
             ret['access'] = self._access(r, access, _id, public=public)
 
-
-
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
 
