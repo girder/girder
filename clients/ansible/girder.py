@@ -1480,7 +1480,7 @@ class GirderClientModule(GirderClient):
                     ret['access'] = self._access(r, {}, _id, public=public)
 
             else:
-                valid_fileds.append(("public", public))
+                valid_fields.append(("public", public))
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
         if folders is not None:
