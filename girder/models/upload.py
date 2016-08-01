@@ -174,12 +174,12 @@ class Upload(Model):
                 mimeType=upload['mimeType'], saveFile=False)
 
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        file = adapter.finalizeUpload(upload, file)
+        file = self.model('file').save(adapter.finalizeUpload(upload, file))
 
-        event_document = {'file': file, 'upload': upload}
-        events.trigger('model.file.finalizeUpload.before', event_document)
+        eventInfo = {'file': file, 'upload': upload}
+        events.trigger('model.file.finalizeUpload.before', eventInfo)
         self.model('file').save(file)
-        events.trigger('model.file.finalizeUpload.after', event_document)
+        events.trigger('model.file.finalizeUpload.after', eventInfo)
         self.remove(upload)
 
         # Add an async event for handlers that wish to process this file.
