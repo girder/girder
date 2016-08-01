@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+
 
 ###############################################################################
 #  Copyright Kitware Inc.
@@ -34,7 +34,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 
 DOCUMENTATION = '''
 ---
@@ -1468,7 +1468,19 @@ class GirderClientModule(GirderClient):
             if r.name_exists(name):
                 ret = r.update_by_name(name, {k: v for k, v in valid_fields
                                               if v is not None})
+
+                # While we can set public when we create the collection, we
+                # cannot update the public/private status of a collection
+                # via the PUT /collection/%s endpoint. Currently this is
+                # possible through the API by hitting the
+                # PUT /collection/%s/access endpoint with public=true and
+                # the access dict equal to {}
+                if ret['public'] is False and public:
+                    _id = ret['_id']
+                    ret['access'] = self._access(r, {}, _id, public=public)
+
             else:
+                valid_fileds.append(("public", public))
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
         if folders is not None:
@@ -1477,6 +1489,8 @@ class GirderClientModule(GirderClient):
         if access is not None:
             _id = ret['_id']
             ret['access'] = self._access(r, access, _id, public=public)
+
+
 
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
