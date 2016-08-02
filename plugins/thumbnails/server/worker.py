@@ -172,6 +172,8 @@ def getImage(extension, data):
         # Open the dicom image
         dicomData = dicom.read_file(six.BytesIO(data))
         imageData = dicomData.pixel_array
+        if len(imageData.shape) == 3:
+            return Image.fromarray(imageData[0]).convert("I")
         return Image.fromarray(imageData).convert("I")
     else:
         # Open other types of images
