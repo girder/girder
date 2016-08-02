@@ -1479,6 +1479,7 @@ class GirderClientModule(GirderClient):
                 # the access dict equal to {}
                 if ret['public'] is False and public:
                     _id = ret['_id']
+                    self.changed = True
                     ret['access'] = self._access(r,  r.get_access(_id), _id, public=public)
 
             else:

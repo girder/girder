@@ -253,8 +253,8 @@
           name: "Test Collection"
           description: "A test collection"
           public: yes
-          accesss: []
       register: test_collection
+
 
     # Check that test_collection ispublic again
 
