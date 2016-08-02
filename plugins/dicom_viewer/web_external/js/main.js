@@ -12,6 +12,9 @@ import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
 
+import naturalSort from 'javascript-natural-sort';
+naturalSort.insensitive = true;
+
 girder.wrap(girder.views.ItemView, 'render', function (render) {
   this.once('g:rendered', function () {
     $('.g-item-header').after('<div id="g-dicom-view"></div>');
@@ -30,9 +33,20 @@ girder.views.DicomView = girder.View.extend({
   initialize: function (settings) {
     this.item = settings.item;
     this.files = [];
+    this.index = 0;
+    this.first = true;
     this.render();
     this.initVtk();
     this.loadFileList();
+  },
+
+  step: function () {
+    if (this.files.length <= 0) {
+      return;
+    }
+    this.index = (this.index + 1) % this.files.length;
+    const file = this.files[this.index];
+    this.loadFile(file);
   },
 
   loadFileList: function () {
@@ -47,18 +61,31 @@ girder.views.DicomView = girder.View.extend({
   },
 
   handleFileList: function (files) {
+    files = files.sort((a, b) => naturalSort(a.name, b.name));
     this.files = files;
-    this.loadFile(this.files[0]);
+    this.step();
   },
 
   loadFile: function (file) {
+    console.log(file.name);
     const req = new XMLHttpRequest();
     req.open('GET', girder.apiRoot + '/file/' + file._id + '/download', true);
     req.responseType = 'arraybuffer';
     req.onload = _.bind(function (event) {
-      const byteArray = new Uint8Array(req.response);
-      const imageData = createImageData(dicomParser.parseDicom(byteArray));
-      this.handleImageData(imageData);
+      let imageData = null;
+      try {
+        const byteArray = new Uint8Array(req.response);
+        const dataSet = dicomParser.parseDicom(byteArray);
+        imageData = createImageData(dataSet);
+      }
+      catch (e) {
+      }
+      if (imageData) {
+        this.handleImageData(imageData);
+        setTimeout(this.step.bind(this), 1000);
+      } else {
+        setTimeout(this.step.bind(this), 1);
+      }
     }, this);
     req.send();
   },
@@ -77,13 +104,21 @@ girder.views.DicomView = girder.View.extend({
     mapper.setInputData(imageData);
     this.actor.setMapper(mapper);
 
-    const range = imageData.getPointData().getScalars().getRange();
-    const ww = range[1] - range[0];
-    const wc = (range[0] + range[1]) / 2;
-    this.actor.getProperty().setColorWindow(ww);
-    this.actor.getProperty().setColorLevel(wc);
+    if (this.first) {
+      const range = imageData.getPointData().getScalars().getRange();
+      const ww = range[1] - range[0];
+      const wc = (range[0] + range[1]) / 2;
+      this.actor.getProperty().setColorWindow(ww);
+      this.actor.getProperty().setColorLevel(wc);
+      this.ren.resetCamera();
+      this.first = false;
+      const bounds = imageData.getBounds();
+      const w = bounds[1];
+      const h = bounds[3];
+      const zoom = 512 / w;
+      this.camera.zoom(512 / w);
+    }
 
-    this.ren.resetCamera();
     this.iren.render();
   },
 
@@ -130,19 +165,21 @@ girder.views.DicomView = girder.View.extend({
     this.actor = actor;
     this.ren = ren;
     this.iren = iren;
+    this.camera = camera;
   }
 
 });
 
 function createImageData(dataSet) {
-  // const accessionNumber = dataSet.string('x00080050');
+  const accessionNumber = dataSet.string('x00080050');
+
   const rows = dataSet.int16('x00280010');
   const cols = dataSet.int16('x00280011');
   const rowSpacing = dataSet.floatString('x00280030', 0);
   const colSpacing = dataSet.floatString('x00280030', 1);
 
   const element = dataSet.elements.x7fe00010;
-  const pixelData = new Uint16Array(
+  const pixelData = new Int16Array(
     dataSet.byteArray.buffer, element.dataOffset, element.length / 2);
 
   const imageData = vtkImageData.newInstance();
@@ -152,7 +189,7 @@ function createImageData(dataSet) {
 
   const values = new Float32Array(pixelData.length);
   for (let i = 0; i < values.length; i++) {
-    values[i] = pixelData[i] / 255;
+    values[i] = (pixelData[i]) / 128;
   }
 
   const dataArray = vtkDataArray.newInstance({values: values});
