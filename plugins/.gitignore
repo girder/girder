@@ -4,6 +4,7 @@
 !autojoin
 !celery_jobs/
 !curation/
+!dicom_viewer/
 !geospatial/
 !google_analytics/
 !gravatar/
