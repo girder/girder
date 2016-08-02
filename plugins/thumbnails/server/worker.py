@@ -160,6 +160,7 @@ def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
 
     return ModelImporter.model('file').save(thumbnail)
 
+
 def getImage(extension, data):
     """
     Check extension of image and opens it.
@@ -175,4 +176,3 @@ def getImage(extension, data):
     else:
         # Open other types of images
         return Image.open(six.BytesIO(data))
-    
