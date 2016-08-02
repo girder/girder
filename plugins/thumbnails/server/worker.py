@@ -21,6 +21,7 @@ import functools
 import six
 import sys
 import traceback
+import dicom
 
 from girder import events
 from girder.plugins.jobs.constants import JobStatus
@@ -83,7 +84,8 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     stream = streamFn()
     data = b''.join(stream())
 
-    image = Image.open(six.BytesIO(data))
+    extension = file['exts']
+    image = getImage(extension, data)
 
     if not width:
         width = int(height * image.size[0] / image.size[1])
@@ -157,3 +159,20 @@ def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
     }
 
     return ModelImporter.model('file').save(thumbnail)
+
+def getImage(extension, data):
+    """
+    Check extension of image and opens it.
+
+    :param extension: The extension of the image that needs to be opened.
+    :param data: The image file stream.
+    """
+    if 'dcm' in extension:
+        # Open the dicom image
+        dicomData = dicom.read_file(six.BytesIO(data))
+        imageData = dicomData.pixel_array
+        return Image.fromarray(imageData).convert("I")
+    else:
+        # Open other types of images
+        return Image.open(six.BytesIO(data))
+    
