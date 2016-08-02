@@ -58,6 +58,7 @@
     "eslint-plugin-underscore": "0.0.4",
     "grunt-webpack": "^1.0.14",
     "jade-loader": "^0.8.0",
+    "javascript-natural-sort": "^0.7.1",
     "jscs": "2.5.1",
     "jshint": "2.5.5",
     "kw-web-suite": "^2.0.1",
