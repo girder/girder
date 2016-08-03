@@ -22,6 +22,7 @@ import six
 import sys
 import traceback
 import dicom
+import numpy as np
 
 from girder import events
 from girder.plugins.jobs.constants import JobStatus
@@ -171,10 +172,41 @@ def getImage(extension, data):
     if 'dcm' in extension:
         # Open the dicom image
         dicomData = dicom.read_file(six.BytesIO(data))
-        imageData = dicomData.pixel_array
-        if len(imageData.shape) == 3:
-            return Image.fromarray(imageData[0]).convert("I")
-        return Image.fromarray(imageData).convert("I")
+        return scaleDicomLevels(dicomData)
     else:
         # Open other types of images
         return Image.open(six.BytesIO(data))
+
+
+def scaleDicomLevels(dicomData):
+    """
+    Adjust dicom levels so image is viewable.
+
+    :param dicomData: The image data to be processed.
+    """
+    offset = dicomData.RescaleIntercept
+    imageData = dicomData.pixel_array
+    if len(imageData.shape) == 3:
+        minimum = imageData[0].min() + offset
+        maximum = imageData[0].max() + offset
+        finalImage = __win_lev(imageData[0], maximum-minimum, (maximum+minimum)/2)
+        return Image.fromarray(finalImage).convert("I")
+    else:
+        minimum = imageData.min() + offset
+        maximum = imageData.max() + offset
+        finalImage = __win_lev(imageData, maximum-minimum, (maximum+minimum)/2)
+        return Image.fromarray(finalImage).convert("I")
+
+
+def __win_lev(img, window, level, maxc=255):
+    """Change window and level data in image.
+
+    :param img: numpy array representing an image
+    :param window: the window for the transformation
+    :param level: the level for the transformation
+    :param maxc: what the maximum display color is
+
+    """
+    m = maxc/(2.0*window)
+    o = m*(level-window)
+    return np.clip((m*img-o), 0, maxc).astype(np.uint8)
