@@ -28,25 +28,74 @@ girder.wrap(girder.views.ItemView, 'render', function (render) {
 });
 
 girder.views.DicomView = girder.View.extend({
-  events: {},
+  events: {
+    'click #dicom-zoom-in': function (event) {
+      event.preventDefault();
+      this.camera.zoom(9 / 8);
+      this.iren.render();
+    },
+    'click #dicom-zoom-out': function (event) {
+      event.preventDefault();
+      this.camera.zoom(8 / 9);
+      this.iren.render();
+    },
+    'click #dicom-reset-zoom': function (event) {
+      event.preventDefault();
+      this.autoZoom();
+      this.iren.render();
+    },
+    'click #dicom-first': function (event) {
+      event.preventDefault();
+      this.setIndex(0);
+    },
+    'click #dicom-previous': function (event) {
+      event.preventDefault();
+      if (this.index === 0) {
+        this.setIndex(this.files.length - 1);
+      } else {
+        this.setIndex(this.index - 1);
+      }
+    },
+    'click #dicom-next': function (event) {
+      event.preventDefault();
+      if (this.index === this.files.length - 1) {
+        this.setIndex(0);
+      } else {
+        this.setIndex(this.index + 1);
+      }
+    },
+    'click #dicom-last': function (event) {
+      event.preventDefault();
+      this.setIndex(this.files.length - 1);
+    },
+    'click #dicom-auto-levels': function (event) {
+      event.preventDefault();
+      this.autoLevels();
+      this.iren.render();
+    },
+    'input #dicom-slider': _.debounce(function (event) {
+      this.setIndex(event.target.value);
+    }, 10)
+  },
 
   initialize: function (settings) {
     this.item = settings.item;
     this.files = [];
     this.index = 0;
     this.first = true;
+    this.imageData = null;
     this.render();
     this.initVtk();
     this.loadFileList();
   },
 
-  step: function () {
-    if (this.files.length <= 0) {
+  setIndex: function (index) {
+    if (index < 0 || index >= this.files.length) {
       return;
     }
-    this.index = (this.index + 1) % this.files.length;
-    const file = this.files[this.index];
-    this.loadFile(file);
+    this.index = index;
+    document.getElementById("dicom-slider").value = index;
+    this.loadFile(this.files[index]);
   },
 
   loadFileList: function () {
@@ -63,7 +112,11 @@ girder.views.DicomView = girder.View.extend({
   handleFileList: function (files) {
     files = files.sort((a, b) => naturalSort(a.name, b.name));
     this.files = files;
-    this.step();
+    var slider = document.getElementById("dicom-slider");
+    slider.min = 0;
+    slider.max = this.files.length - 1;
+    slider.step = 1;
+    this.setIndex(0);
   },
 
   loadFile: function (file) {
@@ -72,19 +125,13 @@ girder.views.DicomView = girder.View.extend({
     req.open('GET', girder.apiRoot + '/file/' + file._id + '/download', true);
     req.responseType = 'arraybuffer';
     req.onload = _.bind(function (event) {
-      let imageData = null;
       try {
         const byteArray = new Uint8Array(req.response);
         const dataSet = dicomParser.parseDicom(byteArray);
-        imageData = createImageData(dataSet);
+        const imageData = createImageData(dataSet);
+        this.handleImageData(imageData);
       }
       catch (e) {
-      }
-      if (imageData) {
-        this.handleImageData(imageData);
-        setTimeout(this.step.bind(this), 1000);
-      } else {
-        setTimeout(this.step.bind(this), 1);
       }
     }, this);
     req.send();
@@ -99,24 +146,38 @@ girder.views.DicomView = girder.View.extend({
     return this;
   },
 
+  autoLevels: function () {
+    if (!this.imageData) {
+      return;
+    }
+    const range = this.imageData.getPointData().getScalars().getRange();
+    const ww = range[1] - range[0];
+    const wc = (range[0] + range[1]) / 2;
+    this.actor.getProperty().setColorWindow(ww);
+    this.actor.getProperty().setColorLevel(wc);
+  },
+
+  autoZoom: function () {
+    if (!this.imageData) {
+      return;
+    }
+    this.ren.resetCamera();
+    const bounds = this.imageData.getBounds();
+    const w = bounds[1] + 1;
+    this.camera.zoom(512 / w * 0.5);
+  },
+
   setImageData: function (imageData) {
+    this.imageData = imageData;
+
     const mapper = vtkImageMapper.newInstance();
     mapper.setInputData(imageData);
     this.actor.setMapper(mapper);
 
     if (this.first) {
-      const range = imageData.getPointData().getScalars().getRange();
-      const ww = range[1] - range[0];
-      const wc = (range[0] + range[1]) / 2;
-      this.actor.getProperty().setColorWindow(ww);
-      this.actor.getProperty().setColorLevel(wc);
-      this.ren.resetCamera();
       this.first = false;
-      const bounds = imageData.getBounds();
-      const w = bounds[1];
-      const h = bounds[3];
-      const zoom = 512 / w;
-      this.camera.zoom(512 / w);
+      this.autoLevels();
+      this.autoZoom();
     }
 
     this.iren.render();
@@ -126,7 +187,7 @@ girder.views.DicomView = girder.View.extend({
     const container = document.getElementById('g-dicom-container');
 
     const ren = vtkRenderer.newInstance();
-    ren.setBackground(0.32, 0.34, 0.43);
+    ren.setBackground(0.33, 0.33, 0.33);
 
     const renWin = vtkRenderWindow.newInstance();
     renWin.addRenderer(ren);
@@ -156,7 +217,6 @@ girder.views.DicomView = girder.View.extend({
     mapper.setInputData(imageData);
 
     const camera = ren.getActiveCameraAndResetIfCreated();
-    camera.zoom(1.4);
 
     iren.initialize();
     iren.bindEvents(container, document);
@@ -179,7 +239,7 @@ function createImageData(dataSet) {
   const colSpacing = dataSet.floatString('x00280030', 1);
 
   const element = dataSet.elements.x7fe00010;
-  const pixelData = new Int16Array(
+  const pixelData = new Uint16Array(
     dataSet.byteArray.buffer, element.dataOffset, element.length / 2);
 
   const imageData = vtkImageData.newInstance();
@@ -189,7 +249,7 @@ function createImageData(dataSet) {
 
   const values = new Float32Array(pixelData.length);
   for (let i = 0; i < values.length; i++) {
-    values[i] = (pixelData[i]) / 128;
+    values[i] = pixelData[i] / 255;
   }
 
   const dataArray = vtkDataArray.newInstance({values: values});
