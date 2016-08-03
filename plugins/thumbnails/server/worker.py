@@ -174,7 +174,7 @@ def _getImage(mimeType, extension, data):
     """
     if (extension and extension[-1] == 'dcm') or mimeType == 'application/dicom':
         if not numpy:
-            raise Exception('Missing dependancy: numpy.')
+            raise Exception('Could not create DICOM thumbnail: numpy not installed.')
         # Open the dicom image
         dicomData = dicom.read_file(six.BytesIO(data))
         return scaleDicomLevels(dicomData)
