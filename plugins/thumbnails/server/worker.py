@@ -25,7 +25,7 @@ import dicom
 try:
     import numpy as np
     numpy = True
-except Exception:
+except ImportError:
     numpy = False
 
 from girder import events
