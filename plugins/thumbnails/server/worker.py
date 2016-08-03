@@ -22,7 +22,11 @@ import six
 import sys
 import traceback
 import dicom
-import numpy as np
+try:
+    import numpy as np
+    numpy = True
+except Exception:
+    numpy = False
 
 from girder import events
 from girder.plugins.jobs.constants import JobStatus
@@ -85,8 +89,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     stream = streamFn()
     data = b''.join(stream())
 
-    extension = file['exts']
-    image = getImage(extension, data)
+    image = _getImage(file['mimeType'], file['exts'], data)
 
     if not width:
         width = int(height * image.size[0] / image.size[1])
@@ -162,14 +165,16 @@ def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
     return ModelImporter.model('file').save(thumbnail)
 
 
-def getImage(extension, data):
+def _getImage(mimeType, extension, data):
     """
     Check extension of image and opens it.
 
     :param extension: The extension of the image that needs to be opened.
     :param data: The image file stream.
     """
-    if 'dcm' in extension:
+    if (extension and extension[-1] == 'dcm') or mimeType == 'application/dicom':
+        if not numpy:
+            raise Exception('Missing dependancy: numpy.')
         # Open the dicom image
         dicomData = dicom.read_file(six.BytesIO(data))
         return scaleDicomLevels(dicomData)
@@ -189,16 +194,16 @@ def scaleDicomLevels(dicomData):
     if len(imageData.shape) == 3:
         minimum = imageData[0].min() + offset
         maximum = imageData[0].max() + offset
-        finalImage = __win_lev(imageData[0], maximum-minimum, (maximum+minimum)/2)
+        finalImage = _scaleIntensity(imageData[0], maximum-minimum, (maximum+minimum)/2)
         return Image.fromarray(finalImage).convert("I")
     else:
         minimum = imageData.min() + offset
         maximum = imageData.max() + offset
-        finalImage = __win_lev(imageData, maximum-minimum, (maximum+minimum)/2)
+        finalImage = _scaleIntensity(imageData, maximum-minimum, (maximum+minimum)/2)
         return Image.fromarray(finalImage).convert("I")
 
 
-def __win_lev(img, window, level, maxc=255):
+def _scaleIntensity(img, window, level, maxc=255):
     """Change window and level data in image.
 
     :param img: numpy array representing an image
