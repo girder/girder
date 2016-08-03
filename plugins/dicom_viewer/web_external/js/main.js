@@ -84,6 +84,8 @@ girder.views.DicomView = girder.View.extend({
     this.index = 0;
     this.first = true;
     this.imageData = null;
+    this.xhr = null;
+    this.cache = {};
     this.render();
     this.initVtk();
     this.loadFileList();
@@ -120,24 +122,34 @@ girder.views.DicomView = girder.View.extend({
   },
 
   loadFile: function (file) {
+    if (file.name in this.cache) {
+      this.handleImageData(file, this.cache[file.name]);
+      return;
+    }
     console.log(file.name);
-    const req = new XMLHttpRequest();
-    req.open('GET', girder.apiRoot + '/file/' + file._id + '/download', true);
-    req.responseType = 'arraybuffer';
-    req.onload = _.bind(function (event) {
+    if (this.xhr) {
+      this.xhr.abort();
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', girder.apiRoot + '/file/' + file._id + '/download', true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = _.bind(function (event) {
       try {
-        const byteArray = new Uint8Array(req.response);
+        const byteArray = new Uint8Array(xhr.response);
         const dataSet = dicomParser.parseDicom(byteArray);
         const imageData = createImageData(dataSet);
-        this.handleImageData(imageData);
+        this.cache[file.name] = imageData;
+        this.handleImageData(file, imageData);
       }
       catch (e) {
       }
     }, this);
-    req.send();
+    xhr.send();
+    this.xhr = xhr;
   },
 
-  handleImageData: function (imageData) {
+  handleImageData: function (file, imageData) {
+    document.getElementById('dicom-filename').innerHTML = file.name;
     this.setImageData(imageData);
   },
 
@@ -231,7 +243,7 @@ girder.views.DicomView = girder.View.extend({
 });
 
 function createImageData(dataSet) {
-  const accessionNumber = dataSet.string('x00080050');
+  // const accessionNumber = dataSet.string('x00080050');
 
   const rows = dataSet.int16('x00280010');
   const cols = dataSet.int16('x00280011');
