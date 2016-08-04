@@ -35,14 +35,14 @@ POPEN = 'subprocess.Popen'
 
 class PluginOpts():
     def __init__(self, plugin=None, force=False, symlink=False, dev=False, npm='npm',
-                 skip_reqs=False, skip_web=False):
+                 skip_requirements=False, skip_web_client=False):
         self.plugin = plugin
         self.force = force
         self.symlink = symlink
         self.development = dev
         self.npm = npm
-        self.skip_reqs = skip_reqs
-        self.skip_web = skip_web
+        self.skip_requirements = skip_requirements
+        self.skip_web_client = skip_web_client
 
 
 class ProcMock(object):
@@ -117,10 +117,10 @@ class InstallTestCase(base.TestCase):
                 os.path.join(pluginRoot, 'has_deps')
             ]))
 
-        # Using skip_web and skip_reqs should circumvent install steps
+        # Using skip_web_client and skip_requirements should circumvent install steps
         with mock.patch(POPEN, return_value=ProcMock(rc=1)) as mockPopen:
             install.install_plugin(PluginOpts(
-                force=True, skip_reqs=True, skip_web=True,
+                force=True, skip_requirements=True, skip_web_client=True,
                 plugin=[os.path.join(pluginRoot, 'has_deps')]))
 
             self.assertEqual(len(mockPopen.mock_calls), 0)

@@ -107,7 +107,7 @@ def install_plugin(opts):
         if not os.path.isdir(pluginPath):
             raise Exception('Invalid plugin directory: %s' % pluginPath)
 
-        if not opts.skip_reqs:
+        if not opts.skip_requirements:
             requirements = [os.path.join(pluginPath, 'requirements.txt')]
             if opts.development:
                 requirements.append(os.path.join(pluginPath, 'requirements-dev.txt'))
@@ -148,7 +148,7 @@ def install_plugin(opts):
         else:
             shutil.copytree(pluginPath, targetPath)
 
-    if not opts.skip_web:
+    if not opts.skip_web_client:
         runNpmInstall(dev=opts.development, npm=opts.npm)
 
 
@@ -174,10 +174,10 @@ def main():
     plugin.add_argument('-s', '--symlink', action='store_true',
                         help='Install by symlinking to the plugin directory.')
 
-    plugin.add_argument('--skip-web', action='store_true',
+    plugin.add_argument('--skip-web-client', action='store_true',
                         help='Skip the step of running the web client build.')
 
-    plugin.add_argument('--skip-reqs', action='store_true',
+    plugin.add_argument('--skip-requirements', action='store_true',
                         help='Skip the step of pip installing the requirements.txt file.')
 
     plugin.add_argument('--dev', action='store_true',
