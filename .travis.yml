@@ -44,7 +44,7 @@ before_install:
     - npm --version
     - npm prune
     - pip install -U pip virtualenv
-    - apt-get install -qq python-numpy
+    - apt-get -qq install python-numpy
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
     - npm install
