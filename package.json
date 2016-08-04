@@ -42,7 +42,8 @@
     "string-replace": "^0.2.0",
     "swagger-ui": "2.0.22",
     "toposort": "~0.2",
-    "underscore": "~1.5"
+    "underscore": "~1.5",
+    "vtk.js": "github:kitware/vtk-js"
   },
   "devDependencies": {
     "argv": "0.0.2",
