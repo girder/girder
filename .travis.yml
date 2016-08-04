@@ -12,6 +12,8 @@ virtualenv:
 
 addons:
     apt:
+        source:
+        - ubuntu-precise
         packages:
         - python-numpy
 
