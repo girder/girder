@@ -87,7 +87,6 @@ girder.views.DicomView = girder.View.extend({
     this.xhr = null;
     this.cache = {};
     this.render();
-    this.initVtk();
     this.loadFileList();
   },
 
@@ -174,28 +173,28 @@ girder.views.DicomView = girder.View.extend({
       return;
     }
     this.ren.resetCamera();
-    const bounds = this.imageData.getBounds();
-    const w = bounds[1] + 1;
-    this.camera.zoom(512 / w * 0.5);
+    this.camera.zoom(1.4);
   },
 
   setImageData: function (imageData) {
     this.imageData = imageData;
 
-    const mapper = vtkImageMapper.newInstance();
-    mapper.setInputData(imageData);
-    this.actor.setMapper(mapper);
-
     if (this.first) {
       this.first = false;
+      this.initVtk(imageData);
       this.autoLevels();
       this.autoZoom();
+    } else {
+      const mapper = vtkImageMapper.newInstance();
+      mapper.setInputData(imageData);
+      this.actor.setMapper(mapper);
     }
 
     this.iren.render();
   },
 
-  initVtk: function () {
+  initVtk: function (imageData) {
+    document.getElementById('g-dicom-view').style.display = 'block';
     const container = document.getElementById('g-dicom-container');
 
     const ren = vtkRenderer.newInstance();
@@ -219,13 +218,6 @@ girder.views.DicomView = girder.View.extend({
 
     const mapper = vtkImageMapper.newInstance();
     actor.setMapper(mapper);
-
-    // empty data
-    const imageData = vtkImageData.newInstance();
-    const values = new Float32Array(1);
-    const dataArray = vtkDataArray.newInstance({values: values});
-    imageData.getPointData().addArray(dataArray);
-    imageData.setExtent(0, 0, 0, 0, 0, 0);
     mapper.setInputData(imageData);
 
     const camera = ren.getActiveCameraAndResetIfCreated();
@@ -243,30 +235,104 @@ girder.views.DicomView = girder.View.extend({
 });
 
 function createImageData(dataSet) {
-  // const accessionNumber = dataSet.string('x00080050');
-
-  const rows = dataSet.int16('x00280010');
-  const cols = dataSet.int16('x00280011');
+  const rows = dataSet.uint16('x00280010');
+  const cols = dataSet.uint16('x00280011');
   const rowSpacing = dataSet.floatString('x00280030', 0);
   const colSpacing = dataSet.floatString('x00280030', 1);
 
-  const element = dataSet.elements.x7fe00010;
-  const pixelData = new Uint16Array(
-    dataSet.byteArray.buffer, element.dataOffset, element.length / 2);
-
   const imageData = vtkImageData.newInstance();
-  // imageData.setOrigin(0, 0, 0);
+  imageData.setOrigin(0, 0, 0);
   imageData.setSpacing(colSpacing, rowSpacing, 1);
   imageData.setExtent(0, cols - 1, 0, rows - 1, 0, 0);
 
-  const values = new Float32Array(pixelData.length);
-  for (let i = 0; i < values.length; i++) {
-    values[i] = pixelData[i] / 255;
-  }
-
+  const values = createPixelBuffer(dataSet);
   const dataArray = vtkDataArray.newInstance({values: values});
   imageData.getPointData().addArray(dataArray);
 
   return imageData;
 }
 
+function createPixelBuffer(dataSet) {
+  const buffer = dataSet.byteArray.buffer;
+  const dataOffset = dataSet.elements.x7fe00010.dataOffset;
+  const pixelRepresentation = dataSet.uint16('x00280103');
+  const bitsAllocated = dataSet.uint16('x00280100');
+  const bitsStored = dataSet.uint16('x00280101');
+  const rows = dataSet.uint16('x00280010');
+  const cols = dataSet.uint16('x00280011');
+  const numPixels = rows * cols;
+  const pmi = dataSet.string('x00280004');
+  if (pmi !== 'MONOCHROME1' && pmi !== 'MONOCHROME2') {
+    throw 'unsupported photometric interpretation';
+  }
+  // construct proper array type
+  let array;
+  if (pixelRepresentation === 0 && bitsAllocated === 8) {
+    array = new Uint8Array(buffer, dataOffset, numPixels);
+  } else if (pixelRepresentation === 0 && bitsAllocated === 16) {
+    array = new Uint16Array(buffer, dataOffset, numPixels);
+  } else if (pixelRepresentation === 1 && bitsAllocated === 8) {
+    array = new Int8Array(buffer, dataOffset, numPixels);
+  } else if (pixelRepresentation === 1 && bitsAllocated === 16) {
+    array = new Int16Array(buffer, dataOffset, numPixels);
+  } else {
+    throw 'unrecognized image format';
+  }
+  // copy values to float buffer
+  const values = new Float32Array(array.length);
+  if (pixelRepresentation === 0) { // unsigned
+    const mask = (1 << bitsStored) - 1;
+    for (let i = 0; i < values.length; i++) {
+      values[i] = (array[i] & mask) / mask;
+    }
+  } else {
+    for (let i = 0; i < values.length; i++) {
+      values[i] = array[i];
+    }
+  }
+  // scale values to be 0 to 1
+  let lo = values[0];
+  let hi = values[0];
+  for (let i = 0; i < values.length; i++) {
+    if (values[i] < lo) {
+      lo = values[i];
+    }
+    if (values[i] > hi) {
+      hi = values[i];
+    }
+  }
+  for (let i = 0; i < values.length; i++) {
+    values[i] = (values[i] - lo) / (hi - lo);
+  }
+  if (pmi === 'MONOCHROME1') {
+    // invert values
+    for (let i = 0; i < values.length; i++) {
+      values[i] = 1 - values[i];
+    }
+  }
+  return values;
+}
+
+// console.log(dataSet.uint16('x00280100'), 'Bits Allocated');
+// console.log(dataSet.uint16('x00280101'), 'Bits Stored');
+// console.log(dataSet.uint16('x00280102'), 'High Bit');
+// console.log(dataSet.uint16('x00280103'), 'Pixel Representation');
+// console.log(dataSet.floatString('x00281050'), 'Window Center');
+// console.log(dataSet.floatString('x00281051'), 'Window Width');
+// console.log(dataSet.floatString('x00281052'), 'Rescale Intercept');
+// console.log(dataSet.floatString('x00281053'), 'Rescale Slope');
+// console.log(dataSet.string('x00281054'), 'Rescale Type');
+// console.log(dataSet.uint16('x00280002'), 'Samples per Pixel');
+// console.log(dataSet.uint16('x00280003'), 'Samples per Pixel Used');
+// console.log(dataSet.uint16('x00280006'), 'Planar Configuration');
+// console.log(dataSet.uint16('x00280010'), 'Rows');
+// console.log(dataSet.uint16('x00280011'), 'Columns');
+// console.log(dataSet.uint16('x00280014'), 'Ultrasound Color Data Present');
+// console.log(dataSet.floatString('x00280030'), 'Pixel Spacing');
+// console.log(dataSet.floatString('x00280031'), 'Zoom Factor');
+// console.log(dataSet.floatString('x00280032'), 'Zoom Center');
+// console.log(dataSet.intString('x00280008'), 'Number of Frames');
+// console.log(dataSet.intString('x00280034'), 'Pixel Aspect Ratio');
+// console.log(dataSet.string('x00280004'), 'Photometric Interpretation');
+// console.log(dataSet.string('x00280051'), 'Corrected Image');
+// console.log(dataSet.string('x00020010'), 'Transfer Syntax UID');
