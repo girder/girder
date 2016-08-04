@@ -7,9 +7,6 @@ env:
     - GIRDER_TEST_GROUP=python
     - GIRDER_TEST_GROUP=browser
 
-virtualenv:
-    system_site_packages: true
-  
 addons:
     apt:
         packages:
