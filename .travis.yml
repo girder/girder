@@ -1,14 +1,11 @@
 language: python
 python:
-    - 2.7
+    - "2.7_with_system_site_packages"
     - 3.4
 
 env:
     - GIRDER_TEST_GROUP=python
     - GIRDER_TEST_GROUP=browser
-    
-virtualenv:
-    system_site_packages: true
 
 addons:
     apt:
