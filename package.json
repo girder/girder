@@ -61,7 +61,8 @@
     "toposort": "~0.2",
     "underscore": "~1.8.3",
     "url-loader": "^0.5.7",
-    "webpack": "2.1.0-beta.21"
+    "webpack": "2.1.0-beta.21",
+    "vtk.js": "github:kitware/vtk-js"
   },
   "devDependencies": {
     "argv": "0.0.2",

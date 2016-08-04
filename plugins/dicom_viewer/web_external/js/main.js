@@ -111,6 +111,10 @@ girder.views.DicomView = girder.View.extend({
   },
 
   handleFileList: function (files) {
+    if (files.length > 0 && files[0].size > 1024 * 1024 * 2) {
+      // don't automatically download huge files
+      return;
+    }
     files = files.sort((a, b) => naturalSort(a.name, b.name));
     this.files = files;
     var slider = document.getElementById("dicom-slider");
