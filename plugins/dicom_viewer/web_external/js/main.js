@@ -323,27 +323,3 @@ function createPixelBuffer(dataSet) {
   }
   return values;
 }
-
-// console.log(dataSet.uint16('x00280100'), 'Bits Allocated');
-// console.log(dataSet.uint16('x00280101'), 'Bits Stored');
-// console.log(dataSet.uint16('x00280102'), 'High Bit');
-// console.log(dataSet.uint16('x00280103'), 'Pixel Representation');
-// console.log(dataSet.floatString('x00281050'), 'Window Center');
-// console.log(dataSet.floatString('x00281051'), 'Window Width');
-// console.log(dataSet.floatString('x00281052'), 'Rescale Intercept');
-// console.log(dataSet.floatString('x00281053'), 'Rescale Slope');
-// console.log(dataSet.string('x00281054'), 'Rescale Type');
-// console.log(dataSet.uint16('x00280002'), 'Samples per Pixel');
-// console.log(dataSet.uint16('x00280003'), 'Samples per Pixel Used');
-// console.log(dataSet.uint16('x00280006'), 'Planar Configuration');
-// console.log(dataSet.uint16('x00280010'), 'Rows');
-// console.log(dataSet.uint16('x00280011'), 'Columns');
-// console.log(dataSet.uint16('x00280014'), 'Ultrasound Color Data Present');
-// console.log(dataSet.floatString('x00280030'), 'Pixel Spacing');
-// console.log(dataSet.floatString('x00280031'), 'Zoom Factor');
-// console.log(dataSet.floatString('x00280032'), 'Zoom Center');
-// console.log(dataSet.intString('x00280008'), 'Number of Frames');
-// console.log(dataSet.intString('x00280034'), 'Pixel Aspect Ratio');
-// console.log(dataSet.string('x00280004'), 'Photometric Interpretation');
-// console.log(dataSet.string('x00280051'), 'Corrected Image');
-// console.log(dataSet.string('x00020010'), 'Transfer Syntax UID');
