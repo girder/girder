@@ -7,6 +7,9 @@ env:
     - GIRDER_TEST_GROUP=python
     - GIRDER_TEST_GROUP=browser
 
+virtualenv:
+  system_site_packages: true
+
 matrix:
     exclude:
         - python: 3.4
@@ -41,6 +44,7 @@ before_install:
     - npm --version
     - npm prune
     - pip install -U pip virtualenv
+    - sudo apt-get install -qq python-numpy
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
     - npm install
