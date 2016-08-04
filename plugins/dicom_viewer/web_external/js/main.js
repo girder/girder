@@ -1,5 +1,7 @@
 import ViewTemplate from 'templates/view.jade';
+import TagsTemplate from 'templates/tags.jade';
 import 'stylesheets/dicom_viewer.styl';
+import {getTags} from 'js/tags.js';
 
 import dicomParser from 'dicom-parser';
 import vtkImageSlice from 'vtk.js/Sources/Rendering/Core/ImageSlice';
@@ -143,8 +145,13 @@ girder.views.DicomView = girder.View.extend({
         const imageData = createImageData(dataSet);
         this.cache[file.name] = imageData;
         this.handleImageData(file, imageData);
+        const tags = getTags(dataSet);
+        document.getElementById('g-dicom-tags').innerHTML = TagsTemplate({
+          tags: tags
+        });
       }
       catch (e) {
+        console.log(e);
       }
     }, this);
     xhr.send();
