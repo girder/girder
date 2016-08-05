@@ -22,11 +22,7 @@ import six
 import sys
 import traceback
 import dicom
-try:
-    import numpy as np
-    numpy = True
-except ImportError:
-    numpy = False
+import numpy as np
 
 from girder import events
 from girder.plugins.jobs.constants import JobStatus
@@ -173,8 +169,6 @@ def _getImage(mimeType, extension, data):
     :param data: The image file stream.
     """
     if (extension and extension[-1] == 'dcm') or mimeType == 'application/dicom':
-        if not numpy:
-            raise Exception('Could not create DICOM thumbnail: numpy not installed.')
         # Open the dicom image
         dicomData = dicom.read_file(six.BytesIO(data))
         return scaleDicomLevels(dicomData)
