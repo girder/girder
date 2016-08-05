@@ -1,0 +1,6 @@
+{
+    "name": "Dicom Metadata extractor",
+    "description": "Enables the extraction of metadata from uploaded dicom files",
+    "version": "0.1.0",
+    "python3": true
+}

@@ -21,6 +21,9 @@ geojson==1.3.2
 # hdfs_assetstore
 snakebite==2.9.0 ; python_version < '3.0'
 
+# dicom_metadata_extractor
+pydicom==0.9.9
+
 # metadata_extractor
 hachoir-core==1.3.3     ; python_version < '3.0'
 hachoir-metadata==1.3.3 ; python_version < '3.0'

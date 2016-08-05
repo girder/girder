@@ -17,12 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
 import six
-
-from hachoir_core.error import HachoirError
-from hachoir_metadata import extractMetadata
-from hachoir_parser import createParser
+import dicom
 
 try:
     from girder.utility.model_importer import ModelImporter
@@ -31,7 +27,7 @@ except ImportError:
     ModelImporter = None
 
 
-class MetadataExtractor(object):
+class DicomMetadataExtractor(object):
     def __init__(self, path, itemId):
         """
         Initialize the metadata extractor.
@@ -56,32 +52,26 @@ class MetadataExtractor(object):
 
     def _extractMetadata(self):
         """
-        Extract metadata from file on client or server using hachoir-metadata.
+        Extract metadata from file on client or server using hachoir-metadata
+        or pydicom for DICOM images.
         """
 
         try:
-            parser = createParser(six.text_type(self.path),
-                                  six.binary_type(self.path))
+            dcMetadata = dicom.read_file(self.path, stop_before_pixels=True)
+            if dcMetadata:
+                self.metadata = dict()
+                for item in dcMetadata:
+                    # pass forces rawDataElement to DataElement conversion
+                    pass
+                    if not item.tag.is_private:
+                        name = str(item.name).replace('.', '')
+                        value = str(item.value)
+                        self.metadata[name] = value
+                self.metadata['DICOM Elements Extracted'] = True
+            else:
+                self.metadata = None
 
-            if parser is None:
-                raise HachoirError
-
-            extractor = extractMetadata(parser)
-
-            if extractor is None:
-                raise HachoirError
-
-            self.metadata = dict()
-
-            for data in sorted(extractor):
-                if not data.values:
-                    continue
-
-                key = data.description
-                value = ', '.join([item.text for item in data.values])
-                self.metadata[key] = value
-
-        except HachoirError:
+        except dicom.filereader.InvalidDicomError:
             self.metadata = None
 
     def _setMetadata(self):
@@ -91,38 +81,42 @@ class MetadataExtractor(object):
         pass
 
 
-class ClientMetadataExtractor(MetadataExtractor):
-    def __init__(self, client, path, itemId):
+class ClientDicomMetadataExtractor(DicomMetadataExtractor):
+    def __init__(self, client, fileId, itemId):
         """
         Initialize client metadata extractor.
 
         :param client: client instance
-        :param path: path of file from which to extract metadata on remote
-        client
+        :param fileId: file ID of file from which to extract metadata
         :param itemId: item ID of item containing file on server
+
         """
-        super(ClientMetadataExtractor, self).__init__(path, itemId)
+        output = six.BytesIO()
+        client.downloadFile(fileId, output)
+        output.seek(0)
+        super(ClientDicomMetadataExtractor, self).__init__(output, itemId)
         self.client = client
 
     def _setMetadata(self):
         """
         Attach metadata to item on server.
         """
-        super(ClientMetadataExtractor, self)._setMetadata()
+        super(ClientDicomMetadataExtractor, self)._setMetadata()
         self.client.addMetadataToItem(str(self.itemId), self.metadata)
 
 
-class ServerMetadataExtractor(MetadataExtractor, ModelImporter):
-    def __init__(self, assetstore, uploadedFile):
+class ServerDicomMetadataExtractor(DicomMetadataExtractor, ModelImporter):
+    def __init__(self, uploadedFile):
         """
         Initialize server metadata extractor.
 
         :param assetstore: asset store containing file
         :param uploadedFile: file from which to extract metadata
+
         """
-        path = os.path.join(assetstore['root'], uploadedFile['path'])
-        super(ServerMetadataExtractor, self).__init__(path,
-                                                      uploadedFile['itemId'])
+        stream = ModelImporter.model('file').download(uploadedFile, headers=False)
+        output = six.BytesIO(b''.join(stream()))
+        super(ServerDicomMetadataExtractor, self).__init__(output, uploadedFile['itemId'])
         self.userId = uploadedFile['creatorId']
 
     def _setMetadata(self):
@@ -130,6 +124,6 @@ class ServerMetadataExtractor(MetadataExtractor, ModelImporter):
         Attach metadata to item on server.
 
         """
-        super(ServerMetadataExtractor, self)._setMetadata()
+        super(ServerDicomMetadataExtractor, self)._setMetadata()
         item = self.model('item').load(self.itemId, force=True)
         self.model('item').setMetadata(item, self.metadata)
