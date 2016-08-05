@@ -41,7 +41,6 @@ before_install:
     - npm --version
     - npm prune
     - pip install -U pip virtualenv
-    - pip install numpy
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
     - npm install
