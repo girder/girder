@@ -1,16 +1,11 @@
 language: python
 python:
-    - "2.7_with_system_site_packages"
+    - 2.7
     - 3.4
 
 env:
     - GIRDER_TEST_GROUP=python
     - GIRDER_TEST_GROUP=browser
-
-addons:
-    apt:
-        packages:
-        - python-numpy
 
 matrix:
     exclude:
@@ -46,6 +41,7 @@ before_install:
     - npm --version
     - npm prune
     - pip install -U pip virtualenv
+    - pip install numpy
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
     - npm install
