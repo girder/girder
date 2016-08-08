@@ -126,7 +126,7 @@ form.g-settings-form(role="form")
     .form-group
       label(for="g-core-smtp-password") SMTP password
       input#g-core-smtp-password.form-control.input-sm(
-        type="text", value="#{settings['core.smtp.password'] || ''}",
+        type="password", value="#{settings['core.smtp.password'] || ''}",
         placeholder="Default: #{defaults['core.smtp.password'] || 'none'}",
         title="The password, if any, used to authenticate to the SMTP server used to send emails.")
   .panel-group#g-configuration-accordion
