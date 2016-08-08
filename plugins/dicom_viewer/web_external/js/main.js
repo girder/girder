@@ -87,7 +87,8 @@ girder.views.DicomView = girder.View.extend({
     this.first = true;
     this.imageData = null;
     this.xhr = null;
-    this.cache = {};
+    this.imageCache = {};
+    this.tagCache = {};
     this.render();
     this.loadFileList();
   },
@@ -103,7 +104,7 @@ girder.views.DicomView = girder.View.extend({
 
   loadFileList: function () {
     girder.restRequest({
-      path: '/item/' + this.item.get('_id') + '/files',
+      path: '/item/' + this.item.get('_id') + '/dicom',
       data: {
         limit: 0
       }
@@ -117,7 +118,7 @@ girder.views.DicomView = girder.View.extend({
       // don't automatically download huge files
       return;
     }
-    files = files.sort((a, b) => naturalSort(a.name, b.name));
+    // files = files.sort((a, b) => naturalSort(a.name, b.name));
     this.files = files;
     var slider = document.getElementById("dicom-slider");
     slider.min = 0;
@@ -127,8 +128,8 @@ girder.views.DicomView = girder.View.extend({
   },
 
   loadFile: function (file) {
-    if (file.name in this.cache) {
-      this.handleImageData(file, this.cache[file.name]);
+    if (file.name in this.imageCache) {
+      this.showCached(file);
       return;
     }
     console.log(file.name);
@@ -143,12 +144,9 @@ girder.views.DicomView = girder.View.extend({
         const byteArray = new Uint8Array(xhr.response);
         const dataSet = dicomParser.parseDicom(byteArray);
         const imageData = createImageData(dataSet);
-        this.cache[file.name] = imageData;
-        this.handleImageData(file, imageData);
-        const tags = getTags(dataSet);
-        document.getElementById('g-dicom-tags').innerHTML = TagsTemplate({
-          tags: tags
-        });
+        this.imageCache[file.name] = imageData;
+        this.tagCache[file.name] = getTags(dataSet);
+        this.showCached(file);
       }
       catch (e) {
         console.log(e);
@@ -158,9 +156,12 @@ girder.views.DicomView = girder.View.extend({
     this.xhr = xhr;
   },
 
-  handleImageData: function (file, imageData) {
+  showCached: function (file) {
     document.getElementById('dicom-filename').innerHTML = file.name;
-    this.setImageData(imageData);
+    document.getElementById('g-dicom-tags').innerHTML = TagsTemplate({
+      tags: this.tagCache[file.name]
+    });
+    this.setImageData(this.imageCache[file.name]);
   },
 
   render: function () {
@@ -184,7 +185,7 @@ girder.views.DicomView = girder.View.extend({
       return;
     }
     this.ren.resetCamera();
-    this.camera.zoom(1.4);
+    this.camera.zoom(1.44);
   },
 
   setImageData: function (imageData) {

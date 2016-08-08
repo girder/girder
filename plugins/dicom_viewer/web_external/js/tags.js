@@ -36,7 +36,7 @@ export function getTags(dataSet) {
     if (!value) {
       continue;
     }
-    result.push(_.extend(tag, {key: key, value: value}));
+    result.push(_.extend({}, tag, {key: key, value: value}));
   }
   return result;
 }
