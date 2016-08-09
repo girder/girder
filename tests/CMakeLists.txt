@@ -68,6 +68,8 @@ if(RUN_CORE_TESTS)
   add_web_client_test(swagger "${PROJECT_SOURCE_DIR}/clients/web/test/spec/swaggerSpec.js" BASEURL "/api/v1" NOCOVERAGE)
   add_web_client_test(browser "${PROJECT_SOURCE_DIR}/clients/web/test/spec/browserSpec.js")
 
+  set_property(TEST web_client_admin PROPERTY RUN_SERIAL ON)
+
   # Add tests for the local TestData module
   add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
   add_python_test(external_data_core
