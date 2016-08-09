@@ -19,6 +19,7 @@
 
 import mock
 import os
+import six
 import shutil
 import tempfile
 
@@ -33,13 +34,15 @@ POPEN = 'subprocess.Popen'
 
 
 class PluginOpts():
-    def __init__(self, plugin=None, force=False,
-                 symlink=False, dev=False, npm='npm'):
+    def __init__(self, plugin=None, force=False, symlink=False, dev=False, npm='npm',
+                 skip_requirements=False, skip_web_client=False):
         self.plugin = plugin
         self.force = force
         self.symlink = symlink
         self.development = dev
         self.npm = npm
+        self.skip_requirements = skip_requirements
+        self.skip_web_client = skip_web_client
 
 
 class ProcMock(object):
@@ -96,7 +99,7 @@ class InstallTestCase(base.TestCase):
                 os.path.join(self.pluginDir, 'has_deps', 'plugin.json')))
 
         # Should fail if exists and force=False
-        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+        with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps')
             ]))
@@ -109,13 +112,21 @@ class InstallTestCase(base.TestCase):
 
         # If npm install returns 1, should fail
         with mock.patch(POPEN, return_value=ProcMock(rc=1)), \
-                self.assertRaisesRegexp(Exception, 'npm install returned 1'):
+                six.assertRaisesRegex(self, Exception, 'npm install returned 1'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(pluginRoot, 'has_deps')
             ]))
 
+        # Using skip_web_client and skip_requirements should circumvent install steps
+        with mock.patch(POPEN, return_value=ProcMock(rc=1)) as mockPopen:
+            install.install_plugin(PluginOpts(
+                force=True, skip_requirements=True, skip_web_client=True,
+                plugin=[os.path.join(pluginRoot, 'has_deps')]))
+
+            self.assertEqual(len(mockPopen.mock_calls), 0)
+
         # If bad path is given, should fail gracefuly
-        with self.assertRaisesRegexp(Exception, 'Invalid plugin directory'):
+        with six.assertRaisesRegex(self, Exception, 'Invalid plugin directory'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 '/bad/install/path'
             ]))
@@ -127,7 +138,7 @@ class InstallTestCase(base.TestCase):
             ]))
 
         # Should fail if exists as directory and symlink is true
-        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+        with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_deps')
             ], symlink=True))
@@ -142,7 +153,7 @@ class InstallTestCase(base.TestCase):
                 self.pluginDir, 'has_deps')))
 
             # Should fail if exists as link and symlink is false
-            with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+            with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
                 install.install_plugin(PluginOpts(plugin=[
                     os.path.join(pluginRoot, 'has_deps')
                 ]))
@@ -189,7 +200,7 @@ class InstallTestCase(base.TestCase):
                 os.path.join(self.pluginDir, 'has_grunt_deps', 'plugin.json')))
 
         # Should fail if exists and force=False
-        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+        with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_grunt_deps')
             ]))
@@ -202,13 +213,13 @@ class InstallTestCase(base.TestCase):
 
         # If npm install returns 1, should fail
         with mock.patch(POPEN, return_value=ProcMock(rc=1)), \
-                self.assertRaisesRegexp(Exception, 'npm install returned 1'):
+                six.assertRaisesRegex(self, Exception, 'npm install returned 1'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 os.path.join(pluginRoot, 'has_grunt_deps')
             ]))
 
         # If bad path is given, should fail gracefuly
-        with self.assertRaisesRegexp(Exception, 'Invalid plugin directory'):
+        with six.assertRaisesRegex(self, Exception, 'Invalid plugin directory'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 '/bad/install/path'
             ]))
@@ -220,7 +231,7 @@ class InstallTestCase(base.TestCase):
             ]))
 
         # Should fail if exists as directory and symlink is true
-        with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+        with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
             install.install_plugin(PluginOpts(plugin=[
                 os.path.join(pluginRoot, 'has_grunt_deps')
             ], symlink=True))
@@ -235,7 +246,7 @@ class InstallTestCase(base.TestCase):
                 self.pluginDir, 'has_grunt_deps')))
 
             # Should fail if exists as link and symlink is false
-            with self.assertRaisesRegexp(Exception, 'Plugin already exists'):
+            with six.assertRaisesRegex(self, Exception, 'Plugin already exists'):
                 install.install_plugin(PluginOpts(plugin=[
                     os.path.join(pluginRoot, 'has_grunt_deps')
                 ]))
@@ -251,7 +262,7 @@ class InstallTestCase(base.TestCase):
 
     def testWebInstall(self):
         with mock.patch(POPEN, return_value=ProcMock(rc=2)) as p,\
-                self.assertRaisesRegexp(Exception, 'npm install returned 2'):
+                six.assertRaisesRegex(self, Exception, 'npm install returned 2'):
             install.install_web()
 
             self.assertEqual(len(p.mock_calls), 1)
