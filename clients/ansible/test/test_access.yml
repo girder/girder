@@ -212,8 +212,20 @@
 
 ####
 #  Test access control
+    - name: Create collection with public access
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          public: yes
+      register: test_collection
 
-    - name: Create collection with access
+    # Check that test_collection is public
+
+    - name: Make the collection private
       girder:
         port: 8080
         username: "admin"
@@ -230,6 +242,38 @@
                 type: member
       register: test_collection
 
+    # Check that test_collection is private
+
+    - name: Make the collection public again
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          public: yes
+      register: test_collection
+
+
+    # Check that test_collection ispublic again
+
+    - name: Make the collection private again
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
+          public: no
+          access:
+            users:
+              - login: alice
+                type: admin
+              - login: chris
+                type: member
+      register: test_collection
 
     - name: Reereate collection with access (should show no change)
       girder:
@@ -247,6 +291,8 @@
               - login: chris
                 type: member
       register: test_collection
+
+    # Test that no change was recorded
 
     - name: Add bill to Test Collection
       girder:

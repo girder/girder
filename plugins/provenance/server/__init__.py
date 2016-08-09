@@ -21,32 +21,29 @@ import six
 
 from girder import events
 from girder.models.model_base import ValidationException
+from girder.utility import setting_utilities
 from . import constants
 from .resource import ResourceExt
 
 
-def validateSettings(event):
-    key, val = event.info['key'], event.info['value']
+@setting_utilities.validator(constants.PluginSettings.PROVENANCE_RESOURCES)
+def validateProvenanceResources(doc):
+    val = doc['value']
 
-    if key == constants.PluginSettings.PROVENANCE_RESOURCES:
-        if val:
-            if not isinstance(val, six.string_types):
-                raise ValidationException(
-                    'Provenance Resources must be a string.', 'value')
-            # accept comma or space separated lists
-            resources = val.replace(",", " ").strip().split()
-            # reformat to a comma-separated list
-            event.info["value"] = ",".join(resources)
-        event.preventDefault().stopPropagation()
+    if val:
+        if not isinstance(val, six.string_types):
+            raise ValidationException('Provenance Resources must be a string.', 'value')
+        # accept comma or space separated lists
+        resources = val.replace(',', ' ').strip().split()
+        # reformat to a comma-separated list
+        doc['value'] = ','.join(resources)
 
 
 def load(info):
-    events.bind('model.setting.validate', 'provenanceMain', validateSettings)
     ext = ResourceExt(info)
     events.bind('model.setting.save.after', 'provenanceMain', ext.bindModels)
     events.bind('provenance.initialize', 'provenanceMain', ext.bindModels)
     events.trigger('provenance.initialize', info={})
     events.bind('model.file.save', 'provenanceMain', ext.fileSaveHandler)
-    events.bind('model.file.save.created', 'provenanceMain',
-                ext.fileSaveCreatedHandler)
+    events.bind('model.file.save.created', 'provenanceMain', ext.fileSaveCreatedHandler)
     events.bind('model.file.remove', 'provenance', ext.fileRemoveHandler)

@@ -906,7 +906,7 @@ class GirderClient(object):
         if isinstance(path, six.string_types):
             # we can just rename the tempfile
             _safeMakedirs(os.path.dirname(path))
-            os.rename(tmp.name, path)
+            shutil.move(tmp.name, path)
         else:
             # write to file-like object
             with open(tmp.name, 'rb') as fp:
