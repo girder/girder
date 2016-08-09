@@ -1,5 +1,6 @@
 var path = require('path');
 var vtkLoaders = require('../../node_modules/vtk.js/Utilities/config/webpack.loaders.js');
+// var vtkLoaders = require('../../../vtk.js/Utilities/config/webpack.loaders.js');
 
 module.exports = {
   resolve: {
