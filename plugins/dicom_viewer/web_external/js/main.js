@@ -106,7 +106,7 @@ girder.views.DicomView = girder.View.extend({
     girder.restRequest({
       path: '/item/' + this.item.get('_id') + '/dicom',
       data: {
-        limit: 0
+        filters: 'dummy' // don't need the dicom tags, just want the sorted results
       }
     }).done(_.bind(function (resp) {
       this.handleFileList(resp);
@@ -301,20 +301,6 @@ function createPixelBuffer(dataSet) {
     for (let i = 0; i < values.length; i++) {
       values[i] = array[i];
     }
-  }
-  // scale values to be 0 to 1
-  let lo = values[0];
-  let hi = values[0];
-  for (let i = 0; i < values.length; i++) {
-    if (values[i] < lo) {
-      lo = values[i];
-    }
-    if (values[i] > hi) {
-      hi = values[i];
-    }
-  }
-  for (let i = 0; i < values.length; i++) {
-    values[i] = (values[i] - lo) / (hi - lo);
   }
   if (pmi === 'MONOCHROME1') {
     // invert values
