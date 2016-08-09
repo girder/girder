@@ -53,17 +53,14 @@ class PythonClientTestCase(base.TestCase):
 
         def writeFile(dirName):
             filename = os.path.join(dirName, 'f')
-            f = open(filename, 'w')
-            f.write(filename)
-            f.close()
+            with open(filename, 'w') as f:
+                f.write(filename)
             filename = os.path.join(dirName, 'f1')
-            f = open(filename, 'w')
-            f.write(filename)
-            f.close()
+            with open(filename, 'w') as f:
+                f.write(filename)
 
         # make some temp dirs and files
-        self.libTestDir = os.path.join(os.path.dirname(__file__),
-                                       '_libTestDir')
+        self.libTestDir = os.path.join(os.path.dirname(__file__), '_libTestDir')
         # unlink old temp dirs and files first
         shutil.rmtree(self.libTestDir, ignore_errors=True)
 
@@ -115,8 +112,7 @@ class PythonClientTestCase(base.TestCase):
         # Test authentication failure
         flag = False
         try:
-            self.client.authenticate(username=self.user['login'],
-                                     password='wrong')
+            self.client.authenticate(username=self.user['login'], password='wrong')
         except girder_client.AuthenticationError:
             flag = True
 
@@ -331,9 +327,11 @@ class PythonClientTestCase(base.TestCase):
 
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        self.client.uploadFile(self.publicFolder['_id'], open(path),
-                               name='test1', size=size, parentType='folder',
-                               reference='test1_reference')
+        with open(path) as fh:
+            self.client.uploadFile(
+                self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
+                reference='test1_reference')
+
         starttime = time.time()
         while (not events.daemon.eventQueue.empty() and
                 time.time() - starttime < 5):
@@ -351,7 +349,9 @@ class PythonClientTestCase(base.TestCase):
         self.assertNotEqual(eventList[0]['file']['_id'],
                             eventList[1]['file']['_id'])
 
-        open(path, 'ab').write(b'test')
+        with open(path, 'ab') as fh:
+            fh.write(b'test')
+
         size = os.path.getsize(path)
         self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
                                      reference='test3_reference')
@@ -373,17 +373,19 @@ class PythonClientTestCase(base.TestCase):
 
         # Test guessing of MIME type
         testPath = os.path.join(self.libTestDir, 'out.txt')
-        open(testPath, 'w').write('test')
+        with open(testPath, 'w') as fh:
+            fh.write('test')
+
         file = self.client.uploadFileToItem(item['_id'], testPath)
         self.assertEqual(file['mimeType'], 'text/plain')
 
     def testUploadContent(self):
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        file = self.client.uploadFile(self.publicFolder['_id'], open(path),
-                                      name='test1',
-                                      size=size, parentType='folder',
-                                      reference='test1_reference')
+        with open(path) as fh:
+            file = self.client.uploadFile(
+                self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
+                reference='test1_reference')
 
         contents = 'you\'ve changed!'
         size = len(contents)
@@ -501,8 +503,7 @@ class PythonClientTestCase(base.TestCase):
             'nothing': 'to see here!'
         }
         self.client.addMetadataToFolder(self.publicFolder['_id'], meta)
-        updatedFolder = self.model('folder').load(self.publicFolder['_id'],
-                                                  force=True)
+        updatedFolder = self.model('folder').load(self.publicFolder['_id'], force=True)
         self.assertEqual(updatedFolder['meta'], meta)
 
     def testPatch(self):
@@ -517,7 +518,7 @@ class PythonClientTestCase(base.TestCase):
         }
 
         def _patchJson(url, request):
-            patchRequest['valid'] = json.loads(request.body) == jsonBody
+            patchRequest['valid'] = json.loads(request.body.decode('utf8')) == jsonBody
 
             return httmock.response(200, {}, {}, request=request)
 
