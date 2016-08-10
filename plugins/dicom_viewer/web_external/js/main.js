@@ -344,14 +344,14 @@ function createPixelBuffer(dataSet) {
             values[i] = 1 - values[i];
         }
     }
-    const copy = values.slice();
     if (flipVertical) {
+        const temp = values.slice();
         for (let y = 0; y < rows; y++) {
             for (let x = 0; x < cols; x++) {
                 const fy = rows - y - 1;
                 const i = y * cols + x;
                 const j = fy * cols + x;
-                values[i] = copy[j];
+                values[i] = temp[j];
             }
         }
     }
