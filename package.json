@@ -48,7 +48,6 @@
     "dicom-parser": "^1.7.2",
     "grunt-webpack": "^1.0.14",
     "jade-loader": "^0.8.0",
-    "javascript-natural-sort": "^0.7.1",
     "kw-web-suite": "^2.0.1",
     "load-grunt-tasks": "^3.5.0",
     "path": "^0.12.7",
