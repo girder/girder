@@ -5,7 +5,6 @@ from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, loadmodel
 from girder.constants import AccessType, TokenScope
 from girder.utility.model_importer import ModelImporter
-from StringIO import StringIO
 import dicom
 import six
 
@@ -71,7 +70,7 @@ def process_file(file):
         if file['size'] <= MAX_FILE_SIZE:
             # download file and try to parse dicom
             stream = ModelImporter.model('file').download(file, headers=False)
-            fp = StringIO(''.join(stream()))
+            fp = six.StringIO(''.join(stream()))
             ds = dicom.read_file(fp, stop_before_pixels=True)
             # human-readable keys
             for key in ds.dir():
