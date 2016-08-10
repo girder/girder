@@ -14,9 +14,6 @@ import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
 
-import naturalSort from 'javascript-natural-sort';
-naturalSort.insensitive = true;
-
 girder.wrap(girder.views.ItemView, 'render', function (render) {
   this.once('g:rendered', function () {
     $('.g-item-header').after('<div id="g-dicom-view"></div>');
@@ -52,23 +49,23 @@ girder.views.DicomView = girder.View.extend({
     },
     'click #dicom-previous': function (event) {
       event.preventDefault();
-      if (this.index === 0) {
-        this.setIndex(this.files.length - 1);
-      } else {
-        this.setIndex(this.index - 1);
-      }
+      this.previous();
     },
     'click #dicom-next': function (event) {
       event.preventDefault();
-      if (this.index === this.files.length - 1) {
-        this.setIndex(0);
-      } else {
-        this.setIndex(this.index + 1);
-      }
+      this.next();
     },
     'click #dicom-last': function (event) {
       event.preventDefault();
       this.setIndex(this.files.length - 1);
+    },
+    'click #dicom-play': function (event) {
+      event.preventDefault();
+      this.play();
+    },
+    'click #dicom-pause': function (event) {
+      event.preventDefault();
+      this.pause();
     },
     'click #dicom-auto-levels': function (event) {
       event.preventDefault();
@@ -85,6 +82,8 @@ girder.views.DicomView = girder.View.extend({
     this.files = [];
     this.index = 0;
     this.first = true;
+    this.playing = false;
+    this.playRate = 500;
     this.imageData = null;
     this.xhr = null;
     this.imageCache = {};
@@ -102,6 +101,43 @@ girder.views.DicomView = girder.View.extend({
     this.loadFile(this.files[index]);
   },
 
+  next: function () {
+    if (this.index === this.files.length - 1) {
+      this.setIndex(0);
+    } else {
+      this.setIndex(this.index + 1);
+    }
+  },
+
+  previous: function () {
+    if (this.index === 0) {
+      this.setIndex(this.files.length - 1);
+    } else {
+      this.setIndex(this.index - 1);
+    }
+  },
+
+  play: function () {
+    if (this.playing) {
+      this.playRate *= 0.5;
+      return;
+    }
+    this.playing = true;
+    this.step();
+  },
+
+  step: function () {
+    if (this.playing) {
+      this.next();
+      setTimeout(this.step.bind(this), this.playRate);
+    }
+  },
+
+  pause: function () {
+    this.playing = false;
+    this.playRate = 500;
+  },
+
   loadFileList: function () {
     girder.restRequest({
       path: '/item/' + this.item.get('_id') + '/dicom',
@@ -114,11 +150,6 @@ girder.views.DicomView = girder.View.extend({
   },
 
   handleFileList: function (files) {
-    if (files.length > 0 && files[0].size > 1024 * 1024 * 2) {
-      // don't automatically download huge files
-      return;
-    }
-    // files = files.sort((a, b) => naturalSort(a.name, b.name));
     this.files = files;
     var slider = document.getElementById("dicom-slider");
     slider.min = 0;
@@ -174,6 +205,7 @@ girder.views.DicomView = girder.View.extend({
       return;
     }
     const range = this.imageData.getPointData().getScalars().getRange();
+    console.log(range);
     const ww = range[1] - range[0];
     const wc = (range[0] + range[1]) / 2;
     this.actor.getProperty().setColorWindow(ww);
@@ -274,6 +306,9 @@ function createPixelBuffer(dataSet) {
   const cols = dataSet.uint16('x00280011');
   const numPixels = rows * cols;
   const pmi = dataSet.string('x00280004');
+  // TODO: this is probably not a legit way of determining when to flip
+  const imageOrientation = dataSet.string('x00200037').split('\\');
+  const flipVertical = imageOrientation.splice(3).indexOf("-1") >= 0;
   if (pmi !== 'MONOCHROME1' && pmi !== 'MONOCHROME2') {
     throw 'unsupported photometric interpretation';
   }
@@ -306,6 +341,17 @@ function createPixelBuffer(dataSet) {
     // invert values
     for (let i = 0; i < values.length; i++) {
       values[i] = 1 - values[i];
+    }
+  }
+  const copy = values.slice();
+  if (flipVertical) {
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const fy = rows - y - 1;
+        const i = y * cols + x;
+        const j = fy * cols + x;
+        values[i] = copy[j];
+      }
     }
   }
   return values;
