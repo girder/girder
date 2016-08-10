@@ -7,6 +7,7 @@ from girder.constants import AccessType, TokenScope
 from girder.utility.model_importer import ModelImporter
 from StringIO import StringIO
 import dicom
+import six
 
 MAX_FILE_SIZE = 1024 * 1024 * 5
 
@@ -58,7 +59,7 @@ def can_encode(x):
     if isinstance(x, list):
         return all(can_encode(y) for y in x)
     try:
-        unicode(x)
+        six.text_type(x)
         return True
     except Exception:
         return False
