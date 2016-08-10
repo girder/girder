@@ -1,44 +1,38 @@
 function getTagValue(dataSet, key, vr) {
-  if (['AT','FL','FD','OB','OF','OW','SI','SQ','SS','UL','US'].indexOf(vr) < 0) {
-    return dataSet.string(key);
-  }
-  else if (vr === 'US') {
-    return dataSet.uint16(key);
-  }
-  else if (vr === 'SS') {
-    return dataSet.int16(key);
-  }
-  else if (vr === 'UL') {
-    return dataSet.uint32(key);
-  }
-  else if (vr === 'SL') {
-    return dataSet.int32(key);
-  }
-  else if (vr == 'FD') {
-    return dataSet.double(key);
-  }
-  else if (vr == 'FL') {
-    return dataSet.float(key);
-  } else {
-    return null;
-  }
+    if (['AT', 'FL', 'FD', 'OB', 'OF', 'OW', 'SI', 'SQ', 'SS', 'UL', 'US'].indexOf(vr) < 0) {
+        return dataSet.string(key);
+    } else if (vr === 'US') {
+        return dataSet.uint16(key);
+    } else if (vr === 'SS') {
+        return dataSet.int16(key);
+    } else if (vr === 'UL') {
+        return dataSet.uint32(key);
+    } else if (vr === 'SL') {
+        return dataSet.int32(key);
+    } else if (vr === 'FD') {
+        return dataSet.double(key);
+    } else if (vr === 'FL') {
+        return dataSet.float(key);
+    } else {
+        return null;
+    }
 }
 
 export function getTags(dataSet) {
-  let result = [];
-  const keys = Object.keys(dataSet.elements).sort();
-  for (let key of keys) {
-    const tag = TAG_DICT[key];
-    if (!tag) {
-      continue;
+    let result = [];
+    const keys = Object.keys(dataSet.elements).sort();
+    for (let key of keys) {
+        const tag = TAG_DICT[key];
+        if (!tag) {
+            continue;
+        }
+        const value = getTagValue(dataSet, key, tag.vr);
+        if (!value) {
+            continue;
+        }
+        result.push(_.extend({}, tag, {key: key, value: value}));
     }
-    const value = getTagValue(dataSet, key, tag.vr);
-    if (!value) {
-      continue;
-    }
-    result.push(_.extend({}, tag, {key: key, value: value}));
-  }
-  return result;
+    return result;
 }
 
 const TAG_DICT = {
@@ -3685,5 +3679,5 @@ const TAG_DICT = {
     'xFFFCFFFC': {'vr': 'OB', 'vm': '1', 'name': 'DataSetTrailingPadding'},
     'xFFFEE000': {'vr': '', 'vm': '1', 'name': 'Item'},
     'xFFFEE00D': {'vr': '', 'vm': '1', 'name': 'ItemDelimitationItem'},
-    'xFFFEE0DD': {'vr': '', 'vm': '1', 'name': 'SequenceDelimitationItem'},
+    'xFFFEE0DD': {'vr': '', 'vm': '1', 'name': 'SequenceDelimitationItem'}
 };
