@@ -40,7 +40,7 @@ var ItemModel = Model.extend({
      * Get the path to the root of the hierarchy
      */
     getRootPath: function (callback) {
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/rootpath'
         }).done(_.bind(function (resp) {
             callback(resp);

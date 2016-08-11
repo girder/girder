@@ -16,9 +16,9 @@ var ApiKeyListWidget = View.extend({
         'click .g-api-key-toggle-active': function (e) {
             var apiKey = this._getModelFromEvent(e);
             var toggleActive = _.bind(function () {
-                apiKey.setActive(!apiKey.get('active')).once('g:setActive', function () {
+                apiKey.once('g:setActive', function () {
                     this.render();
-                }, this);
+                }, this).setActive(!apiKey.get('active'));
             }, this);
 
             if (apiKey.get('active')) {
@@ -55,7 +55,7 @@ var ApiKeyListWidget = View.extend({
                 yesText: 'Delete',
                 escapedHtml: true,
                 confirmCallback: _.bind(function () {
-                    apiKey.destroy().on('g:deleted', function () {
+                    apiKey.on('g:deleted', function () {
                         events.trigger('g:alert', {
                             icon: 'ok',
                             text: 'API key deleted.',
@@ -63,7 +63,7 @@ var ApiKeyListWidget = View.extend({
                             timeout: 3000
                         });
                         this.render();
-                    }, this);
+                    }, this).destroy();
                 }, this)
             });
         }

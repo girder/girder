@@ -24,7 +24,7 @@ var AccessControlledModel = Model.extend({
             return;
         }
 
-        restRequest({
+        return restRequest({
             path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
             type: 'PUT',
             data: _.extend({
@@ -36,8 +36,6 @@ var AccessControlledModel = Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-
-        return this;
     },
 
     /**
@@ -54,7 +52,7 @@ var AccessControlledModel = Model.extend({
         }
 
         if (!this.get('access') || force) {
-            restRequest({
+            return restRequest({
                 path: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
                 type: 'GET'
             }).done(_.bind(function (resp) {
@@ -64,14 +62,14 @@ var AccessControlledModel = Model.extend({
                     this.set('access', resp);
                 }
                 this.trigger('g:accessFetched');
+                return resp;
             }, this)).error(_.bind(function (err) {
                 this.trigger('g:error', err);
             }, this));
         } else {
             this.trigger('g:accessFetched');
+            return $.when(this.get('access'));
         }
-
-        return this;
     }
 });
 

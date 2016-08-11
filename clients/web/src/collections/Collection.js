@@ -55,14 +55,14 @@ var Collection = Backbone.Collection.extend({
      */
     fetchPreviousPage: function (params) {
         this.offset = Math.max(0, this.offset - this.length - this.pageLimit);
-        this.fetch(_.extend({}, this.params, params || {}));
+        return this.fetch(_.extend({}, this.params, params || {}));
     },
 
     /**
      * Fetch the previous page of this collection, emitting g:changed when done.
      */
     fetchNextPage: function (params) {
-        this.fetch(_.extend({}, this.params, params || {}));
+        return this.fetch(_.extend({}, this.params, params || {}));
     },
 
     /**
@@ -126,6 +126,7 @@ var Collection = Backbone.Collection.extend({
             this.trigger('g:changed');
         }, this));
         xhr.girder = {fetch: true};
+        return xhr;
     }
 });
 

@@ -87,7 +87,7 @@ var UserModel = Model.extend({
      * Change the password for this user.
      */
     changePassword: function (oldPassword, newPassword) {
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/password',
             data: {
                 old: oldPassword,
@@ -106,7 +106,7 @@ var UserModel = Model.extend({
      * Change the password for another user (as an admin).
      */
     adminChangePassword: function (newPassword) {
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/' + this.id + '/password',
             data: {
                 password: newPassword
