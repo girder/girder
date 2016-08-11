@@ -1,6 +1,7 @@
 import contextlib
 import mock
 import os
+import tempfile
 import girder_client
 import girder_client.configure
 import unittest
@@ -92,3 +93,21 @@ class TestConfigScript(unittest.TestCase):
 
         with self.assertRaises(NoOptionError):
             self._runConfigScript(['get', 'girder_client', 'foo'])
+
+        tmpcfg_fd, tmpcfg_fname = tempfile.mkstemp()
+        girder_client.config.write_config(tmpcfg_fd)
+        tmpcfg_fd.close()
+
+        info = self._runConfigScript(['-c', tmpcfg_fname, 'set',
+                                      'girder_client', 'port', '90'])
+        self.assertEqual(info['rc'], 0)
+        info = self._runConfigScript(['-c', tmpcfg_fname, 'get',
+                                      'girder_client', 'port'])
+        self.assertEqual(info['rc'], 0)
+        self.assertEqual(info['stdout'].strip(), '90')
+
+        info = self._runConfigScript(['get', 'girder_client', 'port'])
+        self.assertEqual(info['rc'], 0)
+        self.assertEqual(info['stdout'].strip(), 'None')
+
+        os.remove(tmpcfg_fname)

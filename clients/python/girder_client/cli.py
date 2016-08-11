@@ -18,6 +18,7 @@
 ###############################################################################
 
 import argparse
+import os
 from girder_client import GirderClient, config
 
 
@@ -82,6 +83,9 @@ _commonArgs = [
     ('--parent-type', dict(
         required=False, default='folder',
         help='type of Girder parent target, one of (collection, folder, user)')),
+    ('--config', dict(
+        required=False, default=None, dest='config',
+        help='The location of the config file.')),
     ('parent_id', dict(help='id of Girder parent target')),
     ('local_folder', dict(help='path to local target folder'))
 ]
@@ -113,6 +117,14 @@ for name, kwargs in _commonArgs:
 
 def main():
     args = parser.parse_args()
+
+    if args.config is not None:
+        if not os.path.isfile(args.config):
+            print('The config file: "{}" does not exist.'.format(args.config),
+                  'Falling back to defaults.')
+        config.read([args.config])
+        if not config.has_section('girder_client'):
+            config.add_section('girder_client')
 
     gc = GirderCli(
         args.username, args.password, host=args.host, port=args.port, apiRoot=args.api_root,

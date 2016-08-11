@@ -33,6 +33,9 @@ def rm_config(section, option):
 def main():
     parser = argparse.ArgumentParser(
         description='Get and set configuration values for the client')
+    parser.add_argument(
+        '-c', required=False, default=None, dest='config',
+        help='The location of the config file.')
     subparsers = parser.add_subparsers(help='sub-command help', dest='cmd')
 
     get_parser = subparsers.add_parser('get', help='get a config value')
@@ -54,6 +57,14 @@ def main():
     rm_parser.add_argument('option', help='The option to remove.')
 
     args = parser.parse_args()
+
+    if args.config is not None:
+        if not os.path.isfile(args.config):
+            print('The config file: "{}" does not exist.'.format(args.config),
+                  'Falling back to defaults.')
+        girder_client.config.read([args.config])
+        if not girder_client.config.has_section('girder_client'):
+            girder_client.config.add_section('girder_client')
 
     if args.cmd == 'get':
         print(get_config(args.section, args.option))
