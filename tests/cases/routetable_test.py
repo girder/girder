@@ -83,7 +83,7 @@ class RouteTableTestCase(base.TestCase):
         }, method='PUT', user=self.admin)
         self.assertStatusOk(resp)
 
-        resp = self.request('/has_webroot', prefix='', isJson=False)
+        resp = self.request('/has_webroot', prefix='', isJson=False, appPrefix='/has_webroot')
         self.assertStatusOk(resp)
         self.assertTrue('some webroot' in self.getBody(resp))
 
