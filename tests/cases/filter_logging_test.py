@@ -80,9 +80,7 @@ class FilterLoggingTestCase(base.TestCase):
 
         if logFile:
             with open(logFile) as fptr:
-                fptr.seek(-min(os.path.getsize(logFile), chunkSize),
-                          os.SEEK_END)
-                log = fptr.read(chunkSize)
+                log = fptr.read()
                 logEntries = log.split('/api/v1/system/log')[-2].split(
                     '/api/v1/system/version')[1:]
                 self.assertEqual(len(logEntries), numLogged)
