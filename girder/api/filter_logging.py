@@ -23,14 +23,18 @@ import re
 
 
 LoggingFilters = []
+SingletonRegexLoggingFilter = None
 
 
-class regexLoggingFilter(logging.Filter):
+class RegexLoggingFilter(logging.Filter):
     """
     Check log messages against a list of compiled regular expressions.  If any
     of them match, throttle logs.
     """
     def filter(self, record):
+        if getattr(record, 'logging.filtered', None) is not None:
+            return getattr(record, 'logging.filtered')
+        setattr(record, 'logging.filtered', True)
         msg = record.getMessage()
         for filter in LoggingFilters:
             if filter['re'].search(msg):
@@ -40,6 +44,7 @@ class regexLoggingFilter(logging.Filter):
                     record.msg += ' (%d similar messages)' % filter['count']
                     filter['count'] = 0
                     return True
+                setattr(record, 'logging.filtered', False)
                 return False
         return True
 
@@ -57,6 +62,19 @@ def addLoggingFilter(regex, frequency=None):
     :param frequency: either None to never log matching log messages, or an
         integer, where one log message is emitted out of the specified number.
     """
+    # Always make sure that cherrypy is using our logging filter class.  This
+    # is done as a singleton so that addFilter will not duplciate the filter.
+    # By doing this here, the import order doesn't matter, and additional
+    # cherrypy handlers can be added after import, provided that
+    # addLoggingFilter is called after the new logging handlers were added.
+    global SingletonRegexLoggingFilter
+
+    if not SingletonRegexLoggingFilter:
+        SingletonRegexLoggingFilter = RegexLoggingFilter()
+    for handler in cherrypy.log.access_log.handlers:
+        handler.addFilter(SingletonRegexLoggingFilter)
+
+    # Now add or adjust the regex filter.
     newFilter = None
     for filter in LoggingFilters:
         if filter['regex'] == regex:
@@ -83,7 +101,3 @@ def removeLoggingFilter(regex):
             LoggingFilters[idx:idx + 1] = []
             return True
     return False
-
-
-for handler in cherrypy.log.access_log.handlers:
-    handler.addFilter(regexLoggingFilter())

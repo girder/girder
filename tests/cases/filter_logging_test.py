@@ -17,11 +17,14 @@
 #  limitations under the License.
 #############################################################################
 
+import cherrypy
+import logging
 import os
 import shutil
 import tempfile
 
 from .. import base
+from girder.api import filter_logging
 from girder.utility import config
 
 
@@ -57,7 +60,7 @@ class FilterLoggingTestCase(base.TestCase):
         }
         self.admin = self.model('user').createUser(**user)
 
-    def _checkLogCount(self, numRequests, numLogged):
+    def _checkLogCount(self, numRequests, numLogged, logFile=None):
         resp = self.request(path='/system/log', user=self.admin, params={
             'log': 'info', 'bytes': 1
         }, isJson=False)
@@ -65,8 +68,9 @@ class FilterLoggingTestCase(base.TestCase):
         for i in range(numRequests):
             self.request(path='/system/version', method='GET')
             self.assertStatusOk(resp)
+        chunkSize = 32768
         resp = self.request(path='/system/log', user=self.admin, params={
-            'log': 'info', 'bytes': 32768
+            'log': 'info', 'bytes': chunkSize
         }, isJson=False)
         self.assertStatusOk(resp)
         log = self.getBody(resp)
@@ -74,10 +78,16 @@ class FilterLoggingTestCase(base.TestCase):
             '/api/v1/system/version')[1:]
         self.assertEqual(len(logEntries), numLogged)
 
-    def testFilter(self):
-        # This has to be imported after startServer is called
-        from girder.api import filter_logging
+        if logFile:
+            with open(logFile) as fptr:
+                fptr.seek(-min(os.path.getsize(logFile), chunkSize),
+                          os.SEEK_END)
+                log = fptr.read(chunkSize)
+                logEntries = log.split('/api/v1/system/log')[-2].split(
+                    '/api/v1/system/version')[1:]
+                self.assertEqual(len(logEntries), numLogged)
 
+    def testFilter(self):
         self._checkLogCount(1, 1)
         self._checkLogCount(3, 3)
 
@@ -95,3 +105,25 @@ class FilterLoggingTestCase(base.TestCase):
         self._checkLogCount(2, 2)
 
         self.assertFalse(filter_logging.removeLoggingFilter(regex))
+
+    def testMultipleHandlers(self):
+        logRoot = config.getConfig()['logging']['log_root']
+        logFile = os.path.join(logRoot, 'second.log')
+        fh = logging.FileHandler(logFile)
+        cherrypy.log.access_log.addHandler(fh)
+
+        self._checkLogCount(1, 1, logFile)
+        self._checkLogCount(3, 3, logFile)
+
+        regex = 'GET (/[^/ ?#]+)*/system/version[/ ?#]'
+        # log every third version request
+        filter_logging.addLoggingFilter(regex, 3)
+        self._checkLogCount(3, 1, logFile)
+        self._checkLogCount(2, 0, logFile)
+        self._checkLogCount(1, 1, logFile)
+
+        filter_logging.addLoggingFilter(regex, 5)
+        self._checkLogCount(10, 2, logFile)
+
+        self.assertTrue(filter_logging.removeLoggingFilter(regex))
+        self._checkLogCount(2, 2, logFile)
