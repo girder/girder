@@ -76,9 +76,9 @@ extras_reqs = {
     'celery_jobs': ['celery'],
     'dicom_viewer': ['pydicom'],
     'geospatial': ['geojson'],
-    'thumbnails': ['Pillow'],
+    'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
-    'plugins': ['celery', 'geojson', 'Pillow', 'pydicom']
+    'plugins': ['celery', 'geojson', 'Pillow', 'pydicom', 'numpy']
 }
 
 if sys.version_info[0] == 2:
