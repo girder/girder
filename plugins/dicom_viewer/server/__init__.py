@@ -1,4 +1,5 @@
 from dicom.sequence import Sequence
+from dicom.valuerep import PersonName3
 from girder import events
 from girder.api import access
 from girder.api.describe import Description, describeRoute
@@ -52,16 +53,18 @@ def sort_key(file):
     )
 
 
-def can_encode(x):
+def coerce(x):
     if isinstance(x, Sequence):
-        return False
+        return None
     if isinstance(x, list):
-        return all(can_encode(y) for y in x)
+        return [coerce(y) for y in x]
+    if isinstance(x, PersonName3):
+        return x.encode('utf-8')
     try:
         six.text_type(x)
-        return True
+        return x
     except Exception:
-        return False
+        return None
 
 
 def process_file(file):
@@ -70,18 +73,18 @@ def process_file(file):
         if file['size'] <= MAX_FILE_SIZE:
             # download file and try to parse dicom
             stream = ModelImporter.model('file').download(file, headers=False)
-            fp = six.BytesIO(''.join(stream()))
+            fp = six.BytesIO(b''.join(stream()))
             ds = dicom.read_file(fp, stop_before_pixels=True)
             # human-readable keys
             for key in ds.dir():
-                value = ds.data_element(key).value
-                if can_encode(value):
+                value = coerce(ds.data_element(key).value)
+                if value is not None:
                     data[key] = value
             # hex keys
             for key, value in ds.items():
                 key = 'x%04x%04x' % (key.group, key.element)
-                value = value.value
-                if can_encode(value):
+                value = coerce(value.value)
+                if value is not None:
                     data[key] = value
     except Exception:
         pass
