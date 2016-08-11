@@ -70,7 +70,7 @@ def process_file(file):
         if file['size'] <= MAX_FILE_SIZE:
             # download file and try to parse dicom
             stream = ModelImporter.model('file').download(file, headers=False)
-            fp = six.StringIO(''.join(stream()))
+            fp = six.BytesIO(''.join(stream()))
             ds = dicom.read_file(fp, stop_before_pixels=True)
             # human-readable keys
             for key in ds.dir():
