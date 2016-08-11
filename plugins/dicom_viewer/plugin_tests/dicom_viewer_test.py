@@ -38,11 +38,8 @@ class DicomViewerTest(base.TestCase):
 
         path = os.path.join(os.path.split(__file__)[0], 'test.dcm')
         with open(path, 'rb') as fp:
-            fp.seek(0, 2)
-            size = fp.tell()
-            fp.seek(0)
             self.model('upload').uploadFromFile(
-                fp, size, 'test.dcm', 'item', item, admin)
+                fp, 25640, 'test.dcm', 'item', item, admin)
 
         # test dicom endpoint
         path = '/item/%s/dicom' % item.get('_id')
