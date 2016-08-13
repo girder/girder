@@ -1,6 +1,6 @@
 - hosts: girder
   tasks:
-    # Add an initial user - this user will be admin
+    # Note: that the tasks until Item upload tests are tested in test_resources.yml.
     - name: Create 'admin' User
       girder:
         port: 8080
@@ -11,6 +11,18 @@
           password: "letmein"
           email: "chris.kotfila@kitware.com"
           admin: yes
+        state: present
+
+    - name: Create filesystem assetstore
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        assetstore:
+          name: "Temp Filesystem Assetstore"
+          type: "filesystem"
+          root: "/tmp/"
+          current: true
         state: present
 
 
@@ -37,19 +49,6 @@
           description: "A test folder"
       register: test_folder
 
-
-
-    - name: Create filesystem assetstore
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        assetstore:
-          name: "Temp Filesystem Assetstore"
-          type: "filesystem"
-          root: "/tmp/"
-          current: true
-        state: present
 
     - name: Copy data/ folder to known location on VM
       copy:

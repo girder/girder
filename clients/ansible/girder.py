@@ -1532,12 +1532,13 @@ class GirderClientModule(GirderClient):
         elif self.module.params['state'] == 'absent':
             # If there are plugins in the list that are enabled
             if len(enabled_plugins & plugins):
-
-                # Put the difference of enabled_plugins and plugins
-                ret = self.put("system/plugins",
-                               {"plugins":
-                                json.dumps(list(enabled_plugins - plugins))})
                 self.changed = True
+
+            # Put the difference of enabled_plugins and plugins
+            ret = self.put("system/plugins",
+                           {"plugins":
+                            json.dumps(list(enabled_plugins - plugins))})
+
 
         return ret
 
