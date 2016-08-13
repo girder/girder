@@ -365,6 +365,15 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertEqual(item['meta']['test'], metadata['test'])
 
+        # Test invalid JSON constants
+        body = '{"key": {"foo": Infinity}}'
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='PUT', user=self.users[0],
+                            body=body, type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'], 'Error: "Infinity" is not valid JSON.')
+
         # Edit and remove metadata
         metadata['test'] = None
         metadata['foo'] = 'baz'
@@ -621,6 +630,9 @@ class ItemTestCase(base.TestCase):
                                     'text': 'copied_item'})
         self.assertStatusOk(resp)
         self.assertEqual(newItem['_id'], resp.json[0]['_id'])
+        # Check that the provenance tag correctly points back
+        # to the original item
+        self.assertEqual(newItem['copyOfItem'], origItem['_id'])
         # Check if we can download the files from the old item and that they
         # are distinct from the files in the original item
         resp = self.request(path='/item/%s/files' % origItem['_id'],

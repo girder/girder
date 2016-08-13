@@ -255,7 +255,7 @@ class Model(ModelImporter):
         return self.collection.find_one(query, projection=fields, **kwargs)
 
     def textSearch(self, query, offset=0, limit=0, sort=None, fields=None,
-                   filters=None):
+                   filters=None, **kwargs):
         """
         Perform a full-text search against the text index for this collection.
 
@@ -284,7 +284,7 @@ class Model(ModelImporter):
         return cursor
 
     def prefixSearch(self, query, offset=0, limit=0, sort=None, fields=None,
-                     filters=None, prefixSearchFields=None):
+                     filters=None, prefixSearchFields=None, **kwargs):
         """
         Search for documents in this model's collection by a prefix string.
         The fields that will be searched based on this prefix must be set as

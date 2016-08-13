@@ -53,17 +53,14 @@ class PythonClientTestCase(base.TestCase):
 
         def writeFile(dirName):
             filename = os.path.join(dirName, 'f')
-            f = open(filename, 'w')
-            f.write(filename)
-            f.close()
+            with open(filename, 'w') as f:
+                f.write(filename)
             filename = os.path.join(dirName, 'f1')
-            f = open(filename, 'w')
-            f.write(filename)
-            f.close()
+            with open(filename, 'w') as f:
+                f.write(filename)
 
         # make some temp dirs and files
-        self.libTestDir = os.path.join(os.path.dirname(__file__),
-                                       '_libTestDir')
+        self.libTestDir = os.path.join(os.path.dirname(__file__), '_libTestDir')
         # unlink old temp dirs and files first
         shutil.rmtree(self.libTestDir, ignore_errors=True)
 
@@ -94,8 +91,8 @@ class PythonClientTestCase(base.TestCase):
         base.TestCase.tearDown(self)
 
     def getPublicFolder(self, user):
-            folders = self.client.listFolder(
-                parentId=user['_id'], parentFolderType='user', name='Public')
+            folders = list(self.client.listFolder(
+                parentId=user['_id'], parentFolderType='user', name='Public'))
             self.assertEqual(len(folders), 1)
 
             return folders[0]
@@ -115,8 +112,7 @@ class PythonClientTestCase(base.TestCase):
         # Test authentication failure
         flag = False
         try:
-            self.client.authenticate(username=self.user['login'],
-                                     password='wrong')
+            self.client.authenticate(username=self.user['login'], password='wrong')
         except girder_client.AuthenticationError:
             flag = True
 
@@ -147,8 +143,8 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(flag)
 
         # Test some folder routes
-        folders = self.client.listFolder(
-            parentId=user['_id'], parentFolderType='user')
+        folders = list(self.client.listFolder(
+            parentId=user['_id'], parentFolderType='user'))
         self.assertEqual(len(folders), 2)
 
         privateFolder = publicFolder = None
@@ -175,6 +171,38 @@ class PythonClientTestCase(base.TestCase):
         # Test recursive ACL propagation (not very robust test yet)
         self.client.createFolder(privateFolder['_id'], name='Subfolder')
         self.client.inheritAccessControlRecursive(privateFolder['_id'])
+
+        # Test collection creation and retrieval
+        c1 = self.client.createCollection('c1', public=False)
+        c2 = self.client.createCollection('c2', public=True)
+        collections = list(self.client.listCollection())
+        self.assertEqual(len(collections), 2)
+        ids = [c['_id'] for c in collections]
+        self.assertIn(c1['_id'], ids)
+        self.assertIn(c2['_id'], ids)
+        c1 = self.client.getCollection(c1['_id'])
+        c2 = self.client.getCollection(c2['_id'])
+        self.assertEqual(c1['name'], 'c1')
+        self.assertEqual(c2['name'], 'c2')
+        self.assertFalse(c1['public'])
+        self.assertTrue(c2['public'])
+
+        # Test user creation and retrieval
+        u1 = self.client.createUser(
+            'user1', 'user1@example.com', 'John', 'Doe', 'password', True)
+        u2 = self.client.createUser(
+            'user2', 'user2@example.com', 'John', 'Doe', 'password')
+        users = list(self.client.listUser())
+        self.assertEqual(len(users), 3)
+        ids = [u['_id'] for u in users]
+        self.assertIn(u1['_id'], ids)
+        self.assertIn(u2['_id'], ids)
+        u1 = self.client.getUser(u1['_id'])
+        u2 = self.client.getUser(u2['_id'])
+        self.assertEqual(u1['login'], 'user1')
+        self.assertEqual(u2['login'], 'user2')
+        self.assertTrue(u1['admin'])
+        self.assertFalse(u2['admin'])
 
     def testUploadCallbacks(self):
         callbackUser = self.model('user').createUser(
@@ -299,9 +327,11 @@ class PythonClientTestCase(base.TestCase):
 
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        self.client.uploadFile(self.publicFolder['_id'], open(path),
-                               name='test1', size=size, parentType='folder',
-                               reference='test1_reference')
+        with open(path) as fh:
+            self.client.uploadFile(
+                self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
+                reference='test1_reference')
+
         starttime = time.time()
         while (not events.daemon.eventQueue.empty() and
                 time.time() - starttime < 5):
@@ -319,7 +349,9 @@ class PythonClientTestCase(base.TestCase):
         self.assertNotEqual(eventList[0]['file']['_id'],
                             eventList[1]['file']['_id'])
 
-        open(path, 'ab').write(b'test')
+        with open(path, 'ab') as fh:
+            fh.write(b'test')
+
         size = os.path.getsize(path)
         self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
                                      reference='test3_reference')
@@ -341,17 +373,19 @@ class PythonClientTestCase(base.TestCase):
 
         # Test guessing of MIME type
         testPath = os.path.join(self.libTestDir, 'out.txt')
-        open(testPath, 'w').write('test')
+        with open(testPath, 'w') as fh:
+            fh.write('test')
+
         file = self.client.uploadFileToItem(item['_id'], testPath)
         self.assertEqual(file['mimeType'], 'text/plain')
 
     def testUploadContent(self):
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
-        file = self.client.uploadFile(self.publicFolder['_id'], open(path),
-                                      name='test1',
-                                      size=size, parentType='folder',
-                                      reference='test1_reference')
+        with open(path) as fh:
+            file = self.client.uploadFile(
+                self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
+                reference='test1_reference')
 
         contents = 'you\'ve changed!'
         size = len(contents)
@@ -375,15 +409,19 @@ class PythonClientTestCase(base.TestCase):
         path = os.path.join(self.libTestDir, 'sub1', 'f1')
         file2 = self.client.uploadFileToItem(item['_id'], path)
 
-        # Get files from item
-        files = self.client.listFile(item['_id'])
+        # Test that pagination is handled for us internally
+        old = girder_client.DEFAULT_PAGE_LIMIT
+        girder_client.DEFAULT_PAGE_LIMIT = 1
 
-        file1Id = files[0]['_id']
-        file2Id = files[1]['_id']
+        # Get files from item
+        files = list(self.client.listFile(item['_id']))
 
         self.assertEqual(len(files), 2)
-        self.assertEqual(file1['_id'], file1Id)
-        self.assertEqual(file2['_id'], file2Id)
+
+        self.assertEqual(file1['_id'], files[0]['_id'])
+        self.assertEqual(file2['_id'], files[1]['_id'])
+
+        girder_client.DEFAULT_PAGE_LIMIT = old
 
     def testDownloadInline(self):
         # Creating item
@@ -404,6 +442,52 @@ class PythonClientTestCase(base.TestCase):
         with open(path, 'rb') as f:
             self.assertEqual(f.read(), obj.read())
 
+    def testDownloadCache(self):
+        item = self.client.createItem(
+            self.publicFolder['_id'], 'SomethingEvenMoreUnique')
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        file = self.client.uploadFileToItem(item['_id'], path)
+
+        # create another client with caching enabled
+        cacheSettings = {'directory': os.path.join(self.libTestDir, 'cache')}
+        client = girder_client.GirderClient(
+            port=os.environ['GIRDER_PORT'], cacheSettings=cacheSettings)
+        client.authenticate(self.user['login'], self.password)
+        self.assertNotEqual(client.cache, None)
+
+        # track file downloads
+        hits = []
+
+        @httmock.urlmatch(path=r'.*/file/.+/download$')
+        def mock(url, request):
+            hits.append(url)
+
+        expected = b'tests/cases/py_client/_libTestDir/sub0/f'
+
+        with httmock.HTTMock(mock):
+            # download the file
+            obj = six.BytesIO()
+            client.downloadFile(file['_id'], obj)
+            self.assertTrue(obj.getvalue().endswith(expected))
+            self.assertEqual(len(hits), 1)
+            # this should hit the cache only
+            obj = six.BytesIO()
+            client.downloadFile(file['_id'], obj)
+            self.assertTrue(obj.getvalue().endswith(expected))
+            self.assertEqual(len(hits), 1)
+
+        expected = b'new file contents!'
+        size = len(expected)
+        stream = six.BytesIO(expected)
+        self.client.uploadFileContents(file['_id'], stream, size)
+
+        with httmock.HTTMock(mock):
+            # file should download again
+            obj = six.BytesIO()
+            client.downloadFile(file['_id'], obj)
+            self.assertTrue(obj.getvalue().endswith(expected))
+            self.assertEqual(len(hits), 2)
+
     def testAddMetadataToItem(self):
         item = self.client.createItem(self.publicFolder['_id'],
                                       'Itemty McItemFace', '')
@@ -419,8 +503,7 @@ class PythonClientTestCase(base.TestCase):
             'nothing': 'to see here!'
         }
         self.client.addMetadataToFolder(self.publicFolder['_id'], meta)
-        updatedFolder = self.model('folder').load(self.publicFolder['_id'],
-                                                  force=True)
+        updatedFolder = self.model('folder').load(self.publicFolder['_id'], force=True)
         self.assertEqual(updatedFolder['meta'], meta)
 
     def testPatch(self):
@@ -435,7 +518,7 @@ class PythonClientTestCase(base.TestCase):
         }
 
         def _patchJson(url, request):
-            patchRequest['valid'] = json.loads(request.body) == jsonBody
+            patchRequest['valid'] = json.loads(request.body.decode('utf8')) == jsonBody
 
             return httmock.response(200, {}, {}, request=request)
 
@@ -467,3 +550,71 @@ class PythonClientTestCase(base.TestCase):
 
         # Check we got the right request
         self.assertTrue(patchRequest['valid'])
+
+    def testResourceLookup(self):
+        # Creating item
+        itemName = 'SomethingReallyUnique'
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      itemName)
+
+        testPath = "user/%s/%s/%s" % (self.user['login'],
+                                      self.publicFolder['name'], itemName)
+        testInvalidPath = "user/%s/%s/%s" % (self.user['login'],
+                                             self.publicFolder['name'],
+                                             'RogueOne')
+
+        # Test valid path, default
+        self.assertEqual(self.client.resourceLookup(testPath)['_id'],
+                         item['_id'])
+
+        # Test invalid path, default
+        with self.assertRaises(girder_client.HttpError) as cm:
+            self.client.resourceLookup(testInvalidPath)
+
+        self.assertEqual(cm.exception.status, 400)
+        self.assertEqual(cm.exception.method, 'GET')
+        resp = json.loads(cm.exception.responseText)
+        self.assertEqual(resp['type'], 'rest')
+        self.assertEqual(resp['message'],
+                         'Path not found: %s' % (testInvalidPath))
+
+        # Test valid path, test = True
+        self.assertEqual(
+            self.client.resourceLookup(testPath, test=True)['_id'],
+            item['_id'])
+
+        # Test invalid path, test = True
+        self.assertEqual(
+            self.client.resourceLookup(testInvalidPath, test=True),
+            None)
+
+        # Test valid path, test = False
+        self.assertEqual(
+            self.client.resourceLookup(testPath, test=False)['_id'],
+            item['_id'])
+
+        # Test invalid path, test = False
+        with self.assertRaises(girder_client.HttpError) as cm:
+            self.client.resourceLookup(testInvalidPath, test=False)
+
+        self.assertEqual(cm.exception.status, 400)
+        self.assertEqual(cm.exception.method, 'GET')
+        resp = json.loads(cm.exception.responseText)
+        self.assertEqual(resp['type'], 'rest')
+        self.assertEqual(resp['message'],
+                         'Path not found: %s' % (testInvalidPath))
+
+    def testUploadWithPath(self):
+        testUser = self.model('user').createUser(
+            firstName='Jeffrey', lastName='Abrams', login='jjabrams',
+            password='password', email='jjabrams@email.com')
+        publicFolder = six.next(self.model('folder').childFolders(
+            parentType='user', parent=testUser, user=None, limit=1))
+        self.client.upload(self.libTestDir, '/user/jjabrams/Public')
+
+        parent = six.next(self.model('folder').childFolders(
+            parentType='folder', parent=publicFolder,
+            user=testUser, limit=0))
+        self.assertEqual([f['name'] for f in self.model('folder').childFolders(
+            parentType='folder', parent=parent,
+            user=testUser, limit=0)], ['sub0', 'sub1', 'sub2'])

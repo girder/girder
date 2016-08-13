@@ -167,6 +167,7 @@ classes, and we can add it to the API in the ``load()`` method. ::
 
     class Cat(Resource):
         def __init__(self):
+            super(Cat, self).__init__()
             self.resourceName = 'cat'
 
             self.route('GET', (), self.findCat)

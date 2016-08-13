@@ -46,7 +46,7 @@ import threading
 import types
 
 from .constants import TerminalColor
-from girder import logger
+import girder
 from six.moves import queue
 
 
@@ -136,7 +136,8 @@ class AsyncEventsThread(threading.Thread):
                 if isinstance(callback, types.FunctionType):
                     callback(event)
             except Exception:
-                logger.exception('In handler for event "%s":' % eventName)
+                girder.logger.exception(
+                    'In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
         print(TerminalColor.info('Stopped asynchronous event manager thread.'))
@@ -177,8 +178,8 @@ def bind(eventName, handlerName, handler):
     :type handler: function
     """
     if eventName in _deprecated:
-        logger.warning('event "%s" is deprecated; %s'
-                       % (eventName, _deprecated[eventName]))
+        girder.logger.warning('event "%s" is deprecated; %s' %
+                              (eventName, _deprecated[eventName]))
 
     if eventName not in _mapping:
         _mapping[eventName] = []

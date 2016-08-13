@@ -24,6 +24,7 @@ import six
 import unittest
 
 from girder.api import rest
+import girder.events
 
 date = datetime.datetime.now()
 
@@ -36,6 +37,10 @@ class TestResource(object):
     @rest.endpoint
     def returnsDate(self, *args, **kwargs):
         return {'key': date}
+
+    @rest.endpoint
+    def returnsInf(self, *args, **kwargs):
+        return {'value': float('inf')}
 
 
 class RestUtilTestCase(unittest.TestCase):
@@ -92,3 +97,24 @@ class RestUtilTestCase(unittest.TestCase):
         self.assertEqual(json.loads(resp), {
             'key': date.replace(tzinfo=pytz.UTC).isoformat()
         })
+
+        # Returning infinity or NaN floats should raise a reasonable exception
+        regex = 'Out of range float values are not JSON compliant'
+        with six.assertRaisesRegex(self, ValueError, regex):
+            resp = resource.returnsInf()
+
+    def testCustomJsonEncoderEvent(self):
+        def _toString(event):
+            obj = event.info
+            if isinstance(obj, set):
+                event.addResponse(str(list(obj)))
+
+        with girder.events.bound('rest.json_encode', 'toString', _toString):
+            resource = TestResource()
+            resp = resource.returnsSet().decode('utf8')
+            self.assertEqual(json.loads(resp), {'key': '[1, 2, 3]'})
+            # Check we still get default encode for date
+            resp = resource.returnsDate().decode('utf8')
+            self.assertEqual(json.loads(resp), {
+                'key': date.replace(tzinfo=pytz.UTC).isoformat()
+            })

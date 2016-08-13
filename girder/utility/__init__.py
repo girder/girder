@@ -18,6 +18,7 @@
 ###############################################################################
 
 import datetime
+import dateutil.parser
 import errno
 import json
 import os
@@ -26,6 +27,7 @@ import re
 import string
 
 from girder.constants import TerminalColor
+import girder.events
 
 try:
     from random import SystemRandom
@@ -35,6 +37,25 @@ except NotImplementedError:  # pragma: no cover
     print(TerminalColor.warning(
         'WARNING: using non-cryptographically secure PRNG.'))
     import random
+
+
+def parseTimestamp(x, naive=True):
+    """
+    Parse a datetime string using the python-dateutil package.
+
+    If no timezone information is included, assume UTC. If timezone information
+    is included, convert to UTC.
+
+    If naive is True (the default), drop the timezone information such that a
+    naive datetime is returned.
+    """
+    dt = dateutil.parser.parse(x)
+    if dt.tzinfo:
+        dt = dt.astimezone(pytz.utc).replace(tzinfo=None)
+    if naive:
+        return dt
+    else:
+        return pytz.utc.localize(dt)
 
 
 def genToken(length=64):
@@ -88,6 +109,10 @@ class JsonEncoder(json.JSONEncoder):
     route return values when JSON is requested.
     """
     def default(self, obj):
+        event = girder.events.trigger('rest.json_encode', obj)
+        if len(event.responses):
+            return event.responses[-1]
+
         if isinstance(obj, set):
             return tuple(obj)
         elif isinstance(obj, datetime.datetime):

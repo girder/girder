@@ -22,7 +22,7 @@ from girder.utility.model_importer import ModelImporter
 
 
 def girderInputSpec(resource, resourceType='file', name=None, token=None,
-                    dataType='string', dataFormat='text'):
+                    dataType='string', dataFormat='text', fetchParent=False):
     """
     Downstream plugins that are building Girder worker jobs that use Girder IO
     should use this to generate the input specs more easily.
@@ -42,6 +42,9 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
     :type dataType: str
     :param dataFormat: The worker `format` field.
     :type dataFormat: str
+    :param fetchParent: Whether to fetch the whole parent resource of the
+        specified resource as a side effect.
+    :type fetchParent: bool
     """
     if isinstance(token, dict):
         token = token['_id']
@@ -54,7 +57,8 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
         'name': name or resource['name'],
         'resource_type': resourceType,
         'type': dataType,
-        'format': dataFormat
+        'format': dataFormat,
+        'fetch_parent': fetchParent
     }
 
 
