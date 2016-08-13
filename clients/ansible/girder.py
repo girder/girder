@@ -1742,6 +1742,7 @@ class GirderClientModule(GirderClient):
                 id = assetstores[name]['_id']
                 ret = self.delete("assetstore/%s" % id,
                                   parameters=argument_hash[type])
+                self.changed = True
 
         return ret
 
