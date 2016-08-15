@@ -371,7 +371,7 @@ def getPluginWebroots():
     return _pluginWebroots
 
 
-def registerPluginWebroot(webroot, info):
+def registerPluginWebroot(webroot, info, cp_config=None):
     """
     Adds a webroot to the global registry for plugins based on
     the plugin name.
@@ -379,7 +379,10 @@ def registerPluginWebroot(webroot, info):
     global _pluginWebroots
 
     if info['name']:
-        _pluginWebroots[info['name']] = webroot
+        _pluginWebroots[info['name']] = {
+            'webroot': webroot,
+            'cp_config': cp_config
+        }
 
 
 class config(object):  # noqa: class name

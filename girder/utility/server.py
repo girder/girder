@@ -193,7 +193,8 @@ def setup(test=False, plugins=None, curConfig=None):
     # Mount everything else in the routeTable
     for (name, route) in six.viewitems(routeTable):
         if name != 'girder' and name in pluginWebroots:
-            cherrypy.tree.mount(pluginWebroots[name], route, appconf)
+            cherrypy.tree.mount(pluginWebroots[name]['webroot'], route,
+                                pluginWebroots[name]['cp_config'] or appconf)
 
     if test:
         application.merge({'server': {'mode': 'testing'}})
