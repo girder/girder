@@ -20,7 +20,7 @@ dependencies:
     become: yes
     become_user: root
   - role: Stouts.mongodb
-    mongodb_version: "3.2"
+    mongodb_version: "3.2.0"
     mongodb_conf_cpu: no
     mongodb_conf_dbpath: "/var/lib/mongodb"
     mongodb_conf_journal: yes
