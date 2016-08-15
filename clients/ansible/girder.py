@@ -1542,8 +1542,6 @@ class GirderClientModule(GirderClient):
             ret = self.put("system/plugins",
                            {"plugins":
                             json.dumps(list(enabled_plugins - plugins))})
-
-
         return ret
 
     def user(self, login, password, firstName=None,
