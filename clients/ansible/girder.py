@@ -1468,19 +1468,23 @@ class GirderClientModule(GirderClient):
 
         if self.module.params['state'] == 'present':
             if r.name_exists(name):
-                ret = r.update_by_name(name, {k: v for k, v in valid_fields
-                                              if v is not None})
-
                 # While we can set public when we create the collection, we
                 # cannot update the public/private status of a collection
                 # via the PUT /collection/%s endpoint. Currently this is
                 # possible through the API by hitting the
                 # PUT /collection/%s/access endpoint with public=true and
                 # the access dict equal to {}
-                if ret['public'] is False and public:
-                    _id = ret['_id']
+                if r.resources_by_name[name]['public'] != public:
+                    _id = r.resources_by_name[name]['_id']
                     self.changed = True
-                    ret['access'] = self._access(r,  r.get_access(_id), _id, public=public)
+                    self._access(r,  r.get_access(_id), _id, public=public)
+                    # invalidate the resource cache - this forces us to pick up
+                    # the change in 'public' attribute despite it not being
+                    # an attribute we can modify
+                    r._resources = None
+
+                ret = r.update_by_name(name, {k: v for k, v in valid_fields
+                                              if v is not None})
 
             else:
                 valid_fields.append(("public", public))
