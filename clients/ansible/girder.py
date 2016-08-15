@@ -1581,6 +1581,8 @@ class GirderClientModule(GirderClient):
                                  "email": email,
                                  "admin": "true" if admin else "false"})
                     self.changed = True
+
+                ret = me
             # User does not exist (with this login info)
             except AuthenticationError:
                 ret = self.post("user", parameters={
