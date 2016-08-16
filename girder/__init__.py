@@ -123,11 +123,13 @@ logger = _setupLogger()
 def logprint(*args, **kwargs):
     """
     Send a message to both stdout and the appropriate logs.  This behaves like
-    Python3's print statement, plus takes additional named parameters of
-    level (log level), color (one of the constants.TerminalColor values), and
-    exc_info (either True for the last exception or exception information).
+    Python3's print statement, plus takes additional named parameters:
 
-    Ideally, we should expose a config option to make this silent.
+    :param level: the log level.  This determines which log handlers will store
+        the log message.  The log is always sent to stdout.
+    :param color: one of the constants.TerminalColor values or None.
+    :param exc_info: None to not print exception information.  True for the
+        last exception, or a tuple of exception information.
     """
     data = six.StringIO()
     kwargs = (kwargs or {}).copy()
