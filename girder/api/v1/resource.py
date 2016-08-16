@@ -197,7 +197,8 @@ class Resource(BaseResource):
             will return None instead of throwing exception when
             path doesn't exist
         """
-        pathArray = path_util.split(path)[1:]
+        path = path.lstrip('/')
+        pathArray = path_util.split(path)
         model = pathArray[0]
 
         parent = None
