@@ -153,7 +153,8 @@ class Assetstore(Resource):
         .param('fileIncludeRegex', 'If set, only filenames matching this regular '
                'expression will be imported.', required=False)
         .param('fileExcludeRegex', 'If set, only filenames that do not match this regular '
-               'expression will be imported.', required=False)
+               'expression will be imported. If a file matches both the include and exclude regex, '
+               'it will be excluded.', required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )

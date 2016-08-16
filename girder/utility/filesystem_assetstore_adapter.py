@@ -340,8 +340,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         file['imported'] = True
         return self.model('file').save(file)
 
-    def _importDataAsItem(self, name, user, folder, path, files,
-                          reuseExisting=True, params=None):
+    def _importDataAsItem(self, name, user, folder, path, files, reuseExisting=True, params=None):
         params = params or {}
         item = self.model('item').createItem(
             name=name, creator=user, folder=folder, reuseExisting=reuseExisting)
@@ -349,9 +348,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                        {'id': item['_id'], 'type': 'item',
                         'importPath': path})
         for fname in files:
-            path = os.path.join(path, fname)
-            if self.shouldImportFile(path, params):
-                self.importFile(item, path, user, name=fname)
+            fpath = os.path.join(path, fname)
+            if self.shouldImportFile(fpath, params):
+                self.importFile(item, fpath, user, name=fname)
 
     def _hasOnlyFiles(self, path, files):
         return all(os.path.isfile(os.path.join(path, name)) for name in files)
@@ -385,7 +384,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if leafFoldersAsItems and self._hasOnlyFiles(importPath, listDir):
             self._importDataAsItem(
                 os.path.basename(importPath.rstrip(os.sep)), user, parent, importPath,
-                listDir, params)
+                listDir, params=params)
             return
 
         for name in listDir:
@@ -395,7 +394,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             if os.path.isdir(path):
                 localListDir = os.listdir(path)
                 if leafFoldersAsItems and self._hasOnlyFiles(path, localListDir):
-                    self._importDataAsItem(name, user, parent, path, localListDir, params)
+                    self._importDataAsItem(name, user, parent, path, localListDir, params=params)
                 else:
                     folder = self.model('folder').createFolder(
                         parent=parent, name=name, parentType=parentType,
@@ -406,9 +405,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                             'type': 'folder',
                             'importPath': path
                         })
-                    self.importData(folder, 'folder', params={
-                        'importPath': os.path.join(importPath, name)
-                    }, progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems)
+                    nextPath = os.path.join(importPath, name)
+                    self.importData(
+                        folder, 'folder', params=dict(params, importPath=nextPath),
+                        progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems)
             else:
                 if self.shouldImportFile(path, params):
                     self._importFileToFolder(name, user, parent, parentType, path)
