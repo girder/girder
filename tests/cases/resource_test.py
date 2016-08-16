@@ -106,7 +106,7 @@ class ResourceTestCase(base.TestCase):
         self.items.append(self.model('item').createItem(
             'Item 2', self.admin, self.adminPublicFolder))
         self.items.append(self.model('item').createItem(
-            'Item 3', self.admin, self.adminSubFolder))
+            'It\\em/3', self.admin, self.adminSubFolder))
         self.items.append(self.model('item').createItem(
             'Item 4', self.admin, self.collectionPrivateFolder))
         self.items.append(self.model('item').createItem(
@@ -435,7 +435,7 @@ class ResourceTestCase(base.TestCase):
         privateFolder = self.collectionPrivateFolder['name']
         paths = ('/user/goodlogin/Public/Item 1',
                  '/user/goodlogin/Public/Item 2',
-                 '/user/goodlogin/Public/Folder 1/Item 3',
+                 '/user/goodlogin/Public/Folder 1/It\\\\em\\/3',
                  '/collection/Test Collection/%s/Item 4' % privateFolder,
                  '/collection/Test Collection/%s/Item 5' % privateFolder)
 
@@ -505,7 +505,7 @@ class ResourceTestCase(base.TestCase):
                             method='GET', user=self.user,
                             params={'type': 'item'})
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, '/user/goodlogin/Public/Folder 1/Item 3')
+        self.assertEqual(resp.json, '/user/goodlogin/Public/Folder 1/It\\\\em\\/3')
 
         # Get a file's path
         resp = self.request(path='/resource/' + str(self.file1['_id']) + '/path',

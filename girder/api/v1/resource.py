@@ -28,6 +28,7 @@ from girder.models.model_base import AccessControlledModel
 from girder.utility import acl_mixin
 from girder.utility import parseTimestamp
 from girder.utility import ziputil
+from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
 
 # Plugins can modify this set to allow other types to be searched
@@ -196,7 +197,7 @@ class Resource(BaseResource):
             will return None instead of throwing exception when
             path doesn't exist
         """
-        pathArray = [token for token in path.split('/') if token]
+        pathArray = path_util.split(path)[1:]
         model = pathArray[0]
 
         parent = None
@@ -307,7 +308,7 @@ class Resource(BaseResource):
                 break
 
         path.insert(0, type)
-        return '/' + '/'.join(path)
+        return '/' + path_util.join(path)
 
     @access.cookie(force=True)
     @access.public(scope=TokenScope.DATA_READ)
