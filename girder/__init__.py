@@ -23,7 +23,6 @@ import logging
 import logging.handlers
 import os
 import six
-import StringIO
 import sys
 import traceback
 
@@ -130,7 +129,7 @@ def logprint(*args, **kwargs):
 
     Ideally, we should expose a config option to make this silent.
     """
-    data = StringIO.StringIO()
+    data = six.StringIO()
     kwargs = (kwargs or {}).copy()
     level = kwargs.pop('level', logging.DEBUG)
     color = kwargs.pop('color', None)
