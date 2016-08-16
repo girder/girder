@@ -34,7 +34,6 @@ import json
 import os
 import six
 import sys
-import traceback
 import yaml
 import importlib
 
@@ -340,7 +339,7 @@ def findEntryPointPlugins(allPlugins):
                         entry_point.name, configYml) as conf:
                     try:
                         data = yaml.safe_load(conf)
-                    except yaml.YAMLError as e:
+                    except yaml.YAMLError:
                         logprint.exception(
                             'ERROR: Plugin "%s": plugin.yml is not valid '
                             'YAML.' % entry_point.name)
@@ -386,7 +385,7 @@ def findAllPlugins(curConfig=None):
                 with open(configYml) as conf:
                     try:
                         data = yaml.safe_load(conf)
-                    except yaml.YAMLError as e:
+                    except yaml.YAMLError:
                         logprint.exception(
                             'ERROR: Plugin "%s": plugin.yml is not valid '
                             'YAML.' % plugin)
