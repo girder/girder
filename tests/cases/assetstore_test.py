@@ -192,9 +192,11 @@ class AssetstoreTestCase(base.TestCase):
 
         # Test importing directory with include & exclude regexes; file should be excluded
         params['importPath'] = os.path.join(ROOT_DIR, 'tests', 'cases', 'py_client')
-        self.request(
-            path, method='POST', params=dict(
+        resp = self.request(
+            path, method='POST', user=self.admin, params=dict(
                 params, fileIncludeRegex='world.*', fileExcludeRegex='world.*'))
+        self.assertStatusOk(resp)
+
         resp = self.request('/resource/lookup', user=self.admin, params={
             'path': '/user/admin/Public/world.txt/world.txt',
             'test': True
@@ -561,7 +563,7 @@ class AssetstoreTestCase(base.TestCase):
 
         file = self.model('file').load(resp.json['_id'], force=True)
         self.assertTrue('s3Key' in file)
-        self.assertRegexpMatches(file['relpath'], '^/bucketname/foo/bar/')
+        six.assertRegex(self, file['relpath'], '^/bucketname/foo/bar/')
 
         # Test init for a multi-chunk upload
         params['size'] = 1024 * 1024 * 1024 * 5
