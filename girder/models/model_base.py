@@ -27,9 +27,8 @@ import six
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from pymongo.errors import WriteError
-from girder import events
-from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
-    TEXT_SCORE_SORT_MAX
+from girder import events, logprint
+from girder.constants import AccessType, CoreEventHandler, TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
@@ -86,8 +85,7 @@ class Model(ModelImporter):
                     textIdx, weights=self._textIndex,
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
-                print(
-                    TerminalColor.warning('WARNING: Text search not enabled.'))
+                logprint.warning('WARNING: Text search not enabled.')
 
     def exposeFields(self, level, fields):
         """

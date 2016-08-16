@@ -41,8 +41,8 @@ import importlib
 import pkg_resources
 from pkg_resources import iter_entry_points
 
-from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
-    TerminalColor
+from girder import logprint
+from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE
 from girder.models.model_base import ValidationException
 from girder.utility import config as _config, mail_utils, mkdir
 
@@ -77,17 +77,17 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
         curConfig = _config.getConfig()
 
     if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
-        print(TerminalColor.warning(
+        logprint.warning(
             'Warning: the plugin_directory setting is deprecated. Please use '
             'the `girder-install plugin` command and remove this setting from '
-            'your config file.'))
+            'your config file.')
 
     if ROOT_PLUGINS_PACKAGE not in sys.modules:
         module = imp.new_module(ROOT_PLUGINS_PACKAGE)
         girder.plugins = module
         sys.modules[ROOT_PLUGINS_PACKAGE] = module
 
-    print(TerminalColor.info('Resolving plugin dependencies...'))
+    logprint.info('Resolving plugin dependencies...')
 
     if buildDag:
         plugins = getToposortedPlugins(plugins, curConfig, ignoreMissing=True)
@@ -96,12 +96,10 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
         try:
             root, appconf, apiRoot = loadPlugin(
                 plugin, root, appconf, apiRoot, curConfig=curConfig)
-            print(TerminalColor.success('Loaded plugin "%s"' % plugin))
+            logprint.success('Loaded plugin "%s"' % plugin)
         except Exception:
-            print(TerminalColor.error(
-                'ERROR: Failed to load plugin "%s":' % plugin))
-            girder.logger.exception('Plugin load failure: %s' % plugin)
-            traceback.print_exc()
+            logprint.exception(
+                'ERROR: Failed to load plugin "%s":' % plugin)
 
     return root, appconf, apiRoot
 
@@ -122,8 +120,7 @@ def getToposortedPlugins(plugins, curConfig=None, ignoreMissing=False):
         if plugin not in allPlugins:
             message = 'Required plugin %s does not exist.' % plugin
             if ignoreMissing:
-                print(TerminalColor.error(message))
-                girder.logger.error(message)
+                logprint.error(message)
                 return
             else:
                 raise ValidationException(message)
@@ -281,8 +278,8 @@ def getPluginDirs(curConfig=None):
         try:
             mkdir(pluginDir)
         except OSError:
-            print(TerminalColor.warning(
-                'Could not create plugin directory %s.' % pluginDir))
+            logprint.warning(
+                'Could not create plugin directory %s.' % pluginDir)
 
             failedPluginDirs.add(pluginDir)
 
@@ -335,22 +332,18 @@ def findEntryPointPlugins(allPlugins):
                     try:
                         data = json.load(codecs.getreader('utf8')(conf))
                     except ValueError as e:
-                        print(
-                            TerminalColor.error(
-                                'ERROR: Plugin "%s": plugin.json is not valid '
-                                'JSON.' % entry_point.name))
-                        print(e)
+                        logprint.exception(
+                            'ERROR: Plugin "%s": plugin.json is not valid '
+                            'JSON.' % entry_point.name)
             elif pkg_resources.resource_exists(entry_point.name, configYml):
                 with pkg_resources.resource_stream(
                         entry_point.name, configYml) as conf:
                     try:
                         data = yaml.safe_load(conf)
                     except yaml.YAMLError as e:
-                        print(
-                            TerminalColor.error(
-                                'ERROR: Plugin "%s": plugin.yml is not valid '
-                                'YAML.' % entry_point.name))
-                        print(e)
+                        logprint.exception(
+                            'ERROR: Plugin "%s": plugin.yml is not valid '
+                            'YAML.' % entry_point.name)
         except ImportError:
             pass
         if data == {}:
@@ -370,7 +363,7 @@ def findAllPlugins(curConfig=None):
     findEntryPointPlugins(allPlugins)
     pluginDirs = getPluginDirs(curConfig)
     if not pluginDirs:
-        print(TerminalColor.warning('Plugin directory not found.'))
+        logprint.warning('Plugin directory not found.')
         return allPlugins
 
     for pluginDir in pluginDirs:
@@ -386,21 +379,17 @@ def findAllPlugins(curConfig=None):
                     try:
                         data = json.load(conf)
                     except ValueError as e:
-                        print(
-                            TerminalColor.error(
-                                ('ERROR: Plugin "%s": '
-                                 'plugin.json is not valid JSON.') % plugin))
-                        print(e)
+                        logprint.exception(
+                            'ERROR: Plugin "%s": plugin.json is not valid '
+                            'JSON.' % plugin)
             elif os.path.isfile(configYml):
                 with open(configYml) as conf:
                     try:
                         data = yaml.safe_load(conf)
                     except yaml.YAMLError as e:
-                        print(
-                            TerminalColor.error(
-                                ('ERROR: Plugin "%s": '
-                                 'plugin.yml is not valid YAML.') % plugin))
-                        print(e)
+                        logprint.exception(
+                            'ERROR: Plugin "%s": plugin.yml is not valid '
+                            'YAML.' % plugin)
 
             allPlugins[plugin] = {
                 'name': data.get('name', plugin),

@@ -22,8 +22,9 @@ import cherrypy
 import pymongo
 import six
 
-from ..constants import SettingDefault, SettingKey, TerminalColor
+from ..constants import SettingDefault, SettingKey
 from .model_base import Model, ValidationException
+from girder import logprint
 from girder.utility import plugin_utilities, setting_utilities
 from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId
@@ -71,9 +72,9 @@ class Setting(Model):
                            'count': {'$sum': 1}}}, {
                 '$match': {'count': {'$gt': 1}}}])
             for duplicate in duplicates:
-                print(TerminalColor.warning(
+                logprint.warning(
                     'Removing duplicate setting with key %s.' % (
-                        duplicate['key'])))
+                        duplicate['key']))
                 # Remove all of the duplicates.  Keep the item with the lowest
                 # id in Mongo.
                 for duplicateId in sorted(duplicate['ids'])[1:]:
