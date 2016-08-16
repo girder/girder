@@ -476,6 +476,62 @@ class ResourceTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, None)
 
+    def testGetResourcePath(self):
+        self._createFiles()
+
+        # Get a user's path
+        resp = self.request(path='/resource/' + str(self.user['_id']) + '/path',
+                            method='GET', user=self.user,
+                            params={'type': 'user'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, '/user/userlogin')
+
+        # Get a collection's path
+        resp = self.request(path='/resource/' + str(self.collection['_id']) + '/path',
+                            method='GET', user=self.user,
+                            params={'type': 'collection'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, '/collection/Test Collection')
+
+        # Get a folder's path
+        resp = self.request(path='/resource/' + str(self.adminSubFolder['_id']) + '/path',
+                            method='GET', user=self.user,
+                            params={'type': 'folder'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, '/user/goodlogin/Public/Folder 1')
+
+        # Get an item's path
+        resp = self.request(path='/resource/' + str(self.items[2]['_id']) + '/path',
+                            method='GET', user=self.user,
+                            params={'type': 'item'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, '/user/goodlogin/Public/Folder 1/Item 3')
+
+        # Get a file's path
+        resp = self.request(path='/resource/' + str(self.file1['_id']) + '/path',
+                            method='GET', user=self.user,
+                            params={'type': 'file'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, '/user/goodlogin/Public/Item 1/File 1')
+
+        # Test access denied response
+        resp = self.request(path='/resource/' + str(self.adminPrivateFolder['_id']) + '/path',
+                            method='GET', user=self.user,
+                            params={'type': 'folder'})
+        self.assertStatus(resp, 403)
+
+        # Test invalid id response
+        resp = self.request(path='/resource/' + str(self.user['_id']) + '/path',
+                            method='GET', user=self.user,
+                            params={'type': 'folder'})
+        self.assertStatus(resp, 400)
+
+        # Test invalid type response
+        resp = self.request(path='/resource/' + str(self.user['_id']) + '/path',
+                            method='GET', user=self.user,
+                            params={'type': 'invalid type'})
+        self.assertStatus(resp, 400)
+
     def testMove(self):
         self._createFiles()
         # Move item1 from the public to the private folder
