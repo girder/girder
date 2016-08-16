@@ -330,7 +330,7 @@ def findEntryPointPlugins(allPlugins):
                         entry_point.name, configJson) as conf:
                     try:
                         data = json.load(codecs.getreader('utf8')(conf))
-                    except ValueError as e:
+                    except ValueError:
                         logprint.exception(
                             'ERROR: Plugin "%s": plugin.json is not valid '
                             'JSON.' % entry_point.name)
@@ -377,7 +377,7 @@ def findAllPlugins(curConfig=None):
                 with open(configJson) as conf:
                     try:
                         data = json.load(conf)
-                    except ValueError as e:
+                    except ValueError:
                         logprint.exception(
                             'ERROR: Plugin "%s": plugin.json is not valid '
                             'JSON.' % plugin)
