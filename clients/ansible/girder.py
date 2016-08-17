@@ -1468,19 +1468,23 @@ class GirderClientModule(GirderClient):
 
         if self.module.params['state'] == 'present':
             if r.name_exists(name):
-                ret = r.update_by_name(name, {k: v for k, v in valid_fields
-                                              if v is not None})
-
                 # While we can set public when we create the collection, we
                 # cannot update the public/private status of a collection
                 # via the PUT /collection/%s endpoint. Currently this is
                 # possible through the API by hitting the
                 # PUT /collection/%s/access endpoint with public=true and
                 # the access dict equal to {}
-                if ret['public'] is False and public:
-                    _id = ret['_id']
+                if r.resources_by_name[name]['public'] != public:
+                    _id = r.resources_by_name[name]['_id']
                     self.changed = True
-                    ret['access'] = self._access(r,  r.get_access(_id), _id, public=public)
+                    self._access(r,  r.get_access(_id), _id, public=public)
+                    # invalidate the resource cache - this forces us to pick up
+                    # the change in 'public' attribute despite it not being
+                    # an attribute we can modify
+                    r._resources = None
+
+                ret = r.update_by_name(name, {k: v for k, v in valid_fields
+                                              if v is not None})
 
             else:
                 valid_fields.append(("public", public))
@@ -1532,13 +1536,12 @@ class GirderClientModule(GirderClient):
         elif self.module.params['state'] == 'absent':
             # If there are plugins in the list that are enabled
             if len(enabled_plugins & plugins):
-
-                # Put the difference of enabled_plugins and plugins
-                ret = self.put("system/plugins",
-                               {"plugins":
-                                json.dumps(list(enabled_plugins - plugins))})
                 self.changed = True
 
+            # Put the difference of enabled_plugins and plugins
+            ret = self.put("system/plugins",
+                           {"plugins":
+                            json.dumps(list(enabled_plugins - plugins))})
         return ret
 
     def user(self, login, password, firstName=None,
@@ -1576,6 +1579,8 @@ class GirderClientModule(GirderClient):
                                  "email": email,
                                  "admin": "true" if admin else "false"})
                     self.changed = True
+
+                ret = me
             # User does not exist (with this login info)
             except AuthenticationError:
                 ret = self.post("user", parameters={
@@ -1742,6 +1747,7 @@ class GirderClientModule(GirderClient):
                 id = assetstores[name]['_id']
                 ret = self.delete("assetstore/%s" % id,
                                   parameters=argument_hash[type])
+                self.changed = True
 
         return ret
 

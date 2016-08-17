@@ -14,21 +14,6 @@
           admin: yes
         state: present
 
-    # Create a 'test' user
-    - name: Create 'test' User
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        user:
-          firstName: "Test"
-          lastName: "Test"
-          login: "test"
-          password: "testtesttest"
-          email: "test.test@kitware.com"
-          admin: yes
-        state: present
-
     ############
     # Collection tests
     #
@@ -42,6 +27,11 @@
           description: "A test collection"
       register: test_collection
 
+    - assert:
+        that:
+          - test_collection["gc_return"]["name"] == "Test Collection"
+          - test_collection["gc_return"]["description"] == "A test collection"
+
     - name: Create collection with same values (should not show changed)
       girder:
         port: 8080
@@ -51,6 +41,10 @@
           name: "Test Collection"
           description: "A test collection"
       register: test_collection
+
+    - assert:
+        that:
+          - test_collection.changed == false
 
     - name: Change test collection description
       girder:
@@ -62,6 +56,23 @@
           description: "A test collection with a different description"
       register: test_collection
 
+    - assert:
+        that:
+          - test_collection.changed
+          - test_collection["gc_return"]["name"] == "Test Collection"
+          - test_collection["gc_return"]["description"] == "A test collection with a different description"
+
+    # Get current collections
+    - girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "collection"
+      register: ret
+
+    - set_fact:
+        num_collections: '{{ ret["gc_return"]|length }}'
 
     - name: Delete the test collection
       girder:
@@ -72,6 +83,20 @@
           id: "{{ test_collection['gc_return']['_id'] }}"
           name: "Test Collection"
         state: absent
+
+    # Get current collections
+    - girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "collection"
+      register: ret
+
+    - assert:
+        that:
+          - '{{ ret["gc_return"]|length == (num_collections|int - 1 ) }}'
+
 
     - name: Try to delete the text collection again (should show no change)
       girder:
@@ -84,6 +109,9 @@
         state: absent
       register: test_collection
 
+    - assert:
+        that:
+          - test_collection.changed == false
 
     ############
     # Folder tests
@@ -112,6 +140,19 @@
           description: "A test folder"
       register: test_folder
 
+    - girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "folder/{{ test_folder['gc_return']['_id'] }}"
+      register: ret
+
+    - assert:
+        that:
+          - ret['gc_return']['name'] == 'test folder'
+          - ret['gc_return']['parentId'] == test_collection['gc_return']['_id']
+
 
     - name: Create a subfolder (test parent type 'folder')
       girder:
@@ -123,6 +164,20 @@
           parentId: "{{test_folder['gc_return']['_id'] }}"
           name: "test subfolder"
           description: "A test subfolder"
+      register: test_subfolder
+
+    - girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "folder/{{ test_subfolder['gc_return']['_id'] }}"
+      register: ret
+
+    - assert:
+        that:
+          - ret['gc_return']['name'] == 'test subfolder'
+          - ret['gc_return']['parentId'] == test_folder['gc_return']['_id']
 
 
     - name: Try to create a subfolder (should show no change)
@@ -136,6 +191,10 @@
           name: "test subfolder"
           description: "A test subfolder"
 
+    - assert:
+        that:
+          - ret.changed == false
+
     - name: Update subfolder description (should show change)
       girder:
         port: 8080
@@ -148,6 +207,10 @@
           description: "A test subfolder (different description)"
       register: subfolder
 
+    - assert:
+        that:
+          - subfolder.changed
+
 
     - name: Delete the subfolder from the collection
       girder:
@@ -159,6 +222,19 @@
           parentId: "{{test_folder['gc_return']['_id'] }}"
           name: "test subfolder"
         state: absent
+
+    - girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "folder/{{ test_folder['gc_return']['_id'] }}/details"
+      register: ret
+
+    - assert:
+        that:
+          - ret['gc_return']['nFolders'] == 0
+          - ret['gc_return']['nItems'] == 0
 
     - name: Delete the test collection
       girder:
@@ -207,6 +283,18 @@
           description: "A test item"
       register: test_item
 
+    - girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "folder/{{ test_folder['gc_return']['_id'] }}/details"
+      register: ret
+
+    - assert:
+        that:
+          - ret['gc_return']['nItems'] == 1
+
     - name: Create an item (should not show change)
       girder:
         port: 8080
@@ -217,6 +305,10 @@
           name: "test item"
           description: "A test item"
       register: test_item
+
+    - assert:
+        that:
+          - test_item.changed == false
 
     - name: Update item (different description)
       girder:
@@ -229,6 +321,10 @@
           description: "A test item (different description)"
       register: test_item
 
+    - assert:
+        that:
+          - test_item.changed
+
     - name: Delete item
       girder:
         port: 8080
@@ -239,103 +335,26 @@
           name: "test item"
         state: absent
 
-    ############
-    # Item upload tests
-    #
+    - girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "folder/{{ test_folder['gc_return']['_id'] }}/details"
+      register: ret
 
-    - name: Create filesystem assetstore
+    - assert:
+        that:
+          - ret['gc_return']['nItems'] == 0
+
+
+    - name: Delete collection
       girder:
         port: 8080
         username: "admin"
         password: "letmein"
-        assetstore:
-          name: "Temp Filesystem Assetstore"
-          type: "filesystem"
-          root: "/tmp/"
-          current: true
-        state: present
-
-    - name: Copy data/ folder to known location on VM
-      copy:
-        src: data/
-        dest: /tmp/data/
-
-    - name: Create an item
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        item:
-          folderId: "{{test_folder['gc_return']['_id'] }}"
-          name: "test item"
-          description: "A test item"
-      register: test_item
-
-
-    - name: Upload files (should add test1.txt and test2.txt)
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        files:
-          itemId: "{{ test_item['gc_return']['_id'] }}"
-          sources:
-            - /tmp/data/test1.txt
-            - /tmp/data/test2.txt
-      register: retval
-
-    - debug: msg="{{ retval['gc_return'] }}"
-
-    - name: Upload files same files (should show no change)
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        files:
-          itemId: "{{ test_item['gc_return']['_id'] }}"
-          sources:
-            - /tmp/data/test1.txt
-            - /tmp/data/test2.txt
-      register: retval
-
-    - debug: msg="{{ retval['gc_return'] }}"
-
-
-    - name: Upload files (should remove test2.txt)
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        files:
-          itemId: "{{ test_item['gc_return']['_id'] }}"
-          sources:
-            - /tmp/data/test1.txt
-      register: retval
-
-    - debug: msg="{{ retval['gc_return'] }}"
-
-    - name: Upload files (should add test3.txt)
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        files:
-          itemId: "{{ test_item['gc_return']['_id'] }}"
-          sources:
-            - /tmp/data/test1.txt
-            - /tmp/data/test3.txt
-      register: retval
-
-    - debug: msg="{{ retval['gc_return'] }}"
-
-    - name: Remove all files
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        files:
-          itemId: "{{ test_item['gc_return']['_id'] }}"
+        collection:
+          name: "Test Collection"
+          description: "A test collection"
         state: absent
-      register: retval
-
-    - debug: msg="{{ retval['gc_return'] }}"
+      register: test_collection

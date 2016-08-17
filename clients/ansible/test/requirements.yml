@@ -1,6 +1,7 @@
 ---
 - src: https://github.com/girder/ansible-role-girder
   name: girder
+  version: remotes/origin/change_mongo_version_string
 
 - src: dstil.upstart
   name: upstart
