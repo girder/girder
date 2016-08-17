@@ -428,8 +428,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     yield ''
             return stream
 
-    def importData(self, parent, parentType, params, progress, user,
-                   bucket=None, **kwargs):
+    def importData(self, parent, parentType, params, progress, user, bucket=None, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
 
         if importPath and not importPath.endswith('/'):
@@ -457,17 +456,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
                 if parentType != 'folder':
                     raise ValidationException(
-                        'Keys cannot be imported directly underneath a %s.' %
-                        parentType)
+                        'Keys cannot be imported directly underneath a %s.' % parentType)
 
-                item = self.model('item').createItem(
-                    name=name, creator=user, folder=parent, reuseExisting=True)
-                file = self.model('file').createFile(
-                    name=name, creator=user, item=item, reuseExisting=True,
-                    assetstore=self.assetstore, mimeType=None, size=obj.size)
-                file['s3Key'] = obj.name
-                file['imported'] = True
-                self.model('file').save(file)
+                if self.shouldImportFile(obj.name, params):
+                    item = self.model('item').createItem(
+                        name=name, creator=user, folder=parent, reuseExisting=True)
+                    file = self.model('file').createFile(
+                        name=name, creator=user, item=item, reuseExisting=True,
+                        assetstore=self.assetstore, mimeType=None, size=obj.size)
+                    file['s3Key'] = obj.name
+                    file['imported'] = True
+                    self.model('file').save(file)
 
     def deleteFile(self, file):
         """
