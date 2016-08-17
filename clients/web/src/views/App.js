@@ -85,6 +85,7 @@ var App = View.extend({
             }
 
             if (settings.history) {
+                Backbone.history.stop();
                 Backbone.history.start({
                     pushState: false
                 });

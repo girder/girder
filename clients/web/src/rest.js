@@ -8,6 +8,7 @@ import { getCurrentToken, cookie } from 'girder/auth';
 var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);
 var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin);
 var uploadHandlers = {};
+var uploadChunkSize = 1024 * 1024 * 64; // 64MB
 
 /**
  * Make a request to the REST API. Bind a "done" handler to the return
@@ -113,6 +114,7 @@ $(document).ajaxComplete(function (event, xhr) {
         delete restXhrPool[num];
     }
 });
+
 /* Get the number of outstanding rest requests.
  * :param category: if specified, only count those requests that have
  *                  xhr.girder[category] set to a truthy value.
@@ -142,11 +144,27 @@ function cancelRestRequests(category) {
     });
 }
 
+/*
+ * Get Upload Chunk Size
+ */
+function getUploadChunkSize() {
+    return uploadChunkSize;
+}
+
+/*
+ * Set Upload Chunk Size
+ */
+function setUploadChunkSize(val) {
+    uploadChunkSize = val;
+}
+
 export {
     apiRoot,
     staticRoot,
     uploadHandlers,
     restRequest,
     numberOutstandingRestRequests,
-    cancelRestRequests
+    cancelRestRequests,
+    getUploadChunkSize,
+    setUploadChunkSize
 };

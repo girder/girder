@@ -1,10 +1,11 @@
+/* globals girderTest, runs, waitsFor, expect, describe, it, beforeEach, spyOn */
+
 /**
  * Start the girder backbone app.
  */
 girderTest.startApp();
 
 describe('Create an admin and non-admin user', function () {
-
     it('No admin console without logging in', function () {
         expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
@@ -131,7 +132,7 @@ describe('Test the assetstore page', function () {
 
     var _getAssetstoreContainer = function (name) {
         var containers = $('.g-assetstore-container');
-        for (var i=0; i<containers.length; i++) {
+        for (var i = 0; i < containers.length; i++) {
             if ($('span.g-assetstore-name', containers.eq(i)).text().trim() === name) {
                 return containers.eq(i);
             }
@@ -142,31 +143,33 @@ describe('Test the assetstore page', function () {
     var _testAssetstore = function (assetstore, tab, params, callback, waitCondition, waitMessage, shouldFail) {
         var storeName = 'Test ' + assetstore + ' Assetstore';
 
-        it('Create, switch to, and delete a '+assetstore+' assetstore', function () {
+        it('Create, switch to, and delete a ' + assetstore + ' assetstore', function () {
             /* create the assetstore */
             runs(function () {
-                $("[data-target='#"+tab+"']").click();
+                $("[data-target='#" + tab + "']").click();
             });
             waitsFor(function () {
-                return $('#'+tab+' .g-new-assetstore-submit:visible').length > 0;
-            }, assetstore+' tab to open');
+                return $('#' + tab + ' .g-new-assetstore-submit:visible').length > 0;
+            }, assetstore + ' tab to open');
             runs(function () {
-                $('#'+tab+' .g-new-assetstore-submit').click();
+                $('#' + tab + ' .g-new-assetstore-submit').click();
             });
             waitsFor(function () {
-                return $('#'+tab+' .g-validation-failed-message:visible').length > 0;
+                return $('#' + tab + ' .g-validation-failed-message:visible').length > 0;
             }, 'failure message to appear');
             runs(function () {
                 name = storeName;
                 for (var key in params) {
                     var value = params[key];
-                    if (value === 'name')
+                    if (value === 'name') {
                         value = name;
-                    if (value === 'service')
+                    }
+                    if (value === 'service') {
                         value = service;
-                    $('input#'+key).val(value);
+                    }
+                    $('input#' + key).val(value);
                 }
-                $('#'+tab+' .g-new-assetstore-submit').click();
+                $('#' + tab + ' .g-new-assetstore-submit').click();
             });
             waitsFor(waitCondition || function () {
                 return _getAssetstoreContainer(name) !== null;
@@ -198,7 +201,7 @@ describe('Test the assetstore page', function () {
                        $('#g-edit-name').val() === name;
             }, 'edit confirmation to appear and name field to be present');
             runs(function () {
-                name += ' Edit'
+                name += ' Edit';
                 $('input#g-edit-name').val('');
                 $('.g-save-assetstore.btn').click();
             });
@@ -207,7 +210,7 @@ describe('Test the assetstore page', function () {
             }, 'name empty error to appear');
 
             runs(function () {
-                name += ' Edit'
+                name += ' Edit';
                 $('input#g-edit-name').val(name);
                 $('.g-save-assetstore.btn').click();
             });
@@ -225,7 +228,7 @@ describe('Test the assetstore page', function () {
                 return $('.g-save-assetstore.btn:visible').length > 0 &&
                        $('#g-edit-name').val() === name;
             }, 'edit confirmation to appear and name field to be present');
-            runs(function() {
+            runs(function () {
                 $('a[data-dismiss="modal"]').click();
             });
             girderTest.waitForLoad();
@@ -250,7 +253,7 @@ describe('Test the assetstore page', function () {
                         name: name
                     });
                 });
-            };
+            }
 
             /* delete the assetstore */
             runs(function () {
@@ -295,7 +298,7 @@ describe('Test the assetstore page', function () {
                 privateFolder = coll.models[0];
             }).fetch({
                 parentType: 'user',
-                parentId: girder.currentUser.id
+                parentId: girder.auth.getCurrentUser().id
             });
         });
 
@@ -385,7 +388,7 @@ describe('Test the assetstore page', function () {
                 privateFolder = coll.models[0];
             }).fetch({
                 parentType: 'user',
-                parentId: girder.currentUser.id
+                parentId: girder.auth.getCurrentUser().id
             });
         });
 
@@ -493,10 +496,10 @@ describe('Test the assetstore page', function () {
     _testAssetstore('gridfs-rs', 'g-create-gridfs-tab',
                     {'g-new-gridfs-name': 'name',
                      'g-new-gridfs-db': 'girder_webclient_gridfsrs',
-                     'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,'+
+                     'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,' +
                         '127.0.0.2:27081,127.0.0.2:27082',
                      'g-new-gridfs-replicaset': 'replicaset'}, null, function () {
-                          return $('.g-validation-failed-message:contains(' +
+                         return $('.g-validation-failed-message:contains(' +
                               '"Could not connect to the database: ")').length === 1;
                      }, 'validation failure to display', true);
 
@@ -520,13 +523,12 @@ describe('Test the assetstore page', function () {
 
 describe('Test the plugins page', function () {
     beforeEach(function () {
-        spyOn(girder.restartServer, '_callSystemRestart').
-              andCallFake(function () {
-            window.setTimeout(function() {
-                girder.restartServer._lastStartDate = 0;
+        spyOn(girder.utilities.Server.restartServer, '_callSystemRestart').andCallFake(function () {
+            window.setTimeout(function () {
+                girder.utilities.Server.restartServer._lastStartDate = 0;
             }, 100);
         });
-        spyOn(girder.restartServer, '_reloadWindow');
+        spyOn(girder.utilities.Server.restartServer, '_reloadWindow');
     });
 
     it('Test that anonymous loading plugins page prompts login', function () {
@@ -585,8 +587,8 @@ describe('Test the plugins page', function () {
             $('#g-confirm-button').click();
         });
         waitsFor(function () {
-            return girder.restartServer._callSystemRestart.wasCalled &&
-                   girder.restartServer._reloadWindow.wasCalled;
+            return girder.utilities.Server.restartServer._callSystemRestart.wasCalled &&
+                   girder.utilities.Server.restartServer._reloadWindow.wasCalled;
         }, 'restart to be called');
     });
     it('Go away and back to plugins page', function () {
@@ -615,7 +617,7 @@ describe('Test the plugins page', function () {
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
         });
         waitsFor(function () {
-            var resp = girder.restRequest({
+            var resp = girder.rest.restRequest({
                 path: 'system/plugins',
                 type: 'GET',
                 async: false
@@ -625,7 +627,7 @@ describe('Test the plugins page', function () {
         });
     });
     /* Logout to make sure we don't see the plugins any more */
-    it('log out and check for redirect to front page from plugins page', function() {
+    it('log out and check for redirect to front page from plugins page', function () {
         girderTest.logout('logout to no longer view plugins page')();
 
         waitsFor(function () {

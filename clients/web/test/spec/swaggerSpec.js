@@ -1,3 +1,5 @@
+/* globals jasmine, runs, waitsFor, describe, it */
+
 function jasmineTests() {
     var jasmineEnv = jasmine.getEnv();
     var consoleReporter = new jasmine.ConsoleReporter();
@@ -38,9 +40,8 @@ function jasmineTests() {
             }, 'version information was returned');
         });
     });
-
 }
 
 $(function () {
-    $.getScript('/static/built/testing-no-cover.min.js', jasmineTests);
+    $.getScript('/static/built/testing/testing-no-cover.min.js', jasmineTests);
 });

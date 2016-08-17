@@ -204,11 +204,11 @@ var AssetstoresView = View.extend({
     }
 }, {
     import: function (assetstoreId) {
-        var assetstore = AssetstoreModel({ _id: assetstoreId });
+        var assetstore = new AssetstoreModel({ _id: assetstoreId });
         assetstore.once('g:fetched', function () {
             var View = assetstoreImportViewMap[assetstore.get('type')];
             if (View) {
-                events.trigger('g:navigateTo', View.default, {
+                events.trigger('g:navigateTo', View, {
                     assetstore: assetstore
                 });
             } else {

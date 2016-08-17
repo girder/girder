@@ -881,10 +881,10 @@ var HierarchyWidget = View.extend({
     redirectViaForm: function (method, url, data) {
         var form = $('<form action="' + url + '" method="' + method + '"/>');
         _.each(data, function (value, key) {
-            form.append($('<input/>').attr(
-                {type: 'text', name: key, value: value}));
+            form.append($('<input/>').attr({type: 'text', name: key, value: value}));
         });
-        $(form).submit();
+        // $(form).submit() will *not* work w/ Firefox (http://stackoverflow.com/q/7117084/250457)
+        $(form).appendTo('body').submit();
     },
 
     editAccess: function () {
@@ -962,8 +962,8 @@ var HierarchyWidget = View.extend({
 }, {
     /* Because we need to be able to clear picked resources when the current user
      * changes, this function is placed in the girder namespace. */
-    resetPickedResources: function () {
-        pickedResources = null;
+    resetPickedResources: function (val) {
+        pickedResources = val || null;
     },
     getPickedResources: function () {
         return pickedResources;

@@ -9,7 +9,6 @@
 /* used for adjusting minimum upload size */
 var minUploadSize;
 
-
 /* Set the minimum chunk size in the server settings, the upload handler, and
  *  the S3 asset store handler.
  * :param minSize: the new minimum size.  If null, revert to the original
@@ -18,8 +17,8 @@ var minUploadSize;
 function _setMinimumChunkSize(minSize) {
     var uploadChunkSize, settingSize;
     if (!minUploadSize) {
-        minUploadSize = {UPLOAD_CHUNK_SIZE: girder.UPLOAD_CHUNK_SIZE};
-        var resp = girder.restRequest({
+        minUploadSize = {UPLOAD_CHUNK_SIZE: girder.rest.getUploadChunkSize()};
+        var resp = girder.rest.restRequest({
             path: 'system/setting',
             type: 'GET',
             data: {key: 'core.upload_minimum_chunk_size'},
@@ -34,8 +33,8 @@ function _setMinimumChunkSize(minSize) {
         uploadChunkSize = minSize;
         settingSize = minSize;
     }
-    girder.UPLOAD_CHUNK_SIZE = uploadChunkSize;
-    girder.restRequest({
+    girder.rest.setUploadChunkSize(uploadChunkSize);
+    girder.rest.restRequest({
         path: 'system/setting',
         type: 'PUT',
         data: {key: 'core.upload_minimum_chunk_size', value: settingSize},
@@ -51,7 +50,7 @@ function _setMinimumChunkSize(minSize) {
     window.location.assign = function (url) {
         girderTest._redirect = url;
     };
-} (window.location.assign));
+}(window.location.assign));
 
 /**
  * Start the girder backbone app.
@@ -236,9 +235,10 @@ describe('Create a data hierarchy', function () {
             results.find('a[resourcetype="user"]').click();
 
             expect(Backbone.history.fragment).toBe(
-                'user/' + girder.currentUser.get('_id'));
+                'user/' + girder.auth.getCurrentUser().get('_id'));
         });
     });
+
     it('keyboard control of quick search box', function () {
         function sendKeyDown(code, selector) {
             var e = $.Event('keydown');
@@ -263,7 +263,7 @@ describe('Create a data hierarchy', function () {
             sendKeyDown(40, '.g-quick-search-container input.g-search-field');
             sendKeyDown(13, '.g-quick-search-container input.g-search-field');
             expect(Backbone.history.fragment).toBe(
-                'user/' + girder.currentUser.get('_id'));
+                'user/' + girder.auth.getCurrentUser().get('_id'));
         });
     });
 
@@ -308,6 +308,7 @@ describe('Create a data hierarchy', function () {
         _setMinimumChunkSize(1024 * 256);
         girderTest.testUpload(1024 * 513);
     });
+
     it('upload a large file requiring resume', function () {
         _setMinimumChunkSize(1024 * 256);
         girderTest.testUpload(1024 * 513, true);
@@ -335,8 +336,9 @@ describe('Create a data hierarchy', function () {
                 girderTest._redirect)).toBe(true);
         });
     });
+
     it('download checked items', function () {
-        var redirect, widget;
+        var redirect = {method: null, url: null, data: {resources: null}}, widget;
         /* select a folder and the first item */
         runs(function () {
             $('.g-list-checkbox').slice(0, 2).click();
@@ -346,16 +348,13 @@ describe('Create a data hierarchy', function () {
                    $('a.g-download-checked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            widget = girder.events._events['g:navigateTo'][0].ctx.bodyView.
-                     hierarchyWidget;
             /* We don't expose the hierarchy view directly, so we have to reach
              * through some internal objects to get to it */
-            spyOn(widget, 'redirectViaForm').
-                  andCallFake(function (method, url, data) {
+            widget = girder.events.events._events['g:navigateTo'][0].ctx.bodyView.hierarchyWidget;
+            spyOn(girder.views.widgets.HierarchyWidget.prototype, 'redirectViaForm').andCallFake(function (method, url, data) {
                 redirect = {method: method, url: url, data: data};
                 /* jshint scripturl: true */
-                widget.redirectViaForm.originalValue(
-                    method, 'javascript: void(0)', data);
+                widget.redirectViaForm.originalValue(method, 'javascript: void(0)', data);
                 /* jshint scripturl: false */
             });
             $('a.g-download-checked').click();
@@ -369,6 +368,7 @@ describe('Create a data hierarchy', function () {
                    toBe(true);
         });
     });
+
     it('copy picked items', function () {
         runs(function () {
             $('.g-select-all').click();
@@ -407,6 +407,7 @@ describe('Create a data hierarchy', function () {
             return $('.g-list-checkbox').length === 12;
         }, 'items to be copied');
     });
+
     it('move picked items', function () {
         runs(function () {
             $('.g-list-checkbox:last').click();
@@ -538,6 +539,7 @@ describe('Create a data hierarchy', function () {
             return $('.g-list-checkbox').length === 9;
         }, 'private list should be down to nine items');
     });
+
     it('delete checked items', function () {
         runs(function () {
             $('.g-select-all').click();
@@ -572,14 +574,17 @@ describe('Create a data hierarchy', function () {
                                 suffix: girderTest._uploadSuffix});
         });
     });
+
     /* Create a second user so that we can test move/copy permissions */
     it('logout from first account', girderTest.logout('logout from first account'));
+
     it('register a second user',
         girderTest.createUser('janedoe',
                               'jane.doe@email.com',
                               'Jane',
                               'Doe',
                               'password!'));
+
     it('test copy permissions', function () {
         // navigate back to John Doe's Public folder
         girderTest.goToUsersPage()();
@@ -644,7 +649,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             expect($('a.g-move-picked').length).toBe(0);
             expect($('a.g-copy-picked').length).toBe(0);
-            oldPicked = girder.pickedResources;
+            oldPicked = girder.views.widgets.HierarchyWidget.getPickedResources();
             $('.g-clear-picked').click();
         });
         waitsFor(function () {
@@ -714,7 +719,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             /* Skip a bunch of UI actions to more quickly get back to have one
              * item selected. */
-            girder.pickedResources = oldPicked;
+            girder.views.widgets.HierarchyWidget.resetPickedResources(oldPicked);
             $('a.g-folder-list-link:first').click();
         });
         girderTest.waitForLoad();
@@ -739,6 +744,7 @@ describe('Create a data hierarchy', function () {
     it('upload a file by dropping', function () {
         girderTest.testUploadDrop(10);
     });
+
     it('upload two files by dropping', function () {
         girderTest.testUploadDrop(10, 2);
     });
@@ -759,7 +765,7 @@ describe('Test FileModel static upload functions', function () {
         runs(function () {
             var _folder = new girder.models.FolderModel({
                 parentType: 'user',
-                parentId: girder.currentUser.get('_id'),
+                parentId: girder.auth.getCurrentUser().get('_id'),
                 name: 'top level folder'
             }).on('g:saved', function () {
                 folder = _folder;
@@ -809,7 +815,7 @@ describe('Test FileModel static upload functions', function () {
         runs(function () {
             var item;
 
-            item = girder.restRequest({
+            item = girder.rest.restRequest({
                 path: '/item',
                 type: 'GET',
                 data: {
@@ -821,7 +827,7 @@ describe('Test FileModel static upload functions', function () {
 
             item = item && item.responseJSON && item.responseJSON[0];
 
-            file = girder.restRequest({
+            file = girder.rest.restRequest({
                 path: '/item/' + item._id + '/files',
                 type: 'GET',
                 async: false
@@ -830,7 +836,7 @@ describe('Test FileModel static upload functions', function () {
             file = file && file.responseJSON && file.responseJSON[0];
 
             if (file) {
-                var resp = girder.restRequest({
+                var resp = girder.rest.restRequest({
                     path: '/file/' + file._id + '/download',
                     type: 'GET',
                     dataType: 'text',
@@ -865,7 +871,7 @@ describe('Test FileModel static upload functions', function () {
         });
 
         runs(function () {
-            file = girder.restRequest({
+            file = girder.rest.restRequest({
                 path: '/item/' + item.get('_id') + '/files',
                 type: 'GET',
                 async: false
@@ -874,7 +880,7 @@ describe('Test FileModel static upload functions', function () {
             file = file && file.responseJSON && file.responseJSON[0];
 
             if (file) {
-                var resp = girder.restRequest({
+                var resp = girder.rest.restRequest({
                     path: '/file/' + file._id + '/download',
                     type: 'GET',
                     dataType: 'text',

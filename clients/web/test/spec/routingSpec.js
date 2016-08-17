@@ -100,7 +100,7 @@ describe('Test routing paths', function () {
     });
     it('create an item in the private folder of the user', function () {
         runs(function () {
-            girder.restRequest({type:'POST', path:'file', data: {
+            girder.rest.restRequest({type:'POST', path:'file', data: {
                 parentType: 'folder',
                 parentId: ids.userFolder,
                 name:'Link File',
@@ -384,7 +384,7 @@ describe('Test internal javascript functions', function () {
             ];
             for (var i = 0; i < testVals.length; i += 1) {
                 var encode = $.param(testVals[i]);
-                expect($.param(girder.parseQueryString(encode))).toBe(encode);
+                expect($.param(girder.utilities.MiscFunctions.parseQueryString(encode))).toBe(encode);
             }
         });
     });
@@ -398,15 +398,15 @@ describe('Test disabling the router at runtime', function () {
     });
 
     it('router should be enabled by default', function () {
-        girder.router.navigate('collections', {trigger: true});
+        girder.router.router.navigate('collections', {trigger: true});
 
         expect(router.navigate).toHaveBeenCalled();
     });
 
     it('disabling router should make navigate() a no-op', function () {
-        girder.router.enabled(false);
+        girder.router.router.enabled(false);
 
-        girder.router.navigate('users', {trigger: true});
+        girder.router.router.navigate('users', {trigger: true});
 
         expect(router.navigate).not.toHaveBeenCalled();
     });

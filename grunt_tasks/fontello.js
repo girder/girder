@@ -19,11 +19,12 @@
  */
 module.exports = function (grunt) {
     grunt.config.merge({
+        // Why is this tasks necessary? Can't ext-font work off the one in src/assets?
         copy: {
             fontello_config: {
                 files: [{
-                    src: 'clients/web/fontello.config.json',
-                    dest: 'clients/web/static/built/fontello.config.json'
+                    src: 'clients/web/src/assets/fontello.config.json',
+                    dest: 'clients/web/static/built/fontello/fontello.config.json'
                 }]
             }
         },
@@ -31,7 +32,7 @@ module.exports = function (grunt) {
         fontello: {
             ext_font: {
                 options: {
-                    config: 'clients/web/static/built/fontello.config.json',
+                    config: 'clients/web/static/built/fontello/fontello.config.json',
                     fonts: 'clients/web/static/built/fontello/font',
                     styles: 'clients/web/static/built/fontello/css',
                     // Create output directories

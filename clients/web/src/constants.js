@@ -1,5 +1,3 @@
-var UPLOAD_CHUNK_SIZE = 1024 * 1024 * 64; // 64MB
-
 var SORT_ASC = 1;
 var SORT_DESC = -1;
 
@@ -27,7 +25,6 @@ var Layout = {
 };
 
 export {
-  UPLOAD_CHUNK_SIZE,
   SORT_ASC, SORT_DESC,
   MONTHS,
   AccessType,

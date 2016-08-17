@@ -1,28 +1,24 @@
-import App from 'girder/app';
-import FileInfoWidget from 'girder/widgets/FileInfoWidget';
-import FileModel from 'girder/models/FileModel';
-import { apiRoot } from 'girder/rest';
-import { events } from 'girder/events';
+/* globals girderTest, describe, it, runs, expect, waitsFor */
+
+girderTest.addCoveredScripts([
+    // '/plugins/hashsum_download/web_client/views/FileInfoWidget.js',
+    // '/plugins/hashsum_download/web_client/main.js'
+    '/static/built/plugins/hashsum_download/plugin.min.js'
+]);
+// girderTest.importStylesheet(
+//     '/static/built/plugins/hashsum_download/plugin.min.css'
+// );
+
+girder.events.events.trigger('g:appload.before');
+var app = new girder.views.App({
+    el: 'body',
+    parentView: null
+});
+girder.events.events.trigger('g:appload.after');
 
 $(function () {
-    girderTest.addCoveredScripts([
-        '/static/built/plugins/hashsum_download/templates.js',
-        '/plugins/hashsum_download/web_client/js/setup.js'
-    ]);
-
-    girderTest.importStylesheet(
-        '/static/built/plugins/hashsum_download/plugin.min.css'
-    );
-
-    events.trigger('g:appload.before');
-    var app = new App({
-        el: 'body',
-        parentView: null
-    });
-    events.trigger('g:appload.after');
-
     describe('Unit test the file view augmentation', function () {
-        var file, files;
+        var file;
         var sha512 = 'd9f804f8f7caceec12a1207c16c6b70cb1dbfd8ea8f48a36168c98898c' +
             '1f138a11e9d1b40769d3c112afb099c6be5d57fc1ee8cf353df91ca0d3cf5524ddb047';
 
@@ -32,7 +28,7 @@ $(function () {
             });
 
             runs(function () {
-                file = new FileModel({
+                file = new girder.models.FileModel({
                     _id: 'fake_id',
                     size: 12345,
                     name: 'my_file.txt',
@@ -41,7 +37,7 @@ $(function () {
                     created: '2016-06-28T14:58:59.235000+00:00'
                 });
 
-                new FileInfoWidget({
+                new girder.views.widgets.FileInfoWidget({
                     model: file,
                     el: $('#g-dialog-container'),
                     parentView: app
@@ -55,7 +51,7 @@ $(function () {
                 expect(container.length).toBe(1);
                 expect($('input.g-hash-textbox', container).val()).toBe(sha512);
                 expect($('a.g-keyfile-download', container).attr('href')).toBe(
-                    apiRoot + '/file/fake_id/hashsum_file/sha512'
+                    girder.rest.apiRoot + '/file/fake_id/hashsum_file/sha512'
                 );
             });
         });

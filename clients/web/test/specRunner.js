@@ -3,10 +3,11 @@
  *
  * This is the PhantomJS runtime script that invokes the Girder app in test
  * mode. The test mode page is built with grunt and lives at:
- * clients/web/static/built/testEnv.html. It then executes a Jasmine spec within
+ * clients/web/static/built/testing/testEnv.html. It then executes a Jasmine spec within
  * the context of that test application, and afterwards runs our custom coverage
  * handler on the coverage data.
  */
+/* globals phantom, WebPage, jasmine, girderTest */
 
 if (phantom.args.length < 2) {
     console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output> [<default jasmine timeout>]');
@@ -16,6 +17,9 @@ if (phantom.args.length < 2) {
     console.error('  <default Jasmine timeout> is in milliseconds.');
     phantom.exit(2);
 }
+
+var system = require('system');
+var env = system.env;
 
 var pageUrl = phantom.args[0];
 var spec = phantom.args[1];
@@ -35,7 +39,7 @@ var terminate = function () {
         phantom.exit(0);
     }
     var status = this.page.evaluate(function () {
-        if (window.jasmine_phantom_reporter.status === "success") {
+        if (window.jasmine_phantom_reporter.status === 'success') {
             return window.coverageHandler.handleCoverage(window._$blanket);
         } else {
             return false;
@@ -64,10 +68,14 @@ page.onConsoleMessage = function (msg) {
         console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
             fs.workingDirectory + fs.separator + imageFile + '</DartMeasurementFile>');
 
-        console.log('Dumping ajax trace:')
-        console.log(page.evaluate(function () {
-            return JSON.stringify(girderTest.ajaxLog(true), null, '  ');
-        }));
+        if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
+            env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
+            env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === true) {
+            console.log('Dumping ajax trace:');
+            console.log(page.evaluate(function () {
+                return JSON.stringify(girderTest.ajaxLog(true), null, '  ');
+            }));
+        }
         return;
     }
 
@@ -103,8 +111,7 @@ page.onCallback = function (data) {
         uploadTemp += '_' + data.suffix;
     }
     uploadTemp += '.tmp';
-    switch (data.action)
-    {
+    switch (data.action) {
         case 'fetchEmail':
             if (fs.exists(uploadTemp)) {
                 return fs.read(uploadTemp);
@@ -114,7 +121,7 @@ page.onCallback = function (data) {
             var path = data.path;
             if (!path && data.size !== undefined) {
                 path = uploadTemp;
-                fs.write(path, new Array(data.size + 1).join("-"), "wb");
+                fs.write(path, new Array(data.size + 1).join('-'), 'wb');
             }
             page.uploadFile(data.selector, path);
             return fs.read(path, {
@@ -148,22 +155,26 @@ page.onError = function (msg, trace) {
 page.onLoadFinished = function (status) {
     if (status !== 'success') {
         console.error('Page load failed');
-        phantom.exit(1);
-    }
-
-    if (coverageOutput) {
-        page.injectJs('coverageHandler.js');
-    }
-    if (!page.injectJs(spec)) {
-        console.error('Could not load test spec into page: ' + spec);
-        phantom.exit(1);
-    }
-    if (phantom.args[3]) {
-        page.evaluate(function (timeout) {
-            if (window.jasmine) {
-                jasmine.getEnv().defaultTimeoutInterval = timeout;
-            }
-        }, phantom.args[3]);
+        // Avoid Unsafe JavaScript attempt to access frame with URL
+        // http://stackoverflow.com/a/26688062/250457
+        setTimeout(function () {
+            phantom.exit(1);
+        }, 0);
+    } else {
+        if (coverageOutput) {
+            page.injectJs('coverageHandler.js');
+        }
+        if (!page.injectJs(spec)) {
+            console.error('Could not load test spec into page: ' + spec);
+            phantom.exit(1);
+        }
+        if (phantom.args[3]) {
+            page.evaluate(function (timeout) {
+                if (window.jasmine) {
+                    jasmine.getEnv().defaultTimeoutInterval = timeout;
+                }
+            }, phantom.args[3]);
+        }
     }
 };
 

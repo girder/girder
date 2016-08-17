@@ -40,7 +40,7 @@ describe('Create an admin and non-admin user', function () {
         }, 'new user page to appear');
 
         runs(function () {
-            expect(girder.currentUser.get('login')).toBe('admin');
+            expect(girder.auth.getCurrentUser().get('login')).toBe('admin');
         });
     });
 
@@ -123,7 +123,7 @@ describe('Create an admin and non-admin user', function () {
 
     it("test changing other user's password", function () {
         runs(function () {
-            girder.router.navigate('useraccount/' + registeredUsers[1].id + '/password',
+            girder.router.router.navigate('useraccount/' + registeredUsers[1].id + '/password',
                                    {trigger: true});
         });
 
@@ -382,13 +382,13 @@ describe('test email verification', function() {
             $('.g-submit-settings').click();
         });
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return girder.rest.numberOutstandingRestRequests() === 0;
         }, 'dialog rest requests to finish');
         girderTest.logout()();
     });
     it('Try to login without verifying email', function() {
         runs(function () {
-            expect(girder.currentUser).toBe(null);
+            expect(girder.auth.getCurrentUser()).toBe(null);
         });
 
         waitsFor(function () {
@@ -445,10 +445,10 @@ describe('test account approval', function() {
             $('.g-submit-settings').click();
         });
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return girder.rest.numberOutstandingRestRequests() === 0;
         }, 'dialog rest requests to finish');
         runs(function () {
-            girder.router.navigate('user/' + registeredUsers[1].id,
+            girder.router.router.navigate('user/' + registeredUsers[1].id,
                                    {trigger: true});
         });
         waitsFor(function () {
@@ -458,13 +458,13 @@ describe('test account approval', function() {
             $('.g-disable-user').click();
         });
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return girder.rest.numberOutstandingRestRequests() === 0;
         }, 'dialog rest requests to finish');
         girderTest.logout()();
     });
     it('Try to login without approval', function() {
         runs(function () {
-            expect(girder.currentUser).toBe(null);
+            expect(girder.auth.getCurrentUser()).toBe(null);
         });
 
         waitsFor(function () {

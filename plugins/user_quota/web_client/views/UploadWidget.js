@@ -1,8 +1,10 @@
 import UploadWidget from 'girder/views/widgets/UploadWidget';
 
+var UploadWidget_old_uploadNextFile = UploadWidget.prototype.uploadNextFile;
+
 UploadWidget.prototype.uploadNextFile = function () {
     this.$('.g-drop-zone').addClass('hide');
-    UploadWidget.__super__.uploadNextFile.call(this);
+    UploadWidget_old_uploadNextFile.call(this);
     this.currentFile.on('g:upload.error', function (info) {
         if (info.identifier === 'user_quota.upload-exceeds-quota') {
             this.$('.g-drop-zone').removeClass('hide');

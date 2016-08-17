@@ -1,31 +1,28 @@
-import App from 'girder/app';
-import { events, eventStream } from 'girder/events';
+/* globals girderTest, describe, expect, it, runs, waitsFor  */
 
-import JobDetailsWidget from '../web_client/views/JobDetailsWidget';
-import JobListWidget from '../web_client/views/JobListWidget';
-import JobModel from '../web_client/models/JobModel';
-import JobStatus from '../web_client/JobStatus';
+girderTest.addCoveredScripts([
+    // '/plugins/jobs/web_client/main.js',
+    // '/plugins/jobs/web_client/routes.js',
+    // '/plugins/jobs/web_client/JobStatus.js',
+    // '/plugins/jobs/web_client/js/collections/JobCollections.js',
+    // '/plugins/jobs/web_client/js/models/JobModel.js',
+    // '/plugins/jobs/web_client/js/views/HeaderUserView.js',
+    // '/plugins/jobs/web_client/js/views/JobDetailsWidget.js',
+    // '/plugins/jobs/web_client/js/views/JobListWidget.js',
+    '/static/built/plugins/jobs/plugin.min.js'
+]);
+// girderTest.importStylesheet(
+//     '/static/built/plugins/jobs/plugin.min.css'
+// );
+
+girder.events.events.trigger('g:appload.before');
+var app = new girder.views.App({
+    el: 'body',
+    parentView: null
+});
+girder.events.events.trigger('g:appload.after');
 
 $(function () {
-    /* Include the built version of the our templates.  This means that grunt
-    * must be run to generate these before the test. */
-    girderTest.addCoveredScripts([
-        '/static/built/plugins/jobs/templates.js',
-        '/plugins/jobs/web_client/js/misc.js',
-        '/plugins/jobs/web_client/js/views/JobDetailsWidget.js',
-        '/plugins/jobs/web_client/js/views/JobListWidget.js'
-    ]);
-    girderTest.importStylesheet(
-        '/static/built/plugins/jobs/plugin.min.css'
-    );
-
-    events.trigger('g:appload.before');
-    var app = new App({
-        el: 'body',
-        parentView: null
-    });
-    events.trigger('g:appload.after');
-
     describe('Unit test the job detail widget.', function () {
         it('Show a job detail widget.', function () {
             waitsFor('app to render', function () {
@@ -33,27 +30,27 @@ $(function () {
             });
 
             runs(function () {
-                var job = new JobModel({
+                var job = new girder.plugins.jobs.models.JobModel({
                     _id: 'foo',
                     title: 'My batch job',
-                    status: JobStatus.INACTIVE,
+                    status: girder.plugins.jobs.JobStatus.INACTIVE,
                     log: 'Hello world\ngoodbye world',
                     updated: '2015-01-12T12:00:12Z',
                     created: '2015-01-12T12:00:00Z',
                     when: '2015-01-12T12:00:00Z',
                     timestamps: [{
-                        status: JobStatus.QUEUED,
+                        status: girder.plugins.jobs.JobStatus.QUEUED,
                         time: '2015-01-12T12:00:02Z'
                     }, {
-                        status: JobStatus.RUNNING,
+                        status: girder.plugins.jobs.JobStatus.RUNNING,
                         time: '2015-01-12T12:00:03Z'
                     }, {
-                        status: JobStatus.SUCCESS,
+                        status: girder.plugins.jobs.JobStatus.SUCCESS,
                         time: '2015-01-12T12:00:12Z'
                     }]
                 });
 
-                var widget = new JobDetailsWidget({
+                /* var widget = */ new girder.plugins.jobs.views.JobDetailsWidget({
                     el: $('#g-app-body-container'),
                     job: job,
                     parentView: app
@@ -73,10 +70,10 @@ $(function () {
                 expect($('.g-timeline-point')[3].className).toContain('g-job-color-success');
 
                 // Make sure view change happens when notification is sent for this job
-                eventStream.trigger('g:event.job_status', {
+                girder.events.eventStream.trigger('g:event.job_status', {
                     data: {
                         _id: 'foo',
-                        status: JobStatus.SUCCESS,
+                        status: girder.plugins.jobs.JobStatus.SUCCESS,
                         log: 'log changed'
                     }
                 });
@@ -85,10 +82,10 @@ $(function () {
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe('log changed');
 
                 // Make sure view change only happens for the currently viewed job
-                eventStream.trigger('g:event.job_status', {
+                girder.events.eventStream.trigger('g:event.job_status', {
                     data: {
                         _id: 'bar',
-                        status: JobStatus.QUEUED,
+                        status: girder.plugins.jobs.JobStatus.QUEUED,
                         log: 'should not appear'
                     }
                 });
@@ -105,7 +102,7 @@ $(function () {
 
             runs(function () {
                 jobs = _.map([1, 2, 3], function (i) {
-                    return new JobModel({
+                    return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
                         title: 'My batch job ' + i,
                         status: i,
@@ -115,7 +112,7 @@ $(function () {
                     });
                 });
 
-                var widget = new JobListWidget({
+                var widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app
@@ -129,7 +126,7 @@ $(function () {
 
             waitsFor(function () {
                 return $('.g-jobs-list-table>tbody>tr').length === 3;
-            }, 'job list to auto-reload when collection is updated')
+            }, 'job list to auto-reload when collection is updated');
 
             runs(function () {
                 // Make sure we are in reverse chronological order
@@ -142,7 +139,7 @@ $(function () {
                 expect($(rows[2]).text()).toContain('Queued');
 
                 // Simulate an SSE notification that changes a job status
-                eventStream.trigger('g:event.job_status', {
+                girder.events.eventStream.trigger('g:event.job_status', {
                     data: _.extend({}, jobs[0].attributes, {
                         status: 4
                     })

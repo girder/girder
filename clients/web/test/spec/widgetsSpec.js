@@ -1,3 +1,5 @@
+/* globals girderTest, runs, waitsFor, expect, describe, it */
+
 /**
  * Start the girder backbone app.
  */
@@ -10,7 +12,7 @@ function _setProgress(test, duration) {
      *     endpoint
      * :param duration: duration to send to the endpoint
      */
-    girder.restRequest({path: 'webclienttest/progress', type: 'GET',
+    girder.rest.restRequest({path: 'webclienttest/progress', type: 'GET',
                         data: {test: test, duration: duration}});
 }
 
@@ -23,7 +25,7 @@ describe('Test widgets that are not covered elsewhere', function () {
                               'adminpassword!'));
 
     it('test task progress widget', function () {
-        var errorCalled=0, onMessageError=0;
+        var errorCalled = 0, onMessageError = 0;
 
         runs(function () {
             expect($('#g-app-progress-container:visible').length).toBe(0);
@@ -47,15 +49,15 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'progress to report an error');
 
         runs(function () {
-            var origOnMessage = girder.eventStream._eventSource.onmessage;
-            girder.eventStream._eventSource.onmessage = function (e) {
+            var origOnMessage = girder.events.eventStream._eventSource.onmessage;
+            girder.events.eventStream._eventSource.onmessage = function (e) {
                 try {
                     origOnMessage(e);
                 } catch (err) {
                     onMessageError += 1;
                 }
             };
-            var stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
+            var stream = girder.events.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
             stream.on('g:error', function () { errorCalled += 1; });
             stream.on('g:event.progress', function () {
                 throw 'intentional error';
@@ -89,9 +91,8 @@ describe('Test widgets that are not covered elsewhere', function () {
         waitsFor(function () {
             /* Wait until at least 4% has progressed, as it makes our
              * subsequent test not require an explicit wait */
-            return parseFloat($('.progress-status .progress-percent:last').
-                   text()) >= 4 && /left$/.test($(
-                   '.progress-status .progress-left:last').text());
+            return parseFloat($('.progress-status .progress-percent:last').text()) >= 4 &&
+              /left$/.test($('.progress-status .progress-left:last').text());
         }, 'progress to show estimated time');
 
         /* There is a 5 second timeout for fading out the success message.  We
@@ -103,7 +104,7 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'at least the first progress to be hidden');
 
         runs(function () {
-            girder.restRequest({path: 'webclienttest/progress/stop',
+            girder.rest.restRequest({path: 'webclienttest/progress/stop',
                                 type: 'PUT', async: false});
         });
     });
@@ -114,10 +115,10 @@ describe('Test folder info widget async fetch', function () {
 
     it('fetch the current user\'s folders', function () {
         runs(function () {
-            expect(girder.currentUser).not.toBe(null);
+            expect(girder.auth.getCurrentUser()).not.toBe(null);
             folders.fetch({
                 parentType: 'user',
-                parentId: girder.currentUser.id
+                parentId: girder.auth.getCurrentUser().id
             });
         });
 
@@ -129,7 +130,7 @@ describe('Test folder info widget async fetch', function () {
     it('show a folder info widget for one of the folders', function () {
         folders.models[0].set('description', 'hello world');
 
-        var widget = new girder.views.FolderInfoWidget({
+        var widget = new girder.views.widgets.FolderInfoWidget({
             el: $('#g-dialog-container'),
             model: folders.models[0],
             parentView: null

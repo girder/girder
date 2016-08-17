@@ -31,12 +31,12 @@ module.exports = function (grunt) {
         uglify: {
             test: {
                 files: {
-                    'clients/web/static/built/testing.min.js': [
+                    'clients/web/static/built/testing/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'node_modules/blanket/dist/jasmine/blanket_jasmine.js',
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
                     ],
-                    'clients/web/static/built/testing-no-cover.min.js': [
+                    'clients/web/static/built/testing/testing-no-cover.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
                     ]
@@ -44,7 +44,7 @@ module.exports = function (grunt) {
             },
             polyfill: {
                 files: {
-                    'clients/web/static/built/polyfill.min.js': [
+                    'clients/web/static/built/testing/polyfill.min.js': [
                         'node_modules/phantomjs-polyfill/bind-polyfill.js'
                     ]
                 }
@@ -57,37 +57,35 @@ module.exports = function (grunt) {
 
         default: {
             'test-env-html': {
-                dependencies: ['webpack:app']
+                dependencies: ['build']
             },
             'uglify:test': {}
         }
     });
 
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
-// DISABLE FOR NOW
-        return;
-// DISABLE FOR NOW
         var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
-        var globs = grunt.config('uglify.app.files')['clients/web/static/built/girder.app.min.js'];
+        // var globs = grunt.config('uglify.app.files')['clients/web/static/built/girder.app.min.js'];
         var dependencies = [
             '/clients/web/static/built/girder.ext.min.js',
+            '/clients/web/static/built/girder.app.min.js',
             '/clients/web/test/testUtils.js'
         ];
         var inputs = [];
 
-        globs.forEach(function (glob) {
-            var files = grunt.file.expand(glob);
-            files.forEach(function (file) {
-                inputs.push('/' + file);
-            });
-        });
+        // globs.forEach(function (glob) {
+        //     var files = grunt.file.expand(glob);
+        //     files.forEach(function (file) {
+        //         inputs.push('/' + file);
+        //     });
+        // });
 
         var fn = jade.compile(buffer, {
             client: false,
             pretty: true
         });
-        fs.writeFileSync('clients/web/static/built/testEnv.html', fn({
+        fs.writeFileSync('clients/web/static/built/testing/testEnv.html', fn({
             cssFiles: [
                 '/clients/web/static/built/fontello/css/fontello.css',
                 '/clients/web/static/built/girder.ext.min.css',

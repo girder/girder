@@ -36,6 +36,8 @@ os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')
 config.loadConfig()  # Reload config to pick up correct port
 testServer = None
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 def setUpModule():
     global testServer
@@ -141,7 +143,7 @@ class WebClientTestCase(base.TestCase):
         testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
 
     def testWebClientSpec(self):
-        baseUrl = '/static/built/testEnv.html'
+        baseUrl = '/static/built/testing/testEnv.html'
         if os.environ.get('BASEURL', ''):
             baseUrl = os.environ['BASEURL']
 
@@ -159,7 +161,8 @@ class WebClientTestCase(base.TestCase):
         # phantomjs occasionally fails to load javascript files.  This appears
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
-        for tries in range(5):
+        retry_count = os.environ.get('PHANTOMJS_RETRY', 5)
+        for tries in range(int(retry_count)):
             retry = False
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)

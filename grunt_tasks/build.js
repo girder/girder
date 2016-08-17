@@ -30,6 +30,12 @@ module.exports = function (grunt) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
     }
     var isDev = environment === 'dev';
+    if (!process.env.BABEL_ENV) {
+        process.env.BABEL_ENV = environment;
+    }
+    if (!process.env.NODE_ENV) {
+        process.env.NODE_ENV = environment;
+    }
     var isWatch = grunt.option('watch');
     var skipPlugins = grunt.option('skip-plugins');
 
@@ -73,12 +79,18 @@ module.exports = function (grunt) {
                 }
             }
         },
-        default: {}
+        default: {
+            build: {
+                dependencies: ['version-info']
+            }
+        }
     };
-    var defaultTask = isWatch ? 'webpack:watch' : (isDev ? 'webpack:dev' : 'webpack:prod');
-    config.default[defaultTask] = {
-        dependencies: ['version-info'] // which generates clients/web/src/version.js
-    };
+
+    // Need an alias that can be used as a dependency (for testing). It will then trigger dev or
+    // prod based on options passed
+    grunt.registerTask('build', 'Build the web client.', [
+        isWatch ? 'webpack:watch' : (isDev ? 'webpack:dev' : 'webpack:prod')
+    ]);
 
     // Warn about not using grunt-contrib-watch, use webpack:watch or grunt --watch instead
     grunt.registerTask('warnWatch', function () {
@@ -97,6 +109,8 @@ module.exports = function (grunt) {
                 config.webpack.options.resolve.alias['plugins/' + plugin] = webClient;
             }
         });
+    } else {
+        grunt.log.writeln('Skipping plugins...');
     }
 
     grunt.config.merge(config);

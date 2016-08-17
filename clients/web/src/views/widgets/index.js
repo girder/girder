@@ -1,9 +1,10 @@
-import * as DateTimeWidget from './DateTimeWidget';
 import AccessWidget from './AccessWidget';
 import ApiKeyListWidget from './ApiKeyListWidget';
 import BrowserWidget from './BrowserWidget';
 import CheckedMenuWidget from './CheckedMenuWidget';
 import CollectionInfoWidget from './CollectionInfoWidget';
+import DateTimeRangeWidget from './DateTimeRangeWidget';
+import DateTimeWidget from './DateTimeWidget';
 import EditApiKeyWidget from './EditApiKeyWidget';
 import EditAssetstoreWidget from './EditAssetstoreWidget';
 import EditCollectionWidget from './EditCollectionWidget';
@@ -28,6 +29,7 @@ import MetadataWidget from './MetadataWidget';
 import NewAssetstoreWidget from './NewAssetstoreWidget';
 import PaginateWidget from './PaginateWidget';
 import PluginConfigBreadcrumbWidget from './PluginConfigBreadcrumbWidget';
+import RootSelectorWidget from './RootSelectorWidget';
 import SearchFieldWidget from './SearchFieldWidget';
 import TaskProgressWidget from './TaskProgressWidget';
 import TimelineWidget from './TimelineWidget';
@@ -40,6 +42,7 @@ export {
   CheckedMenuWidget,
   CollectionInfoWidget,
   DateTimeWidget,
+  DateTimeRangeWidget,
   EditApiKeyWidget,
   EditAssetstoreWidget,
   EditCollectionWidget,
@@ -64,8 +67,9 @@ export {
   NewAssetstoreWidget,
   PaginateWidget,
   PluginConfigBreadcrumbWidget,
+  RootSelectorWidget,
   SearchFieldWidget,
   TaskProgressWidget,
   TimelineWidget,
-  UploadWidget,
+  UploadWidget
 };

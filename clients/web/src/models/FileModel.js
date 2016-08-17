@@ -3,8 +3,7 @@ import _ from 'underscore';
 import FolderModel from 'girder/models/FolderModel';
 import ItemModel from 'girder/models/ItemModel';
 import Model from 'girder/models/Model';
-import { restRequest, uploadHandlers } from 'girder/rest';
-import { UPLOAD_CHUNK_SIZE } from 'girder/constants';
+import { restRequest, uploadHandlers, getUploadChunkSize } from 'girder/rest';
 
 var FileModel = Model.extend({
     resourceName: 'file',
@@ -221,8 +220,7 @@ var FileModel = Model.extend({
     },
 
     _uploadChunk: function (file, uploadId) {
-        var endByte = Math.min(this.startByte + UPLOAD_CHUNK_SIZE,
-                               file.size);
+        var endByte = Math.min(this.startByte + getUploadChunkSize(), file.size);
 
         this.chunkLength = endByte - this.startByte;
         var sliceFn = file.webkitSlice ? 'webkitSlice' : 'slice';
