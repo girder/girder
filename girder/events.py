@@ -45,7 +45,6 @@ import contextlib
 import threading
 import types
 
-from .constants import TerminalColor
 import girder
 from six.moves import queue
 
@@ -127,7 +126,7 @@ class AsyncEventsThread(threading.Thread):
         put to sleep until someone calls trigger() on it with a new event to
         dispatch.
         """
-        print(TerminalColor.info('Started asynchronous event manager thread.'))
+        girder.logprint.info('Started asynchronous event manager thread.')
 
         while not self.terminate:
             eventName, info, callback = self.eventQueue.get(block=True)
@@ -140,7 +139,7 @@ class AsyncEventsThread(threading.Thread):
                     'In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
-        print(TerminalColor.info('Stopped asynchronous event manager thread.'))
+        girder.logprint.info('Stopped asynchronous event manager thread.')
 
     def trigger(self, eventName, info=None, callback=None):
         """
