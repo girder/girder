@@ -16,7 +16,7 @@ galaxy_info:
 
 dependencies:
   - role: nodesource.node
-    nodejs_version: "4.4"
+    nodejs_version: "4.5.0"
     become: yes
     become_user: root
   - role: Stouts.mongodb
