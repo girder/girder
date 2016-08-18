@@ -1,38 +1,11 @@
 ---
-# tasks file for girder
 
-- name: Install Girder system dependencies
-  apt:
-    name: "{{ item }}"
-  become: yes
-  become_user: root
-  with_items:
-    - git
-    - libffi-dev
-    - build-essential
-    - python2.7-dev
-    - python-pip
-    - libjpeg-dev
-    - zlib1g-dev
+- include: 1_mongodb/main.yml
 
-- name: Update Pip
-  pip:
-    name: pip
-    state: latest
-  become: yes
-  become_user: root
+- include: 2_npm/main.yml
 
-- name: Download Girder
-  git:
-    repo: "https://github.com/girder/girder.git"
-    dest: "{{ girder_path }}"
-    version: "{{ girder_version }}"
-    update: yes
-    force: yes
-  notify: Build Girder
+- include: 3_girder.yml
 
-- name: Install Girder Python dependencies
-  pip:
-    requirements: "{{ girder_path }}/requirements.txt"
-  become: yes
-  become_user: root
+- include: 4_daemon/main.yml
+
+- include: 5_proxy/main.yml
