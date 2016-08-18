@@ -75,7 +75,7 @@ class Model(ModelImporter):
                 validator = jsonschema.validators.validator_for(self.schema)
                 validator.check_schema(self.schema)
             except jsonschema.exceptions.SchemaError as se:
-                raise Exception('Invalid JSON schema: %s' % se.message)
+                raise Exception('Invalid JSON schema for %s model: %s' % (self.name, se.message))
 
     def reconnect(self):
         """
