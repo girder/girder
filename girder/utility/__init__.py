@@ -26,7 +26,7 @@ import pytz
 import re
 import string
 
-from girder.constants import TerminalColor
+import girder
 import girder.events
 
 try:
@@ -34,8 +34,8 @@ try:
     random = SystemRandom()
     random.random()  # potentially raises NotImplementedError
 except NotImplementedError:  # pragma: no cover
-    print(TerminalColor.warning(
-        'WARNING: using non-cryptographically secure PRNG.'))
+    girder.logprint.warning(
+        'WARNING: using non-cryptographically secure PRNG.')
     import random
 
 

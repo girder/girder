@@ -13,30 +13,6 @@
           admin: yes
         state: present
 
-
-    # Get current users
-    - name: Get the current users
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        get:
-          path: "user"
-      register: ret_val
-
-    # Return values of the girder client calls are stored
-    # in 'gc_return'  of registered variables
-    - name: Print the list of user email addresses
-      debug:
-        msg: "{{ item['email']  }}"
-      with_items: ret_val['gc_return']
-
-    #############
-    # Example using 'plugins'
-    ###
-
-    # To enable or disable all plugins you may pass the "*"
-    # argument.  This does not (yet) support arbitrary regexes
     - name: Disable all plugins
       girder:
         port: 8080
@@ -44,6 +20,35 @@
         password: "letmein"
         plugins: "*"
         state: absent
+
+    - name: Disable all plugins
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        plugins: "*"
+        state: absent
+      register: ret
+
+    - name: Check that disabling when no plugins enabled does not mark changed as true
+      assert:
+        that:
+          - ret['changed'] == false
+          - ret['gc_return']['value']|length == 0
+
+    - name: Get plugin information
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "system/plugins"
+      register: ret
+
+    - name: Check that no plugins are enabled
+      assert:
+        that:
+          - ret['gc_return']['enabled']|length == 0
 
     - name: Enable thumbnails plugin
       girder:
@@ -53,8 +58,29 @@
         plugins:
           - thumbnails
         state: present
+      register: ret
 
-    #
+    - name: Check that changed marked true
+      assert:
+        that:
+          - ret['changed']
+
+    - name: Get plugin information
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "system/plugins"
+      register: ret
+
+
+    - name: Check that thumbnails is in list of enabled plugins
+      assert:
+        that:
+          - "{{ 'thumbnails' in ret['gc_return']['enabled'] }}"
+
+
     # Note that 'thumbnails'  is still enabled from the previous task,
     # the 'plugins' task ensures that plugins are enabled or disabled,
     # it does NOT define the complete list of enabled or disabled plugins.
@@ -67,6 +93,79 @@
           - jobs
           - gravatar
         state: present
+      register: ret
+
+    - name: Check that changed marked true
+      assert:
+        that:
+          - ret['changed']
+
+    - name: Get plugin information
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "system/plugins"
+      register: ret
+
+    - name: Check that jobs and gravatar are in list of enabled plugins
+      assert:
+        that:
+          - "{{ 'jobs' in ret['gc_return']['enabled'] }}"
+          - "{{ 'gravatar' in ret['gc_return']['enabled'] }}"
+
+
+    - name: Enable plugins that are already enabled
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        plugins:
+          - jobs
+          - gravatar
+        state: present
+      register: ret
+
+    - name: Check that changed marked false
+      assert:
+        that:
+          - ret['changed'] == false
+
+
+
+    - name: Disable jobs and thumbnails
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        plugins:
+          - jobs
+          - thumbnails
+        state: absent
+      register: ret
+
+    - name: Check that changed marked true
+      assert:
+        that:
+          - ret['changed'] == true
+
+
+    - name: Get plugin information
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "system/plugins"
+      register: ret
+
+    - name: Check that gravatar is enabled and thumbnails & jobs are disabled
+      assert:
+        that:
+          - "{{ 'gravatar' in ret['gc_return']['enabled'] }}"
+          - "{{ 'jobs' not in ret['gc_return']['enabled'] }}"
+          - "{{ 'thumbnails' not in ret['gc_return']['enabled'] }}"
 
     # Supports get, post, put, delete methods,  but does
     # not guarantee idempotence on these methods!
@@ -77,3 +176,19 @@
         password: "letmein"
         put:
           path: "system/restart"
+
+    - name: Get plugin information
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "system/plugins"
+      register: ret
+
+    - name: Check that gravatar is enabled and thumbnails & jobs are disabled after restart
+      assert:
+        that:
+          - "{{ 'gravatar' in ret['gc_return']['enabled'] }}"
+          - "{{ 'jobs' not in ret['gc_return']['enabled'] }}"
+          - "{{ 'thumbnails' not in ret['gc_return']['enabled'] }}"

@@ -26,8 +26,8 @@ import sys
 import traceback
 
 from . import docs
-from girder import events, logger
-from girder.constants import SettingKey, TerminalColor, TokenScope, SortDir
+from girder import events, logger, logprint
+from girder.constants import SettingKey, TokenScope, SortDir
 from girder.models.model_base import AccessException, GirderException, \
     ValidationException
 from girder.utility.model_importer import ModelImporter
@@ -629,10 +629,10 @@ class Resource(ModelImporter):
         """
         if not hasattr(self, '_routes'):
             Resource.__init__(self)
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: Resource subclass "%s" did not call '
                 '"Resource__init__()" from its constructor.' %
-                self.__class__.__name__))
+                self.__class__.__name__)
 
     def route(self, method, route, handler, nodoc=False, resource=None):
         """
@@ -677,26 +677,26 @@ class Resource(ModelImporter):
                     info=handler.description.asDict(), handler=handler)
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: No description docs present for route %s %s' % (
-                    method, routePath)))
+                    method, routePath))
 
         # Warn if there is no access decorator on the handler function
         if not hasattr(handler, 'accessLevel'):
             routePath = '/'.join([resource] + list(route))
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: No access level specified for route %s %s' % (
-                    method, routePath)))
+                    method, routePath))
 
         if method.lower() not in ('head', 'get') \
             and hasattr(handler, 'cookieAuth') \
             and not (isinstance(handler.cookieAuth, tuple) and
                      handler.cookieAuth[1]):
             routePath = '/'.join([resource] + list(route))
-            print(TerminalColor.warning(
-                  'WARNING: Cannot allow cookie authentication for '
-                  'route %s %s without specifying "force=True"' % (
-                      method, routePath)))
+            logprint.warning(
+                'WARNING: Cannot allow cookie authentication for '
+                'route %s %s without specifying "force=True"' % (
+                    method, routePath))
 
     def removeRoute(self, method, route, handler=None, resource=None):
         """
