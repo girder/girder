@@ -65,6 +65,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
                 ('uuid', pymongo.ASCENDING),
                 ('n', pymongo.ASCENDING)
             ], unique=True)
+            chunkColl.create_index([('n', pymongo.ASCENDING)])
         except pymongo.errors.ServerSelectionTimeoutError as e:
             raise ValidationException(
                 'Could not connect to the database: %s' % str(e))
