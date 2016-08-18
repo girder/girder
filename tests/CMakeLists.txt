@@ -1,6 +1,12 @@
 set(COVERAGE_MINIMUM_PASS 90 CACHE STRING "Minimum python coverage threshold percent")
 set(JS_COVERAGE_MINIMUM_PASS 75 CACHE STRING "Minimum JS coverage threshold percent")
 
+# Test if mongod is present for tests that require it.
+find_program(MONGOD_EXECUTABLE mongod)
+if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
+  set(MONGOD_EXECUTABLE "local mongod required")
+endif()
+
 python_tests_init()
 javascript_tests_init()
 
@@ -14,7 +20,7 @@ if(RUN_CORE_TESTS)
 
   # These are performed approximately in the order listed.  upload is slower, so
   # start it first, so that if we have parallelism it doesn't hold things up much
-  add_python_test(upload RESOURCE_LOCKS replicaset)
+  add_python_test(upload RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
   add_python_test(api_describe)
   add_python_test(api_key)
   add_python_test(access)
@@ -52,7 +58,7 @@ if(RUN_CORE_TESTS)
 
   add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE filesystem)
   add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfs)
-  add_web_client_test(data_gridfsrs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfsrs RESOURCE_LOCKS replicaset)
+  add_web_client_test(data_gridfsrs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfsrs RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/clients/web/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
     PLUGIN_DIRS "${PROJECT_SOURCE_DIR}/plugins:${PROJECT_SOURCE_DIR}/tests/test_plugins")
