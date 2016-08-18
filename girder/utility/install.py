@@ -22,6 +22,7 @@ into the current Girder installation.  Note that Girder must
 be restarted for these changes to take effect.
 """
 
+import sys
 import os
 import pip
 import shutil
@@ -32,6 +33,10 @@ from girder.utility.plugin_utilities import getPluginDir
 
 version = constants.VERSION['apiVersion']
 webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
+
+# monkey patch shutil for python < 3
+if sys.version_info[0] == 2:
+    import shutilwhich  # noqa
 
 
 def print_version(parser):
@@ -62,6 +67,14 @@ def runNpmInstall(wd=None, dev=False, npm='npm'):
     """
     Use this to run `npm install` inside the package.
     """
+    if shutil.which(npm) is None:
+        print(constants.TerminalColor.error(
+            'No npm executable was detected.  Please ensure the npm '
+            'executable is in your path, or use the "--npm" option to '
+            'provide a custom path.'
+        ))
+        raise Exception('npm executable not found')
+
     wd = wd or constants.PACKAGE_DIR
 
     args = (npm, 'install', '--production', '--unsafe-perm') if not dev \
