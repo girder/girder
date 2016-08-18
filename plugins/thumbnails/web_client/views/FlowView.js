@@ -3,7 +3,7 @@ import _ from 'underscore';
 import FileModel from 'girder/models/FileModel';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 
 import FlowViewTemplate from '../templates/flowView.jade';

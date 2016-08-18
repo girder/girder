@@ -7,7 +7,7 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import UserCollection from 'girder/collections/UserCollection';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 
 import GroupInviteDialogTemplate from 'girder/templates/widgets/groupInviteDialog.jade';
 import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.jade';

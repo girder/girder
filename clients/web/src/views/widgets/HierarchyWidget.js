@@ -17,10 +17,10 @@ import router from 'girder/router';
 import UploadWidget from 'girder/views/widgets/UploadWidget';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/misc';
-import { handleClose } from 'girder/utilities/DialogHelper';
+import { handleClose } from 'girder/dialog';
 import { restRequest, apiRoot } from 'girder/rest';
 
 import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.jade';

@@ -7,7 +7,7 @@ import FileInfoWidget from 'girder/views/widgets/FileInfoWidget';
 import UploadWidget from 'girder/views/widgets/UploadWidget';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 import { formatSize } from 'girder/misc';
 import events from 'girder/events';
 

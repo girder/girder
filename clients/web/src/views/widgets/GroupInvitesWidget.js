@@ -4,7 +4,7 @@ import _ from 'underscore';
 import router from 'girder/router';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 
 import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.jade';
 

@@ -5,7 +5,7 @@ import UserModel from 'girder/models/UserModel';
 import UserView from 'girder/views/body/UserView';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 
 import GroupModListTemplate from 'girder/templates/widgets/groupModList.jade';

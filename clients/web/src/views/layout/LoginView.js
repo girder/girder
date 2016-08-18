@@ -1,6 +1,6 @@
 import View from 'girder/views/View';
 import events from 'girder/events';
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import { handleClose, handleOpen } from 'girder/dialog';
 import { login } from 'girder/auth';
 import { restRequest } from 'girder/rest';
 

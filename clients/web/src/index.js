@@ -1,6 +1,7 @@
 import * as auth from './auth';
 import * as collections from './collections';
 import * as constants from './constants';
+import * as dialog from './dialog';
 import * as misc from './misc';
 import * as models from './models';
 import * as rest from './rest';
@@ -15,6 +16,7 @@ export {
   auth,
   collections,
   constants,
+  dialog,
   events,
   misc,
   models,

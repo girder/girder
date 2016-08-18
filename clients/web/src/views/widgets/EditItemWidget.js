@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import ItemModel from 'girder/models/ItemModel';
 import View from 'girder/views/View';
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.jade';
 

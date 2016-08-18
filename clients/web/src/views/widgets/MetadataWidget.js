@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 import { localeSort } from 'girder/misc';
 

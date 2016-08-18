@@ -4,7 +4,7 @@ import _ from 'underscore';
 import FileModel from 'girder/models/FileModel';
 import View from 'girder/views/View';
 import { formatSize } from 'girder/misc';
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import { handleClose, handleOpen } from 'girder/dialog';
 
 import UploadWidgetTemplate from 'girder/templates/widgets/uploadWidget.jade';
 import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetNonModal.jade';

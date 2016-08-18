@@ -8,7 +8,7 @@ import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
 import View from 'girder/views/View';
 import { AssetstoreType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 import { formatSize } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';

@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 import { AssetstoreType } from 'girder/constants';
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.jade';
 

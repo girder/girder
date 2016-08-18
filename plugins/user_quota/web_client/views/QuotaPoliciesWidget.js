@@ -3,7 +3,7 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import { formatSize } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
-import { handleOpen, handleClose } from 'girder/utilities/DialogHelper';
+import { handleOpen, handleClose } from 'girder/dialog';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 
 import 'girder/utilities/jquery/girderModal';

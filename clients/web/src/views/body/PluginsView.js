@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import router from 'girder/router';
 import View from 'girder/views/View';
-import { confirm } from 'girder/utilities/DialogHelper';
+import { confirm } from 'girder/dialog';
 import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
 import { restartServer } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';

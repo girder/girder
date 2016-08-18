@@ -10,7 +10,7 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import { handleClose, handleOpen } from 'girder/dialog';
 
 import 'girder/stylesheets/widgets/accessWidget.styl';
 

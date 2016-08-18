@@ -4,7 +4,7 @@ import _ from 'underscore';
 import FolderModel from 'girder/models/FolderModel';
 import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
 import View from 'girder/views/View';
-import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
+import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.jade';
 
