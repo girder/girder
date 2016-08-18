@@ -7,6 +7,7 @@ import { restRequest } from 'girder/rest';
 
 import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -32,10 +33,10 @@ var ResetPasswordView = View.extend({
                 });
             }, this)).error(_.bind(function (err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
-                this.$('#g-reset-password-button').removeClass('disabled');
+                this.$('#g-reset-password-button').girderEnable(true);
             }, this));
 
-            this.$('#g-reset-password-button').addClass('disabled');
+            this.$('#g-reset-password-button').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
 

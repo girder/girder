@@ -6,6 +6,8 @@ import NewAssetstoreTemplate from 'girder/templates/widgets/newAssetstore.jade';
 
 import 'bootstrap/js/collapse';
 
+import 'girder/utilities/jquery/girderEnable';
+
 /**
  * This widget is for creating new assetstores. The parent view is responsible
  * for checking admin privileges before rendering this widget.
@@ -57,16 +59,16 @@ var NewAssetstoreWidget = View.extend({
      */
     createAssetstore: function (e, container, data) {
         e.preventDefault();
-        this.$('.g-new-assetstore-submit').addClass('disabled');
+        this.$('.g-new-assetstore-submit').girderEnable(false);
         container.empty();
 
         var assetstore = new AssetstoreModel();
         assetstore.set(data);
         assetstore.on('g:saved', function () {
-            this.$('.g-new-assetstore-submit').removeClass('disabled');
+            this.$('.g-new-assetstore-submit').girderEnable(true);
             this.trigger('g:created', assetstore);
         }, this).on('g:error', function (err) {
-            this.$('.g-new-assetstore-submit').removeClass('disabled');
+            this.$('.g-new-assetstore-submit').girderEnable(true);
             container.text(err.responseJSON.message);
         }, this).save();
     }

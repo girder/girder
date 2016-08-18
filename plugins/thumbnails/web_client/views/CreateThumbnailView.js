@@ -3,6 +3,7 @@ import _ from 'underscore';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 import ThumbnailModel from '../models/ThumbnailModel';
@@ -24,12 +25,12 @@ var CreateThumbnailView = View.extend({
                 this.attachToType = 'item';
                 this.attachToId = this.item.id;
                 this.$('.g-thumbnail-custom-target-container').addClass('hide');
-                this.$('.g-submit-create-thumbnail').removeClass('disabled');
+                this.$('.g-submit-create-thumbnail').girderEnable(true);
             } else {
                 this.attachToType = null;
                 this.attachToId = null;
                 this.$('.g-thumbnail-custom-target-container').removeClass('hide');
-                this.$('.g-submit-create-thumbnail').addClass('disabled');
+                this.$('.g-submit-create-thumbnail').girderEnable(false);
             }
         },
 
@@ -37,7 +38,7 @@ var CreateThumbnailView = View.extend({
             e.preventDefault();
 
             this.$('.g-validation-failed-message').empty();
-            this.$('.g-submit-create-thumbnail').attr('disabled', 'disabled');
+            this.$('.g-submit-create-thumbnail').girderEnable(false);
 
             new ThumbnailModel({
                 width: Number(this.$('#g-thumbnail-width').val()) || 0,
@@ -54,7 +55,7 @@ var CreateThumbnailView = View.extend({
                     });
                 }, this)).modal('hide');
             }, this).on('g:error', function (resp) {
-                this.$('.g-submit-create-thumbnail').removeAttr('disabled');
+                this.$('.g-submit-create-thumbnail').girderEnable(true);
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);
             }, this).save();
         }
@@ -93,7 +94,7 @@ var CreateThumbnailView = View.extend({
         this.searchWidget.resetState();
         this.attachToType = target.type;
         this.attachToId = target.id;
-        this.$('.g-submit-create-thumbnail').removeClass('disabled');
+        this.$('.g-submit-create-thumbnail').girderEnable(true);
 
         this.$('.g-target-result-container').html(CreateThumbnailViewTargetDescriptionTemplate({
             text: target.text,
