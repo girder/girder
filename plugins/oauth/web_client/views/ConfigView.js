@@ -3,7 +3,7 @@ import _ from 'underscore';
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import { apiRoot, restRequest } from 'girder/rest';
-import { events } from 'girder/events';
+import events from 'girder/events';
 
 import ConfigViewTemplate from '../templates/configView.jade';
 import '../stylesheets/configView.styl';

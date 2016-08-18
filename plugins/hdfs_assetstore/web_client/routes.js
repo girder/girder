@@ -1,6 +1,6 @@
 import AssetstoreModel from 'girder/models/AssetstoreModel';
 import router from 'girder/router';
-import { events } from 'girder/events';
+import events from 'girder/events';
 
 import HdfsAssetstoreImportView from './views/HdfsAssetstoreImportView';
 router.route('hdfs_assetstore/:id/import', 'hdfsImport', function (id) {

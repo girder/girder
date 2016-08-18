@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { getCurrentToken, cookie } from 'girder/auth';
 
 var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);

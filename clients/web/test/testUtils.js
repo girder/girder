@@ -1257,12 +1257,12 @@ $(function () {
 girderTest.startApp = function () {
     var defer = new $.Deferred();
     girderTest.promise.then(function () {
-        girder.events.events.trigger('g:appload.before');
+        girder.events.trigger('g:appload.before');
         var app = new girder.views.App({
             el: 'body',
             parentView: null
         });
-        girder.events.events.trigger('g:appload.after');
+        girder.events.trigger('g:appload.after');
         defer.resolve(app);
     });
     girderTest.promise = defer.promise();

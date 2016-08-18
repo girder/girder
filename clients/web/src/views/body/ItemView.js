@@ -12,7 +12,7 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
 import { confirm } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { formatSize, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
 import { handleClose } from 'girder/utilities/DialogHelper';
 

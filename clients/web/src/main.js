@@ -5,7 +5,7 @@ import moment from 'moment';
 
 import App from 'girder/views/App';
 import router from 'girder/router';
-import { events } from 'girder/events';
+import events from 'girder/events';
 
 import 'girder/utilities/jquery/girderModal';
 

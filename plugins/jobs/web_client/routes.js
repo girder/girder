@@ -1,5 +1,5 @@
 import router from 'girder/router';
-import { events } from 'girder/events';
+import events from 'girder/events';
 
 import JobModel from './models/JobModel';
 import JobDetailsWidget from './views/JobDetailsWidget';

@@ -2,6 +2,8 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
+import events from 'girder/events';
+import eventStream from 'girder/utilities/EventStream';
 import LayoutFooterView from 'girder/views/layout/FooterView';
 import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
 import LayoutHeaderView from 'girder/views/layout/HeaderView';
@@ -12,7 +14,6 @@ import ResetPasswordView from 'girder/views/layout/ResetPasswordView';
 import router from 'girder/router';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
-import { events, eventStream } from 'girder/events';
 import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
 import { Layout } from 'girder/constants';
 import { splitRoute } from 'girder/utilities/MiscFunctions';
@@ -68,8 +69,8 @@ var App = View.extend({
         // define a function to be run after fetching the user model
         var afterFetch = _.bind(function (user) {
             // TODO: this below is the old, pre-webpack code. eventStream is now a singleton
-            // imported from 'girder/events'. This mean it is not "re-newed" if start is
-            // called another time (is it, ever)
+            // imported from 'girder/utilities/EventStream'. This mean it is not "re-newed" if
+            // start is called another time (is it, ever)
             // girder.eventStream = new girder.EventStream({
             //     timeout: girder.sseTimeout || null
             // });

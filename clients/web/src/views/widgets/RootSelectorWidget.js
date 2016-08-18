@@ -3,7 +3,7 @@ import _ from 'underscore';
 import CollectionCollection from 'girder/collections/CollectionCollection';
 import UserCollection from 'girder/collections/UserCollection';
 import View from 'girder/views/View';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { getCurrentUser } from 'girder/auth';
 
 import RootSelectorWidgetTemplate from 'girder/templates/widgets/rootSelectorWidget.jade';

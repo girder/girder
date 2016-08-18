@@ -15,12 +15,12 @@ girderTest.addCoveredScripts([
 //     '/static/built/plugins/jobs/plugin.min.css'
 // );
 
-girder.events.events.trigger('g:appload.before');
+girder.events.trigger('g:appload.before');
 var app = new girder.views.App({
     el: 'body',
     parentView: null
 });
-girder.events.events.trigger('g:appload.after');
+girder.events.trigger('g:appload.after');
 
 $(function () {
     describe('Unit test the job detail widget.', function () {
@@ -70,7 +70,7 @@ $(function () {
                 expect($('.g-timeline-point')[3].className).toContain('g-job-color-success');
 
                 // Make sure view change happens when notification is sent for this job
-                girder.events.eventStream.trigger('g:event.job_status', {
+                girder.utilities.eventStream.trigger('g:event.job_status', {
                     data: {
                         _id: 'foo',
                         status: girder.plugins.jobs.JobStatus.SUCCESS,
@@ -82,7 +82,7 @@ $(function () {
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe('log changed');
 
                 // Make sure view change only happens for the currently viewed job
-                girder.events.eventStream.trigger('g:event.job_status', {
+                girder.utilities.eventStream.trigger('g:event.job_status', {
                     data: {
                         _id: 'bar',
                         status: girder.plugins.jobs.JobStatus.QUEUED,
@@ -139,7 +139,7 @@ $(function () {
                 expect($(rows[2]).text()).toContain('Queued');
 
                 // Simulate an SSE notification that changes a job status
-                girder.events.eventStream.trigger('g:event.job_status', {
+                girder.utilities.eventStream.trigger('g:event.job_status', {
                     data: _.extend({}, jobs[0].attributes, {
                         status: 4
                     })

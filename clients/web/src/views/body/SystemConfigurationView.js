@@ -2,7 +2,7 @@ import _ from 'underscore';
 
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
 import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.jade';

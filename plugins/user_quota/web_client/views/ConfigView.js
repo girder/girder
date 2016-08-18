@@ -2,7 +2,7 @@ import _ from 'underscore';
 
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 

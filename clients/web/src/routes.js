@@ -1,7 +1,8 @@
 import _ from 'underscore';
 
 import router from 'girder/router';
-import { events, eventStream } from 'girder/events';
+import events from 'girder/events';
+import eventStream from 'girder/utilities/EventStream';
 import { getCurrentUser, setCurrentUser } from 'girder/auth';
 import { restRequest } from 'girder/rest';
 

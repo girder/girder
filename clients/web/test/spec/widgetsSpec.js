@@ -49,15 +49,15 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'progress to report an error');
 
         runs(function () {
-            var origOnMessage = girder.events.eventStream._eventSource.onmessage;
-            girder.events.eventStream._eventSource.onmessage = function (e) {
+            var origOnMessage = girder.utilities.eventStream._eventSource.onmessage;
+            girder.utilities.eventStream._eventSource.onmessage = function (e) {
                 try {
                     origOnMessage(e);
                 } catch (err) {
                     onMessageError += 1;
                 }
             };
-            var stream = girder.events.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
+            var stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
             stream.on('g:error', function () { errorCalled += 1; });
             stream.on('g:event.progress', function () {
                 throw 'intentional error';

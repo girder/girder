@@ -9,7 +9,7 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
 import { confirm } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
+import events from 'girder/events';
 
 import UserPageTemplate from 'girder/templates/body/userPage.jade';
 

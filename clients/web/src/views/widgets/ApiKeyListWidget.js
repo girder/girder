@@ -7,7 +7,7 @@ import EditApiKeyWidget from 'girder/views/widgets/EditApiKeyWidget';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import View from 'girder/views/View';
 import { confirm } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
+import events from 'girder/events';
 
 import ApiKeyListTemplate from 'girder/templates/widgets/apiKeyList.jade';
 

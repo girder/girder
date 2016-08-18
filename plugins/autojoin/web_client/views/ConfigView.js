@@ -4,7 +4,7 @@ import GroupCollection from 'girder/collections/GroupCollection';
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import router from 'girder/router';
 import View from 'girder/views/View';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 
 import ConfigViewTemplate from '../templates/configView.jade';

@@ -9,7 +9,7 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/utilities/DialogHelper';
 import { formatSize } from 'girder/utilities/MiscFunctions';
-import { events } from 'girder/events';
+import events from 'girder/events';
 
 import FileListTemplate from 'girder/templates/widgets/fileList.jade';
 

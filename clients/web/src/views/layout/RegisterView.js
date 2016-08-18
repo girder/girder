@@ -1,6 +1,6 @@
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 

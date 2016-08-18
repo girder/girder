@@ -6,7 +6,7 @@ import UserView from 'girder/views/body/UserView';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
+import events from 'girder/events';
 
 import GroupAdminListTemplate from 'girder/templates/widgets/groupAdminList.jade';
 

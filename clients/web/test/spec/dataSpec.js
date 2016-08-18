@@ -350,7 +350,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             /* We don't expose the hierarchy view directly, so we have to reach
              * through some internal objects to get to it */
-            widget = girder.events.events._events['g:navigateTo'][0].ctx.bodyView.hierarchyWidget;
+            widget = girder.events._events['g:navigateTo'][0].ctx.bodyView.hierarchyWidget;
             spyOn(girder.views.widgets.HierarchyWidget.prototype, 'redirectViaForm').andCallFake(function (method, url, data) {
                 redirect = {method: method, url: url, data: data};
                 /* jshint scripturl: true */

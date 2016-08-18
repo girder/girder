@@ -33,11 +33,11 @@ describe('Test empty and default layouts', function () {
     }
 
     girder.router.route('collections/emptylayout', 'collectionsEmptyLayout', function (params) {
-        girder.events.events.trigger('g:navigateTo', girder.views.body.CollectionsView, params || {}, {layout: girder.constants.Layout.EMPTY});
+        girder.events.trigger('g:navigateTo', girder.views.body.CollectionsView, params || {}, {layout: girder.constants.Layout.EMPTY});
     });
 
     girder.router.route('collections/defaultlayout', 'collectionsDefaultLayout', function (params) {
-        girder.events.events.trigger('g:navigateTo', girder.views.body.CollectionsView, params || {}, {layout: girder.constants.Layout.DEFAULT});
+        girder.events.trigger('g:navigateTo', girder.views.body.CollectionsView, params || {}, {layout: girder.constants.Layout.DEFAULT});
     });
 
     it('register a user (first is admin)',

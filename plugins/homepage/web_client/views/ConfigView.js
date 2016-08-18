@@ -4,7 +4,7 @@ import FolderModel from 'girder/models/FolderModel';
 import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 
 import ConfigViewTemplate from '../templates/configView.jade';

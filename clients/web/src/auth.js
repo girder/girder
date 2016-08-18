@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 import UserModel from 'girder/models/UserModel';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 
 // TODO: this might need some fixing/testing, as it seems that

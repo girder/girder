@@ -4,7 +4,7 @@ import router from 'girder/router';
 import versionInfo from 'girder/version';
 import View from 'girder/views/View';
 import { cancelRestRequests, apiRoot, staticRoot } from 'girder/rest';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { getCurrentUser } from 'girder/auth';
 
 import FrontPageTemplate from 'girder/templates/body/frontPage.jade';

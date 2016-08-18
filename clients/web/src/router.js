@@ -1,6 +1,6 @@
 import Backbone from 'backbone';
 
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { parseQueryString } from 'girder/utilities/MiscFunctions';
 
 var Router = Backbone.Router.extend({

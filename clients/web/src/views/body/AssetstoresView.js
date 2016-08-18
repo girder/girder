@@ -9,7 +9,7 @@ import View from 'girder/views/View';
 import { AssetstoreType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
 import { confirm } from 'girder/utilities/DialogHelper';
-import { events } from 'girder/events';
+import events from 'girder/events';
 import { formatSize } from 'girder/utilities/MiscFunctions';
 import { getCurrentUser } from 'girder/auth';
 
