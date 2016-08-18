@@ -136,7 +136,8 @@ def startMongoReplicaSet(timeout=60, verbose=0):
         os.makedirs(server['dir'])
 
         proc = subprocess.Popen([
-            'mongod', '--dbpath', server['dir'],
+            os.environ.get('MONGOD_EXECUTABLE', 'mongod'),
+            '--dbpath', server['dir'],
             '--port', str(server['port']),
             '--replSet', ReplicaSetName,
             '--noprealloc', '--smallfiles', '--oplogSize', '128'], **kwargs)
