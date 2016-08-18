@@ -114,6 +114,8 @@ class Item(Resource):
         .param('folderId', 'The ID of the parent folder.')
         .param('name', 'Name for the item.')
         .param('description', "Description for the item.", required=False)
+        .param('reuseExisting', 'Return existing item (by name) if it exists.',
+               required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
@@ -123,12 +125,14 @@ class Item(Resource):
         user = self.getCurrentUser()
         name = params['name'].strip()
         description = params.get('description', '').strip()
+        reuseExisting = params.get('reuseExisting', False)
 
         folder = self.model('folder').load(id=params['folderId'], user=user,
                                            level=AccessType.WRITE, exc=True)
 
         return self.model('item').createItem(
-            folder=folder, name=name, creator=user, description=description)
+            folder=folder, name=name, creator=user, description=description,
+            reuseExisting=reuseExisting)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='item', level=AccessType.WRITE)
