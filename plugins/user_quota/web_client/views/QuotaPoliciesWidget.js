@@ -6,6 +6,7 @@ import { getCurrentUser } from 'girder/auth';
 import { handleOpen, handleClose } from 'girder/dialog';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.jade';
@@ -25,7 +26,7 @@ var QuotaPoliciesWidget = View.extend({
             fields.fileSizeQuota = valueAndUnitsToSize(
                 this.$('#g-sizeValue').val(), this.$('#g-sizeUnits').val());
             this.updateQuotaPolicies(fields);
-            this.$('button.g-save-policies').addClass('disabled');
+            this.$('button.g-save-policies').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
         'input #g-sizeValue': '_selectCustomQuota',
@@ -165,7 +166,7 @@ var QuotaPoliciesWidget = View.extend({
             this.trigger('g:saved', this.model);
         }, this).off('g:error').on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-policies').removeClass('disabled');
+            this.$('button.g-save-policies').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).updateQuotaPolicy();
     }

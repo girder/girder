@@ -7,6 +7,7 @@ import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -26,7 +27,7 @@ var EditItemWidget = View.extend({
                 this.createItem(fields);
             }
 
-            this.$('button.g-save-item').addClass('disabled');
+            this.$('button.g-save-item').girderEnable(false);
             this.$('.g-validation-failed-message').empty();
 
             return false;
@@ -79,7 +80,7 @@ var EditItemWidget = View.extend({
             this.trigger('g:saved', item);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-item').removeClass('disabled');
+            this.$('button.g-save-item').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -91,7 +92,7 @@ var EditItemWidget = View.extend({
             this.trigger('g:saved', this.item);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-item').removeClass('disabled');
+            this.$('button.g-save-item').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     }
