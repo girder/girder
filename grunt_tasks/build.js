@@ -180,7 +180,8 @@ module.exports = function (grunt) {
 
         symlink: {
             options: {
-                overwrite: true
+                overwrite: true,
+                force: true
             },
             legacy_names: {
                 // Provide static files under old names, for compatibility
