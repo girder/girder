@@ -38,6 +38,7 @@ class Assetstore(Resource):
         self.route('POST', (':id', 'import'), self.importData)
         self.route('PUT', (':id',), self.updateAssetstore)
         self.route('DELETE', (':id',), self.deleteAssetstore)
+        self.route('GET', (':id', 'files'), self.getAssetstoreFiles)
 
     @access.admin
     @loadmodel(model='assetstore')
@@ -260,3 +261,18 @@ class Assetstore(Resource):
     def deleteAssetstore(self, assetstore, params):
         self.model('assetstore').remove(assetstore)
         return {'message': 'Deleted assetstore %s.' % assetstore['name']}
+
+    @access.admin
+    @loadmodel(model='assetstore')
+    @describeRoute(
+        Description('Get a list of files controlled by an assetstore.')
+        .param('id', 'The assetstore ID.', paramType='path')
+        .pagingParams(defaultSort='_id')
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403)
+    )
+    def getAssetstoreFiles(self, assetstore, params):
+        limit, offset, sort = self.getPagingParameters(params, 'lowerName')
+        return list(self.model('file').find(
+            query={'assetstoreId': assetstore['_id']},
+            offset=offset, limit=limit, sort=sort))
