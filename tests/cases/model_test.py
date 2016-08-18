@@ -19,6 +19,7 @@
 
 from .. import base
 from girder.models.model_base import AccessControlledModel, Model, AccessType
+from girder.models.model_base import ValidationException
 from girder.utility.model_importer import ModelImporter
 
 
@@ -45,6 +46,15 @@ class FakeModel(Model):
     def validate(self, doc):
         return doc
 
+class SchemaModel(Model):
+
+    def __init__(self, schema):
+        self._schema = schema
+        super(SchemaModel, self).__init__()
+
+    def initialize(self):
+        self.name = 'schema'
+        self.schema = self._schema
 
 def setUpModule():
     base.startServer()
@@ -189,3 +199,47 @@ class ModelTestCase(base.TestCase):
         self.assertEqual(len(doc1['access']['users']), 1)
         self.assertEqual(len(doc1['access']['groups']), 0)
         self.assertIsNone(doc1.get('creatorId'))
+
+    def testValidateSchema(self):
+        valid_schema = {
+            'type' : 'object',
+            'properties' : {
+                'foo' : {'type' : 'number'},
+                'bar' : {'type' : 'string'},
+            },
+        }
+        SchemaModel(valid_schema)
+
+        # Try invalid schema
+        invalid_schema = {
+            'type' : 'ofbject',
+            'properties' : {
+                'foo' : {'type' : 'number'},
+                'bar' : {'type' : 'string'},
+            },
+        }
+        with self.assertRaises(Exception):
+            SchemaModel(invalid_schema)
+
+    def testValidateWithSchema(self):
+        schema = {
+            'type' : 'object',
+            'properties' : {
+                'foo' : {'type' : 'number'},
+            },
+        }
+
+        ModelImporter.registerModel('schema', SchemaModel(schema))
+        model = ModelImporter.model('schema')
+
+        invalid = {
+            'foo': 'notanumber'
+        }
+        with self.assertRaises(ValidationException):
+            model.save(invalid)
+
+        # Now try valid data
+        valid = {
+            'foo': 3141
+        }
+        model.save(valid)
