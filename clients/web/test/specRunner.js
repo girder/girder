@@ -9,7 +9,10 @@
  */
 /* globals phantom, WebPage, jasmine, girderTest */
 
-if (phantom.args.length < 2) {
+var system = require('system');
+var args = phantom.args ? phantom.args : system.args.slice(1);
+
+if (args && args.length < 2) {
     console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output> [<default jasmine timeout>]');
     console.error('  <page> is the path to the HTML page to load');
     console.error('  <spec> is the path to the Jasmine spec to run.');
@@ -18,12 +21,11 @@ if (phantom.args.length < 2) {
     phantom.exit(2);
 }
 
-var system = require('system');
 var env = system.env;
 
-var pageUrl = phantom.args[0];
-var spec = phantom.args[1];
-var coverageOutput = phantom.args[2] || null;
+var pageUrl = args[0];
+var spec = args[1];
+var coverageOutput = args[2] || null;
 var page = new WebPage();
 var accumCoverage = false;
 
@@ -36,7 +38,11 @@ if (coverageOutput) {
 
 var terminate = function () {
     if (!coverageOutput) {
+        // setTimeout(function () {
+        //     phantom.exit(0);
+        // }, 0);
         phantom.exit(0);
+        return true;
     }
     var status = this.page.evaluate(function () {
         if (window.jasmine_phantom_reporter.status === 'success') {
@@ -51,6 +57,7 @@ var terminate = function () {
     } else {
         phantom.exit(1);
     }
+    return status;
 };
 
 // Set decent viewport size for screenshots.
@@ -168,12 +175,12 @@ page.onLoadFinished = function (status) {
             console.error('Could not load test spec into page: ' + spec);
             phantom.exit(1);
         }
-        if (phantom.args[3]) {
+        if (args[3]) {
             page.evaluate(function (timeout) {
                 if (window.jasmine) {
                     jasmine.getEnv().defaultTimeoutInterval = timeout;
                 }
-            }, phantom.args[3]);
+            }, args[3]);
         }
     }
 };
@@ -185,8 +192,7 @@ page.onLoadFinished = function (status) {
 page.settings.resourceTimeout = 15000;
 
 page.onResourceTimeout = function (request) {
-    console.log('Resource timed out.  (#' + request.id + '): ' +
-                JSON.stringify(request));
+    console.log('Resource timed out.  (#' + request.id + '): ' + JSON.stringify(request));
     console.log('PHANTOM_TIMEOUT');
     /* The exit code doesn't get sent back from here, so setting this to a
      * non-zero value doesn't seem to have any benefit. */
