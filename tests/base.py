@@ -454,6 +454,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             try:
                 response.json = json.loads(body)
             except Exception:
+                print(url)
                 print(body)
                 raise AssertionError('Did not receive JSON response')
 
