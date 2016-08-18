@@ -19,7 +19,7 @@ Vagrant.configure("2") do |config|
       "ansible"
     end
   config.vm.provision provisioner_type do |ansible|
-    ansible.playbook = "devops/ansible/playbook.yml"
+    ansible.playbook = "devops/ansible/vagrant_playbook.yml"
     #ansible.verbose = "v"
     if provisioner_type == "ansible_local"
       ansible.provisioning_path = "/home/vagrant/girder"
