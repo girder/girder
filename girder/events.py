@@ -44,8 +44,7 @@ receive the Event object as its only argument.
 import contextlib
 import threading
 
-from .constants import TerminalColor
-from girder import logger
+import girder
 from six.moves import queue
 
 
@@ -126,7 +125,7 @@ class AsyncEventsThread(threading.Thread):
         put to sleep until someone calls trigger() on it with a new event to
         dispatch.
         """
-        print(TerminalColor.info('Started asynchronous event manager thread.'))
+        girder.logprint.info('Started asynchronous event manager thread.')
 
         while not self.terminate:
             eventName, info, callback = self.eventQueue.get(block=True)
@@ -135,10 +134,11 @@ class AsyncEventsThread(threading.Thread):
                 if callable(callback):
                     callback(event)
             except Exception:
-                logger.exception('In handler for event "%s":' % eventName)
+                girder.logger.exception(
+                    'In handler for event "%s":' % eventName)
                 pass  # Must continue the event loop even if handler failed
 
-        print(TerminalColor.info('Stopped asynchronous event manager thread.'))
+        girder.logprint.info('Stopped asynchronous event manager thread.')
 
     def trigger(self, eventName, info=None, callback=None):
         """
@@ -176,8 +176,8 @@ def bind(eventName, handlerName, handler):
     :type handler: function
     """
     if eventName in _deprecated:
-        logger.warning('event "%s" is deprecated; %s'
-                       % (eventName, _deprecated[eventName]))
+        girder.logger.warning('event "%s" is deprecated; %s' %
+                              (eventName, _deprecated[eventName]))
 
     if eventName not in _mapping:
         _mapping[eventName] = []

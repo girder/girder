@@ -20,10 +20,9 @@
 import pymongo
 
 from pymongo.read_preferences import ReadPreference
-from girder import logger
+from girder import logger, logprint
 from girder.external.mongodb_proxy import MongoProxy
 from girder.utility import config
-from girder.constants import TerminalColor
 
 _dbClients = {}
 
@@ -84,8 +83,8 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
 
     if uri is None:
         dbUriRedacted = 'mongodb://localhost:27017/girder'
-        print(TerminalColor.warning('WARNING: No MongoDB URI specified, using '
-                                    'the default value'))
+        logprint.warning('WARNING: No MongoDB URI specified, using '
+                         'the default value')
 
         client = pymongo.MongoClient(dbUriRedacted, **clientOptions)
     else:
@@ -107,6 +106,5 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
     desc = ''
     if replicaSet:
         desc += ', replica set: %s' % replicaSet
-    print(TerminalColor.info('Connected to MongoDB: %s%s' % (dbUriRedacted,
-                                                             desc)))
+    logprint.info('Connected to MongoDB: %s%s' % (dbUriRedacted, desc))
     return client

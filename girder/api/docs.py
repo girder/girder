@@ -20,7 +20,7 @@
 import collections
 import functools
 import six
-from girder.constants import TerminalColor
+from girder import logprint
 
 models = collections.defaultdict(dict)
 # routes is dict of dicts of lists
@@ -149,7 +149,7 @@ def addModel(name, model, resources=None, silent=False):
             models[resource][name] = model
     else:
         if not silent:
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: adding swagger models without specifying resources '
-                'to bind to is discouraged (%s).' % name))
+                'to bind to is discouraged (%s).' % name)
         models[None][name] = model

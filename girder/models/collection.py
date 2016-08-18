@@ -102,7 +102,8 @@ class Collection(AccessControlledModel):
             progress.update(increment=1, message='Deleted collection ' +
                             collection['name'])
 
-    def createCollection(self, name, creator, description='', public=True):
+    def createCollection(self, name, creator=None, description='', public=True,
+                         reuseExisting=False):
         """
         Create a new collection.
 
@@ -114,22 +115,33 @@ class Collection(AccessControlledModel):
         :type public: bool
         :param creator: The user who is creating this collection.
         :type creator: dict
+        :param reuseExisting: If a collection with the given name already exists
+            return that collection rather than creating a new one.
+        :type reuseExisting: bool
         :returns: The collection document that was created.
         """
+        if reuseExisting:
+            existing = self.findOne({
+                'name': name
+            })
+            if existing:
+                return existing
+
         now = datetime.datetime.utcnow()
 
         collection = {
             'name': name,
             'description': description,
-            'creatorId': creator['_id'],
+            'creatorId': creator['_id'] if creator else None,
             'created': now,
             'updated': now,
             'size': 0
         }
 
         self.setPublic(collection, public, save=False)
-        self.setUserAccess(collection, user=creator, level=AccessType.ADMIN,
-                           save=False)
+        if creator:
+            self.setUserAccess(
+                collection, user=creator, level=AccessType.ADMIN, save=False)
 
         return self.save(collection)
 
@@ -147,9 +159,14 @@ class Collection(AccessControlledModel):
         return self.save(collection)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, mimeFilter=None):
+                 subpath=True, mimeFilter=None, data=True):
         """
-        Generate a list of files within this collection's folders.
+        This function generates a list of 2-tuples whose first element is the
+        relative path to the file from the collection's root and whose second
+        element depends on the value of the `data` flag. If `data=True`, the
+        second element will be a generator that will generate the bytes of the
+        file data as stored in the assetstore. If `data=False`, the second
+        element is the file document itself.
 
         :param doc: the collection to list.
         :param user: a user used to validate data that is returned.
@@ -163,6 +180,9 @@ class Collection(AccessControlledModel):
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
         :type mimeFilter: list or tuple
+        :param data: If True return raw content of each file as stored in the
+            assetstore, otherwise return file document.
+        :type data: bool
         """
         if subpath:
             path = os.path.join(path, doc['name'])
@@ -171,7 +191,7 @@ class Collection(AccessControlledModel):
                                                         parent=doc, user=user):
             for (filepath, file) in self.model('folder').fileList(
                     folder, user, path, includeMetadata, subpath=True,
-                    mimeFilter=mimeFilter):
+                    mimeFilter=mimeFilter, data=data):
                 yield (filepath, file)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):

@@ -67,6 +67,10 @@ useful as an example for how to set up your own environment for testing.  We are
 using containerized builds on Travis, and for each branch, will test against both Mongo
 v2.6.8 and Mongo v3.0.1.
 
+The tests that run in Travis are harnessed with CTest, which submits the results of its
+automated testing to [Girder's CDash dashboard](http://my.cdash.org/index.php?project=girder)
+where the test and coverage results can be easily visualized and explored.
+
 #### Confusing failing test message "AttributeError: 'module' object has no attribute 'x_test'"
 
 This is also a gotcha for your local testing environment.  If a new dependency is

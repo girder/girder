@@ -60,11 +60,11 @@ function(python_tests_init)
     set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
     set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
 
-    set_property(TEST py_coverage PROPERTY LABELS girder_server)
-    set_property(TEST py_coverage_reset PROPERTY LABELS girder_server)
-    set_property(TEST py_coverage_combine PROPERTY LABELS girder_server)
-    set_property(TEST py_coverage_html PROPERTY LABELS girder_server)
-    set_property(TEST py_coverage_xml PROPERTY LABELS girder_server)
+    set_property(TEST py_coverage PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage_reset PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage_combine PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage_html PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage_xml PROPERTY LABELS girder_python)
   endif()
 endfunction()
 
@@ -75,7 +75,7 @@ function(add_python_style_test name input)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${FLAKE8_EXECUTABLE}" "--config=${flake8_config}" "${input}"
     )
-    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis girder_server)
+    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis girder_python)
   endif()
 endfunction()
 
@@ -83,7 +83,7 @@ function(add_python_test case)
   set(name "server_${case}")
 
   set(_options BIND_SERVER PY2_ONLY)
-  set(_args PLUGIN)
+  set(_args DBNAME PLUGIN SUBMODULE)
   set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -103,6 +103,11 @@ function(add_python_test case)
     set(other_covg "")
   endif()
 
+  if(fn_SUBMODULE)
+    set(module ${module}.${fn_SUBMODULE})
+    set(name ${name}.${fn_SUBMODULE})
+  endif()
+
   if(PYTHON_COVERAGE)
     add_test(
       NAME ${name}
@@ -119,7 +124,13 @@ function(add_python_test case)
     )
   endif()
 
-  string(REPLACE "." "_" _db_name ${name})
+  if(fn_DBNAME)
+    set(_db_name ${fn_DBNAME})
+  else()
+    set(_db_name ${name})
+  endif()
+
+  string(REPLACE "." "_" _db_name ${_db_name})
   set_property(TEST ${name} PROPERTY ENVIRONMENT
     "PYTHONPATH=$ENV{PYTHONPATH}${_separator}${pythonpath}${_separator}${PROJECT_SOURCE_DIR}/clients/python"
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${_db_name}"
@@ -154,5 +165,5 @@ function(add_python_test case)
     girder_ExternalData_add_target("${name}_data")
   endif()
 
-  set_property(TEST ${name} PROPERTY LABELS girder_server)
+  set_property(TEST ${name} PROPERTY LABELS girder_python)
 endfunction()

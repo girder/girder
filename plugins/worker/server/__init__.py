@@ -22,6 +22,7 @@ import celery
 from girder import events
 from girder.constants import AccessType
 from girder.plugins.jobs.constants import JobStatus
+from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
 _celeryapp = None
@@ -90,21 +91,18 @@ def schedule(event):
         jobModel.updateJob(job, status=JobStatus.QUEUED)
 
 
-def validateSettings(event):
+@setting_utilities.validator({
+    PluginSettings.BROKER,
+    PluginSettings.BACKEND
+})
+def validateSettings(doc):
     """
     Handle plugin-specific system settings. Right now we don't do any
     validation for the broker or backend URL settings, but we do reinitialize
     the celery app object with the new values.
     """
     global _celeryapp
-    key = event.info['key']
-
-    if key == PluginSettings.BROKER:
-        _celeryapp = None
-        event.preventDefault()
-    elif key == PluginSettings.BACKEND:
-        _celeryapp = None
-        event.preventDefault()
+    _celeryapp = None
 
 
 def validateJobStatus(event):
@@ -116,7 +114,5 @@ def validateJobStatus(event):
 def load(info):
     events.bind('jobs.schedule', 'worker', schedule)
     events.bind('jobs.status.validate', 'worker', validateJobStatus)
-    events.bind('model.setting.validate', 'worker', validateSettings)
 
-    ModelImporter.model('job', 'jobs').exposeFields(
-        AccessType.SITE_ADMIN, {'celeryTaskId'})
+    ModelImporter.model('job', 'jobs').exposeFields(AccessType.SITE_ADMIN, {'celeryTaskId'})

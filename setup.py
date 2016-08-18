@@ -19,6 +19,7 @@
 
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -57,9 +58,6 @@ class InstallWithOptions(install):
 with open('README.rst') as f:
     readme = f.read()
 
-with open('package.json') as f:
-    version = json.load(f)['version']
-
 install_reqs = [
     'bcrypt',
     'boto',
@@ -69,6 +67,7 @@ install_reqs = [
     'PyYAML',
     'requests',
     'psutil',
+    'python-dateutil',
     'pytz',
     'six>=1.9'
 ]
@@ -76,9 +75,9 @@ install_reqs = [
 extras_reqs = {
     'celery_jobs': ['celery'],
     'geospatial': ['geojson'],
-    'thumbnails': ['Pillow'],
+    'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
-    'plugins': ['celery', 'geojson', 'Pillow']
+    'plugins': ['celery', 'geojson', 'Pillow', 'pydicom', 'numpy']
 }
 
 if sys.version_info[0] == 2:
@@ -96,6 +95,12 @@ if sys.version_info[0] == 2:
             'hachoir-parser'
         ]
     })
+
+init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
+with open(init) as fd:
+    version = re.search(
+        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
+        fd.read(), re.MULTILINE).group(1)
 
 # perform the install
 setup(

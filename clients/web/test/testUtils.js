@@ -43,7 +43,7 @@ girderTest.createUser = function (login, email, firstName, lastName, password, u
         });
 
         waitsFor(function () {
-            return $('.g-user-text a')[0].text === firstName + ' ' + lastName;
+            return $('.g-user-text a')[0].text.trim() === login;
         }, 'user to be logged in');
         girderTest.waitForLoad();
 
@@ -89,7 +89,7 @@ girderTest.login = function (login, firstName, lastName, password) {
         });
 
         waitsFor(function () {
-            return $('.g-user-text a')[0].text === firstName + ' ' + lastName;
+            return $('.g-user-text a')[0].text.trim() === login;
         }, 'user to be logged in');
         girderTest.waitForLoad();
 

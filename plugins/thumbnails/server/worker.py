@@ -21,6 +21,8 @@ import functools
 import six
 import sys
 import traceback
+import dicom
+import numpy as np
 
 from girder import events
 from girder.plugins.jobs.constants import JobStatus
@@ -83,7 +85,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     stream = streamFn()
     data = b''.join(stream())
 
-    image = Image.open(six.BytesIO(data))
+    image = _getImage(file['mimeType'], file['exts'], data)
 
     if not width:
         width = int(height * image.size[0] / image.size[1])
@@ -157,3 +159,53 @@ def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
     }
 
     return ModelImporter.model('file').save(thumbnail)
+
+
+def _getImage(mimeType, extension, data):
+    """
+    Check extension of image and opens it.
+
+    :param extension: The extension of the image that needs to be opened.
+    :param data: The image file stream.
+    """
+    if (extension and extension[-1] == 'dcm') or mimeType == 'application/dicom':
+        # Open the dicom image
+        dicomData = dicom.read_file(six.BytesIO(data))
+        return scaleDicomLevels(dicomData)
+    else:
+        # Open other types of images
+        return Image.open(six.BytesIO(data))
+
+
+def scaleDicomLevels(dicomData):
+    """
+    Adjust dicom levels so image is viewable.
+
+    :param dicomData: The image data to be processed.
+    """
+    offset = dicomData.RescaleIntercept
+    imageData = dicomData.pixel_array
+    if len(imageData.shape) == 3:
+        minimum = imageData[0].min() + offset
+        maximum = imageData[0].max() + offset
+        finalImage = _scaleIntensity(imageData[0], maximum-minimum, (maximum+minimum)/2)
+        return Image.fromarray(finalImage).convert("I")
+    else:
+        minimum = imageData.min() + offset
+        maximum = imageData.max() + offset
+        finalImage = _scaleIntensity(imageData, maximum-minimum, (maximum+minimum)/2)
+        return Image.fromarray(finalImage).convert("I")
+
+
+def _scaleIntensity(img, window, level, maxc=255):
+    """Change window and level data in image.
+
+    :param img: numpy array representing an image
+    :param window: the window for the transformation
+    :param level: the level for the transformation
+    :param maxc: what the maximum display color is
+
+    """
+    m = maxc/(2.0*window)
+    o = m*(level-window)
+    return np.clip((m*img-o), 0, maxc).astype(np.uint8)

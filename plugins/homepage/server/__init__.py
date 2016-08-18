@@ -17,12 +17,14 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder import events
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
+from girder.utility import setting_utilities
+from girder.utility.model_importer import ModelImporter
 
 KEY = 'homepage.markdown'
+NAME = 'Homepage Assets'
 
 
 class Homepage(Resource):
@@ -36,14 +38,25 @@ class Homepage(Resource):
         Description('Public url for getting the homepage markdown.')
     )
     def getMarkdown(self, params):
-        return {KEY: self.model('setting').get(KEY)}
+        folder = getOrCreateAssetsFolder()
+        return {
+            KEY: self.model('setting').get(KEY),
+            'folderId': folder['_id']
+        }
 
 
-def validateSettings(event):
-    if event.info['key'] == KEY:
-        event.preventDefault().stopPropagation()
+@setting_utilities.validator(KEY)
+def validateHomepageMarkdown(event):
+    pass
+
+
+def getOrCreateAssetsFolder():
+    collection = ModelImporter.model('collection').createCollection(
+        NAME, public=False, reuseExisting=True)
+    folder = ModelImporter.model('folder').createFolder(
+        collection, NAME, parentType='collection', public=True, reuseExisting=True)
+    return folder
 
 
 def load(info):
-    events.bind('model.setting.validate', 'homepage', validateSettings)
     info['apiRoot'].homepage = Homepage()

@@ -2,16 +2,31 @@
 
 .g-user-text
   line-height $headerHeight
-  vertical-align middle
 
   a
     color white
+
+    &:hover
+      color #e0e0e0
+
+  .g-user-dropdown-link
+    display inline-block
+    max-width calc(100vw - 300px)
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
     i
       margin-left 2px
-  a:hover
-    color #e0e0e0
 
-#g-user-action-menu .dropdown-menu
-  position absolute
-  right 0
-  left auto
+  .g-or-text
+    vertical-align top
+    display inline-block
+    margin 0 5px
+
+#g-user-action-menu
+  display inline
+
+  .dropdown-menu
+    right 0
+    left auto

@@ -148,6 +148,8 @@ describe('Test folder creation, editing, and deletion', function () {
             return Backbone.history.fragment.search('folder') > -1;
         }, 'the url state to change');
 
+        girderTest.waitForLoad();
+
         runs(function () {
             var privateFolderFragment = Backbone.history.fragment;
             girderTest.anonymousLoadPage(true, privateFolderFragment, true, girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));

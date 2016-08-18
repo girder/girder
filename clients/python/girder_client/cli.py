@@ -74,7 +74,8 @@ def main():
     parser.add_argument('--port', required=False, default=None)
     parser.add_argument('--api-root', required=False, default=None,
                         help='relative path to the Girder REST API')
-    parser.add_argument('-c', default='upload', choices=['upload', 'download'],
+    parser.add_argument('-c', default='upload',
+                        choices=['upload', 'download', 'localsync'],
                         help='command to run')
     parser.add_argument('parent_id', help='id of Girder parent target')
     parser.add_argument('--parent-type', required=False, default='folder',
@@ -100,6 +101,14 @@ def main():
             print('download command only accepts parent-type of folder')
         else:
             g.downloadFolderRecursive(args.parent_id, args.local_folder)
+    elif args.c == 'localsync':
+        if args.parent_type != 'folder':
+            print('localsync command only accepts parent-type of folder')
+        else:
+            g.loadLocalMetadata(args.local_folder)
+            g.downloadFolderRecursive(args.parent_id, args.local_folder,
+                                      sync=True)
+            g.saveLocalMetadata(args.local_folder)
     else:
         print('No implementation for command %s' % args.c)
 
