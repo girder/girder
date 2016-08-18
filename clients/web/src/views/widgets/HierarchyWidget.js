@@ -250,7 +250,7 @@ var HierarchyWidget = View.extend({
                 }
             }, this).fetch();
         } else {
-            throw 'No such model: ' + modelName;
+            throw new Error('No such model: ' + modelName);
         }
     },
 

@@ -5,7 +5,6 @@
         "space-before-function-paren": [2, {"anonymous": "always", "named": "never"}],
         "one-var": 0,
         "no-multi-spaces": [2, {"exceptions": {"VariableDeclarator": true, "ImportDeclaration": true} }],
-        "no-throw-literal": 0,
         "backbone/collection-model": 2,
         "backbone/model-defaults": 0,
         "backbone/no-model-attributes": 2,

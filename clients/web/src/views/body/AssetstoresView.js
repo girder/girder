@@ -212,7 +212,7 @@ var AssetstoresView = View.extend({
                     assetstore: assetstore
                 });
             } else {
-                throw 'No such view';
+                throw new Error('No such view');
             }
         }).fetch();
     }
