@@ -123,7 +123,7 @@ describe('Create an admin and non-admin user', function () {
 
     it("test changing other user's password", function () {
         runs(function () {
-            girder.router.router.navigate('useraccount/' + registeredUsers[1].id + '/password',
+            girder.router.navigate('useraccount/' + registeredUsers[1].id + '/password',
                                    {trigger: true});
         });
 
@@ -448,7 +448,7 @@ describe('test account approval', function() {
             return girder.rest.numberOutstandingRestRequests() === 0;
         }, 'dialog rest requests to finish');
         runs(function () {
-            girder.router.router.navigate('user/' + registeredUsers[1].id,
+            girder.router.navigate('user/' + registeredUsers[1].id,
                                    {trigger: true});
         });
         waitsFor(function () {

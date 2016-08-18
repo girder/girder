@@ -211,6 +211,30 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.substring(1);
 }
 
+function splitRoute(route) {
+    if (!route) {
+        return {base: '', name: ''};
+    }
+    var firstIndex = route.indexOf('?'),
+        lastIndex = route.lastIndexOf('?'),
+        dialogName,
+        baseRoute;
+
+    if (firstIndex === -1) {
+        baseRoute = route;
+    } else {
+        baseRoute = route.slice(0, firstIndex);
+    }
+
+    if (lastIndex === -1) {
+        dialogName = '';
+    } else {
+        dialogName = route.slice(lastIndex + 1);
+    }
+
+    return {name: dialogName, base: baseRoute};
+}
+
 export {
     DATE_MONTH,
     DATE_DAY,
@@ -225,5 +249,6 @@ export {
     parseQueryString,
     defineFlags,
     renderMarkdown,
-    capitalize
+    capitalize,
+    splitRoute
 };

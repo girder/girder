@@ -45,32 +45,4 @@ var Router = Backbone.Router.extend({
 
 var router = new Router();
 
-function splitRoute(route) {
-    if (!route) {
-        return {base: '', name: ''};
-    }
-    var firstIndex = route.indexOf('?'),
-        lastIndex = route.lastIndexOf('?'),
-        dialogName,
-        baseRoute;
-
-    if (firstIndex === -1) {
-        baseRoute = route;
-    } else {
-        baseRoute = route.slice(0, firstIndex);
-    }
-
-    if (lastIndex === -1) {
-        dialogName = '';
-    } else {
-        dialogName = route.slice(lastIndex + 1);
-    }
-
-    return {name: dialogName, base: baseRoute};
-}
-
 export default router;
-export {
-    router,
-    splitRoute
-};

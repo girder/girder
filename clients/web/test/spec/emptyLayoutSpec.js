@@ -32,11 +32,11 @@ describe('Test empty and default layouts', function () {
         expect($('.g-collection-create-button').is(':visible')).toBe(true);
     }
 
-    girder.router.router.route('collections/emptylayout', 'collectionsEmptyLayout', function (params) {
+    girder.router.route('collections/emptylayout', 'collectionsEmptyLayout', function (params) {
         girder.events.events.trigger('g:navigateTo', girder.views.body.CollectionsView, params || {}, {layout: girder.constants.Layout.EMPTY});
     });
 
-    girder.router.router.route('collections/defaultlayout', 'collectionsDefaultLayout', function (params) {
+    girder.router.route('collections/defaultlayout', 'collectionsDefaultLayout', function (params) {
         girder.events.events.trigger('g:navigateTo', girder.views.body.CollectionsView, params || {}, {layout: girder.constants.Layout.DEFAULT});
     });
 

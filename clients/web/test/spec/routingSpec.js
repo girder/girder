@@ -398,15 +398,15 @@ describe('Test disabling the router at runtime', function () {
     });
 
     it('router should be enabled by default', function () {
-        girder.router.router.navigate('collections', {trigger: true});
+        girder.router.navigate('collections', {trigger: true});
 
         expect(router.navigate).toHaveBeenCalled();
     });
 
     it('disabling router should make navigate() a no-op', function () {
-        girder.router.router.enabled(false);
+        girder.router.enabled(false);
 
-        girder.router.router.navigate('users', {trigger: true});
+        girder.router.navigate('users', {trigger: true});
 
         expect(router.navigate).not.toHaveBeenCalled();
     });

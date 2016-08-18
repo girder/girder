@@ -774,7 +774,7 @@ girderTest.binaryUpload = function (path) {
         // Reload the current view
         var old = Backbone.history.fragment;
         Backbone.history.fragment = null;
-        girder.router.router.navigate(old, {trigger: true});
+        girder.router.navigate(old, {trigger: true});
     });
 
     waitsFor(function () {
@@ -795,7 +795,7 @@ girderTest.testRoute = function (route, hasDialog, testFunc) {
         if (route.indexOf('#') === 0) {
             route = route.substr(1);
         }
-        girder.router.router.navigate(route, {trigger: true});
+        girder.router.navigate(route, {trigger: true});
     });
 
     if (hasDialog) {

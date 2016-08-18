@@ -9,12 +9,13 @@ import LoginView from 'girder/views/layout/LoginView';
 import ProgressListView from 'girder/views/layout/ProgressListView';
 import RegisterView from 'girder/views/layout/RegisterView';
 import ResetPasswordView from 'girder/views/layout/ResetPasswordView';
+import router from 'girder/router';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
 import { events, eventStream } from 'girder/events';
 import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
 import { Layout } from 'girder/constants';
-import { router, splitRoute } from 'girder/router';
+import { splitRoute } from 'girder/utilities/MiscFunctions';
 
 import AlertTemplate from 'girder/templates/layout/alert.jade';
 import LayoutTemplate from 'girder/templates/layout/layout.jade';
