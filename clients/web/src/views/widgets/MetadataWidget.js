@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/utilities/DialogHelper';
 import events from 'girder/events';
-import { localeSort } from 'girder/utilities/MiscFunctions';
+import { localeSort } from 'girder/misc';
 
 import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.jade';
 import JsonMetadatumViewTemplate from 'girder/templates/widgets/jsonMetadatumView.jade';

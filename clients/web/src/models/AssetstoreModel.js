@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-import { formatSize } from 'girder/utilities/MiscFunctions';
+import { formatSize } from 'girder/misc';
 import Model from 'girder/models/Model';
 import { restRequest } from 'girder/rest';
 

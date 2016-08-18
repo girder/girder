@@ -13,7 +13,7 @@ import { AccessType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
 import { confirm } from 'girder/utilities/DialogHelper';
 import events from 'girder/events';
-import { formatSize, formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
+import { formatSize, formatDate, DATE_SECOND } from 'girder/misc';
 import { handleClose } from 'girder/utilities/DialogHelper';
 
 import ItemPageTemplate from 'girder/templates/body/itemPage.jade';

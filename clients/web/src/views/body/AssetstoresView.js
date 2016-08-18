@@ -10,7 +10,7 @@ import { AssetstoreType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
 import { confirm } from 'girder/utilities/DialogHelper';
 import events from 'girder/events';
-import { formatSize } from 'girder/utilities/MiscFunctions';
+import { formatSize } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
 import AssetstoresTemplate from 'girder/templates/body/assetstores.jade';

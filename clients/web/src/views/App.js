@@ -16,7 +16,7 @@ import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
 import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
 import { Layout } from 'girder/constants';
-import { splitRoute } from 'girder/utilities/MiscFunctions';
+import { splitRoute } from 'girder/misc';
 
 import AlertTemplate from 'girder/templates/layout/alert.jade';
 import LayoutTemplate from 'girder/templates/layout/layout.jade';

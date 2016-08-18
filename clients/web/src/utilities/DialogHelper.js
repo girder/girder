@@ -2,7 +2,7 @@ import $ from 'jquery';
 import Backbone from 'backbone';
 
 import router from 'girder/router';
-import { parseQueryString, splitRoute } from 'girder/utilities/MiscFunctions';
+import { parseQueryString, splitRoute } from 'girder/misc';
 
 import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.jade';
 

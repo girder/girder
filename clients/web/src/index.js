@@ -1,20 +1,22 @@
 import * as auth from './auth';
 import * as collections from './collections';
 import * as constants from './constants';
-import events from './events';
+import * as misc from './misc';
 import * as models from './models';
 import * as rest from './rest';
-import router from './router';
+import * as server from './server';
 import * as utilities from './utilities';
 import * as version from './version';
 import * as views from './views';
-import * as server from './server';
+import events from './events';
+import router from './router';
 
 export {
   auth,
   collections,
   constants,
   events,
+  misc,
   models,
   rest,
   router,

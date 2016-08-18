@@ -384,7 +384,7 @@ describe('Test internal javascript functions', function () {
             ];
             for (var i = 0; i < testVals.length; i += 1) {
                 var encode = $.param(testVals[i]);
-                expect($.param(girder.utilities.MiscFunctions.parseQueryString(encode))).toBe(encode);
+                expect($.param(girder.misc.parseQueryString(encode))).toBe(encode);
             }
         });
     });

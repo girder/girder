@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import FileModel from 'girder/models/FileModel';
 import View from 'girder/views/View';
-import { formatSize } from 'girder/utilities/MiscFunctions';
+import { formatSize } from 'girder/misc';
 import { handleClose, handleOpen } from 'girder/utilities/DialogHelper';
 
 import UploadWidgetTemplate from 'girder/templates/widgets/uploadWidget.jade';

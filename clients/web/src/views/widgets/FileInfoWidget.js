@@ -1,5 +1,5 @@
 import View from 'girder/views/View';
-import { formatDate, DATE_SECOND } from 'girder/utilities/MiscFunctions';
+import { formatDate, DATE_SECOND } from 'girder/misc';
 
 import FileInfoDialogTemplate from 'girder/templates/widgets/fileInfoDialog.jade';
 

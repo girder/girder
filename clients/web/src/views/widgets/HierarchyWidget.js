@@ -19,7 +19,7 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/utilities/DialogHelper';
 import events from 'girder/events';
-import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/utilities/MiscFunctions';
+import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/misc';
 import { handleClose } from 'girder/utilities/DialogHelper';
 import { restRequest, apiRoot } from 'girder/rest';
 

@@ -8,7 +8,7 @@ import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 import { cancelRestRequests } from 'girder/rest';
-import { formatDate, formatSize, DATE_MINUTE } from 'girder/utilities/MiscFunctions';
+import { formatDate, formatSize, DATE_MINUTE } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
 import CollectionListTemplate from 'girder/templates/body/collectionList.jade';

@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 import FrontPageView from 'girder/views/body/FrontPageView';
-import { renderMarkdown } from 'girder/utilities/MiscFunctions';
+import { renderMarkdown } from 'girder/misc';
 import { restRequest } from 'girder/rest';
 import { wrap } from 'girder/utilities/PluginUtils';
 

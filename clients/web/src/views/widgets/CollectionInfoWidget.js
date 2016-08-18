@@ -1,5 +1,5 @@
 import View from 'girder/views/View';
-import { formatDate, DATE_SECOND, renderMarkdown, formatSize } from 'girder/utilities/MiscFunctions';
+import { formatDate, DATE_SECOND, renderMarkdown, formatSize } from 'girder/misc';
 
 import CollectionInfoDialogTemplate from 'girder/templates/widgets/collectionInfoDialog.jade';
 

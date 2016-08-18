@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 import View from 'girder/views/View';
-import { formatSize } from 'girder/utilities/MiscFunctions';
+import { formatSize } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 import { handleOpen, handleClose } from 'girder/utilities/DialogHelper';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';

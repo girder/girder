@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { localeComparator } from 'girder/utilities/MiscFunctions';
+import { localeComparator } from 'girder/misc';
 import Model from 'girder/models/Model';
 import { restRequest } from 'girder/rest';
 import { SORT_ASC } from 'girder/constants';
