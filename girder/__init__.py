@@ -18,11 +18,17 @@
 ###############################################################################
 
 import cherrypy
+import functools
+import logging
 import logging.handlers
 import os
+import six
+import sys
+import traceback
 
 
-from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT
+from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, \
+    TerminalColor
 from girder.utility import config, mkdir
 
 __version__ = '1.5.2'
@@ -112,6 +118,49 @@ def _setupLogger():
     return logger
 
 logger = _setupLogger()
+
+
+def logprint(*args, **kwargs):
+    """
+    Send a message to both stdout and the appropriate logs.  This behaves like
+    Python3's print statement, plus takes additional named parameters:
+
+    :param level: the log level.  This determines which log handlers will store
+        the log message.  The log is always sent to stdout.
+    :param color: one of the constants.TerminalColor values or None.
+    :param exc_info: None to not print exception information.  True for the
+        last exception, or a tuple of exception information.
+    """
+    data = six.StringIO()
+    kwargs = (kwargs or {}).copy()
+    level = kwargs.pop('level', logging.DEBUG)
+    color = kwargs.pop('color', None)
+    exc_info = kwargs.pop('exc_info', None)
+    kwargs['file'] = data
+    six.print_(*args, **kwargs)
+    data = data.getvalue().rstrip()
+    if exc_info and not isinstance(exc_info, tuple):
+        exc_info = sys.exc_info()
+        data += '\n' + ''.join(traceback.format_exception(*exc_info)).rstrip()
+    logger.log(level, data)
+    if color:
+        data = getattr(TerminalColor, color)(data)
+    six.print_(data, flush=True)
+
+# Expose common logging levels and colors as methods of logprint.
+logprint.info = functools.partial(logprint, level=logging.INFO, color='info')
+logprint.warning = functools.partial(
+    logprint, level=logging.WARNING, color='warning')
+logprint.error = functools.partial(
+    logprint, level=logging.ERROR, color='error')
+logprint.success = functools.partial(
+    logprint, level=logging.INFO, color='success')
+logprint.critical = functools.partial(
+    logprint, level=logging.CRITICAL, color='error')
+logprint.debug = logprint
+logprint.exception = functools.partial(
+    logprint, level=logging.ERROR, color='error', exc_info=True)
+
 
 # alias girder.plugin => girder.utility.plugin_utilities
 from girder.utility import plugin_utilities as plugin  # noqa

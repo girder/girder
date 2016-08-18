@@ -340,17 +340,17 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         file['imported'] = True
         return self.model('file').save(file)
 
-    def _importDataAsItem(self, name, user, folder, path, files,
-                          reuseExisting=True):
+    def _importDataAsItem(self, name, user, folder, path, files, reuseExisting=True, params=None):
+        params = params or {}
         item = self.model('item').createItem(
-            name=name, creator=user, folder=folder,
-            reuseExisting=reuseExisting)
+            name=name, creator=user, folder=folder, reuseExisting=reuseExisting)
         events.trigger('filesystem_assetstore_imported',
                        {'id': item['_id'], 'type': 'item',
                         'importPath': path})
         for fname in files:
-            self.importFile(item, os.path.join(path, fname),
-                            user, name=fname)
+            fpath = os.path.join(path, fname)
+            if self.shouldImportFile(fpath, params):
+                self.importFile(item, fpath, user, name=fname)
 
     def _hasOnlyFiles(self, path, files):
         return all(os.path.isfile(os.path.join(path, name)) for name in files)
@@ -358,8 +358,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     def _importFileToFolder(self, name, user, parent, parentType, path):
         if parentType != 'folder':
             raise ValidationException(
-                'Files cannot be imported directly underneath a %s.' %
-                parentType)
+                'Files cannot be imported directly underneath a %s.' % parentType)
 
         item = self.model('item').createItem(
             name=name, creator=user, folder=parent, reuseExisting=True)
@@ -370,8 +369,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         })
         self.importFile(item, path, user, name=name)
 
-    def importData(self, parent, parentType, params, progress, user,
-                   leafFoldersAsItems):
+    def importData(self, parent, parentType, params, progress, user, leafFoldersAsItems):
         importPath = params['importPath']
 
         if not os.path.exists(importPath):
@@ -384,8 +382,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         listDir = os.listdir(importPath)
         if leafFoldersAsItems and self._hasOnlyFiles(importPath, listDir):
-            self._importDataAsItem(os.path.basename(importPath.rstrip(os.sep)),
-                                   user, parent, importPath, listDir)
+            self._importDataAsItem(
+                os.path.basename(importPath.rstrip(os.sep)), user, parent, importPath,
+                listDir, params=params)
             return
 
         for name in listDir:
@@ -394,24 +393,25 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
             if os.path.isdir(path):
                 localListDir = os.listdir(path)
-                if leafFoldersAsItems and self._hasOnlyFiles(
-                        path, localListDir):
-                    self._importDataAsItem(name, user, parent, path,
-                                           localListDir)
+                if leafFoldersAsItems and self._hasOnlyFiles(path, localListDir):
+                    self._importDataAsItem(name, user, parent, path, localListDir, params=params)
                 else:
                     folder = self.model('folder').createFolder(
                         parent=parent, name=name, parentType=parentType,
                         creator=user, reuseExisting=True)
                     events.trigger(
-                        'filesystem_assetstore_imported',
-                        {'id': folder['_id'], 'type': 'folder',
-                         'importPath': path})
-                    self.importData(folder, 'folder', params={
-                        'importPath': os.path.join(importPath, name)},
-                        progress=progress, user=user,
-                        leafFoldersAsItems=leafFoldersAsItems)
+                        'filesystem_assetstore_imported', {
+                            'id': folder['_id'],
+                            'type': 'folder',
+                            'importPath': path
+                        })
+                    nextPath = os.path.join(importPath, name)
+                    self.importData(
+                        folder, 'folder', params=dict(params, importPath=nextPath),
+                        progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems)
             else:
-                self._importFileToFolder(name, user, parent, parentType, path)
+                if self.shouldImportFile(path, params):
+                    self._importFileToFolder(name, user, parent, parentType, path)
 
     def findInvalidFiles(self, progress=progress.noProgress, filters=None,
                          checkSize=True, **kwargs):

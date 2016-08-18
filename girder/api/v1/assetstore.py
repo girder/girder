@@ -150,6 +150,11 @@ class Assetstore(Resource):
                enum=('folder', 'collection', 'user'))
         .param('progress', 'Whether to record progress on the import.',
                dataType='boolean', default=False, required=False)
+        .param('fileIncludeRegex', 'If set, only filenames matching this regular '
+               'expression will be imported.', required=False)
+        .param('fileExcludeRegex', 'If set, only filenames that do not match this regular '
+               'expression will be imported. If a file matches both the include and exclude regex, '
+               'it will be excluded.', required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
@@ -158,19 +163,15 @@ class Assetstore(Resource):
 
         parentType = params.pop('destinationType')
         if parentType not in ('folder', 'collection', 'user'):
-            raise RestException('The destinationType must be user, folder, or '
-                                'collection.')
+            raise RestException('The destinationType must be user, folder, or collection.')
 
         user = self.getCurrentUser()
         parent = self.model(parentType).load(
-            params.pop('destinationId'), user=user, level=AccessType.ADMIN,
-            exc=True)
+            params.pop('destinationId'), user=user, level=AccessType.ADMIN, exc=True)
 
         progress = self.boolParam('progress', params, default=False)
-        leafFoldersAsItems = self.boolParam('leafFoldersAsItems', params,
-                                            default=False)
-        with ProgressContext(
-                progress, user=user, title='Importing data') as ctx:
+        leafFoldersAsItems = self.boolParam('leafFoldersAsItems', params, default=False)
+        with ProgressContext(progress, user=user, title='Importing data') as ctx:
             return self.model('assetstore').importData(
                 assetstore, parent=parent, parentType=parentType, params=params,
                 progress=ctx, user=user, leafFoldersAsItems=leafFoldersAsItems)

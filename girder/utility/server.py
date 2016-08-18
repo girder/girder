@@ -22,7 +22,7 @@ import mimetypes
 import os
 
 import girder.events
-from girder import constants
+from girder import constants, logprint
 from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
 from . import webroot
@@ -93,7 +93,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
         }})
 
     mode = curConfig['server']['mode'].lower()
-    print(constants.TerminalColor.info('Running in mode: ' + mode))
+    logprint.info('Running in mode: ' + mode)
     cherrypy.config['engine.autoreload.on'] = mode == 'development'
 
     # Don't import this until after the configs have been read; some module
