@@ -28,7 +28,7 @@ var MetadatumWidget = View.extend({
 
     initialize: function (settings) {
         if (!_.has(this.parentView.modes, settings.mode)) {
-            throw 'Unsupported metadatum mode ' + settings.mode + ' detected.';
+            throw new Error('Unsupported metadatum mode ' + settings.mode + ' detected.');
         }
 
         this.mode = settings.mode;

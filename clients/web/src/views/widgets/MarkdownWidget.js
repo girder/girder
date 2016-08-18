@@ -158,24 +158,24 @@ var MarkdownWidget = View.extend({
         files = files || this.files;
 
         if (this.files.length !== 1) {
-            throw {message: 'Please add only one file at a time.'};
+            throw new Error('Please add only one file at a time.');
         }
 
         var file = files[0],
             ext = file.name.split('.').pop().toLowerCase();
 
         if (this.maxUploadSize && file.size > this.maxUploadSize) {
-            throw {
-                message: 'That file is too large. You may only attach files ' +
-                         'up to ' + formatSize(this.maxUploadSize) + '.'
-            };
+            throw new Error(
+                'That file is too large. You may only attach files ' +
+                'up to ' + formatSize(this.maxUploadSize) + '.'
+            );
         }
 
         if (this.allowedExtensions && !_.contains(this.allowedExtensions, ext)) {
-            throw {
-                message: 'Only files with the following extensions are allowed: ' +
-                         this.allowedExtensions.join(', ') + '.'
-            };
+            throw new Error(
+                'Only files with the following extensions are allowed: ' +
+                this.allowedExtensions.join(', ') + '.'
+            );
         }
     },
 
