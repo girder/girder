@@ -190,6 +190,9 @@ def setup(test=False, plugins=None, curConfig=None):
     # Mount Girder
     application = cherrypy.tree.mount(girderWebroot, routeTable['girder'], appconf)
 
+    # Always mount the API off of /
+    cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
+
     # Mount everything else in the routeTable
     for (name, route) in six.viewitems(routeTable):
         if name != 'girder' and name in pluginWebroots:
