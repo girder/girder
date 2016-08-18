@@ -272,7 +272,7 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403)
     )
     def getAssetstoreFiles(self, assetstore, params):
-        limit, offset, sort = self.getPagingParameters(params, 'lowerName')
+        limit, offset, sort = self.getPagingParameters(params, '_id')
         return list(self.model('file').find(
             query={'assetstoreId': assetstore['_id']},
             offset=offset, limit=limit, sort=sort))
