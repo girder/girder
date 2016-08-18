@@ -10,6 +10,7 @@ psutil==4.2.0
 python-dateutil==2.5.3
 pytz==2016.4
 requests==2.10.0
+shutilwhich==1.1.0 ; python_version < '3.3'
 six==1.10.0
 
 # celery_jobs

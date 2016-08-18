@@ -81,6 +81,7 @@ extras_reqs = {
 }
 
 if sys.version_info[0] == 2:
+    install_reqs.append('shutilwhich')
     extras_reqs.update({
         'hdfs_assetstore': ['snakebite'],
         'metadata_extractor': [
