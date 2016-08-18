@@ -45,7 +45,7 @@ class Item(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='item')
     @describeRoute(
-        Description('Search for an item by certain properties.')
+        Description('List or search for items.')
         .responseClass('Item')
         .param('folderId', "Pass this to list all items in a folder.",
                required=False)
