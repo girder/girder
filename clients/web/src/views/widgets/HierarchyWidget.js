@@ -12,7 +12,6 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
         'click .g-edit-access': 'editAccess',
-        'click .g-hierarchy-level-up': 'upOneLevel',
         'click a.g-download-checked': 'downloadChecked',
         'click a.g-pick-checked': 'pickChecked',
         'click a.g-move-picked': 'movePickedResources',
@@ -251,14 +250,6 @@ girder.views.HierarchyWidget = girder.View.extend({
     descend: function (folder) {
         this.breadcrumbs.push(folder);
         this.setCurrentModel(folder);
-    },
-
-    /**
-     * Go to the parent of the current folder
-     */
-    upOneLevel: function () {
-        this.breadcrumbs.pop();
-        this.setCurrentModel(this.breadcrumbs[this.breadcrumbs.length - 1]);
     },
 
     /**
@@ -904,13 +895,6 @@ girder.resetPickedResources = function () {
  * Renders the breadcrumb list in the hierarchy widget.
  */
 girder.views.HierarchyBreadcrumbView = girder.View.extend({
-    events: {
-        'click a.g-breadcrumb-link': function (event) {
-            var link = $(event.currentTarget);
-            this.trigger('g:breadcrumbClicked', parseInt(link.attr('g-index'), 10));
-        }
-    },
-
     initialize: function (settings) {
         this.objects = settings.objects;
     },

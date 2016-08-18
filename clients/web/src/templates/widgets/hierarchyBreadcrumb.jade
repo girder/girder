@@ -1,7 +1,7 @@
 - var idx = 0
 each obj in links
   li
-    a.g-breadcrumb-link(g-index=idx)
+    a.g-breadcrumb-link(g-index=idx, href="/##{obj.resourceName}/#{obj.id}")
       if obj.resourceName === 'user'
         i.icon-user
       else if obj.resourceName === 'collection'
@@ -32,6 +32,8 @@ if descriptionText
         .g-item-count
 
   if idx > 0
+    - var last = links.pop();
     .g-level-up-button-container
-      a.g-hierarchy-level-up(title="Go up one level", placement="left")
+      a.g-hierarchy-level-up(title="Go up one level", placement="left",
+                             href="##{last.resourceName}/#{last.id}")
         i.icon-level-up
