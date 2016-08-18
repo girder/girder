@@ -28,6 +28,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |virtualbox|
     virtualbox.name = "girder"
-    virtualbox.memory = 768
+    virtualbox.memory = 1536
   end
 end
