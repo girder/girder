@@ -30,7 +30,11 @@ import shutil
 import six
 import tempfile
 
+__version__ = '1.3.1'
+__license__ = 'Apache 2.0'
+
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
+REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
 
 _safeNameRegex = re.compile(r'^[/\\]+')
 
@@ -65,7 +69,7 @@ class AuthenticationError(RuntimeError):
 
 class IncorrectUploadLengthError(RuntimeError):
     def __init__(self, message, upload=None):
-        RuntimeError.__init__(self, message)
+        super(IncorrectUploadLengthError, self).__init__(message)
         self.upload = upload
 
 
@@ -74,7 +78,7 @@ class HttpError(Exception):
     Raised if the server returns an error status code from a request.
     """
     def __init__(self, status, text, url, method):
-        Exception.__init__(self, 'HTTP error %s: %s %s' % (status, method, url))
+        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url))
         self.status = status
         self.responseText = text
         self.url = url
@@ -116,8 +120,8 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
-    def __init__(self, host=None, port=None, apiRoot=None, scheme=None,
-                 dryrun=False, blacklist=None, apiUrl=None, cacheSettings=None):
+    def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
+                 cacheSettings=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
@@ -157,12 +161,8 @@ class GirderClient(object):
             self.urlBase += '/'
 
         self.token = ''
-        self.dryrun = dryrun
-        self.blacklist = blacklist
-        if self.blacklist is None:
-            self.blacklist = []
-        self.folder_upload_callbacks = []
-        self.item_upload_callbacks = []
+        self._folderUploadCallbacks = []
+        self._itemUploadCallbacks = []
         self.incomingMetadata = {}
         self.localMetadata = {}
 
@@ -171,8 +171,7 @@ class GirderClient(object):
         else:
             self.cache = diskcache.Cache(**cacheSettings)
 
-    def authenticate(self, username=None, password=None, interactive=False,
-                     apiKey=None):
+    def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
         """
         Authenticate to Girder, storing the token that comes back to be used in
         future requests. This method can be used in two modes, either username
@@ -191,20 +190,16 @@ class GirderClient(object):
             gc.authenticate(apiKey='J77R3rsLYYqFXXwQ4YquQtek1N26VEJ7IAVz9IpU')
 
         API keys can be created and managed on your user account page in the
-        Girder web client, and can be used to provide limited access to the
-        Girder web API.
+        Girder web client, and can be used to provide limited access to the Girder web API.
 
-        :param username: A string containing the username to use in basic
-            authentication.
-        :param password: A string containing the password to use in basic
-            authentication.
+        :param username: A string containing the username to use in basic authentication.
+        :param password: A string containing the password to use in basic authentication.
         :param interactive: If you want the user to type their username or
             password in the shell rather than passing it in as an argument,
             set this to True. If you pass a username in interactive mode, the
             user will only be prompted for a password. This option only works
             in username/password mode, not API key mode.
-        :param apiKey: Pass this to use an API key instead of username/password
-            authentication.
+        :param apiKey: Pass this to use an API key instead of username/password authentication.
         :type apiKey: str
         """
         if apiKey:
@@ -225,7 +220,7 @@ class GirderClient(object):
             authResponse = requests.get(url, auth=(username, password))
 
             if authResponse.status_code == 404:
-                raise HttpError(404, authResponse.text, url, "GET")
+                raise HttpError(404, authResponse.text, url, 'GET')
 
             resp = authResponse.json()
             if 'authToken' not in resp:
@@ -233,8 +228,7 @@ class GirderClient(object):
 
             self.token = resp['authToken']['token']
 
-    def sendRestRequest(self, method, path, parameters=None, data=None,
-                        files=None, json=None):
+    def sendRestRequest(self, method, path, parameters=None, data=None, files=None, json=None):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -248,25 +242,19 @@ class GirderClient(object):
         :param method: The HTTP method to use in the request (GET, POST, etc.)
         :type method: str
         :param path: A string containing the path elements for this request.
-            Note that the path string should not begin or end with the path
-            separator, '/'.
+            Note that the path string should not begin or end with the path  separator, '/'.
         :type path: str
         :param parameters: A dictionary mapping strings to strings, to be used
             as the key/value pairs in the request parameters.
         :type parameters: dict
-        :param data: A dictionary, bytes or file-like object to send in the
-            body.
-        :param files: A dictonary of 'name' => file-like-objects
-            for multipart encoding upload.
+        :param data: A dictionary, bytes or file-like object to send in the body.
+        :param files: A dictonary of 'name' => file-like-objects for multipart encoding upload.
         :type files: dict
         :param json: A JSON object to send in the request body.
         :type json: dict
         """
         if not parameters:
             parameters = {}
-
-        # Make sure we got a valid method
-        assert method in self.METHODS
 
         # Look up the HTTP method we need
         f = self.METHODS[method]
@@ -275,29 +263,27 @@ class GirderClient(object):
         url = self.urlBase + path
 
         # Make the request, passing parameters and authentication info
-        result = f(url, params=parameters, data=data, files=files, json=json,
-                   headers={'Girder-Token': self.token})
+        result = f(
+            url, params=parameters, data=data, files=files, json=json,
+            headers={'Girder-Token': self.token})
 
         # If success, return the json object. Otherwise throw an exception.
-        if result.status_code in [200, 201]:
+        if result.status_code in (200, 201):
             return result.json()
         # TODO handle 300-level status (follow redirect?)
         else:
             raise HttpError(
-                status=result.status_code, url=result.url, method=method,
-                text=result.text)
+                status=result.status_code, url=result.url, method=method, text=result.text)
 
     def get(self, path, parameters=None):
         """
-        Convenience method to call :py:func:`sendRestRequest` with the 'GET'
-        HTTP method.
+        Convenience method to call :py:func:`sendRestRequest` with the 'GET' HTTP method.
         """
         return self.sendRestRequest('GET', path, parameters)
 
     def post(self, path, parameters=None, files=None, data=None, json=None):
         """
-        Convenience method to call :py:func:`sendRestRequest` with the 'POST'
-        HTTP method.
+        Convenience method to call :py:func:`sendRestRequest` with the 'POST' HTTP method.
         """
         return self.sendRestRequest('POST', path, parameters, files=files,
                                     data=data, json=json)
@@ -312,15 +298,13 @@ class GirderClient(object):
 
     def delete(self, path, parameters=None):
         """
-        Convenience method to call :py:func:`sendRestRequest` with the 'DELETE'
-        HTTP method.
+        Convenience method to call :py:func:`sendRestRequest` with the 'DELETE' HTTP method.
         """
         return self.sendRestRequest('DELETE', path, parameters)
 
     def patch(self, path, parameters=None, data=None, json=None):
         """
-        Convenience method to call :py:func:`sendRestRequest` with the 'PATCH'
-        HTTP method.
+        Convenience method to call :py:func:`sendRestRequest` with the 'PATCH' HTTP method.
         """
         return self.sendRestRequest('PATCH', path, parameters, data=data,
                                     json=json)
@@ -354,8 +338,7 @@ class GirderClient(object):
         :param test: Whether or not to return None, if the path does not
             exist, rather than throwing an exception.
         """
-        return self.get('resource/lookup',
-                        parameters={'path': path, 'test': test})
+        return self.get('resource/lookup', parameters={'path': path, 'test': test})
 
     def listResource(self, path, params=None, limit=None, offset=None):
         """
@@ -399,8 +382,7 @@ class GirderClient(object):
         """
         Retrieves a file by its ID.
 
-        :param fileId: A string containing the ID of the file to retrieve from
-            Girder.
+        :param fileId: A string containing the ID of the file to retrieve from Girder.
         """
         return self.getResource('file', fileId)
 
@@ -431,8 +413,7 @@ class GirderClient(object):
         """
         Retrieves a item by its ID.
 
-        :param itemId: A string containing the ID of the item to retrieve from
-            Girder.
+        :param itemId: A string containing the ID of the item to retrieve from Girder.
         """
         return self.getResource('item', itemId)
 
@@ -474,8 +455,7 @@ class GirderClient(object):
         """
         return self.getResource('user', userId)
 
-    def createUser(self, login, email, firstName, lastName, password,
-                   admin=None):
+    def createUser(self, login, email, firstName, lastName, password, admin=None):
         """
         Creates and returns a user.
         """
@@ -519,8 +499,7 @@ class GirderClient(object):
         }
         return self.createResource('collection', params)
 
-    def createFolder(self, parentId, name, description='', parentType='folder',
-                     public=None):
+    def createFolder(self, parentId, name, description='', parentType='folder', public=None):
         """
         Creates and returns a folder.
 
@@ -540,16 +519,14 @@ class GirderClient(object):
         """
         Retrieves a folder by its ID.
 
-        :param folderId: A string containing the ID of the folder to retrieve
-            from Girder.
+        :param folderId: A string containing the ID of the folder to retrieve from Girder.
         """
         return self.getResource('folder', folderId)
 
     def listFolder(self, parentId, parentFolderType='folder', name=None,
                    limit=None, offset=None):
         """
-        This is a generator that will yield a list of folders based on the
-        filter parameters.
+        This is a generator that will yield a list of folders based on the filter parameters.
 
         :param parentId: The parent's ID.
         :param parentFolderType: One of ('folder', 'user', 'collection').
@@ -592,7 +569,7 @@ class GirderClient(object):
         }
         return self.put(path, params)
 
-    def _file_chunker(self, filepath, filesize=None):
+    def _fileChunker(self, filepath, filesize=None):
         """
         Generator returning chunks of a file in MAX_CHUNK_SIZE increments.
 
@@ -602,14 +579,13 @@ class GirderClient(object):
         if filesize is None:
             filesize = os.path.getsize(filepath)
         startbyte = 0
-        next_chunk_size = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
+        nextChunkSize = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
         with open(filepath, 'rb') as fd:
-            while next_chunk_size > 0:
-                chunk = fd.read(next_chunk_size)
+            while nextChunkSize > 0:
+                chunk = fd.read(nextChunkSize)
                 yield (chunk, startbyte)
-                startbyte = startbyte + next_chunk_size
-                next_chunk_size = min(self.MAX_CHUNK_SIZE,
-                                      filesize - startbyte)
+                startbyte = startbyte + nextChunkSize
+                nextChunkSize = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
 
     def isFileCurrent(self, itemId, filename, filepath):
         """
@@ -625,12 +601,12 @@ class GirderClient(object):
         :param filepath: path to file on disk.
         """
         path = 'item/' + itemId + '/files'
-        item_files = self.get(path)
-        for item_file in item_files:
-            if filename == item_file['name']:
-                file_id = item_file['_id']
+        itemFiles = self.get(path)
+        for itemFile in itemFiles:
+            if filename == itemFile['name']:
+                file_id = itemFile['_id']
                 size = os.path.getsize(filepath)
-                return (file_id, size == item_file['size'])
+                return (file_id, size == itemFile['size'])
         # Some files may already be stored under a different name, we'll need
         # to upload anyway in this case also.
         return (None, False)
@@ -700,7 +676,7 @@ class GirderClient(object):
                     'After creating an upload token for a new file, expected '
                     'an object with an id. Got instead: ' + json.dumps(obj))
 
-        for chunk, startbyte in self._file_chunker(filepath, filesize):
+        for chunk, startbyte in self._fileChunker(filepath, filesize):
             parameters = {
                 'offset': startbyte,
                 'uploadId': uploadId
@@ -712,9 +688,9 @@ class GirderClient(object):
             obj = self.post(path, parameters=parameters, files=filedata)
 
             if '_id' not in obj:
-                raise Exception('After uploading a file chunk, did'
-                                ' not receive object with _id. Got instead: ' +
-                                json.dumps(obj))
+                raise Exception(
+                    'After uploading a file chunk, did not receive object with _id. Got instead: ' +
+                    json.dumps(obj))
         return obj
 
     def _uploadContents(self, uploadObj, stream, size, progressCallback=None):
@@ -753,9 +729,9 @@ class GirderClient(object):
             offset += len(data)
 
             if '_id' not in uploadObj:
-                raise Exception('After uploading a file chunk, did'
-                                ' not receive object with _id. Got instead: ' +
-                                json.dumps(uploadObj))
+                raise Exception(
+                    'After uploading a file chunk, did not receive object with _id. Got instead: ' +
+                    json.dumps(uploadObj))
 
             if callable(progressCallback):
                 progressCallback({
@@ -766,8 +742,8 @@ class GirderClient(object):
         if offset != size:
             self.delete('file/upload/' + uploadId)
             raise IncorrectUploadLengthError(
-                'Expected upload to be %d bytes, but received %d.' % (
-                    size, offset), upload=uploadObj)
+                'Expected upload to be %d bytes, but received %d.' % (size, offset),
+                upload=uploadObj)
 
         return uploadObj
 
@@ -814,8 +790,7 @@ class GirderClient(object):
                 'After creating an upload token for a new file, expected '
                 'an object with an id. Got instead: ' + json.dumps(obj))
 
-        return self._uploadContents(
-            obj, stream, size, progressCallback=progressCallback)
+        return self._uploadContents(obj, stream, size, progressCallback=progressCallback)
 
     def uploadFileContents(self, fileId, stream, size, reference=None):
         """
@@ -920,7 +895,7 @@ class GirderClient(object):
             '%sfile/%s/download' % (self.urlBase, fileId),
             stream=True, headers={'Girder-Token': self.token})
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            for chunk in req.iter_content(chunk_size=65536):
+            for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
                 tmp.write(chunk)
 
         # save file in cache
@@ -931,7 +906,7 @@ class GirderClient(object):
         if isinstance(path, six.string_types):
             # we can just rename the tempfile
             _safeMakedirs(os.path.dirname(path))
-            os.rename(tmp.name, path)
+            shutil.move(tmp.name, path)
         else:
             # write to file-like object
             with open(tmp.name, 'rb') as fp:
@@ -1006,8 +981,7 @@ class GirderClient(object):
             })
 
             for folder in folders:
-                local = os.path.join(
-                    dest, self.transformFilename(folder['name']))
+                local = os.path.join(dest, self.transformFilename(folder['name']))
                 _safeMakedirs(local)
 
                 self.downloadFolderRecursive(folder['_id'], local)
@@ -1028,8 +1002,8 @@ class GirderClient(object):
             for item in items:
                 _id = item['_id']
                 self.incomingMetadata[_id] = item
-                if sync and _id in self.localMetadata and \
-                        _compareDicts(item, self.localMetadata[_id]):
+                if (sync and _id in self.localMetadata and
+                        _compareDicts(item, self.localMetadata[_id])):
                     continue
                 self.downloadItem(item['_id'], dest, name=item['name'])
 
@@ -1043,7 +1017,6 @@ class GirderClient(object):
 
         :param dest: The local download destination.
         """
-
         with open(os.path.join(dest, '.girder_metadata'), 'w') as fh:
             fh.write(json.dumps(self.incomingMetadata))
 
@@ -1060,8 +1033,7 @@ class GirderClient(object):
         except (IOError, OSError):
             print('Local metadata does not exists. Falling back to download.')
 
-    def inheritAccessControlRecursive(self, ancestorFolderId, access=None,
-                                      public=None):
+    def inheritAccessControlRecursive(self, ancestorFolderId, access=None, public=None):
         """
         Take the access control and public value of a folder and recursively
         copy that access control and public value to all folder descendants,
@@ -1094,14 +1066,13 @@ class GirderClient(object):
             })
 
             for folder in folders:
-                self.inheritAccessControlRecursive(folder['_id'], access,
-                                                   public)
+                self.inheritAccessControlRecursive(folder['_id'], access, public)
 
             offset += len(folders)
             if len(folders) < DEFAULT_PAGE_LIMIT:
                 break
 
-    def add_folder_upload_callback(self, callback):
+    def addFolderUploadCallback(self, callback):
         """Saves a passed in callback function that will be called after each
         folder has completed.  Multiple callback functions can be added, they
         will be called in the order they were added by calling this function.
@@ -1112,11 +1083,10 @@ class GirderClient(object):
         - the full path to the local folder
 
         :param callback: callback function to be called.
-
         """
-        self.folder_upload_callbacks.append(callback)
+        self._folderUploadCallbacks.append(callback)
 
-    def add_item_upload_callback(self, callback):
+    def addItemUploadCallback(self, callback):
         """Saves a passed in callback function that will be called after each
         item has completed.  Multiple callback functions can be added, they
         will be called in the order they were added by calling this function.
@@ -1127,221 +1097,220 @@ class GirderClient(object):
         - the full path to the local folder or file comprising the item
 
         :param callback: callback function to be called.
-
         """
-        self.item_upload_callbacks.append(callback)
+        self._itemUploadCallbacks.append(callback)
 
-    def load_or_create_folder(self, folder_name, parent_id, parent_type):
+    def loadOrCreateFolder(self, folderName, parentId, parentType):
         """Returns a folder in Girder with the given name under the given
         parent. If none exists yet, it will create it and return it.
 
-        :param folder_name: the name of the folder to look up.
-        :param parent_id: id of parent in Girder
-        :param parent_type: one of (collection, folder, user)
+        :param folderName: the name of the folder to look up.
+        :param parentId: id of parent in Girder
+        :param parentType: one of (collection, folder, user)
         :returns: The folder that was found or created.
         """
-        children = self.listFolder(parent_id, parent_type, name=folder_name)
+        children = self.listFolder(parentId, parentType, name=folderName)
 
         try:
             return six.next(children)
         except StopIteration:
-            return self.createFolder(
-                parent_id, folder_name, parentType=parent_type)
+            return self.createFolder(parentId, folderName, parentType=parentType)
 
-    def _has_only_files(self, local_folder):
+    def _hasOnlyFiles(self, localFolder):
         """Returns whether a folder has only files. This will be false if the
         folder contains any subdirectories.
-        :param local_folder: full path to the local folder
+        :param localFolder: full path to the local folder
         """
-        return not any(os.path.isdir(os.path.join(local_folder, entry))
-                       for entry in os.listdir(local_folder))
+        return not any(os.path.isdir(os.path.join(localFolder, entry))
+                       for entry in os.listdir(localFolder))
 
-    def load_or_create_item(self, name, parent_folder_id, reuse_existing=True):
+    def loadOrCreateItem(self, name, parentFolderId, reuseExisting=True):
         """Create an item with the given name in the given parent folder.
 
         :param name: The name of the item to load or create.
-        :param parent_folder_id: id of parent folder in Girder
-        :param reuse_existing: boolean indicating whether to load an existing
+        :param parentFolderId: id of parent folder in Girder
+        :param reuseExisting: boolean indicating whether to load an existing
             item of the same name in the same location, or create a new one.
         """
         item = None
-        if reuse_existing:
-            children = self.listItem(parent_folder_id, name=name)
+        if reuseExisting:
+            children = self.listItem(parentFolderId, name=name)
             try:
                 item = six.next(children)
             except StopIteration:
                 pass
 
         if item is None:
-            item = self.createItem(parent_folder_id, name, description='')
+            item = self.createItem(parentFolderId, name, description='')
 
         return item
 
-    def _upload_file_to_item(self, local_file, parent_item_id, file_path):
+    def _uploadFileToItem(self, localFile, parentItemId, filePath):
         """Helper function to upload a file to an item
-        :param local_file: name of local file to upload
-        :param parent_item_id: id of parent item in Girder to add file to
-        :param file_path: full path to the file
+        :param localFile: name of local file to upload
+        :param parentItemId: id of parent item in Girder to add file to
+        :param filePath: full path to the file
         """
-        self.uploadFileToItem(parent_item_id, file_path)
+        self.uploadFileToItem(parentItemId, filePath)
 
-    def _upload_as_item(self, local_file, parent_folder_id, file_path,
-                        reuse_existing=False):
+    def _uploadAsItem(self, localFile, parentFolderId, filePath, reuseExisting=False, dryRun=False):
         """Function for doing an upload of a file as an item.
-        :param local_file: name of local file to upload
-        :param parent_folder_id: id of parent folder in Girder
-        :param file_path: full path to the file
-        :param reuse_existing: boolean indicating whether to accept an existing
-        item
-        of the same name in the same location, or create a new one instead
+        :param localFile: name of local file to upload
+        :param parentFolderId: id of parent folder in Girder
+        :param filePath: full path to the file
+        :param reuseExisting: boolean indicating whether to accept an existing item
+            of the same name in the same location, or create a new one instead
         """
-        print('Uploading Item from %s' % local_file)
-        if not self.dryrun:
-            current_item = self.load_or_create_item(
-                os.path.basename(local_file), parent_folder_id, reuse_existing)
-            self._upload_file_to_item(
-                local_file, current_item['_id'], file_path)
+        print('Uploading Item from %s' % localFile)
+        if not dryRun:
+            currentItem = self.loadOrCreateItem(
+                os.path.basename(localFile), parentFolderId, reuseExisting)
+            self._uploadFileToItem(localFile, currentItem['_id'], filePath)
 
-            for callback in self.item_upload_callbacks:
-                callback(current_item, file_path)
+            for callback in self._itemUploadCallbacks:
+                callback(currentItem, filePath)
 
-    def _upload_folder_as_item(self, local_folder, parent_folder_id,
-                               reuse_existing=False):
-        """Take a folder and use its base name as the name of a new item. Then,
+    def _uploadFolderAsItem(self, localFolder, parentFolderId, reuseExisting=False, blacklist=None,
+                            dryRun=False):
+        """
+        Take a folder and use its base name as the name of a new item. Then,
         upload its containing files into the new item as bitstreams.
-        :param local_folder: The path to the folder to be uploaded.
-        :param parent_folder_id: Id of the destination folder for the new item.
-        :param reuse_existing: boolean indicating whether to accept an existing
-        item
-        of the same name in the same location, or create a new one instead
-        """
-        print('Creating Item from folder %s' % local_folder)
-        if not self.dryrun:
-            item = self.load_or_create_item(
-                os.path.basename(local_folder), parent_folder_id,
-                reuse_existing)
 
-        subdircontents = sorted(os.listdir(local_folder))
+        :param localFolder: The path to the folder to be uploaded.
+        :param parentFolderId: Id of the destination folder for the new item.
+        :param reuseExisting: boolean indicating whether to accept an existing item
+            of the same name in the same location, or create a new one instead
+        """
+        blacklist = blacklist or []
+        print('Creating Item from folder %s' % localFolder)
+        if not dryRun:
+            item = self.loadOrCreateItem(
+                os.path.basename(localFolder), parentFolderId, reuseExisting)
+
+        subdircontents = sorted(os.listdir(localFolder))
         # for each file in the subdir, add it to the item
         filecount = len(subdircontents)
-        for (ind, current_file) in enumerate(subdircontents):
-            filepath = os.path.join(local_folder, current_file)
-            if current_file in self.blacklist:
-                if self.dryrun:
-                    print("Ignoring file %s as blacklisted" % current_file)
+        for (ind, currentFile) in enumerate(subdircontents):
+            filepath = os.path.join(localFolder, currentFile)
+            if currentFile in blacklist:
+                if dryRun:
+                    print('Ignoring file %s as blacklisted' % currentFile)
                 continue
-            print('Adding file %s, (%d of %d) to Item' % (current_file,
-                                                          ind + 1, filecount))
+            print('Adding file %s, (%d of %d) to Item' % (currentFile, ind + 1, filecount))
 
-            if not self.dryrun:
-                self._upload_file_to_item(current_file, item['_id'], filepath)
+            if not dryRun:
+                self._uploadFileToItem(currentFile, item['_id'], filepath)
 
-        if not self.dryrun:
-            for callback in self.item_upload_callbacks:
-                callback(item, local_folder)
+        if not dryRun:
+            for callback in self._itemUploadCallbacks:
+                callback(item, localFolder)
 
-    def _upload_folder_recursive(self, local_folder, parent_id, parent_type,
-                                 leaf_folders_as_items=False,
-                                 reuse_existing=False):
-        """Function to recursively upload a folder and all of its descendants.
-        :param local_folder: full path to local folder to be uploaded
-        :param parent_id: id of parent in Girder,
-            where new folder will be added
-        :param parent_type: one of (collection, folder, user)
-        :param leaf_folders_as_items: whether leaf folders should have all
-        files uploaded as single items
-        :param reuse_existing: boolean indicating whether to accept an existing
-        item
-        of the same name in the same location, or create a new one instead
+    def _uploadFolderRecursive(self, localFolder, parentId, parentType, leafFoldersAsItems=False,
+                               reuseExisting=False, blacklist=None, dryRun=False):
         """
-        if leaf_folders_as_items and self._has_only_files(local_folder):
-            if parent_type != 'folder':
+        Function to recursively upload a folder and all of its descendants.
+
+        :param localFolder: full path to local folder to be uploaded
+        :param parentId: id of parent in Girder, where new folder will be added
+        :param parentType: one of (collection, folder, user)
+        :param leafFoldersAsItems: whether leaf folders should have all
+            files uploaded as single items
+        :param reuseExisting: boolean indicating whether to accept an existing item
+            of the same name in the same location, or create a new one instead
+        """
+        blacklist = blacklist or []
+        if leafFoldersAsItems and self._hasOnlyFiles(localFolder):
+            if parentType != 'folder':
                 raise Exception(
                     ('Attempting to upload a folder as an item under a %s. '
-                        % parent_type) + 'Items can only be added to folders.')
+                     % parentType) + 'Items can only be added to folders.')
             else:
-                self._upload_folder_as_item(local_folder, parent_id,
-                                            reuse_existing)
+                self._uploadFolderAsItem(localFolder, parentId, reuseExisting, dryRun=dryRun)
         else:
-            filename = os.path.basename(local_folder)
-            if filename in self.blacklist:
-                if self.dryrun:
-                    print("Ignoring file %s as it is blacklisted" % filename)
+            filename = os.path.basename(localFolder)
+            if filename in blacklist:
+                if dryRun:
+                    print('Ignoring file %s as it is blacklisted' % filename)
                 return
 
-            print('Creating Folder from %s' % local_folder)
-            if self.dryrun:
-                # create a dryrun placeholder
+            print('Creating Folder from %s' % localFolder)
+            if dryRun:
+                # create a dry run placeholder
                 folder = {'_id': 'dryrun'}
             else:
-                folder = self.load_or_create_folder(
-                    os.path.basename(local_folder), parent_id, parent_type)
+                folder = self.loadOrCreateFolder(
+                    os.path.basename(localFolder), parentId, parentType)
 
-            for entry in sorted(os.listdir(local_folder)):
-                if entry in self.blacklist:
-                    if self.dryrun:
-                        print("Ignoring file %s as it is blacklisted" % entry)
+            for entry in sorted(os.listdir(localFolder)):
+                if entry in blacklist:
+                    if dryRun:
+                        print('Ignoring file %s as it is blacklisted' % entry)
                     continue
-                full_entry = os.path.join(local_folder, entry)
-                if os.path.islink(full_entry):
+                fullEntry = os.path.join(localFolder, entry)
+                if os.path.islink(fullEntry):
                     # os.walk skips symlinks by default
-                    print("Skipping file %s as it is a symlink" % entry)
+                    print('Skipping file %s as it is a symlink' % entry)
                     continue
-                elif os.path.isdir(full_entry):
+                elif os.path.isdir(fullEntry):
                     # At this point we should have an actual folder, so can
                     # pass that as the parent_type
-                    self._upload_folder_recursive(
-                        full_entry, folder['_id'], 'folder',
-                        leaf_folders_as_items, reuse_existing)
+                    self._uploadFolderRecursive(
+                        fullEntry, folder['_id'], 'folder', leafFoldersAsItems, reuseExisting,
+                        dryRun=dryRun)
                 else:
-                    self._upload_as_item(
-                        entry, folder['_id'], full_entry, reuse_existing)
+                    self._uploadAsItem(
+                        entry, folder['_id'], fullEntry, reuseExisting, dryRun=dryRun)
 
-            if not self.dryrun:
-                for callback in self.folder_upload_callbacks:
-                    callback(folder, local_folder)
+            if not dryRun:
+                for callback in self._folderUploadCallbacks:
+                    callback(folder, localFolder)
 
-    def upload(self, file_pattern, parent_id, parent_type='folder',
-               leaf_folders_as_items=False, reuse_existing=False):
-        """Upload a pattern of files.
+    def upload(self, filePattern, parentId, parentType='folder', leafFoldersAsItems=False,
+               reuseExisting=False, blacklist=None, dryRun=False):
+        """
+        Upload a pattern of files.
 
         This will recursively walk down every tree in the file pattern to
-        create a hierarchy on the server under the parent_id.
+        create a hierarchy on the server under the parentId.
 
-        :param file_pattern: a glob pattern for files that will be uploaded,
+        :param filePattern: a glob pattern for files that will be uploaded,
             recursively copying any file folder structures.
-        :param parent_id: id of the parent in Girder or resource path.
-        :param parent_type: one of (collection,folder,user), default of folder.
-        :param leaf_folders_as_items: bool whether leaf folders should have all
+        :param parentId: id of the parent in Girder or resource path.
+        :param parentType: one of (collection,folder,user), default of folder.
+        :param leafFoldersAsItems: bool whether leaf folders should have all
             files uploaded as single items.
-        :param reuse_existing: bool whether to accept an existing item of
+        :param reuseExisting: bool whether to accept an existing item of
             the same name in the same location, or create a new one instead.
+        :param dryRun: Set this to True to print out what actions would be taken, but
+            do not actually communicate with the server.
+        :type dryRun: bool
         """
+        blacklist = blacklist or []
         empty = True
-        parent_id = self._checkResourcePath(parent_id)
-        for current_file in glob.iglob(file_pattern):
+        parentId = self._checkResourcePath(parentId)
+        for currentFile in glob.iglob(filePattern):
             empty = False
-            current_file = os.path.normpath(current_file)
-            filename = os.path.basename(current_file)
-            if filename in self.blacklist:
-                if self.dryrun:
-                    print("Ignoring file %s as it is blacklisted" % filename)
+            currentFile = os.path.normpath(currentFile)
+            filename = os.path.basename(currentFile)
+            if filename in blacklist:
+                if dryRun:
+                    print('Ignoring file %s as it is blacklisted' % filename)
                 continue
-            if os.path.isfile(current_file):
-                if parent_type != 'folder':
-                    raise Exception(('Attempting to upload an item under a %s.'
-                                    % parent_type) +
-                                    ' Items can only be added to folders.')
+            if os.path.isfile(currentFile):
+                if parentType != 'folder':
+                    raise Exception(
+                        'Attempting to upload an item under a %s. Items can only be added to '
+                        'folders.' % parentType)
                 else:
-                    self._upload_as_item(
-                        os.path.basename(current_file), parent_id,
-                        current_file, reuse_existing)
+                    self._uploadAsItem(
+                        os.path.basename(currentFile), parentId, currentFile, reuseExisting,
+                        dryRun=dryRun)
             else:
-                self._upload_folder_recursive(
-                    current_file, parent_id, parent_type,
-                    leaf_folders_as_items, reuse_existing)
+                self._uploadFolderRecursive(
+                    currentFile, parentId, parentType, leafFoldersAsItems, reuseExisting,
+                    blacklist=blacklist, dryRun=dryRun)
         if empty:
-            print('No matching files: ' + file_pattern)
+            print('No matching files: ' + filePattern)
 
     def _checkResourcePath(self, objId):
         if isinstance(objId, six.string_types) and objId.startswith('/'):

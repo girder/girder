@@ -125,7 +125,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         if 'name' not in doc or not doc['name']:
             raise ValidationException('File name must not be empty.', 'name')
 
-        doc['exts'] = doc['name'].split('.')[1:]
+        doc['exts'] = [ext.lower() for ext in doc['name'].split('.')[1:]]
 
         return doc
 

@@ -22,6 +22,7 @@ import six
 from girder import events
 from girder.constants import AccessType, SettingDefault
 from girder.models.model_base import ValidationException
+from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
 from .constants import PluginSettings, PluginSettingsDefaults
@@ -96,56 +97,39 @@ def validateItem(event):
     item['license'] = validateString(item.get('license', None))
 
 
-def validateSettings(event):
-    key = event.info['key']
-    if key != PluginSettings.LICENSES:
-        return
-
-    val = event.info['value']
+@setting_utilities.validator(PluginSettings.LICENSES)
+def validateLicenses(doc):
+    val = doc['value']
     if not isinstance(val, list):
-        raise ValidationException(
-            'Licenses setting must be a list.', 'value')
+        raise ValidationException('Licenses setting must be a list.', 'value')
     for item in val:
         category = item.get('category', None)
         if not category or not isinstance(category, six.string_types):
             raise ValidationException(
-                'License category is required and must be a non-empty string.',
-                'category')
+                'License category is required and must be a non-empty string.', 'category')
         licenses = item.get('licenses', None)
         if not isinstance(licenses, list):
-            raise ValidationException(
-                'Licenses in category must be a list.', 'licenses')
+            raise ValidationException('Licenses in category must be a list.', 'licenses')
         for license in licenses:
             if not isinstance(license, dict):
-                raise ValidationException(
-                    'License must be a dict.', 'license')
+                raise ValidationException('License must be a dict.', 'license')
             name = license.get('name', None)
             if not name or not isinstance(name, six.string_types):
                 raise ValidationException(
-                    'License name is required and must be a non-empty string.',
-                    'name')
-
-    event.preventDefault().stopPropagation()
+                    'License name is required and must be a non-empty string.', 'name')
 
 
 def load(info):
     # Bind REST events
-    events.bind('rest.post.item.after', 'item_licenses',
-                postItemAfter)
-    events.bind('rest.post.item/:id/copy.after', 'item_licenses',
-                postItemCopyAfter)
-    events.bind('rest.put.item/:id.after', 'item_licenses',
-                putItemAfter)
+    events.bind('rest.post.item.after', 'item_licenses', postItemAfter)
+    events.bind('rest.post.item/:id/copy.after', 'item_licenses', postItemCopyAfter)
+    events.bind('rest.put.item/:id.after', 'item_licenses', putItemAfter)
 
     # Bind validation events
-    events.bind('model.item.validate', 'item_licenses',
-                validateItem)
-    events.bind('model.setting.validate', 'item_licenses',
-                validateSettings)
+    events.bind('model.item.validate', 'item_licenses', validateItem)
 
     # Add license field to item model
-    ModelImporter.model('item').exposeFields(
-        level=AccessType.READ, fields='license')
+    ModelImporter.model('item').exposeFields(level=AccessType.READ, fields='license')
 
     # Add endpoint to get list of licenses
     info['apiRoot'].item.route('GET', ('licenses',), getLicenses)

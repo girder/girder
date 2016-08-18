@@ -26,8 +26,8 @@ import sys
 import traceback
 
 from . import docs
-from girder import events, logger
-from girder.constants import SettingKey, TerminalColor, TokenScope, SortDir
+from girder import events, logger, logprint
+from girder.constants import SettingKey, TokenScope, SortDir
 from girder.models.model_base import AccessException, GirderException, \
     ValidationException
 from girder.utility.model_importer import ModelImporter
@@ -242,14 +242,26 @@ def requireAdmin(user, message=None):
         raise AccessException(message or 'Administrator access required.')
 
 
-def getBodyJson():
+def getBodyJson(allowConstants=False):
     """
     For requests that are expected to contain a JSON body, this returns the
     parsed value, or raises a :class:`girder.api.rest.RestException` for
     invalid JSON.
+
+    :param allowConstants: Whether the keywords Infinity, -Infinity, and NaN
+        should be allowed. These keywords are valid JavaScript and will parse
+        to the correct float values, but are not valid in strict JSON.
+    :type allowConstants: bool
     """
+    if allowConstants:
+        _parseConstants = None
+    else:
+        def _parseConstants(val):
+            raise RestException('Error: "%s" is not valid JSON.' % val)
+
+    text = cherrypy.request.body.read().decode('utf8')
     try:
-        return json.loads(cherrypy.request.body.read().decode('utf8'))
+        return json.loads(text, parse_constant=_parseConstants)
     except ValueError:
         raise RestException('Invalid JSON passed in request body.')
 
@@ -617,10 +629,10 @@ class Resource(ModelImporter):
         """
         if not hasattr(self, '_routes'):
             Resource.__init__(self)
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: Resource subclass "%s" did not call '
                 '"Resource__init__()" from its constructor.' %
-                self.__class__.__name__))
+                self.__class__.__name__)
 
     def route(self, method, route, handler, nodoc=False, resource=None):
         """
@@ -665,26 +677,26 @@ class Resource(ModelImporter):
                     info=handler.description.asDict(), handler=handler)
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: No description docs present for route %s %s' % (
-                    method, routePath)))
+                    method, routePath))
 
         # Warn if there is no access decorator on the handler function
         if not hasattr(handler, 'accessLevel'):
             routePath = '/'.join([resource] + list(route))
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: No access level specified for route %s %s' % (
-                    method, routePath)))
+                    method, routePath))
 
         if method.lower() not in ('head', 'get') \
             and hasattr(handler, 'cookieAuth') \
             and not (isinstance(handler.cookieAuth, tuple) and
                      handler.cookieAuth[1]):
             routePath = '/'.join([resource] + list(route))
-            print(TerminalColor.warning(
-                  'WARNING: Cannot allow cookie authentication for '
-                  'route %s %s without specifying "force=True"' % (
-                      method, routePath)))
+            logprint.warning(
+                'WARNING: Cannot allow cookie authentication for '
+                'route %s %s without specifying "force=True"' % (
+                    method, routePath))
 
     def removeRoute(self, method, route, handler=None, resource=None):
         """

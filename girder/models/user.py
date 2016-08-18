@@ -79,6 +79,7 @@ class User(AccessControlledModel):
         doc['email'] = doc.get('email', '').lower().strip()
         doc['firstName'] = doc.get('firstName', '').strip()
         doc['lastName'] = doc.get('lastName', '').strip()
+        doc['status'] = doc.get('status', 'enabled')
 
         cur_config = config.getConfig()
 
