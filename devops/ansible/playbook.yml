@@ -27,6 +27,8 @@
       - libjpeg-dev
       - zlib1g-dev
       - python-pip
+      - cmake
+      - cmake-curses-gui
 
   - name: Python | Add Python Updates PPA key
     apt_key:
@@ -93,6 +95,12 @@
       chdir: "/home/vagrant/girder"
     become: yes
 
+  - name: Girder | Install requirements-dev
+    pip:
+      requirements: "requirements-dev.txt"
+      chdir: "/home/vagrant/girder"
+    become: yes
+
   - name: Girder | Install Girder
     pip:
       name: ".[plugins]"
@@ -111,9 +119,7 @@
     become: yes
 
   - name: Girder | Run npm install
-    # Production installation doesn't install Jasmine,
-    # which consumes a lot of resources to build
-    command: "npm install --production"
+    command: "npm install"
     args:
       chdir: "/home/vagrant/girder"
 
