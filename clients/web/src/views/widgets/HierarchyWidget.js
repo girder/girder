@@ -241,6 +241,12 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         this.fetchAndShowChildCount();
 
+        if (this.folderListView && this.folderListView.collection && this.itemListView && this.itemListView.collection) {
+            this.folderCount = this.folderListView.collection.length;
+            this.itemCount = this.itemListView.collection.length;
+            this._childCountCheck();
+        }
+
         return this;
     },
 
