@@ -27,29 +27,29 @@ class DicomItem(Resource):
         filters = set(filter(None, params.get('filters', '').split(',')))
         files = list(ModelImporter.model('item').childFiles(item))
         # process files if they haven't been processed yet
-        for i, file in enumerate(files):
-            if 'dicom' not in file:
-                files[i] = process_file(file)
+        for i, f in enumerate(files):
+            if 'dicom' not in f:
+                files[i] = process_file(f)
         # filter out non-dicom files
         files = [x for x in files if x.get('dicom')]
         # sort files
         files = sorted(files, key=sort_key)
         # execute filters
         if filters:
-            for file in files:
-                dicom = file['dicom']
+            for f in files:
+                dicom = f['dicom']
                 dicom = dict((k, dicom[k]) for k in filters if k in dicom)
-                file['dicom'] = dicom
+                f['dicom'] = dicom
         return files
 
 
-def sort_key(file):
-    dicom = file.get('dicom', {})
+def sort_key(f):
+    dicom = f.get('dicom', {})
     return (
         dicom.get('SeriesNumber'),
         dicom.get('InstanceNumber'),
         dicom.get('SliceLocation'),
-        file['name'],
+        f['name'],
     )
 
 
@@ -67,12 +67,12 @@ def coerce(x):
         return None
 
 
-def process_file(file):
+def process_file(f):
     data = {}
     try:
-        if file['size'] <= MAX_FILE_SIZE:
+        if f['size'] <= MAX_FILE_SIZE:
             # download file and try to parse dicom
-            stream = ModelImporter.model('file').download(file, headers=False)
+            stream = ModelImporter.model('file').download(f, headers=False)
             fp = six.BytesIO(b''.join(stream()))
             ds = dicom.read_file(fp, stop_before_pixels=True)
             # human-readable keys
@@ -89,8 +89,8 @@ def process_file(file):
     except Exception:
         pass
     # store dicom data in file
-    file['dicom'] = data
-    return ModelImporter.model('file').save(file)
+    f['dicom'] = data
+    return ModelImporter.model('file').save(f)
 
 
 def handler(event):
