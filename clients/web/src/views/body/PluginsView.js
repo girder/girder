@@ -5,7 +5,7 @@ import router from 'girder/router';
 import View from 'girder/views/View';
 import { confirm } from 'girder/utilities/DialogHelper';
 import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
-import { restartServer } from 'girder/utilities/Server';
+import { restartServer } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
 import PluginsTemplate from 'girder/templates/body/plugins.jade';

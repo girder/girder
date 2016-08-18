@@ -523,12 +523,12 @@ describe('Test the assetstore page', function () {
 
 describe('Test the plugins page', function () {
     beforeEach(function () {
-        spyOn(girder.utilities.Server.restartServer, '_callSystemRestart').andCallFake(function () {
+        spyOn(girder.server.restartServer, '_callSystemRestart').andCallFake(function () {
             window.setTimeout(function () {
-                girder.utilities.Server.restartServer._lastStartDate = 0;
+                girder.server.restartServer._lastStartDate = 0;
             }, 100);
         });
-        spyOn(girder.utilities.Server.restartServer, '_reloadWindow');
+        spyOn(girder.server.restartServer, '_reloadWindow');
     });
 
     it('Test that anonymous loading plugins page prompts login', function () {
@@ -587,8 +587,8 @@ describe('Test the plugins page', function () {
             $('#g-confirm-button').click();
         });
         waitsFor(function () {
-            return girder.utilities.Server.restartServer._callSystemRestart.wasCalled &&
-                   girder.utilities.Server.restartServer._reloadWindow.wasCalled;
+            return girder.server.restartServer._callSystemRestart.wasCalled &&
+                   girder.server.restartServer._reloadWindow.wasCalled;
         }, 'restart to be called');
     });
     it('Go away and back to plugins page', function () {

@@ -8,6 +8,7 @@ import router from './router';
 import * as utilities from './utilities';
 import * as version from './version';
 import * as views from './views';
+import * as server from './server';
 
 export {
   auth,
@@ -17,6 +18,7 @@ export {
   models,
   rest,
   router,
+  server,
   utilities,
   version,
   views
