@@ -1,5 +1,10 @@
 {
     "name": "Vega file visualizer",
     "description": "Render Vega visualizations in the file info page.",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "grunt": {
+        "dependencies": {
+            "vega": "^2.6.0"
+        }
+    }
 }
