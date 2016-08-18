@@ -46,6 +46,7 @@ module.exports = function (grunt) {
             options: {
                 client: true,
                 compileDebug: false,
+                doctype: 'html',
                 namespace: 'girder.templates',
                 processName: function (filename) {
                     return path.basename(filename, '.jade');
@@ -232,7 +233,7 @@ module.exports = function (grunt) {
             },
             jade_core: {
                 files: ['clients/web/src/templates/**/*.jade'],
-                tasks: ['jade:core']
+                tasks: ['jade:core', 'uglify:app']
             }
         },
 

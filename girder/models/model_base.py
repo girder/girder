@@ -27,9 +27,8 @@ import six
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from pymongo.errors import WriteError
-from girder import events
-from girder.constants import AccessType, CoreEventHandler, TerminalColor, \
-    TEXT_SCORE_SORT_MAX
+from girder import events, logprint
+from girder.constants import AccessType, CoreEventHandler, TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
@@ -86,8 +85,7 @@ class Model(ModelImporter):
                     textIdx, weights=self._textIndex,
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
-                print(
-                    TerminalColor.warning('WARNING: Text search not enabled.'))
+                logprint.warning('WARNING: Text search not enabled.')
 
     def exposeFields(self, level, fields):
         """
@@ -255,7 +253,7 @@ class Model(ModelImporter):
         return self.collection.find_one(query, projection=fields, **kwargs)
 
     def textSearch(self, query, offset=0, limit=0, sort=None, fields=None,
-                   filters=None):
+                   filters=None, **kwargs):
         """
         Perform a full-text search against the text index for this collection.
 
@@ -284,7 +282,7 @@ class Model(ModelImporter):
         return cursor
 
     def prefixSearch(self, query, offset=0, limit=0, sort=None, fields=None,
-                     filters=None, prefixSearchFields=None):
+                     filters=None, prefixSearchFields=None, **kwargs):
         """
         Search for documents in this model's collection by a prefix string.
         The fields that will be searched based on this prefix must be set as
@@ -653,7 +651,7 @@ class AccessControlledModel(Model):
             })
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -676,7 +674,7 @@ class AccessControlledModel(Model):
         doc['public'] = public
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -731,7 +729,7 @@ class AccessControlledModel(Model):
         doc['access'] = acList
 
         if save:
-            doc = self.save(doc, validate=False)
+            doc = self.save(doc)
 
         return doc
 
@@ -989,7 +987,7 @@ class AccessControlledModel(Model):
             dest['access'] = copy.deepcopy(src['access'])
 
         if save:
-            dest = self.save(dest, validate=False)
+            dest = self.save(dest)
         return dest
 
     def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,

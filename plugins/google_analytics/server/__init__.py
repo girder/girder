@@ -17,21 +17,16 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder import events
 from girder.models.model_base import ValidationException
+from girder.utility import setting_utilities
 from . import constants, rest
 
 
-def validateSettings(event):
-    key, val = event.info['key'], event.info['value']
-
-    if key == constants.PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID:
-        if not val:
-            raise ValidationException(
-                'Google Analytics Tracking ID must not be empty.', 'value')
-        event.preventDefault().stopPropagation()
+@setting_utilities.validator(constants.PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID)
+def validateTrackingId(doc):
+    if not doc['value']:
+        raise ValidationException('Google Analytics Tracking ID must not be empty.', 'value')
 
 
 def load(info):
-    events.bind('model.setting.validate', 'google_analytics', validateSettings)
     info['apiRoot'].google_analytics = rest.GoogleAnalytics()

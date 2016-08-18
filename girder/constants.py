@@ -135,6 +135,7 @@ class SettingKey:
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     EMAIL_HOST = 'core.email_host'
     REGISTRATION_POLICY = 'core.registration_policy'
+    EMAIL_VERIFICATION = 'core.email_verification'
     SMTP_HOST = 'core.smtp_host'
     SMTP_PORT = 'core.smtp.port'
     SMTP_ENCRYPTION = 'core.smtp.encryption'
@@ -159,6 +160,7 @@ class SettingDefault:
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
         SettingKey.REGISTRATION_POLICY: 'open',
+        SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.SMTP_HOST: 'localhost',
         SettingKey.SMTP_PORT: 25,
         SettingKey.SMTP_ENCRYPTION: 'none',
@@ -195,12 +197,82 @@ class TokenScope:
     ANONYMOUS_SESSION = 'core.anonymous_session'
     USER_AUTH = 'core.user_auth'
     TEMPORARY_USER_AUTH = 'core.user_auth.temporary'
+    EMAIL_VERIFICATION = 'core.email_verification'
     PLUGINS_ENABLED_READ = 'core.plugins.read'
     SETTINGS_READ = 'core.setting.read'
     ASSETSTORES_READ = 'core.assetstore.read'
     PARTIAL_UPLOAD_READ = 'core.partial_upload.read'
     PARTIAL_UPLOAD_CLEAN = 'core.partial_upload.clean'
-    DATA_READ = 'core.data_read'
+    DATA_READ = 'core.data.read'
+    DATA_WRITE = 'core.data.write'
+    DATA_OWN = 'core.data.own'
+    USER_INFO_READ = 'core.user_info.read'
+
+    _customScopes = []
+    _adminCustomScopes = []
+
+    @classmethod
+    def describeScope(cls, scopeId, name, description, admin=False):
+        """
+        Register a description of a scope.
+
+        :param scopeId: The unique identifier string for the scope.
+        :type scopeId: str
+        :param name: A short human readable name for the scope.
+        :type name: str
+        :param description: A more complete description of the scope.
+        :type description: str
+        :param admin: If this scope only applies to admin users, set to True.
+        :type admin: bool
+        """
+        info = {
+            'id': scopeId,
+            'name': name,
+            'description': description
+        }
+        if admin:
+            cls._adminCustomScopes.append(info)
+        else:
+            cls._customScopes.append(info)
+
+    @classmethod
+    def listScopes(cls):
+        return {
+            'custom': cls._customScopes,
+            'adminCustom': cls._adminCustomScopes
+        }
+
+TokenScope.describeScope(
+    TokenScope.USER_INFO_READ, 'Read your user information',
+    'Allows clients to look up your user information, including private fields '
+    'such as email address.')
+TokenScope.describeScope(
+    TokenScope.DATA_READ, 'Read data',
+    'Allows clients to read all data that you have access to.')
+TokenScope.describeScope(
+    TokenScope.DATA_WRITE, 'Write data',
+    'Allows clients to edit data in the hierarchy and create new data anywhere '
+    'you have write access.')
+TokenScope.describeScope(
+    TokenScope.DATA_OWN, 'Data ownership', 'Allows administrative control '
+    'on data you own, including setting access control and deletion.'
+)
+
+TokenScope.describeScope(
+    TokenScope.PLUGINS_ENABLED_READ, 'See enabled plugins', 'Allows clients '
+    'to see the list of plugins enabled on the server.', admin=True)
+TokenScope.describeScope(
+    TokenScope.SETTINGS_READ, 'See system setting values', 'Allows clients to '
+    'view the value of any system setting.', admin=True)
+TokenScope.describeScope(
+    TokenScope.ASSETSTORES_READ, 'View assetstores', 'Allows clients to see '
+    'all assetstore information.', admin=True)
+TokenScope.describeScope(
+    TokenScope.PARTIAL_UPLOAD_READ, 'View unfinished uploads.',
+    'Allows clients to see all partial uploads.', admin=True)
+TokenScope.describeScope(
+    TokenScope.PARTIAL_UPLOAD_CLEAN, 'Remove unfinished uploads.',
+    'Allows clients to remove unfinished uploads.', admin=True)
 
 
 class CoreEventHandler(object):

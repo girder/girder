@@ -30,15 +30,25 @@ girder.views.RegisterView = girder.View.extend({
                 } else {
                     var authToken = user.get('authToken') || {};
 
-                    girder.currentUser = user;
-                    girder.currentToken = authToken.token;
+                    if (authToken.token) {
+                        girder.currentUser = user;
+                        girder.currentToken = authToken.token;
 
-                    if (girder.corsAuth) {
-                        document.cookie = 'girderToken=' + girder.currentToken;
+                        if (girder.corsAuth) {
+                            document.cookie = 'girderToken=' + girder.currentToken;
+                        }
+
+                        girder.events.trigger('g:login');
+                    } else {
+                        girder.events.trigger('g:alert', {
+                            icon: 'ok',
+                            text: 'Check your email to verify registration.',
+                            type: 'success',
+                            timeout: 4000
+                        });
                     }
 
                     girder.dialogs.handleClose('register', {replace: true});
-                    girder.events.trigger('g:login');
                 }
 
                 this.$el.modal('hide');

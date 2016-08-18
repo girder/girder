@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
+
 
 ###############################################################################
 #  Copyright Kitware Inc.
@@ -17,12 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
+import os
+from inspect import getmembers, ismethod, getargspec
+
 # Ansible's module magic requires this to be
 # 'from ansible.module_utils.basic import *' otherwise it will error out. See:
 # https://github.com/ansible/ansible/blob/v1.9.4-1/lib/ansible/module_common.py#L41-L59
 # For more information on this magic. For now we noqa to prevent flake8 errors
 from ansible.module_utils.basic import *  # noqa
-from inspect import getmembers, ismethod, getargspec
 
 try:
     from girder_client import GirderClient, AuthenticationError, HttpError
@@ -31,7 +34,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.0"
+__version__ = "0.2.4"
 
 DOCUMENTATION = '''
 ---
@@ -59,6 +62,18 @@ options:
         default: '/api/v1'
         description:
             - path on server corresponding to the root of Girder REST API
+
+    apiUrl:
+        required: false
+        default: None
+        description:
+            - full URL base of the girder instance API
+    apiKey:
+        required: false
+        default: None
+        description:
+            - pass in an apiKey instead of username/password
+
 
     scheme:
         required: false
@@ -833,13 +848,21 @@ def class_spec(cls, include=None):
     for fn, method in getmembers(cls, predicate=ismethod):
         if fn in include:
             spec = getargspec(method)
+            # Note: must specify the kind of data we accept
+            #       In all most all cases this will be a dict
+            #       where variable names become keys used in yaml
+            #       but if we have a vararg then we need to set
+            #       this to a list.
+            kind = 'dict' if spec.varargs is None else 'list'
+
             # spec.args[1:] so we don't include 'self'
             params = spec.args[1:]
             d = len(spec.defaults) if spec.defaults is not None else 0
             r = len(params) - d
 
             yield (fn, {"required": params[:r],
-                        "optional": params[r:]})
+                        "optional": params[r:],
+                        "type": kind})
 
 
 class Resource(object):
@@ -891,7 +914,7 @@ class Resource(object):
             try:
                 # If we can't create the item,  try and return
                 # The item with the same name
-                ret = self.resource_by_name[args['name']]
+                ret = self.resource_by_name[kwargs['name']]
             except KeyError:
                 raise htErr
         return ret
@@ -1002,7 +1025,7 @@ class ItemResource(Resource):
 class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
-    _include_methods = ['get', 'put', 'post', 'delete',
+    _include_methods = ['get', 'put', 'post', 'delete', 'patch',
                         'plugins', 'user', 'assetstore',
                         'collection', 'folder', 'item', 'files',
                         'group']
@@ -1035,7 +1058,7 @@ class GirderClientModule(GirderClient):
 
         super(GirderClientModule, self).__init__(
             **{p: self.module.params[p] for p in
-               ['host', 'port', 'apiRoot',
+               ['host', 'port', 'apiRoot', 'apiUrl',
                 'scheme', 'dryrun', 'blacklist']
                if module.params[p] is not None})
         # If a username and password are set
@@ -1044,6 +1067,14 @@ class GirderClientModule(GirderClient):
                 self.authenticate(
                     username=self.module.params['username'],
                     password=self.module.params['password'])
+
+            except AuthenticationError:
+                self.fail("Could not Authenticate!")
+
+        elif self.module.params['apiKey'] is not None:
+            try:
+                self.authenticate(
+                    apiKey=self.module.params['apiKey'])
 
             except AuthenticationError:
                 self.fail("Could not Authenticate!")
@@ -1362,7 +1393,7 @@ class GirderClientModule(GirderClient):
         groups = access.get("groups", None)
 
         if groups is not None:
-            assert set(g['type'] for g in groups) <= \
+            assert set(g['type'] for g in groups if 'type' in g) <= \
                 set(self.access_types.keys()), "Invalid access type!"
 
             # Hash of name -> group information
@@ -1370,12 +1401,13 @@ class GirderClientModule(GirderClient):
             all_groups = {g['name']: g for g in self.get("group")}
 
             access_list['groups'] = [{'id': all_groups[g['name']]["_id"],
-                                      'level': self.access_types[g['type']]}
+                                      'level': self.access_types[g['type']]
+                                      if 'type' in g else g['level']}
                                      for g in groups]
 
         if users is not None:
 
-            assert set(u['type'] for u in users) <= \
+            assert set(u['type'] for u in users if 'type' in u) <= \
                 set(self.access_types.keys()), "Invalid access type!"
 
             # Hash of login -> user information
@@ -1384,7 +1416,8 @@ class GirderClientModule(GirderClient):
                              for u in users}
 
             access_list['users'] = [{'id': current_users[u['login']]["_id"],
-                                     "level": self.access_types[u['type']]}
+                                     "level": self.access_types[u['type']]
+                                     if 'type' in u else u['level']}
                                     for u in users]
 
         return r.put_access(_id, access_list, public=public)
@@ -1435,9 +1468,26 @@ class GirderClientModule(GirderClient):
 
         if self.module.params['state'] == 'present':
             if r.name_exists(name):
+                # While we can set public when we create the collection, we
+                # cannot update the public/private status of a collection
+                # via the PUT /collection/%s endpoint. Currently this is
+                # possible through the API by hitting the
+                # PUT /collection/%s/access endpoint with public=true and
+                # the access dict equal to {}
+                if r.resources_by_name[name]['public'] != public:
+                    _id = r.resources_by_name[name]['_id']
+                    self.changed = True
+                    self._access(r,  r.get_access(_id), _id, public=public)
+                    # invalidate the resource cache - this forces us to pick up
+                    # the change in 'public' attribute despite it not being
+                    # an attribute we can modify
+                    r._resources = None
+
                 ret = r.update_by_name(name, {k: v for k, v in valid_fields
                                               if v is not None})
+
             else:
+                valid_fields.append(("public", public))
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
         if folders is not None:
@@ -1486,13 +1536,12 @@ class GirderClientModule(GirderClient):
         elif self.module.params['state'] == 'absent':
             # If there are plugins in the list that are enabled
             if len(enabled_plugins & plugins):
-
-                # Put the difference of enabled_plugins and plugins
-                ret = self.put("system/plugins",
-                               {"plugins":
-                                json.dumps(list(enabled_plugins - plugins))})
                 self.changed = True
 
+            # Put the difference of enabled_plugins and plugins
+            ret = self.put("system/plugins",
+                           {"plugins":
+                            json.dumps(list(enabled_plugins - plugins))})
         return ret
 
     def user(self, login, password, firstName=None,
@@ -1530,6 +1579,8 @@ class GirderClientModule(GirderClient):
                                  "email": email,
                                  "admin": "true" if admin else "false"})
                     self.changed = True
+
+                ret = me
             # User does not exist (with this login info)
             except AuthenticationError:
                 ret = self.post("user", parameters={
@@ -1562,6 +1613,13 @@ class GirderClientModule(GirderClient):
                 ret = []
 
         return ret
+
+    # Handles patch correctly by dumping the data as a string before passing
+    # it on to requests See:
+    # http://docs.python-requests.org/en/master/user/quickstart/#more-complicated-post-requests
+    def patch(self, path, parameters=None, data=None):
+        super(GirderClientModule, self).patch(path, parameters=parameters,
+                                              data=json.dumps(data))
 
     assetstore_types = {
         "filesystem": 0,
@@ -1689,6 +1747,7 @@ class GirderClientModule(GirderClient):
                 id = assetstores[name]['_id']
                 ret = self.delete("assetstore/%s" % id,
                                   parameters=argument_hash[type])
+                self.changed = True
 
         return ret
 
@@ -1707,6 +1766,7 @@ def main():
         'host': dict(),
         'port': dict(),
         'apiRoot': dict(),
+        'apiUrl': dict(),
         'scheme': dict(),
         'dryrun': dict(),
         'blacklist': dict(),
@@ -1715,6 +1775,7 @@ def main():
         'username': dict(),
         'password': dict(),
         'token':    dict(),
+        'apiKey': dict(),
 
         # General
         'state': dict(default="present", choices=['present', 'absent'])
@@ -1723,12 +1784,12 @@ def main():
     gcm = GirderClientModule()
 
     for method in gcm.required_one_of:
-        argument_spec[method] = dict()
+        argument_spec[method] = dict(type=gcm.spec[method]['type'])
 
-    module = AnsibleModule(
+    module = AnsibleModule(  # noqa
         argument_spec=argument_spec,
         required_one_of=[gcm.required_one_of,
-                         ["token", "username", "user"]],
+                         ["token", "username", "user", "apiKey"]],
         required_together=[["username", "password"]],
         mutually_exclusive=gcm.required_one_of,
         supports_check_mode=False)

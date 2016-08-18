@@ -29,7 +29,6 @@ from girder import events
 from girder import logger
 from girder.constants import AccessType
 from girder.utility import acl_mixin
-from girder.utility.progress import setResponseTimeLimit
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
@@ -51,7 +50,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         self.exposeFields(level=AccessType.READ, fields=(
             '_id', 'size', 'updated', 'description', 'created', 'meta',
-            'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId'))
+            'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId',
+            'copyOfItem'))
 
     def filter(self, *args, **kwargs):
         """
@@ -378,13 +378,13 @@ class Item(acl_mixin.AccessControlMixin, Model):
             folder=folder, name=name, creator=creator, description=description)
         # copy metadata and other extension values
         filteredItem = self.filter(newItem, creator)
-        updated = False
         for key in srcItem:
             if key not in filteredItem and key not in newItem:
                 newItem[key] = copy.deepcopy(srcItem[key])
-                updated = True
-        if updated:
-            self.save(newItem, triggerEvents=False)
+        # add a reference to the original item
+        newItem['copyOfItem'] = srcItem['_id']
+        self.save(newItem, triggerEvents=False)
+
         # Give listeners a chance to change things
         events.trigger('model.item.copy.prepare', (srcItem, newItem))
         # copy files
@@ -397,9 +397,14 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return newItem
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True):
+                 subpath=True, mimeFilter=None, data=True):
         """
-        Generate a list of files within this item.
+        This function generates a list of 2-tuples whose first element is the
+        relative path to the file from the item's root and whose second
+        element depends on the value of the `data` flag. If `data=True`, the
+        second element will be a generator that will generate the bytes of the
+        file data as stored in the assetstore. If `data=False`, the second
+        element will be the file document itself.
 
         :param doc: The item to list.
         :param user: A user used to validate data that is returned.  This isn't
@@ -417,9 +422,15 @@ class Item(acl_mixin.AccessControlMixin, Model):
                         metadata, or the sole file is not named the same as the
                         item, then the returned paths include the item name.
         :type subpath: bool
+        :param mimeFilter: Optional list of MIME types to filter by. Set to
+            None to include all files.
+        :type mimeFilter: list or tuple
+        :param data: If True return raw content of each file as stored in the
+            assetstore, otherwise return file document.
+        :type data: bool
         :returns: Iterable over files in this item, where each element is a
                   tuple of (path name of the file, stream function with file
-                  data).
+                  data or file object).
         :rtype: generator(str, func)
         """
         if subpath:
@@ -427,81 +438,63 @@ class Item(acl_mixin.AccessControlMixin, Model):
             if (len(files) != 1 or files[0]['name'] != doc['name'] or
                     (includeMetadata and doc.get('meta', {}))):
                 path = os.path.join(path, doc['name'])
-        metadataFile = "girder-item-metadata.json"
+        metadataFile = 'girder-item-metadata.json'
+
         for file in self.childFiles(item=doc):
+            if not self._mimeFilter(file, mimeFilter):
+                continue
             if file['name'] == metadataFile:
                 metadataFile = None
-            yield (os.path.join(path, file['name']),
-                   self.model('file').download(file, headers=False))
+            if data:
+                val = self.model('file').download(file, headers=False)
+            else:
+                val = file
+            yield (os.path.join(path, file['name']), val)
         if includeMetadata and metadataFile and len(doc.get('meta', {})):
             def stream():
                 yield json.dumps(doc['meta'], default=str)
             yield (os.path.join(path, metadataFile), stream)
 
-    def checkConsistency(self, stage, progress=None):
+    def _mimeFilter(self, file, mimeFilter):
         """
-        Check all of the items and make sure they are valid.  This operates in
-        stages, since some actions should be done before other models that rely
-        on items and some need to be done after.  The stages are:
-        * count - count how many items need to be checked.
-        * remove - remove lost items
-        * verify - verify and fix existing items
+        Returns whether or not the given file should be passed through the given
+        MIME filter. If no MIME filter is specified, all files are allowed.
+        """
+        if not mimeFilter:
+            return True
+        return file['mimeType'] in mimeFilter
 
-        :param stage: which stage of the check to run.  See above.
-        :param progress: an optional progress context to update.
-        :returns: numItems: number of items to check or processed,
-                  numChanged: number of items changed.
+    def isOrphan(self, item, user=None):
         """
-        if stage == 'count':
-            numItems = self.find(limit=1).count()
-            return numItems, 0
-        elif stage == 'remove':
-            # Check that all items are in existing folders.  Any that are not
-            # can be deleted.  Perhaps we should put them in a lost+found
-            # instead
-            folderIds = self.model('folder').collection.distinct('_id')
-            lostItems = self.find({
-                '$or': [{'folderId': {'$nin': folderIds}},
-                        {'folderId': {'$exists': False}}]})
-            numItems = itemsLeft = lostItems.count()
-            if numItems:
-                if progress is not None:
-                    progress.update(message='Removing orphaned items')
-                for item in lostItems:
-                    setResponseTimeLimit()
-                    self.collection.delete_one({'_id': item['_id']})
-                    if progress is not None:
-                        itemsLeft -= 1
-                        progress.update(increment=1, message='Removing '
-                                        'orphaned items (%d left)' % itemsLeft)
-            return numItems, numItems
-        elif stage == 'verify':
-            # Check items sizes
-            items = self.find()
-            numItems = itemsLeft = items.count()
-            itemsCorrected = 0
-            if progress is not None:
-                progress.update(message='Checking items')
-            for item in items:
-                itemCorrected = False
-                setResponseTimeLimit()
-                oldSize = item.get('size', 0)
-                newSize = self.recalculateSize(item)
-                if newSize != oldSize:
-                    itemCorrected = True
-                newBaseParent = self.parentsToRoot(item, force=True)[0]
-                if item['baseParentType'] != newBaseParent['type'] or \
-                   item['baseParentId'] != newBaseParent['object']['_id']:
-                    self.update(
-                        {'_id': item['_id']}, update={'$set': {
-                            'baseParentType': newBaseParent['type'],
-                            'baseParentId': newBaseParent['object']['_id']
-                        }})
-                    itemCorrected = True
-                if itemCorrected:
-                    itemsCorrected += 1
-                if progress is not None:
-                    itemsLeft -= 1
-                    progress.update(increment=1, message='Checking items (%d '
-                                    'left)' % itemsLeft)
-            return numItems, itemsCorrected
+        Returns True if this item is orphaned (its folder is missing).
+
+        :param item: The item to check.
+        :type item: dict
+        :param user: The user for permissions.
+        :type user: dict or None
+        """
+        return not self.model('folder').load(
+            item.get('folderId'), user=user)
+
+    def updateSize(self, doc, user):
+        """
+        Recomputes the size of this item and its underlying
+        files and fixes the sizes as needed.
+
+        :param doc: The item.
+        :type doc: dict
+        :param user: The admin user for permissions.
+        :type user: dict
+        """
+        # get correct size from child files
+        size = 0
+        fixes = 0
+        for file in self.childFiles(doc):
+            s, f = self.model('file').updateSize(file)
+            size += s
+            fixes += f
+        # fix value if incorrect
+        if size != doc.get('size'):
+            self.update({'_id': doc['_id']}, update={'$set': {'size': size}})
+            fixes += 1
+        return size, fixes

@@ -21,6 +21,7 @@ import asyncore
 import email
 import os
 import smtpd
+import sys
 import threading
 import time
 
@@ -32,6 +33,16 @@ _maxTries = 100
 
 class MockSmtpServer(smtpd.SMTPServer):
     mailQueue = queue.Queue()
+
+    def __init__(self, localaddr, remoteaddr, decode_data=False):
+        kwargs = {}
+        if sys.version_info >= (3, 5):
+            # Python 3.5+ prints a warning if 'decode_data' isn't explicitly
+            # specified, but earlier versions don't accept the argument at all
+            kwargs['decode_data'] = decode_data
+        # smtpd.SMTPServer is an old-style class in Python2,
+        # so super() can't be used
+        smtpd.SMTPServer.__init__(self, localaddr, remoteaddr, **kwargs)
 
     def process_message(self, peer, mailfrom, rcpttos, data):
         self.mailQueue.put(data)

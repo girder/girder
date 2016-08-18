@@ -33,6 +33,7 @@ class Token(Resource):
         self.route('DELETE', ('session',), self.deleteSession)
         self.route('GET', ('session',), self.getSession)
         self.route('GET', ('current',), self.currentSession)
+        self.route('GET', ('scopes',), self.listScopes)
 
     @access.public
     @describeRoute(
@@ -80,3 +81,10 @@ class Token(Resource):
             self.model('token').remove(token)
         self.deleteAuthTokenCookie()
         return {'message': 'Session deleted.'}
+
+    @access.public
+    @describeRoute(
+        Description('List all token scopes available in the system.')
+    )
+    def listScopes(self, params):
+        return TokenScope.listScopes()

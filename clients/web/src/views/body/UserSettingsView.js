@@ -79,18 +79,23 @@ girder.views.UserAccountView = girder.View.extend({
         this.tab = settings.tab || 'info';
         this.user = settings.user || girder.currentUser;
         this.isCurrentUser = girder.currentUser &&
-            settings.user.get('_id') === girder.currentUser.get('_id');
+            settings.user.id === girder.currentUser.id;
 
         this.model = this.user;
         this.temporary = settings.temporary;
 
-        if (!this.user ||
-                this.user.getAccessLevel() < girder.AccessType.WRITE) {
+        if (!this.user || this.user.getAccessLevel() < girder.AccessType.WRITE) {
             girder.router.navigate('users', {trigger: true});
             return;
         }
 
         girder.cancelRestRequests('fetch');
+
+        this.apiKeyListWidget = new girder.views.ApiKeyListWidget({
+            user: this.user,
+            parentView: this
+        });
+
         this.render();
     },
 
@@ -109,12 +114,15 @@ girder.views.UserAccountView = girder.View.extend({
 
         _.each($('.g-account-tabs>li>a'), function (el) {
             var tabLink = $(el);
-            var view = this;
-            tabLink.tab().on('shown.bs.tab', function (e) {
-                view.tab = $(e.currentTarget).attr('name');
-                girder.router.navigate('useraccount/' +
-                    view.model.get('_id') + '/' + view.tab);
-            });
+            tabLink.tab().on('shown.bs.tab', _.bind(function (e) {
+                this.tab = $(e.currentTarget).attr('name');
+                girder.router.navigate('useraccount/' + this.model.id + '/' + this.tab);
+
+                if (this.tab === 'apikeys') {
+                    this.apiKeyListWidget.setElement(
+                        this.$('.g-api-keys-list-container')).render();
+                }
+            }, this));
 
             if (tabLink.attr('name') === this.tab) {
                 tabLink.tab('show');
@@ -158,5 +166,37 @@ girder.router.route('useraccount/:id/token/:token', 'accountToken', function (id
         });
     }, this)).error(_.bind(function () {
         girder.router.navigate('users', {trigger: true});
+    }, this));
+});
+
+girder.router.route('useraccount/:id/verification/:token', 'accountVerify', function (id, token) {
+    girder.restRequest({
+        path: 'user/' + id + '/verification',
+        type: 'PUT',
+        data: {token: token},
+        error: null
+    }).done(_.bind(function (resp) {
+        if (resp.authToken) {
+            resp.user.token = resp.authToken.token;
+            girder.eventStream.close();
+            girder.currentUser = new girder.models.UserModel(resp.user);
+            girder.eventStream.open();
+            girder.events.trigger('g:login-changed');
+        }
+        girder.events.trigger('g:navigateTo', girder.views.FrontPageView);
+        girder.events.trigger('g:alert', {
+            icon: 'ok',
+            text: 'Email verified.',
+            type: 'success',
+            timeout: 4000
+        });
+    }, this)).error(_.bind(function () {
+        girder.events.trigger('g:navigateTo', girder.views.FrontPageView);
+        girder.events.trigger('g:alert', {
+            icon: 'cancel',
+            text: 'Could not verify email.',
+            type: 'danger',
+            timeout: 4000
+        });
     }, this));
 });

@@ -16,6 +16,7 @@
 
 import cherrypy
 import os
+import re
 import six
 
 from girder.utility import progress
@@ -125,8 +126,33 @@ class AbstractAssetstoreAdapter(ModelImporter):
         raise NotImplementedError('Must override deleteFile in %s.' %
                                   self.__class__.__name__)  # pragma: no cover
 
+    def shouldImportFile(self, path, params):
+        """
+        This is a helper used during the import process to determine if a file located at
+        the specified path should be imported, based on the request parameters. Exclusion
+        takes precedence over inclusion.
+
+        :param path: The path of the file.
+        :type path: str
+        :param params: The request parameters.
+        :type params: dict
+        :rtype: bool
+        """
+        include = params.get('fileIncludeRegex')
+        exclude = params.get('fileExcludeRegex')
+
+        fname = os.path.basename(path)
+
+        if exclude and re.match(exclude, fname):
+            return False
+
+        if include:
+            return re.match(include, fname)
+
+        return True
+
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
-                     contentDisposition=None):
+                     contentDisposition=None, extraParameters=None, **kwargs):
         """
         This method is in charge of returning a value to the RESTful endpoint
         that can be used to download the file. This can return a generator
@@ -145,6 +171,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :param contentDisposition: Value for Content-Disposition response
             header disposition-type value.
         :type contentDisposition: str or None
+        :type extraParameters: str or None
         """
         raise NotImplementedError('Must override downloadFile in %s.' %
                                   self.__class__.__name__)  # pragma: no cover

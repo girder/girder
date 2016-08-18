@@ -20,26 +20,28 @@
 from girder import events
 from girder.constants import SettingDefault, SortDir
 from girder.models.model_base import ModelImporter, ValidationException
+from girder.utility import setting_utilities
 from . import rest, constants, providers
 
 
-def validateSettings(event):
-    key, val = event.info['key'], event.info['value']
+@setting_utilities.validator(constants.PluginSettings.PROVIDERS_ENABLED)
+def validateProvidersEnabled(doc):
+    if not isinstance(doc['value'], (list, tuple)):
+        raise ValidationException('The enabled providers must be a list.', 'value')
 
-    if key == constants.PluginSettings.PROVIDERS_ENABLED:
-        if not isinstance(val, (list, tuple)):
-            raise ValidationException('The enabled providers must be a list.',
-                                      'value')
-        event.preventDefault().stopPropagation()
-    elif key in (constants.PluginSettings.GOOGLE_CLIENT_ID,
-                 constants.PluginSettings.GITHUB_CLIENT_ID,
-                 constants.PluginSettings.LINKEDIN_CLIENT_ID,
-                 constants.PluginSettings.BITBUCKET_CLIENT_ID,
-                 constants.PluginSettings.GOOGLE_CLIENT_SECRET,
-                 constants.PluginSettings.GITHUB_CLIENT_SECRET,
-                 constants.PluginSettings.LINKEDIN_CLIENT_SECRET,
-                 constants.PluginSettings.BITBUCKET_CLIENT_SECRET):
-        event.preventDefault().stopPropagation()
+
+@setting_utilities.validator({
+    constants.PluginSettings.GOOGLE_CLIENT_ID,
+    constants.PluginSettings.GITHUB_CLIENT_ID,
+    constants.PluginSettings.LINKEDIN_CLIENT_ID,
+    constants.PluginSettings.BITBUCKET_CLIENT_ID,
+    constants.PluginSettings.GOOGLE_CLIENT_SECRET,
+    constants.PluginSettings.GITHUB_CLIENT_SECRET,
+    constants.PluginSettings.LINKEDIN_CLIENT_SECRET,
+    constants.PluginSettings.BITBUCKET_CLIENT_SECRET
+})
+def validateOtherSettings(event):
+    pass
 
 
 def checkOauthUser(event):
@@ -68,12 +70,10 @@ def load(info):
          ('oauth.id', SortDir.ASCENDING)), {}))
     ModelImporter.model('user').reconnect()
 
-    events.bind('model.setting.validate', 'oauth', validateSettings)
     events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
 
     info['apiRoot'].oauth = rest.OAuth()
 
     # Make Google on by default for backward compatibility. To turn it off,
     # users will need to hit one of the "Save" buttons on the config page.
-    SettingDefault.defaults[constants.PluginSettings.PROVIDERS_ENABLED] = \
-        ['google']
+    SettingDefault.defaults[constants.PluginSettings.PROVIDERS_ENABLED] = ['google']
