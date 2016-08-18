@@ -1,5 +1,7 @@
 {
-    "presets": ["es2015-webpack"],
+    "presets": [
+      ["es2015", {"modules": false}]
+    ],
     "env": {
       "dev": {
         "plugins": []
