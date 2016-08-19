@@ -215,12 +215,14 @@ class Model(ModelImporter):
         :type offset: int
         :param limit: Maximum number of documents to return
         :type limit: int
-        :param sort: The sort order.
-        :type sort: List of (key, order) tuples.
-        :param fields: A mask for filtering result documents by key.
-        :type fields: list[str]
         :param timeout: Cursor timeout in ms. Default is no timeout.
         :type timeout: int
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
         :returns: A pymongo database cursor.
         """
         query = query or {}
@@ -242,10 +244,12 @@ class Model(ModelImporter):
 
         :param query: The search query (see general MongoDB docs for "find()")
         :type query: dict
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
         :param sort: The sort order.
         :type sort: List of (key, order) tuples.
-        :param fields: A mask for filtering result documents by key.
-        :type fields: List of strings
         :returns: the first object that was found, or None if none found.
         """
         query = query or {}
@@ -259,6 +263,16 @@ class Model(ModelImporter):
 
         :param query: The text query. Will be stemmed internally.
         :type query: str
+        :param offset: The offset into the results
+        :type offset: int
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
         :param filters: Any additional query operators to apply.
         :type filters: dict
         :returns: A pymongo cursor. It is left to the caller to build the
@@ -292,8 +306,18 @@ class Model(ModelImporter):
         name, and the second element is a string representing the regex search
         options.
 
-        :param query: The prefix string to look for.
+        :param query: The prefix string to look for
         :type query: str
+        :param offset: The offset into the results
+        :type offset: int
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
         :param filters: Any additional query operators to apply.
         :type filters: dict
         :param prefixSearchFields: To override the model's prefixSearchFields
@@ -374,8 +398,8 @@ class Model(ModelImporter):
 
         For updating a single document, use the save() model method instead.
 
-        :param query: The query for finding documents to update. It's
-                      the same format as would be passed to find().
+        :param query: The search query for documents to update,
+            see general MongoDB docs for "find()"
         :type query: dict
         :param update: The update specifier.
         :type update: dict
@@ -395,7 +419,8 @@ class Model(ModelImporter):
         a field by a given amount. Additional kwargs are passed directly through
         to update.
 
-        :param query: The query selector for documents to update.
+        :param query: The search query for documents to update,
+            see general MongoDB docs for "find()"
         :type query: dict
         :param field: The name of the field in the document to increment.
         :type field: str
@@ -410,7 +435,7 @@ class Model(ModelImporter):
         """
         Delete an object from the collection; must have its _id set.
 
-        :param doc: the item to remove.
+        :param document: the item to remove.
         """
         assert '_id' in document
 
@@ -429,6 +454,10 @@ class Model(ModelImporter):
         """
         Remove all documents matching a given query from the collection.
         For safety reasons, you may not pass an empty query.
+
+        :param query: The search query for documents to delete,
+            see general MongoDB docs for "find()"
+        :type query: dict
         """
         assert query
 
@@ -442,8 +471,10 @@ class Model(ModelImporter):
         :type id: string or ObjectId
         :param objectId: Whether the id should be coerced to ObjectId type.
         :type objectId: bool
-        :param fields: Fields list to include. Also can be a dict for
-                       exclusion. See pymongo docs for how to use this arg.
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
         :param exc: Whether to raise a ValidationException if there is no
                     document with the given id.
         :type exc: bool
@@ -509,8 +540,13 @@ class Model(ModelImporter):
 
     def _isInclusionProjection(self, fields):
         """
-        Test whether a projection filter is an inclusion filter (whitelist) or
-        exclusion projection (blacklist) of fields.
+        Test whether a projection filter is an inclusion filter (whitelist) or exclusion
+        projection (blacklist) of fields, as defined by MongoDB find() method `projection` param.
+
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
         """
         if fields is None:
             return False
@@ -521,8 +557,9 @@ class Model(ModelImporter):
 
         for k, v in six.viewitems(fields):
             if k != '_id':
-                # We are only allowed either an inclusion list or an exclusion
-                # list except for the _id key.
+                # We are only allowed either inclusion or exclusion keys in a dict, there can be no
+                # mixing of these, with the only exception being that the `_id` key can be set as
+                # an exclusion field in a dict that otherwise holds inclusion fields.
                 return v
 
         # Empty dict or just _id field
@@ -939,17 +976,19 @@ class AccessControlledModel(Model):
 
         :param id: The id of the resource.
         :type id: str or ObjectId
-        :param user: The user to check access against.
-        :type user: dict or None
         :param level: The required access type for the object.
         :type level: AccessType
+        :param user: The user to check access against.
+        :type user: dict or None
+        :param objectId: Whether the id should be coerced to ObjectId type.
+        :type objectId: bool
         :param force: If you explicitly want to circumvent access
                       checking on this resource, set this to True.
         :type force: bool
-        :param objectId: Whether the id should be coerced to ObjectId type.
-        :type objectId: bool
-        :param fields: The subset of fields to load from the returned document,
-            or None to return the full document.
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
         :param exc: If not found, throw a ValidationException instead of
             returning None.
         :type exc: bool
@@ -985,10 +1024,14 @@ class AccessControlledModel(Model):
         """
         Return a list of documents that are visible to a user.
 
-        :param user: The user to filter for.
-        :param limit: Result set size limit.
-        :param offset: Offset into the results.
-        :param sort: The sort direction.
+        :param user: The user to filter for
+        :type user: dict or None
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param offset: The offset into the results
+        :type offset: int
+        :param sort: The sort order
+        :type sort: List of (key, order) tuples
         """
         cursor = self.find({}, sort=sort)
         return self.filterResultsByPermission(
@@ -1024,11 +1067,12 @@ class AccessControlledModel(Model):
 
         :param cursor: The database cursor object from "find()".
         :param user: The user to check policies against.
+        :type user: dict or None
         :param level: The access level.
         :type level: AccessType
-        :param limit: The max size of the result set.
+        :param limit: Maximum number of documents to return
         :type limit: int
-        :param offset: The offset into the result set.
+        :param offset: The offset into the results
         :type offset: int
         :param removeKeys: List of keys that should be removed from each
                            matching document.
@@ -1050,8 +1094,22 @@ class AccessControlledModel(Model):
         Custom override of Model.textSearch to also force permission-based
         filtering. The parameters are the same as Model.textSearch.
 
+        :param query: The text query. Will be stemmed internally.
+        :type query: str
         :param user: The user to apply permission filtering for.
         :type user: dict or None
+        :param filters: Any additional query operators to apply.
+        :type filters: dict
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param offset: The offset into the results
+        :type offset: int
+        :param sort: The sort order
+        :type sort: List of (key, order) tuples
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
         :param level: The access level to require.
         :type level: girder.constants.AccessType
         """
@@ -1068,10 +1126,26 @@ class AccessControlledModel(Model):
         Custom override of Model.prefixSearch to also force permission-based
         filtering. The parameters are the same as Model.prefixSearch.
 
+        :param query: The prefix string to look for
+        :type query: str
         :param user: The user to apply permission filtering for.
         :type user: dict or None
+        :param filters: Any additional query operators to apply.
+        :type filters: dict
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param offset: The offset into the results
+        :type offset: int
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection.
         :param level: The access level to require.
         :type level: girder.constants.AccessType
+        :returns: A pymongo cursor. It is left to the caller to build the
+            results from the cursor.
         """
         filters = filters or {}
 
