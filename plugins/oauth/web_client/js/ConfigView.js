@@ -29,6 +29,14 @@ girder.views.oauth_ConfigView = girder.View.extend({
                           'Developer Console. When creating your client ID there, ' +
                           'use the following values:'
         }, {
+            id: 'globus',
+            name: 'Globus',
+            icon: 'gplus',
+            hasAuthorizedOrigins: false,
+            instructions: 'Client IDs and secret keys are managed in the Google ' +
+                          'Developer Console. When creating your client ID there, ' +
+                          'use the following values:'
+        }, {
             id: 'github',
             name: 'GitHub',
             icon: 'github-circled',

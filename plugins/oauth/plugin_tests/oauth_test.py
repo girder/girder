@@ -29,6 +29,11 @@ import six
 from girder.constants import SettingKey
 from tests import base
 
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend
+import jwt
+from jwt.utils import base64url_encode
+
 
 def setUpModule():
     base.enabledPlugins.append('oauth')
@@ -727,6 +732,192 @@ class OauthTest(base.TestCase):
             mockGithubToken,
             mockGithubUserWithoutName,
             mockGithubApiEmail,
+            # Must keep 'mockOtherRequest' last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)
+
+    def testGlobusOauth(self):  # noqa
+        providerInfo = {
+            'id': 'globus',
+            'name': 'Globus',
+            'client_id': {
+                'key': PluginSettings.GLOBUS_CLIENT_ID,
+                'value': 'globus_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.GLOBUS_CLIENT_SECRET,
+                'value': 'globus_test_client_secret'
+            },
+            'scope': 'urn:globus:auth:scope:auth.globus.org:view_identities openid profile email',
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/globus/callback$',
+            'url_re': r'^https://auth.globus.org/v2/oauth2/authorize',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'globus_existing_auth_code',
+                    'access_token': 'globus_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'globus',
+                            'id': '2399'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'globus_new_auth_code',
+                    'access_token': 'globus_new_test_token',
+                    'user': {
+                        'login': 'metaphor',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
+                        'oauth': {
+                            'provider': 'globus',
+                            'id': 1985
+                        }
+                    }
+                }
+            }
+        }
+
+        rsa_test_key = rsa.generate_private_key(65537, key_size=2048, backend=default_backend())
+
+        for key in list(providerInfo['accounts'].keys()):
+            account = providerInfo['accounts'][key]
+            id_token_data = {
+                'sub': account['user']['oauth']['id'],
+                'aud': providerInfo['client_id']['value'],
+                'email': account['user']['email'],
+                'name': ' '.join((account['user']['firstName'],
+                                  account['user']['lastName'])),
+            }
+            providerInfo['accounts'][key]['id_token'] = \
+                jwt.encode(id_token_data, rsa_test_key, algorithm='RS512').decode('utf8')
+
+        @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
+                          path='^/v2/oauth2/authorize$', method='GET')
+        def mockGlobusRedirect(url, request):
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                self.assertEqual(params['response_type'], ['code'])
+                self.assertEqual(params['access_type'], ['online'])
+                self.assertEqual(params['scope'], [providerInfo['scope']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            returnQuery = urllib.parse.urlencode({
+                'state': state,
+                'code': providerInfo['accounts'][self.accountType]['auth_code']
+            })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (params['redirect_uri'][0], returnQuery)
+                }
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
+                          path='^/jwk.json$', method='GET')
+        def mockGlobusRSAKey(url, request):
+            n = rsa_test_key.public_key().public_numbers().n
+            e = rsa_test_key.public_key().public_numbers().e
+            if hasattr(int, 'to_bytes'):
+                bytes_to_int = int.to_bytes
+            else:
+                def bytes_to_int(n, length, endianess='big'):
+                    h = '%x' % n
+                    s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
+                    return s if endianess == 'big' else s[::-1]
+
+            n = base64url_encode(bytes_to_int(n, 256, 'big')).decode('utf8')
+            e = base64url_encode(bytes_to_int(e, 3, 'big')).decode('utf8')
+            return {
+                'status_code': 200,
+                'content': json.dumps({'keys': [dict(n=n, e=e)]})
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
+                          path='^/v2/oauth2/token$', method='POST')
+        def mockGlobusToken(url, request):
+            try:
+                self.assertEqual(request.headers['Accept'], 'application/json')
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                returnBody = json.dumps({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnBody = json.dumps({
+                    'access_token': account['access_token'],
+                    'resource_server': 'auth.globus.org',
+                    'expires_in': 3600,
+                    'token_type': 'bearer',
+                    'scope': 'urn:globus:auth:scope:auth.globus.org:monitor_ongoing',
+                    'refresh_token': 'blah',
+                    'id_token': account['id_token'],
+                    'state': 'provided_by_client_to_prevent_replay_attacks',
+                    'other_tokens': [],
+                })
+            return {
+                'status_code': 200,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'content': returnBody
+            }
+
+        with httmock.HTTMock(
+            mockGlobusRedirect,
+            mockGlobusRSAKey,
+            mockGlobusToken,
             # Must keep 'mockOtherRequest' last
             self.mockOtherRequest
         ):

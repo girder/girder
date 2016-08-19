@@ -77,8 +77,10 @@ extras_reqs = {
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
-    'plugins': ['celery', 'geojson', 'Pillow', 'pydicom', 'numpy']
+    'oauth': ['pyjwt', 'cryptography']
 }
+all_extra_reqs = [y for x in extras_reqs.values() for y in x]
+extras_reqs['plugins'] = list(set(all_extra_reqs))
 
 if sys.version_info[0] == 2:
     install_reqs.append('shutilwhich')
