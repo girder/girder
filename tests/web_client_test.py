@@ -39,6 +39,7 @@ testServer = None
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+
 def setUpModule():
     global testServer
     mockS3 = False
