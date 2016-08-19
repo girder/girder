@@ -36,9 +36,6 @@ os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')
 config.loadConfig()  # Reload config to pick up correct port
 testServer = None
 
-reload(sys)
-sys.setdefaultencoding('utf-8')
-
 
 def setUpModule():
     global testServer
