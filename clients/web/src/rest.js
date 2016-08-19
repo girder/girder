@@ -25,7 +25,7 @@ var uploadChunkSize = 1024 * 1024 * 64; // 64MB
  * @param [type='GET'] The HTTP method to invoke.
  * @param [girderToken] An alternative auth token to use for this request.
  */
-function restRequest(opts) {
+function __restRequest(opts) {
     opts = opts || {};
     var defaults = {
         dataType: 'json',
@@ -99,6 +99,28 @@ function restRequest(opts) {
     return Backbone.ajax(opts);
 }
 
+/**
+ * Make a request to the REST API.
+ *
+ * Provide an API to mock this single conduit connecting the client to the server.
+ * While this can be done with various testing framework, choosing the right one depends on the
+ * way our code is bundled (spyOn() vs. rewire(), for example). Let's provide a specific API
+ * to mock restRequest nonetheless, since it is likely to be mocked the most.
+ */
+var restRequestMock = null;
+function restRequest() {
+    if (restRequestMock) {
+        return restRequestMock.apply(this, arguments);
+    }
+    return __restRequest.apply(this, arguments);
+}
+function mockRestRequest(mock) {
+    restRequestMock = mock;
+}
+function unmockRestRequest(mock) {
+    restRequestMock = null;
+}
+
 /* Pending rest requests are listed in this pool so that they can be aborted or
 * checked if still processing. */
 var restXhrPool = {};
@@ -165,6 +187,8 @@ export {
     restRequest,
     numberOutstandingRestRequests,
     cancelRestRequests,
+    mockRestRequest,
+    unmockRestRequest,
     getUploadChunkSize,
     setUploadChunkSize
 };
