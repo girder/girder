@@ -10,7 +10,8 @@ if(RUN_CORE_TESTS)
 
   add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
   add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
-  add_python_style_test(python_static_analysis_ansible_client_tests "${PROJECT_SOURCE_DIR}/clients/ansible")
+  add_python_style_test(python_static_analysis_ansible_client_tests
+    "${PROJECT_SOURCE_DIR}/devops/ansible/roles/girder/library")
 
   # These are performed approximately in the order listed.  upload is slower, so
   # start it first, so that if we have parallelism it doesn't hold things up much
