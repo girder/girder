@@ -66,20 +66,12 @@ module.exports = function (grunt) {
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
         var jade = require('jade');
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
-        // var globs = grunt.config('uglify.app.files')['clients/web/static/built/girder.app.min.js'];
         var dependencies = [
             '/clients/web/static/built/girder.ext.min.js',
             '/clients/web/static/built/girder.app.min.js',
             '/clients/web/test/testUtils.js'
         ];
         var inputs = [];
-
-        // globs.forEach(function (glob) {
-        //     var files = grunt.file.expand(glob);
-        //     files.forEach(function (file) {
-        //         inputs.push('/' + file);
-        //     });
-        // });
 
         var fn = jade.compile(buffer, {
             client: false,

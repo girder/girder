@@ -4,11 +4,10 @@ girderTest.addCoveredScripts([
     // '/plugins/curation/web_client/views/CurationDialog.js',
     // '/plugins/curation/web_client/views/HierarchyWidget.js',
     // '/plugins/curation/web_client/main.js'
+]);
+girderTest.addScripts([
     '/static/built/plugins/curation/plugin.min.js'
 ]);
-// girderTest.importStylesheet(
-//     '/static/built/plugins/curation/plugin.min.css'
-// );
 
 girderTest.startApp();
 

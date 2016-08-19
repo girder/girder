@@ -631,32 +631,44 @@ girderTest.waitForDialog = function (desc) {
 })();
 
 /**
+ * Import a javascript file and.
+ */
+girderTest.addScript = function (url) {
+    var defer = new $.Deferred();
+    girderTest.promise.then(function () {
+        $('<script/>', {src: url}).appendTo('body').on('load', function () {
+            defer.resolve();
+        });
+    });
+    girderTest.promise = defer.promise();
+};
+
+/**
  * Import a javascript file and ask to register it with the blanket coverage
  * tests.
  */
 girderTest.addCoveredScript = function (url) {
+    if (!window.blanket) {
+        return girderTest.addScript(url);
+    }
     var defer = new $.Deferred();
-
     girderTest.promise.then(function () {
-        if (window.blanket) {
-            blanket.requiringFile(url);
-            blanket.utils.cache[url] = {};
-            blanket.utils.attachScript({url: url}, function (content) {
-                blanket.instrument({inputFile: content, inputFileName: url},
-                                   function (instrumented) {
-                                       blanket.utils.cache[url].loaded = true;
-                                       blanket.utils.blanketEval(instrumented);
-                                       blanket.requiringFile(url, true);
-                                       defer.resolve();
-                                   });
-            });
-        } else {
-            $('<script/>', {src: url}).appendTo('body').on('load', function () {
+        blanket.requiringFile(url);
+        blanket.utils.cache[url] = {};
+        blanket.utils.attachScript({
+            url: url
+        }, function (content) {
+            blanket.instrument({
+                inputFile: content,
+                inputFileName: url
+            }, function (instrumented) {
+                blanket.utils.cache[url].loaded = true;
+                blanket.utils.blanketEval(instrumented);
+                blanket.requiringFile(url, true);
                 defer.resolve();
             });
-        }
+        });
     });
-
     girderTest.promise = defer.promise();
 };
 
@@ -665,6 +677,13 @@ girderTest.addCoveredScript = function (url) {
  */
 girderTest.addCoveredScripts = function (scripts) {
     _.each(scripts, girderTest.addCoveredScript);
+};
+
+/**
+ * Import a list of non-covered scripts. Order will be respected.
+ */
+girderTest.addScripts = function (scripts) {
+    _.each(scripts, girderTest.addScript);
 };
 
 /**

@@ -5,11 +5,10 @@ girderTest.addCoveredScripts([
     // '/plugins/thumbnails/web_client/models/ThumbnailModel.js',
     // '/plugins/thumbnails/web_client/views/CreateThumbnailView.js',
     // '/plugins/thumbnails/web_client/views/FlowView.js'
+]);
+girderTest.addScripts([
     '/static/built/plugins/thumbnails/plugin.min.js'
 ]);
-// girderTest.importStylesheet(
-//     '/static/built/plugins/thumbnails/plugin.min.css'
-// );
 
 girderTest.startApp();
 

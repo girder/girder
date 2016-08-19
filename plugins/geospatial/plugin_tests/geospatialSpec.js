@@ -5,11 +5,10 @@ girderTest.addCoveredScripts([
     // '/plugins/geospatial/web_client/views/GeospatialItemWidget.js',
     // '/plugins/geospatial/web_client/views/ItemView.js',
     // '/plugins/geospatial/web_client/main.js'
+]);
+girderTest.addScripts([
     '/static/built/plugins/geospatial/plugin.min.js'
 ]);
-// girderTest.importStylesheet(
-//     '/static/built/plugins/geospatial/plugin.min.css'
-// );
 
 girderTest.startApp();
 

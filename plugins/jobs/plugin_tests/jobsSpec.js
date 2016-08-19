@@ -9,11 +9,10 @@ girderTest.addCoveredScripts([
     // '/plugins/jobs/web_client/js/views/HeaderUserView.js',
     // '/plugins/jobs/web_client/js/views/JobDetailsWidget.js',
     // '/plugins/jobs/web_client/js/views/JobListWidget.js',
+]);
+girderTest.addScripts([
     '/static/built/plugins/jobs/plugin.min.js'
 ]);
-// girderTest.importStylesheet(
-//     '/static/built/plugins/jobs/plugin.min.css'
-// );
 
 girder.events.trigger('g:appload.before');
 var app = new girder.views.App({

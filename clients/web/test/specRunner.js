@@ -47,16 +47,10 @@ var terminate = function () {
     var status = this.page.evaluate(function () {
         if (window.jasmine_phantom_reporter.status === 'success') {
             return window.coverageHandler.handleCoverage(window._$blanket);
-        } else {
-            return false;
         }
+        return false;
     });
-
-    if (status) {
-        phantom.exit(0);
-    } else {
-        phantom.exit(1);
-    }
+    phantom.exit(status ? 0 : 1);
     return status;
 };
 

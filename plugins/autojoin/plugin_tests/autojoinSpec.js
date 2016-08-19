@@ -4,11 +4,10 @@ girderTest.addCoveredScripts([
     // '/plugins/autojoin/web_client/main.js',
     // '/plugins/autojoin/web_client/routes.js',
     // '/plugins/autojoin/web_client/views/ConfigView.js'
+]);
+girderTest.addScripts([
     '/static/built/plugins/autojoin/plugin.min.js'
 ]);
-// girderTest.importStylesheet(
-//     '/static/built/plugins/autojoin/plugin.min.css'
-// );
 
 girderTest.startApp();
 

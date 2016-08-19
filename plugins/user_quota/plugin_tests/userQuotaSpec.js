@@ -1,11 +1,8 @@
 /* globals girderTest, runs, waitsFor, expect, describe, it */
 
-girderTest.addCoveredScripts([
+girderTest.addScripts([
     '/static/built/plugins/user_quota/plugin.min.js'
 ]);
-// girderTest.importStylesheet(
-//     '/static/built/plugins/user_quota/plugin.min.css'
-// );
 
 girderTest.startApp();
 

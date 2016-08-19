@@ -3,11 +3,10 @@
 girderTest.addCoveredScripts([
     // '/plugins/hashsum_download/web_client/views/FileInfoWidget.js',
     // '/plugins/hashsum_download/web_client/main.js'
+]);
+girderTest.addScripts([
     '/static/built/plugins/hashsum_download/plugin.min.js'
 ]);
-// girderTest.importStylesheet(
-//     '/static/built/plugins/hashsum_download/plugin.min.css'
-// );
 
 girder.events.trigger('g:appload.before');
 var app = new girder.views.App({

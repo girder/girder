@@ -10,11 +10,10 @@ girderTest.addCoveredScripts([
     // '/plugins/item_licenses/web_client/views/ItemView.js',
     // '/plugins/item_licenses/web_client/views/SelectLicenseWidget.js',
     // '/plugins/item_licenses/web_client/views/UploadWidget.js'
+]);
+girderTest.addScripts([
     '/static/built/plugins/item_licenses/plugin.min.js'
 ]);
-// girderTest.importStylesheet(
-//     '/static/built/plugins/item_licenses/plugin.min.css'
-// );
 
 girderTest.startApp();
 
