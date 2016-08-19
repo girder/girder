@@ -1,7 +1,9 @@
 ---
 
 - hosts: all
-
+  vars:
+    girder_update: no
+    girder_force: no
   pre_tasks:
     - name: Update package cache
       apt:
