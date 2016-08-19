@@ -53,8 +53,8 @@
     repo: "https://github.com/girder/girder.git"
     dest: "{{ girder_path }}"
     version: "{{ girder_version }}"
-    update: yes
-    force: yes
+    update: "{{ girder_update|default(omit) }}"
+    force: "{{ girder_force|default(omit) }}"
   notify: Build Girder
 
 - name: Install Girder Python requirements
