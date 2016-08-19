@@ -1,4 +1,4 @@
-import sprintf from 'sprintf-js';
+import { sprintf } from 'sprintf-js';
 
 import View from 'girder/views/View';
 
