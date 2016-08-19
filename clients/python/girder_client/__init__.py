@@ -615,7 +615,7 @@ class GirderClient(object):
         # to upload anyway in this case also.
         return (None, False)
 
-    def uploadFileToItem(self, itemId, filepath, reference=None, mimeType=None):
+    def uploadFileToItem(self, itemId, filepath, reference=None, mimeType=None, filename=None):
         """
         Uploads a file to an item, in chunks.
         If ((the file already exists in the item with the same name and size)
@@ -627,9 +627,12 @@ class GirderClient(object):
         :type reference: str
         :param mimeType: MIME type for the file. Will be guessed if not passed.
         :type mimeType: str or None
+        :param filename: path with filename used in Girder. Defaults to basename of filepath.
         :returns: the file that was created.
         """
-        filename = os.path.basename(filepath)
+        if filename is None:
+            filename = filepath
+        filename = os.path.basename(filename)
         filepath = os.path.abspath(filepath)
         filesize = os.path.getsize(filepath)
 
@@ -1199,7 +1202,7 @@ class GirderClient(object):
         :param parentItemId: id of parent item in Girder to add file to
         :param filePath: full path to the file
         """
-        self.uploadFileToItem(parentItemId, filePath)
+        self.uploadFileToItem(parentItemId, filePath, filename=localFile)
 
     def _uploadAsItem(self, localFile, parentFolderId, filePath, reuseExisting=False, dryRun=False):
         """Function for doing an upload of a file as an item.
