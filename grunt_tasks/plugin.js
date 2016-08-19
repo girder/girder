@@ -107,14 +107,10 @@ module.exports = function (grunt) {
                 configurePlugin(plugin);
             }
 
-            if (config.grunt) {
-                grunt.log.writeln((
-                    'Found plugin: ' + plugin + ' (custom Gruntfile)'
-                ).bold);
-
+            function addDependencies (deps) {
                 // install any additional npm packages during init
                 npm = (
-                    _(config.grunt.dependencies || [])
+                    _(deps || [])
                         .map(function (version, dep) {
                             // escape any periods in the dependency version so
                             // that grunt.config.set does not descend on each
@@ -133,6 +129,18 @@ module.exports = function (grunt) {
                         'init.npm-install:' + npm.join(':'), {}
                     );
                 }
+            }
+
+            if (config.npm) {
+                addDependencies(config.npm.dependencies);
+            }
+
+            if (config.grunt) {
+                grunt.log.writeln((
+                    'Found plugin: ' + plugin + ' (custom Gruntfile)'
+                ).bold);
+
+                addDependencies(config.grunt.dependencies);
 
                 // load the plugin's gruntfile
                 try {
