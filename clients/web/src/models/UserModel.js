@@ -78,13 +78,7 @@ var UserModel = Model.extend({
      */
     removeInvitation: function (groupId) {
         var invites = this.get('groupInvites') || [];
-        var filtered = [];
-
-        _.each(invites, function (invite) {
-            if (invite.groupId !== groupId) {
-                filtered.push(invite);
-            }
-        }, this);
+        var filtered = _.reject(invites, _.matcher({groupId: groupId}));
 
         this.set('groupInvites', filtered);
     },

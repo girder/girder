@@ -71,17 +71,17 @@ var json = require('comment-json');
 
 var configs = [];
 inputfiles.forEach(function (val) {
-    var config_file = val;
+    var configFile = val;
 
     if (verbose) {
-        console.log('Reading ' + config_file);
+        console.log('Reading ' + configFile);
     }
-    configs.push(json.parse(fs.readFileSync(config_file, {encoding: 'utf8'}).toString()));
+    configs.push(json.parse(fs.readFileSync(configFile, {encoding: 'utf8'}).toString()));
 });
 
 // Merge configs
 
-function array_merge_recursive(arr1, arr2) {
+function arrayMergeRecursive(arr1, arr2) {
     //  discuss at: http://phpjs.org/functions/array_merge_recursive/
     // original by: Subhasis Deb
     //    input by: Brett Zamir (http://brett-zamir.me)
@@ -106,7 +106,7 @@ function array_merge_recursive(arr1, arr2) {
             if (arr2.hasOwnProperty(idx)) {
                 if (idx in arr1) {
                     if (_.isObject(arr1[idx]) && _.isObject(arr2)) {
-                        arr1[idx] = array_merge_recursive(arr1[idx], arr2[idx]);
+                        arr1[idx] = arrayMergeRecursive(arr1[idx], arr2[idx]);
                     } else {
                         arr1[idx] = arr2[idx];
                     }
@@ -120,9 +120,9 @@ function array_merge_recursive(arr1, arr2) {
     return arr1;
 }
 
-var merged_configs = configs[0];
+var mergedConfigs = configs[0];
 configs.slice(1).forEach(function (config) {
-    merged_configs = array_merge_recursive(merged_configs, config);
+    mergedConfigs = arrayMergeRecursive(mergedConfigs, config);
 });
 
 // Save merged configs
@@ -131,7 +131,7 @@ if (verbose) {
     console.log('Output file ' + outputfile);
 }
 
-var output = json.stringify(merged_configs, null, 4);
+var output = json.stringify(mergedConfigs, null, 4);
 
 output += '\n';
 

@@ -17,14 +17,14 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
-var nopt_fix = require('nopt-grunt-fix');
+var noptFix = require('nopt-grunt-fix');
 
 var webpackConfig = require('./webpack.config.js');
 var webpackDevConfig = require('./webpack.dev.js');
 var webpackProdConfig = require('./webpack.prod.js');
 
 module.exports = function (grunt) {
-    nopt_fix(grunt);
+    noptFix(grunt);
     var environment = grunt.option('env') || 'dev';
     if (['dev', 'prod'].indexOf(environment) === -1) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');

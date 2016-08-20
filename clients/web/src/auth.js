@@ -30,15 +30,15 @@ var cookie = {
     },
 
     find: function (name) {
-        var found_cookie = null,
+        var foundCookie = null,
             list = this.findAll();
 
         _.each(list, function (value, key) {
             if (key === name) {
-                found_cookie = value;
+                foundCookie = value;
             }
         });
-        return found_cookie;
+        return foundCookie;
     }
 };
 

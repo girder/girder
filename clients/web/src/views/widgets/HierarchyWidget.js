@@ -17,10 +17,9 @@ import router from 'girder/router';
 import UploadWidget from 'girder/views/widgets/UploadWidget';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/dialog';
+import { confirm, handleClose } from 'girder/dialog';
 import events from 'girder/events';
 import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/misc';
-import { handleClose } from 'girder/dialog';
 import { restRequest, apiRoot } from 'girder/rest';
 
 import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.jade';
@@ -546,7 +545,7 @@ var HierarchyWidget = View.extend({
             case 1:
                 return desc[0];
             case 2:
-                return desc[0] + ' and ' + desc [1];
+                return desc[0] + ' and ' + desc[1];
             /* If we add a third model type, enable this:
             default:
                 desc[desc.length-1] = 'and ' + desc[desc.length-1];
