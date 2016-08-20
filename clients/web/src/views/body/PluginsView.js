@@ -131,9 +131,8 @@ var PluginsView = View.extend({
          * @param plugins: a dictionary to sort.  Each entry has a .name
          *                 attribute used for sorting.
          * @returns sortedPlugins: the sorted list. */
-        var sortedPlugins = [];
-        _.each(plugins, function (value, key) {
-            sortedPlugins.push({key: key, value: value});
+        var sortedPlugins = _.map(plugins, function (value, key) {
+            return {key: key, value: value};
         });
         sortedPlugins.sort(function (a, b) {
             return a.value.name.localeCompare(b.value.name);

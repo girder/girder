@@ -11,10 +11,9 @@ import UploadWidget from 'girder/views/widgets/UploadWidget';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
-import { confirm } from 'girder/dialog';
+import { confirm, handleClose } from 'girder/dialog';
 import events from 'girder/events';
 import { formatSize, formatDate, DATE_SECOND } from 'girder/misc';
-import { handleClose } from 'girder/dialog';
 
 import ItemPageTemplate from 'girder/templates/body/itemPage.jade';
 

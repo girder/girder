@@ -60,10 +60,10 @@ if (Object.keys(args.options).length === 0 ||
 }
 
 var verbose = args.options.verbose;
-var base_dir = args.options.base_dir;
+var baseDir = args.options.base_dir;
 var inputfile = args.options.inputfile;
 var outputfile = args.options.outputfile;
-var relative_path_keys = args.options.relative_path_key;
+var relativePathKeys = args.options.relative_path_key;
 
 if (!inputfile) {
     console.log('\nMissing \'--outputfile\' argument.');
@@ -71,18 +71,18 @@ if (!inputfile) {
     process.exit(-1);
 }
 
-if (!relative_path_keys) {
+if (!relativePathKeys) {
     console.log('\nMissing \'--relative_path_key\' argument.');
     argv.help();
     process.exit(-1);
 }
 
-if (!base_dir) {
-    base_dir = path.dirname(inputfile);
+if (!baseDir) {
+    baseDir = path.dirname(inputfile);
 }
 
 if (verbose) {
-    console.log('Using base_dir ' + base_dir);
+    console.log('Using base_dir ' + baseDir);
 }
 
 // Read config file
@@ -103,23 +103,23 @@ if (!_.isFunction(String.prototype.startsWith)) {
     };
 }
 
-var expand_relative_path = function (key, value) {
-    if (relative_path_keys.indexOf(key) >= 0) {
+var expandRelativePath = function (key, value) {
+    if (relativePathKeys.indexOf(key) >= 0) {
         // XXX Nodejs (>= v0.11.2) has "path.isAbsolute"
         if (value.startsWith('.')) {
-            return base_dir + '/' + value;
+            return baseDir + '/' + value;
         }
     }
     return value;
 };
 
-var expand_relative_paths = function (arr1, current_key) {
+var expandRelativePaths = function (arr1, currentKey) {
     var idx = '';
 
     if (arr1 && Object.prototype.toString.call(arr1) === '[object Array]') {
         for (idx in arr1) {
             if (arr1.hasOwnProperty(idx)) {
-                arr1[idx] = expand_relative_path(current_key, arr1[idx]);
+                arr1[idx] = expandRelativePath(currentKey, arr1[idx]);
             }
         }
     } else if (arr1 && (arr1 instanceof Object)) {
@@ -127,9 +127,9 @@ var expand_relative_paths = function (arr1, current_key) {
             if (arr1.hasOwnProperty(idx)) {
                 if (idx in arr1) {
                     if (_.isObject(arr1[idx])) {
-                        arr1[idx] = expand_relative_paths(arr1[idx], idx);
+                        arr1[idx] = expandRelativePaths(arr1[idx], idx);
                     } else {
-                        arr1[idx] = expand_relative_path(idx, arr1[idx]);
+                        arr1[idx] = expandRelativePath(idx, arr1[idx]);
                     }
                 }
             }
@@ -139,11 +139,11 @@ var expand_relative_paths = function (arr1, current_key) {
     return arr1;
 };
 
-var updated_config = expand_relative_paths(config);
+var updatedConfig = expandRelativePaths(config);
 
 // Save updated config
 
-var output = json.stringify(updated_config, null, 4);
+var output = json.stringify(updatedConfig, null, 4);
 
 output += '\n';
 

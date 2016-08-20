@@ -122,14 +122,10 @@ var GroupMembersWidget = View.extend({
 
     initialize: function (settings) {
         this.model = settings.group;
-        this.modsAndAdmins = [];
-        var view = this;
-        _.each(settings.admins, function (user) {
-            view.modsAndAdmins.push(user.id);
-        });
-        _.each(settings.moderators, function (user) {
-            view.modsAndAdmins.push(user.id);
-        });
+        this.modsAndAdmins = _.union(
+            _.pluck(settings.admins, 'id'),
+            _.pluck(settings.moderators, 'id')
+        );
         this.membersColl = new UserCollection();
         this.membersColl.altUrl =
             'group/' + this.model.get('_id') + '/member';

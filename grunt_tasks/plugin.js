@@ -107,7 +107,7 @@ module.exports = function (grunt) {
                 configurePlugin(plugin);
             }
 
-            function addDependencies (deps) {
+            function addDependencies(deps) {
                 // install any additional npm packages during init
                 npm = (
                     _(deps || [])
