@@ -40,7 +40,7 @@
     "swagger-ui": "2.1.4",
     "topojson": "^1.6.26",
     "toposort": "~0.2",
-    "underscore": "~1.5"
+    "underscore": "~1.8.3"
   },
   "devDependencies": {
     "argv": "0.0.2",
