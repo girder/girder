@@ -33,9 +33,6 @@ function(javascript_tests_init)
   set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_browser)
 endfunction()
 
-include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigExpandRelpaths.cmake)
-include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigMerge.cmake)
-
 function(add_eslint_test name input)
   if (NOT BUILD_JAVASCRIPT_TESTS)
     return()
@@ -66,83 +63,6 @@ function(add_eslint_test name input)
     COMMAND "${ESLINT_EXECUTABLE}" --ignore-path "${ignore_file}" --config "${config_file}" "${input}"
   )
   set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
-endfunction()
-
-function(add_javascript_style_test name input)
-  if (NOT BUILD_JAVASCRIPT_TESTS)
-    return()
-  endif()
-
-  message(
-    AUTHOR_WARNING
-    "The use of 'add_javascript_style_test' is deprecated.  Use 'add_eslint_test' for JavaScript static analysis."
-  )
-  set(_args JSHINT_EXTRA_CONFIGS JSSTYLE_EXTRA_CONFIGS)
-  cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
-
-  # jshint
-  set(jshint_config "${PROJECT_BINARY_DIR}/tests/${name}_jshint.cfg")
-  json_config_merge(
-    INPUTFILES
-      "${PROJECT_SOURCE_DIR}/tests/jshint.cfg"
-      ${fn_JSHINT_EXTRA_CONFIGS}
-    OUTPUTFILE
-      ${jshint_config}
-    )
-
-  # jsstyle
-  set(inputfiles
-    "${PROJECT_SOURCE_DIR}/tests/jsstyle.cfg"
-    ${fn_JSSTYLE_EXTRA_CONFIGS}
-    )
-  set(expanded_jsstyle_inputfiles)
-  foreach(inputfile IN LISTS inputfiles)
-    set(outputfile ${CMAKE_CURRENT_BINARY_DIR}/${inputfile})
-    get_filename_component(outputdir ${outputfile} PATH)
-    file(MAKE_DIRECTORY ${outputdir})
-    list(APPEND expanded_jsstyle_inputfiles ${outputfile})
-    json_config_expand_relpaths(
-      INPUTFILE ${inputfile}
-      OUTPUTFILE ${outputfile}
-      RELATIVE_PATH_KEYS excludeFiles
-      )
-  endforeach()
-
-  set(jsstyle_config "${PROJECT_BINARY_DIR}/tests/${name}_jsstyle.cfg")
-  json_config_merge(
-    INPUTFILES ${expanded_jsstyle_inputfiles}
-    OUTPUTFILE ${jsstyle_config}
-    )
-
-  # add tests
-  set(working_dir "${PROJECT_SOURCE_DIR}/clients/web")
-  if(NOT IS_ABSOLUTE ${input})
-    set(input ${working_dir}/${input})
-  endif()
-  if(NOT EXISTS ${input})
-    message(FATAL_ERROR "Failed to add javascript style tests."
-                        "Directory or file '${input}' does not exist.")
-  endif()
-
-  # check if the input is a directory or file and set the working directory
-  if(IS_DIRECTORY "${input}")
-    set(test_directory "${input}")
-  else()
-    get_filename_component(test_directory "${input}" DIRECTORY)
-  endif()
-
-  add_test(
-    NAME "jshint_${name}"
-    WORKING_DIRECTORY "${test_directory}"
-    COMMAND "${JSHINT_EXECUTABLE}" --config "${jshint_config}" "${input}"
-  )
-  add_test(
-    NAME "jsstyle_${name}"
-    WORKING_DIRECTORY "${test_directory}"
-    COMMAND "${JSSTYLE_EXECUTABLE}"  --config "${jsstyle_config}" "${input}"
-  )
-  set_property(TEST "jshint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
-  set_property(TEST "jsstyle_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
 endfunction()
 
 function(add_web_client_test case specFile)

@@ -56,9 +56,7 @@
     "webpack": "^2.1.0-beta.21"
   },
   "devDependencies": {
-    "argv": "0.0.2",
     "blanket": "1.1.6",
-    "comment-json": "0.1.11",
     "css-loader": "^0.23.1",
     "eslint": "^3.3.1",
     "eslint-config-semistandard": "^6.0.2",
@@ -67,8 +65,6 @@
     "eslint-plugin-promise": "^2.0.1",
     "eslint-plugin-standard": "^2.0.0",
     "eslint-plugin-underscore": "0.0.10",
-    "jscs": "2.5.1",
-    "jshint": "2.5.5",
     "phantomjs": "1.9.x",
     "phantomjs-polyfill": "0.0.x",
     "webpack-dev-server": "^2.1.0-beta.0"

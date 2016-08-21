@@ -6,7 +6,6 @@ girderTest.startApp();
 function _getFirstId(collection, ids, key, fetchParamsFunc) {
     var coll;
     runs(function () {
-        /* jshint -W055 */
         coll = new collection();
         var params;
         if (fetchParamsFunc) {

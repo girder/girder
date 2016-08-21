@@ -353,9 +353,7 @@ describe('Create a data hierarchy', function () {
             widget = girder.events._events['g:navigateTo'][0].ctx.bodyView.hierarchyWidget;
             spyOn(girder.views.widgets.HierarchyWidget.prototype, 'redirectViaForm').andCallFake(function (method, url, data) {
                 redirect = {method: method, url: url, data: data};
-                /* jshint scripturl: true */
                 widget.redirectViaForm.originalValue(method, 'javascript: void(0)', data);
-                /* jshint scripturl: false */
             });
             $('a.g-download-checked').click();
         });

@@ -1,7 +1,6 @@
 **/node_modules/
 **/bower_component/
 docs/
-scripts/tests/*/data/
 clients/jquery/
 clients/web-external/
 clients/web/lib/
