@@ -451,7 +451,7 @@ that can be used to import content:
   such as static images, fonts, or third-party static libraries.
 
 Linting and Style Checking Client-Side Code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*******************************************
 
 Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its
 own JavaScript files.  Developers can easily add the same static analysis
@@ -499,16 +499,33 @@ Installing custom dependencies from npm
 There are two types of node dependencies you may need to install for your plugin.
 Each type needs to be installed differently due to how node manages external packages.
 
-- Run time dependencies that your application relies on should be installed into
-  your plugin's **node_modules** directory.  These should be provided in a
-  `package.json <https://docs.npmjs.com/files/package.json>`_
-  file as they are for standalone node applications.  When such a file exists
-  in your plugin directory, ``npm install`` will be executed in a new process
-  from within your package's directory.
+- Run time dependencies that your application relies on may be handled in one
+  of two ways. If you are writing a simple plugin that does not contain its own
+  Gruntfile, these dependencies should be installed into Girder's own
+  **node_modules** directory by specifying them in the ``npm.dependencies``
+  section of your ``plugin.json`` file.
 
-- Build time dependencies that your grunt tasks rely on to assemble the sources
+  .. code-block:: json
+
+      {
+          "name": "MY_PLUGIN",
+          "npm": {
+              "dependencies": {
+                  "vega": "^2.6.0"
+              }
+          }
+      }
+
+  If instead you are using a custom Grunt build with a Gruntfile, the
+  dependencies should be installed into your plugin's **node_modules** directory
+  by providing a `package.json <https://docs.npmjs.com/files/package.json>`_
+  file just as they are used for standalone node applications.  When such a file
+  exists in your plugin directory, ``npm install`` will be executed in a new
+  process from within your package's directory.
+
+- Build time dependencies that your Grunt tasks rely on to assemble the sources
   for deployment need to be installed into Girder's own **node_modules** directory.
-  These dependencies will typically be grunt extensions defining extra tasks used
+  These dependencies will typically be Grunt extensions defining extra tasks used
   by your build.  Such dependencies should be listed under ``grunt.dependencies``
   as an object (much like dependencies in **package.json**) inside your
   **plugin.json** or **plugin.yml** file.
@@ -558,7 +575,7 @@ and add any target to the default one using the "defaultTargets" array.
    relative to the root directory of your plugin. It does not have to be called
    ``Gruntfile.js``, it can be called anything you want.
 
-.. note:: Girder creates a number of grunt build tasks that expect plugins to be
+.. note:: Girder creates a number of Grunt build tasks that expect plugins to be
    organized according to a certain convention.  To opt out of these tasks, add
    an **autobuild** key (default: **true**) within the **grunt** object and set
    it to **false**.
