@@ -140,7 +140,7 @@ class Globus(ProviderBase):
             raise RestException(
                 'Globus identity did not return a valid email.', code=502)
 
-        name = identity.get('name').split()
+        name = identity['name'].split()
         firstName = name[0]
         lastName = name[-1]
 
