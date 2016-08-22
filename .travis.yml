@@ -20,6 +20,18 @@ sudo: false
 
 compiler:
     - gcc
+
+addons:
+  apt:
+    # Trying to facilitate building vega (https://github.com/vega/vega/issues/274)
+    packages:
+    - libcairo2-dev
+    - libjpeg8-dev
+    - libpango1.0-dev
+    - libgif-dev
+    - build-essential
+    - g++
+
 before_install:
     # Show the memory state; this lets us more quickly determine when the
     # travis environment is bad
@@ -41,10 +53,12 @@ before_install:
     - npm --version
     - npm prune
     - pip install -U pip virtualenv
+
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
     - npm install
     - npm run build
+
 script:
     - mkdir _build
     - cd _build
@@ -53,6 +67,7 @@ script:
     - if [ -f test_failed ] ; then false ; fi
     - cd ..
     - git fetch --unshallow
+
 deploy:
     provider: heroku
     buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
