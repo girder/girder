@@ -30,32 +30,6 @@ from .base import ProviderBase
 from .. import constants
 
 
-def decode_value(val):
-    # Borrowed from 'cryptography' for py2 backward compat
-    if hasattr(int, 'from_bytes'):
-        int_from_bytes = int.from_bytes
-    else:
-        def int_from_bytes(data, byteorder, signed=False):
-            assert byteorder == 'big'
-            assert not signed
-
-            if len(data) % 4 != 0:
-                data = (b'\x00' * (4 - (len(data) % 4))) + data
-
-            result = 0
-
-            while len(data) > 0:
-                digit, = struct.unpack('>I', data[:4])
-                result = (result << 32) + digit
-                data = data[4:]
-            return result
-
-    if isinstance(val, string_types):
-        val = val.encode('utf-8')
-    decoded = base64url_decode(val)
-    return int_from_bytes(decoded, 'big')
-
-
 class Globus(ProviderBase):
     _AUTH_URL = 'https://auth.globus.org/v2/oauth2/authorize'
     _AUTH_SCOPES = ('urn:globus:auth:scope:auth.globus.org:view_identities',
@@ -118,6 +92,31 @@ class Globus(ProviderBase):
 
         # There should be only one entry
         keyobj = self.jwk_keys['keys'][0]
+
+        # Borrowed from 'cryptography' for py2 backward compat
+        def decode_value(val):
+            if hasattr(int, 'from_bytes'):
+                int_from_bytes = int.from_bytes
+            else:
+                def int_from_bytes(data, byteorder, signed=False):
+                    assert byteorder == 'big'
+                    assert not signed
+
+                    if len(data) % 4 != 0:
+                        data = (b'\x00' * (4 - (len(data) % 4))) + data
+
+                    result = 0
+
+                    while len(data) > 0:
+                        digit, = struct.unpack('>I', data[:4])
+                        result = (result << 32) + digit
+                        data = data[4:]
+                    return result
+
+            if isinstance(val, string_types):
+                val = val.encode('utf-8')
+            decoded = base64url_decode(val)
+            return int_from_bytes(decoded, 'big')
 
         # Create RSA key from JSON spec
         key = rsa.RSAPublicNumbers(
