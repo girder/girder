@@ -250,7 +250,7 @@ class Job(AccessControlledModel):
 
     def updateJob(self, job, log=None, overwrite=False, status=None,
                   progressTotal=None, progressCurrent=None, notify=True,
-                  progressMessage=None):
+                  progressMessage=None, otherFields=None):
         """
         Update an existing job. Any of the updateable fields that are set to
         None in the kwargs will not be modified. If you set progress information
@@ -268,9 +268,12 @@ class Job(AccessControlledModel):
         :param status: New status for the job.
         :type status: JobStatus
         :param progressTotal: Max progress value for this job.
+        :param otherFields: Any additional fields to set on the job.
+        :type otherFields: dict
         """
         now = datetime.datetime.utcnow()
         user = None
+        otherFields = otherFields or {}
 
         if job['userId']:
             user = self.model('user').load(job['userId'], force=True)
@@ -284,12 +287,16 @@ class Job(AccessControlledModel):
             self._updateLog(job, log, overwrite, now, notify, user, updates)
         if status is not None:
             self._updateStatus(job, status, now, notify, user, updates)
-        if (progressMessage is not None or progressCurrent is not None or
-                progressTotal is not None):
-            self._updateProgress(job, progressTotal, progressCurrent,
-                                 progressMessage, notify, user, updates)
+        if progressMessage is not None or progressCurrent is not None or progressTotal is not None:
+            self._updateProgress(
+                job, progressTotal, progressCurrent, progressMessage, notify, user, updates)
+
+        for k, v in six.viewitems(otherFields):
+            job[k] = v
+            updates['$set'][k] = v
 
         if updates['$set'] or updates['$push']:
+            job['updated'] = now
             updates['$set']['updated'] = now
 
             self.update({'_id': job['_id']}, update=updates, multi=False)
@@ -331,11 +338,9 @@ class Job(AccessControlledModel):
                 filtered = self.filter(job, user)
                 filtered.pop('kwargs', None)
                 self.model('notification').createNotification(
-                    type='job_status', data=filtered, user=user,
-                    expires=expires)
+                    type='job_status', data=filtered, user=user, expires=expires)
 
-    def _updateProgress(self, job, total, current, message, notify, user,
-                        updates):
+    def _updateProgress(self, job, total, current, message, notify, user, updates):
         """Helper for updating job progress information."""
         state = JobStatus.toNotificationStatus(job['status'])
 

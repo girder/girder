@@ -60,12 +60,9 @@ def getCeleryApp():
 
     if _celeryapp is None:
         settings = ModelImporter.model('setting')
-        backend = settings.get(PluginSettings.BACKEND) or \
-            'amqp://guest@localhost/'
-        broker = settings.get(PluginSettings.BROKER) or \
-            'amqp://guest@localhost/'
-        _celeryapp = celery.Celery(
-            'girder_worker', backend=backend, broker=broker)
+        backend = settings.get(PluginSettings.BACKEND) or 'amqp://guest@localhost/'
+        broker = settings.get(PluginSettings.BROKER) or 'amqp://guest@localhost/'
+        _celeryapp = celery.Celery('girder_worker', backend=backend, broker=broker)
     return _celeryapp
 
 
@@ -81,14 +78,12 @@ def schedule(event):
         event.stopPropagation()
 
         # Send the task to celery
-        asyncResult = getCeleryApp().send_task(
-            'girder_worker.run', job['args'], job['kwargs'])
+        asyncResult = getCeleryApp().send_task('girder_worker.run', job['args'], job['kwargs'])
 
         # Set the job status to queued and record the task ID from celery.
-        job['celeryTaskId'] = asyncResult.task_id
-        jobModel = ModelImporter.model('job', 'jobs')
-        job = jobModel.save(job)
-        jobModel.updateJob(job, status=JobStatus.QUEUED)
+        ModelImporter.model('job', 'jobs').updateJob(job, status=JobStatus.QUEUED, otherFields={
+            'celeryTaskId': asyncResult.task_id
+        })
 
 
 @setting_utilities.validator({
