@@ -22,6 +22,7 @@ import os
 import re
 import shutil
 import sys
+import itertools
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
@@ -79,7 +80,7 @@ extras_reqs = {
     'worker': ['celery'],
     'oauth': ['pyjwt', 'cryptography']
 }
-all_extra_reqs = [y for x in extras_reqs.values() for y in x]
+all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values()) 
 extras_reqs['plugins'] = list(set(all_extra_reqs))
 
 if sys.version_info[0] == 2:
