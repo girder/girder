@@ -151,9 +151,9 @@ def loadRouteTable():
     def reconcileRouteTable(routeTable):
         hasChanged = False
 
-        # 'girder' is a special route, which can't be removed
+        # GIRDER_ROUTE_ID is a special route, which can't be removed
         for name in routeTable.keys():
-            if name != 'girder' and name not in pluginWebroots:
+            if name != constants.GIRDER_ROUTE_ID and name not in pluginWebroots:
                 del routeTable[name]
                 hasChanged = True
 
@@ -188,14 +188,14 @@ def setup(test=False, plugins=None, curConfig=None):
     routeTable = loadRouteTable()
 
     # Mount Girder
-    application = cherrypy.tree.mount(girderWebroot, routeTable['girder'], appconf)
+    application = cherrypy.tree.mount(girderWebroot, routeTable[constants.GIRDER_ROUTE_ID], appconf)
 
     # Always mount the API off of /
     cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
 
     # Mount everything else in the routeTable
     for (name, route) in six.viewitems(routeTable):
-        if name != 'girder' and name in pluginWebroots:
+        if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
             cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 
     if test:

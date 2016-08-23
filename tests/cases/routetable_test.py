@@ -22,7 +22,7 @@ import mock
 import os
 
 from .. import base
-from girder.constants import SettingKey
+from girder.constants import GIRDER_ROUTE_ID, SettingKey
 
 
 def setUpModule():
@@ -60,7 +60,7 @@ class RouteTableTestCase(base.TestCase):
         # Test duplicate routes
         resp = self.request('/system/setting', params={
             'key': SettingKey.ROUTE_TABLE,
-            'value': json.dumps({'girder': '/some_route',
+            'value': json.dumps({GIRDER_ROUTE_ID: '/some_route',
                                  'other': '/some_route'})
         }, method='PUT', user=self.admin)
         self.assertStatus(resp, 400)
@@ -69,7 +69,7 @@ class RouteTableTestCase(base.TestCase):
         # Test invalid routes
         resp = self.request('/system/setting', params={
             'key': SettingKey.ROUTE_TABLE,
-            'value': json.dumps({'girder': '/',
+            'value': json.dumps({GIRDER_ROUTE_ID: '/',
                                  'other': 'route_without_a_leading_slash'})
         }, method='PUT', user=self.admin)
         self.assertStatus(resp, 400)
@@ -78,7 +78,7 @@ class RouteTableTestCase(base.TestCase):
         # This is already set by default, this just verifies the endpoint is working
         resp = self.request('/system/setting', params={
             'key': SettingKey.ROUTE_TABLE,
-            'value': json.dumps({'girder': '/',
+            'value': json.dumps({GIRDER_ROUTE_ID: '/',
                                  'has_webroot': '/has_webroot'})
         }, method='PUT', user=self.admin)
         self.assertStatusOk(resp)
