@@ -60,7 +60,8 @@ var SystemConfigurationView = View.extend({
         },
         'click .g-edit-collection-create-policy': function () {
             this.collectionCreateAccessWidget.render();
-        }
+        },
+        'click #g-restart-server': girder.restartServerPrompt
     },
 
     initialize: function () {

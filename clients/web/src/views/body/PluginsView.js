@@ -6,7 +6,7 @@ import router from 'girder/router';
 import View from 'girder/views/View';
 import { confirm } from 'girder/dialog';
 import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
-import { restartServer } from 'girder/server';
+import { restartServer, restartServerPrompt } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
 import PluginsTemplate from 'girder/templates/body/plugins.pug';
@@ -27,15 +27,7 @@ var PluginsView = View.extend({
             var route = $(evt.currentTarget).attr('g-route');
             router.navigate(route, {trigger: true});
         },
-        'click .g-plugin-restart-button': function () {
-            var params = {
-                text: 'Are you sure you want to restart the server?  This ' +
-                      'will interrupt all running tasks for all users.',
-                yesText: 'Restart',
-                confirmCallback: restartServer
-            };
-            confirm(params);
-        },
+        'click .g-plugin-restart-button': restartServerPrompt,
         'click .g-rebuild-web-code': function (e) {
             $(e.currentTarget).girderEnable(false);
             restRequest({

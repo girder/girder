@@ -1,5 +1,6 @@
 import _ from 'underscore';
 
+import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 
@@ -40,6 +41,15 @@ function restartServer() {
     }));
 }
 
+function restartServerPrompt() {
+    confirm({
+        text: 'Are you sure you want to restart the server?  This ' +
+            'will interrupt all running tasks for all users.',
+        yesText: 'Restart',
+        confirmCallback: restartServer
+    });
+}
+
 /* Having these as object properties facilitates testing */
 restartServer._callSystemRestart = function () {
     restRequest({type: 'PUT', path: 'system/restart'});
@@ -50,5 +60,6 @@ restartServer._reloadWindow = function () {
 };
 
 export {
-    restartServer
+    restartServer,
+    restartServerPrompt
 };

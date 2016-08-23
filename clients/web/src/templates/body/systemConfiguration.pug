@@ -124,7 +124,7 @@ form.g-settings-form(role="form")
   .g-settings-form-container
     h4 Routing
     p.
-      Altering routes requires a restart of the Girder server to take effect.
+      Altering routes requires a #[a(id='g-restart-server') restart of the Girder server] to take effect.
     .form-group
       each route, name in settings['core.route_table'] || defaults['core.route_table']
         label= name
