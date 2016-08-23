@@ -252,12 +252,11 @@ class Job(AccessControlledModel):
                   progressTotal=None, progressCurrent=None, notify=True,
                   progressMessage=None, otherFields=None):
         """
-        Update an existing job. Any of the updateable fields that are set to
-        None in the kwargs will not be modified. If you set progress information
-        on the job for the first time and set notify=True, a new notification
-        record for the job progress will be created. If notify=True, job status
-        changes will also create a notification with type="job_status", and
-        log changes will create a notification with type="job_log".
+        Update an existing job. Any of the updateable fields that are set to None in the kwargs of
+        this method will not be modified. If you set progress information on the job for the first
+        time and set notify=True, a new notification record for the job progress will be created.
+        If notify=True, job status changes will also create a notification with type="job_status",
+        and log changes will create a notification with type="job_log".
 
         :param job: The job document to update.
         :param log: Message to append to the job log. If you wish to overwrite
