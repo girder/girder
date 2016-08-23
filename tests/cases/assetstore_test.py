@@ -913,7 +913,7 @@ class AssetstoreTestCase(base.TestCase):
                 isJson=False)
             self.assertFalse('Move should have been prevented')
         except AssertionError as exc:
-            self.assertIn('could not be moved to assetstore', exc.message)
+            self.assertIn('could not be moved to assetstore', str(exc))
         events.unbind('model.upload.movefile', 'assetstore_test')
 
         # Test files big enough to be multi-chunk
