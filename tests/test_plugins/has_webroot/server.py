@@ -27,4 +27,4 @@ class SomeWebroot(object):
 
 
 def load(info):
-    registerPluginWebroot(SomeWebroot(), info)
+    registerPluginWebroot(SomeWebroot(), info['name'])
