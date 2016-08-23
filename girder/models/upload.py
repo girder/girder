@@ -24,7 +24,7 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.constants import SettingKey
 from girder.utility import assetstore_utilities
-from .model_base import Model, ValidationException
+from .model_base import Model, GirderException, ValidationException
 
 
 class Upload(Model):
@@ -35,6 +35,17 @@ class Upload(Model):
     """
     def initialize(self):
         self.name = 'upload'
+
+    def _getChunkSize(self, minSize=32 * 1024**2):
+        """
+        Return a chunk size to use in file uploads.  This is the maximum of
+        the setting for minimum upload chunk size and the specified size.
+
+        :param minSize: the minimum size to return.
+        :return: chunk size to use for file uploads.
+        """
+        minChunkSize = self.model('setting').get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
+        return max(minChunkSize, minSize)
 
     def uploadFromFile(self, obj, size, name, parentType=None, parent=None,
                        user=None, mimeType=None, reference=None,
@@ -75,8 +86,7 @@ class Upload(Model):
             size=size, mimeType=mimeType, reference=reference,
             assetstore=assetstore)
         # The greater of 32 MB or the the upload minimum chunk size.
-        chunkSize = max(self.model('setting').get(
-            SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE), 32 * 1024**2)
+        chunkSize = self._getChunkSize()
 
         while True:
             data = obj.read(chunkSize)
@@ -339,17 +349,18 @@ class Upload(Model):
         # on files that could change dynamically.
         event = events.trigger('model.upload.movefile', {
             'file': file, 'assetstore': assetstore})
-        if event.preventDefault:
-            return file
+        if event.defaultPrevented:
+            raise GirderException(
+                'The file %s could not be moved to assetstore %s' % (
+                    file['_id'], assetstore['_id']))
         # Create a new upload record into the existing file
         upload = self.createUploadToFile(
             file=file, user=user, size=int(file['size']), assetstore=assetstore)
         if file['size'] == 0:
             return self.model('file').filter(
                 self.model('upload').finalizeUpload(upload), user)
-        # The greater of 32 MB or the the upload minimum chunk size.
-        chunkSize = max(self.model('setting').get(
-            SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE), 32 * 1024**2)
+        # Uploads need to be chunked for some assetstores
+        chunkSize = self._getChunkSize()
         chunk = None
         for data in self.model('file').download(file, headers=False)():
             if chunk is not None:
