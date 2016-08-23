@@ -918,7 +918,7 @@ class AssetstoreTestCase(base.TestCase):
 
         # Test files big enough to be multi-chunk
         chunkSize = self.model('upload')._getChunkSize()
-        data = six.BytesIO(' ' * chunkSize * 2)
+        data = six.BytesIO(b' ' * chunkSize * 2)
         uploadedFiles.append(self.model('upload').uploadFromFile(
             data, chunkSize * 2, 'sample', parentType='folder',
             parent=folder, assetstore=fs_assetstore))

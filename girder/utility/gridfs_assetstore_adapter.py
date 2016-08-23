@@ -65,7 +65,6 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
                 ('uuid', pymongo.ASCENDING),
                 ('n', pymongo.ASCENDING)
             ], unique=True)
-            chunkColl.create_index([('n', pymongo.ASCENDING)])
         except pymongo.errors.ServerSelectionTimeoutError as e:
             raise ValidationException(
                 'Could not connect to the database: %s' % str(e))
@@ -86,6 +85,10 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
                 self.assetstore.get('mongohost', None),
                 self.assetstore.get('replicaset', None)
             )[self.assetstore['db']].chunk
+            self.chunkColl.create_index([
+                ('uuid', pymongo.ASCENDING),
+                ('n', pymongo.ASCENDING)
+            ], unique=True)
         except pymongo.errors.ConnectionFailure:
             logger.error('Failed to connect to GridFS assetstore %s',
                          self.assetstore['db'])
