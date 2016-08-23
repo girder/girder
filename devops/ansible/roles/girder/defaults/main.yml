@@ -1,0 +1,7 @@
+---
+# defaults file for girder
+
+girder_path: "{{ ansible_user_dir }}/girder"
+girder_version: "master"
+girder_update: yes
+girder_force: yes

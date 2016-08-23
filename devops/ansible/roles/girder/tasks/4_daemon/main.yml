@@ -1,0 +1,15 @@
+---
+
+- name: Install service
+  template:
+    src: "4_daemon/upstart.girder.conf.j2"
+    dest: "/etc/init/girder.conf"
+  become: yes
+  become_user: root
+
+- name: (Re)start service
+  service:
+    name: girder
+    state: restarted
+  become: yes
+  become_user: root

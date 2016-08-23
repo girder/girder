@@ -9,7 +9,7 @@ respawn limit 20 5
 
 script
 
-    cd /home/vagrant/girder
+    cd {{ girder_path }}
     exec python -m girder > /dev/null 2>&1
 
 end script

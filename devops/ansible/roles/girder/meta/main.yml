@@ -1,0 +1,15 @@
+galaxy_info:
+  author: Kitware, Inc.
+  description: Install the Girder data management platform.
+  company: Kitware, Inc.
+
+  license: Apache
+  min_ansible_version: 2.0
+
+  platforms:
+  - name: Ubuntu
+    versions:
+    - trusty
+
+  galaxy_tags:
+    - girder
