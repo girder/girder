@@ -447,34 +447,17 @@ the server root instead, and they may also want to move the Girder web client to
 be served out of an alternative route so they can still use it in addition to
 their custom front-end application.
 
-To achieve this, you simply have to swap the existing server root with your own
-and rebind the old app underneath. In your plugin's ``load`` method, you would
-add something like the following:
+To achieve this, you simply have to register your own root and configure your routes
+as you wish. In your plugin's ``load`` method, you would follow this convention:
 
 .. code-block:: python
 
-    info['serverRoot'], info['serverRoot'].girder = CustomAppRoot(), info['serverRoot']
+    from girder.utility.plugin_utilities import registerPluginWebroot
+    registerPluginWebroot(CustomAppRoot(), info['name'])
 
-This will make it so that ``/`` serves your ``CustomAppRoot``, and ``/girder`` will
-serve the normal Girder web client. That also has the side effect of moving the
-web API (normally ``/api``) as well; it would now be moved to ``/girder/api``, which
-would require a change to the ``server.api_root`` value in ``girder.local.cfg``.
-
-If you would rather your web API remained at ``/api`` instead of moving under
-``/girder/api``, you would simply have to move it underneath the new server root. To
-do that, just add the following line below the previous line:
-
-.. code-block:: python
-
-    info['serverRoot'].api = info['serverRoot'].girder.api
-
-This will now serve the api out of *both* ``/api`` and ``/girder/api``, which
-may be desirable. If you only want it to be served out of ``/api`` and not
-``/girder/api``, just add a final line below that:
-
-.. code-block:: python
-
-    del info['serverRoot'].girder.api
+This will register your ``CustomAppRoot`` with Girder so that it can then be mounted
+whereever an Administrator specifies using the Server Configuration Panel. See
+:ref:`Managing Routes <managing-routes>`.
 
 Supporting web browser operations where custom headers cannot be set
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
