@@ -23,7 +23,9 @@ function(add_ansible_test case)
     COMMAND "${ANSIBLE_PLAYBOOK_BIN}" -i ${ANSIBLE_INVENTORY} --private-key=${ANSIBLE_PRIVATE_KEY} -u ${ANSIBLE_USER} test_${case}.yml -v
     )
 
-  set_tests_properties("${name}" PROPERTIES DEPENDS vagrant_up)
+  set_tests_properties("${name}" PROPERTIES
+    DEPENDS vagrant_up
+    RUN_SERIAL ON)
   set_property(GLOBAL APPEND PROPERTY vagrant_tests "${name}")
 
 endfunction()
