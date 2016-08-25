@@ -438,14 +438,14 @@ by the environment variable ``GIRDER_TEST_DATA_PREFIX`` as follows
     with open(test_file, 'r') as f:
         content = f.read() # The content of the downloaded test file
 
-Serving a custom app from the server root
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Mounting a custom application
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Normally, the root node (``/``) of the server will serve up the Girder web client.
-Some plugins will wish to change this so that their own custom app gets served out of
-the server root instead, and they may also want to move the Girder web client to
-be served out of an alternative route so they can still use it in addition to
-their custom front-end application.
+A plugin may contain an entire application separate from the default Girder
+web client. This plugin may be written in a way which enables administrators
+to mount the application at a configured endpoint, including the option of
+replacing the root node with the plugin application.
 
 To achieve this, you simply have to register your own root and configure your routes
 as you wish. In your plugin's ``load`` method, you would follow this convention:
@@ -456,7 +456,7 @@ as you wish. In your plugin's ``load`` method, you would follow this convention:
     registerPluginWebroot(CustomAppRoot(), info['name'])
 
 This will register your ``CustomAppRoot`` with Girder so that it can then be mounted
-whereever an Administrator specifies using the Server Configuration Panel. See
+wherever an Administrator specifies using the Server Configuration Panel. See
 :ref:`Managing Routes <managing-routes>`.
 
 Supporting web browser operations where custom headers cannot be set
