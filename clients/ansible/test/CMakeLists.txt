@@ -43,4 +43,4 @@ add_test(
   COMMAND vagrant destroy -f
   )
 get_property(vagrant_tests GLOBAL PROPERTY vagrant_tests)
-set_tests_properties(vagrant_destroy PROPERTIES DEPENDS "${vagrannt_tests}")
+set_tests_properties(vagrant_destroy PROPERTIES DEPENDS "${vagrant_tests}")
