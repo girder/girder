@@ -1,0 +1,115 @@
+- hosts: girder
+  tasks:
+
+    - name: Create 'admin' User
+      girder:
+        port: 8080
+        user:
+          firstName: "Chris"
+          lastName: "Kotfila"
+          login: "admin"
+          password: "letmein"
+          email: "chris.kotfila@kitware.com"
+          admin: yes
+        state: present
+
+    - name: Disable user default folders
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        setting:
+          key: "core.user_default_folders"
+          value: "none"
+      register: ret
+
+    - name: Check that user default folders are set to none
+      assert:
+        that:
+          - ret["changed"] == true
+          - ret["gc_return"]["previous_value"] == "public_private"
+          - ret["gc_return"]["current_value"] == "none"
+
+    # This serves as a good test for list values, but the plugin module
+    # should be used in this instance
+    - name: Alter the plugin setting
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        setting:
+          key: "core.plugins_enabled"
+          value:
+            - "jobs"
+            - "gravatar"
+      register: ret
+
+    - name: Check that proper plugins are enabled
+      assert:
+        that:
+          - ret["changed"] == true
+          - ret["gc_return"]["previous_value"] == []
+          - ret["gc_return"]["current_value"] == ["jobs", "gravatar"]
+
+    - name: Set multiple settings for email
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        setting:
+          key: "{{ item.key }}"
+          value: "{{ item.value }}"
+      with_items:
+        - { key: "core.email_from_address", value: "girder@girder.girder" }
+        - { key: "core.email_host", value: "myemailhost" }
+
+    - name: Get email settings
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "system/setting"
+          parameters:
+            list: "{{ ['core.email_from_address', 'core.email_host'] | to_json }}"
+      register: ret
+
+    - name: Check that proper email settings are set
+      assert:
+        that:
+          - ret["gc_return"]["core.email_from_address"] == "girder@girder.girder"
+          - ret["gc_return"]["core.email_host"] == "myemailhost"
+
+    - name: Tear down all settings we manipulated
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        setting:
+          key: "{{ item }}"
+        state: absent
+      with_items:
+        - "core.user_default_folders"
+        - "core.plugins_enabled"
+        - "core.email_from_address"
+        - "core.email_host"
+      register: ret
+
+    - name: Retrieve manipulated settings
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        get:
+          path: "system/setting"
+          parameters:
+            list: "{{ ['core.email_from_address', 'core.email_host',
+                       'core.user_default_folders', 'core.plugins_enabled'] | to_json }}"
+            default: "none"
+      register: ret
+
+    - name: Check that manipulated settings are all back to defaults
+      assert:
+        that:
+          - ret["gc_return"]["{{ item }}"] == none
+      with_items: "{{ ret['gc_return'] }}"
