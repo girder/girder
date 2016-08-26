@@ -192,3 +192,11 @@
           - "{{ 'gravatar' in ret['gc_return']['enabled'] }}"
           - "{{ 'jobs' not in ret['gc_return']['enabled'] }}"
           - "{{ 'thumbnails' not in ret['gc_return']['enabled'] }}"
+
+    - name: Disable all plugins
+      girder:
+        port: 8080
+        username: "admin"
+        password: "letmein"
+        plugins: "*"
+        state: absent
