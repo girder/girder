@@ -86,8 +86,10 @@ girder.views.DicomView = girder.View.extend({
         this.first = true;
         this.playing = false;
         this.playRate = 500;
+        this.dataSet = null;
         this.imageData = null;
         this.xhr = null;
+        this.dataSetCache = {};
         this.imageCache = {};
         this.tagCache = {};
         this.render();
@@ -177,6 +179,7 @@ girder.views.DicomView = girder.View.extend({
                 const byteArray = new Uint8Array(xhr.response);
                 const dataSet = dicomParser.parseDicom(byteArray);
                 const imageData = createImageData(dataSet);
+                this.dataSetCache[file.name] = dataSet;
                 this.imageCache[file.name] = imageData;
                 this.tagCache[file.name] = getTags(dataSet);
                 this.showCached(file);
@@ -193,7 +196,7 @@ girder.views.DicomView = girder.View.extend({
         document.getElementById('g-dicom-tags').innerHTML = TagsTemplate({
             tags: this.tagCache[file.name]
         });
-        this.setImageData(this.imageCache[file.name]);
+        this.setImageData(this.dataSetCache[file.name], this.imageCache[file.name]);
     },
 
     render: function () {
@@ -219,9 +222,112 @@ girder.views.DicomView = girder.View.extend({
         }
         this.ren.resetCamera();
         this.camera.zoom(1.44);
+        // const up = this.camera.getViewUp();
+        // this.camera.setViewUp(up[0], -up[1], up[2]);
+        // const pos = this.camera.getPosition();
+        // this.camera.setPosition(pos[0], pos[1], -pos[2]);
+        // console.log(this.camera.getPosition());
+        // console.log(this.camera.getFocalPoint());
+        // console.log(this.camera.getViewUp());
     },
 
-    setImageData: function (imageData) {
+    autoOrientation: function () {
+        if (!this.imageData) {
+            return;
+        }
+
+        // get image orientation
+        const orientation = this.dataSet.string('x00200037').split('\\').map(Number);
+
+        // find maximal vector component
+        for (let i = 0; i < orientation.length; i++) {
+            if (Math.abs(orientation[i]) > 0.9) {
+                orientation[i] = Math.sign(orientation[i]);
+            } else {
+                orientation[i] = 0;
+            }
+        }
+
+        let row = orientation.slice(0, 3);
+        let col = orientation.slice(3, 6);
+        console.log(row, col);
+
+        // what we want
+        // transverse/axial
+        // X right, Y down
+        // sagittal
+        // Z right, Y down
+        // Y right, Z up
+        // coronal
+        // X right, Z up
+
+        // see if we should transpose rows/cols
+        // let transpose = false;
+        // if (col[0] && row[1]) {
+        //     transpose = true;
+        // }
+        // if (col[2] && row[1]) {
+        //     transpose = true;
+        // }
+        // if (col[0] && row[2]) {
+        //     transpose = true;
+        // }
+
+        // if (transpose) {
+        //     const temp = row;
+        //     row = col;
+        //     col = temp;
+        // }
+
+        // see if we should flip vertical
+        let flipVertical = false;
+        if (row[0] && col[1] < 0) {
+            flipVertical = true;
+        }
+        if (row[2] && col[1] < 0) {
+            flipVertical = true;
+        }
+        if (row[1] && col[2] > 0) {
+            flipVertical = true;
+        }
+        if (row[0] && col[2] > 0) {
+            flipVertical = true;
+        }
+
+        // see if we should flip horizontal
+        let flipHorizontal = false;
+        if (col[1] && row[0] < 0) {
+            flipHorizontal = true;
+        }
+        if (col[1] && row[2] < 0) {
+            flipHorizontal = true;
+        }
+        if (col[2] && row[1] < 0) {
+            flipHorizontal = true;
+        }
+        if (col[2] && row[0] < 0) {
+            flipHorizontal = true;
+        }
+
+        console.log(flipVertical, flipHorizontal);
+
+        const up = [0, -1, 0];
+        const pos = this.camera.getPosition();
+        pos[2] = -Math.abs(pos[2]);
+
+        if (flipVertical) {
+            up[1] = -up[1];
+        }
+        if (flipHorizontal) {
+            pos[2] = -pos[2];
+        }
+
+        this.camera.setViewUp(up[0], up[1], up[2]);
+        this.camera.setPosition(pos[0], pos[1], pos[2]);
+    },
+
+    setImageData: function (dataSet, imageData) {
+        this.dataSet = dataSet;
         this.imageData = imageData;
 
         if (this.first) {
@@ -229,6 +335,7 @@ girder.views.DicomView = girder.View.extend({
             this.initVtk(imageData);
             this.autoLevels();
             this.autoZoom();
+            this.autoOrientation();
         } else {
             const mapper = vtkImageMapper.newInstance();
             mapper.setInputData(imageData);
@@ -307,9 +414,6 @@ function createPixelBuffer(dataSet) {
     const cols = dataSet.uint16('x00280011');
     const numPixels = rows * cols;
     const pmi = dataSet.string('x00280004');
-    // TODO: this is probably not a legit way of determining when to flip
-    const imageOrientation = dataSet.string('x00200037').split('\\');
-    const flipVertical = imageOrientation.splice(3).indexOf('-1') >= 0;
     if (pmi !== 'MONOCHROME1' && pmi !== 'MONOCHROME2') {
         throw 'unsupported photometric interpretation';
     }
@@ -342,17 +446,6 @@ function createPixelBuffer(dataSet) {
         // invert values
         for (let i = 0; i < values.length; i++) {
             values[i] = 1 - values[i];
-        }
-    }
-    if (flipVertical) {
-        const temp = values.slice();
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-                const fy = rows - y - 1;
-                const i = y * cols + x;
-                const j = fy * cols + x;
-                values[i] = temp[j];
-            }
         }
     }
     return values;
