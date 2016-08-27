@@ -177,6 +177,11 @@
         put:
           path: "system/restart"
 
+    - name: Wait until server restarts
+      wait_for:
+        port=8080
+        delay=5
+
     - name: Get plugin information
       girder:
         port: 8080
