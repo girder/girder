@@ -450,80 +450,8 @@ that can be used to import content:
   plugin that doesn't fall into one of the above categories can be placed here,
   such as static images, fonts, or third-party static libraries.
 
-JavaScript extension capabilities
-*********************************
-
-Plugins may bind to any of the normal events triggered by core via the
-``girder.events`` object. This will accommodate certain events, such as before
-and after the application is initially loaded, and when a user logs in or out,
-but most of the time plugins will augment the core system using the power of
-JavaScript rather than the explicit events framework. One of the most common
-use cases for plugins is to execute some code either before or after one of the
-core model or view functions is executed. In an object-oriented language, this
-would be a simple matter of extending the core class and making a call to the
-parent method. The prototypal nature of JavaScript makes that pattern impossible;
-instead, we'll use a slightly less straightforward but equally powerful
-mechanism. This is best demonstrated by example. Let's say we want to execute
-some code any time the core ``HierarchyWidget`` is rendered, for instance to
-inject some additional elements into the view. We use the ``girder.wrap``
-function to `wrap` the method of the core prototype with our own function.
-
-.. code-block:: javascript
-
-    girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
-        // Call the underlying render function that we are wrapping
-        render.call(this);
-
-        // Add a link just below the widget
-        this.$('.g-hierarchy-widget').after('<a class="cat-link">Meow</a>');
-    });
-
-Notice that instead of simply calling ``render()``, we call ``render.call(this)``.
-That is important, as otherwise the value of ``this`` will not be set properly
-in the wrapped function.
-
-Now that we have added the link to the core view, we can bind an event handler to
-it to make it functional:
-
-.. code-block:: javascript
-
-    girder.views.HierarchyWidget.prototype.events['click a.cat-link'] = function () {
-        alert('meow!');
-    };
-
-This demonstrates one simple use case for client plugins, but using these same
-techniques, you should be able to do almost anything to change the core
-application as you need.
-
-Setting an empty layout for a route
-***********************************
-
-If you have a route in your plugin that you would like to have an empty layout,
-meaning that the Girder header, nav bar, and footer are hidden and the Girder body is
-evenly padded and displayed, you can specify an empty layout in the ``navigateTo``
-event trigger.
-
-As an example, say your plugin wanted a ``frontPage`` route for a Collection which
-would display the Collection with only the Girder body shown, you could add the following
-route to your plugin.
-
-.. code-block:: javascript
-
-    girder.router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
-        var collection = new girder.models.CollectionModel();
-        collection.set({
-            _id: collectionId
-        }).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView, _.extend({
-                collection: collection
-            }, params || {}), {layout: girder.Layout.EMPTY});
-        }, this).on('g:error', function () {
-            girder.router.navigate('/collections', {trigger: true});
-        }, this).fetch();
-    });
-
 Linting and Style Checking Client-Side Code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*******************************************
 
 Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its
 own JavaScript files.  Developers can easily add the same static analysis
@@ -645,3 +573,75 @@ of the Girder source repository, rather than relative to the plugin directory.
             /* ... Execute custom behavior ... */
         });
     };
+
+JavaScript extension capabilities
+*********************************
+
+Plugins may bind to any of the normal events triggered by core via the
+``girder.events`` object. This will accommodate certain events, such as before
+and after the application is initially loaded, and when a user logs in or out,
+but most of the time plugins will augment the core system using the power of
+JavaScript rather than the explicit events framework. One of the most common
+use cases for plugins is to execute some code either before or after one of the
+core model or view functions is executed. In an object-oriented language, this
+would be a simple matter of extending the core class and making a call to the
+parent method. The prototypal nature of JavaScript makes that pattern impossible;
+instead, we'll use a slightly less straightforward but equally powerful
+mechanism. This is best demonstrated by example. Let's say we want to execute
+some code any time the core ``HierarchyWidget`` is rendered, for instance to
+inject some additional elements into the view. We use the ``girder.wrap``
+function to `wrap` the method of the core prototype with our own function.
+
+.. code-block:: javascript
+
+    girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
+        // Call the underlying render function that we are wrapping
+        render.call(this);
+
+        // Add a link just below the widget
+        this.$('.g-hierarchy-widget').after('<a class="cat-link">Meow</a>');
+    });
+
+Notice that instead of simply calling ``render()``, we call ``render.call(this)``.
+That is important, as otherwise the value of ``this`` will not be set properly
+in the wrapped function.
+
+Now that we have added the link to the core view, we can bind an event handler to
+it to make it functional:
+
+.. code-block:: javascript
+
+    girder.views.HierarchyWidget.prototype.events['click a.cat-link'] = function () {
+        alert('meow!');
+    };
+
+This demonstrates one simple use case for client plugins, but using these same
+techniques, you should be able to do almost anything to change the core
+application as you need.
+
+Setting an empty layout for a route
+***********************************
+
+If you have a route in your plugin that you would like to have an empty layout,
+meaning that the Girder header, nav bar, and footer are hidden and the Girder body is
+evenly padded and displayed, you can specify an empty layout in the ``navigateTo``
+event trigger.
+
+As an example, say your plugin wanted a ``frontPage`` route for a Collection which
+would display the Collection with only the Girder body shown, you could add the following
+route to your plugin.
+
+.. code-block:: javascript
+
+    girder.router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
+        var collection = new girder.models.CollectionModel();
+        collection.set({
+            _id: collectionId
+        }).on('g:fetched', function () {
+            girder.events.trigger('g:navigateTo', girder.views.CollectionView, _.extend({
+                collection: collection
+            }, params || {}), {layout: girder.Layout.EMPTY});
+        }, this).on('g:error', function () {
+            girder.router.navigate('/collections', {trigger: true});
+        }, this).fetch();
+    });
