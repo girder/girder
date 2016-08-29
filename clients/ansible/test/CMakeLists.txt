@@ -38,6 +38,7 @@ add_ansible_test(plugin)
 add_ansible_test(access)
 add_ansible_test(hierarchy)
 add_ansible_test(apikey)
+add_ansible_test(setting)
 
 add_test(
   NAME vagrant_destroy

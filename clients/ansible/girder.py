@@ -34,7 +34,7 @@ except ImportError:
     HAS_GIRDER_CLIENT = False
 
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 DOCUMENTATION = '''
 ---
@@ -429,6 +429,19 @@ options:
                     - list of local file paths
                     - files will be uploaded to the item
 
+     setting:
+        required: false
+        description:
+            - Get/set the values of system settings
+        options:
+            key:
+                required: true
+                description:
+                    - The key identifying this setting
+            value:
+                required: true if state = present, else false
+                description:
+                    - The value to set
 '''
 
 EXAMPLES = '''
@@ -1028,7 +1041,7 @@ class GirderClientModule(GirderClient):
     _include_methods = ['get', 'put', 'post', 'delete', 'patch',
                         'plugins', 'user', 'assetstore',
                         'collection', 'folder', 'item', 'files',
-                        'group']
+                        'group', 'setting']
 
     _debug = True
 
@@ -1748,6 +1761,52 @@ class GirderClientModule(GirderClient):
                 ret = self.delete("assetstore/%s" % id,
                                   parameters=argument_hash[type])
                 self.changed = True
+
+        return ret
+
+    def setting(self, key, value=None):
+        ret = {}
+        list_value = isinstance(value, list)
+
+        if self.module.params['state'] == 'present':
+            # Get existing setting value to determine self.changed
+            existing_value = self.get('system/setting', parameters={'key': key})
+
+            params = {
+                'key': key,
+                'value': json.dumps(value) if list_value else value
+            }
+
+            try:
+                response = self.put('system/setting', parameters=params)
+            except HttpError as e:
+                self.fail(json.loads(e.responseText)['message'])
+
+            if response and list_value:
+                self.changed = set(existing_value) != set(value)
+            elif response:
+                self.changed = existing_value != value
+
+            if self.changed:
+                ret['previous_value'] = existing_value
+                ret['current_value'] = value
+            else:
+                ret['previous_value'] = ret['current_value'] = existing_value
+
+        elif self.module.params['state'] == 'absent':
+            # Removing a setting is a way of explicitly forcing it to be the default
+            existing_value = self.get('system/setting', parameters={'key': key})
+            default = self.get('system/setting', parameters={'key': key, 'default': 'default'})
+
+            if existing_value != default:
+                try:
+                    response = self.delete('system/setting', parameters={'key': key})
+                    self.changed = True
+
+                    ret['previous_value'] = existing_value
+                    ret['current_value'] = default
+                except HttpError as e:
+                    self.fail(json.loads(e.responseText)['message'])
 
         return ret
 
