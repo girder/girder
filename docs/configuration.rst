@@ -84,7 +84,7 @@ Managing Routes
 
 When plugins which have their own custom webroot are enabled, they are mounted at /pluginName.
 In certain cases it may be desirable for the site administrator to mount such plugins at their own
-specificied paths.
+specified paths.
 
 These paths can be modified by navigating to Admin Console -> Server Configuration and
 visiting the Routing section.
