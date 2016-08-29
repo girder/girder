@@ -222,13 +222,6 @@ girder.views.DicomView = girder.View.extend({
         }
         this.ren.resetCamera();
         this.camera.zoom(1.44);
-        // const up = this.camera.getViewUp();
-        // this.camera.setViewUp(up[0], -up[1], up[2]);
-        // const pos = this.camera.getPosition();
-        // this.camera.setPosition(pos[0], pos[1], -pos[2]);
-        // console.log(this.camera.getPosition());
-        // console.log(this.camera.getFocalPoint());
-        // console.log(this.camera.getViewUp());
     },
 
     autoOrientation: function () {
@@ -250,10 +243,12 @@ girder.views.DicomView = girder.View.extend({
 
         let row = orientation.slice(0, 3);
         let col = orientation.slice(3, 6);
+        row = {x: row[0], y: row[1], z: row[2]};
+        col = {x: col[0], y: col[1], z: col[2]};
         console.log(row, col);
 
         // what we want
-        // transverse/axial
+        // transverse
         // X right, Y down
         // sagittal
         // Z right, Y down
@@ -263,13 +258,13 @@ girder.views.DicomView = girder.View.extend({
 
         // see if we should transpose rows/cols
         // let transpose = false;
-        // if (col[0] && row[1]) {
+        // if (col.x && row.y) {
         //     transpose = true;
         // }
-        // if (col[2] && row[1]) {
+        // if (col.z && row.y) {
         //     transpose = true;
         // }
-        // if (col[0] && row[2]) {
+        // if (col.x && row.z) {
         //     transpose = true;
         // }
 
@@ -281,31 +276,31 @@ girder.views.DicomView = girder.View.extend({
 
         // see if we should flip vertical
         let flipVertical = false;
-        if (row[0] && col[1] < 0) {
+        if (row.x && col.y < 0) {
             flipVertical = true;
         }
-        if (row[2] && col[1] < 0) {
+        if (row.z && col.y < 0) {
             flipVertical = true;
         }
-        if (row[1] && col[2] > 0) {
+        if (row.y && col.z > 0) {
             flipVertical = true;
         }
-        if (row[0] && col[2] > 0) {
+        if (row.x && col.z > 0) {
             flipVertical = true;
         }
 
         // see if we should flip horizontal
         let flipHorizontal = false;
-        if (col[1] && row[0] < 0) {
+        if (col.y && row.x < 0) {
             flipHorizontal = true;
         }
-        if (col[1] && row[2] < 0) {
+        if (col.y && row.z < 0) {
             flipHorizontal = true;
         }
-        if (col[2] && row[1] < 0) {
+        if (col.z && row.y < 0) {
             flipHorizontal = true;
         }
-        if (col[2] && row[0] < 0) {
+        if (col.z && row.x < 0) {
             flipHorizontal = true;
         }
 
