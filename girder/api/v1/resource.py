@@ -28,6 +28,7 @@ from girder.models.model_base import AccessControlledModel
 from girder.utility import acl_mixin
 from girder.utility import parseTimestamp
 from girder.utility import ziputil
+from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
 
 # Plugins can modify this set to allow other types to be searched
@@ -44,6 +45,7 @@ class Resource(BaseResource):
         self.route('GET', ('search',), self.search)
         self.route('GET', ('lookup',), self.lookup)
         self.route('GET', (':id',), self.getResource)
+        self.route('GET', (':id', 'path'), self.path)
         self.route('PUT', (':id', 'timestamp'), self.setTimestamp)
         self.route('GET', ('download',), self.download)
         self.route('POST', ('download',), self.download)
@@ -195,7 +197,8 @@ class Resource(BaseResource):
             will return None instead of throwing exception when
             path doesn't exist
         """
-        pathArray = [token for token in path.split('/') if token]
+        path = path.lstrip('/')
+        pathArray = path_util.split(path)
         model = pathArray[0]
 
         parent = None
@@ -258,6 +261,55 @@ class Resource(BaseResource):
         self.requireParams('path', params)
         test = self.boolParam('test', params, default=False)
         return self._lookUpPath(params['path'], self.getCurrentUser(), test)
+
+    def _getResourceName(self, type, doc):
+        if type == 'user':
+            return doc['login']
+        elif type in ('file', 'item', 'folder', 'user', 'collection'):
+            return doc['name']
+        else:
+            raise RestException(
+                'Invalid resource type.'
+            )
+
+    def _getResourceParent(self, type, doc):
+        if type == 'file':
+            return doc['itemId'], 'item'
+        elif type == 'item':
+            return doc['folderId'], 'folder'
+        elif type == 'folder':
+            return doc['parentId'], doc['parentCollection']
+        else:
+            raise RestException(
+                'Invalid resource type.'
+            )
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @describeRoute(
+        Description('Get path of a resource.')
+        .param('id', 'The ID of the resource.', paramType='path')
+        .param('type', 'The type of the resource (item, file, etc.).')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Invalid resource type.')
+        .errorResponse('Read access was denied for the resource.', 403)
+    )
+    def path(self, id, params):
+        path = []
+        type = params['type']
+        while True:
+            doc = self._getResource(id, type)
+            if doc is None:
+                raise RestException('Invalid resource id.')
+            name = self._getResourceName(type, doc)
+            path.insert(0, name)
+
+            if type in ('file', 'item', 'folder'):
+                id, type = self._getResourceParent(type, doc)
+            else:
+                break
+
+        path.insert(0, type)
+        return '/' + path_util.join(path)
 
     @access.cookie(force=True)
     @access.public(scope=TokenScope.DATA_READ)
@@ -366,6 +418,14 @@ class Resource(BaseResource):
                             ctx.update(current=current,
                                        message='Deleted ' + kind)
 
+    def _getResource(self, id, type):
+        model = self._getResourceModel(type)
+        if (isinstance(model, (acl_mixin.AccessControlMixin,
+                               AccessControlledModel))):
+            user = self.getCurrentUser()
+            return model.load(id=id, user=user, level=AccessType.READ)
+        return model.load(id=id)
+
     @access.admin
     @describeRoute(
         Description('Get any resource by ID.')
@@ -375,12 +435,7 @@ class Resource(BaseResource):
         .errorResponse('Read access was denied for the resource.', 403)
     )
     def getResource(self, id, params):
-        model = self._getResourceModel(params['type'])
-        if (isinstance(model, (acl_mixin.AccessControlMixin,
-                               AccessControlledModel))):
-            user = self.getCurrentUser()
-            return model.load(id=id, user=user, level=AccessType.READ)
-        return model.load(id=id)
+        return self._getResource(id, params['type'])
 
     @access.admin
     @describeRoute(

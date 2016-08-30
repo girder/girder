@@ -32,10 +32,12 @@ def validateProvidersEnabled(doc):
 
 @setting_utilities.validator({
     constants.PluginSettings.GOOGLE_CLIENT_ID,
+    constants.PluginSettings.GLOBUS_CLIENT_ID,
     constants.PluginSettings.GITHUB_CLIENT_ID,
     constants.PluginSettings.LINKEDIN_CLIENT_ID,
     constants.PluginSettings.BITBUCKET_CLIENT_ID,
     constants.PluginSettings.GOOGLE_CLIENT_SECRET,
+    constants.PluginSettings.GLOBUS_CLIENT_SECRET,
     constants.PluginSettings.GITHUB_CLIENT_SECRET,
     constants.PluginSettings.LINKEDIN_CLIENT_SECRET,
     constants.PluginSettings.BITBUCKET_CLIENT_SECRET

@@ -1,15 +1,17 @@
-add_python_test(assetstore PLUGIN hdfs_assetstore PY2_ONLY)
+get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
+
+add_python_test(assetstore PLUGIN ${PLUGIN} PY2_ONLY)
 
 add_python_style_test(
-  python_static_analysis_hdfs_assetstore
-  "${PROJECT_SOURCE_DIR}/plugins/hdfs_assetstore/server"
+  python_static_analysis_${PLUGIN}
+  "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/server"
 )
 add_python_style_test(
-  python_static_analysis_hdfs_assetstore_tests
-  "${PROJECT_SOURCE_DIR}/plugins/hdfs_assetstore/plugin_tests"
+  python_static_analysis_${PLUGIN}_tests
+  "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests"
 )
 
 add_eslint_test(
-  hdfs_assetstore
-  "${PROJECT_SOURCE_DIR}/plugins/hdfs_assetstore/web_client/js"
+  ${PLUGIN}
+  "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/js"
 )

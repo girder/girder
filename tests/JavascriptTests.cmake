@@ -168,6 +168,7 @@ function(add_web_client_test case specFile)
   # BASEURL (url): The base url to load for the test.
   # TEST_MODULE (python module path): Run this module rather than the default
   #     "tests.web_client_test"
+  # REQUIRED_FILES: A list of files required to run the test.
   if (NOT BUILD_JAVASCRIPT_TESTS)
     return()
   endif()
@@ -175,7 +176,7 @@ function(add_web_client_test case specFile)
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
-  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS TIMEOUT TEST_MODULE)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS TIMEOUT TEST_MODULE REQUIRED_FILES)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -238,9 +239,11 @@ function(add_web_client_test case specFile)
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${testname}"
     "GIRDER_TEST_ASSETSTORE=${testname}"
     "GIRDER_PORT=${web_client_port}"
+    "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
   )
   math(EXPR next_web_client_port "${web_client_port} + 1")
   set(web_client_port ${next_web_client_port} PARENT_SCOPE)
+  set_property(TEST ${testname} PROPERTY REQUIRED_FILES "${fn_REQUIRED_FILES}")
 
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${testname} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})

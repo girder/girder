@@ -974,14 +974,14 @@
     },
     {
       "uid": "f6d72aa5ef8e8f0e553012af9a29a87e",
-      "css": "right",
-      "code": 59667,
+      "css": "left",
+      "code": 59666,
       "src": "fontawesome"
     },
     {
       "uid": "fb94e23ae1e7660aa63cc5f351ec7560",
-      "css": "left",
-      "code": 59666,
+      "css": "right",
+      "code": 59667,
       "src": "fontawesome"
     },
     {

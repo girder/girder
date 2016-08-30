@@ -62,7 +62,8 @@ class Job(Resource):
             currentUser=currentUser))
 
     @access.public
-    @loadmodel(model='job', plugin='jobs', level=AccessType.READ)
+    @loadmodel(model='job', plugin='jobs', level=AccessType.READ,
+               includeLog=True)
     @describeRoute(
         Description('Get a job by ID.')
         .param('id', 'The ID of the job.', paramType='path')

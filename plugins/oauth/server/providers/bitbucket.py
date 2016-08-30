@@ -110,10 +110,8 @@ class Bitbucket(ProviderBase):
 
         login = resp.get('username', None)
 
-        names = resp.get('display_name', '').split()
-        firstName = names[0] if names else ''
-        lastName = names[-1] if len(names) > 1 else ''
+        names = (resp.get('display_name') or login).split()
+        firstName, lastName = names[0], names[-1]
 
-        user = self._createOrReuseUser(oauthId, email, firstName, lastName,
-                                       login)
+        user = self._createOrReuseUser(oauthId, email, firstName, lastName, login)
         return user

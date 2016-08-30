@@ -99,24 +99,49 @@ class JobsTestCase(base.TestCase):
             'token': token['_id']
         })
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['log'], 'My log message\nappend message')
+        # We shouldn't get the log back in this case
+        self.assertNotIn('log', resp.json)
+
+        # Do a fetch on the job itself to get the log
+        resp = self.request(path, user=self.users[1])
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            resp.json['log'], ['My log message\n', 'append message'])
 
         # Test overwriting the log and updating status
         resp = self.request(path, method='PUT', params={
-            'log': 'overwrite',
+            'log': 'overwritten log',
             'overwrite': 'true',
             'status': JobStatus.SUCCESS,
             'token': token['_id']
         })
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['log'], 'overwrite')
+        self.assertNotIn('log', resp.json)
         self.assertEqual(resp.json['status'], JobStatus.SUCCESS)
+
+        job = self.model('job', 'jobs').load(
+            job['_id'], force=True, includeLog=True)
+        self.assertEqual(job['log'], ['overwritten log'])
 
         # We should be able to delete the job as the user who created it
         resp = self.request(path, user=self.users[1], method='DELETE')
         self.assertStatusOk(resp)
         job = self.model('job', 'jobs').load(job['_id'], force=True)
         self.assertIsNone(job)
+
+    def testLegacyLogBehavior(self):
+        # Force save a job with a string log to simulate a legacy job record
+        job = self.model('job', 'jobs').createJob(
+            title='legacy', type='legacy', user=self.users[1], save=False)
+        job['log'] = 'legacy log'
+        job = self.model('job', 'jobs').save(job, validate=False)
+
+        self.assertEqual(job['log'], 'legacy log')
+
+        # Load the record, we should now get the log as a list
+        job = self.model('job', 'jobs').load(job['_id'], force=True,
+                                             includeLog=True)
+        self.assertEqual(job['log'], ['legacy log'])
 
     def testListJobs(self):
         job = self.model('job', 'jobs').createJob(
@@ -308,8 +333,9 @@ class JobsTestCase(base.TestCase):
 
         self.model('job', 'jobs').scheduleJob(job)
 
-        job = self.model('job', 'jobs').load(job['_id'], force=True)
-        self.assertEqual(job['log'], 'job ran!')
+        job = self.model('job', 'jobs').load(job['_id'], force=True,
+                                             includeLog=True)
+        self.assertEqual(job['log'], ['job ran!'])
 
         job = self.model('job', 'jobs').createLocalJob(
             title='local', type='local', user=self.users[0], kwargs={
@@ -318,8 +344,9 @@ class JobsTestCase(base.TestCase):
 
         self.model('job', 'jobs').scheduleJob(job)
 
-        job = self.model('job', 'jobs').load(job['_id'], force=True)
-        self.assertEqual(job['log'], 'job failed')
+        job = self.model('job', 'jobs').load(job['_id'], force=True,
+                                             includeLog=True)
+        self.assertEqual(job['log'], ['job failed'])
 
     def testValidateCustomStatus(self):
         jobModel = self.model('job', 'jobs')

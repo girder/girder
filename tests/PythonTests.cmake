@@ -84,7 +84,7 @@ function(add_python_test case)
 
   set(_options BIND_SERVER PY2_ONLY)
   set(_args DBNAME PLUGIN SUBMODULE)
-  set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA)
+  set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PY2_ONLY AND PYTHON_VERSION MATCHES "^3")
@@ -137,8 +137,10 @@ function(add_python_test case)
     "GIRDER_TEST_ASSETSTORE=${name}"
     "GIRDER_TEST_PORT=${server_port}"
     "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
+    "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
   )
   set_property(TEST ${name} PROPERTY COST 50)
+  set_property(TEST ${name} PROPERTY REQUIRED_FILES ${fn_REQUIRED_FILES})
 
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${name} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})

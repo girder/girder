@@ -1,2 +1,4 @@
-add_python_style_test(python_static_analysis_celery_jobs
-                      "${PROJECT_SOURCE_DIR}/plugins/celery_jobs/server")
+get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
+
+add_python_style_test(python_static_analysis_${PLUGIN}
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/server")

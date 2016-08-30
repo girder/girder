@@ -392,6 +392,35 @@ class AssetstoreTestCase(base.TestCase):
         current = self.model('assetstore').getCurrent()
         self.assertEqual(current['_id'], secondStore['_id'])
 
+    def testGetAssetstoreFiles(self):
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(1, len(resp.json))
+        assetstore = self.model('assetstore').load(resp.json[0]['_id'])
+
+        # Simulate the existence of a file within the assetstore
+        folders = self.model('folder').childFolders(
+            self.admin, 'user', user=self.admin)
+        item = self.model('item').createItem(
+            name='x.txt', creator=self.admin, folder=six.next(folders))
+        file = self.model('file').createFile(
+            creator=self.admin, item=item, name='x.txt',
+            size=1, assetstore=assetstore, mimeType='text/plain')
+        file['sha512'] = 'x'  # add this dummy value to simulate real file
+
+        # Make sure we see the file
+        resp = self.request(path='/assetstore/%s/files' % assetstore['_id'],
+                            method='GET', user=self.admin)
+        self.assertStatus(resp, 200)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'x.txt')
+        # Remove the file and make sure we no longer see it.
+        self.model('file').remove(file)
+        resp = self.request(path='/assetstore/%s/files' % assetstore['_id'],
+                            method='GET', user=self.admin)
+        self.assertStatus(resp, 200)
+        self.assertEqual(len(resp.json), 0)
+
     def testGridFSAssetstoreAdapter(self):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)

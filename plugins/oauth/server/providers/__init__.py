@@ -20,6 +20,7 @@
 import collections
 
 from .google import Google
+from .globus import Globus
 from .github import GitHub
 from .linkedin import LinkedIn
 from .bitbucket import Bitbucket
@@ -32,6 +33,7 @@ idMap = collections.OrderedDict()
 
 
 addProvider(Google)
+addProvider(Globus)
 addProvider(GitHub)
 addProvider(LinkedIn)
 addProvider(Bitbucket)

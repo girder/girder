@@ -419,14 +419,15 @@ class GirderClient(object):
             'id': itemId,
         }, limit=limit, offset=offset)
 
-    def createItem(self, parentFolderId, name, description=''):
+    def createItem(self, parentFolderId, name, description='', reuseExisting=False):
         """
         Creates and returns an item.
         """
         params = {
             'folderId': parentFolderId,
             'name': name,
-            'description': description
+            'description': description,
+            'reuseExisting': reuseExisting
         }
         return self.createResource('item', params)
 
