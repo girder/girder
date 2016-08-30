@@ -5,3 +5,4 @@
   command: "npm install --production"
   args:
     chdir: "{{ girder_path }}"
+  when: "{{ girder_web }}"

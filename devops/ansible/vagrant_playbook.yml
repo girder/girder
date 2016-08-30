@@ -26,6 +26,7 @@
         - grunt-cli
       become: yes
       become_user: root
+      when: "{{ girder_web }}"
 
     - name: Install Girder Python development requirements
       pip:
@@ -38,3 +39,4 @@
       command: "npm install"
       args:
         chdir: "/home/vagrant/girder"
+      when: "{{ girder_web }}"

@@ -1,6 +1,7 @@
 ---
 
 - include: 1_npm/main.yml
+  when: "{{ girder_web }}"
 
 - include: 2_girder/main.yml
 
