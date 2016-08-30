@@ -1,11 +1,7 @@
 ---
 
-- include: 1_mongodb/main.yml
+- include: 1_npm/main.yml
 
-- include: 2_npm/main.yml
+- include: 2_girder/main.yml
 
-- include: 3_girder.yml
-
-- include: 4_daemon/main.yml
-
-- include: 5_proxy/main.yml
+- include: 3_daemon/main.yml

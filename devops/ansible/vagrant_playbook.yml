@@ -13,6 +13,7 @@
       become_user: root
 
   roles:
+    - mongo
     - girder
 
   post_tasks:

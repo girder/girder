@@ -14,33 +14,6 @@
     - libjpeg-dev
     - zlib1g-dev
 
-# The following 3 steps are are necessary for VirtualBox with Ubuntu 14.04, as
-# packaged Girder cannot be built with Python<2.7.9 on VirtualBox's filesystem
-# (Python Issue #8876)
-# TODO: these steps should be optional
-- name: Add Python Updates PPA key
-  apt_key:
-    id: "DB82666C"
-    keyserver: "keyserver.ubuntu.com"
-  become: yes
-  become_user: root
-
-- name: Add Python Updates PPA
-  apt_repository:
-    repo: "deb http://ppa.launchpad.net/fkrull/deadsnakes-python2.7/ubuntu {{ ansible_distribution_release }} main"
-  become: yes
-  become_user: root
-
-- name: Install updated Python
-  apt:
-    name: "{{ item }}"
-    state: latest
-  become: yes
-  become_user: root
-  with_items:
-    - python2.7
-    - python2.7-dev
-
 - name: Update Pip
   pip:
     name: pip
@@ -69,8 +42,3 @@
     editable: yes
     chdir: "{{ girder_path }}"
   become: yes
-
-- name: Run npm install
-  command: "npm install --production"
-  args:
-    chdir: "{{ girder_path }}"

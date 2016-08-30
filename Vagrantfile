@@ -1,6 +1,12 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
 
+  if Vagrant.has_plugin?("vagrant-cachier")
+    config.cache.scope = :box
+    config.cache.enable :apt
+    config.cache.enable :npm
+  end
+
   config.vm.hostname = "girder"
 
   config.vm.network "forwarded_port", guest: 8080, host: 9080

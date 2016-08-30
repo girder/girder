@@ -2,7 +2,7 @@
 
 - name: Install service
   template:
-    src: "4_daemon/upstart.girder.conf.j2"
+    src: "3_daemon/upstart.girder.conf.j2"
     dest: "/etc/init/girder.conf"
   become: yes
   become_user: root
