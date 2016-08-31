@@ -14,10 +14,12 @@
 #  limitations under the License.
 ###############################################################################
 
-add_python_test(client_metadata_extractor PLUGIN metadata_extractor RESOURCE_LOCKS cherrypy PY2_ONLY)
-add_python_test(server_metadata_extractor PLUGIN metadata_extractor RESOURCE_LOCKS cherrypy PY2_ONLY)
+get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
 
-add_python_style_test(python_static_analysis_metadata_extractor
-                      "${PROJECT_SOURCE_DIR}/plugins/metadata_extractor/server")
-add_python_style_test(python_static_analysis_metadata_extractor_tests
-                      "${PROJECT_SOURCE_DIR}/plugins/metadata_extractor/plugin_tests")
+add_python_test(client_metadata_extractor PLUGIN ${PLUGIN} RESOURCE_LOCKS cherrypy PY2_ONLY)
+add_python_test(server_metadata_extractor PLUGIN ${PLUGIN} RESOURCE_LOCKS cherrypy PY2_ONLY)
+
+add_python_style_test(python_static_analysis_${PLUGIN}
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/server")
+add_python_style_test(python_static_analysis_${PLUGIN}_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests")

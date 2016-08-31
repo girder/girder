@@ -30,6 +30,7 @@ import time
 import zipfile
 
 from .. import base, mock_s3
+from girder import events
 from girder.constants import AssetstoreType, ROOT_DIR
 from girder.utility import assetstore_utilities
 from girder.utility.progress import ProgressContext
@@ -391,6 +392,35 @@ class AssetstoreTestCase(base.TestCase):
         # created
         current = self.model('assetstore').getCurrent()
         self.assertEqual(current['_id'], secondStore['_id'])
+
+    def testGetAssetstoreFiles(self):
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(1, len(resp.json))
+        assetstore = self.model('assetstore').load(resp.json[0]['_id'])
+
+        # Simulate the existence of a file within the assetstore
+        folders = self.model('folder').childFolders(
+            self.admin, 'user', user=self.admin)
+        item = self.model('item').createItem(
+            name='x.txt', creator=self.admin, folder=six.next(folders))
+        file = self.model('file').createFile(
+            creator=self.admin, item=item, name='x.txt',
+            size=1, assetstore=assetstore, mimeType='text/plain')
+        file['sha512'] = 'x'  # add this dummy value to simulate real file
+
+        # Make sure we see the file
+        resp = self.request(path='/assetstore/%s/files' % assetstore['_id'],
+                            method='GET', user=self.admin)
+        self.assertStatus(resp, 200)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'x.txt')
+        # Remove the file and make sure we no longer see it.
+        self.model('file').remove(file)
+        resp = self.request(path='/assetstore/%s/files' % assetstore['_id'],
+                            method='GET', user=self.admin)
+        self.assertStatus(resp, 200)
+        self.assertEqual(len(resp.json), 0)
 
     def testGridFSAssetstoreAdapter(self):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
@@ -786,3 +816,144 @@ class AssetstoreTestCase(base.TestCase):
             self.assertStatusOk(resp)
         finally:
             sys.modules['boto.s3.bucket'].Bucket.get_all_multipart_uploads = old
+
+    def testMoveBetweenAssetstores(self):
+        folder = six.next(self.model('folder').childFolders(
+            self.admin, parentType='user', force=True, filters={
+                'name': 'Public'
+            }))
+
+        resp = self.request(path='/assetstore', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        fs_assetstore = resp.json[0]
+
+        # Clear any old DB data
+        base.dropGridFSDatabase('girder_test_assetstore_move_assetstore')
+        params = {
+            'name': 'New Name',
+            'type': AssetstoreType.GRIDFS,
+            'db': 'girder_test_assetstore_move_assetstore'
+        }
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+        gridfs_assetstore = resp.json
+
+        # Upload a file - it should go to the fs assetstore
+        uploadData = 'helloworld'
+        params = {
+            'parentType': 'folder',
+            'parentId': folder['_id'],
+            'name': 'sample1',
+            'size': len(uploadData),
+            'mimeType': 'text/plain'
+        }
+        resp = self.request(
+            path='/file', method='POST', user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        upload = resp.json
+        fields = [('offset', 0), ('uploadId', upload['_id'])]
+        files = [('chunk', 'helloWorld.txt', uploadData)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.admin, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], fs_assetstore['_id'])
+        uploadedFiles = [resp.json]
+
+        # Upload it again targetting a different assetstore
+        params['assetstoreId'] = gridfs_assetstore['_id']
+        resp = self.request(
+            path='/file', method='POST', user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        upload = resp.json
+        fields = [('offset', 0), ('uploadId', upload['_id'])]
+        files = [('chunk', 'helloWorld.txt', uploadData)]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.admin, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], gridfs_assetstore['_id'])
+        uploadedFiles.append(resp.json)
+
+        # Replace the first file, directing the replacement to a different
+        # assetstore
+        replaceParams = {
+            'size': len(uploadData),
+            'assetstoreId': gridfs_assetstore['_id'],
+        }
+        resp = self.request(
+            path='/file/%s/contents' % uploadedFiles[0]['_id'], method='PUT',
+            user=self.admin, params=replaceParams)
+        self.assertStatusOk(resp)
+        upload = resp.json
+        fields = [('offset', 0), ('uploadId', upload['_id'])]
+        resp = self.multipartRequest(
+            path='/file/chunk', user=self.admin, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], gridfs_assetstore['_id'])
+        uploadedFiles[0] = resp.json
+
+        # Move a file from the gridfs assetstore to the filesystem assetstore
+        resp = self.request(
+            path='/file/%s/move' % uploadedFiles[0]['_id'], method='PUT',
+            user=self.admin, params={'assetstoreId': fs_assetstore['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], fs_assetstore['_id'])
+        uploadedFiles[0] = resp.json
+
+        # Doing it again shouldn't change it.
+        resp = self.request(
+            path='/file/%s/move' % uploadedFiles[0]['_id'], method='PUT',
+            user=self.admin, params={'assetstoreId': fs_assetstore['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], fs_assetstore['_id'])
+        uploadedFiles[0] = resp.json
+
+        # We should be able to move it back
+        resp = self.request(
+            path='/file/%s/move' % uploadedFiles[0]['_id'], method='PUT',
+            user=self.admin, params={'assetstoreId': gridfs_assetstore['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], gridfs_assetstore['_id'])
+        uploadedFiles[0] = resp.json
+
+        # Test moving a file of zero length
+        params['size'] = 0
+        resp = self.request(
+            path='/file', method='POST', user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        uploadedFiles.append(resp.json)
+
+        resp = self.request(
+            path='/file/%s/move' % uploadedFiles[2]['_id'], method='PUT',
+            user=self.admin, params={'assetstoreId': fs_assetstore['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], fs_assetstore['_id'])
+        uploadedFiles[2] = resp.json
+
+        # Test preventing the move via an event
+        def stopMove(event):
+            event.preventDefault()
+
+        events.bind('model.upload.movefile', 'assetstore_test', stopMove)
+        try:
+            resp = self.request(
+                path='/file/%s/move' % uploadedFiles[0]['_id'], method='PUT',
+                user=self.admin, params={'assetstoreId': fs_assetstore['_id']},
+                isJson=False)
+            self.assertFalse('Move should have been prevented')
+        except AssertionError as exc:
+            self.assertIn('could not be moved to assetstore', str(exc))
+        events.unbind('model.upload.movefile', 'assetstore_test')
+
+        # Test files big enough to be multi-chunk
+        chunkSize = self.model('upload')._getChunkSize()
+        data = six.BytesIO(b' ' * chunkSize * 2)
+        uploadedFiles.append(self.model('upload').uploadFromFile(
+            data, chunkSize * 2, 'sample', parentType='folder',
+            parent=folder, assetstore=fs_assetstore))
+        resp = self.request(
+            path='/file/%s/move' % uploadedFiles[3]['_id'], method='PUT',
+            user=self.admin, params={'assetstoreId': gridfs_assetstore['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], gridfs_assetstore['_id'])
+        uploadedFiles[3] = resp.json

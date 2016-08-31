@@ -77,12 +77,6 @@ module.exports = function (grunt) {
                     src: ['img/**'],
                     dest: 'clients/web/static/built/jsoneditor'
                 }]
-            },
-            fontello_config: {
-                files: [{
-                    src: 'clients/web/fontello.config.json',
-                    dest: 'clients/web/static/built/fontello.config.json'
-                }]
             }
         },
 
@@ -96,18 +90,6 @@ module.exports = function (grunt) {
                     'clients/web/static/built/swagger/docs.css': [
                         'clients/web/src/stylesheets/apidocs/*.styl'
                     ]
-                }
-            }
-        },
-
-        fontello: {
-            ext_font: {
-                options: {
-                    config: 'clients/web/static/built/fontello.config.json',
-                    fonts: 'clients/web/static/built/fontello/font',
-                    styles: 'clients/web/static/built/fontello/css',
-                    // Create output directories
-                    force: true
                 }
             }
         },
@@ -178,9 +160,28 @@ module.exports = function (grunt) {
             }
         },
 
+        curl: {
+            fontello: {
+                src: 'https://data.kitware.com/api/v1/file/57c5d1fc8d777f10f269dece/download',
+                dest: 'clients/web/static/built/fontello.zip'
+            }
+        },
+
+        unzip: {
+            fontello: {
+                src: 'clients/web/static/built/fontello.zip',
+                dest: 'clients/web/static/built/fontello/',
+                router: function (file) {
+                    // remove the first path component
+                    return file.split(path.sep).slice(1).join(path.sep);
+                }
+            }
+        },
+
         symlink: {
             options: {
-                overwrite: true
+                overwrite: true,
+                force: true
             },
             legacy_names: {
                 // Provide static files under old names, for compatibility
@@ -241,9 +242,11 @@ module.exports = function (grunt) {
             'uglify:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'copy:fontello_config': {},
             'concat:ext_css': {},
-            'fontello:ext_font': {}
+            'curl:fontello': {},
+            'unzip:fontello': {
+                dependencies: ['curl:fontello']
+            }
         },
 
         default: {

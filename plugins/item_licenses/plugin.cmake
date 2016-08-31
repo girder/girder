@@ -14,19 +14,21 @@
 #  limitations under the License.
 ###############################################################################
 
-add_python_test(item_licenses PLUGIN item_licenses)
-add_python_style_test(python_static_analysis_item_licenses
-                      "${PROJECT_SOURCE_DIR}/plugins/item_licenses/server")
-add_python_style_test(python_static_analysis_item_licenses_tests
-                      "${PROJECT_SOURCE_DIR}/plugins/item_licenses/plugin_tests")
+get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
+
+add_python_test(item_licenses PLUGIN ${PLUGIN})
+add_python_style_test(python_static_analysis_${PLUGIN}
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/server")
+add_python_style_test(python_static_analysis_${PLUGIN}_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests")
 
 add_web_client_test(
-   item_licenses
-   "${PROJECT_SOURCE_DIR}/plugins/item_licenses/plugin_tests/itemLicensesSpec.js"
-   PLUGIN item_licenses)
+   ${PLUGIN}
+   "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests/itemLicensesSpec.js"
+   PLUGIN ${PLUGIN})
 add_eslint_test(
-    item_licenses
-    "${PROJECT_SOURCE_DIR}/plugins/item_licenses/web_client/js")
+    ${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/js")
 add_eslint_test(
-    item_licenses_tests
-    "${PROJECT_SOURCE_DIR}/plugins/item_licenses/plugin_tests")
+    ${PLUGIN}_tests
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests")

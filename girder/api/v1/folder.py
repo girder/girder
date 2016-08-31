@@ -59,7 +59,7 @@ class Folder(Resource):
         .param('name', 'Pass to lookup a folder by exact name match. Must '
                'pass parentType and parentId as well when using this.',
                required=False)
-        .pagingParams(defaultSort='name')
+        .pagingParams(defaultSort='lowerName')
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403)
     )

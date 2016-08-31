@@ -194,6 +194,9 @@ Utility
 .. automodule:: girder.utility.progress
    :members:
 
+.. automodule:: girder.utility.path
+   :members:
+
 Constants
 ---------
 .. automodule:: girder.constants

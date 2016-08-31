@@ -1,13 +1,15 @@
-add_python_test(jobs PLUGIN jobs)
+get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
 
-add_python_style_test(python_static_analysis_jobs
-                      "${PROJECT_SOURCE_DIR}/plugins/jobs/server")
-add_python_style_test(python_static_analysis_jobs_tests
-                      "${PROJECT_SOURCE_DIR}/plugins/jobs/plugin_tests")
+add_python_test(jobs PLUGIN ${PLUGIN})
+
+add_python_style_test(python_static_analysis_${PLUGIN}
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/server")
+add_python_style_test(python_static_analysis_${PLUGIN}_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests")
 
 add_web_client_test(
-    jobs
-    "${PROJECT_SOURCE_DIR}/plugins/jobs/plugin_tests/jobsSpec.js"
-    PLUGIN jobs)
+    ${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests/jobsSpec.js"
+    PLUGIN ${PLUGIN})
 add_eslint_test(
-    jobs "${PROJECT_SOURCE_DIR}/plugins/jobs/web_client/js")
+    ${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/js")

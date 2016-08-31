@@ -52,6 +52,10 @@ girder.views.oauth_LoginView = girder.View.extend({
             icon: 'gplus',
             class: 'g-oauth-button-google'
         },
+        globus: {
+            icon: 'globe',
+            class: 'g-oauth-button-globus'
+        },
         github: {
             icon: 'github-circled',
             class: 'g-oauth-button-github'

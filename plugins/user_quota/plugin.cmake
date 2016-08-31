@@ -14,14 +14,16 @@
 #  limitations under the License.
 ###############################################################################
 
-add_python_test(user_quota PLUGIN user_quota)
-add_python_style_test(python_static_analysis_user_quota
-                      "${PROJECT_SOURCE_DIR}/plugins/user_quota/server")
-add_python_style_test(python_static_analysis_user_quota_tests
-                      "${PROJECT_SOURCE_DIR}/plugins/user_quota/plugin_tests")
+get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
+
+add_python_test(user_quota PLUGIN ${PLUGIN})
+add_python_style_test(python_static_analysis_${PLUGIN}
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/server")
+add_python_style_test(python_static_analysis_${PLUGIN}_tests
+                      "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests")
 add_web_client_test(
-    user_quota
-    "${PROJECT_SOURCE_DIR}/plugins/user_quota/plugin_tests/userQuotaSpec.js"
-    PLUGIN user_quota)
+    ${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests/userQuotaSpec.js"
+    PLUGIN ${PLUGIN})
 add_eslint_test(
-    user_quota "${PROJECT_SOURCE_DIR}/plugins/user_quota/web_client/js")
+    ${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/js")

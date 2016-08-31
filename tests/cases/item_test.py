@@ -672,3 +672,19 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item/%s/download' % item['_id'],
                             cookie='girderToken=invalid_token')
         self.assertStatus(resp, 401)
+
+    def testReuseExisting(self):
+        item1 = self.model('item').createItem(
+            'to be reused', creator=self.users[0], folder=self.publicFolder)
+
+        item2 = self.model('item').createItem(
+            'to be reused', creator=self.users[0], folder=self.publicFolder)
+
+        item3 = self.model('item').createItem(
+            'to be reused', creator=self.users[0], folder=self.publicFolder,
+            reuseExisting=True)
+
+        self.assertNotEqual(item1['_id'], item2['_id'])
+        self.assertEqual(item1['_id'], item3['_id'])
+        self.assertEqual(item2['name'], 'to be reused (1)')
+        self.assertEqual(item3['name'], 'to be reused')
