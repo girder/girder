@@ -316,7 +316,7 @@ class Job(AccessControlledModel):
             self.update({'_id': job['_id']}, update=updates, multi=False)
 
             events.trigger('jobs.job.update.after', {
-               'job': job
+                'job': job
             })
 
         return job

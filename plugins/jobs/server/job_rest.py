@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder import events
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, filtermodel, loadmodel
