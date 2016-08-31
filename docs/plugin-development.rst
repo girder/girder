@@ -459,7 +459,7 @@ that can be used to import content:
   such as static images, fonts, or third-party static libraries.
 
 Linting and Style Checking Client-Side Code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*******************************************
 
 Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its
 own JavaScript files.  Developers can easily add the same static analysis

@@ -25,6 +25,9 @@ class PluginSettings:
     GOOGLE_CLIENT_ID = 'oauth.google_client_id'
     GOOGLE_CLIENT_SECRET = 'oauth.google_client_secret'
 
+    GLOBUS_CLIENT_ID = 'oauth.globus_client_id'
+    GLOBUS_CLIENT_SECRET = 'oauth.globus_client_secret'
+
     GITHUB_CLIENT_ID = 'oauth.github_client_id'
     GITHUB_CLIENT_SECRET = 'oauth.github_client_secret'
 

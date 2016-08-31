@@ -22,6 +22,7 @@ import os
 import re
 import shutil
 import sys
+import itertools
 
 from setuptools import setup, find_packages
 from setuptools.command.install import install
@@ -77,10 +78,13 @@ extras_reqs = {
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
-    'plugins': ['celery', 'geojson', 'Pillow', 'pydicom', 'numpy']
+    'oauth': ['pyjwt', 'cryptography']
 }
+all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values()) 
+extras_reqs['plugins'] = list(set(all_extra_reqs))
 
 if sys.version_info[0] == 2:
+    install_reqs.append('shutilwhich')
     extras_reqs.update({
         'hdfs_assetstore': ['snakebite'],
         'metadata_extractor': [

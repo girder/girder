@@ -23,7 +23,9 @@ function(add_ansible_test case)
     COMMAND "${ANSIBLE_PLAYBOOK_BIN}" -i ${ANSIBLE_INVENTORY} --private-key=${ANSIBLE_PRIVATE_KEY} -u ${ANSIBLE_USER} test_${case}.yml -v
     )
 
-  set_tests_properties("${name}" PROPERTIES DEPENDS vagrant_up)
+  set_tests_properties("${name}" PROPERTIES
+    DEPENDS vagrant_up
+    RUN_SERIAL ON)
   set_property(GLOBAL APPEND PROPERTY vagrant_tests "${name}")
 
 endfunction()
@@ -36,6 +38,7 @@ add_ansible_test(plugin)
 add_ansible_test(access)
 add_ansible_test(hierarchy)
 add_ansible_test(apikey)
+add_ansible_test(setting)
 
 add_test(
   NAME vagrant_destroy
@@ -43,4 +46,4 @@ add_test(
   COMMAND vagrant destroy -f
   )
 get_property(vagrant_tests GLOBAL PROPERTY vagrant_tests)
-set_tests_properties(vagrant_destroy PROPERTIES DEPENDS "${vagrannt_tests}")
+set_tests_properties(vagrant_destroy PROPERTIES DEPENDS "${vagrant_tests}")

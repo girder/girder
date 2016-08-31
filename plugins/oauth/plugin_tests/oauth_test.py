@@ -29,6 +29,11 @@ import six
 from girder.constants import SettingKey
 from tests import base
 
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.backends import default_backend
+import jwt
+from jwt.utils import base64url_encode
+
 
 def setUpModule():
     base.enabledPlugins.append('oauth')
@@ -57,7 +62,7 @@ class OauthTest(base.TestCase):
             admin=True
         )
 
-        # Specifies which test account (typically "new" or "existing") a
+        # Specifies which test account (typically 'new' or 'existing') a
         # redirect to a provider will simulate authentication for
         self.accountType = None
 
@@ -73,17 +78,14 @@ class OauthTest(base.TestCase):
         login = ProviderBase._deriveLogin('hello#world#foo@mail.com', 'A', 'B')
         self.assertEqual(login, 'helloworldfoo')
 
-        login = ProviderBase._deriveLogin('hello.world@mail.com', 'A', 'B',
-                                          'user2')
+        login = ProviderBase._deriveLogin('hello.world@mail.com', 'A', 'B', 'user2')
         self.assertEqual(login, 'user2')
 
         # This should conflict with the saved admin user
-        login = ProviderBase._deriveLogin('rocky@phila.pa.us', 'Robert',
-                                          'Balboa', 'rocky')
+        login = ProviderBase._deriveLogin('rocky@phila.pa.us', 'Robert', 'Balboa', 'rocky')
         self.assertEqual(login, 'rocky1')
 
-    def _testOauth(self, providerInfo):
-        # Close registration to start off, and simulate a new user
+    def _testSettings(self, providerInfo):
         self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'closed')
         self.accountType = 'new'
 
@@ -92,8 +94,7 @@ class OauthTest(base.TestCase):
             'key': PluginSettings.PROVIDERS_ENABLED,
             'value': []
         }
-        resp = self.request(
-            '/system/setting', user=self.adminUser, method='PUT', params=params)
+        resp = self.request('/system/setting', user=self.adminUser, method='PUT', params=params)
         self.assertStatusOk(resp)
 
         resp = self.request('/oauth/provider', exception=True, params={
@@ -110,12 +111,12 @@ class OauthTest(base.TestCase):
                 'value': [providerInfo['id']]
             }])
         }
-        resp = self.request(
-            '/system/setting', user=self.adminUser, method='PUT', params=params)
+        resp = self.request('/system/setting', user=self.adminUser, method='PUT', params=params)
         self.assertStatusOk(resp)
 
         resp = self.request('/oauth/provider', exception=True, params={
-            'redirect': 'http://localhost/#foo/bar'})
+            'redirect': 'http://localhost/#foo/bar'
+        })
         self.assertStatus(resp, 500)
 
         # Set up provider normally
@@ -133,12 +134,14 @@ class OauthTest(base.TestCase):
                 }
             ])
         }
-        resp = self.request(
-            '/system/setting', user=self.adminUser, method='PUT',
-            params=params)
+        resp = self.request('/system/setting', user=self.adminUser, method='PUT', params=params)
         self.assertStatusOk(resp)
         # No need to re-fetch and test all of these settings values; they will
         # be implicitly tested later
+
+    def _testOauth(self, providerInfo):
+        # Close registration to start off, and simulate a new user
+        self._testSettings(providerInfo)
 
         # Make sure that if no list param is passed, we receive the old format
         resp = self.request('/oauth/provider', params={
@@ -148,9 +151,7 @@ class OauthTest(base.TestCase):
         self.assertIsInstance(resp.json, dict)
         self.assertEqual(len(resp.json), 1)
         self.assertIn(providerInfo['name'], resp.json)
-        self.assertRegexpMatches(
-            resp.json[providerInfo['name']],
-            providerInfo['url_re'])
+        six.assertRegex(self, resp.json[providerInfo['name']], providerInfo['url_re'])
 
         # This will need to be called several times, to get fresh tokens
         def getProviderResp():
@@ -162,31 +163,24 @@ class OauthTest(base.TestCase):
             self.assertIsInstance(resp.json, list)
             self.assertEqual(len(resp.json), 1)
             providerResp = resp.json[0]
-            self.assertSetEqual(
-                set(six.viewkeys(providerResp)),
-                {'id', 'name', 'url'})
+            self.assertSetEqual(set(six.viewkeys(providerResp)), {'id', 'name', 'url'})
             self.assertEqual(providerResp['id'], providerInfo['id'])
             self.assertEqual(providerResp['name'], providerInfo['name'])
-            self.assertRegexpMatches(
-                providerResp['url'],
-                providerInfo['url_re'])
+            six.assertRegex(self, providerResp['url'], providerInfo['url_re'])
             redirectParams = urllib.parse.parse_qs(
                 urllib.parse.urlparse(providerResp['url']).query)
             csrfTokenParts = redirectParams['state'][0].partition('.')
-            token = self.model('token').load(
-                csrfTokenParts[0], force=True, objectId=False)
+            token = self.model('token').load(csrfTokenParts[0], force=True, objectId=False)
             self.assertLess(
                 token['expires'],
                 datetime.datetime.utcnow() + datetime.timedelta(days=0.30))
-            self.assertEqual(
-                csrfTokenParts[2],
-                'http://localhost/#foo/bar')
+            self.assertEqual(csrfTokenParts[2], 'http://localhost/#foo/bar')
             return providerResp
 
         # Try the new format listing
         getProviderResp()
 
-        # Try callback, for a non-existant provider
+        # Try callback, for a nonexistent provider
         resp = self.request('/oauth/foobar/callback')
         self.assertStatus(resp, 400)
 
@@ -202,9 +196,7 @@ class OauthTest(base.TestCase):
                 'error': 'some_custom_error',
             }, exception=True)
         self.assertStatus(resp, 502)
-        self.assertEqual(
-            resp.json['message'],
-            "Provider returned error: 'some_custom_error'.")
+        self.assertEqual(resp.json['message'], "Provider returned error: 'some_custom_error'.")
 
         # This will need to be called several times, to use fresh tokens
         def getCallbackParams(providerResp):
@@ -212,8 +204,7 @@ class OauthTest(base.TestCase):
             self.assertEqual(resp.status_code, 302)
             callbackLoc = urllib.parse.urlparse(resp.headers['location'])
             self.assertEqual(
-                callbackLoc.path,
-                r'/api/v1/oauth/%s/callback' % providerInfo['id'])
+                callbackLoc.path, r'/api/v1/oauth/%s/callback' % providerInfo['id'])
             callbackLocQuery = urllib.parse.parse_qs(callbackLoc.query)
             self.assertNotHasKeys(callbackLocQuery, ('error',))
             callbackParams = {
@@ -227,8 +218,7 @@ class OauthTest(base.TestCase):
         # Try callback, with incorrect CSRF token
         params = getCallbackParams(getProviderResp())
         params['state'] = 'something_wrong'
-        resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                            params=params)
+        resp = self.request('/oauth/%s/callback' % providerInfo['id'], params=params)
         self.assertStatus(resp, 403)
         self.assertTrue(
             resp.json['message'].startswith('Invalid CSRF token'))
@@ -239,79 +229,66 @@ class OauthTest(base.TestCase):
             params['state'].partition('.')[0], force=True, objectId=False)
         token['expires'] -= datetime.timedelta(days=1)
         self.model('token').save(token)
-        resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                            params=params)
+        resp = self.request('/oauth/%s/callback' % providerInfo['id'], params=params)
         self.assertStatus(resp, 403)
-        self.assertTrue(
-            resp.json['message'].startswith('Expired CSRF token'))
+        self.assertTrue(resp.json['message'].startswith('Expired CSRF token'))
 
         # Try callback, with a valid CSRF token but no redirect
         params = getCallbackParams(getProviderResp())
         params['state'] = params['state'].partition('.')[0]
-        resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                            params=params)
+        resp = self.request('/oauth/%s/callback' % providerInfo['id'], params=params)
         self.assertStatus(resp, 400)
-        self.assertTrue(
-            resp.json['message'].startswith('No redirect location'))
+        self.assertTrue(resp.json['message'].startswith('No redirect location'))
 
         # Try callback, with incorrect code
         params = getCallbackParams(getProviderResp())
         params['code'] = 'something_wrong'
-        resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                            params=params)
+        resp = self.request('/oauth/%s/callback' % providerInfo['id'], params=params)
         self.assertStatus(resp, 502)
 
         # Try callback, with real parameters from provider, but still for the
         # 'new' account
         params = getCallbackParams(getProviderResp())
-        resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                            params=params)
+        resp = self.request('/oauth/%s/callback' % providerInfo['id'], params=params)
         self.assertStatus(resp, 400)
         self.assertTrue(
-            resp.json['message'].startswith(
-                'Registration on this instance is closed.'))
+            resp.json['message'].startswith('Registration on this instance is closed.'))
 
         # This will need to be called several times, and will do a normal login
         def doOauthLogin(accountType):
             self.accountType = accountType
             params = getCallbackParams(getProviderResp())
-            resp = self.request('/oauth/%s/callback' % providerInfo['id'],
-                                params=params, isJson=False)
+            resp = self.request(
+                '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
             self.assertStatus(resp, 303)
-            self.assertEqual(resp.headers['Location'],
-                             'http://localhost/#foo/bar')
+            self.assertEqual(resp.headers['Location'], 'http://localhost/#foo/bar')
             self.assertTrue('girderToken' in resp.cookie)
 
-            resp = self.request('/user/me',
-                                token=resp.cookie['girderToken'].value)
+            resp = self.request('/user/me', token=resp.cookie['girderToken'].value)
+            user = resp.json
             self.assertStatusOk(resp)
             self.assertEqual(
-                resp.json['email'],
-                providerInfo['accounts'][accountType]['user']['email'])
+                user['email'], providerInfo['accounts'][accountType]['user']['email'])
             self.assertEqual(
-                resp.json['login'],
-                providerInfo['accounts'][accountType]['user']['login'])
+                user['login'], providerInfo['accounts'][accountType]['user']['login'])
             self.assertEqual(
-                resp.json['firstName'],
-                providerInfo['accounts'][accountType]['user']['firstName'])
+                user['firstName'], providerInfo['accounts'][accountType]['user']['firstName'])
             self.assertEqual(
-                resp.json['lastName'],
-                providerInfo['accounts'][accountType]['user']['lastName'])
+                user['lastName'], providerInfo['accounts'][accountType]['user']['lastName'])
+            return user
 
         # Try callback for the 'existing' account, which should succeed
-        doOauthLogin('existing')
+        existing = doOauthLogin('existing')
 
         # Try callback for the 'new' account, with open registration
         self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'open')
-        doOauthLogin('new')
+        new = doOauthLogin('new')
 
         # Password login for 'new' OAuth-only user should fail gracefully
         newUser = providerInfo['accounts']['new']['user']
-        resp = self.request('/user/authentication',
-                            basicAuth='%s:mypasswd' % newUser['login'])
+        resp = self.request('/user/authentication', basicAuth='%s:mypasswd' % newUser['login'])
         self.assertStatus(resp, 400)
-        self.assertTrue(
-            resp.json['message'].startswith('You don\'t have a password.'))
+        self.assertTrue(resp.json['message'].startswith('You don\'t have a password.'))
 
         # Reset password for 'new' OAuth-only user should work
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
@@ -329,26 +306,27 @@ class OauthTest(base.TestCase):
         linkParts = link.split('/')
         userId = linkParts[-3]
         tokenId = linkParts[-1]
-        tempToken = self.model('token').load(
-            tokenId, force=True, objectId=False)
-        resp = self.request('/user/password/temporary/' + userId,
-                            method='GET', params={'token': tokenId})
+        tempToken = self.model('token').load(tokenId, force=True, objectId=False)
+        resp = self.request(
+            '/user/password/temporary/' + userId, method='GET', params={'token': tokenId})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['user']['login'], newUser['login'])
         # We should now be able to change the password
-        resp = self.request('/user/password',
-                            method='PUT', user=resp.json['user'], params={
-                                'old': tokenId,
-                                'new': 'mypasswd'})
+        resp = self.request(
+            '/user/password', method='PUT', user=resp.json['user'], params={
+                'old': tokenId,
+                'new': 'mypasswd'
+            })
         self.assertStatusOk(resp)
         # The temp token should get deleted on password change
         token = self.model('token').load(tempToken, force=True, objectId=False)
         self.assertEqual(token, None)
 
         # Password login for 'new' OAuth-only user should now succeed
-        resp = self.request('/user/authentication',
-                            basicAuth='%s:mypasswd' % newUser['login'])
+        resp = self.request('/user/authentication', basicAuth='%s:mypasswd' % newUser['login'])
         self.assertStatusOk(resp)
+
+        return existing, new
 
     @httmock.all_requests
     def mockOtherRequest(self, url, request):
@@ -366,8 +344,7 @@ class OauthTest(base.TestCase):
                 'key': PluginSettings.GOOGLE_CLIENT_SECRET,
                 'value': 'google_test_client_secret'
             },
-            'allowed_callback_re':
-                r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/google/callback$',
+            'allowed_callback_re': r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/google/callback$',
             'url_re': r'^https://accounts\.google\.com/o/oauth2/auth',
             'accounts': {
                 'existing': {
@@ -408,15 +385,9 @@ class OauthTest(base.TestCase):
         def mockGoogleRedirect(url, request):
             try:
                 params = urllib.parse.parse_qs(url.query)
-                self.assertEqual(
-                    params['response_type'],
-                    ['code'])
-                self.assertEqual(
-                    params['access_type'],
-                    ['online'])
-                self.assertEqual(
-                    params['scope'],
-                    ['profile email'])
+                self.assertEqual(params['response_type'], ['code'])
+                self.assertEqual(params['access_type'], ['online'])
+                self.assertEqual(params['scope'], ['profile email'])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 400,
@@ -425,9 +396,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                self.assertEqual(
-                    params['client_id'],
-                    [providerInfo['client_id']['value']])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 401,
@@ -436,9 +405,8 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                self.assertRegexpMatches(
-                    params['redirect_uri'][0],
-                    providerInfo['allowed_callback_re'])
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
             except (KeyError, AssertionError) as e:
@@ -455,8 +423,7 @@ class OauthTest(base.TestCase):
             return {
                 'status_code': 302,
                 'headers': {
-                    'Location': '%s?%s' % (params['redirect_uri'][0],
-                                           returnQuery)
+                    'Location': '%s?%s' % (params['redirect_uri'][0], returnQuery)
                 }
             }
 
@@ -465,9 +432,7 @@ class OauthTest(base.TestCase):
         def mockGoogleToken(url, request):
             try:
                 params = urllib.parse.parse_qs(request.body)
-                self.assertEqual(
-                    params['client_id'],
-                    [providerInfo['client_id']['value']])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 401,
@@ -476,15 +441,10 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                self.assertEqual(
-                    params['grant_type'],
-                    ['authorization_code'])
-                self.assertEqual(
-                    params['client_secret'],
-                    [providerInfo['client_secret']['value']])
-                self.assertRegexpMatches(
-                    params['redirect_uri'][0],
-                    providerInfo['allowed_callback_re'])
+                self.assertEqual(params['grant_type'], ['authorization_code'])
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
                 for account in six.viewvalues(providerInfo['accounts']):
                     if account['auth_code'] == params['code'][0]:
                         break
@@ -509,16 +469,13 @@ class OauthTest(base.TestCase):
         def mockGoogleApi(url, request):
             try:
                 for account in six.viewvalues(providerInfo['accounts']):
-                    if 'Bearer %s' % account['access_token'] == \
-                            request.headers['Authorization']:
+                    if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
                     self.fail()
 
                 params = urllib.parse.parse_qs(url.query)
-                self.assertSetEqual(
-                    set(params['fields'][0].split(',')),
-                    {'id', 'emails', 'name'})
+                self.assertSetEqual(set(params['fields'][0].split(',')), {'id', 'emails', 'name'})
             except AssertionError as e:
                 return {
                     'status_code': 401,
@@ -547,7 +504,7 @@ class OauthTest(base.TestCase):
             mockGoogleRedirect,
             mockGoogleToken,
             mockGoogleApi,
-            # Must keep "mockOtherRequest" last
+            # Must keep 'mockOtherRequest' last
             self.mockOtherRequest
         ):
             self._testOauth(providerInfo)
@@ -610,9 +567,7 @@ class OauthTest(base.TestCase):
                 params = urllib.parse.parse_qs(url.query)
                 # Check redirect_uri first, so other errors can still redirect
                 redirectUri = params['redirect_uri'][0]
-                self.assertEqual(
-                    params['client_id'],
-                    [providerInfo['client_id']['value']])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 404,
@@ -621,14 +576,10 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                self.assertRegexpMatches(
-                    redirectUri,
-                    providerInfo['allowed_callback_re'])
+                six.assertRegex(self, redirectUri, providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
-                self.assertEqual(
-                    params['scope'],
-                    ['user:email'])
+                self.assertEqual(params['scope'], ['user:email'])
             except (KeyError, AssertionError) as e:
                 returnQuery = urllib.parse.urlencode({
                     'error': repr(e),
@@ -636,8 +587,7 @@ class OauthTest(base.TestCase):
             else:
                 returnQuery = urllib.parse.urlencode({
                     'state': state,
-                    'code':
-                        providerInfo['accounts'][self.accountType]['auth_code']
+                    'code': providerInfo['accounts'][self.accountType]['auth_code']
                 })
             return {
                 'status_code': 302,
@@ -652,9 +602,7 @@ class OauthTest(base.TestCase):
             try:
                 self.assertEqual(request.headers['Accept'], 'application/json')
                 params = urllib.parse.parse_qs(request.body)
-                self.assertEqual(
-                    params['client_id'],
-                    [providerInfo['client_id']['value']])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 404,
@@ -668,12 +616,9 @@ class OauthTest(base.TestCase):
                         break
                 else:
                     self.fail()
-                self.assertEqual(
-                    params['client_secret'],
-                    [providerInfo['client_secret']['value']])
-                self.assertRegexpMatches(
-                    params['redirect_uri'][0],
-                    providerInfo['allowed_callback_re'])
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 returnBody = json.dumps({
                     'error': repr(e),
@@ -693,13 +638,11 @@ class OauthTest(base.TestCase):
                 'content': returnBody
             }
 
-        @httmock.urlmatch(scheme='https', netloc='^api.github.com$',
-                          path='^/user$', method='GET')
+        @httmock.urlmatch(scheme='https', netloc='^api.github.com$', path='^/user$', method='GET')
         def mockGithubApiUser(url, request):
             try:
                 for account in six.viewvalues(providerInfo['accounts']):
-                    if 'token %s' % account['access_token'] == \
-                            request.headers['Authorization']:
+                    if 'token %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
                     self.fail()
@@ -713,8 +656,7 @@ class OauthTest(base.TestCase):
             return json.dumps({
                 'id': account['user']['oauth']['id'],
                 'login': account['user']['login'],
-                'name': '%s %s' % (account['user']['firstName'],
-                                   account['user']['lastName'])
+                'name': '%s %s' % (account['user']['firstName'], account['user']['lastName'])
             })
 
         @httmock.urlmatch(scheme='https', netloc='^api.github.com$',
@@ -722,8 +664,7 @@ class OauthTest(base.TestCase):
         def mockGithubApiEmail(url, request):
             try:
                 for account in six.viewvalues(providerInfo['accounts']):
-                    if 'token %s' % account['access_token'] == \
-                            request.headers['Authorization']:
+                    if 'token %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
                     self.fail()
@@ -751,7 +692,233 @@ class OauthTest(base.TestCase):
             mockGithubToken,
             mockGithubApiUser,
             mockGithubApiEmail,
-            # Must keep "mockOtherRequest" last
+            # Must keep 'mockOtherRequest' last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)
+
+        @httmock.urlmatch(scheme='https', netloc='^api.github.com$', path='^/user$', method='GET')
+        def mockGithubUserWithoutName(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'token %s' % account['access_token'] == request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                'id': account['user']['oauth']['id'],
+                'login': account['user']['login'],
+                'name': None
+            })
+
+        self.setUp()  # Call to reset everything so we can call _testOauth again
+
+        # If no name is provided, we expect to use the github login for both
+        providerInfo['accounts']['existing']['user']['lastName'] = 'rocky'
+        providerInfo['accounts']['existing']['user']['firstName'] = 'rocky'
+
+        providerInfo['accounts']['new']['user']['lastName'] = 'drago'
+        providerInfo['accounts']['new']['user']['firstName'] = 'drago'
+
+        with httmock.HTTMock(
+            mockGithubRedirect,
+            mockGithubToken,
+            mockGithubUserWithoutName,
+            mockGithubApiEmail,
+            # Must keep 'mockOtherRequest' last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)
+
+    def testGlobusOauth(self):  # noqa
+        providerInfo = {
+            'id': 'globus',
+            'name': 'Globus',
+            'client_id': {
+                'key': PluginSettings.GLOBUS_CLIENT_ID,
+                'value': 'globus_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.GLOBUS_CLIENT_SECRET,
+                'value': 'globus_test_client_secret'
+            },
+            'scope': 'urn:globus:auth:scope:auth.globus.org:view_identities openid profile email',
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/globus/callback$',
+            'url_re': r'^https://auth.globus.org/v2/oauth2/authorize',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'globus_existing_auth_code',
+                    'access_token': 'globus_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'globus',
+                            'id': '2399'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'globus_new_auth_code',
+                    'access_token': 'globus_new_test_token',
+                    'user': {
+                        'login': 'metaphor',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
+                        'oauth': {
+                            'provider': 'globus',
+                            'id': 1985
+                        }
+                    }
+                }
+            }
+        }
+
+        rsa_test_key = rsa.generate_private_key(65537, key_size=2048, backend=default_backend())
+
+        for key in list(providerInfo['accounts'].keys()):
+            account = providerInfo['accounts'][key]
+            id_token_data = {
+                'sub': account['user']['oauth']['id'],
+                'aud': providerInfo['client_id']['value'],
+                'email': account['user']['email'],
+                'name': ' '.join((account['user']['firstName'],
+                                  account['user']['lastName'])),
+            }
+            providerInfo['accounts'][key]['id_token'] = \
+                jwt.encode(id_token_data, rsa_test_key, algorithm='RS512').decode('utf8')
+
+        @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
+                          path='^/v2/oauth2/authorize$', method='GET')
+        def mockGlobusRedirect(url, request):
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                self.assertEqual(params['response_type'], ['code'])
+                self.assertEqual(params['access_type'], ['online'])
+                self.assertEqual(params['scope'], [providerInfo['scope']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            returnQuery = urllib.parse.urlencode({
+                'state': state,
+                'code': providerInfo['accounts'][self.accountType]['auth_code']
+            })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (params['redirect_uri'][0], returnQuery)
+                }
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
+                          path='^/jwk.json$', method='GET')
+        def mockGlobusRSAKey(url, request):
+            n = rsa_test_key.public_key().public_numbers().n
+            e = rsa_test_key.public_key().public_numbers().e
+            if hasattr(int, 'to_bytes'):
+                bytes_to_int = int.to_bytes
+            else:
+                def bytes_to_int(n, length, endianess='big'):
+                    h = '%x' % n
+                    s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
+                    return s if endianess == 'big' else s[::-1]
+
+            n = base64url_encode(bytes_to_int(n, 256, 'big')).decode('utf8')
+            e = base64url_encode(bytes_to_int(e, 3, 'big')).decode('utf8')
+            return {
+                'status_code': 200,
+                'content': json.dumps({'keys': [dict(n=n, e=e)]})
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
+                          path='^/v2/oauth2/token$', method='POST')
+        def mockGlobusToken(url, request):
+            try:
+                self.assertEqual(request.headers['Accept'], 'application/json')
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                returnBody = json.dumps({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnBody = json.dumps({
+                    'access_token': account['access_token'],
+                    'resource_server': 'auth.globus.org',
+                    'expires_in': 3600,
+                    'token_type': 'bearer',
+                    'scope': 'urn:globus:auth:scope:auth.globus.org:monitor_ongoing',
+                    'refresh_token': 'blah',
+                    'id_token': account['id_token'],
+                    'state': 'provided_by_client_to_prevent_replay_attacks',
+                    'other_tokens': [],
+                })
+            return {
+                'status_code': 200,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'content': returnBody
+            }
+
+        with httmock.HTTMock(
+            mockGlobusRedirect,
+            mockGlobusRSAKey,
+            mockGlobusToken,
+            # Must keep 'mockOtherRequest' last
             self.mockOtherRequest
         ):
             self._testOauth(providerInfo)
@@ -769,8 +936,7 @@ class OauthTest(base.TestCase):
                 'value': 'linkedin_test_client_secret'
             },
             'allowed_callback_re':
-                r'^http://127\.0\.0\.1(?::\d+)?'
-                r'/api/v1/oauth/linkedin/callback$',
+                r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/linkedin/callback$',
             'url_re': r'^https://www\.linkedin\.com/uas/oauth2/authorization',
             'accounts': {
                 'existing': {
@@ -811,12 +977,9 @@ class OauthTest(base.TestCase):
         def mockLinkedinRedirect(url, request):
             try:
                 params = urllib.parse.parse_qs(url.query)
-                self.assertEqual(
-                    params['client_id'],
-                    [providerInfo['client_id']['value']])
-                self.assertRegexpMatches(
-                    params['redirect_uri'][0],
-                    providerInfo['allowed_callback_re'])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 200,
@@ -825,12 +988,9 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
+                self.assertEqual(params['response_type'], ['code'])
                 self.assertEqual(
-                    params['response_type'],
-                    ['code'])
-                self.assertEqual(
-                    params['scope'][0].split(' '),
-                    ['r_basicprofile', 'r_emailaddress'])
+                    params['scope'][0].split(' '), ['r_basicprofile', 'r_emailaddress'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
             except (KeyError, AssertionError) as e:
@@ -841,14 +1001,12 @@ class OauthTest(base.TestCase):
             else:
                 returnQuery = urllib.parse.urlencode({
                     'state': state,
-                    'code':
-                        providerInfo['accounts'][self.accountType]['auth_code']
+                    'code': providerInfo['accounts'][self.accountType]['auth_code']
                 })
             return {
                 'status_code': 302,
                 'headers': {
-                    'Location': '%s?%s' % (params['redirect_uri'][0],
-                                           returnQuery)
+                    'Location': '%s?%s' % (params['redirect_uri'][0], returnQuery)
                 }
             }
 
@@ -856,23 +1014,18 @@ class OauthTest(base.TestCase):
                           path='^/uas/oauth2/accessToken$', method='POST')
         def mockLinkedinToken(url, request):
             try:
-                self.assertEqual(request.headers['Content-Type'],
-                                 'application/x-www-form-urlencoded')
+                self.assertEqual(
+                    request.headers['Content-Type'], 'application/x-www-form-urlencoded')
                 params = urllib.parse.parse_qs(request.body)
-                self.assertEqual(
-                    params['grant_type'],
-                    ['authorization_code'])
-                self.assertEqual(
-                    params['client_id'],
-                    [providerInfo['client_id']['value']])
+                self.assertEqual(params['grant_type'], ['authorization_code'])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
                 for account in six.viewvalues(providerInfo['accounts']):
                     if account['auth_code'] == params['code'][0]:
                         break
                 else:
                     self.fail()
-                self.assertRegexpMatches(
-                    params['redirect_uri'][0],
-                    providerInfo['allowed_callback_re'])
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 400,
@@ -882,9 +1035,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                self.assertEqual(
-                    params['client_secret'],
-                    [providerInfo['client_secret']['value']])
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 401,
@@ -903,8 +1054,7 @@ class OauthTest(base.TestCase):
         def mockLinkedinApi(url, request):
             try:
                 for account in six.viewvalues(providerInfo['accounts']):
-                    if 'Bearer %s' % account['access_token'] == \
-                            request.headers['Authorization']:
+                    if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
                     self.fail()
@@ -943,7 +1093,7 @@ class OauthTest(base.TestCase):
             mockLinkedinRedirect,
             mockLinkedinToken,
             mockLinkedinApi,
-            # Must keep "mockOtherRequest" last
+            # Must keep 'mockOtherRequest' last
             self.mockOtherRequest
         ):
             self._testOauth(providerInfo)
@@ -1007,9 +1157,7 @@ class OauthTest(base.TestCase):
                 params = urllib.parse.parse_qs(url.query)
                 # Check redirect_uri first, so other errors can still redirect
                 redirectUri = params['redirect_uri'][0]
-                self.assertEqual(
-                    params['client_id'],
-                    [providerInfo['client_id']['value']])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 404,
@@ -1018,14 +1166,10 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                self.assertRegexpMatches(
-                    redirectUri,
-                    providerInfo['allowed_callback_re'])
+                six.assertRegex(self, redirectUri, providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
-                self.assertEqual(
-                    params['scope'],
-                    ['account'])
+                self.assertEqual(params['scope'], ['account'])
             except (KeyError, AssertionError) as e:
                 returnQuery = urllib.parse.urlencode({
                     'error': repr(e),
@@ -1034,8 +1178,7 @@ class OauthTest(base.TestCase):
             else:
                 returnQuery = urllib.parse.urlencode({
                     'state': state,
-                    'code':
-                        providerInfo['accounts'][self.accountType]['auth_code']
+                    'code': providerInfo['accounts'][self.accountType]['auth_code']
                 })
             return {
                 'status_code': 302,
@@ -1050,9 +1193,7 @@ class OauthTest(base.TestCase):
             try:
                 self.assertEqual(request.headers['Accept'], 'application/json')
                 params = urllib.parse.parse_qs(request.body)
-                self.assertEqual(
-                    params['grant_type'],
-                    ['authorization_code'])
+                self.assertEqual(params['grant_type'], ['authorization_code'])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 400,
@@ -1067,12 +1208,9 @@ class OauthTest(base.TestCase):
                         break
                 else:
                     self.fail()
-                self.assertEqual(
-                    params['client_secret'],
-                    [providerInfo['client_secret']['value']])
-                self.assertRegexpMatches(
-                    params['redirect_uri'][0],
-                    providerInfo['allowed_callback_re'])
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
+                six.assertRegex(
+                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 returnBody = json.dumps({
                     'error': repr(e),
@@ -1097,8 +1235,7 @@ class OauthTest(base.TestCase):
         def mockBitbucketApiUser(url, request):
             try:
                 for account in six.viewvalues(providerInfo['accounts']):
-                    if 'Bearer %s' % account['access_token'] == \
-                            request.headers['Authorization']:
+                    if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
                     self.fail()
@@ -1110,14 +1247,14 @@ class OauthTest(base.TestCase):
                     })
                 }
             return json.dumps({
-                "created_on": "2011-12-20T16:34:07.132459+00:00",
-                "uuid": account['user']['oauth']['id'],
-                "location": "Santa Monica, CA",
-                "links": {},
-                "website": "https://tutorials.bitbucket.org/",
-                "username": account['user']['login'],
-                "display_name": '%s %s' % (account['user']['firstName'],
-                                           account['user']['lastName'])
+                'created_on': '2011-12-20T16:34:07.132459+00:00',
+                'uuid': account['user']['oauth']['id'],
+                'location': 'Santa Monica, CA',
+                'links': {},
+                'website': 'https://tutorials.bitbucket.org/',
+                'username': account['user']['login'],
+                'display_name': '%s %s' % (
+                    account['user']['firstName'], account['user']['lastName'])
             })
 
         @httmock.urlmatch(scheme='https', netloc='^api.bitbucket.org$',
@@ -1125,8 +1262,7 @@ class OauthTest(base.TestCase):
         def mockBitbucketApiEmail(url, request):
             try:
                 for account in six.viewvalues(providerInfo['accounts']):
-                    if 'Bearer %s' % account['access_token'] == \
-                            request.headers['Authorization']:
+                    if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
                     self.fail()
@@ -1138,15 +1274,15 @@ class OauthTest(base.TestCase):
                     })
                 }
             return json.dumps({
-                "page": 1,
-                "pagelen": 10,
-                "size": 1,
-                "values": [{
+                'page': 1,
+                'pagelen': 10,
+                'size': 1,
+                'values': [{
                     'is_primary': True,
                     'is_confirmed': True,
                     'email': account['user']['email'],
                     'links': {},
-                    "type": "email"
+                    'type': 'email'
                 }]
             })
 
@@ -1155,7 +1291,7 @@ class OauthTest(base.TestCase):
             mockBitbucketToken,
             mockBitbucketApiUser,
             mockBitbucketApiEmail,
-            # Must keep "mockOtherRequest" last
+            # Must keep 'mockOtherRequest' last
             self.mockOtherRequest
         ):
             self._testOauth(providerInfo)
