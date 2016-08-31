@@ -22,6 +22,7 @@ Python client changes
 
 * Girder CLI: Subcommands are no longer specified with the ``-c`` option. Instead, the subcommand is
   specified just after all the general flags used for connection and authentication. For example:
+
     * Before: ``girder-cli --api-key=abcdefg --api-url=https://mygirder.org/api/v1 -c upload 1234567890abcdef ./foo``
     * After: ``girder-cli --api-key=abcdefg --api-url=https://mygirder.org/api/v1 upload 1234567890abcdef ./foo``
 * The ``blacklist`` and ``dryrun`` kwargs are no longer available in the ``GirderClient``
@@ -30,6 +31,7 @@ Python client changes
   though they should now come *after* the ``upload`` subcommand argument.
 * Legacy method names in the ``GirderClient`` class API have been changed to keep naming convention
   consistent.
+
     * ``add_folder_upload_callback`` |ra| ``addFolderUploadCallback``
     * ``add_item_upload_callback`` |ra| ``addItemUploadCallback``
     * ``load_or_create_folder`` |ra| ``loadOrCreateFolder``
