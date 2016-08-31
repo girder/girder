@@ -38,6 +38,16 @@ from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 CHUNK_SIZE = 2097152
 
 
+def _ensureChunkIndices(collection):
+    """
+    Ensure that we have appropriate indices on the chunk collection.
+    """
+    collection.create_index([
+        ('uuid', pymongo.ASCENDING),
+        ('n', pymongo.ASCENDING)
+    ], unique=True)
+
+
 class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
     """
     This assetstore type stores files within MongoDB using the GridFS data
@@ -61,10 +71,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
                 doc.get('mongohost', None), doc.get('replicaset', None),
                 autoRetry=False,
                 serverSelectionTimeoutMS=10000)[doc['db']].chunk
-            chunkColl.create_index([
-                ('uuid', pymongo.ASCENDING),
-                ('n', pymongo.ASCENDING)
-            ], unique=True)
+            _ensureChunkIndices(chunkColl)
         except pymongo.errors.ServerSelectionTimeoutError as e:
             raise ValidationException(
                 'Could not connect to the database: %s' % str(e))
@@ -85,6 +92,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
                 self.assetstore.get('mongohost', None),
                 self.assetstore.get('replicaset', None)
             )[self.assetstore['db']].chunk
+            _ensureChunkIndices(self.chunkColl)
         except pymongo.errors.ConnectionFailure:
             logger.error('Failed to connect to GridFS assetstore %s',
                          self.assetstore['db'])
