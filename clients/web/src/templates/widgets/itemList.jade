@@ -8,7 +8,7 @@ ul.g-item-list
         | #{item.get('name')}
       a(title="Download item" href=item.downloadUrl())
         i.icon-download
-      a.g-view-inline(title="View in browser" target="_blank"
+      a.g-view-inline(title="View in browser" target="_blank", rel="noopener noreferrer",
                       href=item.downloadUrl({contentDisposition: 'inline'}))
         i.icon-eye
       .g-item-size #{girder.formatSize(item.get('size'))}
