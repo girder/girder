@@ -12,6 +12,7 @@
     - python2.7-dev
     - python-pip
     - libjpeg-dev
+    - libssl-dev
     - zlib1g-dev
 
 - name: Update Pip
