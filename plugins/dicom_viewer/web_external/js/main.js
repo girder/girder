@@ -1,9 +1,8 @@
 import ViewTemplate from 'templates/view.jade';
 import TagsTemplate from 'templates/tags.jade';
 import 'stylesheets/dicom_viewer.styl';
-import {getTags} from 'js/tags.js';
 
-import dicomParser from 'dicom-parser';
+import daikon from 'daikon';
 import vtkImageSlice from 'vtk.js/Sources/Rendering/Core/ImageSlice';
 import vtkImageData from 'vtk.js/Sources/Common/DataModel/ImageData';
 import vtkDataArray from 'vtk.js/Sources/Common/Core/DataArray';
@@ -86,12 +85,11 @@ girder.views.DicomView = girder.View.extend({
         this.first = true;
         this.playing = false;
         this.playRate = 500;
-        this.dataSet = null;
+        this.image = null;
         this.imageData = null;
-        this.xhr = null;
-        this.dataSetCache = {};
-        this.imageCache = {};
+        this.imageDataCache = {};
         this.tagCache = {};
+        this.xhr = null;
         this.render();
         this.loadFileList();
     },
@@ -163,7 +161,7 @@ girder.views.DicomView = girder.View.extend({
     },
 
     loadFile: function (file) {
-        if (file.name in this.imageCache) {
+        if (file.name in this.imageDataCache) {
             this.showCached(file);
             return;
         }
@@ -176,12 +174,11 @@ girder.views.DicomView = girder.View.extend({
         xhr.responseType = 'arraybuffer';
         xhr.onload = _.bind(function (event) {
             try {
-                const byteArray = new Uint8Array(xhr.response);
-                const dataSet = dicomParser.parseDicom(byteArray);
-                const imageData = createImageData(dataSet);
-                this.dataSetCache[file.name] = dataSet;
-                this.imageCache[file.name] = imageData;
-                this.tagCache[file.name] = getTags(dataSet);
+                const dataView = new DataView(xhr.response);
+                const image = daikon.Series.parseImage(dataView);
+                const imageData = createImageData(image);
+                this.imageDataCache[file.name] = imageData;
+                this.tagCache[file.name] = this.getTags(image);
                 this.showCached(file);
             } catch (e) {
                 console.log(e);
@@ -191,12 +188,53 @@ girder.views.DicomView = girder.View.extend({
         this.xhr = xhr;
     },
 
+    getTags: function (image) {
+        const result = [];
+        const tags = image.tags;
+        const keys = Object.keys(tags).sort();
+        for (let key of keys) {
+            const tag = tags[key];
+            const name = daikon.Dictionary.getDescription(tag.group, tag.element);
+
+            if (name === 'PrivateData') {
+                continue;
+            }
+            if (name.startsWith('Group') && name.endsWith('Length')) {
+                continue;
+            }
+
+            if (tag.sublist) {
+                continue;
+            } else if (tag.vr === 'SQ') {
+                continue;
+            } else if (tag.isPixelData()) {
+                continue;
+            } else if (!tag.value) {
+                continue;
+            }
+
+            const value = tag.value;
+
+            if (value.toString() === '[object DataView]') {
+                continue;
+            }
+
+            result.push(_.extend({}, {key: key, name: name, value: value}));
+        }
+        result.sort(function (a, b) {
+            a = a.name.toLowerCase();
+            b = b.name.toLowerCase();
+            return a.localeCompare(b);
+        });
+        return result;
+    },
+
     showCached: function (file) {
         document.getElementById('dicom-filename').innerHTML = file.name;
         document.getElementById('g-dicom-tags').innerHTML = TagsTemplate({
             tags: this.tagCache[file.name]
         });
-        this.setImageData(this.dataSetCache[file.name], this.imageCache[file.name]);
+        this.setImageData(this.imageDataCache[file.name]);
     },
 
     render: function () {
@@ -222,107 +260,15 @@ girder.views.DicomView = girder.View.extend({
         }
         this.ren.resetCamera();
         this.camera.zoom(1.44);
-    },
-
-    autoOrientation: function () {
-        if (!this.imageData) {
-            return;
-        }
-
-        // get image orientation
-        const orientation = this.dataSet.string('x00200037').split('\\').map(Number);
-
-        // find maximal vector component
-        for (let i = 0; i < orientation.length; i++) {
-            if (Math.abs(orientation[i]) > 0.9) {
-                orientation[i] = Math.sign(orientation[i]);
-            } else {
-                orientation[i] = 0;
-            }
-        }
-
-        let row = orientation.slice(0, 3);
-        let col = orientation.slice(3, 6);
-        row = {x: row[0], y: row[1], z: row[2]};
-        col = {x: col[0], y: col[1], z: col[2]};
-        console.log(row, col);
-
-        // what we want
-        // transverse
-        // X right, Y down
-        // sagittal
-        // Z right, Y down
-        // Y right, Z up
-        // coronal
-        // X right, Z up
-
-        // see if we should transpose rows/cols
-        // let transpose = false;
-        // if (col.x && row.y) {
-        //     transpose = true;
-        // }
-        // if (col.z && row.y) {
-        //     transpose = true;
-        // }
-        // if (col.x && row.z) {
-        //     transpose = true;
-        // }
-
-        // if (transpose) {
-        //     const temp = row;
-        //     row = col;
-        //     col = temp;
-        // }
-
-        // see if we should flip vertical
-        let flipVertical = false;
-        if (row.x && col.y < 0) {
-            flipVertical = true;
-        }
-        if (row.z && col.y < 0) {
-            flipVertical = true;
-        }
-        if (row.y && col.z > 0) {
-            flipVertical = true;
-        }
-        if (row.x && col.z > 0) {
-            flipVertical = true;
-        }
-
-        // see if we should flip horizontal
-        let flipHorizontal = false;
-        if (col.y && row.x < 0) {
-            flipHorizontal = true;
-        }
-        if (col.y && row.z < 0) {
-            flipHorizontal = true;
-        }
-        if (col.z && row.y < 0) {
-            flipHorizontal = true;
-        }
-        if (col.z && row.x < 0) {
-            flipHorizontal = true;
-        }
-
-        console.log(flipVertical, flipHorizontal);
 
         const up = [0, -1, 0];
         const pos = this.camera.getPosition();
         pos[2] = -Math.abs(pos[2]);
-
-        if (flipVertical) {
-            up[1] = -up[1];
-        }
-        if (flipHorizontal) {
-            pos[2] = -pos[2];
-        }
-
         this.camera.setViewUp(up[0], up[1], up[2]);
         this.camera.setPosition(pos[0], pos[1], pos[2]);
     },
 
-    setImageData: function (dataSet, imageData) {
-        this.dataSet = dataSet;
+    setImageData: function (imageData) {
         this.imageData = imageData;
 
         if (this.first) {
@@ -330,7 +276,6 @@ girder.views.DicomView = girder.View.extend({
             this.initVtk(imageData);
             this.autoLevels();
             this.autoZoom();
-            this.autoOrientation();
         } else {
             const mapper = vtkImageMapper.newInstance();
             mapper.setInputData(imageData);
@@ -381,67 +326,20 @@ girder.views.DicomView = girder.View.extend({
 
 });
 
-function createImageData(dataSet) {
-    const rows = dataSet.uint16('x00280010');
-    const cols = dataSet.uint16('x00280011');
-    const rowSpacing = dataSet.floatString('x00280030', 0);
-    const colSpacing = dataSet.floatString('x00280030', 1);
+function createImageData(image) {
+    const rows = image.getRows()
+    const cols = image.getCols();
+    const rowSpacing = image.getPixelSpacing()[0];
+    const colSpacing = image.getPixelSpacing()[1];
 
     const imageData = vtkImageData.newInstance();
     imageData.setOrigin(0, 0, 0);
     imageData.setSpacing(colSpacing, rowSpacing, 1);
     imageData.setExtent(0, cols - 1, 0, rows - 1, 0, 0);
 
-    const values = createPixelBuffer(dataSet);
+    const values = image.getInterpretedData();
     const dataArray = vtkDataArray.newInstance({values: values});
     imageData.getPointData().addArray(dataArray);
 
     return imageData;
-}
-
-function createPixelBuffer(dataSet) {
-    const buffer = dataSet.byteArray.buffer;
-    const dataOffset = dataSet.elements.x7fe00010.dataOffset;
-    const pixelRepresentation = dataSet.uint16('x00280103');
-    const bitsAllocated = dataSet.uint16('x00280100');
-    const bitsStored = dataSet.uint16('x00280101');
-    const rows = dataSet.uint16('x00280010');
-    const cols = dataSet.uint16('x00280011');
-    const numPixels = rows * cols;
-    const pmi = dataSet.string('x00280004');
-    if (pmi !== 'MONOCHROME1' && pmi !== 'MONOCHROME2') {
-        throw 'unsupported photometric interpretation';
-    }
-    // construct proper array type
-    let array;
-    if (pixelRepresentation === 0 && bitsAllocated === 8) {
-        array = new Uint8Array(buffer, dataOffset, numPixels);
-    } else if (pixelRepresentation === 0 && bitsAllocated === 16) {
-        array = new Uint16Array(buffer, dataOffset, numPixels);
-    } else if (pixelRepresentation === 1 && bitsAllocated === 8) {
-        array = new Int8Array(buffer, dataOffset, numPixels);
-    } else if (pixelRepresentation === 1 && bitsAllocated === 16) {
-        array = new Int16Array(buffer, dataOffset, numPixels);
-    } else {
-        throw 'unrecognized image format';
-    }
-    // copy values to float buffer
-    const values = new Float32Array(array.length);
-    if (pixelRepresentation === 0) { // unsigned
-        const mask = (1 << bitsStored) - 1;
-        for (let i = 0; i < values.length; i++) {
-            values[i] = (array[i] & mask) / mask;
-        }
-    } else {
-        for (let i = 0; i < values.length; i++) {
-            values[i] = array[i];
-        }
-    }
-    if (pmi === 'MONOCHROME1') {
-        // invert values
-        for (let i = 0; i < values.length; i++) {
-            values[i] = 1 - values[i];
-        }
-    }
-    return values;
 }
