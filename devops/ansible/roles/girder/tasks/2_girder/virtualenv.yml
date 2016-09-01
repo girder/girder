@@ -1,0 +1,16 @@
+- name: Install virtualenv
+  apt:
+    name: python-virtualenv
+    state: latest
+  become: yes
+  become_user: root
+
+- name: Create virtualenv directory
+  file:
+    state: directory
+    path: "{{ girder_virtualenv }}"
+    mode: 0775
+    group: "{{ role_user_output.stdout }}"
+    owner: "{{ role_user_output.stdout }}"
+  become: yes
+  become_user: root

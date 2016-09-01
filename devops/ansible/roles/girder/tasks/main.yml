@@ -1,8 +1,33 @@
 ---
 
+- command: whoami
+  register: role_user_output
+  changed_when: false
+
+- name: Ensure girder base directory exists
+  file:
+    path: "{{ girder_path }}"
+    state: directory
+    group: "{{ role_user_output.stdout }}"
+    owner: "{{ role_user_output.stdout }}"
+    mode: 0755
+  become: yes
+  become_user: root
+
 - include: 1_npm/main.yml
   when: "{{ girder_web }}"
 
+- include: 2_girder/virtualenv.yml
+  when: girder_virtualenv is defined
+
 - include: 2_girder/main.yml
+
+- include: 2_girder/pip.yml
+  when: girder_virtualenv is not defined
+  become: yes
+  become_user: root
+
+- include: 2_girder/pip.yml
+  when: girder_virtualenv is defined
 
 - include: 3_daemon/main.yml

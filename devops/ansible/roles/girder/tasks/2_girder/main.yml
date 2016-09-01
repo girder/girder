@@ -15,13 +15,6 @@
     - libssl-dev
     - zlib1g-dev
 
-- name: Update Pip
-  pip:
-    name: pip
-    state: latest
-  become: yes
-  become_user: root
-
 - name: Download Girder
   git:
     repo: "https://github.com/girder/girder.git"
@@ -29,17 +22,10 @@
     version: "{{ girder_version }}"
     update: "{{ girder_update|default(omit) }}"
     force: "{{ girder_force|default(omit) }}"
-  notify: Build Girder
+  register: vc
 
-- name: Install Girder Python requirements
-  pip:
-    requirements: "{{ girder_path }}/requirements.txt"
-  become: yes
-  become_user: root
-
-- name: Install Girder and plugin requirements
-  pip:
-    name: ".[plugins]"
-    editable: yes
+- name: Build Girder
+  command: "npm install --production"
+  args:
     chdir: "{{ girder_path }}"
-  become: yes
+  when: "{{ girder_web }} and vc.changed"
