@@ -21,7 +21,12 @@ girder.jobs_JobStatus = {
     },
 
     icon: function (status) {
-        return this._map[status].icon;
+        var icon;
+        if (status in this._map) {
+          icon = this._map[status].icon;
+        }
+
+        return icon;
     },
 
     /**
