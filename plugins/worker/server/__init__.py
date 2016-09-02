@@ -77,8 +77,10 @@ def schedule(event):
         # Stop event propagation since we have taken care of scheduling.
         event.stopPropagation()
 
+        task = job.get('celeryTaskName', 'girder_worker.run')
+
         # Send the task to celery
-        asyncResult = getCeleryApp().send_task('girder_worker.run', job['args'], job['kwargs'])
+        asyncResult = getCeleryApp().send_task(task, job['args'], job['kwargs'])
 
         # Set the job status to queued and record the task ID from celery.
         ModelImporter.model('job', 'jobs').updateJob(job, status=JobStatus.QUEUED, otherFields={
