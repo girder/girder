@@ -68,10 +68,11 @@ module.exports = function (grunt) {
         var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
         var dependencies = [
             '/clients/web/static/built/girder.ext.min.js',
-            '/clients/web/static/built/girder.app.min.js',
             '/clients/web/test/testUtils.js'
         ];
-        var inputs = [];
+        var inputs = [
+            '/clients/web/static/built/girder.app.min.js'
+        ];
 
         var fn = jade.compile(buffer, {
             client: false,

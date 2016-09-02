@@ -48,7 +48,10 @@ function urlLoader(options) {
 
 module.exports = {
     entry: {
-        'girder.ext': [],
+        'girder.ext': [
+            // This make sure some globals like $, moment, Backbone are available for testing
+            path.join(paths.web_src, 'globals.js')
+        ],
         'girder.app': path.join(paths.web_src, 'main.js')
     },
     output: {

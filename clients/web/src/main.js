@@ -1,7 +1,4 @@
 import $ from 'jquery';
-import _ from 'underscore';
-import Backbone from 'backbone';
-import moment from 'moment';
 
 import App from 'girder/views/App';
 import router from 'girder/router';
@@ -10,14 +7,6 @@ import events from 'girder/events';
 import 'girder/utilities/jquery/girderModal';
 
 import * as girder from 'girder';
-
-// Some cross-browser globals
-if (!window.console) {
-    window.console = {
-        log: $.noop,
-        error: $.noop
-    };
-}
 
 // When all scripts are loaded, we invoke the application
 $(function () {
@@ -41,9 +30,3 @@ $(function () {
     // rely on the singleton. Tests should be abe to use it though.
     window.girder = girder;
 });
-
-// For testing and convenience, available now because of testUtils.js reliance on $
-window.$ = $;
-window._ = _;
-window.moment = moment;
-window.Backbone = Backbone;
