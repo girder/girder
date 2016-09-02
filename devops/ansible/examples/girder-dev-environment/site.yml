@@ -34,12 +34,11 @@
     - name: Install Girder Python development requirements
       pip:
         requirements: "requirements-dev.txt"
-        chdir: "/home/vagrant/girder"
-      become: yes
-      become_user: root
+        chdir: "{{ girder_path }}"
+        virtualenv: "{{ girder_virtualenv }}"
 
     - name: Build Girder with development dependencies
       command: "npm install"
       args:
-        chdir: "/home/vagrant/girder"
+        chdir: "{{ girder_path }}"
       when: "{{ girder_web }}"
