@@ -85,7 +85,6 @@ girder.views.DicomView = girder.View.extend({
         this.first = true;
         this.playing = false;
         this.playRate = 500;
-        this.image = null;
         this.imageData = null;
         this.imageDataCache = {};
         this.tagCache = {};
