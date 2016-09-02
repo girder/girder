@@ -6,6 +6,15 @@
     dest: "/etc/init/girder.conf"
   become: yes
   become_user: root
+  when: ansible_distribution_release != 'xenial'
+
+- name: Install service
+  template:
+    src: "daemon/girder.service.j2"
+    dest: "/etc/systemd/system/girder.service"
+  become: yes
+  become_user: root
+  when: ansible_distribution_release == 'xenial'
 
 - name: (Re)start service
   service:
