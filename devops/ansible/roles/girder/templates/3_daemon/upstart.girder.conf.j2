@@ -7,6 +7,9 @@ stop on shutdown
 respawn
 respawn limit 20 5
 
+setuid "{{ ansible_user_id }}"
+setgid "{{ ansible_user_id }}"
+
 script
     cd "{{ girder_path }}"
     {% if girder_virtualenv is defined %}

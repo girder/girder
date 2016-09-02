@@ -1,15 +1,11 @@
 ---
 
-- command: whoami
-  register: role_user_output
-  changed_when: false
-
 - name: Ensure girder base directory exists
   file:
     path: "{{ girder_path }}"
     state: directory
-    group: "{{ role_user_output.stdout }}"
-    owner: "{{ role_user_output.stdout }}"
+    group: "{{ ansible_user_id }}"
+    owner: "{{ ansible_user_id }}"
     mode: 0755
   become: yes
   become_user: root
