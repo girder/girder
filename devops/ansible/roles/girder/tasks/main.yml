@@ -10,20 +10,20 @@
   become: yes
   become_user: root
 
-- include: 1_npm/main.yml
+- include: npm.yml
   when: "{{ girder_web }}"
 
-- include: 2_girder/virtualenv.yml
+- include: virtualenv.yml
   when: girder_virtualenv is defined
 
-- include: 2_girder/main.yml
+- include: girder.yml
 
-- include: 2_girder/pip.yml
+- include: pip.yml
   when: girder_virtualenv is not defined
   become: yes
   become_user: root
 
-- include: 2_girder/pip.yml
+- include: pip.yml
   when: girder_virtualenv is defined
 
-- include: 3_daemon/main.yml
+- include: daemon.yml

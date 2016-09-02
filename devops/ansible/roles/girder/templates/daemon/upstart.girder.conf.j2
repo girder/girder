@@ -13,7 +13,7 @@ setgid "{{ ansible_user_id }}"
 script
     cd "{{ girder_path }}"
     {% if girder_virtualenv is defined %}
-    exec source "{{ girder_virtualenv }}/bin/activate" && python -m girder > /dev/null 2>&1
+    . "{{ girder_virtualenv }}/bin/activate" && python -m girder > /dev/null 2>&1
     {% else %}
     exec python -m girder > /dev/null 2>&1
     {% endif %}

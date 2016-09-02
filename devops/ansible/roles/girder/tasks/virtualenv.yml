@@ -10,7 +10,7 @@
     state: directory
     path: "{{ girder_virtualenv }}"
     mode: 0775
-    group: "{{ role_user_output.stdout }}"
-    owner: "{{ role_user_output.stdout }}"
+    group: "{{ ansible_user_id }}"
+    owner: "{{ ansible_user_id }}"
   become: yes
   become_user: root

@@ -4,6 +4,7 @@
   vars:
     girder_update: no
     girder_force: no
+    girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
   pre_tasks:
     - name: Update package cache
       apt:
