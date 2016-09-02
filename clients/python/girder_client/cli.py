@@ -67,14 +67,14 @@ subparsers = parser.add_subparsers(
     title='subcommands', dest='subcommand', description='Valid subcommands')
 subparsers.required = True
 
-# Arguments shared by multiple subcommands
-_commonArgs = {
-    '--parent-type': dict(
+# Arguments shared by multiple subcommands (these are ordered)
+_commonArgs = [
+    ('--parent-type', dict(
         required=False, default='folder',
-        help='type of Girder parent target, one of (collection, folder, user)'),
-    'parent_id': dict(help='id of Girder parent target'),
-    'local_folder': dict(help='path to local target folder')
-}
+        help='type of Girder parent target, one of (collection, folder, user)')),
+    ('parent_id', dict(help='id of Girder parent target')),
+    ('local_folder', dict(help='path to local target folder'))
+]
 
 downloadParser = subparsers.add_parser('download', description='Download files from Girder')
 
@@ -95,7 +95,7 @@ uploadParser.add_argument(
     '--blacklist', required=False, default='', help='comma-separated list of filenames to ignore')
 
 # For now, all subcommands conveniently share all the common options
-for name, kwargs in six.viewitems(_commonArgs):
+for name, kwargs in _commonArgs:
     uploadParser.add_argument(name, **kwargs)
     downloadParser.add_argument(name, **kwargs)
     localsyncParser.add_argument(name, **kwargs)
