@@ -32,7 +32,9 @@
       become_user: root
 
   roles:
-    - mongo
+    - role: Stouts.mongodb
+      become: yes
+      become_user: root
     - girder
     - role: geerlingguy.nginx
       become: yes

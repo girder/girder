@@ -27,10 +27,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision provisioner_type do |ansible|
     example = ENV["GIRDER_EXAMPLE"] || "girder-dev-environment"
     ansible.playbook = "devops/ansible/examples/#{example}/site.yml"
-
-    if example == "girder-nginx"
-      ansible.galaxy_role_file = "devops/ansible/examples/#{example}/requirements.yml"
-    end
+    ansible.galaxy_role_file = "devops/ansible/examples/#{example}/requirements.yml"
 
     if provisioner_type == "ansible_local"
       ansible.provisioning_path = "/home/vagrant/girder"

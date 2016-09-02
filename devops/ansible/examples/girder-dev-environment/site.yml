@@ -13,7 +13,9 @@
       become_user: root
 
   roles:
-    - mongo
+    - role: Stouts.mongodb
+      become: yes
+      become_user: root
     - girder
 
   post_tasks:
