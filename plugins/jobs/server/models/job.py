@@ -346,7 +346,12 @@ class Job(AccessControlledModel):
 
     def _updateStatus(self, job, status, now, notify, user, updates):
         """Helper for updating job progress information."""
-        status = int(status)
+        try:
+            status = int(status)
+        except ValueError:
+            # Allow non int states
+            pass
+
         self._validateStatus(status)
 
         if status != job['status']:
