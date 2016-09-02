@@ -18,7 +18,6 @@
 ###############################################################################
 
 import argparse
-import six
 from girder_client import GirderClient
 
 
