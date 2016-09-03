@@ -25,7 +25,10 @@ function(add_ansible_test case)
 
   set_tests_properties("${name}" PROPERTIES
     DEPENDS vagrant_up
-    RUN_SERIAL ON)
+    RUN_SERIAL ON
+    # This happens in the case where vagrant up fails, failing to generate a valid host file.
+    # Without this, ansible would return a valid exit status since it provisioned 0 hosts correctly.
+    FAIL_REGULAR_EXPRESSION "Host file not found")
   set_property(GLOBAL APPEND PROPERTY vagrant_tests "${name}")
 
 endfunction()
