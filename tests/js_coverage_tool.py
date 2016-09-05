@@ -28,6 +28,7 @@ import collections
 import glob
 import os
 import six
+import sourcemap
 import sys
 import time
 
@@ -55,7 +56,9 @@ def combine_report(args):
 
     # Step 1: Read and combine intermediate reports
     combined = collections.defaultdict(lambda: collections.defaultdict(int))
+    remappers = collections.defaultdict()
     currentSource = None
+    currentRemapper = None
     files = glob.glob(os.path.join(args.coverage_dir, '*.cvg'))
 
     for file in files:
@@ -65,10 +68,32 @@ def combine_report(args):
                 if line[0] == 'F':
                     path = line[1:].strip()
                     currentSource = combined[path]
+                    if path not in remappers:
+                        sourceMapPath = os.path.join(args.source, path) + '.map'
+                        if os.path.isfile(sourceMapPath):
+                            remappers[path] = sourcemap.load(open(sourceMapPath))
+                        else:
+                            remappers[path] = None
+                    currentRemapper = remappers[path]
                     skip = args.skipCore and path.startswith('clients')
                 elif not skip and line[0] == 'L':
-                    lineNum, hit = [int(x) for x in line[1:].split()]
-                    currentSource[lineNum] |= bool(hit)
+                    lineNum, hit = line[1:].split()
+                    if hit != 'undefined':
+                        lineNum = int(lineNum)
+                        hit = int(hit)
+                        if currentRemapper != None:
+                            try:
+                              token = currentRemapper.lookup(line=lineNum, column=1)
+                              # This could be optimized by caching the result of replace/slice
+                              sourcePath = token.src.replace('webpack:///./', '');
+                              queryStringPos = sourcePath.find('?');
+                              if queryStringPos != -1:
+                                sourcePath = sourcePath[:queryStringPos]
+                              combined[sourcePath][token.src_line] |= bool(hit)
+                            except:
+                              pass
+                        else:
+                          currentSource[lineNum] |= bool(hit)
 
     # Step 2: Calculate final aggregate and per-file coverage statistics
     stats = {

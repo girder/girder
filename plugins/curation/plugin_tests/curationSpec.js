@@ -1,12 +1,7 @@
 /* globals girderTest, describe, it, runs, expect, waitsFor */
 
 girderTest.addCoveredScripts([
-    // '/plugins/curation/web_client/views/CurationDialog.js',
-    // '/plugins/curation/web_client/views/HierarchyWidget.js',
-    // '/plugins/curation/web_client/main.js'
-]);
-girderTest.addScripts([
-    '/static/built/plugins/curation/plugin.min.js'
+    '/clients/web/static/built/plugins/curation/plugin.min.js'
 ]);
 
 girderTest.startApp();

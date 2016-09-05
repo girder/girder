@@ -1,11 +1,7 @@
 /* globals girderTest, describe, it, runs, expect, waitsFor */
 
 girderTest.addCoveredScripts([
-    // '/plugins/hashsum_download/web_client/views/FileInfoWidget.js',
-    // '/plugins/hashsum_download/web_client/main.js'
-]);
-girderTest.addScripts([
-    '/static/built/plugins/hashsum_download/plugin.min.js'
+    '/clients/web/static/built/plugins/hashsum_download/plugin.min.js'
 ]);
 
 girder.events.trigger('g:appload.before');

@@ -1,12 +1,7 @@
 /* globals girderTest, describe, it, runs, expect, waitsFor */
 
 girderTest.addCoveredScripts([
-    // '/plugins/autojoin/web_client/main.js',
-    // '/plugins/autojoin/web_client/routes.js',
-    // '/plugins/autojoin/web_client/views/ConfigView.js'
-]);
-girderTest.addScripts([
-    '/static/built/plugins/autojoin/plugin.min.js'
+    '/clients/web/static/built/plugins/autojoin/plugin.min.js'
 ]);
 
 girderTest.startApp();

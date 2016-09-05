@@ -1,13 +1,7 @@
 /* globals girderTest, describe, it, runs, expect, waitsFor */
 
 girderTest.addCoveredScripts([
-    // '/plugins/geospatial/web_client/models/ItemModel.js',
-    // '/plugins/geospatial/web_client/views/GeospatialItemWidget.js',
-    // '/plugins/geospatial/web_client/views/ItemView.js',
-    // '/plugins/geospatial/web_client/main.js'
-]);
-girderTest.addScripts([
-    '/static/built/plugins/geospatial/plugin.min.js'
+    '/clients/web/static/built/plugins/geospatial/plugin.min.js'
 ]);
 
 girderTest.startApp();

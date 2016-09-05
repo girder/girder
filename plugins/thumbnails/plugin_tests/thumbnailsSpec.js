@@ -1,13 +1,7 @@
 /* globals girderTest, describe, expect, it, runs, waitsFor  */
 
 girderTest.addCoveredScripts([
-    // '/plugins/thumbnails/web_client/main.js',
-    // '/plugins/thumbnails/web_client/models/ThumbnailModel.js',
-    // '/plugins/thumbnails/web_client/views/CreateThumbnailView.js',
-    // '/plugins/thumbnails/web_client/views/FlowView.js'
-]);
-girderTest.addScripts([
-    '/static/built/plugins/thumbnails/plugin.min.js'
+    '/clients/web/static/built/plugins/thumbnails/plugin.min.js'
 ]);
 
 girderTest.startApp();

@@ -1,7 +1,7 @@
 /* globals girderTest, runs, waitsFor, expect, describe, it */
 
-girderTest.addScripts([
-    '/static/built/plugins/user_quota/plugin.min.js'
+girderTest.addCoveredScripts([
+    '/clients/web/static/built/plugins/user_quota/plugin.min.js'
 ]);
 
 girderTest.startApp();

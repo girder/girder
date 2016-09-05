@@ -1,17 +1,7 @@
 /* globals girderTest, describe, expect, it, runs, waitsFor  */
 
 girderTest.addCoveredScripts([
-    // '/plugins/jobs/web_client/main.js',
-    // '/plugins/jobs/web_client/routes.js',
-    // '/plugins/jobs/web_client/JobStatus.js',
-    // '/plugins/jobs/web_client/js/collections/JobCollections.js',
-    // '/plugins/jobs/web_client/js/models/JobModel.js',
-    // '/plugins/jobs/web_client/js/views/HeaderUserView.js',
-    // '/plugins/jobs/web_client/js/views/JobDetailsWidget.js',
-    // '/plugins/jobs/web_client/js/views/JobListWidget.js',
-]);
-girderTest.addScripts([
-    '/static/built/plugins/jobs/plugin.min.js'
+    '/clients/web/static/built/plugins/jobs/plugin.min.js'
 ]);
 
 girder.events.trigger('g:appload.before');

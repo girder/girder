@@ -1,18 +1,7 @@
 /* globals girderTest, describe, expect, it, runs, waitsFor, _prepareTestUpload  */
 
 girderTest.addCoveredScripts([
-    // '/plugins/item_licenses/web_client/main.js',
-    // '/plugins/item_licenses/web_client/routes.js',
-    // '/plugins/item_licenses/web_client/views/ConfigView.js',
-    // '/plugins/item_licenses/web_client/views/EditItemWidget.js',
-    // '/plugins/item_licenses/web_client/views/HierarchyWidget.js',
-    // '/plugins/item_licenses/web_client/views/ItemLicenseWidget.js',
-    // '/plugins/item_licenses/web_client/views/ItemView.js',
-    // '/plugins/item_licenses/web_client/views/SelectLicenseWidget.js',
-    // '/plugins/item_licenses/web_client/views/UploadWidget.js'
-]);
-girderTest.addScripts([
-    '/static/built/plugins/item_licenses/plugin.min.js'
+    '/clients/web/static/built/plugins/item_licenses/plugin.min.js'
 ]);
 
 girderTest.startApp();
