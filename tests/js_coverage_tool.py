@@ -57,7 +57,7 @@ def combine_report(args):
     # Step 1: Read and combine intermediate reports
     combined = collections.defaultdict(lambda: collections.defaultdict(int))
     remappers = collections.defaultdict()
-    currentSource = None
+    currentPath = None
     currentRemapper = None
     files = glob.glob(os.path.join(args.coverage_dir, '*.cvg'))
 
@@ -66,16 +66,15 @@ def combine_report(args):
         with open(file) as f:
             for line in f:
                 if line[0] == 'F':
-                    path = line[1:].strip()
-                    currentSource = combined[path]
-                    if path not in remappers:
-                        sourceMapPath = os.path.join(args.source, path) + '.map'
+                    currentPath = line[1:].strip()
+                    if currentPath not in remappers:
+                        sourceMapPath = os.path.join(args.source, currentPath) + '.map'
                         if os.path.isfile(sourceMapPath):
-                            remappers[path] = sourcemap.load(open(sourceMapPath))
+                            remappers[currentPath] = sourcemap.load(open(sourceMapPath))
                         else:
-                            remappers[path] = None
-                    currentRemapper = remappers[path]
-                    skip = args.skipCore and path.startswith('clients')
+                            remappers[currentPath] = None
+                    currentRemapper = remappers[currentPath]
+                    skip = args.skipCore and currentPath.startswith('clients')
                 elif not skip and line[0] == 'L':
                     lineNum, hit = line[1:].split()
                     if hit != 'undefined':
@@ -83,7 +82,11 @@ def combine_report(args):
                         hit = int(hit)
                         if currentRemapper is not None:
                             try:
-                                token = currentRemapper.lookup(line=lineNum, column=1)
+                                # blanket coverage has no column number, so we pass 0
+                                # unfortunately sourcemap.lookup is throwing if it fails to find
+                                # a column good enough (even though it has the line that is of
+                                # interest to us), so we are missing coverage
+                                token = currentRemapper.lookup(line=lineNum, column=0)
                                 if token.src is not None:
                                     # This could be optimized by caching the result of replace/slice
                                     sourcePath = token.src.replace('webpack:///./', '')
@@ -91,10 +94,13 @@ def combine_report(args):
                                     if queryStringPos != -1:
                                         sourcePath = sourcePath[:queryStringPos]
                                     combined[sourcePath][token.src_line] |= bool(hit)
+                                # else:
+                                #     print "NO MAPPING for " + currentPath + ":" + str(lineNum)
                             except IndexError:
+                                # print "NO MAPPING for " + currentPath + ":" + str(lineNum)
                                 pass
                         else:
-                            currentSource[lineNum] |= bool(hit)
+                            combined[currentPath][lineNum] |= bool(hit)
 
     # Step 2: Calculate final aggregate and per-file coverage statistics
     stats = {
