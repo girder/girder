@@ -81,19 +81,20 @@ def combine_report(args):
                     if hit != 'undefined':
                         lineNum = int(lineNum)
                         hit = int(hit)
-                        if currentRemapper != None:
+                        if currentRemapper is not None:
                             try:
-                              token = currentRemapper.lookup(line=lineNum, column=1)
-                              # This could be optimized by caching the result of replace/slice
-                              sourcePath = token.src.replace('webpack:///./', '');
-                              queryStringPos = sourcePath.find('?');
-                              if queryStringPos != -1:
-                                sourcePath = sourcePath[:queryStringPos]
-                              combined[sourcePath][token.src_line] |= bool(hit)
-                            except:
-                              pass
+                                token = currentRemapper.lookup(line=lineNum, column=1)
+                                if token.src is not None:
+                                    # This could be optimized by caching the result of replace/slice
+                                    sourcePath = token.src.replace('webpack:///./', '')
+                                    queryStringPos = sourcePath.find('?')
+                                    if queryStringPos != -1:
+                                        sourcePath = sourcePath[:queryStringPos]
+                                    combined[sourcePath][token.src_line] |= bool(hit)
+                            except IndexError:
+                                pass
                         else:
-                          currentSource[lineNum] |= bool(hit)
+                            currentSource[lineNum] |= bool(hit)
 
     # Step 2: Calculate final aggregate and per-file coverage statistics
     stats = {
