@@ -1,7 +1,1 @@
----
-- src: https://github.com/girder/ansible-role-girder
-  name: girder
-  version: remotes/origin/master
-
-- src: dstil.upstart
-  name: upstart
+- src: Stouts.mongodb
