@@ -22,32 +22,23 @@ module.exports = function (grunt) {
     var fs = require('fs');
     var path = require('path');
 
+    var skipPlugins = grunt.option('skip-plugins');
+    if (skipPlugins) {
+        return;
+    }
+
     /**
      * Adds configuration for plugin related multitasks:
      *
-     *   * jade:plugin-<plugin name>
-     *      Compiles jade templates into the plugin's template.js
-     *   * stylus:plugin-<plugin name>
-     *      Compiles stylus files into the plugin's main css file
-     *   * uglify:plugin-<plugin name>
-     *      Compiles all javascript sources into the plugin's main js file
      *   * copy:plugin-<plugin name>
      *      Copies any other files that are served statically
-     *
-     *  This will also add watch tasks for each of the above.
      */
     var configurePlugin = function (plugin) {
         var pluginTarget = 'plugin-' + plugin,
             pluginPath = path.resolve(grunt.config.get('pluginDir'), plugin),
-            staticPath = path.resolve(
-                grunt.config.get('staticDir'), 'built', 'plugins', plugin
-            ),
+            staticPath = path.resolve(grunt.config.get('staticDir'), 'built', 'plugins', plugin),
             cfg = {
-                jade: {},
-                stylus: {},
-                uglify: {},
                 copy: {},
-                watch: {},
                 default: {},
                 plugin: {}
             };
@@ -55,45 +46,7 @@ module.exports = function (grunt) {
         // create the plugin's build directory under the web-root
         grunt.file.mkdir(staticPath);
 
-        cfg.jade[pluginTarget] = {
-            files: [{
-                src: [pluginPath + '/web_client/templates/**/*.jade'],
-                dest: staticPath + '/templates.js'
-            }]
-        };
-        cfg.watch[pluginTarget + '-jade'] = {
-            files: [pluginPath + '/web_client/templates/**/*.jade'],
-            tasks: ['jade:' + pluginTarget]
-        };
-
-        cfg.stylus[pluginTarget] = {
-            files: [{
-                src: [pluginPath + '/web_client/stylesheets/**/*.styl'],
-                dest: staticPath + '/plugin.min.css'
-            }]
-        };
-        cfg.watch[pluginTarget + '-stylus'] = {
-            files: [pluginPath + '/web_client/stylesheets/**/*.styl'],
-            tasks: ['stylus:' + pluginTarget]
-        };
-
-        cfg.uglify[pluginTarget] = {
-            files: [{
-                src: [
-                    pluginPath + '/web_client/js/**/*.js',
-                    staticPath + '/templates.js'
-                ],
-                dest: staticPath + '/plugin.min.js'
-            }]
-        };
-        cfg.watch[pluginTarget + '-uglify'] = {
-            files: [
-                pluginPath + '/web_client/js/**/*.js',
-                staticPath + '/templates.js'
-            ],
-            tasks: ['uglify:' + pluginTarget]
-        };
-
+        // TODO: this could be moved to Webpack using kevlened/copy-webpack-plugin
         cfg.copy[pluginTarget] = {
             files: [{
                 expand: true,
@@ -102,19 +55,12 @@ module.exports = function (grunt) {
                 dest: staticPath
             }]
         };
-        cfg.watch[pluginTarget + '-copy'] = {
-            files: [pluginPath + '/extra/**'],
-            tasks: ['copy:' + pluginTarget]
-        };
 
         // the task 'plugin:<plugin name>' is a task alias to run all
         // of the main tasks defined above and possibly more if
         // the plugin itself appends tasks to this array
         cfg.plugin[plugin] = {
             tasks: [
-                'jade:' + pluginTarget,
-                'stylus:' + pluginTarget,
-                'uglify:' + pluginTarget,
                 'copy:' + pluginTarget
             ]
         };
@@ -161,14 +107,10 @@ module.exports = function (grunt) {
                 configurePlugin(plugin);
             }
 
-            if (config.grunt) {
-                grunt.log.writeln((
-                    'Found plugin: ' + plugin + ' (custom Gruntfile)'
-                ).bold);
-
+            function addDependencies(deps) {
                 // install any additional npm packages during init
                 npm = (
-                    _(config.grunt.dependencies || [])
+                    _(deps || [])
                         .map(function (version, dep) {
                             // escape any periods in the dependency version so
                             // that grunt.config.set does not descend on each
@@ -187,6 +129,18 @@ module.exports = function (grunt) {
                         'init.npm-install:' + npm.join(':'), {}
                     );
                 }
+            }
+
+            if (config.npm) {
+                addDependencies(config.npm.dependencies);
+            }
+
+            if (config.grunt) {
+                grunt.log.writeln((
+                    'Found plugin: ' + plugin + ' (custom Gruntfile)'
+                ).bold);
+
+                addDependencies(config.grunt.dependencies);
 
                 // load the plugin's gruntfile
                 try {

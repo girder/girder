@@ -11,13 +11,13 @@
         a.g-download-collection(role="menuitem" href="#{collection.downloadUrl()}")
           i.icon-download
           | Download collection
-      if (collection.getAccessLevel() >= girder.AccessType.WRITE)
+      if (collection.getAccessLevel() >= AccessType.WRITE)
         li.divider(role="presentation")
         li(role="presentation")
           a.g-edit-collection(role="menuitem")
             i.icon-edit
             | Edit collection
-      if (collection.getAccessLevel() >= girder.AccessType.ADMIN)
+      if (collection.getAccessLevel() >= AccessType.ADMIN)
         li.divider(role="presentation")
         li(role="presentation")
           a.g-collection-access-control(role="menuitem")

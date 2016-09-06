@@ -6,7 +6,7 @@
             runs(function () {
                 $('body').off();
 
-                new girder.views.UploadWidget({
+                new girder.views.widgets.UploadWidget({
                     noParent: true,
                     modal: false,
                     title: null,
@@ -94,7 +94,7 @@
             runs(function () {
                 $('body').off();
 
-                widget = new girder.views.HierarchyWidget({
+                widget = new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     onItemClick: function (item) {
@@ -133,7 +133,7 @@
 
                 $('body').empty().off();
 
-                new girder.views.HierarchyWidget({
+                new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     checkboxes: false,
@@ -162,7 +162,7 @@
     describe('Test access widget with non-standard options', function () {
         it('test non-modal rendering', function () {
             runs(function () {
-                new girder.views.AccessWidget({
+                new girder.views.widgets.AccessWidget({
                     el: 'body',
                     modal: false,
                     model: folder,
@@ -189,7 +189,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.AccessWidget({
+                new girder.views.widgets.AccessWidget({
                     el: 'body',
                     modal: false,
                     model: folder,
@@ -220,7 +220,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.SearchFieldWidget({
+                new girder.views.widgets.SearchFieldWidget({
                     el: 'body',
                     modes: 'prefix',
                     types: ['folder'],
@@ -249,7 +249,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.SearchFieldWidget({
+                new girder.views.widgets.SearchFieldWidget({
                     el: 'body',
                     modes: ['text', 'prefix'],
                     types: ['folder'],
@@ -317,11 +317,11 @@
             };
 
             runs(function () {
-                widget = new girder.views.MetadataWidget({
+                widget = new girder.views.widgets.MetadataWidget({
                     el: 'body',
                     parentView: null,
                     item: model,
-                    accessLevel: girder.AccessType.WRITE,
+                    accessLevel: girder.constants.AccessType.WRITE,
                     onMetadataAdded: addCb,
                     onMetadataEdited: editCb,
                     fieldName: 'customMeta'

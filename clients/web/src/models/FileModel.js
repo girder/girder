@@ -1,4 +1,11 @@
-girder.models.FileModel = girder.Model.extend({
+import _ from 'underscore';
+
+import FolderModel from 'girder/models/FolderModel';
+import ItemModel from 'girder/models/ItemModel';
+import Model from 'girder/models/Model';
+import { restRequest, uploadHandlers, getUploadChunkSize } from 'girder/rest';
+
+var FileModel = Model.extend({
     resourceName: 'file',
     resumeInfo: null,
 
@@ -64,7 +71,7 @@ girder.models.FileModel = girder.Model.extend({
      * @param type The mime type of the file (optional).
      */
     uploadToFolder: function (parentFolder, data, name, type) {
-        this._uploadToContainer(girder.models.FolderModel, parentFolder, data, name, type);
+        this._uploadToContainer(FolderModel, parentFolder, data, name, type);
     },
 
     /**
@@ -75,7 +82,7 @@ girder.models.FileModel = girder.Model.extend({
      * @param type The mime type of the file (optional).
      */
     uploadToItem: function (parentItem, data, name, type) {
-        this._uploadToContainer(girder.models.ItemModel, parentItem, data, name, type);
+        this._uploadToContainer(ItemModel, parentItem, data, name, type);
     },
 
     /**
@@ -102,10 +109,10 @@ girder.models.FileModel = girder.Model.extend({
         };
 
         // Authenticate and generate the upload token for this file
-        girder.restRequest(_restParams).done(_.bind(function (upload) {
+        restRequest(_restParams).done(_.bind(function (upload) {
             var behavior = upload.behavior;
-            if (behavior && girder.uploadHandlers[behavior]) {
-                this.uploadHandler = new girder.uploadHandlers[behavior]({
+            if (behavior && uploadHandlers[behavior]) {
+                this.uploadHandler = new uploadHandlers[behavior]({
                     upload: upload,
                     parentModel: parentModel,
                     file: file
@@ -172,7 +179,7 @@ girder.models.FileModel = girder.Model.extend({
         }
 
         // Request the actual offset we need to resume at
-        girder.restRequest({
+        restRequest({
             path: 'file/offset',
             type: 'GET',
             data: {
@@ -201,7 +208,7 @@ girder.models.FileModel = girder.Model.extend({
         if (!this.resumeInfo || !this.resumeInfo.uploadId) {
             return;
         }
-        girder.restRequest({
+        restRequest({
             path: 'system/uploads',
             type: 'DELETE',
             data: {
@@ -213,8 +220,7 @@ girder.models.FileModel = girder.Model.extend({
     },
 
     _uploadChunk: function (file, uploadId) {
-        var endByte = Math.min(this.startByte + girder.UPLOAD_CHUNK_SIZE,
-                               file.size);
+        var endByte = Math.min(this.startByte + getUploadChunkSize(), file.size);
 
         this.chunkLength = endByte - this.startByte;
         var sliceFn = file.webkitSlice ? 'webkitSlice' : 'slice';
@@ -226,9 +232,7 @@ girder.models.FileModel = girder.Model.extend({
         fd.append('uploadId', uploadId);
         fd.append('chunk', blob);
 
-        girder._uploadId = uploadId;
-
-        girder.restRequest({
+        restRequest({
             path: 'file/chunk',
             type: 'POST',
             dataType: 'json',
@@ -306,3 +310,5 @@ girder.models.FileModel = girder.Model.extend({
         }
     }
 });
+
+export default FileModel;

@@ -1,7 +1,17 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import ItemCollection from 'girder/collections/ItemCollection';
+import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import View from 'girder/views/View';
+import { formatSize } from 'girder/misc';
+
+import ItemListTemplate from 'girder/templates/widgets/itemList.jade';
+
 /**
  * This widget shows a list of items under a given folder.
  */
-girder.views.ItemListWidget = girder.View.extend({
+var ItemListWidget = View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-item-cid');
@@ -16,12 +26,12 @@ girder.views.ItemListWidget = girder.View.extend({
         this.checked = [];
         this._checkboxes = settings.checkboxes;
 
-        new girder.views.LoadingAnimation({
+        new LoadingAnimation({
             el: this.$el,
             parentView: this
         }).render();
 
-        this.collection = new girder.collections.ItemCollection();
+        this.collection = new ItemCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
             this.render();
@@ -33,10 +43,10 @@ girder.views.ItemListWidget = girder.View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(girder.templates.itemList({
+        this.$el.html(ItemListTemplate({
             items: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
-            girder: girder,
+            formatSize: formatSize,
             checkboxes: this._checkboxes
         }));
 
@@ -117,3 +127,5 @@ girder.views.ItemListWidget = girder.View.extend({
         }, this);
     }
 });
+
+export default ItemListWidget;

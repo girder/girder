@@ -1,7 +1,18 @@
+import _ from 'underscore';
+
+import ApiKeyModel from 'girder/models/ApiKeyModel';
+import View from 'girder/views/View';
+import { getCurrentUser } from 'girder/auth';
+import { restRequest } from 'girder/rest';
+
+import EditApiKeyWidgetTemplate from 'girder/templates/widgets/editApiKeyWidget.jade';
+
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This widget is used to create a new API key or edit an existing one.
  */
-girder.views.EditApiKeyWidget = girder.View.extend({
+var EditApiKeyWidget = View.extend({
     events: {
         'submit #g-api-key-edit-form': function (e) {
             e.preventDefault();
@@ -41,7 +52,7 @@ girder.views.EditApiKeyWidget = girder.View.extend({
         this.scopeInfo = null;
         this._shouldRender = false;
 
-        girder.restRequest({
+        restRequest({
             path: 'token/scopes'
         }).done(_.bind(function (resp) {
             this.scopeInfo = resp;
@@ -58,9 +69,9 @@ girder.views.EditApiKeyWidget = girder.View.extend({
             return;
         }
 
-        var modal = this.$el.html(girder.templates.editApiKeyWidget({
+        var modal = this.$el.html(EditApiKeyWidgetTemplate({
             apiKey: this.model,
-            user: girder.currentUser,
+            user: getCurrentUser(),
             userTokenScopes: this.scopeInfo.custom,
             adminTokenScopes: this.scopeInfo.adminCustom
         })).girderModal(this).on('shown.bs.modal', _.bind(function () {
@@ -91,7 +102,7 @@ girder.views.EditApiKeyWidget = girder.View.extend({
     },
 
     saveModel: function (model, fields) {
-        model = model || new girder.models.ApiKeyModel();
+        model = model || new ApiKeyModel();
 
         model.set(fields);
         model.once('g:saved', function () {
@@ -107,3 +118,5 @@ girder.views.EditApiKeyWidget = girder.View.extend({
         return this.$('.g-scope-selection-container .radio input:checked').attr('value');
     }
 });
+
+export default EditApiKeyWidget;

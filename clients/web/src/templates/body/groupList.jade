@@ -4,7 +4,7 @@
   form.g-group-search-form.form-inline(role="form")
     .form-group.g-groups-search-container
 
-  if girder.currentUser
+  if getCurrentUser()
     button.g-group-create-button.btn.btn-sm.btn-default
       i.icon-plus-squared
       |  Create Group
@@ -15,7 +15,7 @@ each group in groups
       .g-group-created
         i.icon-clock
         | Created on
-        span.g-group-created-date  #{girder.formatDate(group.get('created'), girder.DATE_DAY)}
+        span.g-group-created-date  #{formatDate(group.get('created'), DATE_DAY)}
     .g-list-public-status-icon
       if group.get('public')
         i.icon-globe(title="Public group")

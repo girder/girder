@@ -11,7 +11,7 @@
         .g-file-info-line(property="created")
           i.icon-clock
           span= 'Created '
-          span.g-bold-part= girder.formatDate(file.get('created'), girder.DATE_SECOND)
+          span.g-bold-part= formatDate(file.get('created'), DATE_SECOND)
 
         .g-file-info-line(property="mimeType")
           i.icon-info

@@ -6,7 +6,6 @@ girderTest.startApp();
 function _getFirstId(collection, ids, key, fetchParamsFunc) {
     var coll;
     runs(function () {
-        /* jshint -W055 */
         coll = new collection();
         var params;
         if (fetchParamsFunc) {
@@ -100,7 +99,7 @@ describe('Test routing paths', function () {
     });
     it('create an item in the private folder of the user', function () {
         runs(function () {
-            girder.restRequest({type:'POST', path:'file', data: {
+            girder.rest.restRequest({type:'POST', path:'file', data: {
                 parentType: 'folder',
                 parentId: ids.userFolder,
                 name:'Link File',
@@ -384,7 +383,7 @@ describe('Test internal javascript functions', function () {
             ];
             for (var i = 0; i < testVals.length; i += 1) {
                 var encode = $.param(testVals[i]);
-                expect($.param(girder.parseQueryString(encode))).toBe(encode);
+                expect($.param(girder.misc.parseQueryString(encode))).toBe(encode);
             }
         });
     });

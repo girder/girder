@@ -1,9 +1,8 @@
-/* globals waitsFor, runs, girderTest, expect, describe, it, beforeEach, afterEach */
+/* globals expect, describe, it, beforeEach, afterEach, runs, waitsFor, spyOn */
 // girderTest.startApp();
 
 describe('Test the hierarchy browser modal', function () {
     var testEl;
-    var restRequest;
     var requestArgs = [];
     var requestContext = [];
     var returnVal;
@@ -12,30 +11,30 @@ describe('Test the hierarchy browser modal', function () {
 
     beforeEach(function () {
         testEl = $('<div/>').appendTo('body');
-        restRequest = girder.restRequest;
         returnVal = null;
-        girder.restRequest = function () {
+        girder.rest.mockRestRequest(function () {
             requestContext.push(this);
             requestArgs.push(_.toArray(arguments));
             if (onRestRequest) {
                 return onRestRequest.apply(this, arguments);
             }
             return $.when(returnVal);
-        };
+        });
         transition = $.support.transition;
         $.support.transition = false;
     });
     afterEach(function () {
         testEl.remove();
-        girder.logout();
-        girder.restRequest = restRequest;
+        girder.auth.logout();
+        girder.rest.unmockRestRequest();
         $.support.transition = transition;
     });
 
     describe('root selection', function () {
         it('defaults', function () {
             returnVal = [];
-            var view = new girder.views.RootSelectorWidget({el: testEl, parentView: null});
+            var view = new girder.views.widgets.RootSelectorWidget({el: testEl, parentView: null});
+            view.render();
             var select = view.$('select#g-root-selector');
             expect(select.length).toBe(1);
             expect(select.find('option:eq(0)').text()).toBe('Select a root...');
@@ -45,11 +44,12 @@ describe('Test the hierarchy browser modal', function () {
 
         it('display order', function () {
             returnVal = [];
-            var view = new girder.views.RootSelectorWidget({
+            var view = new girder.views.widgets.RootSelectorWidget({
                 el: testEl,
                 parentView: null,
                 display: ['Users']
             });
+            view.render();
             var select = view.$('select#g-root-selector');
             expect(select.length).toBe(1);
             expect(select.find('option:eq(0)').text()).toBe('Select a root...');
@@ -58,18 +58,19 @@ describe('Test the hierarchy browser modal', function () {
         });
 
         it('user logged in', function () {
-            girder.currentUser = new girder.models.UserModel({
+            girder.auth.setCurrentUser(new girder.models.UserModel({
                 _id: '0',
                 login: 'johndoe',
                 firstName: 'John',
                 lastName: 'Doe'
-            });
+            }));
 
             returnVal = [];
-            var view = new girder.views.RootSelectorWidget({
+            var view = new girder.views.widgets.RootSelectorWidget({
                 el: testEl,
                 parentView: null
             });
+            view.render();
             var select = view.$('select#g-root-selector');
             expect(select.length).toBe(1);
             expect(select.find('option:eq(0)').text()).toBe('Select a root...');
@@ -78,10 +79,11 @@ describe('Test the hierarchy browser modal', function () {
 
         it('rerender on login', function () {
             returnVal = [];
-            var view = new girder.views.RootSelectorWidget({
+            var view = new girder.views.widgets.RootSelectorWidget({
                 el: testEl,
                 parentView: null
             });
+            view.render();
             returnVal = {
                 user: {
                     _id: '0',
@@ -93,7 +95,7 @@ describe('Test the hierarchy browser modal', function () {
                     token: ''
                 }
             };
-            girder.login('johndoe', 'password');
+            girder.auth.login('johndoe', 'password');
 
             var select = view.$('select#g-root-selector');
             expect(select.length).toBe(1);
@@ -105,7 +107,7 @@ describe('Test the hierarchy browser modal', function () {
             var col = new girder.collections.CollectionCollection();
 
             returnVal = [];
-            var view = new girder.views.RootSelectorWidget({
+            var view = new girder.views.widgets.RootSelectorWidget({
                 el: testEl,
                 parentView: null,
                 groups: {
@@ -113,7 +115,7 @@ describe('Test the hierarchy browser modal', function () {
                 },
                 display: ['Collections', 'Custom']
             });
-
+            view.render();
             var select = view.$('select#g-root-selector');
             expect(select.length).toBe(1);
             expect(select.find('option:eq(0)').text()).toBe('Select a root...');
@@ -151,7 +153,7 @@ describe('Test the hierarchy browser modal', function () {
             col.fetch();
 
             returnVal = [];
-            var view = new girder.views.RootSelectorWidget({
+            var view = new girder.views.widgets.RootSelectorWidget({
                 el: testEl,
                 parentView: null,
                 groups: {
@@ -159,7 +161,7 @@ describe('Test the hierarchy browser modal', function () {
                 },
                 display: ['Collections', 'Custom']
             });
-
+            view.render();
             var called = 0;
             view.on('g:selected', function (evt) {
                 expect(evt.root.attributes).toEqual({
@@ -175,12 +177,12 @@ describe('Test the hierarchy browser modal', function () {
         });
 
         it('respond to Home selection', function () {
-            girder.currentUser = new girder.models.UserModel({
+            girder.auth.setCurrentUser(new girder.models.UserModel({
                 _id: '0',
                 login: 'johndoe',
                 firstName: 'John',
                 lastName: 'Doe'
-            });
+            }));
             returnVal = [
                 {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
                 {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
@@ -190,7 +192,7 @@ describe('Test the hierarchy browser modal', function () {
             col.fetch();
 
             returnVal = [];
-            var view = new girder.views.RootSelectorWidget({
+            var view = new girder.views.widgets.RootSelectorWidget({
                 el: testEl,
                 parentView: null,
                 groups: {
@@ -198,7 +200,7 @@ describe('Test the hierarchy browser modal', function () {
                 },
                 display: ['Home', 'Collections', 'Custom']
             });
-
+            view.render();
             var called = 0;
             view.on('g:selected', function (evt) {
                 expect(evt.root.attributes).toEqual({
@@ -224,7 +226,7 @@ describe('Test the hierarchy browser modal', function () {
             col.fetch();
 
             returnVal = [];
-            var view = new girder.views.RootSelectorWidget({
+            var view = new girder.views.widgets.RootSelectorWidget({
                 el: testEl,
                 parentView: null,
                 groups: {
@@ -233,7 +235,7 @@ describe('Test the hierarchy browser modal', function () {
                 display: ['Collections', 'Custom'],
                 selected: col.models[2]
             });
-
+            view.render();
             var select = view.$('select#g-root-selector');
             expect(select.length).toBe(1);
             expect(select.val()).toBe('123');
@@ -243,65 +245,67 @@ describe('Test the hierarchy browser modal', function () {
     describe('browser modal', function () {
         var view;
 
-        var hw;
         var hwSettings;
-        var hwCalls;
-        var hwView;
+        function fakeInitialize(settings) {
+            hwSettings = settings;
+            this.parentModel = settings.parentModel;
+        }
 
         beforeEach(function () {
-            hw = girder.views.HierarchyWidget;
-            hwCalls = 0;
-            girder.views.HierarchyWidget = Backbone.View.extend({
-                initialize: function (settings) {
-                    hwCalls += 1;
-                    hwSettings = settings;
-                    hwView = this;
-                    this.parentModel = settings.parentModel;
-                }
-            });
+            spyOn(girder.views.widgets.HierarchyWidget.prototype, 'render');
+            spyOn(girder.views.widgets.HierarchyWidget.prototype, 'initialize').andCallFake(fakeInitialize);
         });
         afterEach(function () {
             if (view) {
                 view.$el.modal('hide');
             }
-            girder.views.HierarchyWidget = hw;
         });
         it('defaults', function () {
             returnVal = [];
-            view = new girder.views.BrowserWidget({
+            view = new girder.views.widgets.BrowserWidget({
                 parentView: null
             }).render();
 
             expect(view.$('.modal-title').text()).toBe('Select an item');
             expect(view.$('#g-root-selector').length).toBe(1);
 
-            view.$('.g-submit-button').click();
-            expect(view.$el.css('display')).toBe('none');
+            waitsFor(function () {
+                return $(view.$el).is(':visible');
+            });
+            runs(function () {
+                expect($(view.$el).is(':visible')).toBe(true);
+                view.$('.g-submit-button').click();
+                expect($(view.$el).is(':visible')).toBe(false);
+            });
         });
 
         it('validation', function () {
             returnVal = [];
-            view = new girder.views.BrowserWidget({
+            view = new girder.views.widgets.BrowserWidget({
                 parentView: null,
-                validate: function () {return 'invalid';} 
+                validate: function () { return 'invalid'; }
             }).render();
-
-            view.$('.g-submit-button').click();
-            expect(view.$el.hasClass('in')).toBe(true);
-            expect(view.$('.g-validation-failed-message').text()).toBe('invalid');
-            expect(view.$('.g-validation-falied-message').hasClass('hidden')).toBe(false);
+            waitsFor(function () {
+                return $(view.$el).is(':visible');
+            });
+            runs(function () {
+                view.$('.g-submit-button').click();
+                expect(view.$el.hasClass('in')).toBe(true);
+                expect(view.$('.g-validation-failed-message').text()).toBe('invalid');
+                expect(view.$('.g-validation-falied-message').hasClass('hidden')).toBe(false);
+            });
         });
 
         it('render hierarchy', function () {
-            girder.currentUser = new girder.models.UserModel({
+            girder.auth.setCurrentUser(new girder.models.UserModel({
                 _id: '0',
                 login: 'johndoe',
                 firstName: 'John',
                 lastName: 'Doe'
-            });
+            }));
 
             returnVal = [];
-            view = new girder.views.BrowserWidget({
+            view = new girder.views.widgets.BrowserWidget({
                 parentView: null,
                 helpText: 'This is helpful',
                 showItems: false,
@@ -314,14 +318,14 @@ describe('Test the hierarchy browser modal', function () {
             expect(view.$('.modal-title').text()).toBe('This is a title');
             view.$('#g-root-selector').val('0').trigger('change');
 
-            expect(hwSettings.parentModel).toBe(girder.currentUser);
+            expect(hwSettings.parentModel).toBe(girder.auth.getCurrentUser());
             expect(view.$('g-hierarchy-widget-container').hasClass('hidden')).toBe(false);
-            expect(view.$('#g-selected-model').val()).toBe(girder.currentUser.id);
+            expect(view.$('#g-selected-model').val()).toBe(girder.auth.getCurrentUser().id);
 
             var ncalls = 0;
             view.on('g:saved', function (id) {
                 ncalls += 1;
-                expect(id).toBe(girder.currentUser.id);
+                expect(id).toBe(girder.auth.getCurrentUser().id);
             });
             view.$('.g-submit-button').click();
             expect(ncalls).toBe(1);

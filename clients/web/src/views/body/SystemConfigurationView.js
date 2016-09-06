@@ -1,7 +1,21 @@
+import _ from 'underscore';
+
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import View from 'girder/views/View';
+import events from 'girder/events';
+import { restRequest, cancelRestRequests } from 'girder/rest';
+
+import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.jade';
+
+import 'girder/stylesheets/body/systemConfig.styl';
+
+import 'bootstrap/js/collapse';
+import 'bootstrap/js/tooltip';
+
 /**
  * The system config page for administrators.
  */
-girder.views.SystemConfigurationView = girder.View.extend({
+var SystemConfigurationView = View.extend({
     events: {
         'submit .g-settings-form': function (event) {
             event.preventDefault();
@@ -15,7 +29,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 };
             }, this);
 
-            girder.restRequest({
+            restRequest({
                 type: 'PUT',
                 path: 'system/setting',
                 data: {
@@ -24,7 +38,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 error: null
             }).done(_.bind(function () {
                 this.$('.g-submit-settings').removeClass('disabled');
-                girder.events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     icon: 'ok',
                     text: 'Settings saved.',
                     type: 'success',
@@ -41,7 +55,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
     },
 
     initialize: function () {
-        girder.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
 
         var keys = [
             'core.cookie_lifetime',
@@ -63,7 +77,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
             'core.user_default_folders'
         ];
         this.settingsKeys = keys;
-        girder.restRequest({
+        restRequest({
             path: 'system/setting',
             type: 'GET',
             data: {
@@ -72,7 +86,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
             }
         }).done(_.bind(function (resp) {
             this.settings = resp;
-            girder.restRequest({
+            restRequest({
                 path: 'system/setting',
                 type: 'GET',
                 data: {
@@ -87,7 +101,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.systemConfiguration({
+        this.$el.html(SystemConfigurationTemplate({
             settings: this.settings,
             defaults: this.defaults,
             JSON: window.JSON
@@ -99,7 +113,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
             delay: {show: 200}
         });
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             el: this.$('.g-collection-create-policy-container .g-search-container'),
             parentView: this,
             types: ['user', 'group'],
@@ -124,7 +138,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 if (!_.contains(settingValue.users, result.id)) {
                     settingValue.users.push(result.id);
                 } else {
-                    girder.events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'ok',
                         text: 'User already exists in current policy.',
                         type: 'warning',
@@ -136,7 +150,7 @@ girder.views.SystemConfigurationView = girder.View.extend({
                 if (!_.contains(settingValue.groups, result.id)) {
                     settingValue.groups.push(result.id);
                 } else {
-                    girder.events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'ok',
                         text: 'Group already exists in current policy.',
                         type: 'warning',
@@ -153,6 +167,5 @@ girder.views.SystemConfigurationView = girder.View.extend({
     }
 });
 
-girder.router.route('settings', 'settings', function () {
-    girder.events.trigger('g:navigateTo', girder.views.SystemConfigurationView);
-});
+export default SystemConfigurationView;
+

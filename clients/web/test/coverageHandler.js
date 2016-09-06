@@ -11,17 +11,22 @@ window.coverageHandler = (function () {
      * to the root of the repository for portability.
      */
     var _transformFilename = function (filename) {
-        if (filename.indexOf('clients/web/')>=0)
+        if (filename.indexOf('clients/web/') >= 0)
             return filename.substring(filename.indexOf('clients/web/'));
-        if (filename.indexOf('plugins/')>=0)
+        if (filename.indexOf('plugins/') >= 0)
             return filename.substring(filename.indexOf('plugins/'));
         return filename;
     };
 
     var publicApi = {
         handleCoverage: function (cov) {
-            if (!cov) {
+            if (cov === false) {
                 return false;
+            }
+            // null means there was nothing to cover, which is not (and should not)
+            // be indicative of a failure.
+            if (cov === null) {
+                return true;
             }
 
             _.each(cov, function (data, filename) {

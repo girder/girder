@@ -1,7 +1,18 @@
+import $ from 'jquery';
+
+import GroupModel from 'girder/models/GroupModel';
+import View from 'girder/views/View';
+import { getCurrentUser } from 'girder/auth';
+import { handleClose, handleOpen } from 'girder/dialog';
+
+import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.jade';
+
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This widget is used to create a new group or edit an existing one.
  */
-girder.views.EditGroupWidget = girder.View.extend({
+var EditGroupWidget = View.extend({
     events: {
         'submit #g-group-edit-form': function (e) {
             e.preventDefault();
@@ -37,14 +48,14 @@ girder.views.EditGroupWidget = girder.View.extend({
         var pub = this.model ? this.model.get('public') : false;
         var groupAddAllowed;
         var addToGroupPolicy = this.model ? this.model.get('_addToGroupPolicy') : null;
-        if (girder.currentUser.get('admin')) {
+        if (getCurrentUser().get('admin')) {
             if (addToGroupPolicy === 'nomod' || addToGroupPolicy === 'yesmod') {
                 groupAddAllowed = 'mod';
             } else if (addToGroupPolicy === 'noadmin' || addToGroupPolicy === 'yesadmin') {
                 groupAddAllowed = 'admin';
             }
         }
-        var modal = this.$el.html(girder.templates.editGroupWidget({
+        var modal = this.$el.html(EditGroupWidgetTemplate({
             group: this.model,
             public: pub,
             addToGroupPolicy: addToGroupPolicy,
@@ -53,15 +64,15 @@ girder.views.EditGroupWidget = girder.View.extend({
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
             if (view.model) {
-                girder.dialogs.handleOpen('edit');
+                handleOpen('edit');
             } else {
-                girder.dialogs.handleOpen('create');
+                handleOpen('create');
             }
         }).on('hidden.bs.modal', function () {
             if (view.create) {
-                girder.dialogs.handleClose('create');
+                handleClose('create');
             } else {
-                girder.dialogs.handleClose('edit');
+                handleClose('edit');
             }
         }).on('ready.girder.modal', function () {
             if (view.model) {
@@ -81,7 +92,7 @@ girder.views.EditGroupWidget = girder.View.extend({
     },
 
     createGroup: function (fields) {
-        var group = new girder.models.GroupModel();
+        var group = new GroupModel();
         group.set(fields);
         group.on('g:saved', function () {
             this.$el.modal('hide');
@@ -111,3 +122,5 @@ girder.views.EditGroupWidget = girder.View.extend({
         selected.parents('.radio').addClass('g-selected');
     }
 });
+
+export default EditGroupWidget;

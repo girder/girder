@@ -14,252 +14,104 @@
  * limitations under the License.
  */
 
-/**
- * Define tasks that bundle and compile files for deployment.
- */
-module.exports = function (grunt) {
-    var path = require('path');
-    var environment = grunt.option('env') || 'dev';
-    var debugJs = grunt.option('debug-js') || false;
-    var uglifyOptions = {
-        ASCIIOnly: true,
-        sourceMap: environment === 'dev',
-        sourceMapIncludeSources: true,
-        report: 'min'
-    };
+var fs = require('fs');
+var path = require('path');
+var _ = require('underscore');
+var noptFix = require('nopt-grunt-fix');
 
+var webpackConfig = require('./webpack.config.js');
+var webpackDevConfig = require('./webpack.dev.js');
+var webpackProdConfig = require('./webpack.prod.js');
+
+module.exports = function (grunt) {
+    noptFix(grunt);
+    var environment = grunt.option('env') || 'dev';
     if (['dev', 'prod'].indexOf(environment) === -1) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
     }
-
-    if (debugJs) {
-        console.log('Building JS in debug mode'.yellow);
-        uglifyOptions.beautify = {
-            beautify: true
-        };
-        uglifyOptions.mangle = false;
-        uglifyOptions.compress = false;
+    var isDev = environment === 'dev';
+    if (!process.env.BABEL_ENV) {
+        process.env.BABEL_ENV = environment;
     }
+    if (!process.env.NODE_ENV) {
+        process.env.NODE_ENV = environment;
+    }
+    var isWatch = grunt.option('watch');
+    var skipPlugins = grunt.option('skip-plugins');
 
-    grunt.config.merge({
-        jade: {
-            options: {
-                client: true,
-                compileDebug: false,
-                doctype: 'html',
-                namespace: 'girder.templates',
-                processName: function (filename) {
-                    return path.basename(filename, '.jade');
-                }
-            },
-            core: {
-                files: {
-                    'clients/web/static/built/templates.js': [
-                        'clients/web/src/templates/**/*.jade'
-                    ]
-                }
-            }
+    // https://github.com/webpack/grunt-webpack
+    var gruntWebpackConfig = {
+        stats: {
+            children: false,
+            colors: true,
+            modules: false,
+            reasons: false,
+            errorDetails: true
         },
+        progress: true,    // show progress
+        failOnError: true, // report error to grunt if webpack find errors; set to false if
+        watch: false,      // use webpacks watcher (you need to keep the grunt process alive)
+        keepalive: false,  // don't finish the grunt task (in combination with the watch option)
+        inline: false,     // embed the webpack-dev-server runtime into the bundle (default false)
+        hot: false         // adds HotModuleReplacementPlugin and switch the server to hot mode
+    };
 
-        copy: {
-            swagger: {
-                files: [{
-                    expand: true,
-                    cwd: 'node_modules/swagger-ui/dist',
-                    src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
-                    dest: 'clients/web/static/built/swagger'
-                }]
-            },
-            jsoneditor: {
-                files: [{
-                    expand: true,
-                    cwd: 'node_modules/jsoneditor/dist',
-                    src: ['img/**'],
-                    dest: 'clients/web/static/built/jsoneditor'
-                }]
-            }
+    var config = {
+        webpack: {
+            options: _.extend({}, webpackConfig, gruntWebpackConfig),
+            prod: webpackProdConfig,
+            dev: webpackDevConfig,
+            // This watch subtask is a lot faster than using grunt-contrib-watch below
+            watch: _.extend({}, isDev ? webpackDevConfig : webpackProdConfig, {
+                watch: true,
+                keepalive: true
+            })
         },
-
-        stylus: {
-            core: {
-                files: {
-                    'clients/web/static/built/girder.app.min.css': [
-                        'clients/web/src/stylesheets/**/*.styl',
-                        '!clients/web/src/stylesheets/apidocs/*.styl'
-                    ],
-                    'clients/web/static/built/swagger/docs.css': [
-                        'clients/web/src/stylesheets/apidocs/*.styl'
-                    ]
-                }
-            }
-        },
-
-        concat: {
-            options: {
-                stripBanners: {
-                    block: true,
-                    line: true
-                }
-            },
-            ext_css: {
-                files: {
-                    'clients/web/static/built/girder.ext.min.css': [
-                        'node_modules/bootstrap/dist/css/bootstrap.min.css',
-                        'node_modules/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css',
-                        'node_modules/eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.min.css',
-                        'node_modules/jsoneditor/dist/jsoneditor.min.css',
-                        'node_modules/as-jqplot/dist/jquery.jqplot.min.css'
-                    ]
-                }
-            }
-        },
-
-        uglify: {
-            options: uglifyOptions,
-            app: {
-                files: {
-                    'clients/web/static/built/girder.app.min.js': [
-                        'clients/web/static/built/templates.js',
-                        'clients/web/src/init.js',
-                        'clients/web/src/girder-version.js',
-                        'clients/web/src/view.js',
-                        'clients/web/src/app.js',
-                        'clients/web/src/router.js',
-                        'clients/web/src/utilities/**/*.js',
-                        'clients/web/src/plugin_utils.js',
-                        'clients/web/src/collection.js',
-                        'clients/web/src/model.js',
-                        'clients/web/src/models/**/*.js',
-                        'clients/web/src/collections/**/*.js',
-                        'clients/web/src/views/**/*.js'
-                    ],
-                    'clients/web/static/built/girder.main.min.js': [
-                        'clients/web/src/main.js'
-                    ]
-                }
-            },
-            ext_js: {
-                files: {
-                    'clients/web/static/built/girder.ext.min.js': [
-                        'node_modules/jquery/dist/jquery.js',
-                        'node_modules/jade/runtime.js',
-                        'node_modules/underscore/underscore.js',
-                        'node_modules/backbone/backbone.js',
-                        'node_modules/remarkable/dist/remarkable.js',
-                        'node_modules/jsoneditor/dist/jsoneditor.js',
-                        'node_modules/bootstrap/dist/js/bootstrap.js',
-                        'node_modules/bootstrap-switch/dist/js/bootstrap-switch.js',
-                        'node_modules/eonasdan-bootstrap-datetimepicker/bower_components/moment/moment.js',
-                        'node_modules/eonasdan-bootstrap-datetimepicker/src/js/bootstrap-datetimepicker.js',
-                        'node_modules/d3/d3.js',
-                        'node_modules/as-jqplot/dist/jquery.jqplot.js',
-                        'node_modules/as-jqplot/dist/plugins/jqplot.pieRenderer.js',
-                        'node_modules/sprintf-js/src/sprintf.js'
-                    ]
-                }
-            }
-        },
-
-        curl: {
-            fontello: {
-                src: 'https://data.kitware.com/api/v1/file/57c5d1fc8d777f10f269dece/download',
-                dest: 'clients/web/static/built/fontello.zip'
-            }
-        },
-
-        unzip: {
-            fontello: {
-                src: 'clients/web/static/built/fontello.zip',
-                dest: 'clients/web/static/built/fontello/',
-                router: function (file) {
-                    // remove the first path component
-                    return file.split(path.sep).slice(1).join(path.sep);
-                }
-            }
-        },
-
-        symlink: {
-            options: {
-                overwrite: true,
-                force: true
-            },
-            legacy_names: {
-                // Provide static files under old names, for compatibility
-                files: [{
-                    src: ['clients/web/static/built/girder.app.min.js'],
-                    dest: 'clients/web/static/built/app.min.js'
-                }, {
-                    src: ['clients/web/static/built/girder.app.min.css'],
-                    dest: 'clients/web/static/built/app.min.css'
-                }, {
-                    src: ['clients/web/static/built/girder.main.min.js'],
-                    dest: 'clients/web/static/built/main.min.js'
-                }, {
-                    src: ['clients/web/static/built/girder.ext.min.js'],
-                    dest: 'clients/web/static/built/libs.min.js'
-                }, {
-                    // This provides more than just Bootstrap, but that no
-                    // longer exists as a standalone file
-                    // Note, girder.ext.min.css was never released as another
-                    // name
-                    src: ['clients/web/static/built/girder.ext.min.css'],
-                    dest: 'clients/web/static/lib/bootstrap/css/bootstrap.min.css'
-                }, {
-                    src: ['clients/web/static/built/girder.ext.min.css'],
-                    dest: 'clients/web/static/lib/bootstrap/css/bootstrap-switch.min.css'
-                }, {
-                    src: ['clients/web/static/built/girder.ext.min.css'],
-                    dest: 'clients/web/static/built/jsoneditor/jsoneditor.min.css'
-                }, {
-                    src: ['clients/web/static/built/girder.ext.min.css'],
-                    dest: 'clients/web/static/lib/jqplot/css/jquery.jqplot.min.css'
-                }, {
-                    src: ['clients/web/static/built/fontello'],
-                    dest: 'clients/web/static/lib/fontello'
-                }]
-            }
-        },
-
+        // The grunt-contrib-watch task can be used with webpack, as described here:
+        // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
+        // BUT it is A LOT SLOWER than using the built-in watch options in grunt-webpack
         watch: {
-            stylus_core: {
-                files: ['clients/web/src/stylesheets/**/*.styl'],
-                tasks: ['stylus:core']
-            },
-            js_core: {
-                files: [
-                    'clients/web/src/**/*.js',
-                    'clients/static/built/templates.js'
-                ],
-                tasks: ['uglify:app']
-            },
-            jade_core: {
-                files: ['clients/web/src/templates/**/*.jade'],
-                tasks: ['jade:core', 'uglify:app']
+            warn: {
+                files: [],
+                tasks: 'warnWatch',
+                options: {
+                    atBegin: true
+                }
             }
         },
-
-        init: {
-            'uglify:ext_js': {},
-            'copy:swagger': {},
-            'copy:jsoneditor': {},
-            'concat:ext_css': {},
-            'curl:fontello': {},
-            'unzip:fontello': {
-                dependencies: ['curl:fontello']
-            }
-        },
-
         default: {
-            'stylus:core': {},
-            'jade:core': {
+            build: {
                 dependencies: ['version-info']
-            },
-            'uglify:app': {
-                dependencies: ['jade:core']
-            },
-            'symlink:legacy_names': {
-                dependencies: ['uglify:app']
             }
         }
+    };
+
+    // Need an alias that can be used as a dependency (for testing). It will then trigger dev or
+    // prod based on options passed
+    grunt.registerTask('build', 'Build the web client.', [
+        isWatch ? 'webpack:watch' : (isDev ? 'webpack:dev' : 'webpack:prod')
+    ]);
+
+    // Warn about not using grunt-contrib-watch, use webpack:watch or grunt --watch instead
+    grunt.registerTask('warnWatch', function () {
+        grunt.log.warn('WARNING: the "watch" task will not build; use the "webpack:watch" task or run grunt --watch'['yellow']);
     });
+
+    // Add plugin entry points (should be in webpack.config.js but skipPlugins is a grunt option)
+    if (!skipPlugins) {
+        grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
+            var plugin = path.basename(dir);
+            var pluginTarget = 'plugins/' + plugin + '/plugin';
+            var webClient = path.resolve('./' + dir + '/web_client');
+            var main =  webClient + '/main.js';
+            if (fs.existsSync(main)) {
+                config.webpack.options.entry[pluginTarget] = main;
+                config.webpack.options.resolve.alias['plugins/' + plugin] = webClient;
+            }
+        });
+    } else {
+        grunt.log.writeln('Skipping plugins...');
+    }
+
+    grunt.config.merge(config);
 };

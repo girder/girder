@@ -1,8 +1,14 @@
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+
+import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.jade';
+
 /**
  * This widget presents a list of available batch actions
  * on a set of selected resources.
  */
-girder.views.CheckedMenuWidget = girder.View.extend({
+var CheckedMenuWidget = View.extend({
 
     initialize: function (params) {
         this._fetchAndInit(params);
@@ -17,17 +23,17 @@ girder.views.CheckedMenuWidget = girder.View.extend({
         }
 
         this.dropdownToggle.removeAttr('disabled');
-        this.$el.html(girder.templates.checkedActionsMenu({
+        this.$el.html(CheckedActionsMenuTemplate({
             minFolderLevel: this.minFolderLevel,
             minItemLevel: this.minItemLevel,
             folderCount: this.folderCount,
             itemCount: this.itemCount,
-            AccessType: girder.AccessType,
+            AccessType: AccessType,
             pickedCount: this.pickedCount,
             pickedCopyAllowed: this.pickedCopyAllowed,
             pickedMoveAllowed: this.pickedMoveAllowed,
             pickedDesc: this.pickedDesc,
-            girder: girder
+            HierarchyWidget: HierarchyWidget
         }));
     },
 
@@ -44,8 +50,8 @@ girder.views.CheckedMenuWidget = girder.View.extend({
     },
 
     _fetchAndInit: function (params) {
-        this.minFolderLevel = params.minFolderLevel || girder.AccessType.READ;
-        this.minItemLevel = params.minItemLevel || girder.AccessType.READ;
+        this.minFolderLevel = params.minFolderLevel || AccessType.READ;
+        this.minItemLevel = params.minItemLevel || AccessType.READ;
         this.folderCount = params.folderCount || 0;
         this.itemCount = params.itemCount || 0;
         this.pickedCount = params.pickedCount || 0;
@@ -54,3 +60,5 @@ girder.views.CheckedMenuWidget = girder.View.extend({
         this.pickedDesc = params.pickedDesc || '';
     }
 });
+
+export default CheckedMenuWidget;

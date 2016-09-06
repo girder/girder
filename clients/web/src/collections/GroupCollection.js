@@ -1,4 +1,9 @@
-girder.collections.GroupCollection = girder.Collection.extend({
+import Collection from 'girder/collections/Collection';
+import GroupModel from 'girder/models/GroupModel';
+
+var GroupCollection = Collection.extend({
     resourceName: 'group',
-    model: girder.models.GroupModel
+    model: GroupModel
 });
+
+export default GroupCollection;

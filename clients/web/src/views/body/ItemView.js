@@ -1,167 +1,184 @@
-(function () {
-    /**
-     * This view shows a single item's page.
-     */
-    girder.views.ItemView = girder.View.extend({
-        events: {
-            'click .g-edit-item': 'editItem',
-            'click .g-delete-item': 'deleteItem',
-            'click .g-upload-into-item': 'uploadIntoItem'
-        },
+import $ from 'jquery';
+import _ from 'underscore';
 
-        initialize: function (settings) {
-            girder.cancelRestRequests('fetch');
-            this.edit = settings.edit || false;
-            this.fileEdit = settings.fileEdit || false;
-            this.upload = settings.upload || false;
+import EditItemWidget from 'girder/views/widgets/EditItemWidget';
+import FileListWidget from 'girder/views/widgets/FileListWidget';
+import ItemBreadcrumbWidget from 'girder/views/widgets/ItemBreadcrumbWidget';
+import ItemModel from 'girder/models/ItemModel';
+import MetadataWidget from 'girder/views/widgets/MetadataWidget';
+import router from 'girder/router';
+import UploadWidget from 'girder/views/widgets/UploadWidget';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { cancelRestRequests } from 'girder/rest';
+import { confirm, handleClose } from 'girder/dialog';
+import events from 'girder/events';
+import { formatSize, formatDate, DATE_SECOND } from 'girder/misc';
 
-            // If collection model is already passed, there is no need to fetch.
-            if (settings.item) {
-                this.model = settings.item;
-                this.render();
-            } else {
-                console.error('Implement fetch then render item');
-            }
-        },
+import ItemPageTemplate from 'girder/templates/body/itemPage.jade';
 
-        uploadIntoItem: function () {
-            new girder.views.UploadWidget({
-                el: $('#g-dialog-container'),
-                parent: this.model,
-                parentType: 'item',
-                parentView: this
-            }).on('g:uploadFinished', function () {
-                girder.dialogs.handleClose('upload');
-                this.upload = false;
+import 'girder/stylesheets/body/itemPage.styl';
 
-                girder.events.trigger('g:alert', {
-                    icon: 'ok',
-                    text: 'Files added.',
-                    type: 'success',
-                    timeout: 4000
-                });
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/tooltip';
 
-                this.fileListWidget.collection.fetch(null, true);
-            }, this).render();
-        },
+/**
+ * This view shows a single item's page.
+ */
+var ItemView = View.extend({
+    events: {
+        'click .g-edit-item': 'editItem',
+        'click .g-delete-item': 'deleteItem',
+        'click .g-upload-into-item': 'uploadIntoItem'
+    },
 
-        editItem: function () {
-            var container = $('#g-dialog-container');
+    initialize: function (settings) {
+        cancelRestRequests('fetch');
+        this.edit = settings.edit || false;
+        this.fileEdit = settings.fileEdit || false;
+        this.upload = settings.upload || false;
 
-            if (!this.editItemWidget) {
-                this.editItemWidget = new girder.views.EditItemWidget({
-                    el: container,
-                    item: this.model,
-                    parentView: this
-                }).off('g:saved').on('g:saved', function () {
-                    this.render();
-                }, this);
-            }
-            this.editItemWidget.render();
-        },
+        // If collection model is already passed, there is no need to fetch.
+        if (settings.item) {
+            this.model = settings.item;
+            this.render();
+        } else {
+            console.error('Implement fetch then render item');
+        }
+    },
 
-        deleteItem: function () {
-            var folderId = this.model.get('folderId');
-            var parentRoute = this.model.get('baseParentType') + '/' +
-                this.model.get('baseParentId') + '/folder/' + folderId;
-            var page = this;
-            girder.confirm({
-                text: 'Are you sure you want to delete <b>' + this.model.escape('name') + '</b>?',
-                yesText: 'Delete',
-                escapedHtml: true,
-                confirmCallback: _.bind(function () {
-                    this.model.destroy().on('g:deleted', function () {
-                        girder.router.navigate(parentRoute, {trigger: true});
-                    }).off('g:error').on('g:error', function () {
-                        page.render();
-                        girder.events.trigger('g:alert', {
-                            icon: 'cancel',
-                            text: 'Failed to delete item.',
-                            type: 'danger',
-                            timeout: 4000
-                        });
-                    });
-                }, this)
+    uploadIntoItem: function () {
+        new UploadWidget({
+            el: $('#g-dialog-container'),
+            parent: this.model,
+            parentType: 'item',
+            parentView: this
+        }).on('g:uploadFinished', function () {
+            handleClose('upload');
+            this.upload = false;
+
+            events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'Files added.',
+                type: 'success',
+                timeout: 4000
             });
-        },
 
-        render: function () {
-            // Fetch the access level asynchronously and render once we have
-            // it. TODO: load the page and adjust only the action menu once
-            // the access level is fetched.
-            this.model.getAccessLevel(_.bind(function (accessLevel) {
-                this.$el.html(girder.templates.itemPage({
-                    item: this.model,
-                    accessLevel: accessLevel,
-                    girder: girder
-                }));
+            this.fileListWidget.collection.fetch(null, true);
+        }, this).render();
+    },
 
-                this.$('.g-item-actions-button,.g-upload-into-item').tooltip({
-                    container: 'body',
-                    placement: 'left',
-                    animation: false,
-                    delay: {show: 100}
-                });
+    editItem: function () {
+        var container = $('#g-dialog-container');
 
-                this.fileListWidget = new girder.views.FileListWidget({
-                    el: this.$('.g-item-files-container'),
-                    item: this.model,
-                    fileEdit: this.fileEdit,
-                    upload: this.upload,
-                    parentView: this
-                });
-                this.fileListWidget.once('g:changed', function () {
-                    this.trigger('g:rendered');
-                }, this);
+        if (!this.editItemWidget) {
+            this.editItemWidget = new EditItemWidget({
+                el: container,
+                item: this.model,
+                parentView: this
+            }).off('g:saved').on('g:saved', function () {
+                this.render();
+            }, this);
+        }
+        this.editItemWidget.render();
+    },
 
-                this.fileEdit = false;
-                this.upload = false;
-
-                this.metadataWidget = new girder.views.MetadataWidget({
-                    el: this.$('.g-item-metadata'),
-                    item: this.model,
-                    accessLevel: accessLevel,
-                    parentView: this
-                });
-
-                this.model.getRootPath(_.bind(function (resp) {
-                    this.breadcrumbWidget = new girder.views.ItemBreadcrumbWidget({
-                        el: this.$('.g-item-breadcrumb-container'),
-                        parentChain: resp,
-                        parentView: this
+    deleteItem: function () {
+        var folderId = this.model.get('folderId');
+        var parentRoute = this.model.get('baseParentType') + '/' +
+            this.model.get('baseParentId') + '/folder/' + folderId;
+        var page = this;
+        confirm({
+            text: 'Are you sure you want to delete <b>' + this.model.escape('name') + '</b>?',
+            yesText: 'Delete',
+            escapedHtml: true,
+            confirmCallback: _.bind(function () {
+                this.model.destroy().on('g:deleted', function () {
+                    router.navigate(parentRoute, {trigger: true});
+                }).off('g:error').on('g:error', function () {
+                    page.render();
+                    events.trigger('g:alert', {
+                        icon: 'cancel',
+                        text: 'Failed to delete item.',
+                        type: 'danger',
+                        timeout: 4000
                     });
-                }, this));
+                });
+            }, this)
+        });
+    },
 
-                if (this.edit) {
-                    this.editItem();
-                    this.edit = false;
-                }
+    render: function () {
+        // Fetch the access level asynchronously and render once we have
+        // it. TODO: load the page and adjust only the action menu once
+        // the access level is fetched.
+        this.model.getAccessLevel(_.bind(function (accessLevel) {
+            this.$el.html(ItemPageTemplate({
+                item: this.model,
+                accessLevel: accessLevel,
+                AccessType: AccessType,
+                formatSize: formatSize,
+                formatDate: formatDate,
+                DATE_SECOND: DATE_SECOND
+            }));
+
+            this.$('.g-item-actions-button,.g-upload-into-item').tooltip({
+                container: 'body',
+                placement: 'left',
+                animation: false,
+                delay: {show: 100}
+            });
+
+            this.fileListWidget = new FileListWidget({
+                el: this.$('.g-item-files-container'),
+                item: this.model,
+                fileEdit: this.fileEdit,
+                upload: this.upload,
+                parentView: this
+            });
+            this.fileListWidget.once('g:changed', function () {
+                this.trigger('g:rendered');
+            }, this);
+
+            this.fileEdit = false;
+            this.upload = false;
+
+            this.metadataWidget = new MetadataWidget({
+                el: this.$('.g-item-metadata'),
+                item: this.model,
+                accessLevel: accessLevel,
+                parentView: this
+            });
+
+            this.model.getRootPath(_.bind(function (resp) {
+                this.breadcrumbWidget = new ItemBreadcrumbWidget({
+                    el: this.$('.g-item-breadcrumb-container'),
+                    parentChain: resp,
+                    parentView: this
+                });
             }, this));
 
-            return this;
-        }
-    });
+            if (this.edit) {
+                this.editItem();
+                this.edit = false;
+            }
+        }, this));
 
+        return this;
+    }
+}, {
     /**
      * Helper function for fetching the user and rendering the view with
      * an arbitrary set of extra parameters.
      */
-    var _fetchAndInit = function (itemId, params) {
-        var item = new girder.models.ItemModel();
-        item.set({
-            _id: itemId
-        }).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.ItemView, _.extend({
+    fetchAndInit: function (itemId, params) {
+        var item = new ItemModel();
+        item.set({ _id: itemId }).on('g:fetched', function () {
+            events.trigger('g:navigateTo', ItemView, _.extend({
                 item: item
             }, params || {}));
         }, this).fetch();
-    };
+    }
+});
 
-    girder.router.route('item/:id', 'item', function (itemId, params) {
-        _fetchAndInit(itemId, {
-            edit: params.dialog === 'itemedit',
-            fileEdit: params.dialog === 'fileedit' ? params.dialogid : false,
-            upload: params.dialog === 'upload' ? params.dialogid : false
-        });
-    });
-}());
+export default ItemView;

@@ -1,18 +1,28 @@
+import View from 'girder/views/View';
+import events from 'girder/events';
+import { handleClose, handleOpen } from 'girder/dialog';
+import { login } from 'girder/auth';
+import { restRequest } from 'girder/rest';
+
+import LoginDialogTemplate from 'girder/templates/layout/loginDialog.jade';
+
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This view shows a login modal dialog.
  */
-girder.views.LoginView = girder.View.extend({
+var LoginView = View.extend({
     events: {
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
-            girder.login(this.$('#g-login').val(), this.$('#g-password').val());
+            login(this.$('#g-login').val(), this.$('#g-password').val());
 
-            girder.events.once('g:login.success', function () {
+            events.once('g:login.success', function () {
                 this.$el.modal('hide');
             }, this);
 
-            girder.events.once('g:login.error', function (status, err) {
+            events.once('g:login.error', function (status, err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
                 this.$('#g-login-button').removeClass('disabled');
                 if (err.responseJSON.extra === 'emailVerification') {
@@ -28,7 +38,7 @@ girder.views.LoginView = girder.View.extend({
 
         'click .g-send-verification-email': function () {
             this.$('.g-validation-failed-message').html('');
-            girder.restRequest({
+            restRequest({
                 path: 'user/verification',
                 type: 'POST',
                 data: {login: this.$('#g-login').val()},
@@ -41,27 +51,28 @@ girder.views.LoginView = girder.View.extend({
         },
 
         'click a.g-register-link': function () {
-            girder.events.trigger('g:registerUi');
+            events.trigger('g:registerUi');
         },
 
         'click a.g-forgot-password': function () {
-            girder.events.trigger('g:resetPasswordUi');
+            events.trigger('g:resetPasswordUi');
         }
     },
 
     render: function () {
         var view = this;
-        this.$el.html(girder.templates.loginDialog()).girderModal(this)
+        this.$el.html(LoginDialogTemplate()).girderModal(this)
             .on('shown.bs.modal', function () {
                 view.$('#g-login').focus();
             }).on('hidden.bs.modal', function () {
-                girder.dialogs.handleClose('login', {replace: true});
+                handleClose('login', {replace: true});
             });
 
-        girder.dialogs.handleOpen('login', {replace: true});
+        handleOpen('login', {replace: true});
         this.$('#g-login').focus();
 
         return this;
     }
-
 });
+
+export default LoginView;

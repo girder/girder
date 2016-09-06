@@ -9,6 +9,7 @@ girder.egg-info
 .*.swo
 .vagrant
 phantom-*.png
+phantom_*.png
 girder-*.tar.gz
 __pycache__
 ### PyCharm ###

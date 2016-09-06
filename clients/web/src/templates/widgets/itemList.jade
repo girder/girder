@@ -11,7 +11,7 @@ ul.g-item-list
       a.g-view-inline(title="View in browser" target="_blank", rel="noopener noreferrer",
                       href=item.downloadUrl({contentDisposition: 'inline'}))
         i.icon-eye
-      .g-item-size #{girder.formatSize(item.get('size'))}
+      .g-item-size #{formatSize(item.get('size'))}
   if (hasMore)
     li.g-show-more
       a.g-show-more-items

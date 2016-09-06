@@ -1,11 +1,22 @@
+import _ from 'underscore';
+
+import View from 'girder/views/View';
+import events from 'girder/events';
+import { handleClose, handleOpen } from 'girder/dialog';
+import { restRequest } from 'girder/rest';
+
+import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
+
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This view shows a modal dialog for resetting a forgotten password.
  */
-girder.views.ResetPasswordView = girder.View.extend({
+var ResetPasswordView = View.extend({
     events: {
         'submit #g-reset-password-form': function (e) {
             e.preventDefault();
-            girder.restRequest({
+            restRequest({
                 path: 'user/password/temporary',
                 data: {
                     email: this.$('#g-email').val().trim()
@@ -14,7 +25,7 @@ girder.views.ResetPasswordView = girder.View.extend({
                 error: null // don't do default error behavior
             }).done(_.bind(function () {
                 this.$el.modal('hide');
-                girder.events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     icon: 'mail-alt',
                     text: 'Password reset email sent.',
                     type: 'success'
@@ -29,26 +40,28 @@ girder.views.ResetPasswordView = girder.View.extend({
         },
 
         'click a.g-register-link': function () {
-            girder.events.trigger('g:registerUi');
+            events.trigger('g:registerUi');
         },
 
         'click a.g-login-link': function () {
-            girder.events.trigger('g:loginUi');
+            events.trigger('g:loginUi');
         }
     },
 
     render: function () {
         var view = this;
-        this.$el.html(girder.templates.resetPasswordDialog(
+        this.$el.html(ResetPasswordDialogTemplate(
         )).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-email').focus();
         }).on('hidden.bs.modal', function () {
-            girder.dialogs.handleClose('resetpassword', {replace: true});
+            handleClose('resetpassword', {replace: true});
         });
         this.$('#g-email').focus();
 
-        girder.dialogs.handleOpen('resetpassword', {replace: true});
+        handleOpen('resetpassword', {replace: true});
 
         return this;
     }
 });
+
+export default ResetPasswordView;

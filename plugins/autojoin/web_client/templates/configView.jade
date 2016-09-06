@@ -1,0 +1,52 @@
+.g-config-breadcrumb-container
+
+p.g-autojoin-description
+  | The Auto Join plugin allows you to define rules to automatically assign new users to groups based on their email address domain. Typically, this is used in conjunction with
+  a(href="#settings") email verification.
+
+.g-autojoin-container
+  table.table.table-hover
+    thead
+      tr
+        th If email contains
+        th Add user to group
+        th With access level
+        th
+    tbody
+      if !rules.length
+        tr
+          td.g-autojoin-empty(colspan=4) No rules defined.
+      each rule, index in rules
+        - var group = groupsById[rule.groupId]
+        - var levelName = levelNames[rule.level]
+        tr
+          td= rule.pattern
+          td= group ? group.get('name') : '(group no longer exists)'
+          td= levelName
+          td
+            button.g-autojoin-remove.btn.btn-xs.btn-danger(title="Remove rule", data-index=index)
+              i.icon-cancel
+    tfoot
+      tr
+        td
+          input#g-autojoin-pattern.form-control.input-sm(placeholder="Enter email pattern")
+        td
+          select#g-autojoin-group.form-control.input-sm
+            option(value='') (Select group)
+            each group in groups
+              option(value=group.get('_id'))= group.get('name')
+        td
+          select#g-autojoin-level.form-control.input-sm
+            option(value='') (Select access level)
+            option(value=0) Member
+            option(value=1) Moderator
+            option(value=2) Admin
+        td
+          button#g-autojoin-add.btn.btn-xs.btn-primary(title="Add rule")
+              i.icon-plus
+
+p#g-autojoin-error-message.g-validation-failed-message
+
+.g-autojoin-buttons
+  button#g-autojoin-save.btn.btn-sm.btn-primary Save Changes
+  button#g-autojoin-cancel.btn.btn-sm.btn-default Cancel

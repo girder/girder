@@ -18,7 +18,7 @@ if folderCount || itemCount
       i.icon-plus-circled
       | Pick checked resources for Move or Copy
 
-if girder.pickedResources
+if HierarchyWidget.getPickedResources()
   li.g-admin.divider
   if pickedMoveAllowed
     li

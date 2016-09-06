@@ -1,8 +1,9 @@
 doctype html
 html(lang="en")
   head
+    meta(charset='utf-8')
     title Girder test environment
-    link(href="../../test/lib/jasmine-1.3.1/jasmine.css", rel="stylesheet")
+    link(href="../../../test/lib/jasmine-1.3.1/jasmine.css", rel="stylesheet")
     script(src="polyfill.min.js")
     script(src="testing.min.js")
 
