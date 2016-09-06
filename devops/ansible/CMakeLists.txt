@@ -1,0 +1,24 @@
+# These tests are part of the girder_ansible label
+file(GLOB examples "${PROJECT_SOURCE_DIR}/devops/ansible/examples/girder-*")
+
+foreach (EXAMPLE_DIR ${examples})
+  get_filename_component(EXAMPLE_NAME ${EXAMPLE_DIR} NAME)
+
+  add_test(NAME "ansible_example_${EXAMPLE_NAME}_vagrant_up"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND ${VAGRANT_EXECUTABLE} up)
+  set_tests_properties("ansible_example_${EXAMPLE_NAME}_vagrant_up"
+    PROPERTIES
+    ENVIRONMENT "GIRDER_EXAMPLE=${EXAMPLE_NAME}"
+    RUN_SERIAL ON
+    LABELS girder_ansible)
+
+  add_test(NAME "ansible_example_${EXAMPLE_NAME}_vagrant_destroy"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND ${VAGRANT_EXECUTABLE} destroy -f)
+  set_tests_properties("ansible_example_${EXAMPLE_NAME}_vagrant_destroy"
+    PROPERTIES
+    RUN_SERIAL ON
+    DEPENDS "ansible_example_${EXAMPLE_NAME}_vagrant_up"
+    LABELS girder_ansible)
+endforeach()
