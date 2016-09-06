@@ -45,6 +45,48 @@ def reset(args):
         os.remove(file)
 
 
+def _handleFile(line, combined, remappers, args):
+    currentPath = line[1:].strip()
+    if currentPath not in remappers:
+        sourceMapPath = os.path.join(args.source, currentPath) + '.map'
+        if os.path.isfile(sourceMapPath):
+            remappers[currentPath] = sourcemap.load(open(sourceMapPath))
+        else:
+            remappers[currentPath] = None
+    currentRemapper = remappers[currentPath]
+    skip = args.skipCore and currentPath.startswith('clients')
+
+    return currentPath, currentRemapper, skip
+
+
+def _handleLine(line, combined, currentPath, currentRemapper):
+    lineNum, hit = line[1:].split()
+    if hit != 'undefined':
+        lineNum = int(lineNum)
+        hit = int(hit)
+        if currentRemapper is not None:
+            try:
+                # blanket coverage has no column number, so we pass 0
+                # unfortunately sourcemap.lookup is throwing if it fails to find
+                # a column good enough (even though it has the line that is of
+                # interest to us), so we are missing coverage
+                token = currentRemapper.lookup(line=lineNum, column=0)
+                if token.src is not None:
+                    # This could be optimized by caching the result of replace/slice
+                    sourcePath = token.src.replace('webpack:///./', '')
+                    queryStringPos = sourcePath.find('?')
+                    if queryStringPos != -1:
+                        sourcePath = sourcePath[:queryStringPos]
+                    combined[sourcePath][token.src_line] |= bool(hit)
+                    # else:
+                    #     print "NO MAPPING for " + currentPath + ":" + str(lineNum)
+            except IndexError:
+                # print "NO MAPPING for " + currentPath + ":" + str(lineNum)
+                pass
+        else:
+            combined[currentPath][lineNum] |= bool(hit)
+
+
 def combine_report(args):
     """
     Combine all of the intermediate coverage files from each js test, and then
@@ -66,41 +108,10 @@ def combine_report(args):
         with open(file) as f:
             for line in f:
                 if line[0] == 'F':
-                    currentPath = line[1:].strip()
-                    if currentPath not in remappers:
-                        sourceMapPath = os.path.join(args.source, currentPath) + '.map'
-                        if os.path.isfile(sourceMapPath):
-                            remappers[currentPath] = sourcemap.load(open(sourceMapPath))
-                        else:
-                            remappers[currentPath] = None
-                    currentRemapper = remappers[currentPath]
-                    skip = args.skipCore and currentPath.startswith('clients')
+                    currentPath, currentRemapper, skip = _handleFile(
+                        line, combined, remappers, args)
                 elif not skip and line[0] == 'L':
-                    lineNum, hit = line[1:].split()
-                    if hit != 'undefined':
-                        lineNum = int(lineNum)
-                        hit = int(hit)
-                        if currentRemapper is not None:
-                            try:
-                                # blanket coverage has no column number, so we pass 0
-                                # unfortunately sourcemap.lookup is throwing if it fails to find
-                                # a column good enough (even though it has the line that is of
-                                # interest to us), so we are missing coverage
-                                token = currentRemapper.lookup(line=lineNum, column=0)
-                                if token.src is not None:
-                                    # This could be optimized by caching the result of replace/slice
-                                    sourcePath = token.src.replace('webpack:///./', '')
-                                    queryStringPos = sourcePath.find('?')
-                                    if queryStringPos != -1:
-                                        sourcePath = sourcePath[:queryStringPos]
-                                    combined[sourcePath][token.src_line] |= bool(hit)
-                                # else:
-                                #     print "NO MAPPING for " + currentPath + ":" + str(lineNum)
-                            except IndexError:
-                                # print "NO MAPPING for " + currentPath + ":" + str(lineNum)
-                                pass
-                        else:
-                            combined[currentPath][lineNum] |= bool(hit)
+                    _handleLine(line, combined, currentPath, currentRemapper)
 
     # Step 2: Calculate final aggregate and per-file coverage statistics
     stats = {
