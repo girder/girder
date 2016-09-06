@@ -189,7 +189,7 @@ options:
                           - Name of the assetstore
                   type:
                       required: true
-                      choices: ['filesystem', 'gridfs', 's3', 'hdfs']
+                      choices: ['filesystem', 'gridfs', 's3', 'hdfs', 'database']
                       description:
                           - Currently only 'filesystem' has been tested
                   readOnly:
@@ -1638,7 +1638,8 @@ class GirderClientModule(GirderClient):
         "filesystem": 0,
         "girdfs": 1,
         "s3": 2,
-        "hdfs": "hdfs"
+        "hdfs": "hdfs",
+        "database": "database"
     }
 
     def __validate_hdfs_assetstore(self, *args, **kwargs):
@@ -1649,6 +1650,7 @@ class GirderClientModule(GirderClient):
                    replicaset='', bucket=None, prefix='', accessKeyId=None,
                    secret=None, service='s3.amazonaws.com', host=None,
                    port=None, path=None, user=None, webHdfsPort=None,
+                   dbtype=None, dburi=None,
                    readOnly=False, current=False):
 
             # Fail if somehow we have an asset type not in assetstore_types
@@ -1677,7 +1679,11 @@ class GirderClientModule(GirderClient):
                      'port': port,
                      'path': path,
                      'user': user,
-                     'webHdfsPort': webHdfsPort}
+                     'webHdfsPort': webHdfsPort},
+            'database': {'name': name,
+                         'type': self.assetstore_types[type],
+                         'dbtype': dbtype,
+                         'dburi': dburi}
         }
 
         # Fail if we don't have all the required attributes
