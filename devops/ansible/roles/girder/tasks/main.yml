@@ -13,7 +13,12 @@
 - include: npm.yml
   when: "{{ girder_web }}"
 
-- include: virtualenv.yml
+- name: Install virtualenv
+  apt:
+    name: python-virtualenv
+    state: latest
+  become: yes
+  become_user: root
   when: girder_virtualenv is defined
 
 - include: girder.yml
