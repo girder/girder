@@ -18,7 +18,7 @@ if(test_group STREQUAL python)
   )
 elseif(test_group STREQUAL browser)
   ctest_test(
-    PARALLEL_LEVEL 4 RETURN_VALUE res
+    PARALLEL_LEVEL 1 RETURN_VALUE res
     EXCLUDE_LABEL girder_python
   )
   file(RENAME "${CTEST_BINARY_DIRECTORY}/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
