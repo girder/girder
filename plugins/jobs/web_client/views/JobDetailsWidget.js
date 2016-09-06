@@ -13,12 +13,26 @@ import '../stylesheets/jobDetailsWidget.styl';
 var JobDetailsWidget = View.extend({
     initialize: function (settings) {
         this.job = settings.job;
-        this.job.on('change', this.render, this);
 
         eventStream.on('g:event.job_status', function (event) {
-            var job = event.data;
-            if (job._id === this.job.id) {
-                this.job.set(job);
+            var info = event.data;
+            if (info._id === this.job.id) {
+                this.job.set(info);
+                this.render();
+            }
+        }, this);
+
+        eventStream.on('g:event.job_log', function (event) {
+            var info = event.data;
+            if (info._id === this.job.id) {
+                var container = this.$('.g-job-log-container');
+                if (info.overwrite) {
+                    this.job.set({log: [info.text]});
+                    container.text(info.text);
+                } else {
+                    this.job.get('log').push(info.text);
+                    container.append(_.escape(info.text));
+                }
             }
         }, this);
 

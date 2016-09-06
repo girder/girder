@@ -235,6 +235,7 @@ def handle_item(item, parent, depth, bc):
             parent['_id'],
             item['name'],
             item['description'],
+            True, # reuseExisting
         )
         newItem = get_or_create(
             'item', item['item_id'], item['date_creation'], bc, func, args)

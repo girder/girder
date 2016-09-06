@@ -23,7 +23,7 @@ $(function () {
                     _id: 'foo',
                     title: 'My batch job',
                     status: girder.plugins.jobs.JobStatus.INACTIVE,
-                    log: 'Hello world\ngoodbye world',
+                    log: ['Hello world\n', 'goodbye world'],
                     updated: '2015-01-12T12:00:12Z',
                     created: '2015-01-12T12:00:00Z',
                     when: '2015-01-12T12:00:00Z',
@@ -46,7 +46,7 @@ $(function () {
                 }).render();
 
                 expect($('.g-monospace-viewer[property="kwargs"]').length).toBe(0);
-                expect($('.g-monospace-viewer[property="log"]').text()).toBe(job.get('log'));
+                expect($('.g-monospace-viewer[property="log"]').text()).toBe(job.get('log').join(''));
                 expect($('.g-job-info-value[property="_id"]').text()).toBe(job.get('_id'));
                 expect($('.g-job-info-value[property="title"]').text()).toBe(job.get('title'));
                 expect($('.g-job-info-value[property="when"]').text()).toContain('January 12, 2015');
@@ -62,25 +62,42 @@ $(function () {
                 girder.utilities.eventStream.trigger('g:event.job_status', {
                     data: {
                         _id: 'foo',
-                        status: girder.plugins.jobs.JobStatus.SUCCESS,
-                        log: 'log changed'
+                        status: girder.plugins.jobs.JobStatus.SUCCESS
                     }
                 });
 
                 expect($('.g-job-status-badge').text()).toContain('Success');
-                expect($('.g-monospace-viewer[property="log"]').text()).toBe('log changed');
 
                 // Make sure view change only happens for the currently viewed job
                 girder.utilities.eventStream.trigger('g:event.job_status', {
                     data: {
                         _id: 'bar',
-                        status: girder.plugins.jobs.JobStatus.QUEUED,
-                        log: 'should not appear'
+                        status: girder.plugins.jobs.JobStatus.QUEUED
                     }
                 });
 
                 expect($('.g-job-status-badge').text()).toContain('Success');
-                expect($('.g-monospace-viewer[property="log"]').text()).toBe('log changed');
+
+                // Test log output events
+                girder.eventStream.trigger('g:event.job_log', {
+                    data: {
+                        _id: 'foo',
+                        overwrite: true,
+                        text: 'overwritten log'
+                    }
+                });
+                expect($('.g-monospace-viewer[property="log"]').text()).toBe('overwritten log');
+
+                girder.eventStream.trigger('g:event.job_log', {
+                    data: {
+                        _id: 'foo',
+                        overwrite: false,
+                        text: '<script type="text/javascript">xss probe!</script>'
+                    }
+                });
+
+                expect($('.g-monospace-viewer[property="log"]').text()).toBe(
+                    'overwritten log<script type="text/javascript">xss probe!</script>');
             });
         });
     });

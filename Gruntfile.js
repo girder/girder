@@ -63,17 +63,20 @@ module.exports = function (grunt) {
      * Load task modules inside `grunt_tasks`.
      */
     grunt.loadTasks('grunt_tasks');
-
-    grunt.loadNpmTasks('grunt-shell');          // only used in package.js and sphinx.js
-    grunt.loadNpmTasks('grunt-contrib-watch');  // only used in sphinx.js
-    grunt.loadNpmTasks('grunt-contrib-stylus'); // only used in swagger.js
-    grunt.loadNpmTasks('grunt-contrib-uglify'); // only used in dev.js
-    grunt.loadNpmTasks('grunt-contrib-copy');   // only used in fontello.js, swagger.js, plugin.js
-    grunt.loadNpmTasks('grunt-gitinfo');        // only used in version.js
-    grunt.loadNpmTasks('grunt-fontello');       // only used in fontello.js
-    grunt.loadNpmTasks('grunt-file-creator');   // only used in version.js
-    grunt.loadNpmTasks('grunt-npm-install');    // only used in plugin.js
-    grunt.loadNpmTasks('grunt-webpack');        // only used in build.js
+    grunt.loadNpmTasks('grunt-shell');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-jade');
+    grunt.loadNpmTasks('grunt-contrib-stylus');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-symlink');
+    grunt.loadNpmTasks('grunt-gitinfo');
+    grunt.loadNpmTasks('grunt-curl');
+    grunt.loadNpmTasks('grunt-zip');
+    grunt.loadNpmTasks('grunt-file-creator');
+    grunt.loadNpmTasks('grunt-npm-install');
+    grunt.loadNpmTasks('grunt-webpack');
 
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {

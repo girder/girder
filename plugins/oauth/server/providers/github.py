@@ -84,8 +84,7 @@ class GitHub(ProviderBase):
         # Get user's email address
         # In the unlikely case that a user has more than 30 email addresses,
         # this HTTP request might have to be made multiple times with pagination
-        resp = self._getJson(method='GET', url=self._API_EMAILS_URL,
-                             headers=headers)
+        resp = self._getJson(method='GET', url=self._API_EMAILS_URL, headers=headers)
         emails = [
             email.get('email')
             for email in resp
@@ -98,18 +97,13 @@ class GitHub(ProviderBase):
         email = emails[0]
 
         # Get user's OAuth2 ID, login, and name
-        resp = self._getJson(method='GET', url=self._API_USER_URL,
-                             headers=headers)
+        resp = self._getJson(method='GET', url=self._API_USER_URL, headers=headers)
         oauthId = resp.get('id')
         if not oauthId:
             raise RestException('GitHub did not return a user ID.', code=502)
 
-        login = resp.get('login', None)
+        login = resp.get('login', '')
+        names = (resp.get('name') or login).split()
+        firstName, lastName = names[0], names[-1]
 
-        names = resp.get('name', '').split()
-        firstName = names[0] if names else ''
-        lastName = names[-1] if len(names) > 1 else ''
-
-        user = self._createOrReuseUser(oauthId, email, firstName, lastName,
-                                       login)
-        return user
+        return self._createOrReuseUser(oauthId, email, firstName, lastName, login)

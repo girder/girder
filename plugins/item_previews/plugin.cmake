@@ -1,1 +1,3 @@
-add_eslint_test(item_previews "${PROJECT_SOURCE_DIR}/plugins/item_previews/web_client/js")
+get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
+
+add_eslint_test(${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/js")

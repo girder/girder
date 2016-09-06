@@ -43,7 +43,6 @@ receive the Event object as its only argument.
 
 import contextlib
 import threading
-import types
 
 import girder
 from six.moves import queue
@@ -132,7 +131,7 @@ class AsyncEventsThread(threading.Thread):
             eventName, info, callback = self.eventQueue.get(block=True)
             try:
                 event = trigger(eventName, info, async=True)
-                if isinstance(callback, types.FunctionType):
+                if callable(callback):
                     callback(event)
             except Exception:
                 girder.logger.exception(
