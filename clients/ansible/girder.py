@@ -1740,7 +1740,7 @@ class GirderClientModule(GirderClient):
                                      for k in updateable
                                      if k in argument_hash[type].keys())
 
-                # if arg_hash_items not a proper subset of assetstore_items
+                # if arg_hash_items not a subset of assetstore_items
                 if not arg_hash_items <= assetstore_items:
                     # Update
                     ret = self.put("assetstore/%s" % id,
