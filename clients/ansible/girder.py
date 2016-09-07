@@ -1646,6 +1646,9 @@ class GirderClientModule(GirderClient):
         # Check if hdfs plugin is available,  enable it if it isn't
         pass
 
+    def __validate_database_assetstore(self, *args, **kwargs):
+        pass
+
     def assetstore(self, name, type, root=None, db=None, mongohost=None,
                    replicaset='', bucket=None, prefix='', accessKeyId=None,
                    secret=None, service='s3.amazonaws.com', host=None,
