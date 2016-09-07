@@ -1726,7 +1726,7 @@ class GirderClientModule(GirderClient):
                 updateable = ["root", "mongohost", "replicaset", "bucket",
                               "prefix", "db", "accessKeyId", "secret",
                               "service", "host", "port", "path", "user",
-                              "webHdfsPort", "current"]
+                              "webHdfsPort", "current", "dbtype", "dburi"]
 
                 # tuples of (key,  value) for fields that can be updated
                 # in the assetstore
