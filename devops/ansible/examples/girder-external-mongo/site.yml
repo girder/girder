@@ -13,7 +13,7 @@
       become_user: root
 
   roles:
-    - girder
+    - role: girder
 
   post_tasks:
     - name: Point Girder to existing Mongo URI

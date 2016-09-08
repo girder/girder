@@ -17,7 +17,7 @@
     - role: Stouts.mongodb
       become: yes
       become_user: root
-    - girder
+    - role: girder
 
   post_tasks:
     - name: Install Grunt globally
