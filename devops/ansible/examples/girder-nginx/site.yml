@@ -53,3 +53,13 @@
         - { section: "global", option: "server.socket_port", value: "8888" }
         - { section: "global", option: "tools.proxy.on", value: "True" }
         - { section: "server", option: "mode", value: '"production"' }
+
+    - name: restart girder/nginx
+      service:
+        state=restarted
+        name={{ item }}
+      with_items:
+        - girder
+        - nginx
+      become: yes
+      become_user: root
