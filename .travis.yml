@@ -53,7 +53,7 @@ script:
     - cd ..
     - git fetch --unshallow
 deploy:
-    provider: heroku
+  - provider: heroku
     buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
     strategy: git
     api_key:
@@ -63,3 +63,9 @@ deploy:
         repo: girder/girder
         branch: master
         condition: "$DEPLOY = true"
+  - provider: script
+    script: scripts/ansible_role_girder_deploy.sh
+    on:
+      repo: girder/girder
+      branch: master
+      condition: "$DEPLOY = true"
