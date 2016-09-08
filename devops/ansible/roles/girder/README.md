@@ -14,7 +14,7 @@ Role Variables
 --------------
 
 | parameter         | required | default      | comments                                                                     |
-|-------------------+----------+--------------+------------------------------------------------------------------------------|
+| ----------------- | -------- | ------------ | ---------------------------------------------------------------------------- |
 | girder_path       | no       | $HOME/girder | Path to download and build Girder in.                                        |
 | girder_version    | no       | master       | Git commit-ish for fetching Girder.                                          |
 | girder_virtualenv | no       | none         | Path to a Python virtual environment to install Girder in.                   |
