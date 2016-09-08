@@ -13,14 +13,14 @@ This is intended to be run on a clean Ubuntu 14.04 system.
 Role Variables
 --------------
 
-The following variables may be overridden:
-
-* `girder_path`: Path to download and build Girder in.
-* `girder_version`: Git commit-ish for fetching Girder.
-* `girder_virtualenv`: Path to a Python virtual environment to install Girder in.
-* `girder_update`: Whether provisioning should fetch new versions via git.
-* `girder_force`: Whether provisioning should discard modified files in the working directory.
-* `girder_web`: Whether to build the Girder web client.
+| parameter         | required | default      | comments                                                                     |
+|-------------------+----------+--------------+------------------------------------------------------------------------------|
+| girder_path       | no       | $HOME/girder | Path to download and build Girder in.                                        |
+| girder_version    | no       | master       | Git commit-ish for fetching Girder.                                          |
+| girder_virtualenv | no       | none         | Path to a Python virtual environment to install Girder in.                   |
+| girder_update     | no       | yes          | Whether provisioning should fetch new versions via git.                      |
+| girder_force      | no       | yes          | Whether provisioning should discard modified files in the working directory. |
+| girder_web        | no       | yes          | Whether to build the Girder web client.                                      |
 
 Dependencies
 ------------
