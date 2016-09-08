@@ -14,7 +14,7 @@ girder.jobs_JobStatus = {
     text: function (status) {
         var text = status;
         if (status in this._map) {
-          text = this._map[status].text;
+            text = this._map[status].text;
         }
 
         return text;
@@ -23,7 +23,7 @@ girder.jobs_JobStatus = {
     icon: function (status) {
         var icon;
         if (status in this._map) {
-          icon = this._map[status].icon;
+            icon = this._map[status].icon;
         }
 
         return icon;
