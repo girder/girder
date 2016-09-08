@@ -160,24 +160,6 @@ module.exports = function (grunt) {
             }
         },
 
-        curl: {
-            fontello: {
-                src: 'https://data.kitware.com/api/v1/file/57c5d1fc8d777f10f269dece/download',
-                dest: 'clients/web/static/built/fontello.zip'
-            }
-        },
-
-        unzip: {
-            fontello: {
-                src: 'clients/web/static/built/fontello.zip',
-                dest: 'clients/web/static/built/fontello/',
-                router: function (file) {
-                    // remove the first path component
-                    return file.split(path.sep).slice(1).join(path.sep);
-                }
-            }
-        },
-
         symlink: {
             options: {
                 overwrite: true,
@@ -242,11 +224,7 @@ module.exports = function (grunt) {
             'uglify:ext_js': {},
             'copy:swagger': {},
             'copy:jsoneditor': {},
-            'concat:ext_css': {},
-            'curl:fontello': {},
-            'unzip:fontello': {
-                dependencies: ['curl:fontello']
-            }
+            'concat:ext_css': {}
         },
 
         default: {
