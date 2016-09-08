@@ -6,11 +6,21 @@ foreach (EXAMPLE_DIR ${examples})
 
   add_test(NAME "ansible_example_${EXAMPLE_NAME}_vagrant_up"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND ${VAGRANT_EXECUTABLE} up)
+    COMMAND ${VAGRANT_EXECUTABLE} up --no-provision)
   set_tests_properties("ansible_example_${EXAMPLE_NAME}_vagrant_up"
     PROPERTIES
     ENVIRONMENT "GIRDER_EXAMPLE=${EXAMPLE_NAME}"
     RUN_SERIAL ON
+    LABELS girder_ansible)
+
+  add_test(NAME "ansible_example_${EXAMPLE_NAME}_vagrant_provision"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND ${VAGRANT_EXECUTABLE} provision)
+  set_tests_properties("ansible_example_${EXAMPLE_NAME}_vagrant_provision"
+    PROPERTIES
+    ENVIRONMENT "GIRDER_EXAMPLE=${EXAMPLE_NAME}"
+    RUN_SERIAL ON
+    DEPENDS "ansible_example_${EXAMPLE_NAME}_vagrant_up"
     LABELS girder_ansible)
 
   add_test(NAME "ansible_example_${EXAMPLE_NAME}_vagrant_destroy"
