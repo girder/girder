@@ -28,7 +28,7 @@ module.exports = function (grunt) {
         grunt.config.merge({
             copy: {
                 fontello: {
-                    files:[{
+                    files: [{
                         src: localArchive,
                         dest: archivePath
                     }]
@@ -41,7 +41,7 @@ module.exports = function (grunt) {
                     dependencies: ['copy:fontello']
                 }
             }
-        })
+        });
     } else {
         // Download font archive from data.kitware.com
         grunt.config.merge({
@@ -60,6 +60,4 @@ module.exports = function (grunt) {
             }
         });
     }
-
-
 };
