@@ -1,9 +1,7 @@
 ---
 
 - name: NodeJS | Add PPA key
-  apt_key:
-    id: "68576280"
-    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+  command: "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 68576280"
   become: yes
   become_user: root
 
