@@ -1,6 +1,6 @@
 {
   "name": "girder",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "High-performance data management platform",
   "homepage": "https://girder.readthedocs.org",
   "bugs": {
