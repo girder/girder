@@ -46,7 +46,7 @@ before_install:
     - mkdir /tmp/db
     - (mongod --dbpath=/tmp/db >/dev/null 2>/dev/null || true ) &
     - mongod --version || true
-    - CACHE=$HOME/.cache CMAKE_VERSION=3.6.2 CMAKE_SHORT_VERSION=3.6 source ./scripts/install_cmake.sh
+    - CACHE=$HOME/.cache CMAKE_VERSION=3.4.3 CMAKE_SHORT_VERSION=3.4 source ./scripts/install_cmake.sh
     - cmake --version
     - mkdir -p $HOME/.cache/node_modules || true
     - ln -sf $HOME/.cache/node_modules .
