@@ -338,6 +338,14 @@ This event is always triggered asynchronously and is fired after a file has
 been uploaded. The file document that was created is passed in the event info.
 You can bind to this event using the identifier ``data.process``.
 
+*  **Before file move**
+
+The event ``model.upload.movefile`` is triggered when a file is about to be
+moved from one assetstore to another.  The event information is a dictionary
+containing ``file`` and ``assetstore`` with the current file document and the
+target assetstore document.  If ``preventDefault`` is called, the move will be
+cancelled.
+
 .. note:: If you anticipate your plugin being used as a dependency by other
    plugins, and want to potentially alert them of your own events, it can
    be worthwhile to trigger your own events from within the plugin. If you do
@@ -451,7 +459,7 @@ that can be used to import content:
   such as static images, fonts, or third-party static libraries.
 
 Linting and Style Checking Client-Side Code
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+*******************************************
 
 Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its
 own JavaScript files.  Developers can easily add the same static analysis

@@ -70,6 +70,15 @@ downstream plugin with a custom job status with the value *1234* would add the f
     def load(info):
         events.bind('jobs.status.validate', 'my_plugin', validateJobStatus):
 
+Downstream plugins that want to hook into job updates must use a different convention than normal;
+for the sake of optimizing data transfer, job updates do not occur using the normal ``save`` method
+of Girder models. Therefore, plugins that want to listen to job updates should bind to either
+``jobs.job.update`` (which is triggered prior to persisting the updates and can be used to prevent
+the update) or ``jobs.job.update.after`` (which is triggered after the update). Users of these events
+should be aware that the ``log`` field of the job will not necessarily be in sync with the persisted
+version, so if your event handler requires access to the job log, you should manually re-fetch the
+full document in the handler.
+
 
 Geospatial
 ----------

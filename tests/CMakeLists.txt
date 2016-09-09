@@ -92,6 +92,7 @@ if(RUN_CORE_TESTS)
 
   add_subdirectory(clients)
   add_subdirectory(packaging)
+  include(DocumentationTests.cmake)
 endif()
 
 

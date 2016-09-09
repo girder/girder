@@ -117,7 +117,7 @@ class Job(AccessControlledModel):
 
     def createJob(self, title, type, args=(), kwargs=None, user=None, when=None,
                   interval=0, public=False, handler=None, async=False,
-                  save=True):
+                  save=True, otherFields=None):
         """
         Create a new job record.
 
@@ -149,6 +149,8 @@ class Job(AccessControlledModel):
         :type async: bool
         :param save: Whether the documented should be saved to the database.
         :type save: bool
+        :param otherFields: Any additional fields to set on the job.
+        :type otherFields: dict
         """
         now = datetime.datetime.utcnow()
 
@@ -157,6 +159,8 @@ class Job(AccessControlledModel):
 
         if kwargs is None:
             kwargs = {}
+
+        otherFields = otherFields or {}
 
         job = {
             'title': title,
@@ -175,6 +179,8 @@ class Job(AccessControlledModel):
             'async': async,
             'timestamps': []
         }
+
+        job.update(otherFields)
 
         self.setPublic(job, public=public)
 
@@ -270,6 +276,21 @@ class Job(AccessControlledModel):
         :param otherFields: Any additional fields to set on the job.
         :type otherFields: dict
         """
+        event = events.trigger('jobs.job.update', {
+            'job': job,
+            'params': {
+                'log': log,
+                'overwrite': overwrite,
+                'status': status,
+                'progressTotal': progressTotal,
+                'progressMessage': progressMessage,
+                'otherFields': otherFields
+            }
+        })
+
+        if event.defaultPrevented:
+            return job
+
         now = datetime.datetime.utcnow()
         user = None
         otherFields = otherFields or {}
@@ -299,6 +320,10 @@ class Job(AccessControlledModel):
             updates['$set']['updated'] = now
 
             self.update({'_id': job['_id']}, update=updates, multi=False)
+
+            events.trigger('jobs.job.update.after', {
+                'job': job
+            })
 
         return job
 

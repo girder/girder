@@ -24,7 +24,7 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.constants import SettingKey
 from girder.utility import assetstore_utilities
-from .model_base import Model, ValidationException
+from .model_base import Model, GirderException, ValidationException
 
 
 class Upload(Model):
@@ -36,8 +36,20 @@ class Upload(Model):
     def initialize(self):
         self.name = 'upload'
 
+    def _getChunkSize(self, minSize=32 * 1024**2):
+        """
+        Return a chunk size to use in file uploads.  This is the maximum of
+        the setting for minimum upload chunk size and the specified size.
+
+        :param minSize: the minimum size to return.
+        :return: chunk size to use for file uploads.
+        """
+        minChunkSize = self.model('setting').get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
+        return max(minChunkSize, minSize)
+
     def uploadFromFile(self, obj, size, name, parentType=None, parent=None,
-                       user=None, mimeType=None, reference=None):
+                       user=None, mimeType=None, reference=None,
+                       assetstore=None):
         """
         This method wraps the entire upload process into a single function to
         facilitate "internal" uploads from a file-like object. Example:
@@ -65,14 +77,16 @@ class Upload(Model):
         :type mimeType: str
         :param reference: An optional reference string that will be sent to the
                           data.process event.
+        :param assetstore: An optional assetstore to use to store the file.  If
+            unspecified, the current assetstore is used.
         :type reference: str
         """
         upload = self.createUpload(
             user=user, name=name, parentType=parentType, parent=parent,
-            size=size, mimeType=mimeType, reference=reference)
+            size=size, mimeType=mimeType, reference=reference,
+            assetstore=assetstore)
         # The greater of 32 MB or the the upload minimum chunk size.
-        chunkSize = max(self.model('setting').get(
-            SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE), 32 * 1024**2)
+        chunkSize = self._getChunkSize()
 
         while True:
             data = obj.read(chunkSize)
@@ -193,12 +207,18 @@ class Upload(Model):
 
         return file
 
-    def getTargetAssetstore(self, modelType, resource):
+    def getTargetAssetstore(self, modelType, resource, assetstore=None):
         """
         Get the assetstore for a particular target resource, i.e. where new
         data within the resource should be stored. In Girder core, this is
         always just the current assetstore, but plugins may override this
         behavior to allow for more granular assetstore selection.
+
+        :param modelType: the type of the resource that will be stored.
+        :param resource: the resource to be stored.
+        :param assetstore: if specified, the prefered assetstore where the
+            resource should be located.  This may be overridden.
+        :returns: the selected assetstore.
         """
         eventParams = {'model': modelType, 'resource': resource}
         event = events.trigger('model.upload.assetstore', eventParams)
@@ -210,12 +230,13 @@ class Upload(Model):
             # for backward compatibility
             # TODO remove in v2.0
             assetstore = eventParams['assetstore']
-        else:
+        elif not assetstore:
             assetstore = self.model('assetstore').getCurrent()
 
         return assetstore
 
-    def createUploadToFile(self, file, user, size, reference=None):
+    def createUploadToFile(self, file, user, size, reference=None,
+                           assetstore=None):
         """
         Creates a new upload record into a file that already exists. This
         should be used when updating the contents of a file. Deletes any
@@ -229,8 +250,10 @@ class Upload(Model):
         :param reference: An optional reference string that will be sent to the
                           data.process event.
         :type reference: str
+        :param assetstore: An optional assetstore to use to store the file.  If
+            unspecified, the current assetstore is used.
         """
-        assetstore = self.getTargetAssetstore('file', file)
+        assetstore = self.getTargetAssetstore('file', file, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
@@ -251,7 +274,7 @@ class Upload(Model):
         return self.save(upload)
 
     def createUpload(self, user, name, parentType, parent, size, mimeType=None,
-                     reference=None):
+                     reference=None, assetstore=None):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent
@@ -272,9 +295,11 @@ class Upload(Model):
         :param reference: An optional reference string that will be sent to the
                           data.process event.
         :type reference: str
+        :param assetstore: An optional assetstore to use to store the file.  If
+            unspecified, the current assetstore is used.
         :returns: The upload document that was created.
         """
-        assetstore = self.getTargetAssetstore(parentType, parent)
+        assetstore = self.getTargetAssetstore(parentType, parent, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
@@ -306,6 +331,48 @@ class Upload(Model):
 
         upload = adapter.initUpload(upload)
         return self.save(upload)
+
+    def moveFileToAssetstore(self, file, user, assetstore):
+        """
+        Move a file from whatever assetstore it is located in to a different
+        assetstore.  This is done by downloading and re-uploading the file.
+
+        :param file: the file to move.
+        :param user: the user that is authorizing the move.
+        :param assetstore: the destination assetstore.
+        :returns: the original file if it is not moved, or the newly 'uploaded'
+            file if it is.
+        """
+        if file['assetstoreId'] == assetstore['_id']:
+            return file
+        # Allow an event to cancel the move.  This could be done, for instance,
+        # on files that could change dynamically.
+        event = events.trigger('model.upload.movefile', {
+            'file': file, 'assetstore': assetstore})
+        if event.defaultPrevented:
+            raise GirderException(
+                'The file %s could not be moved to assetstore %s' % (
+                    file['_id'], assetstore['_id']))
+        # Create a new upload record into the existing file
+        upload = self.createUploadToFile(
+            file=file, user=user, size=int(file['size']), assetstore=assetstore)
+        if file['size'] == 0:
+            return self.model('file').filter(
+                self.model('upload').finalizeUpload(upload), user)
+        # Uploads need to be chunked for some assetstores
+        chunkSize = self._getChunkSize()
+        chunk = None
+        for data in self.model('file').download(file, headers=False)():
+            if chunk is not None:
+                chunk += data
+            else:
+                chunk = data
+            if len(chunk) >= chunkSize:
+                upload = self.handleChunk(upload, six.BytesIO(chunk))
+                chunk = None
+        if chunk is not None:
+            upload = self.handleChunk(upload, six.BytesIO(chunk))
+        return upload
 
     def list(self, limit=0, offset=0, sort=None, filters=None):
         """

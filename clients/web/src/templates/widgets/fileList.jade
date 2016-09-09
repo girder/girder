@@ -3,7 +3,7 @@ ul.g-file-list
     li.g-file-list-entry
       a.g-file-list-link(cid=file.cid, title="Download file",
                          target=file.get('linkUrl') ? '_blank' : '_self',
-                         href=file.downloadUrl())
+                         href=file.downloadUrl(), rel="noopener noreferrer")
         if file.get('linkUrl')
           i.icon-link
           span.g-file-name= file.name()
@@ -11,7 +11,7 @@ ul.g-file-list
         else
           i.icon-doc-inv
           = file.name()
-      a.g-view-inline(title="View in browser", target="_blank",
+      a.g-view-inline(title="View in browser", target="_blank", rel="noopener noreferrer",
                       href=file.downloadUrl({contentDisposition: 'inline'}))
         i.icon-eye
       a.g-show-info(file-cid=file.cid, title="Show info")

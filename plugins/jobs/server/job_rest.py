@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder import events
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, filtermodel, loadmodel
@@ -109,27 +108,18 @@ class Job(Resource):
     )
     def updateJob(self, job, params):
         user = self.getCurrentUser()
-        if user is None:
-            self.ensureTokenScopes('jobs.job_' + str(job['_id']))
+        if user:
+            self.model('job', 'jobs').requireAccess(job, user, level=AccessType.WRITE)
         else:
-            self.model('job', 'jobs').requireAccess(
-                job, user, level=AccessType.WRITE)
+            self.ensureTokenScopes('jobs.job_' + str(job['_id']))
 
-        event = events.trigger('jobs.job.update', {
-            'job': job,
-            'params': params
-        })
-
-        if not event.defaultPrevented:
-            job = self.model('job', 'jobs').updateJob(
-                job, log=params.get('log'), status=params.get('status'),
-                overwrite=self.boolParam('overwrite', params, False),
-                notify=self.boolParam('notify', params, default=True),
-                progressCurrent=params.get('progressCurrent'),
-                progressTotal=params.get('progressTotal'),
-                progressMessage=params.get('progressMessage'))
-
-        return job
+        return self.model('job', 'jobs').updateJob(
+            job, log=params.get('log'), status=params.get('status'),
+            overwrite=self.boolParam('overwrite', params, False),
+            notify=self.boolParam('notify', params, default=True),
+            progressCurrent=params.get('progressCurrent'),
+            progressTotal=params.get('progressTotal'),
+            progressMessage=params.get('progressMessage'))
 
     @access.user
     @loadmodel(model='job', plugin='jobs', level=AccessType.ADMIN)

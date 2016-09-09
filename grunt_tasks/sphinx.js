@@ -28,6 +28,15 @@ module.exports = function (grunt) {
                 options: {
                     stdout: true
                 }
+            },
+            sphinx_clean: {
+                command: [
+                    'cd docs',
+                    'make clean'
+                ].join('&&'),
+                options: {
+                    stdout: true
+                }
             }
         },
 
@@ -38,5 +47,12 @@ module.exports = function (grunt) {
             }
         }
     });
-    grunt.registerTask('docs', ['shell:sphinx']);
+
+    grunt.registerTask('docs', function (target) {
+        var tasks = ['shell:sphinx'];
+        if (target === 'clean') {
+            tasks.unshift('shell:sphinx_clean');
+        }
+        grunt.task.run(tasks);
+    });
 };

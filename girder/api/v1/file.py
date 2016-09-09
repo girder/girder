@@ -48,6 +48,7 @@ class File(Resource):
         self.route('POST', (':id', 'copy'), self.copy)
         self.route('PUT', (':id',), self.updateFile)
         self.route('PUT', (':id', 'contents'), self.updateFileContents)
+        self.route('PUT', (':id', 'move'), self.moveFileToAssetstore)
 
     @access.public(scope=TokenScope.DATA_READ)
     @loadmodel(model='file', level=AccessType.READ)
@@ -75,6 +76,8 @@ class File(Resource):
                'of size and mimeType using this parameter.', required=False)
         .param('reference', 'If included, this information is passed to the '
                'data.process event when the upload is complete.',
+               required=False)
+        .param('assetstoreId', 'Direct the upload to a specific assetstore.',
                required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
@@ -107,11 +110,15 @@ class File(Resource):
                     parentType=parentType, creator=user), user)
         else:
             self.requireParams('size', params)
+            assetstore = None
+            if params.get('assetstoreId'):
+                assetstore = self.model('assetstore').load(
+                    params['assetstoreId'])
             try:
                 upload = self.model('upload').createUpload(
                     user=user, name=params['name'], parentType=parentType,
                     parent=parent, size=int(params['size']), mimeType=mimeType,
-                    reference=params.get('reference'))
+                    reference=params.get('reference'), assetstore=assetstore)
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(
@@ -359,6 +366,8 @@ class File(Resource):
         .param('reference', 'If included, this information is passed to the '
                'data.process event when the upload is complete.',
                required=False)
+        .param('assetstoreId', 'Direct the upload to a specific assetstore.',
+               required=False)
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.')
     )
@@ -366,16 +375,33 @@ class File(Resource):
         self.requireParams('size', params)
         user = self.getCurrentUser()
 
+        assetstore = None
+        if params.get('assetstoreId'):
+            assetstore = self.model('assetstore').load(params['assetstoreId'])
         # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(
             file=file, user=user, size=int(params['size']),
-            reference=params.get('reference'))
+            reference=params.get('reference'), assetstore=assetstore)
 
         if upload['size'] > 0:
             return upload
         else:
             return self.model('file').filter(
                 self.model('upload').finalizeUpload(upload), user)
+
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @loadmodel(model='file', level=AccessType.WRITE)
+    @describeRoute(
+        Description('Move a file to a different assetstore.')
+        .param('id', 'The ID of the file.', paramType='path')
+        .param('assetstoreId', 'The destination assetstore.')
+    )
+    def moveFileToAssetstore(self, file, params):
+        self.requireParams('assetstoreId', params)
+        user = self.getCurrentUser()
+        assetstore = self.model('assetstore').load(params['assetstoreId'])
+        return self.model('upload').moveFileToAssetstore(
+            file=file, user=user, assetstore=assetstore)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='file', level=AccessType.READ)
