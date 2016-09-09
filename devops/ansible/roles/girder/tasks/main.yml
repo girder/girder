@@ -1,5 +1,9 @@
 ---
 
+- fail:
+    msg="ansible-role-girder only supports Ubuntu Trusty and Xenial."
+  when: '"{{ ansible_distribution_release }}" not in ["trusty", "xenial"]'
+
 - name: Ensure girder base directory exists
   file:
     path: "{{ girder_path }}"

@@ -10,6 +10,7 @@ galaxy_info:
   - name: Ubuntu
     versions:
     - trusty
+    - xenial
 
   galaxy_tags:
     - girder
