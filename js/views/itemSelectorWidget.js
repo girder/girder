@@ -1,4 +1,4 @@
-histomicstk.views.ItemSelectorWidget = girder.View.extend({
+slicer.views.ItemSelectorWidget = girder.View.extend({
     events: {
         'click .h-select-button': '_selectButton'
     },
@@ -12,7 +12,7 @@ histomicstk.views.ItemSelectorWidget = girder.View.extend({
     render: function () {
         this._hierarchyView = new girder.views.HierarchyWidget({
             parentView: this,
-            parentModel: histomicstk.rootPath,
+            parentModel: slicer.rootPath,
             checkboxes: false,
             routing: false,
             showActions: false,
@@ -20,7 +20,7 @@ histomicstk.views.ItemSelectorWidget = girder.View.extend({
         });
 
         this.$el.html(
-            histomicstk.templates.itemSelectorWidget(this.model.attributes)
+            slicer.templates.itemSelectorWidget(this.model.attributes)
         ).girderModal(this);
 
         this._hierarchyView.setElement(this.$('.h-hierarchy-widget')).render();

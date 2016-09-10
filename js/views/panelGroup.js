@@ -1,4 +1,4 @@
-histomicstk.views.PanelGroup = girder.View.extend({
+slicer.views.PanelGroup = girder.View.extend({
     events: {
         'click .h-info-panel-reload': 'reload',
         'click .h-info-panel-submit': 'submit',
@@ -9,7 +9,7 @@ histomicstk.views.PanelGroup = girder.View.extend({
         this._panelViews = {};
         this._schemaName = null;
 
-        this._jobsPanelView = new histomicstk.views.JobsPanel({
+        this._jobsPanelView = new slicer.views.JobsPanel({
             parentView: this,
             spec: {
                 title: 'Jobs',
@@ -17,10 +17,10 @@ histomicstk.views.PanelGroup = girder.View.extend({
             }
         });
 
-        this.listenTo(histomicstk.events, 'query:analysis', this.schema);
+        this.listenTo(slicer.events, 'query:analysis', this.schema);
     },
     render: function () {
-        this.$el.html(histomicstk.templates.panelGroup({
+        this.$el.html(slicer.templates.panelGroup({
             info: this._gui,
             panels: this.panels
         }));
@@ -32,9 +32,9 @@ histomicstk.views.PanelGroup = girder.View.extend({
         this._jobsPanelView.setElement(this.$('.h-jobs-panel')).render();
         _.each(this.panels, _.bind(function (panel) {
             this.$el.removeClass('hidden');
-            this._panelViews[panel.id] = new histomicstk.views.ControlsPanel({
+            this._panelViews[panel.id] = new slicer.views.ControlsPanel({
                 parentView: this,
-                collection: new histomicstk.collections.Widget(panel.parameters),
+                collection: new slicer.collections.Widget(panel.parameters),
                 title: panel.label,
                 advanced: panel.advanced,
                 el: this.$el.find('#' + panel.id)
@@ -77,11 +77,11 @@ histomicstk.views.PanelGroup = girder.View.extend({
 
         // post the job to the server
         girder.restRequest({
-            path: 'HistomicsTK/' + this._schemaName + '/run',
+            path: 'slicer/' + this._schemaName + '/run',
             type: 'POST',
             data: params
         }).then(function (data) {
-            histomicstk.events.trigger('h:submit', data);
+            slicer.events.trigger('h:submit', data);
         });
     },
 
@@ -185,7 +185,7 @@ histomicstk.views.PanelGroup = girder.View.extend({
      * widgets available.
      */
     demo: function () {
-        $.ajax(girder.staticRoot + '/built/plugins/HistomicsTK/extra/widget_demo.json')
+        $.ajax(girder.staticRoot + '/built/plugins/slicer_cli_web/extra/widget_demo.json')
             .then(_.bind(function (spec) {
                 this._gui = spec;
                 this._schemaName = 'demo';
@@ -206,11 +206,11 @@ histomicstk.views.PanelGroup = girder.View.extend({
         }
 
         girder.restRequest({
-            path: '/HistomicsTK/' + s + '/xmlspec'
+            path: '/slicer/' + s + '/xmlspec'
         }).then(_.bind(function (xml) {
             var fail = !xml;
             try {
-                this._gui = histomicstk.schema.parse(xml);
+                this._gui = slicer.schema.parse(xml);
             } catch (e) {
                 fail = true;
             }
@@ -221,7 +221,7 @@ histomicstk.views.PanelGroup = girder.View.extend({
                     text: 'Invalid XML schema',
                     type: 'danger'
                 });
-                histomicstk.router.navigate('', {trigger: true});
+                // slicer.router.navigate('', {trigger: true});
                 this.reset();
                 return this;
             }

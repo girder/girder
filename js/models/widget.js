@@ -1,7 +1,7 @@
 /**
  * A backbone model controlling the behavior and rendering of widgets.
  */
-histomicstk.models.Widget = Backbone.Model.extend({
+girder.models.Widget = Backbone.Model.extend({
     defaults: {
         type: '',          // The specific widget type
         title: '',         // The label to display with the widget
@@ -294,9 +294,9 @@ histomicstk.models.Widget = Backbone.Model.extend({
     ]
 });
 
-histomicstk.collections.Widget = Backbone.Collection.extend({
-    model: histomicstk.models.Widget,
-    localStorage: new Backbone.LocalStorage('HistomicsTK-Widget-Collection'),
+girder.collections.Widget = Backbone.Collection.extend({
+    model: slicer.models.Widget,
+    localStorage: new Backbone.LocalStorage('slicer-Widget-Collection'),
 
     /**
      * Get an object containing all of the current parameter values as
@@ -306,7 +306,7 @@ histomicstk.collections.Widget = Backbone.Collection.extend({
         var params = {};
         this.each(function (m) {
             // apply special handling for certain parameter types
-            // https://github.com/DigitalSlideArchive/HistomicsTK/blob/9e5112ab3444ad8c699d70452a5fe4a74ebbc778/server/__init__.py#L44-L46
+            // https://github.com/DigitalSlideArchive/slicer/blob/9e5112ab3444ad8c699d70452a5fe4a74ebbc778/server/__init__.py#L44-L46
             switch (m.get('type')) {
                 case 'file':
                     params[m.id + '_girderItemId'] = m.value().id;

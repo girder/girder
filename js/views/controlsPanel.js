@@ -1,4 +1,4 @@
-histomicstk.views.ControlsPanel = histomicstk.views.Panel.extend({
+slicer.views.ControlsPanel = slicer.views.Panel.extend({
     initialize: function (settings) {
         this.title = settings.title || '';
         this.advanced = settings.advanced || false;
@@ -8,7 +8,7 @@ histomicstk.views.ControlsPanel = histomicstk.views.Panel.extend({
     },
 
     render: function () {
-        this.$el.html(histomicstk.templates.controlsPanel({
+        this.$el.html(slicer.templates.controlsPanel({
             title: this.title,
             collapsed: this.advanced,
             id: this.$el.attr('id')
@@ -17,7 +17,7 @@ histomicstk.views.ControlsPanel = histomicstk.views.Panel.extend({
     },
 
     addOne: function (model) {
-        var view = new histomicstk.views.ControlWidget({
+        var view = new slicer.views.ControlWidget({
             model: model,
             parentView: this
         });

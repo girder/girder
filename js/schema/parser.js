@@ -2,7 +2,7 @@
  * This is a parser for Slicer's GUI Schema:
  *   https://www.slicer.org/slicerWiki/index.php/Slicer3:Execution_Model_Documentation#XML_Schema
  */
-histomicstk.schema = {
+slicer.schema = {
     /**
      * Parse a Slicer GUI spec into a json object for rendering
      * the controlsPanel view.  This function parses into the following structure:

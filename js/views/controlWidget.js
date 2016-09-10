@@ -1,4 +1,4 @@
-histomicstk.views.ControlWidget = girder.View.extend({
+slicer.views.ControlWidget = girder.View.extend({
     events: {
         'change input,select': '_input',
         'changeColor': '_input',
@@ -14,8 +14,8 @@ histomicstk.views.ControlWidget = girder.View.extend({
         // the currently open image.
         if (this.model.get('type') === 'image' && !this.model.get('value')) {
 
-            this.model.set('value', histomicstk.dialogs.image.model.get('value'));
-            this.listenTo(histomicstk.dialogs.image.model, 'change', this._useLoadedImage);
+            this.model.set('value', slicer.dialogs.image.model.get('value'));
+            this.listenTo(slicer.dialogs.image.model, 'change', this._useLoadedImage);
             this._useLoadedImage();
         }
     },
@@ -58,7 +58,7 @@ histomicstk.views.ControlWidget = girder.View.extend({
         }
 
         // get the large image file id, and trigger a change when fetched
-        current = histomicstk.dialogs.image.model.get('value');
+        current = slicer.dialogs.image.model.get('value');
 
         if (!current) {
             return;
@@ -138,7 +138,7 @@ histomicstk.views.ControlWidget = girder.View.extend({
             console.warn('Invalid widget type "' + type + '"'); // eslint-disable-line no-console
             def = {};
         }
-        return histomicstk.templates[def.template] || _.template('');
+        return slicer.templates[def.template] || _.template('');
     },
 
     /**
@@ -163,7 +163,7 @@ histomicstk.views.ControlWidget = girder.View.extend({
      * input element.
      */
     _selectFile: function () {
-        var modal = new histomicstk.views.ItemSelectorWidget({
+        var modal = new slicer.views.ItemSelectorWidget({
             el: $('#g-dialog-container'),
             parentView: this,
             model: this.model

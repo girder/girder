@@ -1,4 +1,4 @@
-histomicstk.views.Panel = girder.View.extend({
+slicer.views.Panel = girder.View.extend({
     events: {
         'show.bs.collapse': 'expand',
         'hide.bs.collapse': 'collapse',
@@ -8,7 +8,7 @@ histomicstk.views.Panel = girder.View.extend({
         this.spec = settings.spec;
     },
     render: function () {
-        this.$el.html(histomicstk.templates.panel(this.spec));
+        this.$el.html(slicer.templates.panel(this.spec));
     },
     expand: function () {
         this.$('.icon-down-open').attr('class', 'icon-up-open');
