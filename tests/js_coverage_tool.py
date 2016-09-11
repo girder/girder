@@ -71,15 +71,17 @@ def _handleLine(line, combined, currentPath, currentRemapper):
                 # a column good enough (even though it has the line that is of
                 # interest to us), so we are missing coverage
                 token = currentRemapper.lookup(line=lineNum, column=0)
-                if token.src is not None:
+                if token.src is not None and token.src_line > 0:
                     # This could be optimized by caching the result of replace/slice
                     sourcePath = token.src.replace('webpack:///./', '')
                     queryStringPos = sourcePath.find('?')
                     if queryStringPos != -1:
                         sourcePath = sourcePath[:queryStringPos]
-                    combined[sourcePath][token.src_line] |= bool(hit)
-                    # else:
-                    #     print "NO MAPPING for " + currentPath + ":" + str(lineNum)
+                    src_filename, src_extension = os.path.splitext(sourcePath)
+                    if src_extension == '.js':
+                      combined[sourcePath][token.src_line] |= bool(hit)
+                # else:
+                #     print "NO MAPPING for " + currentPath + ":" + str(lineNum)
             except IndexError:
                 # print "NO MAPPING for " + currentPath + ":" + str(lineNum)
                 pass
