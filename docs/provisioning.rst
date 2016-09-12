@@ -31,8 +31,6 @@ using Ansible outside of the context of a Vagrant machine.
 
 Namely, the role that Vagrant uses is referred to by the folder name "girder" because you happen to have a working copy of Girder checked out, but this isn't required. By specifying the namespaced Ansible Galaxy version of Girder in your playbook and requirements file, the role will be fetched automatically.
 
-@todo have a full example of using galaxy to pull girder?
-
 Using Ansible to configure a running Girder instance
 ####################################################
 The Girder role also provides a fully fledged Ansible client to configure Girder in a declarative manner.
