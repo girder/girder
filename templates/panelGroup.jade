@@ -1,15 +1,15 @@
 if info
-  .h-panel
-    .h-panel-title-container
+  .s-panel
+    .s-panel-title-container
       | #{info.title}
-    .h-panel-content
-      .h-info-panel-description.well
+    .s-panel-content
+      .s-info-panel-description.well
         | #{info.description}
-      .h-info-panel-buttons
-        button.btn.btn-default.h-info-panel-reload Reload
-        button.btn.btn-primary.h-info-panel-submit Submit
+      .s-info-panel-buttons
+        button.btn.btn-default.s-info-panel-reload Reload
+        button.btn.btn-primary.s-info-panel-submit Submit
 
-  .h-jobs-panel.h-panel
+  .s-jobs-panel.s-panel
 
 each panel in panels
-  .h-panel(class='#{panel.type}', id='#{panel.id}')
+  .s-panel(class='#{panel.type}', id='#{panel.id}')

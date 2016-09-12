@@ -2,7 +2,7 @@ slicer.views.ControlWidget = girder.View.extend({
     events: {
         'change input,select': '_input',
         'changeColor': '_input',
-        'click .h-select-file-button': '_selectFile'
+        'click .s-select-file-button': '_selectFile'
     },
 
     initialize: function () {
@@ -18,14 +18,14 @@ slicer.views.ControlWidget = girder.View.extend({
             return this;
         }
         this.$el.html(this.template()(this.model.attributes));
-        this.$('.h-control-item[data-type="range"] input').slider();
-        this.$('.h-control-item[data-type="color"] .input-group').colorpicker({});
+        this.$('.s-control-item[data-type="range"] input').slider();
+        this.$('.s-control-item[data-type="color"] .input-group').colorpicker({});
         return this;
     },
 
     remove: function () {
-        this.$('.h-control-item[data-type="color"] .input-group').colorpicker('destroy');
-        this.$('.h-control-item[data-type="range"] input').slider('destroy');
+        this.$('.s-control-item[data-type="color"] .input-group').colorpicker('destroy');
+        this.$('.s-control-item[data-type="range"] input').slider('destroy');
         this.$el.empty();
     },
 

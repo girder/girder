@@ -2,7 +2,7 @@ slicer.views.Panel = girder.View.extend({
     events: {
         'show.bs.collapse': 'expand',
         'hide.bs.collapse': 'collapse',
-        'click .h-panel-title-container': '_handleTitleClick'
+        'click .s-panel-title-container': '_handleTitleClick'
     },
     initialize: function (settings) {
         this.spec = settings.spec;
@@ -17,9 +17,9 @@ slicer.views.Panel = girder.View.extend({
         this.$('.icon-up-open').attr('class', 'icon-down-open');
     },
     _handleTitleClick: function (e) {
-        if (!$(e.target).hasClass('h-remove-panel')) {
+        if (!$(e.target).hasClass('s-remove-panel')) {
             e.stopPropagation();
-            this.$('.h-panel-content').collapse('toggle');
+            this.$('.s-panel-content').collapse('toggle');
         }
     }
 });

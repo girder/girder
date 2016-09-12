@@ -1,6 +1,6 @@
 slicer.views.ItemSelectorWidget = girder.View.extend({
     events: {
-        'click .h-select-button': '_selectButton'
+        'click .s-select-button': '_selectButton'
     },
 
     initialize: function () {
@@ -23,7 +23,7 @@ slicer.views.ItemSelectorWidget = girder.View.extend({
             slicer.templates.itemSelectorWidget(this.model.attributes)
         ).girderModal(this);
 
-        this._hierarchyView.setElement(this.$('.h-hierarchy-widget')).render();
+        this._hierarchyView.setElement(this.$('.s-hierarchy-widget')).render();
         return this;
     },
 
@@ -56,7 +56,7 @@ slicer.views.ItemSelectorWidget = girder.View.extend({
             image = item.get('largeImage');
 
             if (!image) {
-                this.$('.h-modal-error').removeClass('hidden')
+                this.$('.s-modal-error').removeClass('hidden')
                     .text('Please select a "large_image" item.');
                 return;
             }
@@ -75,12 +75,12 @@ slicer.views.ItemSelectorWidget = girder.View.extend({
     },
 
     _selectButton: function () {
-        var inputEl = this.$('#h-new-file-name');
+        var inputEl = this.$('#s-new-file-name');
         var inputElGroup =  inputEl.parent();
         var fileName = inputEl.val();
         var type = this.model.get('type');
         var parent = this._hierarchyView.parentModel;
-        var errorEl = this.$('.h-modal-error').addClass('hidden');
+        var errorEl = this.$('.s-modal-error').addClass('hidden');
 
         inputElGroup.removeClass('has-error');
 

@@ -1,8 +1,8 @@
 slicer.views.PanelGroup = girder.View.extend({
     events: {
-        'click .h-info-panel-reload': 'reload',
-        'click .h-info-panel-submit': 'submit',
-        'click .h-remove-panel': 'removePanel'
+        'click .s-info-panel-reload': 'reload',
+        'click .s-info-panel-submit': 'submit',
+        'click .s-remove-panel': 'removePanel'
     },
     initialize: function () {
         this.panels = [];
@@ -29,7 +29,7 @@ slicer.views.PanelGroup = girder.View.extend({
             view.remove();
         });
         this._panelViews = {};
-        this._jobsPanelView.setElement(this.$('.h-jobs-panel')).render();
+        this._jobsPanelView.setElement(this.$('.s-jobs-panel')).render();
         _.each(this.panels, _.bind(function (panel) {
             this.$el.removeClass('hidden');
             this._panelViews[panel.id] = new slicer.views.ControlsPanel({
@@ -221,7 +221,6 @@ slicer.views.PanelGroup = girder.View.extend({
                     text: 'Invalid XML schema',
                     type: 'danger'
                 });
-                // slicer.router.navigate('', {trigger: true});
                 this.reset();
                 return this;
             }

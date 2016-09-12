@@ -10,20 +10,20 @@
         | Select a #{t}#{name}
     .modal-body(
       data-target-id='#{id}')
-      .alert.alert-danger.h-modal-error.hidden
-      .h-hierarchy-widget
+      .alert.alert-danger.s-modal-error.hidden
+      .s-hierarchy-widget
       if type === 'new-file'
         .form-group
-          label.control-label(for='h-new-file-name') Item name
+          label.control-label(for='s-new-file-name') Item name
           input.form-control(
             type='text'
-            id='h-new-file-name'
+            id='s-new-file-name'
             value=value
             placeholder='Enter an item name...')
 
     if type === 'directory' || type === 'new-file'
       .modal-footer
         a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
-        button.h-select-button.btn.btn-small.btn-primary(type="submit")
+        button.s-select-button.btn.btn-small.btn-primary(type="submit")
           i.icon-edit
           | Save
