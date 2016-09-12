@@ -77,7 +77,7 @@ slicer.views.PanelGroup = girder.View.extend({
 
         // post the job to the server
         girder.restRequest({
-            path: 'slicer/' + this._schemaName + '/run',
+            path: 'slicer_cli_web/' + this._schemaName + '/run',
             type: 'POST',
             data: params
         }).then(function (data) {
@@ -206,7 +206,7 @@ slicer.views.PanelGroup = girder.View.extend({
         }
 
         girder.restRequest({
-            path: '/slicer/' + s + '/xmlspec'
+            path: '/slicer_cli_web/' + s + '/xmlspec'
         }).then(_.bind(function (xml) {
             var fail = !xml;
             try {

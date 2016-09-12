@@ -9,15 +9,6 @@ slicer.views.ControlWidget = girder.View.extend({
         this.listenTo(this.model, 'change', this.render);
         this.listenTo(this.model, 'destroy', this.remove);
         this.listenTo(this.model, 'invalid', this.invalid);
-
-        // Handle image param types when no value is provided by using
-        // the currently open image.
-        if (this.model.get('type') === 'image' && !this.model.get('value')) {
-
-            this.model.set('value', slicer.dialogs.image.model.get('value'));
-            this.listenTo(slicer.dialogs.image.model, 'change', this._useLoadedImage);
-            this._useLoadedImage();
-        }
     },
 
     render: function (_, options) {
@@ -49,7 +40,9 @@ slicer.views.ControlWidget = girder.View.extend({
     /**
      * For image types, this sets the current value to the loaded image.  To be
      * called both on initialization and whenever the viewed image changes.
-     */
+     *
+     * TODO: restore this in the main application code
+     *
     _useLoadedImage: function () {
         var current = this.model.get('value');
 
@@ -79,6 +72,7 @@ slicer.views.ControlWidget = girder.View.extend({
             }
         }, this).fetch();
     },
+     */
 
     /**
      * Type definitions mapping used internally.  Each widget type
