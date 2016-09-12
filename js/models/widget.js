@@ -1,7 +1,7 @@
 /**
  * A backbone model controlling the behavior and rendering of widgets.
  */
-girder.models.Widget = Backbone.Model.extend({
+slicer.models.Widget = Backbone.Model.extend({
     defaults: {
         type: '',          // The specific widget type
         title: '',         // The label to display with the widget
@@ -294,9 +294,8 @@ girder.models.Widget = Backbone.Model.extend({
     ]
 });
 
-girder.collections.Widget = Backbone.Collection.extend({
+slicer.collections.Widget = Backbone.Collection.extend({
     model: slicer.models.Widget,
-    localStorage: new Backbone.LocalStorage('slicer-Widget-Collection'),
 
     /**
      * Get an object containing all of the current parameter values as
