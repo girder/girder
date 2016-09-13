@@ -1,6 +1,5 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
-  config.vm.define "girder"
 
   if Vagrant.has_plugin?("vagrant-cachier")
     config.cache.scope = :box
@@ -29,6 +28,10 @@ Vagrant.configure("2") do |config|
 
     client_testing = ENV["ANSIBLE_CLIENT_TESTING"] || false
     if client_testing then
+      ansible.groups = {
+        "girder" => ["default"]
+      }
+
       ansible.playbook = "devops/ansible/roles/girder/library/test/site.yml"
       ansible.galaxy_role_file = "devops/ansible/roles/girder/library/test/requirements.yml"
     else
@@ -43,7 +46,6 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provider "virtualbox" do |virtualbox|
-    virtualbox.name = "girder"
     virtualbox.memory = 2048
   end
 end
