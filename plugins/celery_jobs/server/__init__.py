@@ -71,7 +71,7 @@ def schedule(event):
     job = event.info
     if job['handler'] == 'celery':
         job['status'] = JobStatus.QUEUED
-        ModelImporter.model('job', 'jobs').save(job)
+        job = ModelImporter.model('job', 'jobs').save(job)
         event.stopPropagation()
         celeryapp.send_task(
             job['type'], job['args'], job['kwargs'])

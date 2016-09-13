@@ -170,7 +170,7 @@ class Group(AccessControlledModel):
         if not group['_id'] in user['groups']:
             user['groups'].append(group['_id'])
             # saved again in setUserAccess...
-            self.model('user').save(user, validate=False)
+            user = self.model('user').save(user, validate=False)
 
         # Delete outstanding request if one exists
         self._deleteRequest(group, user)
@@ -208,7 +208,7 @@ class Group(AccessControlledModel):
 
             if not user['_id'] in group['requests']:
                 group['requests'].append(user['_id'])
-                self.save(group, validate=False)
+                group = self.save(group, validate=False)
 
         return group
 
@@ -278,7 +278,7 @@ class Group(AccessControlledModel):
         user['groupInvites'] = list(filter(
             lambda inv: not inv['groupId'] == group['_id'],
             user.get('groupInvites', [])))
-        self.model('user').save(user, validate=False)
+        user = self.model('user').save(user, validate=False)
 
         # Remove all group access for this user on this group.
         self.setUserAccess(group, user, level=None, save=True)

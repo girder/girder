@@ -86,7 +86,7 @@ class Job(AccessControlledModel):
 
         if not event.defaultPrevented:
             job['status'] = JobStatus.CANCELED
-            self.save(job)
+            job = self.save(job)
 
         return job
 

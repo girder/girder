@@ -146,7 +146,7 @@ class AssetstoreTestCase(base.TestCase):
         # list it
         oldroot = assetstore['root']
         assetstore['root'] = '///invalidpath'
-        self.model('assetstore').save(assetstore, validate=False)
+        assetstore = self.model('assetstore').save(assetstore, validate=False)
         assetstoresAfter = list(self.model('assetstore').list())
         self.assertEqual(len(assetstoresBefore), len(assetstoresAfter))
         self.assertIsNone([
@@ -311,13 +311,13 @@ class AssetstoreTestCase(base.TestCase):
             name='fake', creator=self.admin, item=item, size=1, assetstore=self.assetstore)
         fake['path'] = 'nonexistent/path/to/file'
         fake['sha512'] = '...'
-        self.model('file').save(fake)
+        fake = self.model('file').save(fake)
 
         fakeImport = self.model('file').createFile(
             name='fakeImport', creator=self.admin, item=item, size=1, assetstore=self.assetstore)
         fakeImport['imported'] = True
         fakeImport['path'] = '/nonexistent/path/to/file'
-        self.model('file').save(fakeImport)
+        fakeImport = self.model('file').save(fakeImport)
 
         adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
         self.assertTrue(inspect.isgeneratorfunction(adapter.findInvalidFiles))
@@ -801,7 +801,7 @@ class AssetstoreTestCase(base.TestCase):
 
         # Set the assetstore to read only, attempt to delete it
         assetstore['readOnly'] = True
-        self.model('assetstore').save(assetstore)
+        assetstore = self.model('assetstore').save(assetstore)
 
         def fn(*args, **kwargs):
             raise Exception('get_all_multipart_uploads should not be called')
