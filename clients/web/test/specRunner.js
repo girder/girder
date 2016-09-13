@@ -133,6 +133,10 @@ page.onCallback = function (data) {
                 fs.remove(uploadTemp);
             }
             break;
+        case 'exit':
+            // The "Testing Finished" string is magical and causes web_client_test.py not to retry
+            console.log('Testing Finished with status=' + data.code);
+            phantom.exit(data.code);
     }
 };
 
