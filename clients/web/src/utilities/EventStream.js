@@ -10,7 +10,7 @@ import { apiRoot } from 'girder/rest';
  * 'g:event.<type>' where <type> is the value of the event type field.
  * Listeners can bind to specific event types on the channel.
  */
-function EventStream (settings) {
+function EventStream(settings) {
     var defaults = {
         timeout: null,
         streamPath: '/notification/stream'
