@@ -139,6 +139,13 @@ class User(Resource):
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
+            # This has the same behavior as User.canLogin, but returns more
+            # detailed error messages
+            if user.get('status', 'enabled') == 'disabled':
+                raise RestException(
+                    'Account is disabled.', code=403,
+                    extra='disabled')
+
             if self.model('user').emailVerificationRequired(user):
                 raise RestException(
                     'Email verification required.', code=403,
