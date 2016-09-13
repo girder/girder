@@ -22,7 +22,7 @@ import json
 import time
 
 from ..describe import Description, describeRoute
-from ..rest import Resource
+from ..rest import Resource, setResponseHeader
 from girder.api import access
 
 # If no timeout param is passed to stream, we default to this value
@@ -76,8 +76,8 @@ class Notification(Resource):
         user = self.getCurrentUser()
         token = self.getCurrentToken()
 
-        cherrypy.response.headers['Content-Type'] = 'text/event-stream'
-        cherrypy.response.headers['Cache-Control'] = 'no-cache'
+        setResponseHeader('Content-Type', 'text/event-stream')
+        setResponseHeader('Cache-Control', 'no-cache')
 
         timeout = int(params.get('timeout', DEFAULT_STREAM_TIMEOUT))
 
