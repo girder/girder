@@ -413,14 +413,13 @@ class System(Resource):
 
     def _fixBaseParents(self, progress):
         fixes = 0
-        user = self.getCurrentUser()
         models = ['folder', 'item']
         steps = sum(self.model(model).find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
-                baseParent = self.model(model).parentsToRoot(doc, user=user)[0]
+                baseParent = self.model(model).parentsToRoot(doc, force=True)[0]
                 baseParentType = baseParent['type']
                 baseParentId = baseParent['object']['_id']
                 if (doc['baseParentType'] != baseParentType or
