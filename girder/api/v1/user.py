@@ -277,12 +277,12 @@ class User(Resource):
         # Only admins can change status
         if 'status' in params and \
                 params['status'] != user.get('status', 'enabled'):
-            if self.getCurrentUser()['admin']:
-                user['status'] = params['status']
-                if user['status'] == 'enabled':
-                    self.model('user')._sendApprovedEmail(user)
-            else:
+            if not self.getCurrentUser()['admin']:
                 raise AccessException('Only admins may change status.')
+            if user['status'] == 'pending' and params['status'] == 'enabled':
+                # Send email on the 'pending' -> 'enabled' transition
+                self.model('user')._sendApprovedEmail(user)
+            user['status'] = params['status']
 
         user = self.model('user').save(user)
         return self.model('user').filter(user, user)
