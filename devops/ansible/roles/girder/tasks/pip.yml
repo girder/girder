@@ -12,6 +12,6 @@
 - name: Install Girder and plugin requirements
   pip:
     name: ".[plugins]"
-    editable: yes
+    extra_args: "-e"
     chdir: "{{ girder_path }}"
     virtualenv: "{{ girder_virtualenv | default(omit) }}"
