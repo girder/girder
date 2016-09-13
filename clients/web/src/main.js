@@ -1,6 +1,5 @@
 import $ from 'jquery';
 
-import eventStream from 'girder/utilities/EventStream';
 import App from 'girder/views/App';
 import router from 'girder/router';
 import events from 'girder/events';
@@ -27,11 +26,7 @@ $(function () {
     });
     events.trigger('g:appload.after', mainApp);
 
-
-
     // Available only after all code+plugins have been loaded, to make sure they don't
     // rely on the singleton. Tests should be able to use it though.
     window.girder = girder;
-    window.girder.app = mainApp;
-    window.girder.eventStream = eventStream;
 });

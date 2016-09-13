@@ -79,7 +79,7 @@ $(function () {
                 expect($('.g-job-status-badge').text()).toContain('Success');
 
                 // Test log output events
-                girder.eventStream.trigger('g:event.job_log', {
+                girder.utilities.eventStream.trigger('g:event.job_log', {
                     data: {
                         _id: 'foo',
                         overwrite: true,
@@ -88,7 +88,7 @@ $(function () {
                 });
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe('overwritten log');
 
-                girder.eventStream.trigger('g:event.job_log', {
+                girder.utilities.eventStream.trigger('g:event.job_log', {
                     data: {
                         _id: 'foo',
                         overwrite: false,

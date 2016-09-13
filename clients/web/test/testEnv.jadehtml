@@ -35,6 +35,6 @@ html(lang="en")
         var currentWindowOnload = window.onload;
 
         girderTest.promise.then(function () {
-            girder.eventStream.settings.timeout = 10;
+            girder.utilities.eventStream.settings.timeout = 10;
         });
       })();
