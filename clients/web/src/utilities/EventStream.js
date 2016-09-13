@@ -57,9 +57,6 @@ prototype.close = function () {
     }
 };
 
-var eventStream = new EventStream({
-  // TODO: this needs to be fixed, maybe by check for an environment variable?
-  // timeout: girder[sseTimeout] || null
-});
+var eventStream = new EventStream();
 
 export default eventStream;

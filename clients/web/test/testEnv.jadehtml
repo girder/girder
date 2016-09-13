@@ -8,13 +8,13 @@ html(lang="en")
     script(src="testing.min.js")
 
     each css in cssFiles
-      link(href="#{css}", rel="stylesheet", type="text/css")
+      link(href=css, rel="stylesheet", type="text/css")
   body
     #g-global-info-apiroot.hide %HOST%/#{apiRoot}
     #g-global-info-staticroot.hide %HOST%/#{staticRoot}
 
     each js in jsFilesUncovered
-      script(src="#{js}")
+      script(src=js)
 
     each js in jsFilesCovered
       script(type="text/javascript")
@@ -35,6 +35,6 @@ html(lang="en")
         var currentWindowOnload = window.onload;
 
         girderTest.promise.then(function () {
-            girder.sseTimeout = 10;
+            girder.utilities.eventStream.settings.timeout = 10;
         });
       })();

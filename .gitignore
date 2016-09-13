@@ -16,3 +16,4 @@ __pycache__
 .idea/
 .PyCharm50/
 .eslintcache
+/npm-debug.log

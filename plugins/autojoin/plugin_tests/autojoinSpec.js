@@ -16,20 +16,27 @@ $(function () {
 
         it('go to groups page', girderTest.goToGroupsPage());
         it('create a group', girderTest.createGroup('group1', '', false));
-        runs(function () {
-            group1 = window.location.hash.split('/')[1];
+        it('assign group 1', function () {
+            runs(function () {
+                group1 = window.location.hash.split('/')[1];
+            });
         });
 
         it('go to groups page', girderTest.goToGroupsPage());
         it('create a group', girderTest.createGroup('group2', '', false));
-        runs(function () {
-            group2 = window.location.hash.split('/')[1];
+        it('assign group 2', function () {
+            runs(function () {
+                group2 = window.location.hash.split('/')[1];
+            });
         });
 
         it('go to groups page', girderTest.goToGroupsPage());
         it('create a group', girderTest.createGroup('group3', '', false));
-        runs(function () {
-            group3 = window.location.hash.split('/')[1];
+
+        it('assign group 3', function () {
+            runs(function () {
+                group3 = window.location.hash.split('/')[1];
+            });
         });
 
         it('go to auto join plugin settings', function () {
