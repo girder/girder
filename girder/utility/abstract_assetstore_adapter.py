@@ -14,15 +14,15 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import os
 import re
 import six
 
+from girder.api.rest import setResponseHeader
+from girder.constants import SettingKey
+from girder.models.model_base import ValidationException
 from girder.utility import progress
-from ..constants import SettingKey
 from .model_importer import ModelImporter
-from ..models.model_base import ValidationException
 
 
 class AbstractAssetstoreAdapter(ModelImporter):
@@ -156,8 +156,8 @@ class AbstractAssetstoreAdapter(ModelImporter):
         """
         This method is in charge of returning a value to the RESTful endpoint
         that can be used to download the file. This can return a generator
-        function that streams the file directly, or can modify the cherrypy
-        request headers and perform a redirect and return None, for example.
+        function that streams the file directly, or can modify the response
+        headers and perform a redirect and return None, for example.
 
         :param file: The file document being downloaded.
         :type file: dict
@@ -242,19 +242,23 @@ class AbstractAssetstoreAdapter(ModelImporter):
             be set to 'attachment; filename=$filename'.
         :type contentDisposition: str or None
         """
-        cherrypy.response.headers['Content-Type'] = \
-            file.get('mimeType') or 'application/octet-stream'
+        setResponseHeader(
+            'Content-Type',
+            file.get('mimeType') or 'application/octet-stream')
         if contentDisposition == 'inline':
-            cherrypy.response.headers['Content-Disposition'] = \
-                'inline; filename="%s"' % file['name']
+            setResponseHeader(
+                'Content-Disposition',
+                'inline; filename="%s"' % file['name'])
         else:
-            cherrypy.response.headers['Content-Disposition'] = \
-                'attachment; filename="%s"' % file['name']
-        cherrypy.response.headers['Content-Length'] = max(endByte - offset, 0)
+            setResponseHeader(
+                'Content-Disposition',
+                'attachment; filename="%s"' % file['name'])
+        setResponseHeader('Content-Length', max(endByte - offset, 0))
 
         if (offset or endByte < file['size']) and file['size']:
-            cherrypy.response.headers['Content-Range'] = 'bytes %d-%d/%d' % (
-                offset, endByte - 1, file['size'])
+            setResponseHeader(
+                'Content-Range',
+                'bytes %d-%d/%d' % (offset, endByte - 1, file['size']))
 
     def checkUploadSize(self, upload, chunkSize):
         """

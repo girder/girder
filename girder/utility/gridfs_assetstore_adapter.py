@@ -18,17 +18,16 @@
 ###############################################################################
 
 import bson
-import cherrypy
+from hashlib import sha512
 import pymongo
 import six
+from six import BytesIO
 import uuid
 
-from six import BytesIO
 from girder import logger
+from girder.api.rest import setResponseHeader
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
-
-from hashlib import sha512
 from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
@@ -235,7 +234,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             endByte = file['size']
 
         if headers:
-            cherrypy.response.headers['Accept-Ranges'] = 'bytes'
+            setResponseHeader('Accept-Ranges', 'bytes')
             self.setContentHeaders(file, offset, endByte, contentDisposition)
 
         # If the file is empty, we stop here

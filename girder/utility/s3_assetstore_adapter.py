@@ -26,9 +26,9 @@ import requests
 import six
 import uuid
 
-from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from girder.models.model_base import ValidationException
 from girder import logger, events
+from girder.models.model_base import ValidationException
+from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
 boto.config.add_section('s3')

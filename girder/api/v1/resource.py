@@ -17,11 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import json
 
 from ..describe import Description, describeRoute
-from ..rest import Resource as BaseResource, RestException
+from ..rest import Resource as BaseResource, RestException, setResponseHeader
 from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.models.model_base import AccessControlledModel
@@ -348,9 +347,10 @@ class Resource(BaseResource):
                     raise RestException('Resource %s %s not found.' %
                                         (kind, id))
         metadata = self.boolParam('includeMetadata', params, default=False)
-        cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] = \
-            'attachment; filename="Resources.zip"'
+        setResponseHeader('Content-Type', 'application/zip')
+        setResponseHeader(
+            'Content-Disposition',
+            'attachment; filename="Resources.zip"')
 
         def stream():
             zip = ziputil.ZipGenerator()
