@@ -838,11 +838,10 @@ class Folder(AccessControlledModel):
 
         :param folder: The folder to check.
         :type folder: dict
-        :param user: The user for permissions.
-        :type user: dict or None
+        :param user: (deprecated) Not used.
         """
         return not self.model(folder.get('parentCollection')).load(
-            folder.get('parentId'), user=user)
+            folder.get('parentId'), force=True)
 
     def updateSize(self, doc, user=None):
         """

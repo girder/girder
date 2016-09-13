@@ -470,11 +470,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         :param item: The item to check.
         :type item: dict
-        :param user: The user for permissions.
-        :type user: dict or None
+        :param user: (deprecated) Not used.
         """
         return not self.model('folder').load(
-            item.get('folderId'), user=user)
+            item.get('folderId'), force=True)
 
     def updateSize(self, doc, user=None):
         """

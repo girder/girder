@@ -434,14 +434,13 @@ class System(Resource):
 
     def _pruneOrphans(self, progress):
         count = 0
-        user = self.getCurrentUser()
         models = ['folder', 'item', 'file']
         steps = sum(self.model(model).find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
-                if self.model(model).isOrphan(doc, user=user):
+                if self.model(model).isOrphan(doc):
                     self.model(model).remove(doc)
                     count += 1
         return count

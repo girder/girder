@@ -314,15 +314,14 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         :param file: The file to check.
         :type file: dict
-        :param user: The user for permissions.
-        :type user: dict or None
+        :param user: (deprecated) Not used.
         """
         if file.get('attachedToId'):
             return not self.model(file.get('attachedToType')).load(
-                file.get('attachedToId'), user=user)
+                file.get('attachedToId'), force=True)
         else:
             return not self.model('item').load(
-                file.get('itemId'), user=user)
+                file.get('itemId'), force=True)
 
     def updateSize(self, file):
         """
