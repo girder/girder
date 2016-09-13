@@ -19,15 +19,15 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder ".", "/home/vagrant/girder"
   end
 
-  provisioner_type = if
-      Gem::Version.new(Vagrant::VERSION) > Gem::Version.new('1.8.1')
-    then
-      # Vagrant > 1.8.1 is required due to
-      # https://github.com/mitchellh/vagrant/issues/6793
-      "ansible_local"
-    else
-      "ansible"
-    end
+  # Disable ansible_local for testing, this makes it easier to test across ansible versions
+  if (!ENV["ANSIBLE_TESTING"] && Gem::Version.new(Vagrant::VERSION) > Gem::Version.new('1.8.1'))
+    # Vagrant > 1.8.1 is required due to
+    # https://github.com/mitchellh/vagrant/issues/6793
+    provisioner_type = "ansible_local"
+  else
+    provisioner_type = "ansible"
+  end
+
   config.vm.provision provisioner_type do |ansible|
 
     client_testing = ENV["ANSIBLE_CLIENT_TESTING"] || false
