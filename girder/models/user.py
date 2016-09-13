@@ -282,7 +282,7 @@ class User(AccessControlledModel):
         Returns True if email verification is required and this user has not
         yet verified their email address.
         """
-        if user.get('admin'):
+        if user['admin']:
             return False
         if not user.get('emailVerified', False):
             return self.model('setting').get(
@@ -294,7 +294,7 @@ class User(AccessControlledModel):
         Returns True if the registration policy requires admin approval and
         this user has not yet been approved.
         """
-        if user.get('admin'):
+        if user['admin']:
             return False
         if user.get('status') != 'enabled':
             return self.model('setting').get(

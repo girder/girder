@@ -275,7 +275,7 @@ class Collection(AccessControlledModel):
         :param user: The user to test.
         :returns: bool
         """
-        if user['admin'] is True:
+        if user['admin']:
             return True
 
         policy = self.model('setting').get(SettingKey.COLLECTION_CREATE_POLICY)

@@ -238,7 +238,7 @@ def requireAdmin(user, message=None):
     :type message: str or None
     :raises AccessException: If the user is not an administrator.
     """
-    if user is None or user.get('admin', False) is not True:
+    if user is None or not user['admin']:
         raise AccessException(message or 'Administrator access required.')
 
 
