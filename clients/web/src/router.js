@@ -1,7 +1,10 @@
+import $ from 'jquery';
 import Backbone from 'backbone';
 
 import events from 'girder/events';
 import { parseQueryString } from 'girder/misc';
+
+import 'girder/utilities/jquery/girderModal';
 
 var Router = Backbone.Router.extend({
     initialize: function () {
@@ -44,5 +47,14 @@ var Router = Backbone.Router.extend({
 });
 
 var router = new Router();
+
+// When the back button is pressed, we want to close open modals.
+router.on('route', function (route, params) {
+    if (!params.slice(-1)[0].dialog) {
+        $('.modal').girderModal('close');
+    }
+    // get rid of tooltips
+    $('.tooltip').remove();
+});
 
 export default router;
