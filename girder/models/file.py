@@ -19,6 +19,7 @@
 
 import cherrypy
 import datetime
+import six
 
 from .model_base import Model, ValidationException
 from girder import events
@@ -317,7 +318,15 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param user: (deprecated) Not used.
         """
         if file.get('attachedToId'):
-            return not self.model(file.get('attachedToType')).load(
+            attachedToType = file.get('attachedToType')
+            if isinstance(attachedToType, six.string_types):
+                modelType = self.model(attachedToType)
+            elif isinstance(attachedToType, list) and len(attachedToType) == 2:
+                modelType = self.model(*attachedToType)
+            else:
+                # Invalid 'attachedToType'
+                return True
+            return not modelType.load(
                 file.get('attachedToId'), force=True)
         else:
             return not self.model('item').load(
