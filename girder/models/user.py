@@ -296,7 +296,7 @@ class User(AccessControlledModel):
         """
         if user['admin']:
             return False
-        if user.get('status') != 'enabled':
+        if user.get('status', 'enabled') != 'enabled':
             return self.model('setting').get(
                 SettingKey.REGISTRATION_POLICY) == 'approve'
         return False

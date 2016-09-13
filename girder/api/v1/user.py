@@ -268,7 +268,8 @@ class User(Resource):
                     raise AccessException('Only admins may change admin state.')
 
         # Only admins can change status
-        if 'status' in params and params['status'] != user['status']:
+        if 'status' in params and \
+                params['status'] != user.get('status', 'enabled'):
             if self.getCurrentUser()['admin']:
                 user['status'] = params['status']
                 if user['status'] == 'enabled':
