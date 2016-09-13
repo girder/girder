@@ -24,6 +24,7 @@ import six
 from .model_base import Model, ValidationException
 from girder import events
 from girder.constants import AccessType, CoreEventHandler
+from girder.models.model_base import AccessControlledModel
 from girder.utility import assetstore_utilities, acl_mixin
 
 
@@ -326,11 +327,17 @@ class File(acl_mixin.AccessControlMixin, Model):
             else:
                 # Invalid 'attachedToType'
                 return True
-            return not modelType.load(
-                file.get('attachedToId'), force=True)
+            if isinstance(modelType, (acl_mixin.AccessControlMixin,
+                                      AccessControlledModel)):
+                attachedDoc = modelType.load(
+                    file.get('attachedToId'), force=True)
+            else:
+                attachedDoc = modelType.load(
+                    file.get('attachedToId'))
         else:
-            return not self.model('item').load(
+            attachedDoc = self.model('item').load(
                 file.get('itemId'), force=True)
+        return not attachedDoc
 
     def updateSize(self, file):
         """
