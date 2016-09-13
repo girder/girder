@@ -844,26 +844,28 @@ class Folder(AccessControlledModel):
         return not self.model(folder.get('parentCollection')).load(
             folder.get('parentId'), user=user)
 
-    def updateSize(self, doc, user):
+    def updateSize(self, doc, user=None):
         """
         Recursively recomputes the size of this folder and its underlying
         folders and fixes the sizes as needed.
 
         :param doc: The folder.
         :type doc: dict
-        :param user: The admin user for permissions.
-        :type user: dict
+        :param user: (deprecated) Not used.
         """
         size = 0
         fixes = 0
         # recursively fix child folders but don't include their size
-        children = self.childFolders(doc, 'folder', user)
+        children = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'folder'
+        })
         for child in children:
-            _, f = self.model('folder').updateSize(child, user)
+            _, f = self.model('folder').updateSize(child)
             fixes += f
         # get correct size from child items
         for item in self.childItems(doc):
-            s, f = self.model('item').updateSize(item, user)
+            s, f = self.model('item').updateSize(item)
             size += s
             fixes += f
         # fix value if incorrect

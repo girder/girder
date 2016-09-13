@@ -449,13 +449,12 @@ class System(Resource):
 
     def _recalculateSizes(self, progress):
         fixes = 0
-        user = self.getCurrentUser()
         models = ['collection', 'user']
         steps = sum(self.model(model).find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
             for doc in self.model(model).find():
                 progress.update(increment=1)
-                _, f = self.model(model).updateSize(doc, user)
+                _, f = self.model(model).updateSize(doc)
                 fixes += f
         return fixes
