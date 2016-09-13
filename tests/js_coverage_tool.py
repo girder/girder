@@ -79,7 +79,7 @@ def _handleLine(line, combined, currentPath, currentRemapper):
                         sourcePath = sourcePath[:queryStringPos]
                     src_filename, src_extension = os.path.splitext(sourcePath)
                     if src_extension == '.js':
-                      combined[sourcePath][token.src_line] |= bool(hit)
+                        combined[sourcePath][token.src_line] |= bool(hit)
                 # else:
                 #     print "NO MAPPING for " + currentPath + ":" + str(lineNum)
             except IndexError:
