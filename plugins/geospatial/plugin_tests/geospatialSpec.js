@@ -57,9 +57,9 @@ $(function () {
             waitsFor(function () {
                 return $('.g-item-name:contains(Geospatial Item)').length === 1;
             }, 'the item page to load');
-            runs(function () {
-                expect($('.g-item-geospatial').length > 0).toBe(true);
-            });
+            waitsFor(function () {
+                return $('.g-item-geospatial').length > 0;
+            }, 'the geospatial widget to appear in the item view');
         });
     });
 });

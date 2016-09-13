@@ -113,6 +113,7 @@ var ItemView = View.extend({
         // it. TODO: load the page and adjust only the action menu once
         // the access level is fetched.
         this.model.getAccessLevel(_.bind(function (accessLevel) {
+            this.accessLevel = accessLevel;
             this.$el.html(ItemPageTemplate({
                 item: this.model,
                 accessLevel: accessLevel,
