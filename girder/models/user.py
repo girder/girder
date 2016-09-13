@@ -284,7 +284,7 @@ class User(AccessControlledModel):
         """
         if user['admin']:
             return False
-        if not user.get('emailVerified', False):
+        if not user['emailVerified']:
             return self.model('setting').get(
                 SettingKey.EMAIL_VERIFICATION) == 'required'
         return False
