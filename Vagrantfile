@@ -9,11 +9,15 @@ Vagrant.configure("2") do |config|
 
   config.vm.hostname = "girder"
 
-  config.vm.network "forwarded_port", guest: 8080, host: 9080
-  config.vm.post_up_message = "Girder is running at http://localhost:9080"
+  # Disable port forwarding for ansible testing, since it makes running
+  # VMs in parallel harder.
+  unless ENV["ANSIBLE_TESTING"]
+    config.vm.network "forwarded_port", guest: 8080, host: 9080
+    config.vm.post_up_message = "Girder is running at http://localhost:9080"
 
-  config.vm.synced_folder ".", "/vagrant", disabled: true
-  config.vm.synced_folder ".", "/home/vagrant/girder"
+    config.vm.synced_folder ".", "/vagrant", disabled: true
+    config.vm.synced_folder ".", "/home/vagrant/girder"
+  end
 
   provisioner_type = if
       Gem::Version.new(Vagrant::VERSION) > Gem::Version.new('1.8.1')

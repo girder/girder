@@ -5,10 +5,12 @@ add_test(
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   COMMAND ${VAGRANT_EXECUTABLE} up)
 
+set(VAGRANT_ENV_VARS "ANSIBLE_CLIENT_TESTING=1"
+                     "ANSIBLE_TESTING=1")
+
 set_tests_properties(ansible_client_test_vagrant_up PROPERTIES
   LABELS girder_ansible_client
-  ENVIRONMENT "ANSIBLE_CLIENT_TESTING=1")
-
+  ENVIRONMENT "${VAGRANT_ENV_VARS}")
 
 add_ansible_test(user)
 add_ansible_test(assetstore)

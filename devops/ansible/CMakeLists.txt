@@ -4,12 +4,15 @@ file(GLOB examples "${PROJECT_SOURCE_DIR}/devops/ansible/examples/girder-*")
 foreach (EXAMPLE_DIR ${examples})
   get_filename_component(EXAMPLE_NAME ${EXAMPLE_DIR} NAME)
 
+  set(VAGRANT_ENV_VARS "GIRDER_EXAMPLE=${EXAMPLE_NAME}"
+                       "ANSIBLE_TESTING=1")
+
   add_test(NAME "ansible_example_${EXAMPLE_NAME}_vagrant_up"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND ${VAGRANT_EXECUTABLE} up --no-provision)
   set_tests_properties("ansible_example_${EXAMPLE_NAME}_vagrant_up"
     PROPERTIES
-    ENVIRONMENT "GIRDER_EXAMPLE=${EXAMPLE_NAME}"
+    ENVIRONMENT "${VAGRANT_ENV_VARS}"
     RUN_SERIAL ON
     LABELS girder_ansible)
 
@@ -18,7 +21,7 @@ foreach (EXAMPLE_DIR ${examples})
     COMMAND ${VAGRANT_EXECUTABLE} provision)
   set_tests_properties("ansible_example_${EXAMPLE_NAME}_vagrant_provision"
     PROPERTIES
-    ENVIRONMENT "GIRDER_EXAMPLE=${EXAMPLE_NAME}"
+    ENVIRONMENT "${VAGRANT_ENV_VARS}"
     RUN_SERIAL ON
     DEPENDS "ansible_example_${EXAMPLE_NAME}_vagrant_up"
     LABELS girder_ansible)
