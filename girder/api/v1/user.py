@@ -212,15 +212,15 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'], admin=admin)
 
+        outputUser = self.model('user').filter(user, user)
         if not currentUser and self.model('user').canLogin(user):
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
-            user['authToken'] = {
+            outputUser['authToken'] = {
                 'token': token['_id'],
                 'expires': token['expires']
             }
-
-        return user
+        return outputUser
 
     @access.user
     @loadmodel(map={'id': 'userToDelete'}, model='user', level=AccessType.ADMIN)
@@ -276,7 +276,8 @@ class User(Resource):
             else:
                 raise AccessException('Only admins may change status.')
 
-        return self.model('user').save(user)
+        user = self.model('user').save(user)
+        return self.model('user').filter(user, user)
 
     @access.admin
     @loadmodel(model='user', level=AccessType.ADMIN)
@@ -456,13 +457,13 @@ class User(Resource):
 
         user['emailVerified'] = True
         self.model('token').remove(token)
-        self.model('user').save(user)
+        user = self.model('user').save(user)
 
         if self.model('user').canLogin(user):
             setattr(cherrypy.request, 'girderUser', user)
             authToken = self.sendAuthTokenCookie(user)
             return {
-                'user': user,
+                'user': self.model('user').filter(user, user),
                 'authToken': {
                     'token': authToken['_id'],
                     'expires': authToken['expires'],
@@ -472,7 +473,7 @@ class User(Resource):
             }
         else:
             return {
-                'user': user,
+                'user': self.model('user').filter(user, user),
                 'message': 'Email verification succeeded.'
             }
 
