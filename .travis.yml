@@ -54,7 +54,7 @@ script:
     - cd ..
     - git fetch --unshallow
 deploy:
-    provider: heroku
+  - provider: heroku
     buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
     strategy: git
     api_key:

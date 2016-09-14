@@ -1,0 +1,7 @@
+---
+
+- name: Build Girder (web)
+  command: "{{ girder_install_executable|default('girder-install') }} web"
+  args:
+    chdir: "{{ girder_path }}"
+  when: "{{ girder_web }}"

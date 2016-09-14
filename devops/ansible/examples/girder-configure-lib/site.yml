@@ -1,0 +1,58 @@
+---
+
+- hosts: all
+  vars:
+    girder_update: no
+    girder_force: no
+  pre_tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      become: yes
+      become_user: root
+
+  roles:
+    - role: Stouts.mongodb
+      become: yes
+      become_user: root
+    - role: girder
+
+  post_tasks:
+    - name: Install girder-client
+      pip:
+        name: girder-client
+      become: yes
+      become_user: root
+
+    - name: Create admin user
+      girder:
+        port: 8080
+        user:
+          firstName: "Girder"
+          lastName: "Administrator"
+          login: "girder"
+          password: "girder"
+          email: "girder@girder.girder"
+          admin: yes
+        state: present
+
+    - name: Setup filesystem assetstore
+      girder:
+        port: 8080
+        username: "girder"
+        password: "girder"
+        assetstore:
+          name: "Primary assetstore"
+          type: "filesystem"
+          root: "{{ ansible_user_dir }}/assetstore"
+          current: true
+        state: present
+
+    - name: Enable gravatar plugin
+      girder:
+        port: 8080
+        username: "girder"
+        password: "girder"
+        plugins:
+          - gravatar
+        state: present
