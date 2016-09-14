@@ -63,9 +63,3 @@ deploy:
         repo: girder/girder
         branch: master
         condition: "$DEPLOY = true"
-  - provider: script
-    script: scripts/ansible_role_girder_deploy.sh
-    on:
-      repo: girder/girder
-      branch: master
-      condition: "$DEPLOY = true"
