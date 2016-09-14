@@ -27,31 +27,27 @@ var pageUrl = args[0];
 var spec = args[1];
 var coverageOutput = args[2] || null;
 var page = new WebPage();
-var accumCoverage = false;
 
 var fs = require('fs');
 require('event-source/global');
 
-if (coverageOutput) {
-    fs.write(coverageOutput, '', 'w');
+try {
+    fs.unlinkSync(coverageOutput);
+} catch (e) {
 }
 
-var terminate = function () {
+// write coverage results to a file
+var reportCoverage = function () {
     if (!coverageOutput) {
-        // setTimeout(function () {
-        //     phantom.exit(0);
-        // }, 0);
-        phantom.exit(0);
-        return true;
+        return;
     }
-    var status = this.page.evaluate(function () {
-        if (window.jasmine_phantom_reporter.status === 'success') {
-            return window.coverageHandler.handleCoverage(window._$blanket);
-        }
-        return false;
+
+    var cov = page.evaluate(function () {
+        return window.__coverage__;
     });
-    phantom.exit(status ? 0 : 1);
-    return status;
+
+    cov = cov || {};
+    fs.write(coverageOutput, JSON.stringify(cov), 'w');
 };
 
 // Set decent viewport size for screenshots.
@@ -61,6 +57,7 @@ page.viewportSize = {
 };
 
 page.onConsoleMessage = function (msg) {
+    console.log(msg);
     if (msg.indexOf('__SCREENSHOT__') === 0) {
         var imageFile = msg.substring('__SCREENSHOT__'.length) || 'phantom_screenshot.png';
         page.render(imageFile);
@@ -69,7 +66,7 @@ page.onConsoleMessage = function (msg) {
         console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
             fs.workingDirectory + fs.separator + imageFile + '</DartMeasurementFile>');
 
-        if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
+        if (false && env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === true) {
             console.log('Dumping ajax trace:');
@@ -78,20 +75,15 @@ page.onConsoleMessage = function (msg) {
             }));
         }
         return;
-    }
-
-    if (accumCoverage && coverageOutput) {
-        try {
-            fs.write(coverageOutput, msg, 'a');
-        } catch (e) {
-            console.log('Exception writing coverage results: ', e);
+    } else if (msg === 'ConsoleReporter finished') {
+        reportCoverage();
+        var success = this.page.evaluate(function () {
+            return window.jasmine_phantom_reporter.status === 'success';
+        });
+        if (success) {
+            reportCoverage();
         }
-    } else {
-        console.log(msg);
-    }
-    if (msg === 'ConsoleReporter finished') {
-        accumCoverage = true;
-        return terminate();
+        phantom.exit(success ? 0 : 1);
     }
 };
 
@@ -166,9 +158,6 @@ page.onLoadFinished = function (status) {
             phantom.exit(1);
         }, 0);
     } else {
-        if (coverageOutput) {
-            page.injectJs('coverageHandler.js');
-        }
         if (!page.injectJs(spec)) {
             console.error('Could not load test spec into page: ' + spec);
             phantom.exit(1);

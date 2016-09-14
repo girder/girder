@@ -1,7 +1,7 @@
 /**
  * Contains utility functions used in the Girder Jasmine tests.
  */
-/* globals runs, expect, waitsFor, blanket */
+/* globals runs, expect, waitsFor */
 
 var girderTest = girderTest || {};
 
@@ -615,88 +615,6 @@ girderTest.waitForDialog = function (desc) {
     }, 'dialog rest requests to finish' + desc);
 };
 
-(function () {
-    var defer = new $.Deferred();
-
-    /**
-     * Contains a promise that is resolved when blanket finishes instrumenting all
-     * requested sources.
-     */
-    girderTest.promise = defer.promise();
-
-    // Start attaching covered scripts *after* the page has loaded.
-    $(function () {
-        defer.resolve();
-    });
-})();
-
-/**
- * Import a javascript file and.
- */
-girderTest.addScript = function (url) {
-    var defer = new $.Deferred();
-    girderTest.promise.then(function () {
-        $('<script/>', {src: url}).appendTo('body').on('load', function () {
-            defer.resolve();
-        });
-    });
-    girderTest.promise = defer.promise();
-};
-
-/**
- * Import a javascript file and ask to register it with the blanket coverage
- * tests.
- */
-girderTest.addCoveredScript = function (url) {
-    if (!window.blanket) {
-        return girderTest.addScript(url);
-    }
-    var defer = new $.Deferred();
-    girderTest.promise.then(function () {
-        blanket.requiringFile(url);
-        blanket.utils.cache[url] = {};
-        blanket.utils.attachScript({
-            url: url
-        }, function (content) {
-            blanket.instrument({
-                inputFile: content,
-                inputFileName: url
-            }, function (instrumented) {
-                blanket.utils.cache[url].loaded = true;
-                blanket.utils.blanketEval(instrumented);
-                blanket.requiringFile(url, true);
-                defer.resolve();
-            });
-        });
-    });
-    girderTest.promise = defer.promise();
-};
-
-/**
- * Import a list of covered scripts. Order will be respected.
- */
-girderTest.addCoveredScripts = function (scripts) {
-    _.each(scripts, girderTest.addCoveredScript);
-};
-
-/**
- * Import a list of non-covered scripts. Order will be respected.
- */
-girderTest.addScripts = function (scripts) {
-    _.each(scripts, girderTest.addScript);
-};
-
-/**
- * Import a CSS file into the runtime context.
- */
-girderTest.importStylesheet = function (css) {
-    $('<link/>', {
-        rel: 'stylesheet',
-        type: 'text/css',
-        href: css
-    }).appendTo('head');
-};
-
 /**
  * For the current folder, check if it is public or private and take an action.
  * :param current: either 'public' or 'private': expect this value to match.
@@ -1268,22 +1186,14 @@ $(function () {
 });
 
 /**
- * Wait for all of the sources to load and then start the main girder application.
- * This will also delay the invocation of the jasmine test suite until after the
- * application is running.  This method returns a promise that resolves with the
- * application object.
+ * Start the main application in the test environment.
  */
 girderTest.startApp = function () {
-    var defer = new $.Deferred();
-    girderTest.promise.then(function () {
-        girder.events.trigger('g:appload.before');
-        var app = new girder.views.App({
-            el: 'body',
-            parentView: null
-        });
-        girder.events.trigger('g:appload.after');
-        defer.resolve(app);
+    girder.events.trigger('g:appload.before');
+    var app = new girder.views.App({
+        el: 'body',
+        parentView: null
     });
-    girderTest.promise = defer.promise();
-    return girderTest.promise;
+    girder.events.trigger('g:appload.after');
+    return app;
 };
