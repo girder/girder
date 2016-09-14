@@ -133,6 +133,9 @@ class User(AccessControlledModel):
         existing = self.findOne({})
         if existing is None:
             doc['admin'] = True
+            # Ensure settings don't stop this user from logging in
+            doc['emailVerified'] = True
+            doc['status'] = 'enabled'
 
         return doc
 
