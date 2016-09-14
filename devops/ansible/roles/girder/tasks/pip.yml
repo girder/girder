@@ -15,3 +15,7 @@
     extra_args: "-e"
     chdir: "{{ girder_path }}"
     virtualenv: "{{ girder_virtualenv | default(omit) }}"
+
+- set_fact:
+    girder_install_executable: "{{ girder_virtualenv }}/bin/girder-install"
+  when: girder_virtualenv is defined
