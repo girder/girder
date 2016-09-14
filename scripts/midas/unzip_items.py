@@ -1,3 +1,15 @@
+'''
+This script is intended to be run after migrating from Midas to Girder.
+
+During migration, Midas items that had multiple "bitstreams" are downloaded as a
+zip file and stored in Girder as such. This script looks for zip files that are
+flat (have no folders) and have multiple file entries and unzips them into the
+same item, removes the zip file, and removes the .zip extension from the item.
+
+In the future, the migration script should be updated to fetch each bitstream
+and store them as files, removing the need for this script.
+'''
+
 import girder_client
 import os
 import tempfile
