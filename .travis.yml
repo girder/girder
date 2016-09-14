@@ -43,7 +43,8 @@ before_install:
     - pip install -U pip virtualenv
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
-    - npm install
+    - npm install -g npm-install-retry
+    - npm-install-retry
 script:
     - mkdir _build
     - cd _build
