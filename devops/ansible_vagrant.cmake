@@ -21,7 +21,7 @@ function(add_ansible_test case)
     ENVIRONMENT "${VAGRANT_ENV_VARS}"
     # This happens in the case where vagrant up fails, failing to generate a valid host file.
     # Without this, ansible would return a valid exit status since it provisioned 0 hosts correctly.
-    FAIL_REGULAR_EXPRESSION "Host file not found"
+    FAIL_REGULAR_EXPRESSION "Host file not found;no hosts matched"
     LABELS girder_ansible_client)
   set_property(GLOBAL APPEND PROPERTY vagrant_tests "${name}")
 endfunction()
