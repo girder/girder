@@ -99,6 +99,10 @@
                     new Date().toISOString().replace(/:/g, '.') + '.png');
                 this.log('\n Error: ' + item.message, 'red');
                 this._printStackTrace(item.trace.stackArray);
+                window.callPhantom({
+                    action: 'exit',
+                    code: 1
+                });
             }
         }, this);
     };
