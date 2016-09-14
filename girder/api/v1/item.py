@@ -17,10 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
-
 from ..describe import Description, describeRoute
-from ..rest import Resource, RestException, filtermodel, loadmodel
+from ..rest import Resource, RestException, filtermodel, loadmodel, \
+    setResponseHeader
 from girder.utility import ziputil
 from girder.constants import AccessType, TokenScope
 from girder.api import access
@@ -194,9 +193,10 @@ class Item(Resource):
         return self.model('item').setMetadata(item, metadata)
 
     def _downloadMultifileItem(self, item, user):
-        cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] =\
-            'attachment; filename="%s%s"' % (item['name'], '.zip')
+        setResponseHeader('Content-Type', 'application/zip')
+        setResponseHeader(
+            'Content-Disposition',
+            'attachment; filename="%s%s"' % (item['name'], '.zip'))
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])

@@ -131,9 +131,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
-            self.save(doc, triggerEvents=False)
+            doc = self.save(doc, triggerEvents=False)
         if doc is not None and 'lowerName' not in doc:
-            self.save(doc, triggerEvents=False)
+            doc = self.save(doc, triggerEvents=False)
 
         return doc
 
@@ -383,7 +383,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
                 newItem[key] = copy.deepcopy(srcItem[key])
         # add a reference to the original item
         newItem['copyOfItem'] = srcItem['_id']
-        self.save(newItem, triggerEvents=False)
+        newItem = self.save(newItem, triggerEvents=False)
 
         # Give listeners a chance to change things
         events.trigger('model.item.copy.prepare', (srcItem, newItem))

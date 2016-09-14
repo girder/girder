@@ -85,6 +85,8 @@ else
     exit 1
 fi
 
+# Use the already downloaded fontello archive.
+export GIRDER_LOCAL_FONTELLO_ARCHIVE=${PROJECT_SOURCE_DIR}/clients/web/static/built/fontello.zip
 # Build the web client code
 girder-install web || exit 1
 

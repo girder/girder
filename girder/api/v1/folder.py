@@ -17,11 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import json
 
 from ..describe import Description, describeRoute
-from ..rest import Resource, RestException, filtermodel, loadmodel
+from ..rest import Resource, RestException, filtermodel, loadmodel, \
+    setResponseHeader
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.utility import ziputil
@@ -137,9 +137,10 @@ class Folder(Resource):
         Returns a generator function that will be used to stream out a zip
         file containing this folder's contents, filtered by permissions.
         """
-        cherrypy.response.headers['Content-Type'] = 'application/zip'
-        cherrypy.response.headers['Content-Disposition'] = \
-            'attachment; filename="%s%s"' % (folder['name'], '.zip')
+        setResponseHeader('Content-Type', 'application/zip')
+        setResponseHeader(
+            'Content-Disposition',
+            'attachment; filename="%s%s"' % (folder['name'], '.zip'))
 
         user = self.getCurrentUser()
         mimeFilter = params.get('mimeFilter')

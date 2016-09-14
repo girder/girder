@@ -145,9 +145,9 @@ class Folder(AccessControlledModel):
             baseParent = pathFromRoot[0]
             doc['baseParentId'] = baseParent['object']['_id']
             doc['baseParentType'] = baseParent['type']
-            self.save(doc, triggerEvents=False)
+            doc = self.save(doc, triggerEvents=False)
         if doc is not None and 'lowerName' not in doc:
-            self.save(doc, triggerEvents=False)
+            doc = self.save(doc, triggerEvents=False)
 
         return doc
 
@@ -761,7 +761,7 @@ class Folder(AccessControlledModel):
                 newFolder[key] = copy.deepcopy(srcFolder[key])
                 updated = True
         if updated:
-            self.save(newFolder, triggerEvents=False)
+            newFolder = self.save(newFolder, triggerEvents=False)
         # Give listeners a chance to change things
         events.trigger('model.folder.copy.prepare', (srcFolder, newFolder))
         # copy items

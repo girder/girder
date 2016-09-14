@@ -454,7 +454,7 @@ class ItemTestCase(base.TestCase):
 
         # set a private property
         item['private'] = 'very secret metadata'
-        self.model('item').save(item)
+        item = self.model('item').save(item)
 
         # get the item from the rest api
         resp = self.request(path='/item/%s' % str(item['_id']), method='GET',
@@ -512,7 +512,7 @@ class ItemTestCase(base.TestCase):
         # Force the item to be saved without lowerName and baseParentType fields
         del item['lowerName']
         del item['baseParentType']
-        self.model('item').save(item, validate=False)
+        item = self.model('item').save(item, validate=False)
 
         item = self.model('item').find({'_id': item['_id']})[0]
         self.assertNotHasKeys(item, ('lowerName', 'baseParentType'))
@@ -537,7 +537,7 @@ class ItemTestCase(base.TestCase):
         # corrected.
         item['description'] = 1
         del item['lowerName']
-        self.model('item').save(item, validate=False)
+        item = self.model('item').save(item, validate=False)
         item = self.model('item').find({'_id': item['_id']})[0]
         self.assertNotHasKeys(item, ('lowerName', ))
         self.model('item').load(item['_id'], force=True)

@@ -17,17 +17,17 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
 import os
 import posixpath
 import pwd
 import requests
+from snakebite.client import Client as HdfsClient
 import uuid
 
 from girder import logger
+from girder.api.rest import setResponseHeader
 from girder.models.model_base import ValidationException
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from snakebite.client import Client as HdfsClient
 
 
 class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -119,7 +119,7 @@ class HdfsAssetstoreAdapter(AbstractAssetstoreAdapter):
             endByte = file['size']
 
         if headers:
-            cherrypy.response.headers['Accept-Ranges'] = 'bytes'
+            setResponseHeader('Accept-Ranges', 'bytes')
             self.setContentHeaders(file, offset, endByte, contentDisposition)
 
         if file['hdfs'].get('imported'):

@@ -192,7 +192,7 @@ class Upload(Model):
 
         event_document = {'file': file, 'upload': upload}
         events.trigger('model.file.finalizeUpload.before', event_document)
-        self.model('file').save(file)
+        file = self.model('file').save(file)
         events.trigger('model.file.finalizeUpload.after', event_document)
         self.remove(upload)
 

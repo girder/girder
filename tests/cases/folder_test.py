@@ -429,7 +429,7 @@ class FolderTestCase(base.TestCase):
         # fields
         del folder['lowerName']
         del folder['baseParentType']
-        self.model('folder').save(folder, validate=False)
+        folder = self.model('folder').save(folder, validate=False)
 
         folder = self.model('folder').find({'_id': folder['_id']})[0]
         self.assertNotHasKeys(folder, ('lowerName', 'baseParentType'))

@@ -17,21 +17,21 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy
+from hashlib import sha512
 import os
 import psutil
 import shutil
 import six
+from six import BytesIO
 import stat
 import tempfile
 
-from six import BytesIO
-from hashlib import sha512
+from girder import events, logger
+from girder.api.rest import setResponseHeader
+from girder.models.model_base import ValidationException, GirderException
+from girder.utility import mkdir, progress
 from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
-from girder.models.model_base import ValidationException, GirderException
-from girder import events, logger
-from girder.utility import mkdir, progress
 
 BUF_SIZE = 65536
 
@@ -264,7 +264,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 'file-does-not-exist')
 
         if headers:
-            cherrypy.response.headers['Accept-Ranges'] = 'bytes'
+            setResponseHeader('Accept-Ranges', 'bytes')
             self.setContentHeaders(file, offset, endByte, contentDisposition)
 
         def stream():

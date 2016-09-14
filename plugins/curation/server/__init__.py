@@ -165,7 +165,7 @@ class CuratedFolder(Resource):
                 'REJECTED: ' + folder['name'],
                 'curation.rejected.mako')
 
-        self.model('folder').save(folder)
+        folder = self.model('folder').save(folder)
         curation['public'] = folder.get('public')
         return curation
 
@@ -180,7 +180,7 @@ class CuratedFolder(Resource):
         """
         pc.update(increment=1)
         folder['public'] = public
-        self.model('folder').save(folder)
+        folder = self.model('folder').save(folder)
         subfolders = self.model('folder').find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
@@ -197,7 +197,7 @@ class CuratedFolder(Resource):
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.WRITE:
                 doc['level'] = AccessType.READ
-        self.model('folder').save(folder)
+        folder = self.model('folder').save(folder)
         subfolders = self.model('folder').find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
@@ -214,7 +214,7 @@ class CuratedFolder(Resource):
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.READ:
                 doc['level'] = AccessType.WRITE
-        self.model('folder').save(folder)
+        folder = self.model('folder').save(folder)
         subfolders = self.model('folder').find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'

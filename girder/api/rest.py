@@ -433,7 +433,7 @@ def _createResponse(val):
             break
         elif accept.value == 'text/html':  # pragma: no cover
             # Pretty-print and HTML-ify the response for the browser
-            cherrypy.response.headers['Content-Type'] = 'text/html'
+            setResponseHeader('Content-Type', 'text/html')
             resp = json.dumps(val, indent=4, sort_keys=True, allow_nan=False,
                               separators=(',', ': '), cls=JsonEncoder)
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
@@ -442,7 +442,7 @@ def _createResponse(val):
 
     # Default behavior will just be normal JSON output. Keep this
     # outside of the loop body in case no Accept header is passed.
-    cherrypy.response.headers['Content-Type'] = 'application/json'
+    setResponseHeader('Content-Type', 'application/json')
     return json.dumps(val, sort_keys=True, allow_nan=False,
                       cls=JsonEncoder).encode('utf8')
 
@@ -586,15 +586,15 @@ def _setCommonCORSHeaders():
     allowed = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
 
     if allowed:
-        cherrypy.response.headers['Access-Control-Allow-Credentials'] = 'true'
+        setResponseHeader('Access-Control-Allow-Credentials', 'true')
 
         allowed_list = [o.strip() for o in allowed.split(',')]
         key = 'Access-Control-Allow-Origin'
 
         if len(allowed_list) == 1:
-            cherrypy.response.headers[key] = allowed_list[0]
+            setResponseHeader(key, allowed_list[0])
         elif origin in allowed_list:
-            cherrypy.response.headers[key] = origin
+            setResponseHeader(key, origin)
 
 
 class RestException(Exception):
@@ -1023,8 +1023,8 @@ class Resource(ModelImporter):
         allowMethods = self.model('setting').get(SettingKey.CORS_ALLOW_METHODS)\
             or 'GET, POST, PUT, HEAD, DELETE'
 
-        cherrypy.response.headers['Access-Control-Allow-Methods'] = allowMethods
-        cherrypy.response.headers['Access-Control-Allow-Headers'] = allowHeaders
+        setResponseHeader('Access-Control-Allow-Methods', allowMethods)
+        setResponseHeader('Access-Control-Allow-Headers', allowHeaders)
 
     @endpoint
     def DELETE(self, path, params):
