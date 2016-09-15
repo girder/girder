@@ -34,10 +34,6 @@ module.exports = function (grunt) {
                     'clients/web/static/built/testing/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
-                    ],
-                    'clients/web/static/built/testing/testing-no-cover.min.js': [
-                        'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
-                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
                     ]
                 }
             },

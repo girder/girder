@@ -43,5 +43,5 @@ function jasmineTests() {
 }
 
 $(function () {
-    $.getScript('/static/built/testing/testing-no-cover.min.js', jasmineTests);
+    $.getScript('/static/built/testing/testing.min.js', jasmineTests);
 });

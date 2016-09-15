@@ -57,7 +57,6 @@ page.viewportSize = {
 };
 
 page.onConsoleMessage = function (msg) {
-    console.log(msg);
     if (msg.indexOf('__SCREENSHOT__') === 0) {
         var imageFile = msg.substring('__SCREENSHOT__'.length) || 'phantom_screenshot.png';
         page.render(imageFile);
@@ -169,9 +168,11 @@ page.onLoadFinished = function (status) {
             }, args[3]);
         }
         page.evaluate(function () {
-            girderTest.promise.then(function () {
-                jasmine.getEnv().execute();
-            });
+            if (window.girderTest) {
+                girderTest.promise.then(function () {
+                    jasmine.getEnv().execute();
+                });
+            }
         });
     }
 };
