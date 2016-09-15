@@ -68,7 +68,7 @@
     "eslint-plugin-promise": "^2.0.1",
     "eslint-plugin-standard": "^2.0.0",
     "eslint-plugin-underscore": "0.0.10",
-    "istanbul": "^0.4.5",
+    "istanbul": "1.1.0-alpha.1",
     "phantomjs": "1.9.x",
     "phantomjs-polyfill": "0.0.x",
     "webpack-dev-server": "^2.1.0-beta.0"
