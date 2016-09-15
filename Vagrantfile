@@ -41,7 +41,10 @@ Vagrant.configure("2") do |config|
     else
       example = ENV["GIRDER_EXAMPLE"] || "girder-dev-environment"
       ansible.playbook = "devops/ansible/examples/#{example}/site.yml"
-      ansible.galaxy_role_file = "devops/ansible/examples/#{example}/requirements.yml"
+
+      if File.exist?("devops/ansible/examples/#{example}/requirements.yml")
+        ansible.galaxy_role_file = "devops/ansible/examples/#{example}/requirements.yml"
+      end
     end
 
     if provisioner_type == "ansible_local"
