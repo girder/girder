@@ -62,7 +62,7 @@ before_install:
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
     - npm install
-    - npm run build
+    - BABEL_ENV=cover npm run build
 
 script:
     - mkdir _build

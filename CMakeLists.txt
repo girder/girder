@@ -37,6 +37,12 @@ if(JAVASCRIPT_STYLE_TESTS)
   find_program(ESLINT_EXECUTABLE eslint ${PROJECT_SOURCE_DIR}/node_modules/.bin NO_DEFAULT_PATH)
 endif()
 
+if(BUILD_JAVASCRIPT_TESTS)
+  find_program(ISTANBUL_EXECUTABLE istanbul
+    PATHS "${PROJECT_SOURCE_DIR}/node_modules/.bin"
+    NO_DEFAULT_PATH)
+endif()
+
 if(BUILD_TESTING)
   include(tests/TestData.cmake)
   include(tests/PythonTests.cmake)
