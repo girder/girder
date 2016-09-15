@@ -7,4 +7,3 @@ reporting:
     report-config:
         cobertura: {file: js_coverage.xml}
         lcovonly: {file: lcov.info}
-        html: {dir: coverage}

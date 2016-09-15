@@ -23,8 +23,8 @@ function(javascript_tests_init)
             "--config" "${PROJECT_SOURCE_DIR}/.istanbul.yml"
             "--root" "${PROJECT_BINARY_DIR}/js_coverage"
             "--include" "*.cvg"
-            "--dir" "${PROJECT_BINARY_DIR}"
-            "text-summary" "lcovonly" "cobertura"
+            "--dir" "${PROJECT_BINARY_DIR}/coverage"
+            "text-summary" "lcovonly" "cobertura" "html"
   )
   set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser)
   set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_browser)

@@ -73,6 +73,11 @@ script:
     - cd ..
     - git fetch --unshallow
 
+after_success:
+    - npm install -g codecov coveralls
+    - codecov -f _build/coverage/lcov.info
+    - coveralls < _build/coverage/lcov.info
+
 deploy:
     provider: heroku
     buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
