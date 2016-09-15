@@ -34,7 +34,7 @@ var CollectionView = View.extend({
                 yesText: 'Delete',
                 escapedHtml: true,
                 confirmCallback: _.bind(function () {
-                    this.model.destroy().on('g:deleted', function () {
+                    this.model.on('g:deleted', function () {
                         events.trigger('g:alert', {
                             icon: 'ok',
                             text: 'Collection deleted.',
@@ -42,7 +42,7 @@ var CollectionView = View.extend({
                             timeout: 4000
                         });
                         router.navigate('collections', {trigger: true});
-                    });
+                    }).destroy();
                 }, this)
             });
         }

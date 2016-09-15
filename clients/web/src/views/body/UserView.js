@@ -34,9 +34,9 @@ var UserView = View.extend({
                 yesText: 'Delete',
                 escapedHtml: true,
                 confirmCallback: _.bind(function () {
-                    this.model.destroy().on('g:deleted', function () {
+                    this.model.on('g:deleted', function () {
                         router.navigate('users', {trigger: true});
-                    });
+                    }).destroy();
                 }, this)
             });
         },

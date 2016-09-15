@@ -64,7 +64,7 @@ var Model = Backbone.Model.extend({
             }
         }, this);
 
-        restRequest({
+        return restRequest({
             path: path,
             type: type,
             data: data,
@@ -75,8 +75,6 @@ var Model = Backbone.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-
-        return this;
     },
 
     /**
@@ -102,7 +100,7 @@ var Model = Backbone.Model.extend({
         if (opts.ignoreError) {
             restOpts.error = null;
         }
-        restRequest(restOpts).done(_.bind(function (resp) {
+        return restRequest(restOpts).done(_.bind(function (resp) {
             this.set(resp);
             if (opts.extraPath) {
                 this.trigger('g:fetched.' + opts.extraPath);
@@ -112,8 +110,6 @@ var Model = Backbone.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-
-        return this;
     },
 
     /**
@@ -167,7 +163,7 @@ var Model = Backbone.Model.extend({
             args.error = null;
         }
 
-        restRequest(args).done(_.bind(function () {
+        return restRequest(args).done(_.bind(function () {
             if (this.collection) {
                 this.collection.remove(this);
             }
@@ -175,8 +171,6 @@ var Model = Backbone.Model.extend({
         }, this)).error(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
-
-        return this;
     },
 
     /**

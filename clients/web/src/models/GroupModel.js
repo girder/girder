@@ -18,7 +18,7 @@ var GroupModel = AccessControlledModel.extend({
      */
     sendInvitation: function (userId, accessType, request, params) {
         params = params || {};
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/invitation',
             data: _.extend({
                 userId: userId,
@@ -47,7 +47,7 @@ var GroupModel = AccessControlledModel.extend({
      * already been invited to the group.
      */
     joinGroup: function () {
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
@@ -68,7 +68,7 @@ var GroupModel = AccessControlledModel.extend({
      * outstanding invitation to this group, call joinGroup instead.
      */
     requestInvitation: function () {
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
@@ -93,7 +93,7 @@ var GroupModel = AccessControlledModel.extend({
         } else if (level === AccessType.ADMIN) {
             role = 'admin';
         }
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/' + role,
             data: {
                 userId: user.get('_id')
@@ -121,7 +121,7 @@ var GroupModel = AccessControlledModel.extend({
         } else if (level === AccessType.ADMIN) {
             role = 'admin';
         }
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/' + this.get('_id') + '/' + role +
                 '?userId=' + userId,
             type: 'DELETE'
@@ -141,7 +141,7 @@ var GroupModel = AccessControlledModel.extend({
      * @param userId The ID of the user to remove.
      */
     removeMember: function (userId) {
-        restRequest({
+        return restRequest({
             path: this.resourceName + '/' + this.get('_id') +
                   '/member?userId=' + userId,
             type: 'DELETE'

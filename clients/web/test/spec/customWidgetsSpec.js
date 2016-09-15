@@ -35,7 +35,9 @@
                     lastName: 'Last'
                 }).on('g:saved', function () {
                     user = _user;
-                }).save();
+                });
+
+                _user.save();
             });
 
             waitsFor(function () {
@@ -51,7 +53,9 @@
                     name: 'top level folder'
                 }).on('g:saved', function () {
                     folder = _folder;
-                }).save();
+                });
+
+                _folder.save();
             });
 
             waitsFor(function () {
@@ -67,7 +71,9 @@
                     name: 'subfolder'
                 }).on('g:saved', function () {
                     subfolder = _subfolder;
-                }).save();
+                });
+
+                _subfolder.save();
             });
 
             waitsFor(function () {
@@ -82,7 +88,9 @@
                     name: 'an item'
                 }).on('g:saved', function () {
                     item = _item;
-                }).save();
+                });
+
+                _item.save();
             });
 
             waitsFor(function () {

@@ -19,7 +19,7 @@ var AssetstoreModel = Model.extend({
     },
 
     import: function (params) {
-        restRequest({
+        return restRequest({
             path: 'assetstore/' + this.get('_id') + '/import',
             type: 'POST',
             data: params,
@@ -29,8 +29,6 @@ var AssetstoreModel = Model.extend({
         }, this)).error(_.bind(function (resp) {
             this.trigger('g:error', resp);
         }, this));
-
-        return this;
     },
 
     save: function () {
@@ -38,7 +36,7 @@ var AssetstoreModel = Model.extend({
             // Coerce to an octal string to disambiguate
             this.set('perms', this.get('perms').toString(8));
         }
-        Model.prototype.save.call(this, arguments);
+        return Model.prototype.save.call(this, arguments);
     }
 });
 
