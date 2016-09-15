@@ -616,6 +616,54 @@ girderTest.waitForDialog = function (desc) {
 };
 
 /**
+ * Contains a promise that is resolved when all requested sources are loaded.
+ */
+girderTest.promise = $.when();
+
+/**
+ * Import a javascript file and.
+ */
+girderTest.addScript = function (url) {
+    var defer = new $.Deferred();
+    girderTest.promise.then(function () {
+        $('<script/>', {src: url}).appendTo('body').on('load', function () {
+            defer.resolve();
+        });
+    });
+    girderTest.promise = defer.promise();
+};
+
+/**
+ * An alias to addScript for backwards compatibility.
+ */
+girderTest.addCoveredScript = girderTest.addScript;
+
+/**
+ * Import a list of covered scripts. Order will be respected.
+ */
+girderTest.addCoveredScripts = function (scripts) {
+    _.each(scripts, girderTest.addCoveredScript);
+};
+
+/**
+ * Import a list of non-covered scripts. Order will be respected.
+ */
+girderTest.addScripts = function (scripts) {
+    _.each(scripts, girderTest.addScript);
+};
+
+/**
+ * Import a CSS file into the runtime context.
+ */
+girderTest.importStylesheet = function (css) {
+    $('<link/>', {
+        rel: 'stylesheet',
+        type: 'text/css',
+        href: css
+    }).appendTo('head');
+};
+
+/**
  * For the current folder, check if it is public or private and take an action.
  * :param current: either 'public' or 'private': expect this value to match.
  * :param action: if 'public' or 'private', switch to that setting.
@@ -1183,17 +1231,29 @@ $(function () {
             specs.push($.getScript(decodeURIComponent(query[1])));
         }
     });
+    $.when.apply($, specs)
+        .then(function () {
+            window.jasmine.getEnv().execute();
+        });
 });
 
 /**
- * Start the main application in the test environment.
+ * Wait for all of the sources to load and then start the main girder application.
+ * This will also delay the invocation of the jasmine test suite until after the
+ * application is running.  This method returns a promise that resolves with the
+ * application object.
  */
 girderTest.startApp = function () {
-    girder.events.trigger('g:appload.before');
-    var app = new girder.views.App({
-        el: 'body',
-        parentView: null
+    var defer = new $.Deferred();
+    girderTest.promise.then(function () {
+        girder.events.trigger('g:appload.before');
+        var app = new girder.views.App({
+            el: 'body',
+            parentView: null
+        });
+        girder.events.trigger('g:appload.after');
+        defer.resolve(app);
     });
-    girder.events.trigger('g:appload.after');
-    return app;
+    girderTest.promise = defer.promise();
+    return girderTest.promise;
 };

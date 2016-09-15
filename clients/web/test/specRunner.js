@@ -32,7 +32,7 @@ var fs = require('fs');
 require('event-source/global');
 
 try {
-    fs.unlinkSync(coverageOutput);
+    fs.remove(coverageOutput);
 } catch (e) {
 }
 
@@ -66,7 +66,7 @@ page.onConsoleMessage = function (msg) {
         console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
             fs.workingDirectory + fs.separator + imageFile + '</DartMeasurementFile>');
 
-        if (false && env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
+        if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === true) {
             console.log('Dumping ajax trace:');
@@ -76,7 +76,6 @@ page.onConsoleMessage = function (msg) {
         }
         return;
     } else if (msg === 'ConsoleReporter finished') {
-        reportCoverage();
         var success = this.page.evaluate(function () {
             return window.jasmine_phantom_reporter.status === 'success';
         });
@@ -169,6 +168,11 @@ page.onLoadFinished = function (status) {
                 }
             }, args[3]);
         }
+        page.evaluate(function () {
+            girderTest.promise.then(function () {
+                jasmine.getEnv().execute();
+            });
+        });
     }
 };
 

@@ -33,7 +33,6 @@ module.exports = function (grunt) {
                 files: {
                     'clients/web/static/built/testing/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
-                        'node_modules/blanket/dist/jasmine/blanket_jasmine.js',
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
                     ],
                     'clients/web/static/built/testing/testing-no-cover.min.js': [
