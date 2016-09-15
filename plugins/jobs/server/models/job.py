@@ -316,6 +316,8 @@ class Job(AccessControlledModel):
             updates['$set'][k] = v
 
         if updates['$set'] or updates['$push']:
+            if not updates['$push']:
+                del updates['$push']
             job['updated'] = now
             updates['$set']['updated'] = now
 

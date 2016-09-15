@@ -364,3 +364,9 @@ class JobsTestCase(base.TestCase):
 
             with self.assertRaises(ValidationException):
                 jobModel.updateJob(job, status=4321)  # Should fail
+
+    def testUpdateOtherFields(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(title='test', type='x', user=self.users[0])
+        job = jobModel.updateJob(job, otherFields={'other': 'fields'})
+        self.assertEqual(job['other'], 'fields')
