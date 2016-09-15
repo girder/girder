@@ -1231,10 +1231,12 @@ $(function () {
             specs.push($.getScript(decodeURIComponent(query[1])));
         }
     });
-    $.when.apply($, specs)
-        .then(function () {
-            window.jasmine.getEnv().execute();
-        });
+    if (specs.length) {
+        $.when.apply($, specs)
+            .then(function () {
+                window.jasmine.getEnv().execute();
+            });
+    }
 });
 
 /**
