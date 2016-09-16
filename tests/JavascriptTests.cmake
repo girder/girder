@@ -13,21 +13,18 @@ function(javascript_tests_init)
 
   add_test(
     NAME js_coverage_reset
-    COMMAND "${PYTHON_EXECUTABLE}"
-            "${PROJECT_SOURCE_DIR}/tests/js_coverage_tool.py"
-            reset
-            "${PROJECT_BINARY_DIR}/js_coverage"
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${PROJECT_BINARY_DIR}/js_coverage"
   )
   add_test(
     NAME js_coverage_combine_report
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-    COMMAND "${PYTHON_EXECUTABLE}"
-            "${PROJECT_SOURCE_DIR}/tests/js_coverage_tool.py"
-            "--threshold=${JS_COVERAGE_MINIMUM_PASS}"
-            "--source=${PROJECT_SOURCE_DIR}"
-            "${_core_cov_flag}"
-            combine_report
-            "${PROJECT_BINARY_DIR}/js_coverage"
+    COMMAND "${ISTANBUL_EXECUTABLE}"
+            "report"
+            "--config" "${PROJECT_SOURCE_DIR}/.istanbul.yml"
+            "--root" "${PROJECT_BINARY_DIR}/js_coverage"
+            "--include" "*.cvg"
+            "--dir" "${PROJECT_BINARY_DIR}/coverage"
+            "text-summary" "lcovonly" "cobertura" "html"
   )
   set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser)
   set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_browser)

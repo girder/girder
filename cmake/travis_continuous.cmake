@@ -21,7 +21,7 @@ elseif(test_group STREQUAL browser)
     PARALLEL_LEVEL 1 RETURN_VALUE res
     EXCLUDE_LABEL girder_python
   )
-  file(RENAME "${CTEST_BINARY_DIRECTORY}/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
+  file(RENAME "${CTEST_BINARY_DIRECTORY}/coverage/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
 endif()
 
 ctest_coverage()

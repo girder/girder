@@ -1,7 +1,7 @@
 /**
  * Contains utility functions used in the Girder Jasmine tests.
  */
-/* globals runs, expect, waitsFor, blanket */
+/* globals runs, expect, waitsFor */
 
 var girderTest = girderTest || {};
 
@@ -615,20 +615,10 @@ girderTest.waitForDialog = function (desc) {
     }, 'dialog rest requests to finish' + desc);
 };
 
-(function () {
-    var defer = new $.Deferred();
-
-    /**
-     * Contains a promise that is resolved when blanket finishes instrumenting all
-     * requested sources.
-     */
-    girderTest.promise = defer.promise();
-
-    // Start attaching covered scripts *after* the page has loaded.
-    $(function () {
-        defer.resolve();
-    });
-})();
+/**
+ * Contains a promise that is resolved when all requested sources are loaded.
+ */
+girderTest.promise = $.when();
 
 /**
  * Import a javascript file and.
@@ -636,7 +626,7 @@ girderTest.waitForDialog = function (desc) {
 girderTest.addScript = function (url) {
     var defer = new $.Deferred();
     girderTest.promise.then(function () {
-        $('<script/>', {src: url}).appendTo('body').on('load', function () {
+        $.getScript(url).done(function () {
             defer.resolve();
         });
     });
@@ -644,33 +634,9 @@ girderTest.addScript = function (url) {
 };
 
 /**
- * Import a javascript file and ask to register it with the blanket coverage
- * tests.
+ * An alias to addScript for backwards compatibility.
  */
-girderTest.addCoveredScript = function (url) {
-    if (!window.blanket) {
-        return girderTest.addScript(url);
-    }
-    var defer = new $.Deferred();
-    girderTest.promise.then(function () {
-        blanket.requiringFile(url);
-        blanket.utils.cache[url] = {};
-        blanket.utils.attachScript({
-            url: url
-        }, function (content) {
-            blanket.instrument({
-                inputFile: content,
-                inputFileName: url
-            }, function (instrumented) {
-                blanket.utils.cache[url].loaded = true;
-                blanket.utils.blanketEval(instrumented);
-                blanket.requiringFile(url, true);
-                defer.resolve();
-            });
-        });
-    });
-    girderTest.promise = defer.promise();
-};
+girderTest.addCoveredScript = girderTest.addScript;
 
 /**
  * Import a list of covered scripts. Order will be respected.
@@ -1265,6 +1231,12 @@ $(function () {
             specs.push($.getScript(decodeURIComponent(query[1])));
         }
     });
+    if (specs.length) {
+        $.when.apply($, specs)
+            .then(function () {
+                window.jasmine.getEnv().execute();
+            });
+    }
 });
 
 /**

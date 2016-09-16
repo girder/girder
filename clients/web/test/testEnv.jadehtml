@@ -6,9 +6,9 @@ html(lang="en")
     link(href="../../../test/lib/jasmine-1.3.1/jasmine.css", rel="stylesheet")
     script(src="polyfill.min.js")
     script(src="testing.min.js")
-
     each css in cssFiles
       link(href=css, rel="stylesheet", type="text/css")
+
   body
     #g-global-info-apiroot.hide %HOST%/#{apiRoot}
     #g-global-info-staticroot.hide %HOST%/#{staticRoot}
@@ -17,8 +17,7 @@ html(lang="en")
       script(src=js)
 
     each js in jsFilesCovered
-      script(type="text/javascript")
-        | girderTest.addCoveredScript("#{js}")
+      script(src=js)
 
     script(type="text/javascript").
       (function () {
@@ -28,13 +27,6 @@ html(lang="en")
         window.jasmine_phantom_reporter = consoleReporter;
         jasmineEnv.addReporter(consoleReporter);
 
-        if (window.blanket) {
-            window.blanket.options('timeout', 3000);
-        }
-
         var currentWindowOnload = window.onload;
-
-        girderTest.promise.then(function () {
-            girder.utilities.eventStream.settings.timeout = 10;
-        });
+        girder.utilities.eventStream.settings.timeout = 10;
       })();
