@@ -626,7 +626,7 @@ girderTest.promise = $.when();
 girderTest.addScript = function (url) {
     var defer = new $.Deferred();
     girderTest.promise.then(function () {
-        $('<script/>', {src: url}).appendTo('body').on('load', function () {
+        $.getScript(url).done(function () {
             defer.resolve();
         });
     });
