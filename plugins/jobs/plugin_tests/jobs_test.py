@@ -365,6 +365,27 @@ class JobsTestCase(base.TestCase):
             with self.assertRaises(ValidationException):
                 jobModel.updateJob(job, status=4321)  # Should fail
 
+    def testValidateCustomStrStatus(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(title='test', type='x', user=self.users[0])
+
+        def validateStatus(event):
+            states = ['a', 'b', 'c']
+
+            if event.info in states:
+                event.preventDefault().addResponse(True)
+
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status='a')
+
+        with events.bound('jobs.status.validate', 'test', validateStatus):
+            jobModel.updateJob(job, status='a')
+            self.assertEqual(job['status'], 'a')
+
+        with self.assertRaises(ValidationException), \
+                events.bound('jobs.status.validate', 'test', validateStatus):
+            jobModel.updateJob(job, status='foo')
+
     def testUpdateOtherFields(self):
         jobModel = self.model('job', 'jobs')
         job = jobModel.createJob(title='test', type='x', user=self.users[0])
