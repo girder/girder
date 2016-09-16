@@ -57,6 +57,7 @@ page.viewportSize = {
 };
 
 page.onConsoleMessage = function (msg) {
+    console.log(msg); // this needs to be here or the tests fail...
     if (msg.indexOf('__SCREENSHOT__') === 0) {
         var imageFile = msg.substring('__SCREENSHOT__'.length) || 'phantom_screenshot.png';
         page.render(imageFile);
