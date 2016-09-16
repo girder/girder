@@ -23,14 +23,13 @@ from girder.utility.model_importer import ModelImporter
 
 
 def handler(event):
-    if event.info['file']['exts'] == ['dcm']:
+    mime = mimetypes.guess_type(event.info['file'])
+    if event.info['file']['exts'][-1] == ['dcm'] || 'application/dicom':
         itemId = event.info['file']['itemId']
         itemModel = ModelImporter.model('item')
         item = itemModel.load(itemId, force=True)
-        if 'meta' in item:
-            if 'DICOM Elements Extracted' in item['meta']:
-                if item['meta']['DICOM Elements Extracted']:
-                    return
+        if item.get('meta', {}).get('Info Extracted'):
+            return
 
         metadataExtractor = ServerDicomMetadataExtractor(event.info['file'])
         metadataExtractor.extractMetadata()

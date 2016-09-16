@@ -67,7 +67,7 @@ class DicomMetadataExtractor(object):
                         name = str(item.name).replace('.', '')
                         value = str(item.value)
                         self.metadata[name] = value
-                self.metadata['DICOM Elements Extracted'] = True
+                self.metadata['Info Extracted'] = True
             else:
                 self.metadata = None
 
