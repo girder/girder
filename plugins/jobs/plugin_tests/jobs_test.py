@@ -385,7 +385,7 @@ class JobsTestCase(base.TestCase):
         with self.assertRaises(ValidationException), \
                 events.bound('jobs.status.validate', 'test', validateStatus):
             jobModel.updateJob(job, status='foo')
-    
+
     def testUpdateOtherFields(self):
         jobModel = self.model('job', 'jobs')
         job = jobModel.createJob(title='test', type='x', user=self.users[0])
