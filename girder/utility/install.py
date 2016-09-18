@@ -29,7 +29,7 @@ import shutil
 import subprocess
 
 from girder import constants
-from girder.utility.plugin_utilities import getPluginDir
+from girder.utility import model_importer, plugin_utilities
 
 version = constants.VERSION['apiVersion']
 webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
@@ -44,7 +44,7 @@ def print_version(parser):
 
 
 def print_plugin_path(parser):
-    print(getPluginDir())
+    print(plugin_utilities.getPluginDir())
 
 
 def print_web_root(parser):
@@ -63,7 +63,17 @@ def fix_path(path):
     return os.path.abspath(os.path.expanduser(path))
 
 
-def runNpmInstall(wd=None, dev=False, npm='npm'):
+def _getPluginBuildArgs(buildAll):
+    if buildAll:
+        return ['--all-plugins']
+    else:  # build only the enabled plugins
+        settings = model_importer.ModelImporter().model('setting')
+        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+        plugins = ','.join(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
+        return ['--plugins=%s' % plugins]
+
+
+def runNpmInstall(wd=None, dev=False, npm='npm', allPlugins=False):
     """
     Use this to run `npm install` inside the package. Also builds the web code
     using `npm run build`.
@@ -81,7 +91,7 @@ def runNpmInstall(wd=None, dev=False, npm='npm'):
 
     commands.append((npm, 'install', '--unsafe-perm') if dev
                     else (npm, 'install', '--production', '--unsafe-perm'))
-    commands.append((npm, 'run', 'build'))
+    commands.append([npm, 'run', 'build', '--'] + _getPluginBuildArgs(allPlugins))
 
     for command in commands:
         proc = subprocess.Popen(command, cwd=wd)
@@ -100,7 +110,7 @@ def install_web(opts=None):
     if opts is None:
         runNpmInstall()
     else:
-        runNpmInstall(dev=opts.development, npm=opts.npm)
+        runNpmInstall(dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins)
 
 
 def install_plugin(opts):
@@ -136,7 +146,7 @@ def install_plugin(opts):
                     if pip.main(['install', '-r', reqs]) != 0:
                         raise Exception('Failed to install pip requirements at %s.' % reqs)
 
-        targetPath = os.path.join(getPluginDir(), name)
+        targetPath = os.path.join(plugin_utilities.getPluginDir(), name)
 
         if (os.path.isdir(targetPath) and
                 os.path.samefile(pluginPath, targetPath) and not
@@ -201,7 +211,7 @@ def main():
                         dest='development',
                         help='Install server/client development dependencies')
 
-    plugin.add_argument('--npm', default="npm",
+    plugin.add_argument('--npm', default='npm',
                         help='specify the full path to the npm executable.')
 
     plugin.add_argument('plugin', nargs='+',
@@ -215,6 +225,8 @@ def main():
 
     web.add_argument('--npm', default="npm",
                      help='specify the full path to the npm executable.')
+    web.add_argument('--all-plugins', action='store_true',
+                     help='build all available plugins rather than just enabled ones')
 
     web.set_defaults(func=install_web)
 

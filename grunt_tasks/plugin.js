@@ -24,7 +24,8 @@ module.exports = function (grunt) {
 
     var buildAll = grunt.option('all-plugins');
     var plugins = grunt.option('plugins');
-    if (plugins) {
+
+    if (_.isString(plugins) && plugins) {
         plugins = plugins.split(',');
     } else if (!buildAll) {
         return;
