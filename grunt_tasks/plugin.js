@@ -145,7 +145,7 @@ module.exports = function (grunt) {
             );
 
             if (npm.length) {
-                grunt.config.set('init.npm-install:' + npm.join(':'), {});
+                grunt.config.set('default.npm-install:' + npm.join(':'), {});
             }
         }
 
