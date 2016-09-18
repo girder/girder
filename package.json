@@ -76,7 +76,7 @@
   "scripts": {
     "postinstall": "node scripts/node/install.js",
     "build": "grunt init && grunt",
-    "watch": "grunt watch",
+    "watch": "grunt webpack:watch",
     "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts"
   }
 }
