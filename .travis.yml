@@ -62,7 +62,7 @@ before_install:
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
     - npm install
-    - npm run build
+    - npm run build -- --all-plugins
 
 script:
     - mkdir _build
