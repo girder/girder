@@ -119,7 +119,7 @@ module.exports = function (grunt) {
                         },
                         resolve: {
                             alias: {
-                                [`plugins/${plugin}`]: webClient
+                                [`girder_plugins/${plugin}`]: webClient
                             }
                         }
                     }
