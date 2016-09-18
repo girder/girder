@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-var fs = require('fs');
-var path = require('path');
 var _ = require('underscore');
 var noptFix = require('nopt-grunt-fix');
 
@@ -37,7 +35,6 @@ module.exports = function (grunt) {
         process.env.NODE_ENV = environment;
     }
     var isWatch = grunt.option('watch');
-    var skipPlugins = grunt.option('skip-plugins');
 
     // https://github.com/webpack/grunt-webpack
     var gruntWebpackConfig = {
