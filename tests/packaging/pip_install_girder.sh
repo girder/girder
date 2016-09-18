@@ -92,7 +92,7 @@ girder-install web || exit 1
 
 # Make sure that our grunt targets got built
 webroot=$(girder-install web-root)
-if [ ! -f "${webroot}/static/built/plugins/jobs/plugin.min.js" ] ; then
+if [ ! -f "${webroot}/static/built/girder.app.min.js" ] ; then
     echo "Error: Grunt targets were not built correctly"
     exit 1
 fi

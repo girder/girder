@@ -1,5 +1,0 @@
-#!/bin/bash
-
-# This mocks the npm executable since it can take a while
-echo "<mocked npm called>: $@"
-touch @PROJECT_BINARY_DIR@/npm_called.txt

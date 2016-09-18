@@ -22,12 +22,6 @@ add_custom_target(
   DEPENDS "${virtualenv_python}"
 )
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/tests/packaging/mocks/npm.in"
-  "${PROJECT_BINARY_DIR}/mockpath/npm"
-  @ONLY
-)
-
 add_test(
   NAME packaging_generate
   WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"

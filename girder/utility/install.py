@@ -63,17 +63,18 @@ def fix_path(path):
     return os.path.abspath(os.path.expanduser(path))
 
 
-def _getPluginBuildArgs(buildAll):
+def _getPluginBuildArgs(buildAll, plugins):
     if buildAll:
         return ['--all-plugins']
-    else:  # build only the enabled plugins
+    elif not plugins:  # build only the enabled plugins
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
         plugins = ','.join(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
-        return ['--plugins=%s' % plugins]
+
+    return ['--plugins=%s' % plugins]
 
 
-def runNpmInstall(wd=None, dev=False, npm='npm', allPlugins=False):
+def runNpmInstall(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None):
     """
     Use this to run `npm install` inside the package. Also builds the web code
     using `npm run build`.
@@ -91,7 +92,7 @@ def runNpmInstall(wd=None, dev=False, npm='npm', allPlugins=False):
 
     commands.append((npm, 'install', '--unsafe-perm') if dev
                     else (npm, 'install', '--production', '--unsafe-perm'))
-    commands.append([npm, 'run', 'build', '--'] + _getPluginBuildArgs(allPlugins))
+    commands.append([npm, 'run', 'build', '--'] + _getPluginBuildArgs(allPlugins, plugins))
 
     for command in commands:
         proc = subprocess.Popen(command, cwd=wd)
@@ -110,7 +111,9 @@ def install_web(opts=None):
     if opts is None:
         runNpmInstall()
     else:
-        runNpmInstall(dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins)
+        runNpmInstall(
+            dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
+            plugins=opts.plugins)
 
 
 def install_plugin(opts):
@@ -221,6 +224,7 @@ def main():
                      help='specify the full path to the npm executable.')
     web.add_argument('--all-plugins', action='store_true',
                      help='build all available plugins rather than just enabled ones')
+    web.add_argument('--plugins', default='', help='comma-separated list of plugins to build')
 
     web.set_defaults(func=install_web)
 

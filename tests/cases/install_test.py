@@ -32,7 +32,7 @@ pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plug
 
 class PluginOpts():
     def __init__(self, plugin=None, force=False, symlink=False, dev=False, npm='npm',
-                 skip_requirements=False, all_plugins=False):
+                 skip_requirements=False, all_plugins=False, plugins=None):
         self.plugin = plugin
         self.force = force
         self.symlink = symlink
@@ -40,6 +40,7 @@ class PluginOpts():
         self.npm = npm
         self.skip_requirements = skip_requirements
         self.all_plugins = all_plugins
+        self.plugins = plugins
 
 
 class ProcMock(object):
@@ -158,7 +159,6 @@ class InstallTestCase(base.TestCase):
             os.path.join(pluginRoot, 'has_dev_deps'),
             os.path.join(constants.ROOT_DIR, 'plugins', 'jobs')
         ], force=True, dev=True))
-
 
     def testGruntDependencies(self):
         install.install_plugin(PluginOpts(plugin=[
