@@ -97,21 +97,5 @@ module.exports = function (grunt) {
         grunt.log.warn('WARNING: the "watch" task will not build; use the "webpack:watch" task or run grunt --watch'['yellow']);
     });
 
-    // Add plugin entry points (should be in webpack.config.js but skipPlugins is a grunt option)
-    if (!skipPlugins) {
-        grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
-            var plugin = path.basename(dir);
-            var pluginTarget = 'plugins/' + plugin + '/plugin';
-            var webClient = path.resolve('./' + dir + '/web_client');
-            var main =  webClient + '/main.js';
-            if (fs.existsSync(main)) {
-                config.webpack.options.entry[pluginTarget] = main;
-                config.webpack.options.resolve.alias['plugins/' + plugin] = webClient;
-            }
-        });
-    } else {
-        grunt.log.writeln('Skipping plugins...');
-    }
-
     grunt.config.merge(config);
 };
