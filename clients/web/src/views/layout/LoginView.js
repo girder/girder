@@ -6,6 +6,7 @@ import { restRequest } from 'girder/rest';
 
 import LoginDialogTemplate from 'girder/templates/layout/loginDialog.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -24,7 +25,7 @@ var LoginView = View.extend({
 
             events.once('g:login.error', function (status, err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
-                this.$('#g-login-button').removeClass('disabled');
+                this.$('#g-login-button').girderEnable(true);
                 if (err.responseJSON.extra === 'emailVerification') {
                     var html = err.responseJSON.message +
                         ' <a class="g-send-verification-email">Click here to send verification email.</a>';
@@ -32,7 +33,7 @@ var LoginView = View.extend({
                 }
             }, this);
 
-            this.$('#g-login-button').addClass('disabled');
+            this.$('#g-login-button').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
 

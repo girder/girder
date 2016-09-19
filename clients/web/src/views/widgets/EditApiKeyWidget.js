@@ -7,6 +7,7 @@ import { restRequest } from 'girder/rest';
 
 import EditApiKeyWidgetTemplate from 'girder/templates/widgets/editApiKeyWidget.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -31,18 +32,18 @@ var EditApiKeyWidget = View.extend({
 
             this.saveModel(this.model, fields);
 
-            this.$('button.g-save-api-key').addClass('disabled');
+            this.$('button.g-save-api-key').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
 
         'change .g-scope-selection-container .radio input': function (e) {
             var mode = this._getSelectedScopeMode();
             if (mode === 'full') {
-                this.$('.g-custom-scope-checkbox').attr('disabled', 'disabled')
-                    .parent().parent().addClass('disabled');
+                this.$('.g-custom-scope-checkbox').girderEnable(false)
+                    .parent().parent().girderEnable(false);
             } else if (mode === 'custom') {
-                this.$('.g-custom-scope-checkbox').removeAttr('disabled')
-                    .parent().parent().removeClass('disabled');
+                this.$('.g-custom-scope-checkbox').girderEnable(true)
+                    .parent().parent().girderEnable(true);
             }
         }
     },
@@ -82,7 +83,7 @@ var EditApiKeyWidget = View.extend({
                 this.$('#g-api-key-token-duration').val(this.model.get('tokenDuration') || '');
                 if (this.model.get('scope')) {
                     this.$('#g-scope-mode-custom').attr('checked', 'checked');
-                    this.$('.g-custom-scope-checkbox').removeAttr('disabled');
+                    this.$('.g-custom-scope-checkbox').girderEnable(true);
                     _.each(this.model.get('scope'), function (scope) {
                         this.$('.g-custom-scope-checkbox[value="' + scope + '"]').attr('checked', 'checked');
                     }, this);
@@ -110,7 +111,7 @@ var EditApiKeyWidget = View.extend({
             this.trigger('g:saved', model);
         }, this).off('g:error', null, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-api-key').removeClass('disabled');
+            this.$('button.g-save-api-key').girderEnable(true);
         }, this).save();
     },
 
