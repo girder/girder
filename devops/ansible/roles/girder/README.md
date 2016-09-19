@@ -5,10 +5,12 @@ girder.girder
 
 An Ansible role to install [Girder](https://github.com/girder/girder).
 
+Further documentation on provisioning can be found [here](https://girder.readthedocs.io/en/latest/provisioning.html).
+
 Requirements
 ------------
 
-This is intended to be run on a clean Ubuntu 14.04 system.
+This is intended to be run on a clean Ubuntu 14.04 or 16.04 system.
 
 Role Variables
 --------------
@@ -38,4 +40,4 @@ These will be automatically fetched if your requirements.yml file contains:
 
 Examples
 --------
-Examples can be found [here](https://github.com/girder/girder/tree/ansible-role-refactor/devops/ansible/examples).
+Examples can be found [here](https://github.com/girder/girder/tree/master/devops/ansible/examples).
