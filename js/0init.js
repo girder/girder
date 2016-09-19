@@ -7,3 +7,4 @@ window.slicer = slicer;
 slicer.models = {};
 slicer.collections = {};
 slicer.views = {};
+slicer.events = _.clone(Backbone.Events);
