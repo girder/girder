@@ -7,7 +7,6 @@ slicer.views.PanelGroup = girder.View.extend({
     initialize: function () {
         this.panels = [];
         this._panelViews = {};
-        this._schemaName = null;
 
         this._jobsPanelView = new slicer.views.JobsPanel({
             parentView: this,
@@ -45,9 +44,9 @@ slicer.views.PanelGroup = girder.View.extend({
     },
 
     /**
-     * Submit the current values to the server.
+     * Submit the current values to the server at the given endpoint.
      */
-    submit: function () {
+    submit: function (endpoint) {
         var params, invalid = false;
 
         invalid = this.invalidModels();
@@ -68,16 +67,9 @@ slicer.views.PanelGroup = girder.View.extend({
             }
         });
 
-        // For the widget demo, just print the parameters to the console
-        if (this._schemaName === 'demo') {
-            console.log('Submit'); // eslint-disable-line no-console
-            console.log(JSON.stringify(params, null, 2)); // eslint-disable-line no-console
-            return;
-        }
-
         // post the job to the server
         girder.restRequest({
-            path: 'slicer_cli_web/' + this._schemaName + '/run',
+            path: endpoint,
             type: 'POST',
             data: params
         }).then(function (data) {
@@ -152,7 +144,6 @@ slicer.views.PanelGroup = girder.View.extend({
      * Remove all panels.
      */
     reset: function () {
-        this._schemaName = null;
         this.panels = [];
         this._gui = null;
         this.render();
@@ -181,56 +172,44 @@ slicer.views.PanelGroup = girder.View.extend({
     },
 
     /**
-     * Generate a "demo" application that shows off the different kinds of
-     * widgets available.
+     * Generate panels from a slicer XML schema.
      */
-    demo: function () {
-        $.ajax(girder.staticRoot + '/built/plugins/slicer_cli_web/extra/widget_demo.json')
-            .then(_.bind(function (spec) {
-                this._gui = spec;
-                this._schemaName = 'demo';
-                this.reload();
-            }, this));
+    schema: function (xml) {
+        var fail = false;
+
+        // clear the view on null
+        if (xml === null) {
+            return this.reset();
+        }
+
+        try {
+            this.json(slicer.schema.parse(xml));
+        } catch (e) {
+            fail = true;
+        }
+
+        if (fail) {
+            girder.events.trigger('g:alert', {
+                icon: 'attention',
+                text: 'Invalid XML schema',
+                type: 'danger'
+            });
+            this.reset();
+            return this;
+        }
+
         return this;
     },
 
     /**
-     * Generate panels from a slicer XML schema stored on the server.
+     * Generate panels from a json schema.
      */
-    schema: function (s) {
-
-        if (s === 'demo') {
-            return this.demo();
-        } else if (s === null) {
-            return this.reset();
+    json: function (spec) {
+        if (_.isString(spec)) {
+            spec = JSON.parse(spec);
         }
-
-        girder.restRequest({
-            path: '/slicer_cli_web/' + s + '/xmlspec'
-        }).then(_.bind(function (xml) {
-            var fail = !xml;
-            try {
-                this._gui = slicer.schema.parse(xml);
-            } catch (e) {
-                fail = true;
-            }
-
-            if (fail) {
-                girder.events.trigger('g:alert', {
-                    icon: 'attention',
-                    text: 'Invalid XML schema',
-                    type: 'danger'
-                });
-                this.reset();
-                return this;
-            }
-
-            this._schemaName = s;
-            this.reload();
-
-            return this;
-        }, this));
-
+        this._gui = spec;
+        this.reload();
         return this;
     }
 });
