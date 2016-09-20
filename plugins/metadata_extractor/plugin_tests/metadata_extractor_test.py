@@ -18,14 +18,33 @@
 ###############################################################################
 
 import os.path
+import time
 
 from tests import base
 from girder.constants import ROOT_DIR
 
 
 class MetadataExtractorTestCase(base.TestCase):
+
+    def _postUpload(self, event):
+        self.processedCount += 1
+
+    def _waitForProcessCount(self, count):
+        startTime = time.time()
+        while time.time()-startTime < 15:
+            if self.processedCount >= count:
+                break
+            time.sleep(0.1)
+        self.assertGreaterEqual(self.processedCount, count)
+
     def setUp(self):
         super(MetadataExtractorTestCase, self).setUp()
+
+        self.processedCount = 0
+        from girder import events
+        events.bind('data.process', 'metadata_extractor_test',
+                    self._postUpload)
+
         self.password = '3achAst5jaWRaCrU'
         self.user = self.model('user').createUser(
             'metadataextractor', self.password, 'Metadata', 'Extractor',
@@ -48,3 +67,14 @@ class MetadataExtractorTestCase(base.TestCase):
         self.assertHasKeys(uploadedFile,
                            ['assetstoreId', 'created', 'creatorId', 'itemId',
                             'mimeType', 'name', 'size'])
+        self._waitForProcessCount(1)
+
+        self.name2 = 'small.tiff'
+        self.item2 = self.model('item').createItem(self.name2, self.user,
+                                                   publicFolders[0])
+        self.mimeType2 = 'image/tiff'
+        file2 = os.path.join(os.path.dirname(__file__), 'files', 'small.tiff')
+        self.model('upload').uploadFromFile(
+            open(file2), os.path.getsize(file2), self.name2, 'item',
+            self.item2, self.user)
+        self._waitForProcessCount(2)
