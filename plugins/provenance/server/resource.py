@@ -330,7 +330,7 @@ class ResourceExt(Resource):
         :param event: the event with the file information.
         """
         curFile = event.info
-        if 'itemId' not in curFile or '_id' not in curFile:
+        if not curFile.get('itemId') or '_id' not in curFile:
             return
         user = self.getProvenanceUser(curFile)
         item = self.model('item').load(id=curFile['itemId'], force=True)
@@ -366,7 +366,7 @@ class ResourceExt(Resource):
         :param event: the event with the file information.
         """
         file = event.info
-        if 'itemId' not in file or not file['itemId'] or '_id' not in file:
+        if not file.get('itemId') or '_id' not in file:
             return
         user = self.getProvenanceUser(file)
         item = self.model('item').load(id=file['itemId'], force=True)
@@ -394,7 +394,13 @@ class ResourceExt(Resource):
         if 'itemId' not in file:
             return
         user = self.getProvenanceUser(file)
-        item = self.model('item').load(id=file['itemId'], force=True)
+        itemId = file.get('itemId')
+        # Don't attach provenance to an item based on files that are not
+        # directly associated (we may want to revisit this and, when files are
+        # attachedToType, add provenance to the appropriate type and ID).
+        if not itemId:
+            return
+        item = self.model('item').load(id=itemId, force=True)
         if not item:
             return
         updateEvent = {

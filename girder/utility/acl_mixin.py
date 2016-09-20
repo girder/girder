@@ -52,16 +52,15 @@ class AccessControlMixin(object):
         """
         doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
 
-        if doc is not None:
+        if not force and doc is not None:
             if doc.get(self.resourceParent):
                 loadType = self.resourceColl
                 loadId = doc[self.resourceParent]
             else:
-                loadType = doc['attachedToType']
-                loadId = doc['attachedToId']
-
-        if not force and doc is not None:
-            self.model(loadType).load(loadId, level=level, user=user, exc=exc)
+                loadType = doc.get('attachedToType')
+                loadId = doc.get('attachedToId')
+            if loadType is not None and loadId is not None:
+                self.model(loadType).load(loadId, level=level, user=user, exc=exc)
 
         return doc
 
