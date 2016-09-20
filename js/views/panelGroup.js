@@ -44,9 +44,9 @@ slicer.views.PanelGroup = girder.View.extend({
     },
 
     /**
-     * Submit the current values to the server at the given endpoint.
+     * Submit the current values to the server.
      */
-    submit: function (endpoint) {
+    submit: function () {
         var params, invalid = false;
 
         invalid = this.invalidModels();
@@ -69,7 +69,7 @@ slicer.views.PanelGroup = girder.View.extend({
 
         // post the job to the server
         girder.restRequest({
-            path: endpoint,
+            path: this._submit,
             type: 'POST',
             data: params
         }).then(function (data) {
@@ -146,6 +146,7 @@ slicer.views.PanelGroup = girder.View.extend({
     reset: function () {
         this.panels = [];
         this._gui = null;
+        this._submit = null;
         this.render();
     },
 
@@ -172,9 +173,28 @@ slicer.views.PanelGroup = girder.View.extend({
     },
 
     /**
+     * Set the panel group according to the given schema path.
+     * This should be a url fragment such as
+     *
+     *   path = `HistomicsTK/dsarchive_histomicstk_v0.1.3`
+     *
+     * This code will fetch the actual schema from `path + '/xmlschema'`
+     * and cause submissions to post to `path + '/run'`.
+     */
+    setAnalysis: function (path) {
+        return girder.restRequest({
+            path: path + '/xmlspec'
+        }).then(_.bind(function (xml) {
+            this._submit = path + '/run';
+            this._schema(xml);
+            slicer.events.trigger('h:analysis', path, xml);
+        }, this));
+    },
+
+    /**
      * Generate panels from a slicer XML schema.
      */
-    schema: function (xml) {
+    _schema: function (xml) {
         var fail = false;
 
         // clear the view on null
@@ -183,7 +203,7 @@ slicer.views.PanelGroup = girder.View.extend({
         }
 
         try {
-            this.json(slicer.schema.parse(xml));
+            this._json(slicer.schema.parse(xml));
         } catch (e) {
             fail = true;
         }
@@ -204,7 +224,7 @@ slicer.views.PanelGroup = girder.View.extend({
     /**
      * Generate panels from a json schema.
      */
-    json: function (spec) {
+    _json: function (spec) {
         if (_.isString(spec)) {
             spec = JSON.parse(spec);
         }
