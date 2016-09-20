@@ -63,12 +63,12 @@ class MetadataExtractor(object):
                                   six.binary_type(self.path))
 
             if parser is None:
-                raise HachoirError
+                raise HachoirError('no parser')
 
             extractor = extractMetadata(parser)
 
             if extractor is None:
-                raise HachoirError
+                raise HachoirError('no extractor')
 
             self.metadata = dict()
 
