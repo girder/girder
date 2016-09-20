@@ -23,8 +23,7 @@ import datetime
 
 from ..describe import Description, describeRoute
 from girder.api import access
-from girder.api.rest import Resource, RestException, AccessException,\
-    filtermodel, loadmodel
+from girder.api.rest import Resource, RestException, AccessException, filtermodel, loadmodel
 from girder.constants import AccessType, SettingKey, TokenScope
 from girder.models.token import genToken
 from girder.utility import mail_utils
@@ -275,8 +274,7 @@ class User(Resource):
                     raise AccessException('Only admins may change admin state.')
 
         # Only admins can change status
-        if 'status' in params and \
-                params['status'] != user.get('status', 'enabled'):
+        if 'status' in params and params['status'] != user.get('status', 'enabled'):
             if not self.getCurrentUser()['admin']:
                 raise AccessException('Only admins may change status.')
             if user['status'] == 'pending' and params['status'] == 'enabled':
