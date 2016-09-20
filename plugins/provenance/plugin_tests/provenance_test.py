@@ -395,7 +395,7 @@ class ProvenanceTestCase(base.TestCase):
                             is (key == 'item'))
 
     def testProvenanceFileWithoutItem(self):
-        fileData = 'this is a test'
+        fileData = b'this is a test'
         file = self.model('upload').uploadFromFile(
             obj=six.BytesIO(fileData), size=len(fileData), name='test',
             parentType=None, parent=None, user=self.admin)
