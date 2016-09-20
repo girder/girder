@@ -1,8 +1,5 @@
 import jQuery from 'jquery';
 
-/**
- * Define jQuery plugins within this scope.
- */
 (function ($) {
     /**
      * Helper selector to enable/disable inputs elements
@@ -10,13 +7,12 @@ import jQuery from 'jquery';
      * @param enable Whether to enable the element or not
      */
     $.fn.girderEnable = function (enable) {
-        var selection = $(this)
-        if(selection.is(':input')){
+        var selection = $(this);
+        if (selection.is(':input')) {
             selection.prop('disabled', !enable);
-            if(!enable) {
+            if (!enable) {
                 selection.addClass('disabled');
-            }
-            else {
+            } else {
                 selection.removeClass('disabled');
             }
         }

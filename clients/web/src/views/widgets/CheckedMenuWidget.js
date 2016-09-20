@@ -4,7 +4,7 @@ import { AccessType } from 'girder/constants';
 
 import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.jade';
 
-import 'girder/utilities/jquery/girderEnable'
+import 'girder/utilities/jquery/girderEnable';
 
 /**
  * This widget presents a list of available batch actions
