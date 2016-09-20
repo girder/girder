@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
+import events from 'girder/events';
 import router from 'girder/router';
 import View from 'girder/views/View';
 import { confirm } from 'girder/dialog';
@@ -33,6 +34,21 @@ var PluginsView = View.extend({
                 confirmCallback: restartServer
             };
             confirm(params);
+        },
+        'click .g-rebuild-web-code': function (e) {
+            $(e.currentTarget).addClass('disabled'); // TODO girderEnable(false);
+            restRequest({
+                path: 'system/web_build',
+                type: 'POST'
+            }).done(() => {
+                events.trigger('g:alert', {
+                    text: 'Web client code built successfully',
+                    type: 'success',
+                    duration: 3000
+                })
+            }).complete(() => {
+                $(e.currentTarget).removeClass('disabled');
+            });
         }
     },
 

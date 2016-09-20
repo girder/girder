@@ -1,11 +1,16 @@
 .g-body-title Plugins
-div.g-plugin-restart
+  .g-rebuild-container
+    button.g-rebuild-web-code.btn.btn-primary(title="Rebuild web code for all enabled plugins")
+      i.icon-arrows-cw
+      | Rebuild web code
+    .g-clear
+.g-plugin-restart
   button.g-plugin-restart-button.btn.btn-danger
     i.icon-cw
     | Restart Server
-  .g-plugin-restart-text
-    | The selected plugins have changed.  You must restart the server for the
-    | changes to take effect.
+  .g-plugin-restart-text.
+    The selected plugins have changed.  You must restart the server for the
+    changes to take effect.
   .g-plugin-clear
 .g-plugin-list-container
   each plugin in allPlugins
@@ -27,7 +32,7 @@ div.g-plugin-restart
         if plugin.value.configRoute
           a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
             i.icon-cog
-      .g-plugin-description #{plugin.value.description}
+      .g-plugin-description= plugin.value.description
         if (plugin.value.unmetDependencies.length)
           .g-plugin-warning.g-plugin-error-message
             | This plugin has unmet dependencies: #{plugin.value.unmetDependencies.join(', ')}.
