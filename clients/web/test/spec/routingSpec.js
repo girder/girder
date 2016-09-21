@@ -362,7 +362,7 @@ describe('Test routing paths', function () {
             return $('input#g-core-cookie-lifetime').length === 1;
         });
         girderTest.testRoute('plugins', false, function () {
-            return $('.g-body-title').text() === 'Plugins';
+            return $('.g-body-title').text().indexOf('Plugins') === 0;
         });
         girderTest.testRoute('assetstores', false, function () {
             return $('.g-assetstore-container').length === 1;
