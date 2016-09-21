@@ -1017,12 +1017,16 @@ class GirderClient(object):
         Download a collection, user, or folder recursively from Girder into a local directory.
 
         :param resourceId: ID or path of the resource to download.
+        :type resourceId: ObjectId or Unix-style path to the resource in Girder.
         :param dest: The local download destination. Can be an absolute path or relative to
             the current working directory.
+        :type dest: str
         :param resourceType: The type of resource being downloaded: 'collection', 'user',
             or 'folder'.
+        :type resourceType: str
         :param sync: If True, check if items exist in local metadata
             cache and skip download if the metadata is identical.
+        :type sync: bool
         """
         if resourceType == 'folder':
             self.downloadFolderRecursive(resourceId, dest, sync)
