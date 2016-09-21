@@ -317,8 +317,8 @@ class GirderClient(object):
 
     def getResource(self, path, id=None, property=None):
         """
-        Loads a resource or resource property of property is not None
-        by id or None if no resource is returned.
+        Returns a resource based on ``id`` or None if no resource is found; if
+        ``property`` is passed, returns that property value from the found resource.
         """
         route = path
         if id is not None:
@@ -967,9 +967,12 @@ class GirderClient(object):
         Download a folder recursively from Girder into a local directory.
 
         :param folderId: Id of the Girder folder or resource path to download.
+        :type folderId: ObjectId or Unix-style path to the resource in Girder.
         :param dest: The local download destination.
+        :type dest: str
         :param sync: If True, check if item exists in local metadata
             cache and skip download provided that metadata is identical.
+        :type sync: bool
         """
         offset = 0
         folderId = self._checkResourcePath(folderId)
@@ -1317,12 +1320,17 @@ class GirderClient(object):
 
         :param filePattern: a glob pattern for files that will be uploaded,
             recursively copying any file folder structures.
-        :param parentId: id of the parent in Girder or resource path.
+        :type filePattern: str
+        :param parentId: Id of the parent in Girder or resource path.
+        :type parentId: ObjectId or Unix-style path to the resource in Girder.
         :param parentType: one of (collection,folder,user), default of folder.
+        :type parentType: str
         :param leafFoldersAsItems: bool whether leaf folders should have all
             files uploaded as single items.
+        :type leafFoldersAsItems: bool
         :param reuseExisting: bool whether to accept an existing item of
             the same name in the same location, or create a new one instead.
+        :type reuseExisting: bool
         :param dryRun: Set this to True to print out what actions would be taken, but
             do not actually communicate with the server.
         :type dryRun: bool
