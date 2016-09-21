@@ -173,6 +173,14 @@ class PythonCliTestCase(base.TestCase):
                          downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
 
+        # Test download of a user
+        ret = invokeCli(('download', '--parent-type=user', '/user/mylogin',
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, 'Public', 'testdata', 'hello.txt')))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
         # Try uploading using API key
         ret = invokeCli(['--api-key', self.apiKey['key']] + args)
         self.assertEqual(ret['exitVal'], 0)
