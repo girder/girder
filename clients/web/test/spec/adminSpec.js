@@ -155,7 +155,7 @@ describe('Test the assetstore page', function () {
                 $('#' + tab + ' .g-new-assetstore-submit').click();
             });
             waitsFor(function () {
-                return $('#' + tab + ' .g-validation-failed-message:visible').length > 0;
+                return $('#' + tab + ' .g-validation-failed-message:visible').text().length > 0;
             }, 'failure message to appear');
             runs(function () {
                 name = storeName;
@@ -169,6 +169,11 @@ describe('Test the assetstore page', function () {
                     }
                     $('input#' + key).val(value);
                 }
+            });
+            waitsFor(function () {
+                return $('#' + tab + ' .g-new-assetstore-submit[disabled]').length === 0;
+            }, 'create assetstore button to be re-enabled');
+            runs(function () {
                 $('#' + tab + ' .g-new-assetstore-submit').click();
             });
             waitsFor(waitCondition || function () {
