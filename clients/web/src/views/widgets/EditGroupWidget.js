@@ -32,7 +32,7 @@ var EditGroupWidget = View.extend({
                 this.createGroup(fields);
             }
 
-            this.$('button.g-save-group').addClass('disabled');
+            this.$('button.g-save-group').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
 
@@ -99,7 +99,7 @@ var EditGroupWidget = View.extend({
             this.trigger('g:saved', group);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-group').removeClass('disabled');
+            this.$('button.g-save-group').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -111,7 +111,7 @@ var EditGroupWidget = View.extend({
             this.trigger('g:saved', this.model);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-group').removeClass('disabled');
+            this.$('button.g-save-group').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },

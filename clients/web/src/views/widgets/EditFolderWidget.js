@@ -8,6 +8,7 @@ import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -28,7 +29,7 @@ var EditFolderWidget = View.extend({
                 this.createFolder(fields);
             }
 
-            this.$('button.g-save-folder').addClass('disabled');
+            this.$('button.g-save-folder').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         }
     },
@@ -94,7 +95,7 @@ var EditFolderWidget = View.extend({
             this.trigger('g:saved', folder);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-folder').removeClass('disabled');
+            this.$('button.g-save-folder').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -106,7 +107,7 @@ var EditFolderWidget = View.extend({
             this.trigger('g:saved', this.folder);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-folder').removeClass('disabled');
+            this.$('button.g-save-folder').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     }

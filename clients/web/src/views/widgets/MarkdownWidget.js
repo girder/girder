@@ -9,6 +9,8 @@ import MarkdownWidgetTemplate from 'girder/templates/widgets/markdownWidget.jade
 
 import 'girder/stylesheets/widgets/markdownWidget.styl';
 
+import 'girder/utilities/jquery/girderEnable';
+
 import 'bootstrap/js/tab';
 
 /**
@@ -111,7 +113,7 @@ var MarkdownWidget = View.extend({
             val += '![' + file.name + '](' + fileModel.downloadUrl() + ')\n';
 
             this.$('.g-upload-overlay').addClass('hide');
-            this.$('.g-markdown-text').removeAttr('disabled').val(val);
+            this.$('.g-markdown-text').girderEnable(true).val(val);
 
             this.trigger('g:fileUploaded', {
                 file: file,
@@ -134,7 +136,7 @@ var MarkdownWidget = View.extend({
                 timeout: 5000
             });
             this.$('.g-upload-overlay').addClass('hide');
-            this.$('.g-markdown-text').removeAttr('disabled');
+            this.$('.g-markdown-text').girderEnable(true);
         }, this).on('g:upload.errorStarting', function (info) {
             events.trigger('g:alert', {
                 type: 'danger',
@@ -143,11 +145,11 @@ var MarkdownWidget = View.extend({
                 timeout: 5000
             });
             this.$('.g-upload-overlay').addClass('hide');
-            this.$('.g-markdown-text').removeAttr('disabled');
+            this.$('.g-markdown-text').girderEnable(true);
         }, this).upload(this.parent, file);
 
         this.$('.g-upload-overlay').removeClass('hide');
-        this.$('.g-markdown-text').attr('disabled', true);
+        this.$('.g-markdown-text').girderEnable(false);
     },
 
     /**

@@ -3,6 +3,7 @@ import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditFileWidgetTemplate from 'girder/templates/widgets/editFileWidget.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -22,11 +23,11 @@ var EditFileWidget = View.extend({
                 this.trigger('g:saved', this.file);
             }, this).on('g:error', function (err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
-                this.$('button.g-save-file').removeClass('disabled');
+                this.$('button.g-save-file').girderEnable(true);
                 this.$('#g-' + err.responseJSON.field).focus();
             }, this).save();
 
-            this.$('button.g-save-file').addClass('disabled');
+            this.$('button.g-save-file').girderEnable(false);
             this.$('.g-validation-failed-message').empty();
 
             return false;
