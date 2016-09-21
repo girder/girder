@@ -173,6 +173,25 @@ class PythonCliTestCase(base.TestCase):
                          downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
 
+        # Create a collection and subfolder
+        resp = self.request('/collection', 'POST', user=self.user, params={
+            'name': 'my_collection'
+        })
+        self.assertStatusOk(resp)
+        resp = self.request('/folder', 'POST', user=self.user, params={
+            'parentType': 'collection',
+            'parentId': resp.json['_id'],
+            'name': 'my_folder'
+        })
+        self.assertStatusOk(resp)
+
+        # Test download of the collection
+        ret = invokeCli(('download', '--parent-type=collection', '/collection/my_collection',
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(os.path.isdir(os.path.join(downloadDir, 'my_folder')))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
         # Test download of a user
         ret = invokeCli(('download', '--parent-type=user', '/user/mylogin',
                          downloadDir), username='mylogin', password='password')

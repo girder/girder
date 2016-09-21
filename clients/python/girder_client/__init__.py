@@ -1014,10 +1014,11 @@ class GirderClient(object):
 
     def downloadResource(self, resourceId, dest, resourceType='folder', sync=False):
         """
-        Download a folder recursively from Girder into a local directory.
+        Download a collection, user, or folder recursively from Girder into a local directory.
 
         :param resourceId: ID or path of the resource to download.
-        :param dest: The local download destination.
+        :param dest: The local download destination. Can be an absolute path or relative to
+            the current working directory.
         :param resourceType: The type of resource being downloaded: 'collection', 'user',
             or 'folder'.
         :param sync: If True, check if items exist in local metadata
