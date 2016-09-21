@@ -985,7 +985,7 @@ class GirderClient(object):
                 local = os.path.join(dest, self.transformFilename(folder['name']))
                 _safeMakedirs(local)
 
-                self.downloadFolderRecursive(folder['_id'], local)
+                self.downloadFolderRecursive(folder['_id'], local, sync=sync)
 
             offset += len(folders)
             if len(folders) < DEFAULT_PAGE_LIMIT:
@@ -1011,6 +1011,42 @@ class GirderClient(object):
             offset += len(items)
             if len(items) < DEFAULT_PAGE_LIMIT:
                 break
+
+    def downloadResource(self, resourceId, dest, resourceType='folder', sync=False):
+        """
+        Download a folder recursively from Girder into a local directory.
+
+        :param resourceId: ID or path of the resource to download.
+        :param dest: The local download destination.
+        :param resourceType: The type of resource being downloaded: 'collection', 'user',
+            or 'folder'.
+        :param sync: If True, check if items exist in local metadata
+            cache and skip download if the metadata is identical.
+        """
+        if resourceType == 'folder':
+            self.downloadFolderRecursive(resourceId, dest, sync)
+        elif resourceType in ('collection', 'user'):
+            offset = 0
+            resourceId = self._checkResourcePath(resourceId)
+            while True:
+                folders = self.get('folder', parameters={
+                    'limit': DEFAULT_PAGE_LIMIT,
+                    'offset': offset,
+                    'parentType': resourceType,
+                    'parentId': resourceId
+                })
+
+                for folder in folders:
+                    local = os.path.join(dest, self.transformFilename(folder['name']))
+                    _safeMakedirs(local)
+
+                    self.downloadFolderRecursive(folder['_id'], local, sync=sync)
+
+                offset += len(folders)
+                if len(folders) < DEFAULT_PAGE_LIMIT:
+                    break
+        else:
+            raise Exception('Invalid resource type: %s' % resourceType)
 
     def saveLocalMetadata(self, dest):
         """

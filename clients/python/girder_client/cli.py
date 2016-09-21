@@ -113,10 +113,7 @@ def main():
             leafFoldersAsItems=args.leaf_folders_as_items, reuseExisting=args.reuse,
             blacklist=args.blacklist.split(','), dryRun=args.dry_run)
     elif args.subcommand == 'download':
-        if args.parent_type != 'folder':
-            raise Exception('download command only accepts parent-type of folder')
-
-        gc.downloadFolderRecursive(args.parent_id, args.local_folder)
+        gc.downloadResource(args.parent_id, args.local_folder, args.parent_type)
     elif args.subcommand == 'localsync':
         if args.parent_type != 'folder':
             raise Exception('localsync command only accepts parent-type of folder')
