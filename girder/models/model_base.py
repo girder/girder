@@ -143,7 +143,7 @@ class Model(ModelImporter):
 
         keys = set(self._filterKeys[AccessType.READ])
 
-        if user and user.get('admin') is True:
+        if user and user['admin']:
             keys.update(self._filterKeys[AccessType.SITE_ADMIN])
 
         if additionalKeys:
@@ -655,7 +655,7 @@ class AccessControlledModel(Model):
             if level >= AccessType.ADMIN:
                 keys.update(self._filterKeys[AccessType.ADMIN])
 
-                if user.get('admin') is True:
+                if user['admin']:
                     keys.update(self._filterKeys[AccessType.SITE_ADMIN])
 
         if additionalKeys:
@@ -825,7 +825,7 @@ class AccessControlledModel(Model):
                 return AccessType.READ
             else:
                 return AccessType.NONE
-        elif user.get('admin', False):
+        elif user['admin']:
             return AccessType.ADMIN
         else:
             access = doc.get('access', {})
@@ -931,7 +931,7 @@ class AccessControlledModel(Model):
             # Anonymous users can only see public resources
             return False
 
-        if user.get('admin', False) is True:
+        if user['admin']:
             # Short-circuit the case of admins
             return True
 

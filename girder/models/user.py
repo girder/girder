@@ -133,6 +133,9 @@ class User(AccessControlledModel):
         existing = self.findOne({})
         if existing is None:
             doc['admin'] = True
+            # Ensure settings don't stop this user from logging in
+            doc['emailVerified'] = True
+            doc['status'] = 'enabled'
 
         return doc
 
@@ -271,6 +274,8 @@ class User(AccessControlledModel):
         Returns True if the user is allowed to login, e.g. email verification
         is not needed and admin approval is not needed.
         """
+        if user.get('status', 'enabled') == 'disabled':
+            return False
         if self.emailVerificationRequired(user):
             return False
         if self.adminApprovalRequired(user):
@@ -282,24 +287,17 @@ class User(AccessControlledModel):
         Returns True if email verification is required and this user has not
         yet verified their email address.
         """
-        if user.get('admin'):
-            return False
-        if not user.get('emailVerified', False):
-            return self.model('setting').get(
-                SettingKey.EMAIL_VERIFICATION) == 'required'
-        return False
+        return (not user['emailVerified']) and self.model('setting').get(
+            SettingKey.EMAIL_VERIFICATION) == 'required'
 
     def adminApprovalRequired(self, user):
         """
         Returns True if the registration policy requires admin approval and
-        this user has not yet been approved.
+        this user is pending approval.
         """
-        if user.get('admin'):
-            return False
-        if user.get('status') != 'enabled':
-            return self.model('setting').get(
+        return user.get('status', 'enabled') == 'pending' and \
+            self.model('setting').get(
                 SettingKey.REGISTRATION_POLICY) == 'approve'
-        return False
 
     def _sendApprovalEmail(self, user):
         url = '%s#user/%s' % (

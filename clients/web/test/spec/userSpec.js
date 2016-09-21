@@ -462,7 +462,7 @@ describe('test account approval', function() {
         }, 'dialog rest requests to finish');
         girderTest.logout()();
     });
-    it('Try to login without approval', function() {
+    it('Try to login a disabled user', function() {
         runs(function () {
             expect(girder.currentUser).toBe(null);
         });
@@ -489,7 +489,7 @@ describe('test account approval', function() {
         });
 
         waitsFor(function () {
-            return $('.g-validation-failed-message:contains("Account approval")').length > 0;
+            return $('.g-validation-failed-message:contains("disabled")').length > 0;
         }, 'approval message to appear');
 
         runs(function () {

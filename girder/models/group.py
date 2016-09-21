@@ -376,7 +376,7 @@ class Group(AccessControlledModel):
         if user is None:
             # Short-circuit the case of anonymous users
             return level == AccessType.READ and doc.get('public', False) is True
-        elif user.get('admin', False) is True:
+        elif user['admin']:
             # Short-circuit the case of admins
             return True
         elif level == AccessType.READ:
@@ -403,7 +403,7 @@ class Group(AccessControlledModel):
                 return AccessType.READ
             else:
                 return AccessType.NONE
-        elif user.get('admin', False):
+        elif user['admin']:
             return AccessType.ADMIN
         else:
             access = doc.get('access', {})
