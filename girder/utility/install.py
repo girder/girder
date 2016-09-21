@@ -74,7 +74,7 @@ def _getPluginBuildArgs(buildAll, plugins):
     return ['--plugins=%s' % plugins]
 
 
-def runNpmInstall(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None):
+def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None):
     """
     Use this to run `npm install` inside the package. Also builds the web code
     using `npm run build`.
@@ -92,6 +92,8 @@ def runNpmInstall(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None)
 
     commands.append((npm, 'install', '--unsafe-perm') if dev
                     else (npm, 'install', '--production', '--unsafe-perm'))
+
+    # TODO the "dev" option should also control a build parameter
     commands.append([npm, 'run', 'build', '--'] + _getPluginBuildArgs(allPlugins, plugins))
 
     for command in commands:
@@ -109,9 +111,9 @@ def install_web(opts=None):
     the entire build and install process.
     """
     if opts is None:
-        runNpmInstall()
+        runWebBuild()
     else:
-        runNpmInstall(
+        runWebBuild(
             dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
             plugins=opts.plugins)
 

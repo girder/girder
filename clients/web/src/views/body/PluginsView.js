@@ -11,6 +11,7 @@ import { restRequest, cancelRestRequests } from 'girder/rest';
 
 import PluginsTemplate from 'girder/templates/body/plugins.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/stylesheets/body/plugins.styl';
 
 import 'bootstrap/js/tooltip';
@@ -36,10 +37,13 @@ var PluginsView = View.extend({
             confirm(params);
         },
         'click .g-rebuild-web-code': function (e) {
-            $(e.currentTarget).addClass('disabled'); // TODO girderEnable(false);
+            $(e.currentTarget).girderEnable(false);
             restRequest({
                 path: 'system/web_build',
-                type: 'POST'
+                type: 'POST',
+                data: {
+                    progress: true
+                }
             }).done(() => {
                 events.trigger('g:alert', {
                     text: 'Web client code built successfully',
@@ -47,7 +51,7 @@ var PluginsView = View.extend({
                     duration: 3000
                 })
             }).complete(() => {
-                $(e.currentTarget).removeClass('disabled');
+                $(e.currentTarget).girderEnable(true);
             });
         }
     },
