@@ -7,6 +7,7 @@ import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -22,7 +23,7 @@ var EditAssetstoreWidget = View.extend({
 
             this.updateAssetstore(fields);
 
-            this.$('button.g-save-assetstore').addClass('disabled');
+            this.$('button.g-save-assetstore').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         }
     },
@@ -77,7 +78,7 @@ var EditAssetstoreWidget = View.extend({
             this.trigger('g:saved', this.model);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-assetstore').removeClass('disabled');
+            this.$('button.g-save-assetstore').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
             this.model.set(oldfields);
         }, this).save();

@@ -4,6 +4,8 @@ import { AccessType } from 'girder/constants';
 
 import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.jade';
 
+import 'girder/utilities/jquery/girderEnable';
+
 /**
  * This widget presents a list of available batch actions
  * on a set of selected resources.
@@ -18,11 +20,11 @@ var CheckedMenuWidget = View.extend({
     render: function () {
         // If nothing is checked, disable the parent element and return
         if (this.folderCount + this.itemCount + this.pickedCount === 0) {
-            this.dropdownToggle.attr('disabled', 'disabled');
+            this.dropdownToggle.girderEnable(false);
             return;
         }
 
-        this.dropdownToggle.removeAttr('disabled');
+        this.dropdownToggle.girderEnable(true);
         this.$el.html(CheckedActionsMenuTemplate({
             minFolderLevel: this.minFolderLevel,
             minItemLevel: this.minItemLevel,

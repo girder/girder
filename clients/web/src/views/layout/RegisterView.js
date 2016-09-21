@@ -6,6 +6,7 @@ import { handleClose, handleOpen } from 'girder/dialog';
 
 import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -69,10 +70,10 @@ var RegisterView = View.extend({
                     this.$('#g-group-' + resp.field).addClass('has-error');
                     this.$('#g-' + resp.field).focus();
                 }
-                this.$('#g-register-button').removeClass('disabled');
+                this.$('#g-register-button').girderEnable(true);
             }, this).save();
 
-            this.$('#g-register-button').addClass('disabled');
+            this.$('#g-register-button').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
 

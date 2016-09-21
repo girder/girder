@@ -6,6 +6,7 @@ import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditCollectionWidgetTemplate from 'girder/templates/widgets/editCollectionWidget.jade';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -27,7 +28,7 @@ var EditCollectionWidget = View.extend({
                 this.createCollection(fields);
             }
 
-            this.$('button.g-save-collection').addClass('disabled');
+            this.$('button.g-save-collection').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         }
     },
@@ -77,7 +78,7 @@ var EditCollectionWidget = View.extend({
             this.trigger('g:saved', collection);
         }, this).off('g:error').on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-collection').removeClass('disabled');
+            this.$('button.g-save-collection').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -89,7 +90,7 @@ var EditCollectionWidget = View.extend({
             this.trigger('g:saved', this.model);
         }, this).off('g:error').on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-collection').removeClass('disabled');
+            this.$('button.g-save-collection').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     }

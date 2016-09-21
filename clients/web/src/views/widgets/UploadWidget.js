@@ -11,6 +11,7 @@ import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetN
 
 import 'girder/stylesheets/widgets/uploadWidget.styl';
 
+import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -209,11 +210,7 @@ var UploadWidget = View.extend({
      * @param state {bool} Truthy for enabled, falsy for disabled.
      */
     setUploadEnabled: function (state) {
-        if (state) {
-            this.$('.g-start-upload').removeClass('disabled');
-        } else {
-            this.$('.g-start-upload').addClass('disabled');
-        }
+        this.$('.g-start-upload').girderEnable(state);
     },
 
     /**
