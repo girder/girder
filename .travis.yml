@@ -61,7 +61,6 @@ before_install:
 
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
-    - npm install
     - BABEL_ENV=cover girder-install web --all-plugins --dev
 
 script:

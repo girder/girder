@@ -49,7 +49,7 @@ var PluginsView = View.extend({
                     text: 'Web client code built successfully',
                     type: 'success',
                     duration: 3000
-                })
+                });
             }).complete(() => {
                 $(e.currentTarget).girderEnable(true);
             });

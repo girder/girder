@@ -75,6 +75,7 @@ def _getPluginBuildArgs(buildAll, plugins):
 
     return ['--plugins=%s' % plugins]
 
+
 def _pipeOutputToProgress(proc, progress):
     """
     Pipe the latest contents of the stdout and stderr pipes of a subprocess into the
@@ -142,7 +143,6 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     for cmd in commands:
         if progress:
             proc = subprocess.Popen(cmd, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
             _pipeOutputToProgress(proc, progress)
         else:
             proc = subprocess.Popen(cmd, cwd=wd)
@@ -150,7 +150,7 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
 
         if proc.returncode != 0:
             raise Exception('Web client install failed: `%s` returned %s.' %
-                            (' '.join(command), proc.returncode))
+                            (' '.join(cmd), proc.returncode))
 
 
 def install_web(opts=None):
