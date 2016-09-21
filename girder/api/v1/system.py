@@ -424,8 +424,8 @@ class System(Resource):
         dev = self.boolParam('dev', params, default=False)
         user = self.getCurrentUser()
 
-        with ProgressContext(progress, user=user, title='Building web client code'):
-            install.runWebBuild(dev=dev)
+        with ProgressContext(progress, user=user, title='Building web client code') as progress:
+            install.runWebBuild(dev=dev, progress=progress)
 
     def _fixBaseParents(self, progress):
         fixes = 0

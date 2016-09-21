@@ -22,11 +22,13 @@ into the current Girder installation.  Note that Girder must
 be restarted for these changes to take effect.
 """
 
-import sys
 import os
 import pip
+import select
 import shutil
 import subprocess
+import string
+import sys
 
 from girder import constants
 from girder.utility import model_importer, plugin_utilities
@@ -73,11 +75,52 @@ def _getPluginBuildArgs(buildAll, plugins):
 
     return ['--plugins=%s' % plugins]
 
+def _pipeOutputToProgress(proc, progress):
+    """
+    Pipe the latest contents of the stdout and stderr pipes of a subprocess into the
+    message of a progress context.
 
-def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None):
+    :param proc: The subprocess to listen to.
+    :type proc: subprocess.Popen
+    :param progress: The progress context.
+    :type progress: girder.utility.progress.ProgressContext
+    """
+    fds = [proc.stdout, proc.stderr]
+    while True:
+        ready = select.select(fds, (), fds, 1)[0]
+
+        for pipe in (proc.stdout, proc.stderr):
+            if pipe in ready:
+                buf = os.read(pipe.fileno(), 1024)
+                if buf:
+                    # Filter out non-printable characters
+                    msg = ''.join(c for c in buf if c in string.printable)
+                    if msg:
+                        progress.update(message=msg)
+                else:
+                    fds.remove(pipe)
+        if (not fds or not ready) and proc.poll() is not None:
+            break
+        elif not fds and proc.poll() is None:
+            proc.wait()
+
+
+def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, progress=None):
     """
     Use this to run `npm install` inside the package. Also builds the web code
     using `npm run build`.
+
+    :param wd: Working directory to use. If not specified, uses the girder package directory.
+    :param dev: Whether to build the code in dev mode.
+    :type dev: bool
+    :param npm: Path to the npm executable to use.
+    :type npm: str
+    :param allPlugins: Enable this to build all available plugins as opposed to only enabled ones.
+    :type allPlugins: bool
+    :param plugins: A specific set of plugins to build.
+    :type plugins: list or None
+    :param progress: A progress context for reporting output of the tasks.
+    :type progress: ``girder.utility.progress.ProgressContext`` or None
     """
     if shutil.which(npm) is None:
         print(constants.TerminalColor.error(
@@ -96,9 +139,14 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None):
     # TODO the "dev" option should also control a build parameter
     commands.append([npm, 'run', 'build', '--'] + _getPluginBuildArgs(allPlugins, plugins))
 
-    for command in commands:
-        proc = subprocess.Popen(command, cwd=wd)
-        proc.communicate()
+    for cmd in commands:
+        if progress:
+            proc = subprocess.Popen(cmd, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            _pipeOutputToProgress(proc, progress)
+        else:
+            proc = subprocess.Popen(cmd, cwd=wd)
+            proc.communicate()
 
         if proc.returncode != 0:
             raise Exception('Web client install failed: `%s` returned %s.' %
