@@ -32,6 +32,7 @@ LOG_BACKUP_COUNT = 5
 
 # Identifier for Girder's entry in the route table
 GIRDER_ROUTE_ID = 'core_girder'
+GIRDER_STATIC_ROUTE_ID = 'core_static_root'
 
 # Threshold below which text search results will be sorted by their text score.
 # Setting this too high causes mongodb to use too many resources for searches

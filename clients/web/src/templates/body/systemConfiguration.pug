@@ -133,15 +133,22 @@ form.g-settings-form(role="form")
         value="#{routes['core_girder'] || ''}",
         data-webroot-name="core_girder",
         title="The path to place core_girder.")
-    .form-group
-      h5 Other Routes
-      each name in routeKeys.slice(1)
-        label= name
-        input.g-core-route-table.form-control.input-sm(
-          type="text",
-          value="#{routes[name] || ''}",
-          data-webroot-name=name,
-          title="The path to place #{name}.")
+      label core_static_root
+      input.g-core-route-table.form-control.input-sm(
+        type="text",
+        value="#{routes['core_static_root'] || ''}",
+        data-webroot-name="core_static_root",
+        title="The path to place core_static_root.")
+    if routeKeys.length > 2
+      .form-group
+        h5 Other Routes
+        each name in routeKeys.slice(2)
+          label= name
+          input.g-core-route-table.form-control.input-sm(
+            type="text",
+            value="#{routes[name] || ''}",
+            data-webroot-name=name,
+            title="The path to place #{name}.")
   .panel-group#g-configuration-accordion
     .panel.panel-default
       .panel-heading(data-toggle="collapse",

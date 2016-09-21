@@ -22,7 +22,7 @@ import cherrypy
 import pymongo
 import six
 
-from ..constants import GIRDER_ROUTE_ID, SettingDefault, SettingKey
+from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault, SettingKey
 from .model_base import Model, ValidationException
 from girder import logprint
 from girder.utility import plugin_utilities, setting_utilities
@@ -310,7 +310,8 @@ class Setting(Model):
     @setting_utilities.default(SettingKey.ROUTE_TABLE)
     def defaultCoreRouteTable():
         return {
-            GIRDER_ROUTE_ID: '/'
+            GIRDER_ROUTE_ID: '/',
+            GIRDER_STATIC_ROUTE_ID: '/static'
         }
 
     @staticmethod
