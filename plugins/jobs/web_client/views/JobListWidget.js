@@ -58,7 +58,7 @@ var JobListWidget = View.extend({
         });
 
         this.filterTypeMenuWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
-            this.typeFilter = e;
+            this.typeFilter = _.clone(e);
             this.render();
         }, this);
 
@@ -69,7 +69,7 @@ var JobListWidget = View.extend({
         });
 
         this.filterStatusMenuWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
-            this.statusFilter = e;
+            this.statusFilter = _.clone(e);
             this.render();
         }, this);
     },
