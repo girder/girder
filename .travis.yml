@@ -74,9 +74,8 @@ script:
     - git fetch --unshallow
 
 after_success:
-    - npm install -g codecov coveralls
+    - npm install -g codecov
     - codecov -f _build/coverage/lcov.info
-    - coveralls < _build/coverage/lcov.info
 
 deploy:
     provider: heroku
