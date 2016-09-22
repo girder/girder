@@ -210,8 +210,9 @@ class ResourceExt(Resource):
 
     def getProvenanceUser(self, obj):
         """
-        Get the user that is associated with the object.  If it has no user,
-        get the user of the current session.
+        Get the user that is associated with the current provenance change.
+        This is the current session user, if there is one.  If not, it is the
+        object's user or creator.
         :param obj: a model object.
         :returns: user for the object or None.
         """
