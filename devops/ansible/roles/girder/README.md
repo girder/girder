@@ -24,20 +24,6 @@ Role Variables
 | girder_force      | no       | yes          | Whether provisioning should discard modified files in the working directory. |
 | girder_web        | no       | yes          | Whether to build the Girder web client.                                      |
 
-Dependencies
-------------
-
-This role depends on the following roles from Ansible Galaxy:
-
-* `Stouts.mongodb`
-
-These will be automatically fetched if your requirements.yml file contains:
-```
----
-
-- src: girder.girder
-```
-
 Examples
 --------
 Examples can be found [here](https://github.com/girder/girder/tree/master/devops/ansible/examples).
