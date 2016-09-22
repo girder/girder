@@ -99,7 +99,7 @@ var JobListWidget = View.extend({
         }));
 
         types = _.uniq(this.collection.toArray().map(function (job) {
-            return job.attributes.type;
+            return job.attributes.type ? job.attributes.type : '';
         }));
 
         this._updateFilter(this.typeFilter, types);
@@ -149,12 +149,13 @@ var JobListWidget = View.extend({
     },
     _filterJobs: function (jobs) {
         var filterJobs = [];
-
-        // Include all jobs that have matching state or type field.
+        // Include all jobs that match the type and status filters. Jobs that
+        // have an undefined type are mapped to '', this is added as a filter
+        // option for the user to select.
         filterJobs = this.collection.filter(_.bind(function (job) {
-            return ((_.isEmpty(this.typeFilter) || _.isUndefined(job.attributes.type) ||
-                        this.typeFilter[job.attributes.type]) &&
-                    (_.isEmpty(this.statusFilter) || _.isUndefined(job.attributes.status) ||
+            return ((_.isEmpty(this.typeFilter) ||
+                        this.typeFilter[job.attributes.type ? job.attributes.type : '']) &&
+                    (_.isEmpty(this.statusFilter) ||
                         this.statusFilter[girder.jobs_JobStatus.text(job.attributes.status)]));
         }, this));
 
