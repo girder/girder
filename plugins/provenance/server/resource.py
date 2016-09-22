@@ -392,15 +392,13 @@ class ResourceExt(Resource):
         :param event: the event with the file information.
         """
         file = event.info
-        if 'itemId' not in file:
-            return
-        user = self.getProvenanceUser(file)
         itemId = file.get('itemId')
         # Don't attach provenance to an item based on files that are not
         # directly associated (we may want to revisit this and, when files are
         # attachedToType, add provenance to the appropriate type and ID).
         if not itemId:
             return
+        user = self.getProvenanceUser(file)
         item = self.model('item').load(id=itemId, force=True)
         if not item:
             return

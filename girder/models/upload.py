@@ -49,7 +49,7 @@ class Upload(Model):
 
     def uploadFromFile(self, obj, size, name, parentType=None, parent=None,
                        user=None, mimeType=None, reference=None,
-                       assetstore=None):
+                       assetstore=None, attachParent=False):
         """
         This method wraps the entire upload process into a single function to
         facilitate "internal" uploads from a file-like object. Example:
@@ -67,10 +67,11 @@ class Upload(Model):
         :param size: The total size of
         :param name: The name of the file to create.
         :type name: str
-        :param parent: The parent (item or folder) to upload into.
-        :type parent: dict
         :param parentType: The type of the parent: "folder" or "item".
         :type parentType: str
+        :param parent: The parent (item or folder) to upload into, or the id of
+            the parent.
+        :type parent: dict or str
         :param user: The user who is creating the file.
         :type user: dict
         :param mimeType: MIME type of the file.
@@ -80,11 +81,17 @@ class Upload(Model):
         :param assetstore: An optional assetstore to use to store the file.  If
             unspecified, the current assetstore is used.
         :type reference: str
+        :param attachParent: if True, instead of giving the file a parentType
+            and parent, mark those as None and set attachedToType and
+            attachedToId instead (using the values passed in parentType and
+            parent).  This is intended for files that shouldn't appear as
+            direct children of the parent, but are still associated with it.
+        :type attach: boolean
         """
         upload = self.createUpload(
             user=user, name=name, parentType=parentType, parent=parent,
             size=size, mimeType=mimeType, reference=reference,
-            assetstore=assetstore)
+            assetstore=assetstore, attachParent=attachParent)
         # The greater of 32 MB or the the upload minimum chunk size.
         chunkSize = self._getChunkSize()
 
@@ -171,6 +178,8 @@ class Upload(Model):
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
         else:  # Creating a new file record
+            if upload.get('attachParent'):
+                pass
             if upload['parentType'] == 'folder':
                 # Create a new item with the name of the file.
                 item = self.model('item').createItem(
@@ -186,6 +195,10 @@ class Upload(Model):
                 item=item, name=upload['name'], size=upload['size'],
                 creator={'_id': upload['userId']}, assetstore=assetstore,
                 mimeType=upload['mimeType'], saveFile=False)
+            if upload.get('attachParent'):
+                if upload['parentType'] and upload['parentId']:
+                    file['attachedToType'] = upload['parentType']
+                    file['attachedToId'] = upload['parentId']
 
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         file = adapter.finalizeUpload(upload, file)
@@ -274,7 +287,7 @@ class Upload(Model):
         return self.save(upload)
 
     def createUpload(self, user, name, parentType, parent, size, mimeType=None,
-                     reference=None, assetstore=None):
+                     reference=None, assetstore=None, attachParent=False):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent
@@ -286,8 +299,9 @@ class Upload(Model):
         :type name: str
         :param parentType: The type of the parent being uploaded into.
         :type parentType: str ('folder' or 'item')
-        :param parent: The document representing the parent.
-        :type parentId: dict
+        :param parent: The document representing the parent or the id of the
+            parent.
+        :type parent: dict or str.
         :param size: Total size in bytes of the whole file.
         :type size: int
         :param mimeType: The mimeType of the file.
@@ -297,6 +311,12 @@ class Upload(Model):
         :type reference: str
         :param assetstore: An optional assetstore to use to store the file.  If
             unspecified, the current assetstore is used.
+        :param attachParent: if True, instead of giving the file a parentType
+            and parent, mark those as None and set attachedToType and
+            attachedToId instead (using the values passed in parentType and
+            parent).  This is intended for files that shouldn't appear as
+            direct children of the parent, but are still associated with it.
+        :type attach: boolean
         :returns: The upload document that was created.
         """
         assetstore = self.getTargetAssetstore(parentType, parent, assetstore)
@@ -319,10 +339,13 @@ class Upload(Model):
 
         if parentType and parent:
             upload['parentType'] = parentType.lower()
-            upload['parentId'] = ObjectId(parent['_id'])
+            upload['parentId'] = ObjectId(
+                parent['_id'] if isinstance(parent, dict) else parent)
         else:
             upload['parentType'] = None
             upload['parentId'] = None
+        if attachParent:
+            upload['attachParent'] = attachParent
 
         if user:
             upload['userId'] = user['_id']

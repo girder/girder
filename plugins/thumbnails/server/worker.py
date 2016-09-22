@@ -115,8 +115,8 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     out.seek(0)
 
     thumbnail = uploadModel.uploadFromFile(
-        out, size=size, name='_thumb.jpg', parentType=None, parent=None,
-        user=None, mimeType='image/jpeg')
+        out, size=size, name='_thumb.jpg', parentType=attachToType,
+        parent=attachToId, user=None, mimeType='image/jpeg', attachParent=True)
 
     return attachThumbnail(
         file, thumbnail, attachToType, attachToId, width, height)
