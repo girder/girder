@@ -94,11 +94,13 @@ def _pipeOutputToProgress(proc, progress):
             if pipe in ready:
                 buf = os.read(pipe.fileno(), 1024)
                 if buf:
+                    buf = buf.decode()
                     # Filter out non-printable characters
                     msg = ''.join(c for c in buf if c in string.printable)
                     if msg:
                         progress.update(message=msg)
                 else:
+                    pipe.close()
                     fds.remove(pipe)
         if (not fds or not ready) and proc.poll() is not None:
             break
@@ -141,7 +143,7 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     commands.append([npm, 'run', 'build', '--'] + _getPluginBuildArgs(allPlugins, plugins))
 
     for cmd in commands:
-        if progress:
+        if progress and progress.on:
             proc = subprocess.Popen(cmd, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             _pipeOutputToProgress(proc, progress)
         else:

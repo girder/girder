@@ -236,3 +236,29 @@ class InstallTestCase(base.TestCase):
             install.install_web(PluginOpts(dev=True))
 
             self.assertTrue('--production' not in p.mock_calls[0][1][0])
+
+        # Test initiation of web install via the REST API
+        user = self.model('user').createUser(
+            login='admin', firstName='admin', lastName='admin', email='a@foo.com',
+            password='passwd', admin=True)
+
+        with mock.patch('subprocess.Popen', return_value=ProcMock()) as p:
+            # Test without progress
+            resp = self.request('/system/web_build', method='POST', user=user)
+            self.assertStatusOk(resp)
+
+            self.assertEqual(len(p.mock_calls), 2)
+            self.assertEqual(
+                list(p.mock_calls[0][1][0]), ['npm', 'install', '--production', '--unsafe-perm'])
+            self.assertEqual(
+                list(p.mock_calls[1][1][0]), ['npm', 'run', 'build', '--', '--plugins='])
+
+        # Test with progress (requires actually calling a subprocess)
+        os.environ['PATH'] = '%s:%s' % (
+            os.path.join(os.path.dirname(__file__), 'mockpath'),
+            os.environ.get('PATH', '')
+        )
+        resp = self.request('/system/web_build', method='POST', user=user, params={
+            'progress': True
+        })
+        self.assertStatusOk(resp)
