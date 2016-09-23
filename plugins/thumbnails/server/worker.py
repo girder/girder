@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+from bson.objectid import ObjectId
 import functools
 import six
 import sys
@@ -116,7 +117,8 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
 
     thumbnail = uploadModel.uploadFromFile(
         out, size=size, name='_thumb.jpg', parentType=attachToType,
-        parent=attachToId, user=None, mimeType='image/jpeg', attachParent=True)
+        parent={'_id': ObjectId(attachToId)}, user=None, mimeType='image/jpeg',
+        attachParent=True)
 
     return attachThumbnail(
         file, thumbnail, attachToType, attachToId, width, height)

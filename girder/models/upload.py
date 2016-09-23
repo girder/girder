@@ -69,9 +69,8 @@ class Upload(Model):
         :type name: str
         :param parentType: The type of the parent: "folder" or "item".
         :type parentType: str
-        :param parent: The parent (item or folder) to upload into, or the id of
-            the parent.
-        :type parent: dict or str
+        :param parent: The parent (item or folder) to upload into.
+        :type parent: dict
         :param user: The user who is creating the file.
         :type user: dict
         :param mimeType: MIME type of the file.
@@ -81,11 +80,12 @@ class Upload(Model):
         :param assetstore: An optional assetstore to use to store the file.  If
             unspecified, the current assetstore is used.
         :type reference: str
-        :param attachParent: if True, instead of giving the file a parentType
-            and parent, mark those as None and set attachedToType and
-            attachedToId instead (using the values passed in parentType and
-            parent).  This is intended for files that shouldn't appear as
-            direct children of the parent, but are still associated with it.
+        :param attachParent: if True, instead of creating an item within the
+            parent or giving the file an itemID, set itemID to None and set
+            attachedToType and attachedToId instead (using the values passed in
+            parentType and parent).  This is intended for files that shouldn't
+            appear as direct children of the parent, but are still associated
+            with it.
         :type attach: boolean
         """
         upload = self.createUpload(
@@ -179,8 +179,8 @@ class Upload(Model):
             file['size'] = upload['size']
         else:  # Creating a new file record
             if upload.get('attachParent'):
-                pass
-            if upload['parentType'] == 'folder':
+                item = None
+            elif upload['parentType'] == 'folder':
                 # Create a new item with the name of the file.
                 item = self.model('item').createItem(
                     name=upload['name'], creator={'_id': upload['userId']},
@@ -299,9 +299,8 @@ class Upload(Model):
         :type name: str
         :param parentType: The type of the parent being uploaded into.
         :type parentType: str ('folder' or 'item')
-        :param parent: The document representing the parent or the id of the
-            parent.
-        :type parent: dict or str.
+        :param parent: The document representing the parent.
+        :type parent: dict.
         :param size: Total size in bytes of the whole file.
         :type size: int
         :param mimeType: The mimeType of the file.
@@ -311,12 +310,13 @@ class Upload(Model):
         :type reference: str
         :param assetstore: An optional assetstore to use to store the file.  If
             unspecified, the current assetstore is used.
-        :param attachParent: if True, instead of giving the file a parentType
-            and parent, mark those as None and set attachedToType and
-            attachedToId instead (using the values passed in parentType and
-            parent).  This is intended for files that shouldn't appear as
-            direct children of the parent, but are still associated with it.
-        :type attach: boolean
+        :param attachParent: if True, instead of creating an item within the
+            parent or giving the file an itemID, set itemID to None and set
+            attachedToType and attachedToId instead (using the values passed in
+            parentType and parent).  This is intended for files that shouldn't
+            appear as direct children of the parent, but are still associated
+            with it.
+        :type attachParent: boolean
         :returns: The upload document that was created.
         """
         assetstore = self.getTargetAssetstore(parentType, parent, assetstore)
@@ -339,8 +339,7 @@ class Upload(Model):
 
         if parentType and parent:
             upload['parentType'] = parentType.lower()
-            upload['parentId'] = ObjectId(
-                parent['_id'] if isinstance(parent, dict) else parent)
+            upload['parentId'] = parent['_id']
         else:
             upload['parentType'] = None
             upload['parentId'] = None
