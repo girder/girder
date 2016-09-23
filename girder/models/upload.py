@@ -81,7 +81,7 @@ class Upload(Model):
             unspecified, the current assetstore is used.
         :type reference: str
         :param attachParent: if True, instead of creating an item within the
-            parent or giving the file an itemID, set itemID to None and set
+            parent or giving the file an itemId, set itemId to None and set
             attachedToType and attachedToId instead (using the values passed in
             parentType and parent).  This is intended for files that shouldn't
             appear as direct children of the parent, but are still associated
@@ -311,7 +311,7 @@ class Upload(Model):
         :param assetstore: An optional assetstore to use to store the file.  If
             unspecified, the current assetstore is used.
         :param attachParent: if True, instead of creating an item within the
-            parent or giving the file an itemID, set itemID to None and set
+            parent or giving the file an itemId, set itemId to None and set
             attachedToType and attachedToId instead (using the values passed in
             parentType and parent).  This is intended for files that shouldn't
             appear as direct children of the parent, but are still associated
