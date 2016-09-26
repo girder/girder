@@ -94,7 +94,7 @@ def _pipeOutputToProgress(proc, progress):
             if pipe in ready:
                 buf = os.read(pipe.fileno(), 1024)
                 if buf:
-                    buf = buf.decode()
+                    buf = buf.decode('utf8')
                     # Filter out non-printable characters
                     msg = ''.join(c for c in buf if c in string.printable)
                     if msg:
@@ -272,7 +272,7 @@ def main():
                      dest='development',
                      help='Install client development dependencies')
 
-    web.add_argument('--npm', default="npm",
+    web.add_argument('--npm', default='npm',
                      help='specify the full path to the npm executable.')
     web.add_argument('--all-plugins', action='store_true',
                      help='build all available plugins rather than just enabled ones')
