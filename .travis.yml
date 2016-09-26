@@ -61,7 +61,8 @@ before_install:
 
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
-    - BABEL_ENV=cover girder-install web --all-plugins --dev
+    - npm install -g npm-install-retry
+    - BABEL_ENV=cover girder-install web --all-plugins --dev --npm=npm-install-retry
 
 script:
     - mkdir _build
@@ -77,7 +78,7 @@ after_success:
     - codecov -f _build/coverage/lcov.info
 
 deploy:
-    provider: heroku
+  - provider: heroku
     buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
     strategy: git
     api_key:

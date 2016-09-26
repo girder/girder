@@ -1,0 +1,43 @@
+---
+
+- hosts: all
+  vars:
+    girder_update: no
+    girder_force: no
+    girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
+  pre_tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      become: yes
+      become_user: root
+
+  roles:
+    - role: Stouts.mongodb
+      become: yes
+      become_user: root
+    - role: girder
+
+  post_tasks:
+    - name: Install Grunt globally
+      npm:
+        name: "{{ item }}"
+        global: yes
+      with_items:
+        - grunt
+        - grunt-cli
+      become: yes
+      become_user: root
+      when: "{{ girder_web }}"
+
+    - name: Install Girder Python development requirements
+      pip:
+        requirements: "requirements-dev.txt"
+        chdir: "{{ girder_path }}"
+        virtualenv: "{{ girder_virtualenv }}"
+
+    - name: Build Girder with development dependencies
+      command: "npm install"
+      args:
+        chdir: "{{ girder_path }}"
+      when: "{{ girder_web }}"

@@ -547,7 +547,7 @@ class UserTestCase(base.TestCase):
         # cannot login again
         resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatus(resp, 403)
-        self.assertTrue(resp.json['extra'] == 'accountApproval')
+        self.assertEqual(resp.json['extra'], 'disabled')
 
     def testEmailVerification(self):
         self.model('setting').set(SettingKey.EMAIL_VERIFICATION, 'required')

@@ -124,7 +124,7 @@ def getStatus(mode='basic', user=None):
                  than basic mode.
     :returns: a status dictionary.
     """
-    isAdmin = (user is not None and user.get('admin', False) is True)
+    isAdmin = (user is not None and user['admin'])
 
     status = {}
     status['bootTime'] = psutil.boot_time()

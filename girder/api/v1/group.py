@@ -253,7 +253,7 @@ class Group(Resource):
             id=params['userId'], user=user, level=AccessType.READ, exc=True)
 
         if force:
-            if not user.get('admin', False):
+            if not user['admin']:
                 mustBeAdmin = True
                 addPolicy = self.model('setting').get(
                     SettingKey.ADD_TO_GROUP_POLICY)

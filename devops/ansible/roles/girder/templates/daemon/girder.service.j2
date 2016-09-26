@@ -1,0 +1,17 @@
+[Unit]
+Description=Girder
+After=network.target
+
+[Service]
+User={{ ansible_user_id }}
+Group={{ ansible_user_id }}
+WorkingDirectory={{ girder_path }}
+Restart=always
+{% if girder_virtualenv is defined %}
+ExecStart={{ girder_virtualenv }}/bin/python -m girder
+{% else %}
+ExecStart=python -m girder
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

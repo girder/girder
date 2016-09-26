@@ -45,9 +45,8 @@ Getting your contributions integrated is relatively straightforward, here
 is the checklist:
 
 * All tests pass
-* Consensus is reached. This usually means that at least one reviewer added a `LGTM` comment
-and a reasonable amount of time passed without anyone objecting. `LGTM` is an
-acronym for _Looks Good to Me_.
+* Consensus is reached. This requires that a reviewer adds an "approved" review via GitHub with no
+  changes requested, and a reasonable amount of time passed without anyone objecting.
 
 Next, there are two scenarios:
 * You do NOT have push access: A Girder core developer will integrate your PR.

@@ -334,7 +334,7 @@ class File(Resource):
     def cancelUpload(self, upload, params):
         user = self.getCurrentUser()
 
-        if upload['userId'] != user['_id'] and not user.get('admin'):
+        if upload['userId'] != user['_id'] and not user['admin']:
             raise AccessException('You did not initiate this upload.')
 
         self.model('upload').cancelUpload(upload)

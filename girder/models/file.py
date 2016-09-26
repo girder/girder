@@ -19,10 +19,12 @@
 
 import cherrypy
 import datetime
+import six
 
 from .model_base import Model, ValidationException
 from girder import events
 from girder.constants import AccessType, CoreEventHandler
+from girder.models.model_base import AccessControlledModel
 from girder.utility import assetstore_utilities, acl_mixin
 
 
@@ -314,15 +316,28 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         :param file: The file to check.
         :type file: dict
-        :param user: The user for permissions.
-        :type user: dict or None
+        :param user: (deprecated) Not used.
         """
         if file.get('attachedToId'):
-            return not self.model(file.get('attachedToType')).load(
-                file.get('attachedToId'), user=user)
+            attachedToType = file.get('attachedToType')
+            if isinstance(attachedToType, six.string_types):
+                modelType = self.model(attachedToType)
+            elif isinstance(attachedToType, list) and len(attachedToType) == 2:
+                modelType = self.model(*attachedToType)
+            else:
+                # Invalid 'attachedToType'
+                return True
+            if isinstance(modelType, (acl_mixin.AccessControlMixin,
+                                      AccessControlledModel)):
+                attachedDoc = modelType.load(
+                    file.get('attachedToId'), force=True)
+            else:
+                attachedDoc = modelType.load(
+                    file.get('attachedToId'))
         else:
-            return not self.model('item').load(
-                file.get('itemId'), user=user)
+            attachedDoc = self.model('item').load(
+                file.get('itemId'), force=True)
+        return not attachedDoc
 
     def updateSize(self, file):
         """

@@ -23,8 +23,7 @@ import datetime
 
 from ..describe import Description, describeRoute
 from girder.api import access
-from girder.api.rest import Resource, RestException, AccessException,\
-    filtermodel, loadmodel
+from girder.api.rest import Resource, RestException, AccessException, filtermodel, loadmodel
 from girder.constants import AccessType, SettingKey, TokenScope
 from girder.models.token import genToken
 from girder.utility import mail_utils
@@ -139,6 +138,13 @@ class User(Resource):
             if not self.model('password').authenticate(user, password):
                 raise RestException('Login failed.', code=403)
 
+            # This has the same behavior as User.canLogin, but returns more
+            # detailed error messages
+            if user.get('status', 'enabled') == 'disabled':
+                raise RestException(
+                    'Account is disabled.', code=403,
+                    extra='disabled')
+
             if self.model('user').emailVerificationRequired(user):
                 raise RestException(
                     'Email verification required.', code=403,
@@ -212,15 +218,15 @@ class User(Resource):
             email=params['email'], firstName=params['firstName'],
             lastName=params['lastName'], admin=admin)
 
+        outputUser = self.model('user').filter(user, user)
         if not currentUser and self.model('user').canLogin(user):
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)
-            user['authToken'] = {
+            outputUser['authToken'] = {
                 'token': token['_id'],
                 'expires': token['expires']
             }
-
-        return user
+        return outputUser
 
     @access.user
     @loadmodel(map={'id': 'userToDelete'}, model='user', level=AccessType.ADMIN)
@@ -268,15 +274,16 @@ class User(Resource):
                     raise AccessException('Only admins may change admin state.')
 
         # Only admins can change status
-        if 'status' in params and params['status'] != user['status']:
-            if self.getCurrentUser()['admin']:
-                user['status'] = params['status']
-                if user['status'] == 'enabled':
-                    self.model('user')._sendApprovedEmail(user)
-            else:
+        if 'status' in params and params['status'] != user.get('status', 'enabled'):
+            if not self.getCurrentUser()['admin']:
                 raise AccessException('Only admins may change status.')
+            if user['status'] == 'pending' and params['status'] == 'enabled':
+                # Send email on the 'pending' -> 'enabled' transition
+                self.model('user')._sendApprovedEmail(user)
+            user['status'] = params['status']
 
-        return self.model('user').save(user)
+        user = self.model('user').save(user)
+        return self.model('user').filter(user, user)
 
     @access.admin
     @loadmodel(model='user', level=AccessType.ADMIN)
@@ -372,7 +379,7 @@ class User(Resource):
         token = self.model('token').createToken(
             user, days=1, scope=TokenScope.TEMPORARY_USER_AUTH)
 
-        url = '%s/#useraccount/%s/token/%s' % (
+        url = '%s#useraccount/%s/token/%s' % (
             mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
 
         html = mail_utils.renderTemplate('temporaryAccess.mako', {
@@ -456,13 +463,13 @@ class User(Resource):
 
         user['emailVerified'] = True
         self.model('token').remove(token)
-        self.model('user').save(user)
+        user = self.model('user').save(user)
 
         if self.model('user').canLogin(user):
             setattr(cherrypy.request, 'girderUser', user)
             authToken = self.sendAuthTokenCookie(user)
             return {
-                'user': user,
+                'user': self.model('user').filter(user, user),
                 'authToken': {
                     'token': authToken['_id'],
                     'expires': authToken['expires'],
@@ -472,7 +479,7 @@ class User(Resource):
             }
         else:
             return {
-                'user': user,
+                'user': self.model('user').filter(user, user),
                 'message': 'Email verification succeeded.'
             }
 

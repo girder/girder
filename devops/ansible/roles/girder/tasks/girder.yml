@@ -1,0 +1,26 @@
+---
+
+- name: Install Girder system dependencies
+  apt:
+    name: "{{ item }}"
+  become: yes
+  become_user: root
+  with_items:
+    - git
+    - libffi-dev
+    - build-essential
+    - python2.7-dev
+    - python-pip
+    - libjpeg-dev
+    - libssl-dev
+    - zlib1g-dev
+
+- name: Download Girder
+  git:
+    repo: "https://github.com/girder/girder.git"
+    dest: "{{ girder_path }}"
+    version: "{{ girder_version }}"
+    update: "{{ girder_update|default(omit) }}"
+    force: "{{ girder_force|default(omit) }}"
+  register: vc
+  notify: Build Girder (web)
