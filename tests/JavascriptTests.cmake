@@ -62,6 +62,23 @@ function(add_eslint_test name input)
   set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
 endfunction()
 
+function(add_puglint_test name path)
+  if (NOT BUILD_JAVASCRIPT_TESTS)
+    return()
+  endif()
+
+  if (NOT PUGLINT_EXECUTABLE)
+    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable BUILD_JAVASCRIPT_TESTS.")
+  endif()
+
+  add_test(
+    NAME "puglint_${name}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/tests/.pug-lintrc" "${path}"
+  )
+  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
+endfunction()
+
 function(add_web_client_test case specFile)
   # test a web client using a spec file and the specRunner
   # :param case: the name of this test case

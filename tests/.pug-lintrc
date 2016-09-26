@@ -1,0 +1,17 @@
+{
+"disallowAttributeInterpolation": true,
+"disallowClassAttributeWithStaticValue": true,
+"disallowClassLiteralsBeforeAttributes": true,
+"disallowDuplicateAttributes": true,
+"disallowHtmlText": true,
+"disallowIdAttributeWithStaticValue": true,
+"disallowIdLiteralsBeforeAttributes": true,
+"disallowLegacyMixinCall": true,
+"disallowMultipleLineBreaks": true,
+"disallowSpacesInsideAttributeBrackets": true,
+"requireLowerCaseAttributes": true,
+"requireLowerCaseTags": true,
+"requireStrictEqualityOperators": true,
+"validateDivTags": true,
+"validateTemplateString": true
+}
