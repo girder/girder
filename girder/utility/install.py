@@ -94,7 +94,7 @@ def _pipeOutputToProgress(proc, progress):
             if pipe in ready:
                 buf = os.read(pipe.fileno(), 1024)
                 if buf:
-                    buf = buf.decode('utf8')
+                    buf = buf.decode('utf8', errors='ignore')
                     # Filter out non-printable characters
                     msg = ''.join(c for c in buf if c in string.printable)
                     if msg:
