@@ -35,6 +35,9 @@ depends on. If your plugin has dependencies, the other plugins will be
 enabled whenever your plugin is enabled. The contents of plugin.json for our
 example will be:
 
+.. note:: If you have both ``plugin.json`` and ``plugin.yml`` files in the directory, the
+   ``plugin.json`` will take precedence.
+
 .. code-block:: json
 
     {

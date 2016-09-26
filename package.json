@@ -76,6 +76,7 @@
   "scripts": {
     "build": "grunt init && grunt",
     "watch": "grunt webpack:watch",
-    "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts"
+    "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts",
+    "docs": "grunt docs"
   }
 }

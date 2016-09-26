@@ -83,6 +83,7 @@ module.exports = function (grunt) {
         var json = path.resolve(dir, 'plugin.json');
         var yml = path.resolve(dir, 'plugin.yml');
         var config = {}, npm;
+        var cfgFile = 'no config file';
 
         if (!fs.lstatSync(dir).isDirectory()) {
             grunt.fail.warn('Plugin directory not found: ' + dir);
@@ -91,10 +92,13 @@ module.exports = function (grunt) {
 
         if (fs.existsSync(json)) {
             config = grunt.file.readYAML(json);
-        }
-        if (fs.existsSync(yml)) {
+            cfgFile = 'plugin.json';
+        } else if (fs.existsSync(yml)) {
+            cfgFile = 'plugin.yml';
             config = grunt.file.readYAML(yml);
         }
+
+        console.log(`Configuring plugin ${plugin.magenta} (${cfgFile})`);
 
         var doAutoBuild = (
             !_.isObject(config.grunt) ||
