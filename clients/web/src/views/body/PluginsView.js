@@ -9,7 +9,7 @@ import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
 import { restartServer } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
-import PluginsTemplate from 'girder/templates/body/plugins.jade';
+import PluginsTemplate from 'girder/templates/body/plugins.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/stylesheets/body/plugins.styl';

@@ -6,8 +6,8 @@ import View from 'girder/views/View';
 import { formatSize } from 'girder/misc';
 import { handleClose, handleOpen } from 'girder/dialog';
 
-import UploadWidgetTemplate from 'girder/templates/widgets/uploadWidget.jade';
-import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetNonModal.jade';
+import UploadWidgetTemplate from 'girder/templates/widgets/uploadWidget.pug';
+import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetNonModal.pug';
 
 import 'girder/stylesheets/widgets/uploadWidget.styl';
 

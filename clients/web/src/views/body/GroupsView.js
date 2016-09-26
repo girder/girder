@@ -11,7 +11,7 @@ import { cancelRestRequests } from 'girder/rest';
 import { formatDate, DATE_DAY } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
-import GroupListTemplate from 'girder/templates/body/groupList.jade';
+import GroupListTemplate from 'girder/templates/body/groupList.pug';
 
 import 'girder/stylesheets/body/groupList.styl';
 

@@ -11,7 +11,7 @@ import { cancelRestRequests } from 'girder/rest';
 import { formatDate, formatSize, DATE_MINUTE } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
-import CollectionListTemplate from 'girder/templates/body/collectionList.jade';
+import CollectionListTemplate from 'girder/templates/body/collectionList.pug';
 
 import 'girder/stylesheets/body/collectionList.styl';
 

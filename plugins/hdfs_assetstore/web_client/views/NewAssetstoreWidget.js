@@ -2,7 +2,7 @@ import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
 import { AssetstoreType } from 'girder/constants';
 import { wrap } from 'girder/utilities/PluginUtils';
 
-import NewAssetstoreWidgetCreateTemplate from '../templates/newAssetstoreWidgetCreate.jade';
+import NewAssetstoreWidgetCreateTemplate from '../templates/newAssetstoreWidgetCreate.pug';
 
 /**
  * Add UI for creating new HDFS assetstore.

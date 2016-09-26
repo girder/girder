@@ -4,10 +4,10 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 
-import SearchFieldTemplate from 'girder/templates/widgets/searchField.jade';
-import SearchHelpTemplate from 'girder/templates/widgets/searchHelp.jade';
-import SearchModeSelectTemplate from 'girder/templates/widgets/searchModeSelect.jade';
-import SearchResultsTemplate from 'girder/templates/widgets/searchResults.jade';
+import SearchFieldTemplate from 'girder/templates/widgets/searchField.pug';
+import SearchHelpTemplate from 'girder/templates/widgets/searchHelp.pug';
+import SearchModeSelectTemplate from 'girder/templates/widgets/searchModeSelect.pug';
+import SearchResultsTemplate from 'girder/templates/widgets/searchResults.pug';
 
 import 'girder/stylesheets/widgets/searchFieldWidget.styl';
 

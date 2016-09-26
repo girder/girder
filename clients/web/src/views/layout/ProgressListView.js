@@ -4,7 +4,7 @@ import _ from 'underscore';
 import TaskProgressWidget from 'girder/views/widgets/TaskProgressWidget';
 import View from 'girder/views/View';
 
-import LayoutProgressAreaTemplate from 'girder/templates/layout/layoutProgressArea.jade';
+import LayoutProgressAreaTemplate from 'girder/templates/layout/layoutProgressArea.pug';
 
 import 'girder/stylesheets/layout/progressArea.styl';
 

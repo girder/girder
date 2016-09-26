@@ -5,7 +5,7 @@ import FolderCollection from 'girder/collections/FolderCollection';
 import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
 import View from 'girder/views/View';
 
-import FolderListTemplate from 'girder/templates/widgets/folderList.jade';
+import FolderListTemplate from 'girder/templates/widgets/folderList.pug';
 
 /**
  * This widget shows a list of folders under a given parent.

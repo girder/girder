@@ -65,7 +65,6 @@ module.exports = function (grunt) {
     grunt.loadTasks('grunt_tasks');
     grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.loadNpmTasks('grunt-contrib-jade');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-copy');
@@ -95,14 +94,14 @@ module.exports = function (grunt) {
      * tasks given by keys the config object.  As in:
      * {
      *   'init': {
-     *     'jade:a': {}
+     *     'copy:a': {}
      *     'uglify:a': {
-     *       'dependencies': ['jade:a']
+     *       'dependencies': ['copy:a']
      *     }
      *   }
      * }
      *
-     * The init task will run `jade:a` followed by `uglify:a`.
+     * The init task will run `copy:a` followed by `uglify:a`.
      */
     grunt.registerTask('init', sortTasks(grunt.config.get('init')));
     grunt.registerTask('default', sortTasks(grunt.config.get('default')));

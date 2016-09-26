@@ -11,7 +11,7 @@ import eventStream from 'girder/utilities/EventStream';
 import { getCurrentUser, setCurrentUser } from 'girder/auth';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
-import UserAccountTemplate from 'girder/templates/body/userAccount.jade';
+import UserAccountTemplate from 'girder/templates/body/userAccount.pug';
 
 import 'girder/stylesheets/body/userAccount.styl';
 

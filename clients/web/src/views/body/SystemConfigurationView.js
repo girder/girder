@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import events from 'girder/events';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
-import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.jade';
+import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.pug';
 
 import 'girder/stylesheets/body/systemConfig.styl';
 

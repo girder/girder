@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { apiRoot, restRequest } from 'girder/rest';
 import events from 'girder/events';
 
-import ConfigViewTemplate from '../templates/configView.jade';
+import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
 
 var ConfigView = View.extend({

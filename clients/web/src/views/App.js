@@ -18,8 +18,8 @@ import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
 import { Layout } from 'girder/constants';
 import { splitRoute } from 'girder/misc';
 
-import AlertTemplate from 'girder/templates/layout/alert.jade';
-import LayoutTemplate from 'girder/templates/layout/layout.jade';
+import AlertTemplate from 'girder/templates/layout/alert.pug';
+import LayoutTemplate from 'girder/templates/layout/layout.pug';
 
 import 'girder/routes';
 

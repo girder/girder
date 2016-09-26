@@ -9,7 +9,7 @@ import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversio
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
-import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.jade';
+import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.pug';
 
 var QuotaPoliciesWidget = View.extend({
     events: {

@@ -6,7 +6,7 @@ import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 
-import ConfigViewTemplate from '../templates/configView.jade';
+import ConfigViewTemplate from '../templates/configView.pug';
 
 var ConfigView = View.extend({
     events: {

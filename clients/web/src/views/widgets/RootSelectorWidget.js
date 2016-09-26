@@ -6,7 +6,7 @@ import View from 'girder/views/View';
 import events from 'girder/events';
 import { getCurrentUser } from 'girder/auth';
 
-import RootSelectorWidgetTemplate from 'girder/templates/widgets/rootSelectorWidget.jade';
+import RootSelectorWidgetTemplate from 'girder/templates/widgets/rootSelectorWidget.pug';
 
 /**
  * This widget creates a dropdown box allowing the user to select

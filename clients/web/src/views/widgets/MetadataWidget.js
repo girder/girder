@@ -7,11 +7,11 @@ import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 import { localeSort } from 'girder/misc';
 
-import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.jade';
-import JsonMetadatumViewTemplate from 'girder/templates/widgets/jsonMetadatumView.jade';
-import MetadataWidgetTemplate from 'girder/templates/widgets/metadataWidget.jade';
-import MetadatumEditWidgetTemplate from 'girder/templates/widgets/metadatumEditWidget.jade';
-import MetadatumViewTemplate from 'girder/templates/widgets/metadatumView.jade';
+import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.pug';
+import JsonMetadatumViewTemplate from 'girder/templates/widgets/jsonMetadatumView.pug';
+import MetadataWidgetTemplate from 'girder/templates/widgets/metadataWidget.pug';
+import MetadatumEditWidgetTemplate from 'girder/templates/widgets/metadatumEditWidget.pug';
+import MetadatumViewTemplate from 'girder/templates/widgets/metadatumView.pug';
 
 import 'girder/stylesheets/widgets/metadataWidget.styl';
 

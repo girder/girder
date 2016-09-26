@@ -7,7 +7,7 @@ import { wrap } from 'girder/utilities/PluginUtils';
 
 import CreateThumbnailView from './CreateThumbnailView';
 
-import FileListWidgetCreateButtonTemplate from '../templates/fileListWidgetCreateButton.jade';
+import FileListWidgetCreateButtonTemplate from '../templates/fileListWidgetCreateButton.pug';
 
 // Add create thumbnail link to each file in the file list
 wrap(FileListWidget, 'render', function (render) {

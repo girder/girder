@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { getCurrentUser } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/dialog';
 
-import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.jade';
+import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.pug';
 
 import 'girder/utilities/jquery/girderModal';
 

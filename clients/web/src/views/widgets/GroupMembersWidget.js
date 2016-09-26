@@ -9,8 +9,8 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/dialog';
 
-import GroupInviteDialogTemplate from 'girder/templates/widgets/groupInviteDialog.jade';
-import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.jade';
+import GroupInviteDialogTemplate from 'girder/templates/widgets/groupInviteDialog.pug';
+import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.pug';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/dropdown';

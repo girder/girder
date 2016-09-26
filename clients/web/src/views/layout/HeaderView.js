@@ -3,7 +3,7 @@ import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 
-import LayoutHeaderTemplate from 'girder/templates/layout/layoutHeader.jade';
+import LayoutHeaderTemplate from 'girder/templates/layout/layoutHeader.pug';
 
 import 'girder/stylesheets/layout/header.styl';
 

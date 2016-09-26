@@ -9,7 +9,7 @@ import View from 'girder/views/View';
 import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 
-import ApiKeyListTemplate from 'girder/templates/widgets/apiKeyList.jade';
+import ApiKeyListTemplate from 'girder/templates/widgets/apiKeyList.pug';
 
 var ApiKeyListWidget = View.extend({
     events: {

@@ -8,7 +8,7 @@ import { getCurrentUser } from 'girder/auth';
 import { SORT_DESC } from 'girder/constants';
 
 import JobCollection from '../collections/JobCollection';
-import JobListWidgetTemplate from '../templates/jobListWidget.jade';
+import JobListWidgetTemplate from '../templates/jobListWidget.pug';
 import JobStatus from '../JobStatus';
 
 import '../stylesheets/jobListWidget.styl';

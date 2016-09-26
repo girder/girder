@@ -3,7 +3,7 @@ import $ from 'jquery';
 import router from 'girder/router';
 import View from 'girder/views/View';
 
-import IteamBreadcrumbTemplate from 'girder/templates/widgets/itemBreadcrumb.jade';
+import IteamBreadcrumbTemplate from 'girder/templates/widgets/itemBreadcrumb.pug';
 
 import 'bootstrap/js/tooltip';
 

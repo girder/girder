@@ -1,7 +1,7 @@
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 
-import ConfigViewTemplate from '../templates/configView.jade';
+import ConfigViewTemplate from '../templates/configView.pug';
 
 var ConfigView = View.extend({
     initialize: function (settings) {

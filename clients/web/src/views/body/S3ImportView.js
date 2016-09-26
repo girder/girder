@@ -1,7 +1,7 @@
 import router from 'girder/router';
 import View from 'girder/views/View';
 
-import S3ImportTemplate from 'girder/templates/body/s3Import.jade';
+import S3ImportTemplate from 'girder/templates/body/s3Import.pug';
 
 var S3ImportView = View.extend({
     events: {

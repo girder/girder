@@ -4,7 +4,7 @@ import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import RootSelectorWidget from 'girder/views/widgets/RootSelectorWidget';
 import View from 'girder/views/View';
 
-import BrowserWidgetTemplate from 'girder/templates/widgets/browserWidget.jade';
+import BrowserWidgetTemplate from 'girder/templates/widgets/browserWidget.pug';
 
 import 'girder/utilities/jquery/girderModal';
 

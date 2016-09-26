@@ -1,6 +1,6 @@
 import View from 'girder/views/View';
 
-import GeospatialItemWidgetTemplate from '../templates/geospatialItemWidget.jade';
+import GeospatialItemWidgetTemplate from '../templates/geospatialItemWidget.pug';
 import '../stylesheets/geospatialItemWidget.styl';
 
 var GeospatialItemWidget = View.extend({

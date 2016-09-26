@@ -22,8 +22,8 @@ import events from 'girder/events';
 import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/misc';
 import { restRequest, apiRoot } from 'girder/rest';
 
-import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.jade';
-import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.jade';
+import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.pug';
+import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.pug';
 
 import 'girder/stylesheets/widgets/hierarchyWidget.styl';
 

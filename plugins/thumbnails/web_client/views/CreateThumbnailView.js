@@ -8,8 +8,8 @@ import 'girder/utilities/jquery/girderModal';
 
 import ThumbnailModel from '../models/ThumbnailModel';
 
-import CreateThumbnailViewDialogTemplate from '../templates/createThumbnailViewDialog.jade';
-import CreateThumbnailViewTargetDescriptionTemplate from '../templates/createThumbnailViewTargetDescription.jade';
+import CreateThumbnailViewDialogTemplate from '../templates/createThumbnailViewDialog.pug';
+import CreateThumbnailViewTargetDescriptionTemplate from '../templates/createThumbnailViewTargetDescription.pug';
 
 import '../stylesheets/createThumbnailView.styl';
 

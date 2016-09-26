@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { AssetstoreType } from 'girder/constants';
 import { handleClose, handleOpen } from 'girder/dialog';
 
-import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.jade';
+import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';

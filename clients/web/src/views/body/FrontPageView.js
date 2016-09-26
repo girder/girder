@@ -7,7 +7,7 @@ import { cancelRestRequests, apiRoot, staticRoot } from 'girder/rest';
 import events from 'girder/events';
 import { getCurrentUser } from 'girder/auth';
 
-import FrontPageTemplate from 'girder/templates/body/frontPage.jade';
+import FrontPageTemplate from 'girder/templates/body/frontPage.pug';
 
 import 'girder/stylesheets/body/frontPage.styl';
 

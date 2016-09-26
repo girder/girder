@@ -13,7 +13,7 @@ import { cancelRestRequests } from 'girder/rest';
 import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 
-import CollectionPageTemplate from 'girder/templates/body/collectionPage.jade';
+import CollectionPageTemplate from 'girder/templates/body/collectionPage.pug';
 
 import 'girder/stylesheets/body/collectionPage.styl';
 

@@ -2,7 +2,7 @@ import FileInfoWidget from 'girder/views/widgets/FileInfoWidget';
 import { apiRoot } from 'girder/rest';
 import { wrap } from 'girder/utilities/PluginUtils';
 
-import HashsumDownloadFileInfoWidgetTemplate from '../templates/hashsumDownloadFileInfoWidget.jade';
+import HashsumDownloadFileInfoWidgetTemplate from '../templates/hashsumDownloadFileInfoWidget.pug';
 
 import '../stylesheets/hashsumDownloadFileInfoWidget.styl';
 

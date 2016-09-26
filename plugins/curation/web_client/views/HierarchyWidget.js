@@ -7,7 +7,7 @@ import { restRequest } from 'girder/rest';
 import { wrap } from 'girder/utilities/PluginUtils';
 
 import CurationDialog from './CurationDialog';
-import HierarchyWidgetCurationButtonTemplate from '../templates/hierarchyWidgetCurationButton.jade';
+import HierarchyWidgetCurationButtonTemplate from '../templates/hierarchyWidgetCurationButton.pug';
 
 function _addCurationButton() {
     $('.g-folder-actions-menu').append(HierarchyWidgetCurationButtonTemplate());

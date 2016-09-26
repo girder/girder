@@ -4,7 +4,7 @@ import events from 'girder/events';
 import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/dialog';
 
-import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.jade';
+import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';

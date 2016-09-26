@@ -8,7 +8,7 @@ import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 
-import GroupAdminListTemplate from 'girder/templates/widgets/groupAdminList.jade';
+import GroupAdminListTemplate from 'girder/templates/widgets/groupAdminList.pug';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';

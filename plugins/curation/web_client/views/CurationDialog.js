@@ -6,7 +6,7 @@ import events from 'girder/events';
 import { getCurrentUser } from 'girder/auth';
 import { restRequest } from 'girder/rest';
 
-import CurationDialogTemplate from '../templates/curationDialog.jade';
+import CurationDialogTemplate from '../templates/curationDialog.pug';
 import '../stylesheets/curationDialog.styl';
 
 import 'girder/utilities/jquery/girderModal';

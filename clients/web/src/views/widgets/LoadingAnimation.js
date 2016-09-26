@@ -1,6 +1,6 @@
 import View from 'girder/views/View';
 
-import LoadingAnimationTemplate from 'girder/templates/widgets/loadingAnimation.jade';
+import LoadingAnimationTemplate from 'girder/templates/widgets/loadingAnimation.pug';
 
 import 'girder/stylesheets/layout/loading.styl';
 

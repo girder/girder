@@ -11,7 +11,7 @@ import { confirm } from 'girder/dialog';
 import { formatSize } from 'girder/misc';
 import events from 'girder/events';
 
-import FileListTemplate from 'girder/templates/widgets/fileList.jade';
+import FileListTemplate from 'girder/templates/widgets/fileList.pug';
 
 import 'bootstrap/js/tooltip';
 

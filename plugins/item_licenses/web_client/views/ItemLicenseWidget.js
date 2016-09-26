@@ -1,6 +1,6 @@
 import View from 'girder/views/View';
 
-import ItemLicenseWidgetTemplate from '../templates/itemLicenseWidget.jade';
+import ItemLicenseWidgetTemplate from '../templates/itemLicenseWidget.pug';
 
 /**
  * Item widget extensions for licenses.

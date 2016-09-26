@@ -2,7 +2,7 @@ import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 
-import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.jade';
+import CheckedActionsMenuTemplate from 'girder/templates/widgets/checkedActionsMenu.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 

@@ -34,16 +34,11 @@ you can just type ``grunt`` in your shell to run tasks.
    that, run ``npm install -g grunt-cli``. Note that this command requires ``sudo`` on many
    systems.
 
-It is recommended during development to make use of the ``grunt-watch`` tool. Running
+It is recommended during development to make use of the ``npm run watch`` tool. Running
 ``grunt watch`` in the root of the repository will watch for JavaScript, Stylus, and
-Jade changes in order to rebuild them on-the-fly. If you do not run ``grunt watch``
-while making code changes, you will need to run the ``grunt`` command to manually
+Pug changes in order to rebuild them on-the-fly. If you do not run ``npm run watch``
+while making code changes, you will need to run the ``npm run build`` command to manually
 rebuild the web client in order to see your changes reflected.
-
-Note that some browser debugging tools do not play well with local variable
-mangling in JavaScript. If you want to use such a debugger and need to work around this,
-run ``grunt`` or ``grunt watch`` with the additional argument ``--debug-js``.
-This will prevent name mangling in the minified output.
 
 Vagrant
 ^^^^^^^

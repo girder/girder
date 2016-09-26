@@ -6,7 +6,7 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/dialog';
 
-import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.jade';
+import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.pug';
 
 import 'bootstrap/js/tooltip';
 
