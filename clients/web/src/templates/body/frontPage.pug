@@ -1,5 +1,5 @@
 .g-frontpage-header
-  img.g-frontpage-logo(src="#{staticRoot}/img/Girder_Mark.png", width="82")
+  img.g-frontpage-logo(src=`${staticRoot}/img/Girder_Mark.png`, width="82")
   .g-frontpage-title-container
     .g-frontpage-title Girder
     .g-frontpage-subtitle Data management platform
@@ -16,7 +16,7 @@
     a.g-quicksearch-link  Quick Search
     |  box at the top of the screen. Developers who want to use the Girder REST API
     |  should check out the
-    a(href="#{apiRoot}")  interactive web API docs
+    a(href=apiRoot)  interactive web API docs
     | .
 
     if !currentUser
@@ -41,7 +41,7 @@
       if versionInfo.git
         | This instance of Girder was built from Git version&nbsp;
         a.g-git-sha(
-          target="_blank", href="https://github.com/girder/girder/tree/#{versionInfo.SHA}")= versionInfo.shortSHA
+            target="_blank", href=`https://github.com/girder/girder/tree/${versionInfo.SHA}`)= versionInfo.shortSHA
         | .
       else
         | This instance of Girder was built on #{new Date(versionInfo.date).toLocaleDateString()}.

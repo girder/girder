@@ -3,21 +3,21 @@
     .g-markdown-tabs-top
       ul.nav.nav-tabs
         li.first.active(role="presentation")
-          a.g-write-link(data-target="##{prefix}-write" aria-controls="home"
-                         role="tab" data-toggle="tab") Write
+          a.g-write-link(data-target=`#${prefix}-write`, aria-controls="home",
+              role="tab", data-toggle="tab") Write
         li(role="presentation")
-          a.g-preview-link(data-target="##{prefix}-preview" aria-controls="preview"
-                           role="tab" data-toggle="tab") Preview
+          a.g-preview-link(data-target=`#${prefix}-preview`, aria-controls="preview",
+              role="tab", data-toggle="tab") Preview
         .g-markdown-explanation
           | Supports
-          a(href="https://daringfireball.net/projects/markdown/syntax"
-            tabindex="-1" target="_blank")  Markdown
+          a(href="https://daringfireball.net/projects/markdown/syntax",
+              tabindex="-1", target="_blank")  Markdown
     .tab-content
-      .tab-pane.active(role="tabpanel" id="#{prefix}-write")
+      .tab-pane.active(role="tabpanel", id=`${prefix}-write`)
         .g-markdown-drop-zone
           textarea.form-control.g-markdown-text(
-            upload-enabled=enableUploads ? "true" : null,
-            placeholder=placeholder)= text
+              upload-enabled=enableUploads ? "true" : null,
+              placeholder=placeholder)= text
           if enableUploads
             .g-upload-overlay.hide
               .g-upload-progress-container
@@ -30,5 +30,5 @@
             .hide
               input.g-file-input(type="file")
 
-      .tab-pane(role="tabpanel" id="#{prefix}-preview")
+      .tab-pane(role="tabpanel", id=`${prefix}-preview`)
         .g-markdown-preview

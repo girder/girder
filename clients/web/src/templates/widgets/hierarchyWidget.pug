@@ -5,7 +5,7 @@
     .g-hierarchy-actions-header
       if checkboxes
         input.g-select-all(type="checkbox", data-toggle="tooltip",
-                           title="Select / Unselect all")
+            title="Select / Unselect all")
 
         .btn-group
           button.g-checked-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
@@ -32,7 +32,7 @@
               i.icon-lock
         .btn-group
           button.g-folder-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
-              data-toggle="dropdown" title="#{capitalize(type)} actions", placement="left")
+              data-toggle="dropdown", title=`${capitalize(type)} actions`, placement="left")
             if type === 'collection'
               i.icon-sitemap
             else if type === 'user'

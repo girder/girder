@@ -1,8 +1,8 @@
 .panel-group#g-assetstore-accordion
   .panel.panel-default
     .panel-heading(data-toggle="collapse",
-                   data-parent="#g-assetstore-accordion",
-                   data-target="#g-create-fs-tab")
+        data-parent="#g-assetstore-accordion",
+        data-target="#g-create-fs-tab")
       .panel-title
         a
           i.icon-hdd
@@ -20,21 +20,18 @@
         form#g-new-fs-form(role="form")
           .form-group
             label.control-label(for="g-new-fs-name") Assetstore name
-            input.input-sm.form-control#g-new-fs-name(type="text",
-                                                      placeholder="Name")
+            input.input-sm.form-control#g-new-fs-name(type="text", placeholder="Name")
           .form-group
             label.control-label(for="g-new-fs-root") Root directory
             input.input-sm.form-control#g-new-fs-root(
               type="text", placeholder="Root directory")
           p#g-new-fs-error.g-validation-failed-message
-          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
-            type="submit", value="Create")
-
+          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")
 
   .panel.panel-default
     .panel-heading(data-toggle="collapse",
-                   data-parent="#g-assetstore-accordion",
-                   data-target="#g-create-gridfs-tab")
+        data-parent="#g-assetstore-accordion",
+        data-target="#g-create-gridfs-tab")
       .panel-title
         a
           i.icon-leaf
@@ -49,8 +46,7 @@
         form#g-new-gridfs-form(role="form")
           .form-group
             label.control-label(for="g-new-gridfs-name") Assetstore name
-            input.input-sm.form-control#g-new-gridfs-name(type="text",
-                                                          placeholder="Name")
+            input.input-sm.form-control#g-new-gridfs-name(type="text", placeholder="Name")
           .form-group
             label.control-label(for="g-new-gridfs-db") Database name
             input.input-sm.form-control#g-new-gridfs-db(
@@ -58,22 +54,18 @@
           .form-group
             label.control-label(for="g-new-gridfs-mongohost") Mongo Host URI
             input.input-sm.form-control#g-new-gridfs-mongohost(
-              type="text",
-              placeholder="Mongo host uri (defaults to the main Girder database)")
+                type="text", placeholder="Mongo host uri (defaults to the main Girder database)")
           .form-group
             label.control-label(for="g-new-gridfs-replicaset") Replica Set
             input.input-sm.form-control#g-new-gridfs-replicaset(
-              type="text",
-              placeholder="Replica set name (blank if not using a replica set)")
+                type="text", placeholder="Replica set name (blank if not using a replica set)")
           p#g-new-gridfs-error.g-validation-failed-message
-          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
-            type="submit", value="Create")
-
+          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")
 
   .panel.panel-default
     .panel-heading(data-toggle="collapse",
-                   data-parent="#g-assetstore-accordion",
-                   data-target="#g-create-s3-tab")
+        data-parent="#g-assetstore-accordion",
+        data-target="#g-create-s3-tab")
       .panel-title
         a
           i.icon-upload-cloud
@@ -89,32 +81,25 @@
         form#g-new-s3-form(role="form")
           .form-group
             label.control-label(for="g-new-s3-name") Assetstore name
-            input.input-sm.form-control#g-new-s3-name(type="text",
-                                                      placeholder="Name")
+            input.input-sm.form-control#g-new-s3-name(type="text", placeholder="Name")
           .form-group
             label.control-label(for="g-new-s3-bucket") S3 bucket name
-            input.input-sm.form-control#g-new-s3-bucket(type="text",
-                placeholder="Bucket")
+            input.input-sm.form-control#g-new-s3-bucket(type="text", placeholder="Bucket")
           .form-group
             label.control-label(for="g-new-s3-prefix") Path prefix (optional)
-            input.input-sm.form-control#g-new-s3-prefix(type="text",
-                placeholder="Prefix")
+            input.input-sm.form-control#g-new-s3-prefix(type="text", placeholder="Prefix")
           .form-group
             label.control-label(for="g-new-s3-access-key-id") Access key ID
-            input.input-sm.form-control#g-new-s3-access-key-id(type="text",
-                placeholder="Access key ID")
+            input.input-sm.form-control#g-new-s3-access-key-id(type="text", placeholder="Access key ID")
           .form-group
             label.control-label(for="g-new-s3-secret") Secret access key
-            input.input-sm.form-control#g-new-s3-secret(type="text",
-                placeholder="Secret access key")
+            input.input-sm.form-control#g-new-s3-secret(type="text", placeholder="Secret access key")
           .form-group
             label.control-label(for="g-new-s3-service") Service
-            input.input-sm.form-control#g-new-s3-service(type="text",
-                placeholder="Service name")
+            input.input-sm.form-control#g-new-s3-service(type="text", placeholder="Service name")
           .checkbox
             label
               input#g-new-s3-readonly(type="checkbox")
               | Read only
           p#g-new-s3-error.g-validation-failed-message
-          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
-            type="submit", value="Create")
+          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")

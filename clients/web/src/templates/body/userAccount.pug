@@ -1,6 +1,6 @@
 .g-account-header
-  .g-user-name.g-body-title #{user.name()}
-  .g-user-description.g-body-subtitle #{user.get('login')}
+  .g-user-name.g-body-title= user.name()
+  .g-user-description.g-body-subtitle= user.get('login')
 
 ul.g-account-tabs.nav.nav-tabs
   li.active
@@ -22,16 +22,16 @@ ul.g-account-tabs.nav.nav-tabs
       form#g-user-info-form(role="form")
         .form-group
           label(for="g-login") Login
-          p.form-control-static #{user.get('login')}
+          p.form-control-static= user.get('login')
         .form-group
           label(for="g-email") Email
-          input.input-sm.form-control#g-email(type="text", value="#{user.get('email')}")
+          input.input-sm.form-control#g-email(type="text", value=user.get('email'))
         .form-group
           label(for="g-firstName") First name
-          input.input-sm.form-control#g-firstName(type="text", value="#{user.get('firstName')}")
+          input.input-sm.form-control#g-firstName(type="text", value=user.get('firstName'))
         .form-group
           label(for="g-lastName") Last name
-          input.input-sm.form-control#g-lastName(type="text", value="#{user.get('lastName')}")
+          input.input-sm.form-control#g-lastName(type="text", value=user.get('lastName'))
         if getCurrentUser().get('admin')
           .form-group
             label(for="g-admin") User is site admin
@@ -48,7 +48,7 @@ ul.g-account-tabs.nav.nav-tabs
     .g-password-change-container.g-user-settings-container
       form#g-password-change-form(role="form")
         if temporaryToken
-            input.input-sm.form-control#g-password-old(type="hidden", value="#{temporaryToken}")
+            input.input-sm.form-control#g-password-old(type="hidden", value=temporaryToken)
         else if isCurrentUser
           .form-group
             label(for="g-password-old") Current password

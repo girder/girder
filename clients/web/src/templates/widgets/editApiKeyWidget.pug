@@ -20,11 +20,11 @@
         .g-scope-selection-container
           .radio
             label
-              input(type="radio", name="scopeType", value="full", id="g-scope-mode-full", checked)
+              input#g-scope-mode-full(type="radio", name="scopeType", value="full", checked)
               | Allow all actions on behalf of my user
           .radio
             label
-              input(type="radio", name="scopeType", value="custom", id="g-scope-mode-custom")
+              input#g-scope-mode-custom(type="radio", name="scopeType", value="custom")
               | Only allow specific permissions for this key:
           each tokenScope in userTokenScopes
             .checkbox.disabled

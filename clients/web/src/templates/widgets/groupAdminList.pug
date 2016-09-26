@@ -5,7 +5,7 @@
 .g-group-admins-body
   ul.g-group-admins
     each userAccess in admins
-      li(userid="#{userAccess.id}", username="#{userAccess.name}")
+      li(userid=userAccess.id, username=userAccess.name)
         a.g-member-name
           i.icon-user
           span #{userAccess.name} (#{userAccess.login})
@@ -13,7 +13,7 @@
           if level >= accessType.ADMIN
             span.dropdown
               a.g-group-admin-demote.dropdown-toggle(title="Demote user",
-                data-toggle="dropdown")
+                  data-toggle="dropdown")
                 i.icon-down-big
                 i.icon-down-dir
               ul.dropdown-menu.pull-right(role="menu")

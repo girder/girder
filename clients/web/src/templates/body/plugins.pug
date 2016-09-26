@@ -17,10 +17,10 @@
     - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
     .g-plugin-list-item
       input.g-plugin-switch(type="checkbox", key=plugin.key,
-                            disabled=plugin.value.unmetDependencies.length > 0,
-                            checked=(plugin.value.enabled ? "checked" : undefined),
-                            experimental=(experimental ? "true" : undefined),
-                            data-on-color=(experimental ? "warning" : "primary"))
+          disabled=plugin.value.unmetDependencies.length > 0,
+          checked=(plugin.value.enabled ? "checked" : undefined),
+          experimental=(experimental ? "true" : undefined),
+          data-on-color=(experimental ? "warning" : "primary"))
       .g-plugin-name
         span= plugin.value.name
         if plugin.value.version

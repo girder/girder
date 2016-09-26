@@ -9,7 +9,7 @@
       Below is a list of all of the assetstores available to the server. The
       one set as "current" is the one that uploaded files will be written to.
   each assetstore in assetstores
-    .g-assetstore-container.panel.panel-default(class=assetstore.get('current')? 'g-assetstore-current' : undefined)
+    .g-assetstore-container.panel.panel-default(class=assetstore.get('current') ? 'g-assetstore-current' : undefined)
       .panel-body
         .g-assetstore-info-section(assetstore-type=assetstore.get('type'), cid=assetstore.cid)
           div
@@ -71,24 +71,24 @@
           div
             b Capacity:
             span.g-assetstore-capacity  #{assetstore.capacityString()}
-            .g-assetstore-capacity-chart(cid="#{assetstore.cid}")
+            .g-assetstore-capacity-chart(cid=assetstore.cid)
         .g-assetstore-buttons
           button.g-edit-assetstore.btn.btn-sm.btn-default(
-              cid="#{assetstore.cid}") Edit
+              cid=assetstore.cid) Edit
           if !assetstore.get('hasFiles')
             button.g-delete-assetstore.btn.btn-sm.btn-danger(
-                cid="#{assetstore.cid}") Delete
+                cid=assetstore.cid) Delete
           else
-            div.g-assetstore-button-container(title="You must delete all files from the assetstore before you can delete the assetstore.")
+            .g-assetstore-button-container(title="You must delete all files from the assetstore before you can delete the assetstore.")
               button.g-delete-assetstore.btn.btn-sm.btn-danger.disabled(
-                  cid="#{assetstore.cid}") Delete
+                  cid=assetstore.cid) Delete
           if !assetstore.get('current') && !assetstore.get('readOnly')
             button.g-set-current.btn.btn-sm.btn-primary(
-              cid="#{assetstore.cid}") Set as current
+              cid=assetstore.cid) Set as current
 
           if importableTypes.indexOf(assetstore.get('type')) !== -1
-            div.g-assetstore-import-button-container
-              a.g-import-button.btn.btn-sm.btn-success(href="#assetstore/#{assetstore.id}/import")
+            .g-assetstore-import-button-container
+              a.g-import-button.btn.btn-sm.btn-success(href=`#assetstore/${assetstore.id}/import`)
                 i.icon-link-ext
                 |  Import data
 

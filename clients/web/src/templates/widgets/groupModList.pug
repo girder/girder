@@ -5,7 +5,7 @@
 .g-group-mods-body
   ul.g-group-mods
     each userAccess in moderators
-      li(userid="#{userAccess.id}", username="#{userAccess.name}")
+      li(userid=userAccess.id, username=userAccess.name)
         a.g-member-name
           i.icon-user
           span #{userAccess.name} (#{userAccess.login})

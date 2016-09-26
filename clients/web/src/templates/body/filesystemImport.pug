@@ -1,5 +1,5 @@
 .g-body-title Import existing data from the filesystem
-.g-body-subtitle #{assetstore.get('name')}
+.g-body-subtitle= assetstore.name()
 
 .g-import-instructions.
   Use this page to import existing data from this assetstore's filesystem.
@@ -25,8 +25,8 @@ form.g-filesystem-import-form
     label(for="g-filesystem-import-dest-id") Destination ID
     .input-group.input-group-sm
       input.form-control.input-sm#g-filesystem-import-dest-id(
-        type="text"
-        placeholder="Existing folder, user, or collection ID to use as the destination")
+          type="text",
+          placeholder="Existing folder, user, or collection ID to use as the destination")
       .input-group-btn
         button.g-open-browser.btn.btn-default(type="button")
           i.icon-folder-open

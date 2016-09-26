@@ -13,13 +13,13 @@
           .radio
             label
               input#g-access-private(type="radio", name="privacy",
-                                     checked=(public ? undefined : "checked"))
+                  checked=(public ? undefined : "checked"))
               i.icon-lock
               | Private &mdash; Only members can see this group
           .radio
             label
               input#g-access-public(type="radio", name="privacy",
-                                    checked=(public ? "checked" : undefined))
+                  checked=(public ? "checked" : undefined))
               i.icon-globe
               | Public &mdash; Anyone can see this group
         .form-group

@@ -35,8 +35,8 @@
               i.icon-trash
               | Delete group
 
-  .g-group-name.g-body-title #{group.get('name')}
-  .g-group-description.g-body-subtitle #{group.get('description')}
+  .g-group-name.g-body-title= group.name()
+  .g-group-description.g-body-subtitle= group.get('description')
   .g-clear-right
 
 if (getCurrentUser())
@@ -44,11 +44,11 @@ if (getCurrentUser())
       .g-group-status-container.g-member
         i.icon-ok
         if (isAdmin)
-          |  You are an <b>administrator</b> of this group.
+          |  You are an #[b administrator] of this group.
         else if (isModerator)
-          |  You are a <b>moderator</b> of this group.
+          |  You are a #[b moderator] of this group.
         else
-          |  You are a <b>member</b> of this group.
+          |  You are a #[b member] of this group.
     else if (isInvited)
       .g-group-status-container.g-invited
         i.icon-mail-alt
@@ -66,7 +66,7 @@ if (getCurrentUser())
     if (group.get('_accessLevel') >= AccessType.ADMIN && !isAdmin)
       .g-group-status-container.g-admin
         i.icon-star
-        |  You have <b>administrator</b> privileges.
+        |  You have #[b administrator] privileges.
 
 ul.g-group-tabs.nav.nav-tabs
   li.active
@@ -93,7 +93,7 @@ ul.g-group-tabs.nav.nav-tabs
       .g-group-requests-body
         ul.g-group-requests
           each user in group.get('requests')
-            li(userid="#{user.id}")
+            li(userid=user.id)
               a.g-member-name
                 i.icon-user
                 |  #{user.name} (#{user.login})

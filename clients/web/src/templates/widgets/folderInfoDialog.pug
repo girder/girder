@@ -1,5 +1,5 @@
 mixin dateInfo(intro, property)
-  .g-folder-info-line(property="#{property}")
+  .g-folder-info-line(property=property)
     i.icon-clock
     span= intro
     span.g-bold-part= formatDate(folder.get(property), DATE_SECOND)
@@ -7,7 +7,7 @@ mixin dateInfo(intro, property)
 .modal-dialog
   .modal-content
     .modal-header
-      button.close(data-dismiss="modal" aria-hidden="true") &times;
+      button.close(data-dismiss="modal", aria-hidden="true") &times;
       h4.modal-title Folder information
       .g-dialog-subtitle
         i.icon-folder

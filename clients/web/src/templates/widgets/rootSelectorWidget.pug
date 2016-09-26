@@ -1,7 +1,7 @@
 - selected = selected || {id: ''};
 select#g-root-selector.form-control(required)
   if !selected.id
-    option(value="" disabled selected hidden) Select a root...
+    option(value="", disabled, selected, hidden) Select a root...
   each groupName in display
     if groupName === 'Home' && home
       option(value=home.id, selected=selected.id === home.id) Home
@@ -10,4 +10,4 @@ select#g-root-selector.form-control(required)
       optgroup(label=groupName)
         each model in group.models
           if !home || model.id !== home.id
-            option(value=model.id, data-group=groupName, selected=model.id === selected.id) #{format(model)}
+            option(value=model.id, data-group=groupName, selected=model.id === selected.id)= format(model)

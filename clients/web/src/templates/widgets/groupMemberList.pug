@@ -10,15 +10,15 @@
 .g-group-members-body
   ul.g-group-members
     each member in members
-      li(cid="#{member.cid}")
+      li(cid=member.cid)
         a.g-member-name
           i.icon-user
           span #{member.name()} (#{member.get('login')})
         .g-group-member-controls.pull-right
           if level >= accessType.ADMIN
             span.dropdown
-              a.g-group-member-promote.dropdown-toggle(title="Promote user",
-                                                       data-toggle="dropdown")
+              a.g-group-member-promote.dropdown-toggle(
+                  title="Promote user", data-toggle="dropdown")
                 i.icon-up-big
                 i.icon-down-dir
               ul.dropdown-menu.pull-right(role="menu")
