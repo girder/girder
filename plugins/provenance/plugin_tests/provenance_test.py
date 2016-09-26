@@ -18,6 +18,7 @@
 ###############################################################################
 
 import json
+import six
 
 from tests import base
 from girder import events
@@ -392,3 +393,13 @@ class ProvenanceTestCase(base.TestCase):
             self.assertTrue((eventName in events._mapping and 'provenance' in
                             [h['name'] for h in events._mapping[eventName]])
                             is (key == 'item'))
+
+    def testProvenanceFileWithoutItem(self):
+        fileData = b'this is a test'
+        file = self.model('upload').uploadFromFile(
+            obj=six.BytesIO(fileData), size=len(fileData), name='test',
+            parentType=None, parent=None, user=self.admin)
+        self.assertIsNone(file.get('itemId'))
+        file['name'] = 'test2'
+        file = self.model('file').save(file)
+        self.model('file').remove(file)

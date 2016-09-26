@@ -1,0 +1,24 @@
+---
+
+- hosts: all
+  vars:
+    girder_update: no
+    girder_force: no
+  pre_tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      become: yes
+      become_user: root
+
+  roles:
+    - role: girder
+
+  post_tasks:
+    - name: Point Girder to existing Mongo URI
+      ini_file:
+        dest="{{ girder_path }}/girder/conf/girder.local.cfg"
+        backup=yes
+        section=database
+        option=uri
+        value='"mongodb://my-existing-host:27017/girder"'

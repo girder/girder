@@ -23,7 +23,7 @@ from girder.models.notification import ProgressState
 JOB_HANDLER_LOCAL = 'jobs._local'
 
 
-# Constants representing the setting keys for this plugin
+# integer enum describing job states. Note, no order is implied.
 class JobStatus(object):
     INACTIVE = 0
     QUEUED = 1

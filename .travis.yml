@@ -61,7 +61,8 @@ before_install:
 
 install:
     - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
-    - npm install
+    - npm install -g npm-install-retry
+    - npm-install-retry
     - BABEL_ENV=cover npm run build
 
 script:
@@ -78,7 +79,7 @@ after_success:
     - codecov -f _build/coverage/lcov.info
 
 deploy:
-    provider: heroku
+  - provider: heroku
     buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
     strategy: git
     api_key:

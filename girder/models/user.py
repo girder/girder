@@ -133,6 +133,9 @@ class User(AccessControlledModel):
         existing = self.findOne({})
         if existing is None:
             doc['admin'] = True
+            # Ensure settings don't stop this user from logging in
+            doc['emailVerified'] = True
+            doc['status'] = 'enabled'
 
         return doc
 
@@ -271,6 +274,8 @@ class User(AccessControlledModel):
         Returns True if the user is allowed to login, e.g. email verification
         is not needed and admin approval is not needed.
         """
+        if user.get('status', 'enabled') == 'disabled':
+            return False
         if self.emailVerificationRequired(user):
             return False
         if self.adminApprovalRequired(user):
@@ -282,27 +287,20 @@ class User(AccessControlledModel):
         Returns True if email verification is required and this user has not
         yet verified their email address.
         """
-        if user.get('admin'):
-            return False
-        if not user.get('emailVerified', False):
-            return self.model('setting').get(
-                SettingKey.EMAIL_VERIFICATION) == 'required'
-        return False
+        return (not user['emailVerified']) and self.model('setting').get(
+            SettingKey.EMAIL_VERIFICATION) == 'required'
 
     def adminApprovalRequired(self, user):
         """
         Returns True if the registration policy requires admin approval and
-        this user has not yet been approved.
+        this user is pending approval.
         """
-        if user.get('admin'):
-            return False
-        if user.get('status') != 'enabled':
-            return self.model('setting').get(
+        return user.get('status', 'enabled') == 'pending' and \
+            self.model('setting').get(
                 SettingKey.REGISTRATION_POLICY) == 'approve'
-        return False
 
     def _sendApprovalEmail(self, user):
-        url = '%s/#user/%s' % (
+        url = '%s#user/%s' % (
             mail_utils.getEmailUrlPrefix(), str(user['_id']))
         text = mail_utils.renderTemplate('accountApproval.mako', {
             'user': user,
@@ -326,7 +324,7 @@ class User(AccessControlledModel):
     def _sendVerificationEmail(self, user):
         token = self.model('token').createToken(
             user, days=1, scope=TokenScope.EMAIL_VERIFICATION)
-        url = '%s/#useraccount/%s/verification/%s' % (
+        url = '%s#useraccount/%s/verification/%s' % (
             mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
         text = mail_utils.renderTemplate('emailVerification.mako', {
             'url': url
@@ -456,25 +454,27 @@ class User(AccessControlledModel):
             return sum(1 for _ in folderModel.filterResultsByPermission(
                 cursor=folders, user=filterUser, level=level))
 
-    def updateSize(self, doc, user):
+    def updateSize(self, doc, user=None):
         """
         Recursively recomputes the size of this user and its underlying
         folders and fixes the sizes as needed.
 
         :param doc: The user.
         :type doc: dict
-        :param user: The admin user for permissions.
-        :type user: dict
+        :param user: (deprecated) Not used.
         """
         size = 0
         fixes = 0
-        folders = self.model('folder').childFolders(doc, 'user', user)
+        folders = self.model('folder').find({
+            'parentId': doc['_id'],
+            'parentCollection': 'user'
+        })
         for folder in folders:
             # fix folder size if needed
-            _, f = self.model('folder').updateSize(folder, user)
+            _, f = self.model('folder').updateSize(folder)
             fixes += f
             # get total recursive folder size
-            folder = self.model('folder').load(folder['_id'], user=user)
+            folder = self.model('folder').load(folder['_id'], force=True)
             size += self.model('folder').getSizeRecursive(folder)
         # fix value if incorrect
         if size != doc.get('size'):

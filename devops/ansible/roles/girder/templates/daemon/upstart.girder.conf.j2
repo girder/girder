@@ -1,0 +1,20 @@
+description "Girder server"
+
+start on startup
+stop on shutdown
+
+# Automatically Respawn:
+respawn
+respawn limit 20 5
+
+setuid "{{ ansible_user_id }}"
+setgid "{{ ansible_user_id }}"
+
+script
+    cd "{{ girder_path }}"
+    {% if girder_virtualenv is defined %}
+    . "{{ girder_virtualenv }}/bin/activate" && python -m girder
+    {% else %}
+    exec python -m girder
+    {% endif %}
+end script

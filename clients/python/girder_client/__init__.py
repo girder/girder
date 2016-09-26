@@ -84,6 +84,9 @@ class HttpError(Exception):
         self.url = url
         self.method = method
 
+    def __str__(self):
+        return super(HttpError, self).__str__() + '\nResponse text: ' + self.responseText
+
 
 class GirderClient(object):
     """

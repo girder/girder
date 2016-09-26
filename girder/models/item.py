@@ -470,21 +470,19 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         :param item: The item to check.
         :type item: dict
-        :param user: The user for permissions.
-        :type user: dict or None
+        :param user: (deprecated) Not used.
         """
         return not self.model('folder').load(
-            item.get('folderId'), user=user)
+            item.get('folderId'), force=True)
 
-    def updateSize(self, doc, user):
+    def updateSize(self, doc, user=None):
         """
         Recomputes the size of this item and its underlying
         files and fixes the sizes as needed.
 
         :param doc: The item.
         :type doc: dict
-        :param user: The admin user for permissions.
-        :type user: dict
+        :param user: (deprecated) Not used.
         """
         # get correct size from child files
         size = 0

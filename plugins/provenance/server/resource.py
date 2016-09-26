@@ -210,8 +210,9 @@ class ResourceExt(Resource):
 
     def getProvenanceUser(self, obj):
         """
-        Get the user that is associated with the object.  If it has no user,
-        get the user of the current session.
+        Get the user that is associated with the current provenance change.
+        This is the current session user, if there is one.  If not, it is the
+        object's user or creator.
         :param obj: a model object.
         :returns: user for the object or None.
         """
@@ -330,7 +331,7 @@ class ResourceExt(Resource):
         :param event: the event with the file information.
         """
         curFile = event.info
-        if 'itemId' not in curFile or '_id' not in curFile:
+        if not curFile.get('itemId') or '_id' not in curFile:
             return
         user = self.getProvenanceUser(curFile)
         item = self.model('item').load(id=curFile['itemId'], force=True)
@@ -366,7 +367,7 @@ class ResourceExt(Resource):
         :param event: the event with the file information.
         """
         file = event.info
-        if 'itemId' not in file or not file['itemId'] or '_id' not in file:
+        if not file.get('itemId') or '_id' not in file:
             return
         user = self.getProvenanceUser(file)
         item = self.model('item').load(id=file['itemId'], force=True)
@@ -391,10 +392,14 @@ class ResourceExt(Resource):
         :param event: the event with the file information.
         """
         file = event.info
-        if 'itemId' not in file:
+        itemId = file.get('itemId')
+        # Don't attach provenance to an item based on files that are not
+        # directly associated (we may want to revisit this and, when files are
+        # attachedToType, add provenance to the appropriate type and ID).
+        if not itemId:
             return
         user = self.getProvenanceUser(file)
-        item = self.model('item').load(id=file['itemId'], force=True)
+        item = self.model('item').load(id=itemId, force=True)
         if not item:
             return
         updateEvent = {

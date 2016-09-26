@@ -1,0 +1,38 @@
+---
+
+- fail:
+    msg="ansible-role-girder only supports Ubuntu Trusty and Xenial."
+  when: '"{{ ansible_distribution_release }}" not in ["trusty", "xenial"]'
+
+- name: Ensure girder base directory exists
+  file:
+    path: "{{ girder_path }}"
+    state: directory
+    group: "{{ ansible_user_id }}"
+    owner: "{{ ansible_user_id }}"
+    mode: 0755
+  become: yes
+  become_user: root
+
+- include: npm.yml
+  when: "{{ girder_web }}"
+
+- name: Install virtualenv
+  apt:
+    name: python-virtualenv
+    state: latest
+  become: yes
+  become_user: root
+  when: girder_virtualenv is defined
+
+- include: girder.yml
+
+- include: pip.yml
+  when: girder_virtualenv is not defined
+  become: yes
+  become_user: root
+
+- include: pip.yml
+  when: girder_virtualenv is defined
+
+- include: daemon.yml
