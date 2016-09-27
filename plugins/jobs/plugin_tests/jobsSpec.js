@@ -19,7 +19,7 @@ $(function () {
             });
 
             runs(function () {
-                var job = new girder.plugins.jobs.models.JobModel({
+                var jobInfo = {
                     _id: 'foo',
                     title: 'My batch job',
                     status: girder.plugins.jobs.JobStatus.INACTIVE,
@@ -37,18 +37,22 @@ $(function () {
                         status: girder.plugins.jobs.JobStatus.SUCCESS,
                         time: '2015-01-12T12:00:12Z'
                     }]
-                });
+                };
 
-                /* var widget = */ new girder.plugins.jobs.views.JobDetailsWidget({
-                    el: $('#g-app-body-container'),
-                    job: job,
-                    parentView: app
-                }).render();
+                // mock fetch to simulate fetching a job
+                var oldFetch = girder.plugins.jobs.models.JobModel.prototype.fetch;
+                girder.plugins.jobs.models.JobModel.prototype.fetch = function () {
+                    this.set(jobInfo);
+                    this.trigger('g:fetched');
+                };
+
+                girder.router.navigate('job/foo', {trigger: true});
+                girder.plugins.jobs.models.JobModel.prototype.fetch = oldFetch;
 
                 expect($('.g-monospace-viewer[property="kwargs"]').length).toBe(0);
-                expect($('.g-monospace-viewer[property="log"]').text()).toBe(job.get('log').join(''));
-                expect($('.g-job-info-value[property="_id"]').text()).toBe(job.get('_id'));
-                expect($('.g-job-info-value[property="title"]').text()).toBe(job.get('title'));
+                expect($('.g-monospace-viewer[property="log"]').text()).toBe(jobInfo.log.join(''));
+                expect($('.g-job-info-value[property="_id"]').text()).toBe(jobInfo._id);
+                expect($('.g-job-info-value[property="title"]').text()).toBe(jobInfo.title);
                 expect($('.g-job-info-value[property="when"]').text()).toContain('January 12, 2015');
                 expect($('.g-job-status-badge').text()).toContain('Inactive');
 
