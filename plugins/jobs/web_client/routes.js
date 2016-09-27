@@ -3,6 +3,8 @@ import events from 'girder/events';
 
 import JobModel from './models/JobModel';
 import JobDetailsWidget from './views/JobDetailsWidget';
+import JobListWidget from './views/JobListWidget';
+
 router.route('job/:id', 'jobView', function (id) {
     var job = new JobModel({_id: id}).once('g:fetched', function () {
         events.trigger('g:navigateTo', JobDetailsWidget, {
@@ -11,10 +13,10 @@ router.route('job/:id', 'jobView', function (id) {
         });
     }, this).once('g:error', function () {
         router.navigate('collections', {trigger: true});
-    }, this).fetch();
+    }, this);
+    job.fetch();
 });
 
-import JobListWidget from './views/JobListWidget';
 router.route('jobs/user/:id', 'jobList', function (id) {
     events.trigger('g:navigateTo', JobListWidget, {
         filter: {userId: id}
