@@ -10,7 +10,7 @@ include accessEditorMixins
           i.icon-folder
         else if (modelType === 'collection')
           i.icon-sitemap
-        | #{model.name()}
+        = model.name()
     .modal-body.g-access-modal-body
       +privacyEditor(modelType)
       +permissionsEditor

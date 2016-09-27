@@ -92,7 +92,7 @@ var AccessWidget = View.extend({
         this.$el.html(template({
             model: this.model,
             modelType: this.modelType,
-            public: this.model.get('public'),
+            publicFlag: this.model.get('public'),
             hideRecurseOption: this.hideRecurseOption,
             hideSaveButton: this.hideSaveButton
         }));
@@ -276,4 +276,3 @@ var AccessWidget = View.extend({
 });
 
 export default AccessWidget;
-

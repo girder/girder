@@ -57,7 +57,7 @@ var EditGroupWidget = View.extend({
         }
         var modal = this.$el.html(EditGroupWidgetTemplate({
             group: this.model,
-            public: pub,
+            publicFlag: pub,
             addToGroupPolicy: addToGroupPolicy,
             groupAddAllowed: groupAddAllowed,
             addAllowed: this.model ? this.model.get('addAllowed') : false

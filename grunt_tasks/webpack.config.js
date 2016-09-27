@@ -129,11 +129,11 @@ module.exports = {
             },
             // Pug
             {
-                test: /\.pug$/,
-                loader: 'pug-loader',
-                query: {
-                    doctype: 'html' // see @girder/pull/1469
-                }
+                test: /\.(pug|.jade)$/,
+                loaders: [
+                    'babel-loader',
+                    'pug-loader'
+                ]
             },
             // PNG, JPEG
             {
@@ -197,7 +197,7 @@ module.exports = {
         alias: {
             'girder': paths.web_src
         },
-        extensions: ['.styl', '.css', '.pug', '.js', ''],
+        extensions: ['.styl', '.css', '.pug', '.jade', '.js', ''],
         modules: [
             paths.clients_web,
             paths.plugins,

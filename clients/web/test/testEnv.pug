@@ -21,12 +21,10 @@ html(lang="en")
 
     script(type="text/javascript").
       (function () {
-        var jasmineEnv = jasmine.getEnv();
         var consoleReporter = new jasmine.ConsoleReporter();
 
         window.jasmine_phantom_reporter = consoleReporter;
-        jasmineEnv.addReporter(consoleReporter);
+        jasmine.getEnv().addReporter(consoleReporter);
 
-        var currentWindowOnload = window.onload;
         girder.utilities.eventStream.settings.timeout = 10;
       })();
