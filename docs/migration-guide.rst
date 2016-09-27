@@ -17,6 +17,24 @@ Server changes
 Web client changes
 ++++++++++++++++++
 
+* Build system overhaul: Girder web client code is now built with `Webpack <https://webpack.github.io/>`_
+  instead of uglify, and we use the `Babel <https://babeljs.io/>`_ loader to enable ES2015 language support. The
+  most important result of this change is that downstream plugins can now build their own targets
+  based on the Girder core library in a modular way, by importing specific components.
+* **Jade** |ra| **Pug** rename: Due to trademark issues, our upstream HTML templating engine was renamed from
+  jade to pug. In addition, this rename coincides with a major version bump in the language which comes
+  with notable breaking changes.
+
+    * Template files should now end in ``.pug`` instead of ``.jade``. This affects how they are imported as modules
+      in webpack.
+    * Jade-syntax interpolation no longer works inside string values of attributes. Use ES2015-style string
+      templating instead. Examples:
+
+        * ``a(href="#item/#{id}/foo")`` |ra| ``a(href=`#item/${id}/foo`)``
+        * ``.g-some-element(cid="#{obj.cid}")`` |ra| ``.g-some-element(cid=obj.cid)``
+    * Full list of breaking changes are listed `here <https://github.com/pugjs/pug/issues/2305>`_, though
+      most of the others are relatively obscure.
+
 Python client changes
 +++++++++++++++++++++
 
