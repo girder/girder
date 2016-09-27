@@ -5,12 +5,6 @@ function(javascript_tests_init)
     return()
   endif()
 
-  if(RUN_CORE_TESTS)
-    set(_core_cov_flag "--include-core")
-  else()
-    set(_core_cov_flag "--skip-core")
-  endif()
-
   add_test(
     NAME js_coverage_reset
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${PROJECT_BINARY_DIR}/js_coverage"
