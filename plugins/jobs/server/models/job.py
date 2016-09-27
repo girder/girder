@@ -368,6 +368,7 @@ class Job(AccessControlledModel):
                 expires = now + datetime.timedelta(seconds=30)
                 filtered = self.filter(job, user)
                 filtered.pop('kwargs', None)
+                filtered.pop('log', None)
                 self.model('notification').createNotification(
                     type='job_status', data=filtered, user=user, expires=expires)
 

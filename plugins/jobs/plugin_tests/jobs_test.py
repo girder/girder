@@ -289,7 +289,8 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(statusNotify['type'], 'job_status')
         self.assertEqual(statusNotify['data']['_id'], str(job['_id']))
         self.assertEqual(int(statusNotify['data']['status']), JobStatus.ERROR)
-        self.assertTrue('kwargs' not in statusNotify['data'])
+        self.assertNotIn('kwargs', statusNotify['data'])
+        self.assertNotIn('log', statusNotify['data'])
 
         self.assertEqual(progressNotify['type'], 'progress')
         self.assertEqual(progressNotify['data']['title'], job['title'])
