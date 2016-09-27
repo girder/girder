@@ -129,7 +129,7 @@ module.exports = {
             },
             // Pug
             {
-                test: /\.(pug|.jade)$/,
+                test: /\.(pug|jade)$/,
                 loaders: [
                     'babel-loader',
                     'pug-loader'

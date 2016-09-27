@@ -417,7 +417,7 @@ Extending the Client-Side Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The web client may be extended independently of the server side. Plugins may
-import Jade templates, Stylus files, and JavaScript files into the application.
+import Pug templates, Stylus files, and JavaScript files into the application.
 The plugin loading system ensures that only content from enabled plugins gets
 loaded into the application at runtime.
 
@@ -426,40 +426,14 @@ the top level of your plugin called **web_client**. ::
 
     cd plugins/cats ; mkdir web_client
 
-Under the **web_client** directory, there are three optional subdirectories
-that can be used to import content:
-
-- ``stylesheets``: Any files ending with **.styl** in this directory or any
-  of its subdirectories will be automatically built into CSS and loaded if your
-  plugin is enabled. These files must obey
-  `Stylus syntax <http://learnboost.github.io/stylus/docs/css-style.html>`_.
-  Because these CSS scripts are imported *after* all of the core CSS, any rules
-  you write will override any existing core style rules.
-
-- ``templates``: Any files ending with **.jade** in this directory or any of its
-  subdirectories will be automatically built as templates available in the
-  application. Just like in core, these templates are uniquely identified by
-  the name of their file; e.g., ``myTemplate.jade`` could be rendered at runtime
-  by calling ``girder.templates.myTemplate()``. So, if you want to override an
-  existing core template, simply create one in this directory with the same
-  name. If you want to create a template that is not an override of a core
-  template, but simply belongs to your plugin, convention dictates that it should
-  begin with your plugin name followed by an underscore to avoid collisions, e.g.,
-  ``cats_catPage.jade``. Documentation for the Jade language can be found
-  `here <http://jade-lang.com/reference/>`_.
-
-- ``js``: Any files ending with **.js** in this directory or any of its
-  subdirectories will be compiled using uglify and imported into the front-end
-  application. The compiled JavaScript file will be loaded after all of the core
-  JavaScript files are loaded, so it can access all of the objects declared by
-  core. The source map for these files will be automatically built and served
-  as well.
-
-- ``extra``: Any files in this directory or any of its subdirectories will be
-  copied into the **extra** directory under your plugin's built static
-  directory. Any additional public static content that is required by your
-  plugin that doesn't fall into one of the above categories can be placed here,
-  such as static images, fonts, or third-party static libraries.
+Under the **web_client** directory, you must have a webpack entry point file called **main.js**.
+In this file, you can import code from your plugin using relative paths, or relative to the special alias
+**girder_plugins/<your_plugin_key>**. For example,
+``import template from 'girder_plugins/cats/templates/myTemplate.pug`` would import the template file
+located at ``plugins/cats/web_client/templates/myTemplate.pug``. Core Girder code can be imported
+relative to the path **girder**, for example ``import View from 'girder/views/View';``. The entry
+point defined in your **main.js** file will be automatically built once the plugin has been enabled,
+and your built code will be served with the application once the server has been restarted.
 
 Linting and Style Checking Client-Side Code
 *******************************************
