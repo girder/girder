@@ -139,8 +139,9 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     commands.append((npm, 'install', '--unsafe-perm') if dev
                     else (npm, 'install', '--production', '--unsafe-perm'))
 
-    # TODO the "dev" option should also control a build parameter
-    commands.append([npm, 'run', 'build', '--'] + _getPluginBuildArgs(allPlugins, plugins))
+    env = 'dev' if dev else 'prod'
+    commands.append([npm, 'run', 'build', '--', '--env=%s' % env] + _getPluginBuildArgs(
+        allPlugins, plugins))
 
     for cmd in commands:
         if progress and progress.on:
