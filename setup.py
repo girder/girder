@@ -55,7 +55,6 @@ class InstallWithOptions(install):
                     os.path.join(dest, 'clients', 'web', 'src', 'assets'))
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
-        self.mergeDir(os.path.join('scripts', 'node'), dest)
 
 with open('README.rst') as f:
     readme = f.read()
@@ -81,7 +80,7 @@ extras_reqs = {
     'worker': ['celery'],
     'oauth': ['pyjwt', 'cryptography']
 }
-all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values()) 
+all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values())
 extras_reqs['plugins'] = list(set(all_extra_reqs))
 
 if sys.version_info[0] == 2:

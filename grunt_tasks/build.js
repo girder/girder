@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-var fs = require('fs');
-var path = require('path');
 var _ = require('underscore');
 var noptFix = require('nopt-grunt-fix');
 
@@ -37,7 +35,6 @@ module.exports = function (grunt) {
         process.env.NODE_ENV = environment;
     }
     var isWatch = grunt.option('watch');
-    var skipPlugins = grunt.option('skip-plugins');
 
     // https://github.com/webpack/grunt-webpack
     var gruntWebpackConfig = {
@@ -96,22 +93,6 @@ module.exports = function (grunt) {
     grunt.registerTask('warnWatch', function () {
         grunt.log.warn('WARNING: the "watch" task will not build; use the "webpack:watch" task or run grunt --watch'['yellow']);
     });
-
-    // Add plugin entry points (should be in webpack.config.js but skipPlugins is a grunt option)
-    if (!skipPlugins) {
-        grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
-            var plugin = path.basename(dir);
-            var pluginTarget = 'plugins/' + plugin + '/plugin';
-            var webClient = path.resolve('./' + dir + '/web_client');
-            var main =  webClient + '/main.js';
-            if (fs.existsSync(main)) {
-                config.webpack.options.entry[pluginTarget] = main;
-                config.webpack.options.resolve.alias['plugins/' + plugin] = webClient;
-            }
-        });
-    } else {
-        grunt.log.writeln('Skipping plugins...');
-    }
 
     grunt.config.merge(config);
 };

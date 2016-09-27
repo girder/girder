@@ -74,9 +74,9 @@
     "webpack-dev-server": "^2.1.0-beta.0"
   },
   "scripts": {
-    "postinstall": "node scripts/node/install.js",
     "build": "grunt init && grunt",
-    "watch": "grunt watch",
-    "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts"
+    "watch": "grunt webpack:watch",
+    "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts",
+    "docs": "grunt docs"
   }
 }

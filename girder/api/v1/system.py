@@ -28,8 +28,7 @@ import os
 from girder.api import access
 from girder.constants import SettingKey, TokenScope, VERSION
 from girder.models.model_base import GirderException
-from girder.utility import plugin_utilities
-from girder.utility import system
+from girder.utility import install, plugin_utilities, system
 from girder.utility.progress import ProgressContext
 from ..describe import API_VERSION, Description, describeRoute
 from ..rest import Resource, RestException
@@ -57,6 +56,7 @@ class System(Resource):
         self.route('GET', ('check',), self.systemStatus)
         self.route('PUT', ('check',), self.systemConsistencyCheck)
         self.route('GET', ('log',), self.getLog)
+        self.route('POST', ('web_build',), self.buildWebCode)
 
     @access.admin
     @describeRoute(
@@ -410,6 +410,22 @@ class System(Resource):
                         break
                     yield data
         return stream
+
+    @access.admin
+    @describeRoute(
+        Description('Rebuild web client code.')
+        .param('progress', 'Whether to record progress on this task.', required=False,
+               dataType='boolean', default=False)
+        .param('dev', 'Whether to build for development mode.', required=False,
+               dataType='boolean', default=False)
+    )
+    def buildWebCode(self, params):
+        progress = self.boolParam('progress', params, default=False)
+        dev = self.boolParam('dev', params, default=False)
+        user = self.getCurrentUser()
+
+        with ProgressContext(progress, user=user, title='Building web client code') as progress:
+            install.runWebBuild(dev=dev, progress=progress)
 
     def _fixBaseParents(self, progress):
         fixes = 0
