@@ -80,7 +80,7 @@ var JobListWidget = View.extend({
 
     _statusChange: function (event) {
         var job = event.data,
-            tr = this.$('tr[jobId=' + job._id + ']');
+            tr = this.$('tr[g-job-id=' + job._id + ']');
 
         if (!tr.length) {
             return;

@@ -11,7 +11,7 @@ add_python_style_test(
   "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests"
 )
 
-add_eslint_test(
-  ${PLUGIN}
-  "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/js"
-)
+add_eslint_test(${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client")
+add_puglint_test(${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/templates")

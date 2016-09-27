@@ -21,18 +21,16 @@
             .radio
               label
                 input#g-defaultQuota(type="radio", name="defaultQuota",
-                  value="True",
-                  checked=(quotaPolicy.useQuotaDefault !== false))
+                    value="True", checked=(quotaPolicy.useQuotaDefault !== false))
                 | Use the default quota: #{defaultQuotaString}
             .radio.g-customQuota
               label
                 input#g-customQuota(type="radio", name="defaultQuota",
-                  value="False",
-                  checked=(quotaPolicy.useQuotaDefault === false))
+                    value="False", checked=(quotaPolicy.useQuotaDefault === false))
                 | Use a specific quota:
             input.input-sm#g-sizeValue.g-sizeValue.form-control(type="text",
-              value="#{sizeValue ? sizeValue : ''}",
-              placeholder="Maximum allowed size of all files, or blank for no limit")
+                value=sizeValue ? sizeValue : '',
+                placeholder="Maximum allowed size of all files, or blank for no limit")
             select#g-sizeUnits.form-control.input-sm.g-sizeUnits
               option(value='0', selected=(sizeUnits === 0)) bytes
               option(value='1', selected=(sizeUnits === 1)) kB
@@ -47,7 +45,7 @@
             select#g-preferredAssetstore.form-control.input-sm
               option(value='current', selected=(!quotaPolicy.preferredAssetstore)) Current Assetstore
               each assetstore in assetstoreList
-                option(value='#{assetstore.get("_id")}', selected=(quotaPolicy.preferredAssetstore === assetstore.get('_id'))) #{assetstore.get('name')}
+                option(value=assetstore.id, selected=(quotaPolicy.preferredAssetstore === assetstore.id))= assetstore.name()
           .form-group
             label.control-label(for="g-fallbackAssetstore") Fallback Assetstore
             p.g-quota-description
@@ -56,7 +54,7 @@
             select#g-fallbackAssetstore.form-control.input-sm
               option(value='current', selected=(!quotaPolicy.fallbackAssetstore)) Current Assetstore
               each assetstore in assetstoreList
-                option(value='#{assetstore.get("_id")}', selected=(quotaPolicy.fallbackAssetstore === assetstore.get('_id'))) #{assetstore.get('name')}
+                option(value=assetstore.id, selected=(quotaPolicy.fallbackAssetstore === assetstore.id))= assetstore.name()
               option(value='none', selected=(quotaPolicy.fallbackAssetstore === 'none')) None
           .g-validation-failed-message
       .modal-footer

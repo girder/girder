@@ -2,21 +2,21 @@
   .modal-content
     form#g-curation-form.modal-form(role="form")
       .modal-header
-        button.close(data-dismiss="modal" aria-hidden="true" type="button") &times;
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         h4.modal-title Curation details
         .g-dialog-subtitle
           i.icon-folder
-          | #{folder.get('name')}
+          = folder.name()
       .modal-body
         .g-curation-summary
-          | Curation is 
+          | Curation is
           b= curation.enabled ? "enabled" : "disabled"
-          | . 
+          | .
           if curation.enabled
-            | Curation status is 
+            | Curation status is
             b= curation.status
-            | . 
-          | Folder is 
+            | .
+          | Folder is
           b= curation.public ? "public" : "private"
           | .
         if curation.timeline.length > 0

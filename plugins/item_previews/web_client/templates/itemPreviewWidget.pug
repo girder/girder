@@ -18,13 +18,13 @@
 
       - if (isImageItem(item))
         a.g-item-preview-link(data-id=id)
-          img(src="#{item.downloadUrl()}")
+          img(src=item.downloadUrl())
 
       - else if (isJSONItem(item))
         .panel.panel-default
           .panel-heading
             h4
               a.g-item-preview-link(data-id=id)
-                | #{item.get('name')}
+                = item.name()
           .panel-body
             textarea.form-control.json(data-id=id)

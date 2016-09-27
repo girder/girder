@@ -5,7 +5,6 @@ import HdfsAssetstoreImportViewTemplate from '../templates/hdfsAssetstoreImportV
 import '../stylesheets/hdfsAssetstoreImportView.styl';
 
 import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderEnable';
 
 var HdfsAssetstoreImportView = View.extend({
     events: {

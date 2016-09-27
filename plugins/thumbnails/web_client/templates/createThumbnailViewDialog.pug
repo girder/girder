@@ -2,7 +2,7 @@
   .modal-content
     form#g-create-thumbnail-form.modal-form(role="form")
       .modal-header
-        button.close(data-dismiss="modal" aria-hidden="true" type="button") &times;
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         h4.modal-title Create thumbnail
         .g-dialog-subtitle
           i.icon-doc-inv
@@ -19,10 +19,10 @@
         label Attach to
           .g-thumbnail-attach-container
             label.radio-inline
-              input.g-thumbnail-attach-this-item(type="radio" name="g-thumbnail-attach-to" checked="on")
+              input.g-thumbnail-attach-this-item(type="radio", name="g-thumbnail-attach-to", checked="on")
               | This item
             label.radio-inline
-              input.g-thumbnail-attach-something-else(type="radio" name="g-thumbnail-attach-to")
+              input.g-thumbnail-attach-something-else(type="radio", name="g-thumbnail-attach-to")
               | Something else...
         .g-thumbnail-custom-target-container.hide
           .g-target-result-container

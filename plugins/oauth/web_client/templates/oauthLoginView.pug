@@ -5,5 +5,5 @@
   each button in buttons
     .g-oauth-button(class=button.class, g-provider=button.providerId)
       .g-oauth-button-icon
-        i(class="icon-#{button.icon}")
+        i(class=`icon-${button.icon}`)
       .g-oauth-button-text= button.text || button.providerId

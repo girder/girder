@@ -12,17 +12,17 @@ table.g-jobs-list-table
           th Status
   tbody
     each job in jobs
-      tr(jobId="#{job.id}")
+      tr(g-job-id=job.id)
         if columns & columnEnum.COLUMN_STATUS_ICON
-          td.g-status-icon-container(status="#{job.get('status')}")
-            i(class="#{JobStatus.icon(job.get('status'))}")
+          td.g-status-icon-container(status=job.get('status'))
+            i(class=JobStatus.icon(job.get('status')))
         if columns & columnEnum.COLUMN_TITLE
           if triggerJobClick
             td
-              a.g-job-trigger-link(cid="#{job.cid}")= job.get('title')
+              a.g-job-trigger-link(cid=job.cid)= job.get('title')
           else if linkToJob
             td
-              a(href="#job/#{job.id}")= job.get('title')
+              a(href=`#job/${job.id}`)= job.get('title')
           else
             td= job.get('title')
         if columns & columnEnum.COLUMN_UPDATED
