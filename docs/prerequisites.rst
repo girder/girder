@@ -6,10 +6,14 @@ The following software packages are required to be installed on your system:
 * `Python 2.7 or 3.4 <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
-* `Node.js 4.x+ <http://nodejs.org/>`_
+* `Node.js 2.3.3+ <http://nodejs.org/>`_
 * `curl <http://curl.haxx.se/>`_
 * `zlib <http://www.zlib.net/>`_
 * `libjpeg <http://libjpeg.sourceforge.net/>`_
+
+Note: Node.js 2.3.3 is the lowest version confirmed to work. If you are
+experimenting with Girder installation, and encounter an earlier version that
+works for you - please let us know so we can update this documentation!
 
 Additionally, in order to send out emails to users, Girder will need to be able
 to communicate with an SMTP server. Proper installation and configuration of
