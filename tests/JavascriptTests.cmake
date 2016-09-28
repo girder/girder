@@ -68,7 +68,7 @@ function(add_puglint_test name path)
   add_test(
     NAME "puglint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/tests/.pug-lintrc" "${path}"
+    COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
   )
   set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
 endfunction()
