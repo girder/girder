@@ -392,3 +392,19 @@ class JobsTestCase(base.TestCase):
         job = jobModel.createJob(title='test', type='x', user=self.users[0])
         job = jobModel.updateJob(job, otherFields={'other': 'fields'})
         self.assertEqual(job['other'], 'fields')
+
+    def testCancelJob(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(title='test', type='x', user=self.users[0])
+        # add to the log
+        job = jobModel.updateJob(job, log='entry 1\n')
+        # Reload without the log
+        job = jobModel.load(id=job['_id'], force=True)
+        self.assertEqual(len(job.get('log', [])), 0)
+        # Cancel
+        job = jobModel.cancelJob(job)
+        self.assertEqual(job['status'], JobStatus.CANCELED)
+        # Reloading should still have the log and be canceled
+        job = jobModel.load(id=job['_id'], force=True, includeLog=True)
+        self.assertEqual(job['status'], JobStatus.CANCELED)
+        self.assertEqual(len(job.get('log', [])), 1)

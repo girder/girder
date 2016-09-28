@@ -76,7 +76,7 @@ class Job(AccessControlledModel):
     def cancelJob(self, job):
         """
         Revoke/cancel a job. This simply triggers the jobs.cancel event and
-        sets the job status  to CANCELED. If one of the event handlers
+        sets the job status to CANCELED. If one of the event handlers
         calls preventDefault() on the event, this job will *not* be put into
         the CANCELED state.
 
@@ -85,8 +85,7 @@ class Job(AccessControlledModel):
         event = events.trigger('jobs.cancel', info=job)
 
         if not event.defaultPrevented:
-            job['status'] = JobStatus.CANCELED
-            job = self.save(job)
+            job = self.updateJob(job, status=JobStatus.CANCELED)
 
         return job
 
