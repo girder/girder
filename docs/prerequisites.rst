@@ -6,7 +6,7 @@ The following software packages are required to be installed on your system:
 * `Python 2.7 or 3.4 <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
-* `Node.js <http://nodejs.org/>`_
+* `Node.js 4.x+ <http://nodejs.org/>`_
 * `curl <http://curl.haxx.se/>`_
 * `zlib <http://www.zlib.net/>`_
 * `libjpeg <http://libjpeg.sourceforge.net/>`_
