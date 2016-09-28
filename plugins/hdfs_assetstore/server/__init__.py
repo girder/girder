@@ -24,6 +24,7 @@ from girder.api import access
 from girder.api.v1.assetstore import Assetstore
 from girder.constants import AssetstoreType
 from girder.utility.model_importer import ModelImporter
+from girder.utility import assetstore_utilities
 
 
 def getAssetstore(event):
@@ -69,10 +70,11 @@ def createAssetstore(event):
 
 def load(info):
     AssetstoreType.HDFS = 'hdfs'
-    events.bind('assetstore.adapter.get', 'hdfs_assetstore', getAssetstore)
     events.bind('assetstore.update', 'hdfs_assetstore', updateAssetstore)
     events.bind('rest.post.assetstore.before', 'hdfs_assetstore',
                 createAssetstore)
+
+    assetstore_utilities.setAssetstoreAdapter(AssetstoreType.HDFS, HdfsAssetstoreAdapter)
 
     (Assetstore.createAssetstore.description
         .param('host', 'The namenode host (for HDFS type).', required=False)

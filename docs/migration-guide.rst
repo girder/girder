@@ -14,6 +14,10 @@ instructions on how to update your plugin code to work in the newer version.
 Server changes
 ++++++++++++++
 
+* The deprecated event ``'assetstore.adapter.get'`` has been removed. Plugins using this event to
+  register their own assetstore implementations should instead just call the
+  ``girder.utility.assetstore_utilities.setAssetstoreAdapter`` at load time.
+
 Web client changes
 ++++++++++++++++++
 
