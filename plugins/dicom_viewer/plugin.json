@@ -1,0 +1,9 @@
+{
+    "name": "DICOM Viewer",
+    "description": "View DICOM images in the browser",
+    "version": "0.1.0",
+    "grunt": {
+        "file": "Gruntfile.js",
+        "defaultTargets": ["dicom_viewer"]
+    }
+}
