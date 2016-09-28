@@ -3,7 +3,7 @@ import View from 'girder/views/View';
 import { cancelRestRequests } from 'girder/rest';
 import { getCurrentUser } from 'girder/auth';
 
-import AdminConsoleTemplate from 'girder/templates/body/adminConsole.jade';
+import AdminConsoleTemplate from 'girder/templates/body/adminConsole.pug';
 
 import 'girder/stylesheets/body/adminConsole.styl';
 

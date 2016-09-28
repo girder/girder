@@ -1,0 +1,65 @@
+.modal-dialog
+  .modal-content
+    form#g-assetstore-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          | Edit assetstore
+      .modal-body
+        .g-assetstore-form-fields
+          .form-group
+            label.control-label(for="g-edit-name") Assetstore Name
+            input.input-sm#g-edit-name.form-control(type="text", placeholder="Name")
+          if assetstore.get('type') === types.FILESYSTEM
+            .form-group
+              label.control-label(for="g-edit-fs-root") Root directory
+              input.input-sm#g-edit-fs-root.form-control(type="text", placeholder="Root directory")
+            .form-group
+              label.control-label(for="g-edit-fs-perms") File creation permissions (octal)
+              input.input-sm#g-edit-fs-perms.form-control(type="text", placeholder="600")
+          if assetstore.get('type') === types.GRIDFS
+            .form-group
+              label.control-label(for="g-edit-gridfs-db") Database name
+              input.input-sm#g-edit-gridfs-db.form-control(type="text", placeholder="Database name")
+            .form-group
+              label.control-label(for="g-edit-gridfs-mongohost") Mongo Host URI
+              input.input-sm#g-edit-gridfs-mongohost.form-control(type="text", placeholder="Mongo host uri (defaults to the main Girder database)")
+            .form-group
+              label.control-label(for="g-edit-gridfs-replicaset") Replica Set
+              input.input-sm#g-edit-gridfs-replicaset.form-control(type="text", placeholder="Replica set name (blank if not using a replica set)")
+          if assetstore.get('type') === types.S3
+            .form-group
+              label.control-label(for="g-edit-s3-bucket") S3 bucket name
+              input.input-sm#g-edit-s3-bucket.form-control(type="text", placeholder="Bucket")
+            .form-group
+              label.control-label(for="g-edit-s3-prefix") Path prefix (optional)
+              input.input-sm#g-edit-s3-prefix.form-control(type="text", placeholder="Prefix")
+            .form-group
+              label.control-label(for="g-edit-s3-access-key-id") Access key ID
+              input.input-sm#g-edit-s3-access-key-id.form-control(type="text", placeholder="Access key ID")
+            .form-group
+              label.control-label(for="g-edit-s3-secret") Secret access key
+              input.input-sm#g-edit-s3-secret.form-control(type="text", placeholder="Secret access key")
+            .form-group
+              label.control-label(for="g-edit-s3-service") Service
+              input.input-sm#g-edit-s3-service.form-control(type="text", placeholder="Service name")
+            .checkbox
+              label
+                input#g-edit-s3-readonly(type="checkbox")
+                | Read only
+        if assetstore.get('hasFiles')
+          div
+            i.icon-attention
+            | #[b Warning:] This assetstore contains files.  If you edit where the assetstore is located or how it is reached, those files may become unreachable.
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        if !assetstore.get('hasFiles')
+          button.g-save-assetstore.btn.btn-small.btn-primary(type="submit")
+            i.icon-edit
+            | Save
+        else
+          button.g-save-assetstore.btn.btn-small.btn-primary.btn-danger(type="submit")
+            i.icon-edit
+            | Save
+            i.icon-attention

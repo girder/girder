@@ -4,8 +4,8 @@ import AssetstoresView from 'girder/views/body/AssetstoresView';
 import { AssetstoreType } from 'girder/constants';
 import { wrap } from 'girder/utilities/PluginUtils';
 
-import AssetstoresViewInfoTemplate from '../templates/assetstoresViewInfo.jade';
-import AssetstoresViewImportButtonTemplate from '../templates/assetstoresViewImportButton.jade';
+import AssetstoresViewInfoTemplate from '../templates/assetstoresViewInfo.pug';
+import AssetstoresViewImportButtonTemplate from '../templates/assetstoresViewImportButton.pug';
 
 /**
  * Adds HDFS-specific info and an import button to the assetstore list view.

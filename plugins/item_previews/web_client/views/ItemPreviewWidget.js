@@ -2,7 +2,7 @@ import ItemCollection from 'girder/collections/ItemCollection';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 
-import ItemPreviewWidgetTemplate from '../templates/itemPreviewWidget.jade';
+import ItemPreviewWidgetTemplate from '../templates/itemPreviewWidget.pug';
 import '../stylesheets/itemPreviewWidget.styl';
 
 /**

@@ -6,7 +6,7 @@ import { AccessType } from 'girder/constants';
 import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 
-import FlowViewTemplate from '../templates/flowView.jade';
+import FlowViewTemplate from '../templates/flowView.pug';
 
 import '../stylesheets/flowView.styl';
 

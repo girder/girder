@@ -1,0 +1,37 @@
+mixin dateInfo(intro, property)
+  .g-collection-info-line(property=property)
+    i.icon-clock
+    span= intro
+    span.g-bold-part= formatDate(collection.get(property), DATE_SECOND)
+
+.modal-dialog
+  .modal-content
+    .modal-header
+      button.close(data-dismiss="modal", aria-hidden="true") &times;
+      h4.modal-title Collection information
+      .g-dialog-subtitle
+        i.icon-sitemap
+        span= collection.name()
+    .modal-body
+      if collection.get('description')
+        .g-info-dialog-description != renderMarkdown(collection.get('description'))
+
+      .g-collection-info-lines
+        +dateInfo('Created ', 'created')
+        if collection.get('created') !== collection.get('updated')
+          +dateInfo('Last updated ', 'updated')
+
+        .g-collection-info-line(property="size")
+          i.icon-floppy
+          | Total size: #[span.g-bold-part= formatSize(collection.get('size'))]
+
+        .g-collection-info-line(property="nFolders")
+          i.icon-folder
+          | Contains #[span.g-bold-part= collection.get('nFolders')] subfolders
+
+        .g-collection-info-line(property="id")
+          i.icon-share
+          | Unique ID: #[span.g-bold-part= collection.id]
+
+    .modal-footer
+      a.btn.btn-small.btn-default(data-dismiss="modal") Close

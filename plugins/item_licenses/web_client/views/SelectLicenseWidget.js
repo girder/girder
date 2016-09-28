@@ -1,6 +1,6 @@
 import View from 'girder/views/View';
 
-import SelectLicenseWidgetTemplate from '../templates/selectLicenseWidget.jade';
+import SelectLicenseWidgetTemplate from '../templates/selectLicenseWidget.pug';
 
 /**
  * Widget that allows user to select a license.

@@ -1,0 +1,49 @@
+.g-frontpage-header
+  img.g-frontpage-logo(src=`${staticRoot}/img/Girder_Mark.png`, width="82")
+  .g-frontpage-title-container
+    .g-frontpage-title Girder
+    .g-frontpage-subtitle Data management platform
+
+.g-frontpage-body
+  p.g-frontpage-paragraph
+    b Welcome to Girder!
+    |  If this is your first time here, you might want to check out the
+    a(target="_blank", href='http://girder.readthedocs.org/en/latest/user-guide.html')  User Guide
+    |  to learn the basics of how to use the application.
+    |  To browse the data hosted on this server, start on the
+    a.g-collections-link  Collections
+    |  page. If you want to search for specific data on this server, use the
+    a.g-quicksearch-link  Quick Search
+    |  box at the top of the screen. Developers who want to use the Girder REST API
+    |  should check out the
+    a(href=apiRoot)  interactive web API docs
+    | .
+
+    if !currentUser
+      p.g-frontpage-paragraph
+        |  You are currently browsing anonymously. If you want to create a user
+        |  account on this server, click the
+        a.g-register-link  Register
+        |  link in the upper right corner. If you already have a user, click the
+        a.g-login-link  Log In
+        |  link. Otherwise, you will only be able to see publicly visible data
+        |  in the system.
+    else
+      p.g-frontpage-paragraph
+        |  You are currently logged in as
+        b  #{currentUser.get('login')}
+        | . You can view your
+        a.g-my-folders-link  personal data space
+        |  or go to your
+        a.g-my-account-link  user account page.
+
+    p.g-frontpage-paragraph
+      if versionInfo.git
+        | This instance of Girder was built from Git version&nbsp;
+        a.g-git-sha(
+            target="_blank", href=`https://github.com/girder/girder/tree/${versionInfo.SHA}`)= versionInfo.shortSHA
+        | .
+      else
+        | This instance of Girder was built on #{new Date(versionInfo.date).toLocaleDateString()}.
+      if versionInfo.apiVersion
+        |   API Version #{versionInfo.apiVersion}.

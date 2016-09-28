@@ -15,7 +15,7 @@ import { confirm, handleClose } from 'girder/dialog';
 import events from 'girder/events';
 import { formatSize, formatDate, DATE_SECOND } from 'girder/misc';
 
-import ItemPageTemplate from 'girder/templates/body/itemPage.jade';
+import ItemPageTemplate from 'girder/templates/body/itemPage.pug';
 
 import 'girder/stylesheets/body/itemPage.styl';
 

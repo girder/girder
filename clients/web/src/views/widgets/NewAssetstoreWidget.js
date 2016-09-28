@@ -2,7 +2,7 @@ import AssetstoreModel from 'girder/models/AssetstoreModel';
 import View from 'girder/views/View';
 import { AssetstoreType } from 'girder/constants';
 
-import NewAssetstoreTemplate from 'girder/templates/widgets/newAssetstore.jade';
+import NewAssetstoreTemplate from 'girder/templates/widgets/newAssetstore.pug';
 
 import 'bootstrap/js/collapse';
 

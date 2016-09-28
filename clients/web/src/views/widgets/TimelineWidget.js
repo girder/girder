@@ -2,7 +2,7 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 
-import TimelineTemplate from 'girder/templates/widgets/timeline.jade';
+import TimelineTemplate from 'girder/templates/widgets/timeline.pug';
 
 import 'girder/stylesheets/widgets/timelineWidget.styl';
 

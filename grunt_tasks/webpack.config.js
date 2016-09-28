@@ -127,13 +127,13 @@ module.exports = {
                     'css-loader'
                 ]
             },
-            // Jade
+            // Pug
             {
-                test: /\.jade$/,
-                loader: 'jade-loader',
-                query: {
-                    doctype: 'html' // see @girder/pull/1469
-                }
+                test: /\.(pug|jade)$/,
+                loaders: [
+                    'babel-loader',
+                    'pug-loader'
+                ]
             },
             // PNG, JPEG
             {
@@ -189,7 +189,7 @@ module.exports = {
             //   possible, it's not recommended. Try to require the original source
             //   to get better results.
             // This needs fixing later, as Webpack works better when provided with source.
-            // /node_modules\/jade/,
+            // /node_modules\/pug/,
             // /node_modules\/remarkable/
         ]
     },
@@ -197,7 +197,7 @@ module.exports = {
         alias: {
             'girder': paths.web_src
         },
-        extensions: ['.styl', '.css', '.jade', '.js', ''],
+        extensions: ['.styl', '.css', '.pug', '.jade', '.js', ''],
         modules: [
             paths.clients_web,
             paths.plugins,

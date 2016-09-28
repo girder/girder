@@ -5,7 +5,7 @@ import ItemModel from 'girder/models/ItemModel';
 import View from 'girder/views/View';
 import { handleClose, handleOpen } from 'girder/dialog';
 
-import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.jade';
+import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';

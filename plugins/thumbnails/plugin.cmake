@@ -10,5 +10,7 @@ add_web_client_test(${PLUGIN}
     "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests/thumbnailsSpec.js"
     PLUGIN ${PLUGIN})
 add_eslint_test(
-    ${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/js"
+    ${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client"
     ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/.eslintrc")
+add_puglint_test(${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/templates")

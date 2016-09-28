@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { apiRoot, restRequest } from 'girder/rest';
 import events from 'girder/events';
 
-import ConfigViewTemplate from '../templates/configView.jade';
+import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
 
 var ConfigView = View.extend({
@@ -69,9 +69,7 @@ var ConfigView = View.extend({
                           'Default Application Permissions, and use the ' +
                           'following as an OAuth 2.0 Authorized Redirect URL:'
         }];
-        this.providerIds = _.map(this.providers, function (provider) {
-            return provider.id;
-        });
+        this.providerIds = _.pluck(this.providers, 'id');
 
         var settingKeys = [];
         _.each(this.providerIds, function (id) {
@@ -93,15 +91,15 @@ var ConfigView = View.extend({
 
     render: function () {
         var origin = window.location.protocol + '//' + window.location.host,
-            api_root = apiRoot;
+            _apiRoot = apiRoot;
 
-        if (api_root.substring(0, 1) !== '/') {
-            api_root = '/' + api_root;
+        if (apiRoot.substring(0, 1) !== '/') {
+            _apiRoot = '/' + apiRoot;
         }
 
         this.$el.html(ConfigViewTemplate({
             origin: origin,
-            apiRoot: api_root,
+            apiRoot: _apiRoot,
             providers: this.providers
         }));
 
@@ -140,7 +138,7 @@ var ConfigView = View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function (resp) {
+        }).done(_.bind(function () {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',

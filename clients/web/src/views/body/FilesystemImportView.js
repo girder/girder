@@ -2,7 +2,7 @@ import BrowserWidget from 'girder/views/widgets/BrowserWidget';
 import router from 'girder/router';
 import View from 'girder/views/View';
 
-import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.jade';
+import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.pug';
 
 var FilesystemImportView = View.extend({
     events: {

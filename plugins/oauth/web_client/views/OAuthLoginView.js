@@ -4,7 +4,7 @@ import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import { splitRoute } from 'girder/misc';
 
-import OAuthLoginViewTemplate from '../templates/oauthLoginView.jade';
+import OAuthLoginViewTemplate from '../templates/oauthLoginView.pug';
 import '../stylesheets/oauthLoginView.styl';
 
 var OAuthLoginView = View.extend({
@@ -19,6 +19,7 @@ var OAuthLoginView = View.extend({
     initialize: function (settings) {
         var redirect = settings.redirect || splitRoute(window.location.href).base;
         this.modeText = settings.modeText || 'log in';
+        this.providers = null;
 
         restRequest({
             path: 'oauth/provider',
@@ -33,6 +34,10 @@ var OAuthLoginView = View.extend({
     },
 
     render: function () {
+        if (this.providers === null) {
+            return;
+        }
+
         var buttons = [];
         _.each(this.providers, function (provider) {
             var btn = this._buttons[provider.id];

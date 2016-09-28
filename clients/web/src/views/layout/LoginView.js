@@ -4,7 +4,7 @@ import { handleClose, handleOpen } from 'girder/dialog';
 import { login } from 'girder/auth';
 import { restRequest } from 'girder/rest';
 
-import LoginDialogTemplate from 'girder/templates/layout/loginDialog.jade';
+import LoginDialogTemplate from 'girder/templates/layout/loginDialog.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';

@@ -1,0 +1,35 @@
+.g-collection-header
+
+  .btn-group.pull-right
+    button.g-collection-actions-button.btn.btn-default.dropdown-toggle(
+        data-toggle="dropdown", title="Collection actions")
+      i.icon-sitemap
+      |  Actions
+      i.icon-down-dir
+    ul.g-collection-actions-menu.dropdown-menu.pull-right(role="menu")
+      li(role="presentation")
+        a.g-download-collection(role="menuitem", href=collection.downloadUrl())
+          i.icon-download
+          | Download collection
+      if (collection.getAccessLevel() >= AccessType.WRITE)
+        li.divider(role="presentation")
+        li(role="presentation")
+          a.g-edit-collection(role="menuitem")
+            i.icon-edit
+            | Edit collection
+      if (collection.getAccessLevel() >= AccessType.ADMIN)
+        li.divider(role="presentation")
+        li(role="presentation")
+          a.g-collection-access-control(role="menuitem")
+            i.icon-lock
+            | Access control
+        li(role="presentation")
+          a.g-delete-collection(role="menuitem")
+            i.icon-trash
+            | Delete collection
+
+  .g-collection-name.g-body-title= collection.name()
+  .g-collection-description.g-body-subtitle= collection.get('description')
+  .g-clear-right
+
+.g-collection-hierarchy-container

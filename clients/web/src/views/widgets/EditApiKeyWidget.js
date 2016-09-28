@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { getCurrentUser } from 'girder/auth';
 import { restRequest } from 'girder/rest';
 
-import EditApiKeyWidgetTemplate from 'girder/templates/widgets/editApiKeyWidget.jade';
+import EditApiKeyWidgetTemplate from 'girder/templates/widgets/editApiKeyWidget.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';

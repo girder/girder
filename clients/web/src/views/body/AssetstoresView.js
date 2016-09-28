@@ -13,7 +13,7 @@ import events from 'girder/events';
 import { formatSize } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
-import AssetstoresTemplate from 'girder/templates/body/assetstores.jade';
+import AssetstoresTemplate from 'girder/templates/body/assetstores.pug';
 
 import 'girder/stylesheets/body/assetstores.styl';
 

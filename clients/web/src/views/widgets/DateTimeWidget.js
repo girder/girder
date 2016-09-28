@@ -3,7 +3,7 @@ import moment from 'moment';
 
 import View from 'girder/views/View';
 
-import dateTimeWidgetTemplate from 'girder/templates/widgets/dateTimeWidget.jade';
+import dateTimeWidgetTemplate from 'girder/templates/widgets/dateTimeWidget.pug';
 
 import 'eonasdan-bootstrap-datetimepicker'; // /src/js/bootstrap-datetimepicker.js'
 import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css';

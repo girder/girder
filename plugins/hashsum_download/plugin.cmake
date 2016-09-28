@@ -4,8 +4,10 @@ add_web_client_test(hashsum_download
     "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests/hashsumSpec.js"
     PLUGIN ${PLUGIN})
 
-add_eslint_test(
-    ${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/js")
+add_eslint_test(${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client")
+add_puglint_test(${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/templates")
 
 add_python_test(
   hashsum_download

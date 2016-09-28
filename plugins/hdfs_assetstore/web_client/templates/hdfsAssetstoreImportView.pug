@@ -1,0 +1,26 @@
+.g-body-title Import existing data from HDFS
+.g-hdfs-import-instructions.
+  Use this page to import existing data from the HDFS instance described by this
+  assetstore. You must specify an absolute path to a file or directory in HDFS to import.
+  If you specify a directory, it will be imported recursively. You must also
+  specify a destination collection, user, or folder ID under which to place the imported data.
+
+form.g-hdfs-import-form
+  .form-group
+    label(for="g-hdfs-import-path") Import path (file or directory)
+    input.form-control.input-sm#g-hdfs-import-path(type="text")
+  .form-group
+    label(for="g-hdfs-import-dest-type") Destination type
+    select.form-control#g-hdfs-import-dest-type
+      option(value="folder") Folder
+      option(value="user") User
+      option(value="collection") Collection
+  .form-group
+    label(for="g-hdfs-import-dest-id") Destination ID
+    input.form-control.input-sm#g-hdfs-import-dest-id(
+        type="text",
+        placeholder="Existing folder, user, or collection ID to use as the destination")
+  .g-validation-failed-message
+  button.g-submit-hdfs-import.btn.btn-success(type="submit")
+    i.icon-link-ext
+    |  Begin import

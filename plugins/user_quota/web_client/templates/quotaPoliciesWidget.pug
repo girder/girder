@@ -1,0 +1,67 @@
+.modal-dialog
+  .modal-content
+    form#g-policies-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          if currentUser.get('admin')
+            | Quota and Assetstore Policies for #{name}
+          else
+            | Quota for #{name}
+      .modal-body
+        div
+          b Quota:
+          span.g-quota-capacity #{capacityString}
+          .g-quota-capacity-chart
+        if currentUser.get('admin')
+          .form-group
+            label.control-label(for="g-sizeValue") File Size Quota
+            p.g-quota-description
+              | This is the maximum allowed size of all files.
+            .radio
+              label
+                input#g-defaultQuota(type="radio", name="defaultQuota",
+                    value="True", checked=(quotaPolicy.useQuotaDefault !== false))
+                | Use the default quota: #{defaultQuotaString}
+            .radio.g-customQuota
+              label
+                input#g-customQuota(type="radio", name="defaultQuota",
+                    value="False", checked=(quotaPolicy.useQuotaDefault === false))
+                | Use a specific quota:
+            input.input-sm#g-sizeValue.g-sizeValue.form-control(type="text",
+                value=sizeValue ? sizeValue : '',
+                placeholder="Maximum allowed size of all files, or blank for no limit")
+            select#g-sizeUnits.form-control.input-sm.g-sizeUnits
+              option(value='0', selected=(sizeUnits === 0)) bytes
+              option(value='1', selected=(sizeUnits === 1)) kB
+              option(value='2', selected=(sizeUnits === 2)) MB
+              option(value='3', selected=(sizeUnits === 3)) GB
+              option(value='4', selected=(sizeUnits === 4)) TB
+          .form-group
+            label.control-label(for="g-preferredAssetstore") Preferred Assetstore
+            p.g-quota-description
+              | Any file that is upload will be sent to this assetstore.
+              | Existing files are not moved.
+            select#g-preferredAssetstore.form-control.input-sm
+              option(value='current', selected=(!quotaPolicy.preferredAssetstore)) Current Assetstore
+              each assetstore in assetstoreList
+                option(value=assetstore.id, selected=(quotaPolicy.preferredAssetstore === assetstore.id))= assetstore.name()
+          .form-group
+            label.control-label(for="g-fallbackAssetstore") Fallback Assetstore
+            p.g-quota-description
+              | This assetstore is used if the preferred assetstore is offline or
+              | unavailable.
+            select#g-fallbackAssetstore.form-control.input-sm
+              option(value='current', selected=(!quotaPolicy.fallbackAssetstore)) Current Assetstore
+              each assetstore in assetstoreList
+                option(value=assetstore.id, selected=(quotaPolicy.fallbackAssetstore === assetstore.id))= assetstore.name()
+              option(value='none', selected=(quotaPolicy.fallbackAssetstore === 'none')) None
+          .g-validation-failed-message
+      .modal-footer
+        if currentUser.get('admin')
+          a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+          button.g-save-policies.btn.btn-small.btn-primary(type="submit")
+            i.icon-edit
+            | Save
+        else
+          a.btn.btn-small.btn-default(data-dismiss="modal") Close

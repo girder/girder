@@ -15,7 +15,7 @@ wrap(RegisterView, 'render', function (render) {
             el: this.$('.modal-body'),
             parentView: this,
             modeText: 'register automatically'
-        });
+        }).render();
     }
 
     return this;

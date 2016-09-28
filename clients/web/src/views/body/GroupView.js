@@ -17,7 +17,7 @@ import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 import { getCurrentUser } from 'girder/auth';
 
-import GroupPageTemplate from 'girder/templates/body/groupPage.jade';
+import GroupPageTemplate from 'girder/templates/body/groupPage.pug';
 
 import 'girder/stylesheets/body/groupPage.styl';
 

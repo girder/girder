@@ -2,7 +2,7 @@ import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
 import { AssetstoreType } from 'girder/constants';
 import { wrap } from 'girder/utilities/PluginUtils';
 
-import EditAssetstoreWidgetFieldsTemplate from '../templates/editAssetstoreWidgetFields.jade';
+import EditAssetstoreWidgetFieldsTemplate from '../templates/editAssetstoreWidgetFields.pug';
 
 /**
  * Adds HDFS-specific fields to the edit dialog.

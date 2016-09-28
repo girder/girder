@@ -1,0 +1,11 @@
+.g-item-geospatial-header
+  i.icon-flag
+  | Geospatial info
+.g-item-geospatial-map
+.g-item-geospatial-container
+  if item.get('geo')
+    each value, key in item.get('geo')
+      .g-item-geospatial-element(g-key=key, g-type=value.type, g-coordinates=JSON.stringify(value.coordinates))
+          span.g-item-geospatial-key #{key}:
+          span.g-item-geospatial-type #{value.type}:
+          span.g-item-geospatial-coordinates #{JSON.stringify(value.coordinates)}

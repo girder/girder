@@ -5,12 +5,6 @@ function(javascript_tests_init)
     return()
   endif()
 
-  if(RUN_CORE_TESTS)
-    set(_core_cov_flag "--include-core")
-  else()
-    set(_core_cov_flag "--skip-core")
-  endif()
-
   add_test(
     NAME js_coverage_reset
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${PROJECT_BINARY_DIR}/js_coverage"
@@ -58,6 +52,23 @@ function(add_eslint_test name input)
     NAME "eslint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${ESLINT_EXECUTABLE}" --ignore-path "${ignore_file}" --config "${config_file}" "${input}"
+  )
+  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
+endfunction()
+
+function(add_puglint_test name path)
+  if (NOT BUILD_JAVASCRIPT_TESTS)
+    return()
+  endif()
+
+  if (NOT PUGLINT_EXECUTABLE)
+    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable BUILD_JAVASCRIPT_TESTS.")
+  endif()
+
+  add_test(
+    NAME "puglint_${name}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
   )
   set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
 endfunction()

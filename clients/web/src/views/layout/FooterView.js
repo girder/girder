@@ -1,7 +1,7 @@
 import View from 'girder/views/View';
 import { apiRoot } from 'girder/rest';
 
-import LayoutFooterTemplate from 'girder/templates/layout/layoutFooter.jade';
+import LayoutFooterTemplate from 'girder/templates/layout/layoutFooter.pug';
 
 import 'girder/stylesheets/layout/footer.styl';
 

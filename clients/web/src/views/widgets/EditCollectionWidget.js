@@ -4,7 +4,7 @@ import CollectionModel from 'girder/models/CollectionModel';
 import View from 'girder/views/View';
 import { handleClose, handleOpen } from 'girder/dialog';
 
-import EditCollectionWidgetTemplate from 'girder/templates/widgets/editCollectionWidget.jade';
+import EditCollectionWidgetTemplate from 'girder/templates/widgets/editCollectionWidget.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';

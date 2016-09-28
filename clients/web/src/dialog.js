@@ -4,7 +4,7 @@ import Backbone from 'backbone';
 import router from 'girder/router';
 import { parseQueryString, splitRoute } from 'girder/misc';
 
-import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.jade';
+import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.pug';
 
 import 'girder/utilities/jquery/girderModal';
 

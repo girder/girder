@@ -1,0 +1,116 @@
+.g-group-header
+  .btn-group.pull-right
+    if (isMember || isInvited || getCurrentUser() || group.get('_accessLevel') >= AccessType.ADMIN)
+      button.g-group-actions-button.btn.btn-default.dropdown-toggle(
+          data-toggle="dropdown", title="Group actions")
+          i.icon-users
+          |  Actions
+          i.icon-down-dir
+      ul.g-group-actions-menu.dropdown-menu.pull-right(role="menu")
+        if (isMember)
+          li(role="presentation")
+            a.g-group-leave(role="menuitem")
+              i.icon-block
+              | Leave group
+        else if (isInvited)
+          li(role="presentation")
+            a.g-group-join(role="menuitem")
+              i.icon-login
+              | Join group
+        else if (getCurrentUser())
+          li(role="presentation")
+            a.g-group-request-invite(role="menuitem")
+              i.icon-export
+              | Request membership
+        if (group.get('_accessLevel') >= AccessType.ADMIN)
+          li.divider(role="presentation")
+          li(role="presentation")
+            a.g-edit-group(role="menuitem")
+              i.icon-edit
+              | Edit group
+        if (group.get('_accessLevel') >= AccessType.ADMIN)
+          li.divider(role="presentation")
+          li(role="presentation")
+            a.g-group-delete(role="menuitem")
+              i.icon-trash
+              | Delete group
+
+  .g-group-name.g-body-title= group.name()
+  .g-group-description.g-body-subtitle= group.get('description')
+  .g-clear-right
+
+if (getCurrentUser())
+    if (isMember)
+      .g-group-status-container.g-member
+        i.icon-ok
+        if (isAdmin)
+          |  You are an #[b administrator] of this group.
+        else if (isModerator)
+          |  You are a #[b moderator] of this group.
+        else
+          |  You are a #[b member] of this group.
+    else if (isInvited)
+      .g-group-status-container.g-invited
+        i.icon-mail-alt
+        |  You have been invited to this group.
+        a.g-group-join  Join group
+    else if (isRequested)
+      .g-group-status-container.g-requested-invite
+        i.icon-comment
+        |  You have requested to join this group.
+    else
+      .g-group-status-container.g-nonmember
+        i.icon-minus-circled
+        |  You are not a member of this group.
+        a.g-group-request-invite  Request membership
+    if (group.get('_accessLevel') >= AccessType.ADMIN && !isAdmin)
+      .g-group-status-container.g-admin
+        i.icon-star
+        |  You have #[b administrator] privileges.
+
+ul.g-group-tabs.nav.nav-tabs
+  li.active
+    a(href="#g-group-tab-roles", data-toggle="tab", name="roles")
+      i.icon-th-list
+      |  Roles
+  li
+    a(href="#g-group-tab-pending", data-toggle="tab", name="pending")
+      i.icon-inbox
+      | Pending
+      #g-group-tab-pending-status
+
+.tab-content
+  #g-group-tab-roles.tab-pane.active
+    .g-group-admins-container
+    .g-group-mods-container
+    .g-group-members-container
+  #g-group-tab-pending.tab-pane
+    .g-group-requests-container
+      .g-group-requests-header.g-group-list-header
+        i.icon-comment
+        |  Requests for membership
+
+      .g-group-requests-body
+        ul.g-group-requests
+          each user in group.get('requests')
+            li(userid=user.id)
+              a.g-member-name
+                i.icon-user
+                |  #{user.name} (#{user.login})
+              .g-group-member-controls.pull-right
+                if group.get('_accessLevel') >= AccessType.WRITE
+                  a.g-group-request-accept(title="Add to group")
+                    i.icon-thumbs-up
+                  a.g-group-request-deny(title="Deny request")
+                    i.icon-thumbs-down
+          if (!group.get('requests').length)
+            .g-member-list-empty
+              i.icon-info-circled
+              |  There are no outstanding invitation requests for this group.
+
+    .g-group-invites-container
+      .g-group-invites-header.g-group-list-header
+        i.icon-mail-alt
+        |  Sent invitations
+
+      .g-group-invites-body

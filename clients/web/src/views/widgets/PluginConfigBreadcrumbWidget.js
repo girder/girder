@@ -1,7 +1,7 @@
 import router from 'girder/router';
 import View from 'girder/views/View';
 
-import PluginConfigBreadcrumbTemplate from 'girder/templates/widgets/pluginConfigBreadcrumb.jade';
+import PluginConfigBreadcrumbTemplate from 'girder/templates/widgets/pluginConfigBreadcrumb.pug';
 
 /**
  * This widget provides a consistent breadcrumb to be displayed on the admin

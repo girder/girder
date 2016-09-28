@@ -1,0 +1,15 @@
+.g-timeline-widget-wrapper
+  .g-timeline-container
+    each segment in segments
+      .g-timeline-segment(
+          title=segment.tooltip, class=segment.class,
+          style=`left: ${segment.left}; width: ${segment.width};`)
+    each point in points
+      .g-timeline-point(
+          title=point.tooltip, class=point.class, style=`left: calc(${point.left} - 10px);`)
+  if startLabel !== undefined || endLabel !== undefined
+    .g-timeline-labels-container
+      if startLabel !== undefined
+        .g-timeline-start-label= startLabel
+      if endLabel !== undefined
+        .g-timeline-end-label= endLabel

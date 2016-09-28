@@ -3,7 +3,7 @@ import View from 'girder/views/View';
 import events from 'girder/events';
 import { logout, getCurrentUser } from 'girder/auth';
 
-import LayoutHeaderUserTemplate from 'girder/templates/layout/layoutHeaderUser.jade';
+import LayoutHeaderUserTemplate from 'girder/templates/layout/layoutHeaderUser.pug';
 
 import 'girder/stylesheets/layout/headerUser.styl';
 

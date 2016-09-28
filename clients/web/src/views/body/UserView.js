@@ -11,7 +11,7 @@ import { cancelRestRequests } from 'girder/rest';
 import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 
-import UserPageTemplate from 'girder/templates/body/userPage.jade';
+import UserPageTemplate from 'girder/templates/body/userPage.pug';
 
 import 'girder/stylesheets/body/userPage.styl';
 

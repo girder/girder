@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import { getCurrentUser } from 'girder/auth';
 import { handleClose, handleOpen } from 'girder/dialog';
 
-import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.jade';
+import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.pug';
 
 import 'girder/utilities/jquery/girderModal';
 
@@ -57,7 +57,7 @@ var EditGroupWidget = View.extend({
         }
         var modal = this.$el.html(EditGroupWidgetTemplate({
             group: this.model,
-            public: pub,
+            publicFlag: pub,
             addToGroupPolicy: addToGroupPolicy,
             groupAddAllowed: groupAddAllowed,
             addAllowed: this.model ? this.model.get('addAllowed') : false

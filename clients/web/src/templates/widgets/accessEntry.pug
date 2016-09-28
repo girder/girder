@@ -1,0 +1,18 @@
+div(class=`g-${type}-access-entry`, resourceid=entry.id)
+  .g-access-col-left
+    - var icon = type === 'group' ? 'users' : 'user';
+    .g-access-icon
+      i(class=`icon-${icon}`)
+    .g-access-desc
+      .g-desc-title= entry.title
+      .g-desc-subtitle= entry.subtitle
+  .g-access-col-right
+    select.form-control.input-sm
+      - var sel=null; if (entry.level === accessTypes.READ) sel='selected';
+      option(value=accessTypes.READ, selected=sel) Can view
+      - var sel=null; if (entry.level === accessTypes.WRITE) sel='selected';
+      option(value=accessTypes.WRITE, selected=sel) Can edit
+      - var sel=null; if (entry.level === accessTypes.ADMIN) sel='selected';
+      option(value=accessTypes.ADMIN, selected=sel) Is owner
+    a.g-action-remove-access(title="Remove access")
+      i.icon-cancel

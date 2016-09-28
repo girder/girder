@@ -6,7 +6,7 @@ import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
 import View from 'girder/views/View';
 import { handleClose, handleOpen } from 'girder/dialog';
 
-import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.jade';
+import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';

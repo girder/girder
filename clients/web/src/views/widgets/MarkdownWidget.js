@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import events from 'girder/events';
 import { renderMarkdown, formatSize } from 'girder/misc';
 
-import MarkdownWidgetTemplate from 'girder/templates/widgets/markdownWidget.jade';
+import MarkdownWidgetTemplate from 'girder/templates/widgets/markdownWidget.pug';
 
 import 'girder/stylesheets/widgets/markdownWidget.styl';
 

@@ -1,7 +1,7 @@
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 
-import VegaWidgetTemplate from '../templates/vegaWidget.jade';
+import VegaWidgetTemplate from '../templates/vegaWidget.pug';
 import '../stylesheets/vegaWidget.styl';
 
 import vg from 'vega';

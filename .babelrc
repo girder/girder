@@ -7,7 +7,11 @@
         "plugins": []
       },
       "cover": {
-        "plugins": ["istanbul"]
+        "plugins": [
+          ["istanbul", {
+            "exclude": ["**/*.pug", "**/*.jade"]
+          }]
+        ]
       }
     }
 }

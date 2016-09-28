@@ -1,0 +1,23 @@
+.g-group-mods-header.g-group-list-header(title="Group moderators can invite and approve group members.")
+  i.icon-shield
+  span Moderators
+
+.g-group-mods-body
+  ul.g-group-mods
+    each userAccess in moderators
+      li(userid=userAccess.id, username=userAccess.name)
+        a.g-member-name
+          i.icon-user
+          span #{userAccess.name} (#{userAccess.login})
+        .g-group-member-controls.pull-right
+          if level >= accessType.ADMIN
+            a.g-group-mod-promote(title="Promote to administrator")
+              i.icon-up-big
+            a.g-group-mod-demote(title="Demote to member")
+              i.icon-down-big
+            a.g-group-mod-remove(title="Remove user from the group")
+              i.icon-block
+    if (!moderators.length)
+      .g-member-list-empty
+        i.icon-info-circled
+        span There are no moderators in this group.

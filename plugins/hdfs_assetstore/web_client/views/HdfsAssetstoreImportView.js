@@ -1,10 +1,9 @@
 import router from 'girder/router';
 import View from 'girder/views/View';
 
-import HdfsAssetstoreImportViewTemplate from '../templates/hdfsAssetstoreImportView.jade';
+import HdfsAssetstoreImportViewTemplate from '../templates/hdfsAssetstoreImportView.pug';
 import '../stylesheets/hdfsAssetstoreImportView.styl';
 
-import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderEnable';
 
 var HdfsAssetstoreImportView = View.extend({

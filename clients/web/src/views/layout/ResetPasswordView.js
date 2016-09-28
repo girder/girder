@@ -5,7 +5,7 @@ import events from 'girder/events';
 import { handleClose, handleOpen } from 'girder/dialog';
 import { restRequest } from 'girder/rest';
 
-import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.jade';
+import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.pug';
 
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';

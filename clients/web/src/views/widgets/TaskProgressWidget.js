@@ -2,7 +2,7 @@ import { sprintf } from 'sprintf-js';
 
 import View from 'girder/views/View';
 
-import TaskProgressTemplate from 'girder/templates/widgets/taskProgress.jade';
+import TaskProgressTemplate from 'girder/templates/widgets/taskProgress.pug';
 
 import 'girder/stylesheets/widgets/taskProgress.styl';
 

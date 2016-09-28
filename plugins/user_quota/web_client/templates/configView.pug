@@ -1,0 +1,25 @@
+.g-config-breadcrumb-container
+p.g-quota-description
+  | Quotas limit the maximum storage space available for each user and
+  | collection.
+form#g-user-quota-form(role="form")
+  each resource in resources
+    .form-group
+      label.control-label(for=`g-${resource.model}SizeValue`)
+        | Default #{resource.name} File Size Quota
+      p.g-quota-description
+        | This is the maximum allowed size of all files for individual
+        | #{resource.model}s, unless that #{resource.model}'s quota is
+        | explicitly set.
+      input.input-sm.g-sizeValue.form-control(
+          type="text", value=resource.sizeValue ? resource.sizeValue : '',
+          placeholder="Maximum allowed size of all files, or blank for no limit",
+          model=resource.model)
+      select.form-control.input-sm.g-sizeUnits(model=resource.model)
+        option(value='0', selected=(resource.sizeUnits === 0)) bytes
+        option(value='1', selected=(resource.sizeUnits === 1)) kB
+        option(value='2', selected=(resource.sizeUnits === 2)) MB
+        option(value='3', selected=(resource.sizeUnits === 3)) GB
+        option(value='4', selected=(resource.sizeUnits === 4)) TB
+  p#g-user-quota-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")

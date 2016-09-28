@@ -1,0 +1,20 @@
+.form-group
+  label.control-label= fromLabel
+  if showIcon
+    .input-group.date.g-datetime-widget-from
+      input.input-sm.form-control(type="text")
+      .input-group-addon
+        span.icon-calendar
+  else
+    .input-group.date
+      input.input-sm.form-control.g-datetime-widget-from(type="text")
+.form-group
+  label.control-label= toLabel
+  if showIcon
+    .input-group.date.g-datetime-widget-to
+      input.input-sm.form-control(type="text")
+      .input-group-addon
+        span.icon-calendar
+  else
+    .input-group.date
+      input.input-sm.form-control.g-datetime-widget-to(type="text")

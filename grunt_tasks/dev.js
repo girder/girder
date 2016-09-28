@@ -59,8 +59,8 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
-        var jade = require('jade');
-        var buffer = fs.readFileSync('clients/web/test/testEnv.jadehtml');
+        var pug = require('pug');
+        var buffer = fs.readFileSync('clients/web/test/testEnv.pug');
         var dependencies = [
             '/clients/web/static/built/girder.ext.min.js',
             '/clients/web/test/testUtils.js'
@@ -69,7 +69,7 @@ module.exports = function (grunt) {
             '/clients/web/static/built/girder.app.min.js'
         ];
 
-        var fn = jade.compile(buffer, {
+        var fn = pug.compile(buffer, {
             client: false,
             pretty: true
         });

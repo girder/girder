@@ -8,6 +8,6 @@ wrap(LoginView, 'render', function (render) {
     new OAuthLoginView({
         el: this.$('.modal-body'),
         parentView: this
-    });
+    }).render();
     return this;
 });
