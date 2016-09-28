@@ -309,14 +309,13 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         return self.save(file)
 
-    def isOrphan(self, file, user=None):
+    def isOrphan(self, file):
         """
         Returns True if this file is orphaned (its item or attached entity is
         missing).
 
         :param file: The file to check.
         :type file: dict
-        :param user: (deprecated) Not used.
         """
         if file.get('attachedToId'):
             attachedToType = file.get('attachedToType')

@@ -317,14 +317,13 @@ class Collection(AccessControlledModel):
             return sum(1 for _ in folderModel.filterResultsByPermission(
                 cursor=folders, user=user, level=level))
 
-    def updateSize(self, doc, user=None):
+    def updateSize(self, doc):
         """
         Recursively recomputes the size of this collection and its underlying
         folders and fixes the sizes as needed.
 
         :param doc: The collection.
         :type doc: dict
-        :param user: (deprecated) Not used.
         """
         size = 0
         fixes = 0
