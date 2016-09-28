@@ -1,5 +1,5 @@
 set(COVERAGE_MINIMUM_PASS 90 CACHE STRING "Minimum python coverage threshold percent")
-set(JS_COVERAGE_MINIMUM_PASS 75 CACHE STRING "Minimum JS coverage threshold percent")
+set(JS_COVERAGE_MINIMUM_PASS 80 CACHE STRING "Minimum JS coverage threshold percent")
 
 # Test if mongod is present for tests that require it.
 find_program(MONGOD_EXECUTABLE mongod)
