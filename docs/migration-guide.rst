@@ -17,10 +17,14 @@ Server changes
 * The deprecated event ``'assetstore.adapter.get'`` has been removed. Plugins using this event to
   register their own assetstore implementations should instead just call the
   ``girder.utility.assetstore_utilities.setAssetstoreAdapter`` at load time.
+* The ``''model.upload.assetstore'`` event no longer supports passing back the target assetstore by adding
+  it to the ``event.info`` dictionary. Instead, handlers of this event should use ``event.addResponse``
+  with the target assetstore as the response.
 * The unused ``user`` parameter of the ``updateSize`` methods in the collection, user, item, and
   folder models has been removed.
 * The unused ``user`` parameter of the ``isOrphan`` methods in the file, item, and folder models
   has been removed.
+
 
 Web client changes
 ++++++++++++++++++
