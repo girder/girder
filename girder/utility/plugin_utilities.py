@@ -41,8 +41,8 @@ import pkg_resources
 from pkg_resources import iter_entry_points
 
 from girder import logprint
-from girder.constants import GIRDER_ROUTE_ID, PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE, \
-    SettingKey
+from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, PACKAGE_DIR, ROOT_DIR, \
+    ROOT_PLUGINS_PACKAGE, SettingKey
 from girder.models.model_base import ValidationException
 from girder.utility import mail_utils, model_importer
 
@@ -185,6 +185,7 @@ def loadPlugin(name, root, appconf, apiRoot=None):
                 'serverRoot': root,
                 'serverRootPath': routeTable[GIRDER_ROUTE_ID],
                 'apiRoot': apiRoot,
+                'staticRoot': routeTable[GIRDER_STATIC_ROUTE_ID],
                 'pluginRootDir': os.path.abspath(pluginDir)
             }
 
