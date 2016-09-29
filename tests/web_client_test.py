@@ -43,11 +43,10 @@ def setUpModule():
     if 's3' in os.environ['ASSETSTORE_TYPE']:
         mockS3 = True
 
-    pluginDirs = os.environ.get('PLUGIN_DIRS', '')
+    pluginDir = os.environ.get('PLUGIN_DIR', '')
 
-    if pluginDirs:
-        curConfig = config.getConfig()
-        curConfig['plugins'] = {'plugin_directory': pluginDirs}
+    if pluginDir:
+        base.mockPluginDir(pluginDir)
 
     plugins = os.environ.get('ENABLED_PLUGINS', '')
     if plugins:
@@ -159,7 +158,7 @@ class WebClientTestCase(base.TestCase):
         # phantomjs occasionally fails to load javascript files.  This appears
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
-        retry_count = os.environ.get('PHANTOMJS_RETRY', 5)
+        retry_count = os.environ.get('PHANTOMJS_RETRY', 3)
         for tries in range(int(retry_count)):
             retry = False
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,

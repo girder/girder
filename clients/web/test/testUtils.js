@@ -1196,7 +1196,9 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
         return backbone_ajax(opts).done(
             function (data, textStatus) {
                 record.status = textStatus;
-                record.result = data;
+                // this data structure has circular references that cannot be serialized.
+                //record.result = data;
+
             }
         ).fail(function (jqxhr, textStatus, errorThrown) {
             record.status = textStatus;

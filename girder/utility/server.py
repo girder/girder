@@ -108,11 +108,9 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
     if plugins is None:
         settings = model_importer.ModelImporter().model('setting')
-        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED,
-                               default=())
+        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
 
-    plugins = list(plugin_utilities.getToposortedPlugins(
-        plugins, curConfig, ignoreMissing=True))
+    plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
     root.updateHtmlVars({
         'apiRoot': curConfig['server']['api_root'],
         'staticRoot': curConfig['server']['static_root'],
@@ -128,8 +126,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
     })
 
     root, appconf, _ = plugin_utilities.loadPlugins(
-        plugins, root, appconf, root.api.v1, curConfig=curConfig,
-        buildDag=False)
+        plugins, root, appconf, root.api.v1, buildDag=False)
 
     return root, appconf
 

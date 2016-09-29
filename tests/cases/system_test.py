@@ -226,12 +226,8 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/system/plugins', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertIn('all', resp.json)
-        pluginRoots = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                    'test_plugins'),
-                       os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                    'test_additional_plugins')]
-        conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': ':'.join(pluginRoots)}
+        self.mockPluginDir(
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
 
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
@@ -253,20 +249,20 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['message'],
                          ("Required plugin a_plugin_that_does_not_exist"
                           " does not exist."))
+        self.unmockPluginDir()
 
     def testBadPlugin(self):
-        pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                  'test_plugins')
-        conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': pluginRoot}
+        self.mockPluginDir(
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bad_plugins'))
 
         # Enabling plugins with bad JSON/YML should still work.
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
-            params={'plugins': '["test_plugin","bad_json","bad_yaml"]'})
+            params={'plugins': '["bad_json","bad_yaml"]'})
         self.assertStatusOk(resp)
         enabled = set(resp.json['value'])
-        self.assertEqual({'test_plugin', 'bad_json', 'bad_yaml'}, enabled)
+        self.assertEqual({'bad_json', 'bad_yaml'}, enabled)
+        self.unmockPluginDir()
 
     def testRestart(self):
         resp = self.request(path='/system/restart', method='PUT',

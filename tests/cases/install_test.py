@@ -25,7 +25,7 @@ import tempfile
 
 from .. import base
 from girder import constants
-from girder.utility import install, config
+from girder.utility import install
 
 pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins')
 
@@ -71,13 +71,12 @@ class InstallTestCase(base.TestCase):
         self.pluginDir = os.path.join(self.baseDir, 'plugins')
         os.mkdir(self.pluginDir)
 
-        conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': self.pluginDir}
+        self.mockPluginDir(self.pluginDir)
 
     def tearDown(self):
         base.TestCase.tearDown(self)
 
-        del config.getConfig()['plugins']
+        self.unmockPluginDir()
         shutil.rmtree(self.baseDir)
 
     def testInstallPlugin(self):

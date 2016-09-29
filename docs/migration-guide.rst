@@ -14,6 +14,31 @@ instructions on how to update your plugin code to work in the newer version.
 Server changes
 ++++++++++++++
 
+* The deprecated event ``'assetstore.adapter.get'`` has been removed. Plugins using this event to
+  register their own assetstore implementations should instead just call the
+  ``girder.utility.assetstore_utilities.setAssetstoreAdapter`` method at load time.
+* The ``'model.upload.assetstore'`` event no longer supports passing back the target assetstore by adding
+  it to the ``event.info`` dictionary. Instead, handlers of this event should use ``event.addResponse``
+  with the target assetstore as the response.
+* The unused ``user`` parameter of the ``updateSize`` methods in the collection, user, item, and
+  folder models has been removed.
+* The unused ``user`` parameter of the ``isOrphan`` methods in the file, item, and folder models
+  has been removed.
+* Multiple configurable plugin loading paths are no longer supported. Use
+  ``girder-install plugin <your_plugin_path>`` to install plugins that are not already in the
+  plugins directory. Pass ``-s`` to that command to symlink instead of copying the directory.
+  This also means:
+
+    * The ``plugins.plugin_directory`` and ``plugins.plugin_install_path`` config file settings
+      are no longer supported, but their presence will not cause problems.
+    * The ``defaultPluginDir``, ``getPluginDirs``, ``getPluginParentDir`` methods inside ``girder.utility.plugin_utilities``
+      were removed.
+    * All of the methods in ``girder.utility.plugin_utilities`` no longer accept a ``curConfig``
+      argument since the configuration is no longer read.
+
+* The ``girder.utility.sha512_state`` module has been removed. All of its symbols had been deprecated
+  and replaced by corresponding ones in ``girder.utility.hash_state``.
+
 Web client changes
 ++++++++++++++++++
 
@@ -65,3 +90,8 @@ Python client changes
   results, though it is possible to simply wrap the return value in a ``list()`` constructor. Use
   caution if you use the ``list()`` method, as it will load the entire result set into memory.
 
+Built-in plugin changes
++++++++++++++++++++++++
+
+* **Jobs**: The deprecated ``jobs.filter`` event was removed. Use the standard ``exposeFields`` and
+  ``hideFields`` methods on the job model instead.

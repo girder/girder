@@ -22,14 +22,10 @@ import os
 
 from .. import base
 from girder.api.rest import endpoint
-from girder.utility import config
 
 
 def setUpModule():
-    pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                              'test_plugins')
-    conf = config.getConfig()
-    conf['plugins'] = {'plugin_directory': pluginRoot}
+    base.mockPluginDir(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
     base.enabledPlugins = ['test_plugin']
 
     base.startServer()

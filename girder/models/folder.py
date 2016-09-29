@@ -832,25 +832,23 @@ class Folder(AccessControlledModel):
 
         return doc
 
-    def isOrphan(self, folder, user=None):
+    def isOrphan(self, folder):
         """
         Returns True if this folder is orphaned (its parent is missing).
 
         :param folder: The folder to check.
         :type folder: dict
-        :param user: (deprecated) Not used.
         """
         return not self.model(folder.get('parentCollection')).load(
             folder.get('parentId'), force=True)
 
-    def updateSize(self, doc, user=None):
+    def updateSize(self, doc):
         """
         Recursively recomputes the size of this folder and its underlying
         folders and fixes the sizes as needed.
 
         :param doc: The folder.
         :type doc: dict
-        :param user: (deprecated) Not used.
         """
         size = 0
         fixes = 0

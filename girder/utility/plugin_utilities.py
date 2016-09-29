@@ -43,11 +43,10 @@ from pkg_resources import iter_entry_points
 from girder import logprint
 from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE
 from girder.models.model_base import ValidationException
-from girder.utility import config as _config, mail_utils, mkdir
+from girder.utility import mail_utils
 
 
-def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
-                buildDag=True):
+def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
     """
     Loads a set of plugins into the application.
 
@@ -59,8 +58,6 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
     :type appconf: dict
     :param apiRoot: The cherrypy api root object.
     :type apiRoot: object or None
-    :param curConfig: A girder config object to use.
-    :type curConfig: dict or None
     :param buildDag: If the ``plugins`` parameter is already a topo-sorted list
         with all dependencies resolved, set this to False and it will skip
         rebuilding the DAG. Otherwise the dependency resolution and sorting
@@ -72,15 +69,6 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
     """
     # Register a pseudo-package for the root of all plugins. This must be
     # present in the system module list in order to avoid import warnings.
-    if curConfig is None:
-        curConfig = _config.getConfig()
-
-    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
-        logprint.warning(
-            'Warning: the plugin_directory setting is deprecated. Please use '
-            'the `girder-install plugin` command and remove this setting from '
-            'your config file.')
-
     if ROOT_PLUGINS_PACKAGE not in sys.modules:
         module = imp.new_module(ROOT_PLUGINS_PACKAGE)
         girder.plugins = module
@@ -89,29 +77,26 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, curConfig=None,
     logprint.info('Resolving plugin dependencies...')
 
     if buildDag:
-        plugins = getToposortedPlugins(plugins, curConfig, ignoreMissing=True)
+        plugins = getToposortedPlugins(plugins, ignoreMissing=True)
 
     for plugin in plugins:
         try:
-            root, appconf, apiRoot = loadPlugin(
-                plugin, root, appconf, apiRoot, curConfig=curConfig)
+            root, appconf, apiRoot = loadPlugin(plugin, root, appconf, apiRoot)
             logprint.success('Loaded plugin "%s"' % plugin)
         except Exception:
-            logprint.exception(
-                'ERROR: Failed to load plugin "%s":' % plugin)
+            logprint.exception('ERROR: Failed to load plugin "%s":' % plugin)
 
     return root, appconf, apiRoot
 
 
-def getToposortedPlugins(plugins, curConfig=None, ignoreMissing=False):
+def getToposortedPlugins(plugins, ignoreMissing=False):
     """
     Given a set of plugins to load, construct the full DAG of required plugins
     to load and yields them in toposorted order.
     """
-    curConfig = curConfig or _config.getConfig()
     plugins = set(plugins)
 
-    allPlugins = findAllPlugins(curConfig)
+    allPlugins = findAllPlugins()
     dag = {}
     visited = set()
 
@@ -141,23 +126,7 @@ def getToposortedPlugins(plugins, curConfig=None, ignoreMissing=False):
             yield plugin
 
 
-def getPluginParentDir(name, curConfig=None):
-    """
-    Finds the directory a plugin lives in and returns it. This throws
-    an exception if it can't find a directory named name in any of the
-    set plugin_directory paths.
-
-    :params name: The name of the plugin (i.e. its directory name)
-    :type name: str
-    """
-    for potentialParentDir in getPluginDirs(curConfig):
-        if os.path.isdir(os.path.join(potentialParentDir, name)):
-            return potentialParentDir
-
-    raise Exception('Plugin directory %s does not exist.' % name)
-
-
-def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
+def loadPlugin(name, root, appconf, apiRoot=None):
     """
     Loads a plugin into the application. This means allowing it to create
     endpoints within its own web API namespace, and to register its event
@@ -172,12 +141,7 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
     if apiRoot is None:
         apiRoot = root.api.v1
 
-    try:
-        pluginParentDir = getPluginParentDir(name, curConfig)
-    except Exception:
-        pluginParentDir = ''
-
-    pluginDir = os.path.join(pluginParentDir, name)
+    pluginDir = os.path.join(getPluginDir(), name)
     isPluginDir = os.path.isdir(os.path.join(pluginDir, 'server'))
     isPluginFile = os.path.isfile(os.path.join(pluginDir, 'server.py'))
     pluginLoadMethod = None
@@ -239,76 +203,18 @@ def loadPlugin(name, root, appconf, apiRoot=None, curConfig=None):
         return root, appconf, apiRoot
 
 
-def defaultPluginDir():
+def getPluginDir():
     """
-    Determine what the default plugin directory should be.
-
-    This assumes none have been specified using the plugin_directory
-    and/or plugin_install_path option.
+    Return the path to the directory that plugins are installed.
     """
-    pluginDir = None
-
-    # It looks if there is a plugin directory next
-    # to the Girder Python package.  This is the case when running from the
-    # git repository.
-    if os.path.isdir(os.path.join(ROOT_DIR, 'plugins')):
-        pluginDir = os.path.join(ROOT_DIR, 'plugins')
-    # As a last resort, use plugins inside the Girder Python package.
-    # This is intended to occur when Girder is pip installed.
+    # Check if there is a plugins dir next to the girder dir.
+    # This is the case when running from the git repository.
+    pluginsDir = os.path.join(ROOT_DIR, 'plugins')
+    if os.path.isdir(pluginsDir):
+        return pluginsDir
+    # Otherwise, we assume we are in a pip-installed environment where plugins is a subdir.
     else:
-        pluginDir = os.path.join(PACKAGE_DIR, 'plugins')
-
-    return pluginDir
-
-
-def getPluginDirs(curConfig=None):
-    """Return an ordered list of directories that plugins can live in."""
-    failedPluginDirs = set()
-
-    if curConfig is None:
-        curConfig = _config.getConfig()
-
-    if 'plugins' in curConfig and 'plugin_directory' in curConfig['plugins']:
-        pluginDirs = curConfig['plugins']['plugin_directory'].split(':')
-    else:
-        pluginDirs = [defaultPluginDir()]
-
-    for pluginDir in pluginDirs:
-        try:
-            mkdir(pluginDir)
-        except OSError:
-            logprint.warning(
-                'Could not create plugin directory %s.' % pluginDir)
-
-            failedPluginDirs.add(pluginDir)
-
-    return [dir for dir in pluginDirs if dir not in failedPluginDirs]
-
-
-def getPluginDir(curConfig=None):
-    """
-    Return which directory plugins should be installed in.
-
-    First precedence is the plugin_install_path setting, next is
-    the first path specified in plugin_directory. If neither of those
-    can be resolved, resort to defaultPluginDir.
-
-    Returns a /path/to the directory plugins should be installed in.
-    """
-    if curConfig is None:
-        curConfig = _config.getConfig()
-
-    pluginDirs = getPluginDirs(curConfig)
-
-    if 'plugins' in curConfig and \
-       'plugin_install_path' in curConfig['plugins']:
-        pluginDir = curConfig['plugins']['plugin_install_path']
-    elif pluginDirs:
-        pluginDir = pluginDirs[0]
-    else:
-        pluginDir = None
-
-    return pluginDir
+        return os.path.join(PACKAGE_DIR, 'plugins')
 
 
 def findEntryPointPlugins(allPlugins):
@@ -352,50 +258,43 @@ def findEntryPointPlugins(allPlugins):
             allPlugins[entry_point.name]['dependencies'])
 
 
-def findAllPlugins(curConfig=None):
+def findAllPlugins():
     """
-    Walks the plugins directories to find all of the plugins. If the plugin has
-    a plugin.json file, this reads that file to determine dependencies.
+    Walks the plugin directory to find all of the plugins. If the plugin has
+    a plugin.json/yml file, this reads that file to determine dependencies.
     """
     allPlugins = {}
 
     findEntryPointPlugins(allPlugins)
-    pluginDirs = getPluginDirs(curConfig)
-    if not pluginDirs:
-        logprint.warning('Plugin directory not found.')
-        return allPlugins
+    pluginDir = getPluginDir()
 
-    for pluginDir in pluginDirs:
-        dirs = [dir for dir in os.listdir(pluginDir) if os.path.isdir(
-            os.path.join(pluginDir, dir))]
+    for plugin in os.listdir(pluginDir):
+        data = {}
+        configJson = os.path.join(pluginDir, plugin, 'plugin.json')
+        configYml = os.path.join(pluginDir, plugin, 'plugin.yml')
+        if os.path.isfile(configJson):
+            with open(configJson) as conf:
+                try:
+                    data = json.load(conf)
+                except ValueError:
+                    logprint.exception(
+                        'ERROR: Plugin "%s": plugin.json is not valid '
+                        'JSON.' % plugin)
+        elif os.path.isfile(configYml):
+            with open(configYml) as conf:
+                try:
+                    data = yaml.safe_load(conf)
+                except yaml.YAMLError:
+                    logprint.exception(
+                        'ERROR: Plugin "%s": plugin.yml is not valid '
+                        'YAML.' % plugin)
 
-        for plugin in dirs:
-            data = {}
-            configJson = os.path.join(pluginDir, plugin, 'plugin.json')
-            configYml = os.path.join(pluginDir, plugin, 'plugin.yml')
-            if os.path.isfile(configJson):
-                with open(configJson) as conf:
-                    try:
-                        data = json.load(conf)
-                    except ValueError:
-                        logprint.exception(
-                            'ERROR: Plugin "%s": plugin.json is not valid '
-                            'JSON.' % plugin)
-            elif os.path.isfile(configYml):
-                with open(configYml) as conf:
-                    try:
-                        data = yaml.safe_load(conf)
-                    except yaml.YAMLError:
-                        logprint.exception(
-                            'ERROR: Plugin "%s": plugin.yml is not valid '
-                            'YAML.' % plugin)
-
-            allPlugins[plugin] = {
-                'name': data.get('name', plugin),
-                'description': data.get('description', ''),
-                'version': data.get('version', ''),
-                'dependencies': set(data.get('dependencies', []))
-            }
+        allPlugins[plugin] = {
+            'name': data.get('name', plugin),
+            'description': data.get('description', ''),
+            'version': data.get('version', ''),
+            'dependencies': set(data.get('dependencies', []))
+        }
     return allPlugins
 
 
