@@ -268,9 +268,7 @@ def findAllPlugins():
     findEntryPointPlugins(allPlugins)
     pluginDir = getPluginDir()
 
-    dirs = [dir for dir in os.listdir(pluginDir)]
-
-    for plugin in dirs:
+    for plugin in os.listdir(pluginDir):
         data = {}
         configJson = os.path.join(pluginDir, plugin, 'plugin.json')
         configYml = os.path.join(pluginDir, plugin, 'plugin.yml')
