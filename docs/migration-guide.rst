@@ -36,6 +36,9 @@ Server changes
     * All of the methods in ``girder.utility.plugin_utilities`` no longer accept a ``curConfig``
       argument since the configuration is no longer read.
 
+* The ``girder.utility.sha512_state`` module has been removed. All of its symbols had been deprecated
+  and replaced by corresponding ones in ``girder.utility.hash_state``.
+
 Web client changes
 ++++++++++++++++++
 
