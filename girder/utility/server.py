@@ -208,11 +208,13 @@ def setup(test=False, plugins=None, curConfig=None):
 
     return application
 
+
 class BaseWebroot(object):
     expose = True
 
     def __init__(self):
         pass
+
 
 class _StaticFileRoute(object):
     exposed = True
