@@ -21,6 +21,7 @@ import time
 
 from tests import base
 from girder import events
+from girder.constants import AccessType
 from girder.models.model_base import ValidationException
 
 
@@ -194,7 +195,8 @@ class JobsTestCase(base.TestCase):
             title='A job', type='t', user=self.users[1], public=True)
 
         job['_some_other_field'] = 'foo'
-        job = self.model('job', 'jobs').save(job)
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.save(job)
 
         resp = self.request('/job/%s' % job['_id'])
         self.assertStatusOk(resp)
@@ -207,18 +209,12 @@ class JobsTestCase(base.TestCase):
         self.assertTrue('kwargs' in resp.json)
         self.assertTrue('args' in resp.json)
 
-        def filterJob(event):
-            event.info['job']['_some_other_field'] = 'bar'
-            event.addResponse({
-                'exposeFields': ['_some_other_field'],
-                'removeFields': ['created']
-            })
-
-        events.bind('jobs.filter', 'test', filterJob)
+        jobModel.exposeFields(level=AccessType.READ, fields={'_some_other_field'})
+        jobModel.hideFields(level=AccessType.READ, fields={'created'})
 
         resp = self.request('/job/%s' % job['_id'])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['_some_other_field'], 'bar')
+        self.assertEqual(resp.json['_some_other_field'], 'foo')
         self.assertTrue('created' not in resp.json)
 
     def testJobProgressAndNotifications(self):

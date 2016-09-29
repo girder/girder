@@ -16,8 +16,8 @@ Server changes
 
 * The deprecated event ``'assetstore.adapter.get'`` has been removed. Plugins using this event to
   register their own assetstore implementations should instead just call the
-  ``girder.utility.assetstore_utilities.setAssetstoreAdapter`` at load time.
-* The ``''model.upload.assetstore'`` event no longer supports passing back the target assetstore by adding
+  ``girder.utility.assetstore_utilities.setAssetstoreAdapter`` method at load time.
+* The ``'model.upload.assetstore'`` event no longer supports passing back the target assetstore by adding
   it to the ``event.info`` dictionary. Instead, handlers of this event should use ``event.addResponse``
   with the target assetstore as the response.
 * The unused ``user`` parameter of the ``updateSize`` methods in the collection, user, item, and
@@ -90,3 +90,8 @@ Python client changes
   results, though it is possible to simply wrap the return value in a ``list()`` constructor. Use
   caution if you use the ``list()`` method, as it will load the entire result set into memory.
 
+Built-in plugin changes
++++++++++++++++++++++++
+
+* **Jobs**: The deprecated ``jobs.filter`` event was removed. Use the standard ``exposeFields`` and
+  ``hideFields`` methods on the job model instead.
