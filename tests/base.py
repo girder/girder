@@ -23,6 +23,7 @@ import cherrypy
 import io
 import json
 import logging
+import mock
 import os
 import shutil
 import signal
@@ -33,7 +34,7 @@ import uuid
 
 from six import BytesIO
 from six.moves import urllib
-from girder.utility import model_importer
+from girder.utility import model_importer, plugin_utilities
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
 from girder.models import getDbConnection
@@ -117,10 +118,30 @@ def dropFsAssetstore(path):
     """
     Delete all of the files in a filesystem assetstore.  This unlinks the path,
     which is potentially dangerous.
+
     :param path: the path to remove.
     """
     if os.path.isdir(path):
         shutil.rmtree(path)
+
+
+def mockPluginDir(path):
+    """
+    Modify the location that the server will search when loading plugins. Call this prior to
+    calling startServer. Returns the original un-mocked function.
+
+    :param path: The directory in which to search for plugins.
+    """
+    oldFn = plugin_utilities.getPluginDir
+    plugin_utilities.getPluginDir = mock.Mock(return_value=path)
+    return oldFn
+
+
+def unmockPluginDir(oldFn):
+    """
+    Restore the getPluginDir function to its original un-mocked version.
+    """
+    plugin_utilities.getPluginDir = oldFn
 
 
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
@@ -178,6 +199,12 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         # If "self.setUp" is overridden, "self.assetstoreType" may not be set
         if getattr(self, 'assetstoreType', None) == 'gridfsrs':
             mongo_replicaset.stopMongoReplicaSet()
+
+    def mockPluginDir(self, path):
+        self._oldPluginDirFn = mockPluginDir(path)
+
+    def unmockPluginDir(self):
+        unmockPluginDir(self._oldPluginDirFn)
 
     def assertStatusOk(self, response):
         """

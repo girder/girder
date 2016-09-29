@@ -81,8 +81,7 @@ function(add_web_client_test case specFile)
   # PLUGIN (name of plugin) : this plugin and all dependencies are loaded
   # (unless overridden with ENABLEDPLUGINS) and the test name includes the
   # plugin name
-  # PLUGIN_DIRS (list of plugin dirs) : A list of directories plugins
-  # should live in.
+  # PLUGIN_DIR Alternate directory in which to look for plugins.
   # ASSETSTORE (assetstore type) : use the specified assetstore type when
   #     running the test.  Defaults to 'filesystem'
   # WEBSECURITY (boolean) : if false, don't use CORS validatation.  Defaults to
@@ -104,7 +103,7 @@ function(add_web_client_test case specFile)
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
-  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS TIMEOUT TEST_MODULE REQUIRED_FILES)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -115,10 +114,10 @@ function(add_web_client_test case specFile)
     set(plugins "")
   endif()
 
-  if(fn_PLUGIN_DIRS)
-    set(pluginDirs ${fn_PLUGIN_DIRS})
+  if(fn_PLUGIN_DIR)
+    set(pluginDir ${fn_PLUGIN_DIR})
   else()
-    set(pluginDirs "")
+    set(pluginDir "")
   endif()
 
   if(fn_ASSETSTORE)
@@ -163,7 +162,7 @@ function(add_web_client_test case specFile)
     "ASSETSTORE_TYPE=${assetstoreType}"
     "WEB_SECURITY=${webSecurity}"
     "ENABLED_PLUGINS=${plugins}"
-    "PLUGIN_DIRS=${pluginDirs}"
+    "PLUGIN_DIR=${pluginDir}"
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${testname}"
     "GIRDER_TEST_ASSETSTORE=${testname}"
     "GIRDER_PORT=${web_client_port}"

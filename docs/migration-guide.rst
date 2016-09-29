@@ -24,7 +24,17 @@ Server changes
   folder models has been removed.
 * The unused ``user`` parameter of the ``isOrphan`` methods in the file, item, and folder models
   has been removed.
+* Multiple configurable plugin loading paths are no longer supported. Use
+  ``girder-install plugin <your_plugin_path>`` to install plugins that are not already in the
+  plugins directory. Pass ``-s`` to that command to symlink instead of copying the directory.
+  This also means:
 
+    * The ``plugins.plugin_directory`` and ``plugins.plugin_install_path`` config file settings
+      are no longer supported, but their presence will not cause problems.
+    * The ``defaultPluginDir``, ``getPluginDirs``, ``getPluginParentDir`` methods inside ``girder.utility.plugin_utilities``
+      were removed.
+    * All of the methods in ``girder.utility.plugin_utilities`` no longer accept a ``curConfig``
+      argument since the configuration is no longer read.
 
 Web client changes
 ++++++++++++++++++
