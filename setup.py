@@ -100,6 +100,8 @@ if sys.version_info[0] == 2:
         ]
     })
 
+extras_reqs['sftp'] = ['paramiko']
+
 init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
 with open(init) as fd:
     version = re.search(
@@ -149,7 +151,8 @@ setup(
     entry_points={
         'console_scripts': [
             'girder-server = girder.__main__:main',
-            'girder-install = girder.utility.install:main'
+            'girder-install = girder.utility.install:main',
+            'girder-sftpd = girder.api.sftp:main'
         ]
     }
 )

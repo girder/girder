@@ -60,7 +60,7 @@ before_install:
     - pip install -U pip virtualenv
 
 install:
-    - pip install -r requirements-dev.txt -e .[plugins] -e clients/python
+    - pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python
     - npm install -g npm-install-retry
     - npm-install-retry
     - BABEL_ENV=cover girder-install web --all-plugins --dev
