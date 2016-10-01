@@ -127,33 +127,7 @@ class User(Resource):
                 raise RestException('Invalid HTTP Authorization header', 401)
 
             login, password = credentials.split(':', 1)
-
-            login = login.lower().strip()
-            loginField = 'email' if '@' in login else 'login'
-
-            user = self.model('user').findOne({loginField: login})
-            if user is None:
-                raise RestException('Login failed.', code=403)
-
-            if not self.model('password').authenticate(user, password):
-                raise RestException('Login failed.', code=403)
-
-            # This has the same behavior as User.canLogin, but returns more
-            # detailed error messages
-            if user.get('status', 'enabled') == 'disabled':
-                raise RestException(
-                    'Account is disabled.', code=403,
-                    extra='disabled')
-
-            if self.model('user').emailVerificationRequired(user):
-                raise RestException(
-                    'Email verification required.', code=403,
-                    extra='emailVerification')
-
-            if self.model('user').adminApprovalRequired(user):
-                raise RestException(
-                    'Account approval required.', code=403,
-                    extra='accountApproval')
+            user = self.model('user').authenticate(login, password)
 
             setattr(cherrypy.request, 'girderUser', user)
             token = self.sendAuthTokenCookie(user)

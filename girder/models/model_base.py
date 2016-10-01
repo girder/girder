@@ -1159,8 +1159,9 @@ class AccessException(Exception):
     """
     Represents denial of access to a resource.
     """
-    def __init__(self, message):
+    def __init__(self, message, extra=None):
         self.message = message
+        self.extra = extra
 
         Exception.__init__(self, message)
 

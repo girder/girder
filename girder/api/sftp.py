@@ -109,10 +109,15 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
 
 
 class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
+    def __init__(self, server, *args, **kwargs):
+        self.server = server
+        paramiko.SFTPServerInterface.__init__(self, server, *args, **kwargs)
+
     def _list(self, model, document):
         entries = []
         if model in ('collection', 'user', 'folder'):
-            for folder in self.model('folder').childFolders(parent=document, parentType=model):
+            for folder in self.model('folder').childFolders(
+                    parent=document, parentType=model, user=self.server.girderUser):
                 info = paramiko.SFTPAttributes()
                 info.st_size = 0
                 info.st_mode = 0o777 | stat.S_IFDIR
@@ -152,21 +157,21 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
                 info.filename = model.encode('utf8')
                 entries.append(info)
         elif path == '/user':
-            for user in self.model('user').list():
+            for user in self.model('user').list(user=self.server.girderUser):
                 info = paramiko.SFTPAttributes()
                 info.st_size = 0
                 info.st_mode = 0o777 | stat.S_IFDIR
                 info.filename = user['login'].encode('utf8')
                 entries.append(info)
         elif path == '/collection':
-            for collection in self.model('collection').list():
+            for collection in self.model('collection').list(user=self.server.girderUser):
                 info = paramiko.SFTPAttributes()
                 info.st_size = 0
                 info.st_mode = 0o777 | stat.S_IFDIR
                 info.filename = collection['name'].encode('utf8')
                 entries.append(info)
         else:
-            obj = lookUpPath(path, filter=False)
+            obj = lookUpPath(path, filter=False, user=self.server.girderUser)
             return self._list(obj['model'], obj['document'])
 
         return entries
@@ -224,7 +229,11 @@ class _SftpRequestHandler(socketserver.BaseRequestHandler):
         self.transport.start_server(server=_ServerAdapter())
 
 
-class _ServerAdapter(paramiko.ServerInterface):
+class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
+    def __init__(self, *args, **kwargs):
+        paramiko.ServerInterface.__init__(self, *args, **kwargs)
+        self.girderUser = None
+
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
             return paramiko.OPEN_SUCCEEDED
@@ -234,11 +243,22 @@ class _ServerAdapter(paramiko.ServerInterface):
         return 'password'
 
     def check_auth_none(self, username):
-        return paramiko.AUTH_SUCCESSFUL
+        # Some clients send a username like "anonymous"; we'd rather just test whether
+        # a password was sent, so we respond with failure here to force the client to
+        # check supported auth modes. The implementation of anonymous access is actually
+        # handled in check_auth_password.
+        return paramiko.AUTH_FAILED
 
     def check_auth_password(self, username, password):
-        # TODO authenticate with password
-        return paramiko.AUTH_FAILED
+        if not password:
+            # anonymous access, self.girderUser remains None
+            return paramiko.AUTH_SUCCESSFUL
+
+        try:
+            self.girderUser = self.model('user').authenticate(username, password)
+            return paramiko.AUTH_SUCCESSFUL
+        except AccessException:
+            return paramiko.AUTH_FAILED
 
 
 class SftpServer(socketserver.ThreadingTCPServer):
@@ -271,7 +291,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog='girder-sftpd', description='Run the Girder SFTP service.')
-    parser.add_argument('-p', '--port', required=False, default=DEFAULT_PORT)
+    parser.add_argument('-p', '--port', required=False, default=DEFAULT_PORT, type=int)
 
     args = parser.parse_args()
     startServer(port=args.port)

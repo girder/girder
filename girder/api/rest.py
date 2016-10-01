@@ -464,7 +464,10 @@ def _handleAccessException(e):
     else:
         cherrypy.response.status = 403
         logger.exception('403 Error')
-    return {'message': e.message, 'type': 'access'}
+    val = {'message': e.message, 'type': 'access'}
+    if e.extra is not None:
+        val['extra'] = e.extra
+    return val
 
 
 def _handleGirderException(e):

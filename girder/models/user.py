@@ -21,10 +21,9 @@ import datetime
 import os
 import re
 
-from .model_base import AccessControlledModel, ValidationException
+from .model_base import AccessControlledModel, AccessException, ValidationException
 from girder import events
-from girder.constants import AccessType, CoreEventHandler, SettingKey, \
-    TokenScope
+from girder.constants import AccessType, CoreEventHandler, SettingKey, TokenScope
 from girder.utility import config, mail_utils
 
 
@@ -138,6 +137,42 @@ class User(AccessControlledModel):
             doc['status'] = 'enabled'
 
         return doc
+
+    def authenticate(self, login, password):
+        """
+        Validate a user login via username and password. If authentication fails,
+        a ``AccessException`` is raised.
+
+        :param login: The user's login or email.
+        :type login: str
+        :param password: The user's password.
+        :type password: str
+        :returns: The corresponding user if the login was successful.
+        :rtype: dict
+        """
+        login = login.lower().strip()
+        loginField = 'email' if '@' in login else 'login'
+
+        user = self.model('user').findOne({loginField: login})
+        if user is None:
+            raise AccessException('Login failed.')
+
+        if not self.model('password').authenticate(user, password):
+            raise AccessException('Login failed.')
+
+        # This has the same behavior as User.canLogin, but returns more
+        # detailed error messages
+        if user.get('status', 'enabled') == 'disabled':
+            raise AccessException('Account is disabled.', extra='disabled')
+
+        if self.model('user').emailVerificationRequired(user):
+            raise AccessException(
+                'Email verification required.', extra='emailVerification')
+
+        if self.model('user').adminApprovalRequired(user):
+            raise AccessException('Account approval required.', extra='accountApproval')
+
+        return user
 
     def remove(self, user, progress=None, **kwargs):
         """
