@@ -17,13 +17,16 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
 import paramiko
 import six
 import stat
 import time
 
+from girder import logger
+from girder.constants import AccessType
 from girder.models.model_base import AccessException, ValidationException
-from girder.utility.path import lookUpPath
+from girder.utility.path import lookUpPath, NotFoundException
 from girder.utility.model_importer import ModelImporter
 from six.moves import socketserver, StringIO
 
@@ -63,10 +66,14 @@ def _handleErrors(fun):
     def wrapped(*args, **kwargs):
         try:
             return fun(*args, **kwargs)
-        except ValidationException:
+        except NotFoundException:
             return paramiko.SFTP_NO_SUCH_FILE
+        except ValidationException:
+            return paramiko.SFTP_FAILURE
         except AccessException:
             return paramiko.SFTP_PERMISSION_DENIED
+        except Exception:
+            logger.exception('SFTP server internal error')
 
     return wrapped
 
@@ -178,7 +185,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
 
     @_handleErrors
     def open(self, path, flags, attr):
-        obj = lookUpPath(path, filter=False)
+        obj = lookUpPath(path, filter=False, user=self.server.girderUser)
 
         if obj['model'] != 'file':
             return paramiko.SFTP_NO_SUCH_FILE
@@ -187,7 +194,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
 
     @_handleErrors
     def stat(self, path):
-        obj = lookUpPath(path, filter=False)
+        obj = lookUpPath(path, filter=False, user=self.server.girderUser)
 
         doc = obj['document']
         info = paramiko.SFTPAttributes()
@@ -209,6 +216,22 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
 
     def lstat(self, path):
         return self.stat(path)
+
+    @_handleErrors
+    def mkdir(self, path, attrs):
+        parent, dirname = os.path.split(path)
+        obj = lookUpPath(parent, filter=False, user=self.server.girderUser)
+        parentType, parent = obj['model'], obj['document']
+
+        if parentType in ('user', 'collection', 'folder'):
+            self.model(parentType).requireAccess(
+                parent, user=self.server.girderUser, level=AccessType.WRITE)
+            self.model('folder').createFolder(
+                parent, dirname, parentType=parentType, creator=self.server.girderUser,
+                reuseExisting=True)
+            return paramiko.SFTP_OK
+        else:
+            raise ValidationException('Invalid parent type %s.' % obj['model'])
 
 
 class _SftpRequestHandler(socketserver.BaseRequestHandler):
@@ -243,17 +266,11 @@ class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
         return 'password'
 
     def check_auth_none(self, username):
-        # Some clients send a username like "anonymous"; we'd rather just test whether
-        # a password was sent, so we respond with failure here to force the client to
-        # check supported auth modes. The implementation of anonymous access is actually
-        # handled in check_auth_password.
+        if username == 'anonymous':
+            return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
     def check_auth_password(self, username, password):
-        if not password:
-            # anonymous access, self.girderUser remains None
-            return paramiko.AUTH_SUCCESSFUL
-
         try:
             self.girderUser = self.model('user').authenticate(username, password)
             return paramiko.AUTH_SUCCESSFUL
@@ -261,7 +278,7 @@ class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
             return paramiko.AUTH_FAILED
 
 
-class SftpServer(socketserver.ThreadingTCPServer):
+class _SftpServer(socketserver.ThreadingTCPServer):
 
     allow_reuse_address = True
 
@@ -279,7 +296,7 @@ def startServer(port=DEFAULT_PORT):
     """
     Start the Girder SFTP server on the specified port.
     """
-    server = SftpServer(('localhost', port))
+    server = _SftpServer(('localhost', port))
     try:
         server.serve_forever()
     except (SystemExit, KeyboardInterrupt):

@@ -24,6 +24,14 @@ from girder.models.model_base import ValidationException
 from .model_importer import ModelImporter
 
 
+class NotFoundException(ValidationException):
+    """
+    A special case of ValidationException representing the case when the resource at a
+    given path does not exist.
+    """
+    pass
+
+
 def encode(token):
     """Escape special characters in a token for path representation.
 
@@ -112,7 +120,7 @@ def lookUpToken(token, parentType, parent):
             return candidateChild, candidateModel
 
     # if no folder, item, or file matches, give up
-    raise ValidationException('Child resource not found: %s(%s)->%s' % (
+    raise NotFoundException('Child resource not found: %s(%s)->%s' % (
         parentType, parent.get('name', parent.get('_id')), token))
 
 
@@ -144,7 +152,7 @@ def lookUpPath(path, user=None, test=False, filter=True):
                     'document': None
                 }
             else:
-                raise ValidationException('User not found: %s' % username)
+                raise NotFoundException('User not found: %s' % username)
 
     elif model == 'collection':
         collectionName = pathArray[1]
@@ -157,7 +165,7 @@ def lookUpPath(path, user=None, test=False, filter=True):
                     'document': None
                 }
             else:
-                raise ValidationException('Collection not found: %s' % collectionName)
+                raise NotFoundException('Collection not found: %s' % collectionName)
 
     else:
         raise ValidationException('Invalid path format')
@@ -175,7 +183,7 @@ def lookUpPath(path, user=None, test=False, filter=True):
                 'document': None
             }
         else:
-            raise ValidationException('Path not found: %s' % path)
+            raise NotFoundException('Path not found: %s' % path)
 
     if filter:
         document = ModelImporter.model(model).filter(document, user)
