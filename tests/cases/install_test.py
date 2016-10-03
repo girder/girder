@@ -229,12 +229,12 @@ class InstallTestCase(base.TestCase):
 
         with mock.patch('subprocess.Popen', return_value=ProcMock()) as p:
             install.install_web()
-            self.assertTrue('--production' in p.mock_calls[0][1][0])
+            self.assertNotIn('--production', p.mock_calls[0][1][0])
 
         with mock.patch('subprocess.Popen', return_value=ProcMock()) as p:
             install.install_web(PluginOpts(dev=True))
 
-            self.assertTrue('--production' not in p.mock_calls[0][1][0])
+            self.assertNotIn('--production', p.mock_calls[0][1][0])
 
         # Test initiation of web install via the REST API
         user = self.model('user').createUser(
@@ -248,15 +248,14 @@ class InstallTestCase(base.TestCase):
 
             self.assertEqual(len(p.mock_calls), 2)
             self.assertEqual(
-                list(p.mock_calls[0][1][0]),
-                ['npm', 'install', '--production', '--unsafe-perm'])
+                list(p.mock_calls[0][1][0]), ['npm', 'install', '--unsafe-perm'])
             self.assertEqual(
                 list(p.mock_calls[1][1][0]),
                 ['npm', 'run', 'build', '--', '--env=prod', '--plugins='])
 
         # Test with progress (requires actually calling a subprocess)
         os.environ['PATH'] = '%s:%s' % (
-            os.path.join(os.path.dirname(__file__), 'mockpath'),
+            os.path.join(os.path.abspath(os.path.dirname(__file__)), 'mockpath'),
             os.environ.get('PATH', '')
         )
         resp = self.request('/system/web_build', method='POST', user=user, params={
