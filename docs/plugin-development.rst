@@ -413,6 +413,9 @@ files, they must be prefixed by your plugin name as follows
 Then inside your unittest, the file will be available under the main data path
 as ``os.environ['GIRDER_TEST_DATA_PREFIX'] + '/plugins/cats/test_file.txt'``.
 
+
+.. _client-side-plugins:
+
 Extending the Client-Side Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -477,6 +480,12 @@ semicolons, you can put the following in your **.eslintrc**
             "semi": 0
         }
     }
+
+You can also lint your pug templates using the ``pug-lint`` tool.
+
+.. code-block:: cmake
+
+   add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
 
 Installing custom dependencies from npm
 ***************************************
@@ -579,8 +588,18 @@ of the Girder source repository, rather than relative to the plugin directory.
 JavaScript extension capabilities
 *********************************
 
-Plugins may bind to any of the normal events triggered by core via the
-``girder.events`` object. This will accommodate certain events, such as before
+Plugins may bind to any of the normal events triggered by core via a global
+events object that can be imported like so:
+
+.. code-block:: javascript
+
+    import events from 'girder/events';
+
+    ...
+
+    this.listenTo(events, 'g:event_name', () => { do.something(); });
+
+This will accommodate certain events, such as before
 and after the application is initially loaded, and when a user logs in or out,
 but most of the time plugins will augment the core system using the power of
 JavaScript rather than the explicit events framework. One of the most common
@@ -591,17 +610,26 @@ parent method. The prototypal nature of JavaScript makes that pattern impossible
 instead, we'll use a slightly less straightforward but equally powerful
 mechanism. This is best demonstrated by example. Let's say we want to execute
 some code any time the core ``HierarchyWidget`` is rendered, for instance to
-inject some additional elements into the view. We use the ``girder.wrap``
+inject some additional elements into the view. We use Girder's ``wrap`` utility
 function to `wrap` the method of the core prototype with our own function.
 
 .. code-block:: javascript
 
-    girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
+    import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+    import { wrap } from 'girder/utilities/PluginUtils';
+
+    // Import your template file from your plugin
+    import myTemplate from 'girder_plugins/cats/templates/hierachyWidgetExtension.pug';
+
+    // CSS files pertaining to this view should be imported as a side-effect
+    import 'girder_plugins/cats/stylesheets/hierarchyWidgetExtension.styl';
+
+    wrap(HierarchyWidget, 'render', function (render) {
         // Call the underlying render function that we are wrapping
         render.call(this);
 
-        // Add a link just below the widget
-        this.$('.g-hierarchy-widget').after('<a class="cat-link">Meow</a>');
+        // Add a link just below the widget using our custom template
+        this.$('.g-hierarchy-widget').after(myTemplate());
     });
 
 Notice that instead of simply calling ``render()``, we call ``render.call(this)``.
@@ -613,7 +641,7 @@ it to make it functional:
 
 .. code-block:: javascript
 
-    girder.views.HierarchyWidget.prototype.events['click a.cat-link'] = function () {
+    HierarchyWidget.prototype.events['click a.cat-link'] = () => {
         alert('meow!');
     };
 
@@ -635,15 +663,21 @@ route to your plugin.
 
 .. code-block:: javascript
 
-    girder.router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
-        var collection = new girder.models.CollectionModel();
+    import events from 'girder/events';
+    import router from 'girder/router';
+    import { Layout } from 'girder/constants';
+    import CollectionModel from 'girder/models/CollectionModel';
+    import CollectionView from 'girder/views/body/CollectionView';
+
+    router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
+        var collection = new CollectionModel();
         collection.set({
             _id: collectionId
         }).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView, _.extend({
+            events.trigger('g:navigateTo', CollectionView, _.extend({
                 collection: collection
-            }, params || {}), {layout: girder.Layout.EMPTY});
+            }, params || {}), {layout: Layout.EMPTY});
         }, this).on('g:error', function () {
-            girder.router.navigate('/collections', {trigger: true});
+            router.navigate('/collections', {trigger: true});
         }, this).fetch();
     });

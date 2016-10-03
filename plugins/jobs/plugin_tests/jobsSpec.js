@@ -4,6 +4,10 @@ girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/jobs/plugin.min.js'
 ]);
 
+girderTest.importStylesheet(
+    '/static/built/plugins/jobs/plugin.min.css'
+);
+
 girder.events.trigger('g:appload.before');
 var app = new girder.views.App({
     el: 'body',
@@ -39,7 +43,7 @@ $(function () {
                     }]
                 });
 
-                /* var widget = */ new girder.plugins.jobs.views.JobDetailsWidget({
+                new girder.plugins.jobs.views.JobDetailsWidget({
                     el: $('#g-app-body-container'),
                     job: job,
                     parentView: app
