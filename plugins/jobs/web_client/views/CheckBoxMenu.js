@@ -15,7 +15,7 @@ girder.views.jobs.CheckBoxMenuWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.jobs_checkBoxMenu(this.params));
+        this.$el.html(JobCheckBoxMenuTemplate(this.params));
     },
     setValues: function (values) {
         this.params.values = values;
