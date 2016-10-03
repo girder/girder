@@ -17,14 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
 import paramiko
 import six
 import stat
 import time
 
 from girder import logger
-from girder.constants import AccessType
 from girder.models.model_base import AccessException, ValidationException
 from girder.utility.path import lookUpPath, NotFoundException
 from girder.utility.model_importer import ModelImporter
@@ -219,6 +217,8 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
 
     @_handleErrors
     def mkdir(self, path, attrs):
+        """
+        Uncomment this implementation once we are ready to support write ops.
         parent, dirname = os.path.split(path)
         obj = lookUpPath(parent, filter=False, user=self.server.girderUser)
         parentType, parent = obj['model'], obj['document']
@@ -232,6 +232,8 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
             return paramiko.SFTP_OK
         else:
             raise ValidationException('Invalid parent type %s.' % obj['model'])
+        """
+        return paramiko.SFTP_OP_UNSUPPORTED
 
 
 class _SftpRequestHandler(socketserver.BaseRequestHandler):
