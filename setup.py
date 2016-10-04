@@ -62,7 +62,7 @@ with open('README.rst') as f:
 install_reqs = [
     'bcrypt',
     'boto',
-    'CherryPy',
+    'CherryPy<8',  # see https://github.com/girder/girder/issues/1615
     'Mako',
     'pymongo>=3',
     'PyYAML',
@@ -80,7 +80,7 @@ extras_reqs = {
     'worker': ['celery'],
     'oauth': ['pyjwt', 'cryptography']
 }
-all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values()) 
+all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values())
 extras_reqs['plugins'] = list(set(all_extra_reqs))
 
 if sys.version_info[0] == 2:
