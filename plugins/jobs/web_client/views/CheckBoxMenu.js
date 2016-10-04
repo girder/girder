@@ -1,5 +1,7 @@
-girder.views.jobs = girder.views.jobs || {};
-girder.views.jobs.CheckBoxMenuWidget = girder.View.extend({
+import View from 'girder/views/View';
+import JobCheckBoxMenuTemplate from '../templates/jobCheckBoxMenu.pug';
+
+var CheckBoxMenu = View.extend({
     events: {
         'click input': function (e) {
             var checkBoxStates = {};
@@ -22,3 +24,5 @@ girder.views.jobs.CheckBoxMenuWidget = girder.View.extend({
         this.render();
     }
 });
+
+export default CheckBoxMenu;

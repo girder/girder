@@ -10,6 +10,7 @@ import { SORT_DESC } from 'girder/constants';
 import JobCollection from '../collections/JobCollection';
 import JobListWidgetTemplate from '../templates/jobListWidget.pug';
 import JobStatus from '../JobStatus';
+import CheckBoxMenu from './CheckBoxMenu';
 
 import '../stylesheets/jobListWidget.styl';
 
@@ -51,7 +52,7 @@ var JobListWidget = View.extend({
 
         eventStream.on('g:event.job_status', this._statusChange, this);
 
-        this.filterTypeMenuWidget = new girder.views.jobs.CheckBoxMenuWidget({
+        this.filterTypeMenuWidget = new CheckBoxMenu({
             title: 'Type',
             values: [],
             parentView: this
@@ -62,7 +63,7 @@ var JobListWidget = View.extend({
             this.render();
         }, this);
 
-        this.filterStatusMenuWidget = new girder.views.jobs.CheckBoxMenuWidget({
+        this.filterStatusMenuWidget = new CheckBoxMenu({
             title: 'Status',
             values: [],
             parentView: this
@@ -106,7 +107,7 @@ var JobListWidget = View.extend({
         this.filterTypeMenuWidget.setValues(this.typeFilter);
 
         states = _.uniq(this.collection.toArray().map(function (job) {
-            return girder.jobs_JobStatus.text(job.attributes.status);
+            return JobStatus.text(job.attributes.status);
         }));
         this._updateFilter(this.statusFilter, states);
         this.filterStatusMenuWidget.setValues(this.statusFilter);
