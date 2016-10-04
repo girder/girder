@@ -28,6 +28,7 @@ COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 
 RUN pip install -e .[plugins]
-RUN girder-install web
+RUN npm install --unsafe-perm
+RUN npm run build
 
 ENTRYPOINT ["python", "-m", "girder"]
