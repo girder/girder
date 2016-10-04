@@ -62,6 +62,27 @@ Reload the package database and install MongoDB server using APT: ::
     sudo apt-get update
     sudo apt-get install mongodb-org-server
 
+With Ubuntu 16.04, create a systemd init script at
+
+``/lib/systemd/system/mongod.service``: ::
+
+  [Unit]
+  Description=High-performance, schema-free document-oriented database
+  After=network.target
+  Documentation=https://docs.mongodb.org/manual
+
+  [Service]
+  User=mongodb
+  Group=mongodb
+  ExecStart=/usr/bin/mongod --quiet --config /etc/mongod.conf
+
+  [Install]
+  WantedBy=multi-user.target
+
+and start it with: ::
+
+  sudo service mongod start
+
 Enable the Node.js APT repository: ::
 
     curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
