@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 2.8.6)
 project(Girder NONE)
 
 include(CTest)
-enable_testing()
 
 set(PYTHON_VERSION "2.7" CACHE STRING "Python version used for testing")
 
