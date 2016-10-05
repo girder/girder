@@ -88,7 +88,7 @@ var JobListWidget = View.extend({
         var jobs = this._filterJobs(this.collection.toArray()), types, states;
 
         this.$el.html(JobListWidgetTemplate({
-            jobs: this.collection.toArray(),
+            jobs: jobs,
             showHeader: this.showHeader,
             columns: this.columns,
             columnEnum: this.columnEnum,
