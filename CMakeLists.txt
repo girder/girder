@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 2.8.6)
 
 project(Girder NONE)
 
+# Address warning with Ninja generator and ExternalData
+if(POLICY CMP0058)
+  cmake_policy(SET CMP0058 NEW)
+endif()
+
 include(CTest)
 enable_testing()
 
