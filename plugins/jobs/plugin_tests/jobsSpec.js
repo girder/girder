@@ -166,7 +166,7 @@ $(function () {
 
           runs(function () {
               jobs = _.map([1, 2, 3], function (i) {
-                  return new girder.models.JobModel({
+                  return new girder.plugins.jobs.models.JobModel({
                       _id: 'foo' + i,
                       title: 'My batch job ' + i,
                       status: i,
@@ -176,7 +176,7 @@ $(function () {
                   });
               });
 
-              widget = new girder.views.jobs_JobListWidget({
+              widget = new girder.plugins.jobs.views.JobListWidget({
                   el: $('#g-app-body-container'),
                   filter: {},
                   parentView: app
@@ -203,9 +203,9 @@ $(function () {
               expect($(rows[2]).text()).toContain('Queued');
 
               // Trigger event to filter out jobs in state 1 and 2
-              evt[JobStatus.text(1)] = false
-              evt[JobStatus.text(2)] = false
-              evt[JobStatus.text(3)] = true
+              evt[girder.plugins.jobs.JobStatus.text(1)] = false
+              evt[girder.plugins.jobs.JobStatus.text(2)] = false
+              evt[girder.plugins.jobs.JobStatus.text(3)] = true
               widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', evt);
           });
 
@@ -221,8 +221,8 @@ $(function () {
             expect($(rows[0]).text()).toContain('Success');
 
             // Trigger event to include jobs in state 1 and 2
-            evt[JobStatus.text(1)] = true
-            evt[JobStatus.text(2)] = true
+            evt[girder.plugins.jobs.JobStatus.text(1)] = true
+            evt[girder.plugins.jobs.JobStatus.text(2)] = true
             widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', evt);
           });
 
@@ -246,7 +246,7 @@ $(function () {
 
         runs(function () {
             jobs = _.map(['one', 'two', 'three'], function (t, i) {
-                return new girder.models.JobModel({
+                return new girder.plugins.jobs.models.JobModel({
                     _id: 'foo' + i,
                     title: 'My batch job ' + i,
                     status: i,
@@ -257,7 +257,7 @@ $(function () {
                 });
             });
 
-            widget = new girder.views.jobs_JobListWidget({
+            widget = new girder.plugins.jobs.views.JobListWidget({
                 el: $('#g-app-body-container'),
                 filter: {},
                 parentView: app
@@ -328,7 +328,7 @@ $(function () {
         var jobs, rows, widget, statusEvt = {}, typeEvt = {};
         runs(function () {
             jobs = _.map(['one', 'two', 'three'], function (t, i) {
-                return new girder.models.JobModel({
+                return new girder.plugins.jobs.models.JobModel({
                     _id: 'foo' + i,
                     title: 'My batch job ' + i,
                     status: i+1,
@@ -339,7 +339,7 @@ $(function () {
                 });
             });
 
-            widget = new girder.views.jobs_JobListWidget({
+            widget = new girder.plugins.jobs.views.JobListWidget({
                 el: $('#g-app-body-container'),
                 filter: {},
                 parentView: app
@@ -374,9 +374,9 @@ $(function () {
             widget.filterTypeMenuWidget.trigger('g:triggerCheckBoxMenuChanged', typeEvt);
 
             // Trigger event to filter out jobs in state 1 and 3
-            statusEvt[JobStatus.text(1)] = false
-            statusEvt[JobStatus.text(2)] = true
-            statusEvt[JobStatus.text(3)] = false
+            statusEvt[girder.plugins.jobs.JobStatus.text(1)] = false
+            statusEvt[girder.plugins.jobs.JobStatus.text(2)] = true
+            statusEvt[girder.plugins.jobs.JobStatus.text(3)] = false
             widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', statusEvt);
         });
 
@@ -392,7 +392,7 @@ $(function () {
           widget.filterTypeMenuWidget.trigger('g:triggerCheckBoxMenuChanged', typeEvt);
 
           // Trigger event to include jobs in state 1
-          statusEvt[JobStatus.text(1)] = true
+          statusEvt[girder.plugins.jobs.JobStatus.text(1)] = true
           widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', statusEvt);
         });
 
