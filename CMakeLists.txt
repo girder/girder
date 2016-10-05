@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 2.8.6)
 
 project(Girder NONE)
 
+# Address warning with Ninja generator and ExternalData
+if(POLICY CMP0058)
+  cmake_policy(SET CMP0058 NEW)
+endif()
+
 include(CTest)
-enable_testing()
 
 set(PYTHON_VERSION "2.7" CACHE STRING "Python version used for testing")
 
@@ -20,7 +24,7 @@ option(ANSIBLE_CLIENT_TESTS "Whether to run Ansible client tests" OFF)
 set(TEST_PLUGINS "" CACHE STRING "List of plugins to test. Leave empty to test all plugins")
 
 if(PYTHON_COVERAGE)
-  find_program(PYTHON_COVERAGE_EXECUTABLE coverage)
+  find_program(PYTHON_COVERAGE_EXECUTABLE NAMES coverage python-coverage)
   set(girder_py_coverage_rc "${PROJECT_BINARY_DIR}/tests/girder.coveragerc")
   set(PYTHON_COVERAGE_CONFIG "${girder_py_coverage_rc}" CACHE FILEPATH "Custom python coverage configuration file")
   mark_as_advanced(PYTHON_COVERAGE_CONFIG)
