@@ -8,7 +8,6 @@ if(POLICY CMP0058)
 endif()
 
 include(CTest)
-enable_testing()
 
 set(PYTHON_VERSION "2.7" CACHE STRING "Python version used for testing")
 
