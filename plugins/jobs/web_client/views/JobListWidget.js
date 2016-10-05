@@ -157,7 +157,7 @@ var JobListWidget = View.extend({
             return ((_.isEmpty(this.typeFilter) ||
                         this.typeFilter[job.attributes.type ? job.attributes.type : '']) &&
                     (_.isEmpty(this.statusFilter) ||
-                        this.statusFilter[girder.jobs_JobStatus.text(job.attributes.status)]));
+                        this.statusFilter[JobStatus.text(job.attributes.status)]));
         }, this));
 
         return filterJobs;

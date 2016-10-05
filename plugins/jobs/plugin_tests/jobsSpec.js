@@ -203,9 +203,9 @@ $(function () {
               expect($(rows[2]).text()).toContain('Queued');
 
               // Trigger event to filter out jobs in state 1 and 2
-              evt[girder.jobs_JobStatus.text(1)] = false
-              evt[girder.jobs_JobStatus.text(2)] = false
-              evt[girder.jobs_JobStatus.text(3)] = true
+              evt[JobStatus.text(1)] = false
+              evt[JobStatus.text(2)] = false
+              evt[JobStatus.text(3)] = true
               widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', evt);
           });
 
@@ -221,8 +221,8 @@ $(function () {
             expect($(rows[0]).text()).toContain('Success');
 
             // Trigger event to include jobs in state 1 and 2
-            evt[girder.jobs_JobStatus.text(1)] = true
-            evt[girder.jobs_JobStatus.text(2)] = true
+            evt[JobStatus.text(1)] = true
+            evt[JobStatus.text(2)] = true
             widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', evt);
           });
 
@@ -374,9 +374,9 @@ $(function () {
             widget.filterTypeMenuWidget.trigger('g:triggerCheckBoxMenuChanged', typeEvt);
 
             // Trigger event to filter out jobs in state 1 and 3
-            statusEvt[girder.jobs_JobStatus.text(1)] = false
-            statusEvt[girder.jobs_JobStatus.text(2)] = true
-            statusEvt[girder.jobs_JobStatus.text(3)] = false
+            statusEvt[JobStatus.text(1)] = false
+            statusEvt[JobStatus.text(2)] = true
+            statusEvt[JobStatus.text(3)] = false
             widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', statusEvt);
         });
 
@@ -392,7 +392,7 @@ $(function () {
           widget.filterTypeMenuWidget.trigger('g:triggerCheckBoxMenuChanged', typeEvt);
 
           // Trigger event to include jobs in state 1
-          statusEvt[girder.jobs_JobStatus.text(1)] = true
+          statusEvt[JobStatus.text(1)] = true
           widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', statusEvt);
         });
 
