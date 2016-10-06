@@ -618,11 +618,11 @@ function to `wrap` the method of the core prototype with our own function.
     import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
     import { wrap } from 'girder/utilities/PluginUtils';
 
-    // Import your template file from your plugin
-    import myTemplate from 'girder_plugins/cats/templates/hierachyWidgetExtension.pug';
+    // Import our template file from our plugin using a relative path
+    import myTemplate from './templates/hierachyWidgetExtension.pug';
 
     // CSS files pertaining to this view should be imported as a side-effect
-    import 'girder_plugins/cats/stylesheets/hierarchyWidgetExtension.styl';
+    import './stylesheets/hierarchyWidgetExtension.styl';
 
     wrap(HierarchyWidget, 'render', function (render) {
         // Call the underlying render function that we are wrapping
