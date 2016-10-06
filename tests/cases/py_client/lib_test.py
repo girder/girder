@@ -572,7 +572,7 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(cm.exception.status, 400)
         self.assertEqual(cm.exception.method, 'GET')
         resp = json.loads(cm.exception.responseText)
-        self.assertEqual(resp['type'], 'rest')
+        self.assertEqual(resp['type'], 'validation')
         self.assertEqual(resp['message'],
                          'Path not found: %s' % (testInvalidPath))
 
@@ -598,9 +598,8 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(cm.exception.status, 400)
         self.assertEqual(cm.exception.method, 'GET')
         resp = json.loads(cm.exception.responseText)
-        self.assertEqual(resp['type'], 'rest')
-        self.assertEqual(resp['message'],
-                         'Path not found: %s' % (testInvalidPath))
+        self.assertEqual(resp['type'], 'validation')
+        self.assertEqual(resp['message'], 'Path not found: %s' % (testInvalidPath))
 
     def testUploadWithPath(self):
         testUser = self.model('user').createUser(

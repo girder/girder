@@ -1,7 +1,7 @@
 # girder core
 bcrypt==2.0.0
 boto==2.40.0
-cffi==1.6.0
+cffi==1.8.3
 CherryPy==6.0.1
 Mako==1.0.4
 pymongo==3.2.2
@@ -44,3 +44,9 @@ MarkupSafe==0.23
 
 # dependencies of snakebite
 protobuf==2.6.1
+
+# paramiko and dependencies (for SFTP server)
+cryptography==1.5.2
+idna==2.1
+paramiko==2.0.2
+pyasn1==0.1.9

@@ -20,6 +20,16 @@
 """This module contains utility methods for parsing girder path strings."""
 
 import re
+from girder.models.model_base import AccessException, ValidationException
+from .model_importer import ModelImporter
+
+
+class NotFoundException(ValidationException):
+    """
+    A special case of ValidationException representing the case when the resource at a
+    given path does not exist.
+    """
+    pass
 
 
 def encode(token):
@@ -79,3 +89,109 @@ def join(tokens):
     :rtype: str
     """
     return '/'.join([encode(token) for token in tokens])
+
+
+def lookUpToken(token, parentType, parent):
+    """
+    Find a particular child resource by name or throw an exception.
+
+    :param token: the name of the child resource to find
+    :param parentType: the type of the parent to search
+    :param parent: the parent resource
+    :returns: the child resource
+    """
+    # (model name, mask, search filter)
+    searchTable = (
+        ('folder', parentType in ('user', 'collection', 'folder'), {
+            'name': token,
+            'parentId': parent['_id'],
+            'parentCollection': parentType
+        }),
+        ('item', parentType == 'folder', {'name': token, 'folderId': parent['_id']}),
+        ('file', parentType == 'item', {'name': token, 'itemId': parent['_id']}),
+    )
+
+    for candidateModel, mask, filterObject in searchTable:
+        if not mask:
+            continue
+
+        candidateChild = ModelImporter.model(candidateModel).findOne(filterObject)
+        if candidateChild is not None:
+            return candidateChild, candidateModel
+
+    # if no folder, item, or file matches, give up
+    raise NotFoundException('Child resource not found: %s(%s)->%s' % (
+        parentType, parent.get('name', parent.get('_id')), token))
+
+
+def lookUpPath(path, user=None, test=False, filter=True):
+    """
+    Look up a resource in the data hierarchy by path.
+
+    :param path: path of the resource
+    :param user: user with correct privileges to access path
+    :param test: defaults to false, when set to true
+        will return None instead of throwing exception when
+        path doesn't exist
+    :type test: bool
+    :param filter: Whether the returned model should be filtered.
+    :type filter: bool
+    """
+    path = path.lstrip('/')
+    pathArray = split(path)
+    model = pathArray[0]
+
+    if model == 'user':
+        username = pathArray[1]
+        parent = ModelImporter.model('user').findOne({'login': username})
+
+        if parent is None:
+            if test:
+                return {
+                    'model': None,
+                    'document': None
+                }
+            else:
+                raise NotFoundException('User not found: %s' % username)
+
+    elif model == 'collection':
+        collectionName = pathArray[1]
+        parent = ModelImporter.model('collection').findOne({'name': collectionName})
+
+        if parent is None:
+            if test:
+                return {
+                    'model': None,
+                    'document': None
+                }
+            else:
+                raise NotFoundException('Collection not found: %s' % collectionName)
+
+    else:
+        raise ValidationException('Invalid path format')
+
+    try:
+        document = parent
+        ModelImporter.model(model).requireAccess(document, user)
+        for token in pathArray[2:]:
+            document, model = lookUpToken(token, model, document)
+            ModelImporter.model(model).requireAccess(document, user)
+    except (ValidationException, AccessException):
+        # We should not distinguish the response between access and validation errors so that
+        # adversarial users cannot discover the existence of data they don't have access to by
+        # looking up a path.
+        if test:
+            return {
+                'model': None,
+                'document': None
+            }
+        else:
+            raise NotFoundException('Path not found: %s' % path)
+
+    if filter:
+        document = ModelImporter.model(model).filter(document, user)
+
+    return {
+        'model': model,
+        'document': document
+    }
