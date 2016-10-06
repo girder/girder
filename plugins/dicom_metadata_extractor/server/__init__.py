@@ -24,7 +24,7 @@ from girder.utility.model_importer import ModelImporter
 
 def handler(event):
     mime = mimetypes.guess_type(event.info['file'])
-    if event.info['file']['exts'][-1] == ['dcm'] || 'application/dicom':
+    if event.info['file']['exts'][-1] == ['dcm'] or 'application/dicom':
         itemId = event.info['file']['itemId']
         itemModel = ModelImporter.model('item')
         item = itemModel.load(itemId, force=True)
