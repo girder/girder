@@ -155,7 +155,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
         entries = []
 
         if path == '':
-            for model in ('user', 'collection'):
+            for model in ('collection', 'user'):
                 info = paramiko.SFTPAttributes()
                 info.st_size = 0
                 info.st_mode = 0o777 | stat.S_IFDIR
@@ -268,11 +268,12 @@ class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
         return 'password'
 
     def check_auth_none(self, username):
-        if username == 'anonymous':
-            return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
     def check_auth_password(self, username, password):
+        if username.lower() == 'anonymous':
+            return paramiko.AUTH_SUCCESSFUL
+
         try:
             self.girderUser = self.model('user').authenticate(username, password)
             return paramiko.AUTH_SUCCESSFUL
@@ -280,7 +281,7 @@ class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
             return paramiko.AUTH_FAILED
 
 
-class _SftpServer(socketserver.ThreadingTCPServer):
+class SftpServer(socketserver.ThreadingTCPServer):
 
     allow_reuse_address = True
 
@@ -294,18 +295,7 @@ class _SftpServer(socketserver.ThreadingTCPServer):
         pass
 
 
-def startServer(port=DEFAULT_PORT):
-    """
-    Start the Girder SFTP server on the specified port.
-    """
-    server = _SftpServer(('localhost', port))
-    try:
-        server.serve_forever()
-    except (SystemExit, KeyboardInterrupt):
-        server.server_close()
-
-
-def main():
+def main():  # pragma: no cover
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -313,8 +303,13 @@ def main():
     parser.add_argument('-p', '--port', required=False, default=DEFAULT_PORT, type=int)
 
     args = parser.parse_args()
-    startServer(port=args.port)
+    server = SftpServer(('localhost', args.port))
+
+    try:
+        server.serve_forever()
+    except (SystemExit, KeyboardInterrupt):
+        server.server_close()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main()

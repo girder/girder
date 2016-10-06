@@ -187,7 +187,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             self.assetstore = self.model('assetstore'). \
                 createFilesystemAssetstore(name='Test', root=assetstorePath)
 
-        addr = ':'.join(map(str, mockSmtp.address))
+        addr = ':'.join(map(str, mockSmtp.address or ('localhost', 25)))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         self.model('setting').set(SettingKey.PLUGINS_ENABLED, enabledPlugins)

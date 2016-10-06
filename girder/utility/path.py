@@ -20,7 +20,7 @@
 """This module contains utility methods for parsing girder path strings."""
 
 import re
-from girder.models.model_base import ValidationException
+from girder.models.model_base import AccessException, ValidationException
 from .model_importer import ModelImporter
 
 
@@ -176,7 +176,10 @@ def lookUpPath(path, user=None, test=False, filter=True):
         for token in pathArray[2:]:
             document, model = lookUpToken(token, model, document)
             ModelImporter.model(model).requireAccess(document, user)
-    except ValidationException:
+    except (ValidationException, AccessException):
+        # We should not distinguish the response between access and validation errors so that
+        # adversarial users cannot discover the existence of data they don't have access to by
+        # looking up a path.
         if test:
             return {
                 'model': None,
