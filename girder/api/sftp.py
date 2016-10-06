@@ -178,26 +178,6 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
     def lstat(self, path):
         return self.stat(path)
 
-    @_handleErrors
-    def mkdir(self, path, attrs):
-        """
-        Uncomment this implementation once we are ready to support write ops.
-        parent, dirname = os.path.split(path)
-        obj = lookUpPath(parent, filter=False, user=self.server.girderUser)
-        parentType, parent = obj['model'], obj['document']
-
-        if parentType in ('user', 'collection', 'folder'):
-            self.model(parentType).requireAccess(
-                parent, user=self.server.girderUser, level=AccessType.WRITE)
-            self.model('folder').createFolder(
-                parent, dirname, parentType=parentType, creator=self.server.girderUser,
-                reuseExisting=True)
-            return paramiko.SFTP_OK
-        else:
-            raise ValidationException('Invalid parent type %s.' % obj['model'])
-        """
-        return paramiko.SFTP_OP_UNSUPPORTED
-
 
 class _SftpRequestHandler(socketserver.BaseRequestHandler):
     timeout = 60

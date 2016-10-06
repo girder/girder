@@ -161,7 +161,8 @@ class SftpTestCase(base.TestCase):
         self.assertFalse(stat.S_ISREG(info.st_mode))
         self.assertEqual(info.st_mode & 0o777, 0o777)
 
-        info = sftpClient.stat('/user/regularuser/Private/test.txt/test.txt')
+        # lstat should also work
+        info = sftpClient.lstat('/user/regularuser/Private/test.txt/test.txt')
         self.assertFalse(stat.S_ISDIR(info.st_mode))
         self.assertTrue(stat.S_ISREG(info.st_mode))
         self.assertEqual(info.st_size, 11)
@@ -173,6 +174,13 @@ class SftpTestCase(base.TestCase):
         self.assertTrue(stat.S_ISREG(info.st_mode))
         self.assertEqual(info.st_size, 11)
         self.assertEqual(info.st_mode & 0o777, 0o777)
+
+        # Make sure we can stat the top-level entities
+        for path in ('/', '/user', '/collection'):
+            info = sftpClient.stat(path)
+            self.assertTrue(stat.S_ISDIR(info.st_mode))
+            self.assertFalse(stat.S_ISREG(info.st_mode))
+            self.assertEqual(info.st_mode & 0o777, 0o777)
 
         sftpClient.close()
         client.close()
