@@ -121,11 +121,13 @@ class SftpTestCase(base.TestCase):
         # Incorrect password should raise authentication error
         with self.assertRaises(paramiko.AuthenticationException):
             client.connect(
-                'localhost', TEST_PORT, username='admin', password='badpass', look_for_keys=False)
+                'localhost', TEST_PORT, username='admin', password='badpass', look_for_keys=False,
+                allow_agent=False)
 
         # Authenticate as admin
         client.connect(
-            'localhost', TEST_PORT, username='admin', password='passwd', look_for_keys=False)
+            'localhost', TEST_PORT, username='admin', password='passwd', look_for_keys=False,
+            allow_agent=False)
         sftpClient = client.open_sftp()
         self.assertEqual(sftpClient.listdir('/'), ['collection', 'user'])
 
@@ -181,7 +183,8 @@ class SftpTestCase(base.TestCase):
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         client.connect(
-            'localhost', TEST_PORT, username='anonymous', password='', look_for_keys=False)
+            'localhost', TEST_PORT, username='anonymous', password='', look_for_keys=False,
+            allow_agent=False)
         sftpClient = client.open_sftp()
 
         # Only public data should be visible
