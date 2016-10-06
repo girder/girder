@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
 import paramiko
 import six
 import stat
@@ -26,37 +27,9 @@ from girder import logger
 from girder.models.model_base import AccessException, ValidationException
 from girder.utility.path import lookUpPath, NotFoundException
 from girder.utility.model_importer import ModelImporter
-from six.moves import socketserver, StringIO
+from six.moves import socketserver
 
 DEFAULT_PORT = 8022
-DEFAULT_KEY = paramiko.RSAKey.from_private_key(StringIO("""-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEAwdH5tlaZu52adYvW57DcAFknzOKX8+/axDmQdTcg1HwEOnT2
-TMSFGciwUQMmya+0i23ZOUtZQutj8fb66szrBZ7qpIvSG6TRyxGuM6PkfAUcBCHO
-TGFzaJPnnvUXC8dlxoUIdBaUCmSblvj2q2CTNy53ybAmiiSpahjvBO16pvjbNn+i
-EGucSQn71OTMhoSOWtS/VcJC6JPd6kxSdl1EiESbOrjAdNDKMBnfYCkxPG4ulAqe
-y5jpfgQiUC0Q3CoWbj/ybAv73JsFndPcpvI8n5EsXeptuWI4CXSorYOuVwURLuzP
-z1PkI4ZsYnSnuQG/GReAZnwVDaVJ/uhYMMs1sQIDAQABAoIBADKOmguFBW7aCntU
-8cbX7Fsu5mHcTXS1ASSkO1lH+wlSHCw/bCvUKz/xiIRpRQnhCkBAdCQs0mjRS+3G
-1ea/cyKxNFWdnz3UvWCyCPWxb50mHAu74bssxFToF8fv+IX7CkJBW1YkuZMIcUlt
-QbKsa1o+hcKXb0YjkAl73YU0iQTaet7B1x1X0qkVPEWWURTg3z65TNI96t8p28dh
-4HgEoU0Jtfsfzb7u1H4/m3Q28J1S+cTkER/VIgLzMeYXr2MooIQc3QAMXATpXkhM
-y6u0LYh+kW1XD4ZnyzTp49BMf76rS8VhsYN6f+jLhJUf/5O+m8NFGuCq15TFyQAH
-vMBxPRECgYEA4+fxYuuOq+SilYpejD4EMwvrClixHOfTojlnAyUaJZSnyVp/Y4l+
-QmFmbNpfRKN1fv24e9f9CmA8nd5A3kxBjJFhzaaxbFG+jI47fqOu9NadXPHaxvyq
-BI2aHx4sqp/Z/ct/klht5hxD8UFMRFbaaLYAojKg1nL0g/88wwwN9LUCgYEA2bZh
-873OGT7sNXHin2rXD5XEYXqjLy51hed4ZdtJXFrKhg8ozWqaOZ79GXustdRanzTV
-zDeTweI0hg7adbKyBNeuQF8VSOK6ws2wPPCuUbQTVYaepqPuT+VhzAB1GVJ1uF/T
-YxgqXOvg9QwnZ4Fjlv3b/52R89bTP+Yr6GcQdo0CgYAvLQ38igIodtVo2xGjOhso
-bekjZSSUdTCLvhIixoVZDiKFPaRs+EMYfozzL2jVDnj95otPp3ALu8wQabdHzMUs
-0dNK/JxxbaJh+fc6yasnp10/phjBY//VnXIvytE4KIq5TGyF4KQvI960i+27n7bq
-QfJzoMNGYNlYkXcEcPRamQKBgQCVCYWElirAnZKWA6BgAYO3547ILGwJoIRTZmHF
-WJif4IdDvpzwAkoRqAUbrM5Oq1BeLI0vf9xmnbPXEdP7PpkfN4bSCkVH3+557NT4
-4spypBOYOM/iw9YgW6bXQHjpHMn5rZ/H9oMJmXAmUGupL6o9cwtnsTZ49lcnJypn
-riZXAQKBgQCgiJ/A11HX7fUgFzBB9no2Sy1hS3u1Ld35nZf7RDegVoEn/UdWdOxn
-H2T9t0EzIoSqkfPRrsqN8sv/TMIohS6frOpBojEvwUs5mxjVwswq/QgBSV2FqYck
-VeccLgZzTSMNzCDMbtM+zGG5WktzFojrMIhfD0SM3CB3jECF+Dfdtg==
------END RSA PRIVATE KEY-----
-"""))
 
 
 def _handleErrors(fun):
@@ -285,8 +258,16 @@ class SftpServer(socketserver.ThreadingTCPServer):
 
     allow_reuse_address = True
 
-    def __init__(self, address, hostKey=None):
-        self.hostKey = hostKey or DEFAULT_KEY
+    def __init__(self, address, hostKey):
+        """
+        Creates but does not start a Girder SFTP server.
+
+        :param address: Hostname and port for the server to bind to.
+        :type address: (str, int) tuple
+        :param hostKey: Private key for the server to use.
+        :type hostKey: paramiko.RSAKey
+        """
+        self.hostKey = hostKey
         paramiko.Transport.load_server_moduli()
 
         socketserver.TCPServer.__init__(self, address, _SftpRequestHandler)
@@ -300,10 +281,16 @@ def main():  # pragma: no cover
 
     parser = argparse.ArgumentParser(
         prog='girder-sftpd', description='Run the Girder SFTP service.')
+    parser.add_argument(
+        '-i', '--identity-file', required=False, help='path to identity (private key) file')
     parser.add_argument('-p', '--port', required=False, default=DEFAULT_PORT, type=int)
 
     args = parser.parse_args()
-    server = SftpServer(('localhost', args.port))
+
+    keyFile = args.identity_file or os.path.expanduser(os.path.join('~', '.ssh', 'id_rsa'))
+    hostKey = paramiko.RSAKey.from_private_key_file(keyFile)
+
+    server = SftpServer(('localhost', args.port), hostKey)
 
     try:
         server.serve_forever()

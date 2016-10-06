@@ -24,14 +24,43 @@ import threading
 
 from .. import base
 from girder.api import sftp
+from six.moves import StringIO
 
 server = None
 TEST_PORT = 10551
+TEST_KEY = paramiko.RSAKey.from_private_key(StringIO("""-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAwdH5tlaZu52adYvW57DcAFknzOKX8+/axDmQdTcg1HwEOnT2
+TMSFGciwUQMmya+0i23ZOUtZQutj8fb66szrBZ7qpIvSG6TRyxGuM6PkfAUcBCHO
+TGFzaJPnnvUXC8dlxoUIdBaUCmSblvj2q2CTNy53ybAmiiSpahjvBO16pvjbNn+i
+EGucSQn71OTMhoSOWtS/VcJC6JPd6kxSdl1EiESbOrjAdNDKMBnfYCkxPG4ulAqe
+y5jpfgQiUC0Q3CoWbj/ybAv73JsFndPcpvI8n5EsXeptuWI4CXSorYOuVwURLuzP
+z1PkI4ZsYnSnuQG/GReAZnwVDaVJ/uhYMMs1sQIDAQABAoIBADKOmguFBW7aCntU
+8cbX7Fsu5mHcTXS1ASSkO1lH+wlSHCw/bCvUKz/xiIRpRQnhCkBAdCQs0mjRS+3G
+1ea/cyKxNFWdnz3UvWCyCPWxb50mHAu74bssxFToF8fv+IX7CkJBW1YkuZMIcUlt
+QbKsa1o+hcKXb0YjkAl73YU0iQTaet7B1x1X0qkVPEWWURTg3z65TNI96t8p28dh
+4HgEoU0Jtfsfzb7u1H4/m3Q28J1S+cTkER/VIgLzMeYXr2MooIQc3QAMXATpXkhM
+y6u0LYh+kW1XD4ZnyzTp49BMf76rS8VhsYN6f+jLhJUf/5O+m8NFGuCq15TFyQAH
+vMBxPRECgYEA4+fxYuuOq+SilYpejD4EMwvrClixHOfTojlnAyUaJZSnyVp/Y4l+
+QmFmbNpfRKN1fv24e9f9CmA8nd5A3kxBjJFhzaaxbFG+jI47fqOu9NadXPHaxvyq
+BI2aHx4sqp/Z/ct/klht5hxD8UFMRFbaaLYAojKg1nL0g/88wwwN9LUCgYEA2bZh
+873OGT7sNXHin2rXD5XEYXqjLy51hed4ZdtJXFrKhg8ozWqaOZ79GXustdRanzTV
+zDeTweI0hg7adbKyBNeuQF8VSOK6ws2wPPCuUbQTVYaepqPuT+VhzAB1GVJ1uF/T
+YxgqXOvg9QwnZ4Fjlv3b/52R89bTP+Yr6GcQdo0CgYAvLQ38igIodtVo2xGjOhso
+bekjZSSUdTCLvhIixoVZDiKFPaRs+EMYfozzL2jVDnj95otPp3ALu8wQabdHzMUs
+0dNK/JxxbaJh+fc6yasnp10/phjBY//VnXIvytE4KIq5TGyF4KQvI960i+27n7bq
+QfJzoMNGYNlYkXcEcPRamQKBgQCVCYWElirAnZKWA6BgAYO3547ILGwJoIRTZmHF
+WJif4IdDvpzwAkoRqAUbrM5Oq1BeLI0vf9xmnbPXEdP7PpkfN4bSCkVH3+557NT4
+4spypBOYOM/iw9YgW6bXQHjpHMn5rZ/H9oMJmXAmUGupL6o9cwtnsTZ49lcnJypn
+riZXAQKBgQCgiJ/A11HX7fUgFzBB9no2Sy1hS3u1Ld35nZf7RDegVoEn/UdWdOxn
+H2T9t0EzIoSqkfPRrsqN8sv/TMIohS6frOpBojEvwUs5mxjVwswq/QgBSV2FqYck
+VeccLgZzTSMNzCDMbtM+zGG5WktzFojrMIhfD0SM3CB3jECF+Dfdtg==
+-----END RSA PRIVATE KEY-----
+"""))
 
 
 def setUpModule():
     global server
-    server = sftp.SftpServer(('localhost', TEST_PORT))
+    server = sftp.SftpServer(('localhost', TEST_PORT), TEST_KEY)
     serverThread = threading.Thread(target=server.serve_forever)
     serverThread.daemon = True
     serverThread.start()
@@ -39,6 +68,7 @@ def setUpModule():
 
 def tearDownModule():
     if server:
+        server.shutdown()
         server.server_close()
 
 
