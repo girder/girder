@@ -19,6 +19,7 @@
 
 import cherrypy
 import datetime
+import requests
 import six
 
 from .model_base import Model, ValidationException
@@ -159,6 +160,14 @@ class File(acl_mixin.AccessControlMixin, Model):
             'name': name,
             'linkUrl': url
         }
+
+        try:
+            r = requests.head(url)
+            file['size'] = r.headers['Content-Length']
+        except KeyError:
+            pass  # No Content-Length in headers
+        except requests.exceptions.RequestException:
+            pass  # Maybe do something about the fact that url is broken
 
         try:
             file = self.save(file)

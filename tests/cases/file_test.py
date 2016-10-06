@@ -921,6 +921,7 @@ class FileTestCase(base.TestCase):
         self.assertEqual(file['assetstoreId'], None)
         self.assertEqual(file['name'], 'My Link Item')
         self.assertEqual(file['linkUrl'], params['linkUrl'].strip())
+        fileSize = file['size']
 
         # Attempt to download the link file, make sure we are redirected
         resp = self.request(
@@ -928,6 +929,7 @@ class FileTestCase(base.TestCase):
             isJson=False, user=self.user)
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'], params['linkUrl'].strip())
+        self.assertEqual(resp.headers['Content-Length'], fileSize)
 
         # Download containing folder as zip file
         resp = self.request(
