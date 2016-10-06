@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+from __future__ import print_function
+
 import os
 import paramiko
 import six
@@ -265,10 +267,11 @@ def _main():  # pragma: no cover
     try:
         hostKey = paramiko.RSAKey.from_private_key_file(keyFile)
     except paramiko.ssh_exception.PasswordRequiredException:
-        print('Error: encrypted key files are not supported (%s).' % keyFile)
+        print('Error: encrypted key files are not supported (%s).' % keyFile, file=sys.stderr)
         sys.exit(1)
 
     server = SftpServer(('localhost', args.port), hostKey)
+    print('Girder SFTP service listening on port %d.' % args.port)
 
     try:
         server.serve_forever()
