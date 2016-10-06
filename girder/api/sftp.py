@@ -56,6 +56,29 @@ def _getFileSize(file):
         return len(file['linkUrl'])
 
 
+def _stat(doc, model):
+    info = paramiko.SFTPAttributes()
+
+    if model == 'user':
+        info.filename = doc['login'].encode('utf8')
+    else:
+        info.filename = doc['name'].encode('utf8')
+
+    if 'updated' in doc:
+        info.st_mtime = time.mktime(doc['updated'].timetuple())
+    elif 'created' in doc:
+        info.st_mtime = time.mktime(doc['created'].timetuple())
+
+    if model == 'file':
+        info.st_mode = 0o777 | stat.S_IFREG
+        info.st_size = _getFileSize(doc)
+    else:
+        info.st_mode = 0o777 | stat.S_IFDIR
+        info.st_size = 0
+
+    return info
+
+
 class _FileHandle(paramiko.SFTPHandle, ModelImporter):
     def __init__(self, file):
         """
@@ -74,13 +97,7 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
         return b''.join(stream())
 
     def stat(self):
-        info = paramiko.SFTPAttributes()
-        info.filename = self.file['name'].encode('utf8')
-        info.st_mtime = time.mktime(self.file['created'].timetuple())
-        info.st_mode = 0o777 | stat.S_IFREG
-        info.st_size = _getFileSize(self.file)
-
-        return info
+        return _stat(self.file, 'file')
 
     def close(self):
         return paramiko.SFTP_OK
@@ -96,29 +113,14 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
         if model in ('collection', 'user', 'folder'):
             for folder in self.model('folder').childFolders(
                     parent=document, parentType=model, user=self.server.girderUser):
-                info = paramiko.SFTPAttributes()
-                info.st_size = 0
-                info.st_mode = 0o777 | stat.S_IFDIR
-                info.st_mtime = time.mktime(folder['updated'].timetuple())
-                info.filename = folder['name'].encode('utf8')
-                entries.append(info)
+                entries.append(_stat(folder, 'folder'))
 
         if model == 'folder':
             for item in self.model('folder').childItems(document):
-                info = paramiko.SFTPAttributes()
-                info.st_size = 0
-                info.st_mode = 0o777 | stat.S_IFDIR
-                info.st_mtime = time.mktime(item['updated'].timetuple())
-                info.filename = item['name'].encode('utf8')
-                entries.append(info)
+                entries.append(_stat(item, 'item'))
         elif model == 'item':
             for file in self.model('item').childFiles(document):
-                info = paramiko.SFTPAttributes()
-                info.st_mtime = time.mktime(file['created'].timetuple())
-                info.st_mode = 0o777 | stat.S_IFREG
-                info.st_size = _getFileSize(file)
-                info.filename = file['name'].encode('utf8')
-                entries.append(info)
+                entries.append(_stat(file, 'file'))
 
         return entries
 
@@ -134,20 +136,10 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
                 info.st_mode = 0o777 | stat.S_IFDIR
                 info.filename = model.encode('utf8')
                 entries.append(info)
-        elif path == '/user':
-            for user in self.model('user').list(user=self.server.girderUser):
-                info = paramiko.SFTPAttributes()
-                info.st_size = 0
-                info.st_mode = 0o777 | stat.S_IFDIR
-                info.filename = user['login'].encode('utf8')
-                entries.append(info)
-        elif path == '/collection':
-            for collection in self.model('collection').list(user=self.server.girderUser):
-                info = paramiko.SFTPAttributes()
-                info.st_size = 0
-                info.st_mode = 0o777 | stat.S_IFDIR
-                info.filename = collection['name'].encode('utf8')
-                entries.append(info)
+        elif path in ('/user', '/collection'):
+            model = path[1:]
+            for doc in self.model(model).list(user=self.server.girderUser):
+                entries.append(_stat(doc, model))
         else:
             obj = lookUpPath(path, filter=False, user=self.server.girderUser)
             return self._list(obj['model'], obj['document'])
@@ -166,24 +158,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
     @_handleErrors
     def stat(self, path):
         obj = lookUpPath(path, filter=False, user=self.server.girderUser)
-
-        doc = obj['document']
-        info = paramiko.SFTPAttributes()
-        info.filename = doc['name'].encode('utf8')
-
-        if 'updated' in doc:
-            info.st_mtime = time.mktime(doc['updated'].timetuple())
-        elif 'created' in doc:
-            info.st_mtime = time.mktime(doc['created'].timetuple())
-
-        if obj['model'] == 'file':
-            info.st_mode = 0o777 | stat.S_IFREG
-            info.st_size = _getFileSize(doc)
-        else:
-            info.st_mode = 0o777 | stat.S_IFDIR
-            info.st_size = 0
-
-        return info
+        return _stat(obj['document'], obj['model'])
 
     def lstat(self, path):
         return self.stat(path)
