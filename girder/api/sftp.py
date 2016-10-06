@@ -260,6 +260,7 @@ def _main():  # pragma: no cover
     parser.add_argument(
         '-i', '--identity-file', required=False, help='path to identity (private key) file')
     parser.add_argument('-p', '--port', required=False, default=DEFAULT_PORT, type=int)
+    parser.add_argument('-H', '--host', required=False, default='localhost')
 
     args = parser.parse_args()
 
@@ -270,8 +271,8 @@ def _main():  # pragma: no cover
         print('Error: encrypted key files are not supported (%s).' % keyFile, file=sys.stderr)
         sys.exit(1)
 
-    server = SftpServer(('localhost', args.port), hostKey)
-    print('Girder SFTP service listening on port %d.' % args.port)
+    server = SftpServer((args.host, args.port), hostKey)
+    print('Girder SFTP service listening on %s:%d.' % (args.host, args.port))
 
     try:
         server.serve_forever()
