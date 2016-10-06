@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import httmock
 import io
 import json
 import mock
@@ -921,7 +922,6 @@ class FileTestCase(base.TestCase):
         self.assertEqual(file['assetstoreId'], None)
         self.assertEqual(file['name'], 'My Link Item')
         self.assertEqual(file['linkUrl'], params['linkUrl'].strip())
-        fileSize = file['size']
 
         # Attempt to download the link file, make sure we are redirected
         resp = self.request(
@@ -929,7 +929,6 @@ class FileTestCase(base.TestCase):
             isJson=False, user=self.user)
         self.assertStatus(resp, 303)
         self.assertEqual(resp.headers['Location'], params['linkUrl'].strip())
-        self.assertEqual(resp.headers['Content-Length'], fileSize)
 
         # Download containing folder as zip file
         resp = self.request(
@@ -943,6 +942,21 @@ class FileTestCase(base.TestCase):
         # The file should just contain the URL of the link
         extracted = zip.read('Private/My Link Item').decode('utf8')
         self.assertEqual(extracted, params['linkUrl'].strip())
+
+        @httmock.urlmatch(netloc=r'(.*\.)?google\.com$')
+        def google_mock(url, request):
+            headers = {'content-type': 'application/json',
+                       'content-length': '20'}
+            content = {'message': 'Mock google call'}
+            return httmock.response(content=content, headers=headers)
+
+        params['name'] = 'File with size'
+        with httmock.HTTMock(google_mock):
+            resp = self.request(
+                path='/file', method='POST', user=self.user, params=params)
+            self.assertStatusOk(resp)
+            file = resp.json
+            self.assertEqual(file['size'], 20)
 
     def tearDown(self):
         if self.testForFinalizeUpload:

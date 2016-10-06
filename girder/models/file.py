@@ -162,10 +162,10 @@ class File(acl_mixin.AccessControlMixin, Model):
         }
 
         try:
-            r = requests.head(url)
-            file['size'] = r.headers['Content-Length']
-        except KeyError:
-            pass  # No Content-Length in headers
+            r = requests.head(url.strip())
+            file['size'] = int(r.headers['Content-Length'])
+        except (KeyError, ValueError, TypeError):
+            pass  # No Content-Length in headers, or Content-Length is not int
         except requests.exceptions.RequestException:
             pass  # Maybe do something about the fact that url is broken
 

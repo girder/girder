@@ -17,9 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
+import httmock
 import io
 import json
+import os
 import shutil
 import six
 import zipfile
@@ -576,6 +577,14 @@ class ItemTestCase(base.TestCase):
                      body=json.dumps(metadata), type='application/json')
         self._testUploadFileToItem(origItem, 'file_1', self.users[0], 'foobar')
         self._testUploadFileToItem(origItem, 'file_2', self.users[0], 'foobz')
+
+        @httmock.urlmatch(netloc=r'(.*\.)?google\.com$')
+        def google_mock(url, request):
+            headers = {'content-type': 'application/json',
+                       'content-length': '20'}
+            content = {'message': 'Mock google call'}
+            return httmock.response(content=content, headers=headers)
+
         # Also upload a link
         params = {
             'parentType': 'item',
@@ -583,8 +592,9 @@ class ItemTestCase(base.TestCase):
             'name': 'link_file',
             'linkUrl': 'http://www.google.com'
         }
-        resp = self.request(path='/file', method='POST', user=self.users[0],
-                            params=params)
+        with httmock.HTTMock(google_mock):
+            resp = self.request(path='/file', method='POST', user=self.users[0],
+                                params=params)
 
         self.assertStatusOk(resp)
         # Copy to a new item.  It will be in the same folder, but we want a
@@ -596,7 +606,7 @@ class ItemTestCase(base.TestCase):
                             method='POST', user=self.users[0], params=params)
         self.assertStatusOk(resp)
         # Make sure size was returned correctly
-        self.assertEqual(resp.json['size'], 11)
+        self.assertEqual(resp.json['size'], 31)
         # Now ask for the new item explicitly and check its metadata
         self.request(path='/item/%s' % resp.json['_id'],
                      user=self.users[0], type='application/json')
