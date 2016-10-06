@@ -276,7 +276,11 @@ class SftpServer(socketserver.ThreadingTCPServer):
         pass
 
 
-def main():  # pragma: no cover
+def _main():  # pragma: no cover
+    """
+    This is the entrypoint of the girder-sftpd program. It should not be
+    called from python code.
+    """
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -299,4 +303,4 @@ def main():  # pragma: no cover
 
 
 if __name__ == '__main__':  # pragma: no cover
-    main()
+    _main()

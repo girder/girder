@@ -151,7 +151,7 @@ setup(
         'console_scripts': [
             'girder-server = girder.__main__:main',
             'girder-install = girder.utility.install:main',
-            'girder-sftpd = girder.api.sftp:main'
+            'girder-sftpd = girder.api.sftp:_main'
         ]
     }
 )
