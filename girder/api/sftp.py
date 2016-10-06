@@ -21,6 +21,7 @@ import os
 import paramiko
 import six
 import stat
+import sys
 import time
 
 from girder import logger
@@ -157,6 +158,20 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
 
     @_handleErrors
     def stat(self, path):
+        path = path.rstrip('/')
+        if path == '':
+            info = paramiko.SFTPAttributes()
+            info.st_size = 0
+            info.st_mode = 0o777 | stat.S_IFDIR
+            info.filename = '/'
+            return info
+        elif path in ('/user', '/collection'):
+            info = paramiko.SFTPAttributes()
+            info.st_size = 0
+            info.st_mode = 0o777 | stat.S_IFDIR
+            info.filename = path[1:]
+            return info
+
         obj = lookUpPath(path, filter=False, user=self.server.girderUser)
         return _stat(obj['document'], obj['model'])
 
@@ -267,7 +282,11 @@ def _main():  # pragma: no cover
     args = parser.parse_args()
 
     keyFile = args.identity_file or os.path.expanduser(os.path.join('~', '.ssh', 'id_rsa'))
-    hostKey = paramiko.RSAKey.from_private_key_file(keyFile)
+    try:
+        hostKey = paramiko.RSAKey.from_private_key_file(keyFile)
+    except paramiko.ssh_exception.PasswordRequiredException:
+        print('Error: encrypted key files are not supported (%s).' % keyFile)
+        sys.exit(1)
 
     server = SftpServer(('localhost', args.port), hostKey)
 
