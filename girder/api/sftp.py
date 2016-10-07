@@ -33,6 +33,7 @@ from girder.utility.model_importer import ModelImporter
 from six.moves import socketserver
 
 DEFAULT_PORT = 8022
+MAX_BUF_LEN = 10 * 1024 * 1024
 
 
 def _handleErrors(fun):
@@ -48,6 +49,7 @@ def _handleErrors(fun):
             return paramiko.SFTP_PERMISSION_DENIED
         except Exception:
             logger.exception('SFTP server internal error')
+            return paramiko.SFTP_FAILURE
 
     return wrapped
 
@@ -95,6 +97,10 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
         self.file = file
 
     def read(self, offset, length):
+        if length > MAX_BUF_LEN:
+            raise IOError(
+                'Requested chunk length (%d) is larger than the maximum allowed.' % length)
+
         stream = self.model('file').download(
             self.file, headers=False, offset=offset, endByte=offset + length)
         return b''.join(stream())
