@@ -134,14 +134,11 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
         raise Exception('npm executable not found')
 
     wd = wd or constants.PACKAGE_DIR
-    commands = []
-
-    commands.append((npm, 'install', '--unsafe-perm') if dev
-                    else (npm, 'install', '--production', '--unsafe-perm'))
-
     env = 'dev' if dev else 'prod'
-    commands.append([npm, 'run', 'build', '--', '--env=%s' % env] + _getPluginBuildArgs(
-        allPlugins, plugins))
+    commands = [
+        (npm, 'install', '--unsafe-perm'),
+        [npm, 'run', 'build', '--', '--env=%s' % env] + _getPluginBuildArgs(allPlugins, plugins)
+    ]
 
     for cmd in commands:
         if progress and progress.on:
