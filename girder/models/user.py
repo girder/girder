@@ -57,19 +57,6 @@ class User(AccessControlledModel):
                     CoreEventHandler.USER_DEFAULT_FOLDERS,
                     self._addDefaultFolders)
 
-    def filter(self, *args, **kwargs):
-        """
-        Preserved override for kwarg backwards compatibility. Prior to the
-        refactor for centralizing model filtering, this method's first formal
-        parameter was called "folder", whereas the centralized version's first
-        parameter is called "doc". This override simply detects someone using
-        the old kwarg and converts it to the new form.
-        """
-        if 'currentUser' in kwargs and 'user' in kwargs:
-            args = [kwargs.pop('user')] + list(args)
-            kwargs['user'] = kwargs.pop('currentUser')
-        return super(User, self).filter(*args, **kwargs)
-
     def validate(self, doc):
         """
         Validate the user every time it is stored in the database.

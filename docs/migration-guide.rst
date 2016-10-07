@@ -24,6 +24,10 @@ Server changes
   folder models has been removed.
 * The unused ``user`` parameter of the ``isOrphan`` methods in the file, item, and folder models
   has been removed.
+* Several core models supported an older, nonstandard kwarg format in their ``filter`` method.
+  This is no longer supported; the argument representing the document to filter is now always
+  called ``doc`` rather than using the model name for the kwarg. If you were using positional args
+  or using the ``filterModel`` decorator, this change will not affect your code.
 * Multiple configurable plugin loading paths are no longer supported. Use
   ``girder-install plugin <your_plugin_path>`` to install plugins that are not already in the
   plugins directory. Pass ``-s`` to that command to symlink instead of copying the directory.
@@ -136,3 +140,5 @@ Built-in plugin changes
 
 * **Jobs**: The deprecated ``jobs.filter`` event was removed. Use the standard ``exposeFields`` and
   ``hideFields`` methods on the job model instead.
+* **OAuth**: For legacy backward compatibility, the Google provider was previously enabled by
+  default. This is no longer the case.

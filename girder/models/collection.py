@@ -43,18 +43,6 @@ class Collection(AccessControlledModel):
             '_id', 'name', 'description', 'public', 'created', 'updated',
             'size'))
 
-    def filter(self, *args, **kwargs):
-        """
-        Preserved override for kwarg backwards compatibility. Prior to the
-        refactor for centralizing model filtering, this method's first formal
-        parameter was called "collection", whereas the centralized version's
-        first parameter is called "doc". This override simply detects someone
-        using the old kwarg and converts it to the new form.
-        """
-        if 'collection' in kwargs:
-            args = [kwargs.pop('collection')] + list(args)
-        return super(Collection, self).filter(*args, **kwargs)
-
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         if doc['description']:
