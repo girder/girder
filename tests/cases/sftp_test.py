@@ -155,6 +155,13 @@ class SftpTestCase(base.TestCase):
         self.assertEqual(file.read(2), b'he')
         self.assertEqual(file.read(), b'llo world')
 
+        # Make sure we enforce max buffer length
+        tmp, sftp.MAX_BUF_LEN = sftp.MAX_BUF_LEN, 2
+        file = sftpClient.file('/user/regularuser/Private/test.txt/test.txt', 'r', bufsize=4)
+        with self.assertRaises(IOError):
+            file.read()
+        sftp.MAX_BUF_LEN = tmp
+
         # Test stat capability
         info = sftpClient.stat('/user/regularuser/Private')
         self.assertTrue(stat.S_ISDIR(info.st_mode))

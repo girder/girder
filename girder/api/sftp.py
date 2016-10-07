@@ -49,6 +49,7 @@ def _handleErrors(fun):
             return paramiko.SFTP_PERMISSION_DENIED
         except Exception:
             logger.exception('SFTP server internal error')
+            return paramiko.SFTP_FAILURE
 
     return wrapped
 
@@ -97,7 +98,8 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
 
     def read(self, offset, length):
         if length > MAX_BUF_LEN:
-            raise IOError('Requested chunk length is larger than the maximum allowed.')
+            raise IOError(
+                'Requested chunk length (%d) is larger than the maximum allowed.' % length)
 
         stream = self.model('file').download(
             self.file, headers=False, offset=offset, endByte=offset + length)
