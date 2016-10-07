@@ -76,6 +76,4 @@ def load(info):
 
     info['apiRoot'].oauth = rest.OAuth()
 
-    # Make Google on by default for backward compatibility. To turn it off,
-    # users will need to hit one of the "Save" buttons on the config page.
-    SettingDefault.defaults[constants.PluginSettings.PROVIDERS_ENABLED] = ['google']
+    SettingDefault.defaults[constants.PluginSettings.PROVIDERS_ENABLED] = []
