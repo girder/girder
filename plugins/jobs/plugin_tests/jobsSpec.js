@@ -4,6 +4,10 @@ girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/jobs/plugin.min.js'
 ]);
 
+girderTest.importStylesheet(
+    '/static/built/plugins/jobs/plugin.min.css'
+);
+
 girder.events.trigger('g:appload.before');
 var app = new girder.views.App({
     el: 'body',

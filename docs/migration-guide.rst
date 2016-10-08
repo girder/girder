@@ -24,6 +24,10 @@ Server changes
   folder models has been removed.
 * The unused ``user`` parameter of the ``isOrphan`` methods in the file, item, and folder models
   has been removed.
+* Several core models supported an older, nonstandard kwarg format in their ``filter`` method.
+  This is no longer supported; the argument representing the document to filter is now always
+  called ``doc`` rather than using the model name for the kwarg. If you were using positional args
+  or using the ``filterModel`` decorator, this change will not affect your code.
 * Multiple configurable plugin loading paths are no longer supported. Use
   ``girder-install plugin <your_plugin_path>`` to install plugins that are not already in the
   plugins directory. Pass ``-s`` to that command to symlink instead of copying the directory.
@@ -42,10 +46,22 @@ Server changes
 Web client changes
 ++++++++++++++++++
 
-* Build system overhaul: Girder web client code is now built with `Webpack <https://webpack.github.io/>`_
-  instead of uglify, and we use the `Babel <https://babeljs.io/>`_ loader to enable ES2015 language support. The
-  most important result of this change is that downstream plugins can now build their own targets
-  based on the Girder core library in a modular way, by importing specific components.
+* In version 1.x, running ``npm install`` would install our npm dependencies, as well as run the
+  web client build process afterwords. That is no longer the case; ``npm install`` now only installs
+  the dependencies, and the build is run with ``npm run build``.
+
+    * The old web client build process used to build *all available* plugins in the plugin directory.
+      Now, running ``npm run build`` will *only build the core code*. You can pass a set of plugins
+      to additionally build by passing them on the command like, e.g. ``npm run build -- --plugins=x,y,z``.
+    * The ``grunt watch`` command has been deprecated in favor of ``npm run watch``. This also only
+      watches the core code by default, and if you wish to also include other plugins, you should
+      pass them in the same way, e.g. ``npm run watch -- --plugins=x,y,z``.
+    * The ``girder-install web`` command is now the recommended way to build web client code. It
+      builds all *enabled* plugins in addition to the core code. The ability to rebuild the web
+      client code for the core and all enabled plugins has been exposed via the REST API and the
+      admin console of the core web client. The recommended process for administrators is to turn
+      on all desired plugins via the switches, click the **Rebuild web code** button, and once that
+      finishes, click the button to restart the server.
 * **Jade** |ra| **Pug** rename: Due to trademark issues, our upstream HTML templating engine was renamed from
   jade to pug. In addition, this rename coincides with a major version bump in the language which comes
   with notable breaking changes.
@@ -59,6 +75,35 @@ Web client changes
         * ``.g-some-element(cid="#{obj.cid}")`` |ra| ``.g-some-element(cid=obj.cid)``
     * Full list of breaking changes are listed `here <https://github.com/pugjs/pug/issues/2305>`_, though
       most of the others are relatively obscure.
+* Testing specs no longer need to manually import all of the source JS files under test. We now have
+  better source mapping in our testing infrastructure, so it's only necessary to import the built
+  target for your plugin, e.g.
+
+    * 1.x:
+
+      .. code-block:: javascript
+
+        girderTest.addCoveredScripts([
+            '/static/built/plugins/jobs/templates.js',
+            '/plugins/jobs/web_client/js/misc.js',
+            '/plugins/jobs/web_client/js/views/JobDetailsWidget.js',
+            '/plugins/jobs/web_client/js/views/JobListWidget.js'
+        ]);
+
+    * 2.x:
+
+      .. code-block:: javascript
+
+        girderTest.addCoveredScripts([
+            '/clients/web/static/built/plugins/jobs/plugin.min.js'
+        ]);
+
+* **Build system overhaul**: Girder web client code is now built with `Webpack <https://webpack.github.io/>`_
+  instead of uglify, and we use the `Babel <https://babeljs.io/>`_ loader to enable ES2015 language support.
+  The most important result of this change is that plugins can now build their own targets
+  based on the Girder core library in a modular way, by importing specific components.
+  See the :ref:`plugin development guide<client-side-plugins>` for a comprehensive guide on
+  developing web-client plugins in the new infrastructure.
 
 Python client changes
 +++++++++++++++++++++
@@ -95,3 +140,5 @@ Built-in plugin changes
 
 * **Jobs**: The deprecated ``jobs.filter`` event was removed. Use the standard ``exposeFields`` and
   ``hideFields`` methods on the job model instead.
+* **OAuth**: For legacy backward compatibility, the Google provider was previously enabled by
+  default. This is no longer the case.

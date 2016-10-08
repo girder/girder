@@ -62,7 +62,8 @@
     }
 
     if (typeof ga !== 'undefined') {
-      ga('send', 'pageview', gaFragment);
+      ga('set', 'page', gaFragment);
+      ga('send', 'pageview');
     }
     return matched;
   };

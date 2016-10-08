@@ -59,14 +59,16 @@ Upload a file
 ^^^^^^^^^^^^^
 
 If you are using the Girder javascript client library, you can simply call the ``upload``
-method of the ``girder.models.FileModel``. The first argument is the parent model
+method of the ``girder/models/FileModel``. The first argument is the parent model
 object (an ``ItemModel`` or ``FolderModel`` instance) to upload into, and the second
 is a browser ``File`` object that was selected via a file input element. You can
 bind to several events of that model, as in the example below.
 
 .. code-block:: javascript
 
-    var fileModel = new girder.models.FileModel();
+    import FileModel from 'girder/models/FileModel';
+
+    var fileModel = new FileModel();
     fileModel.on('g:upload.complete', function () {
         // Called when the upload finishes
     }).on('g:upload.chunkSent', function (info) {
@@ -81,7 +83,7 @@ bind to several events of that model, as in the example below.
     fileModel.upload(parentFolder, fileObject);
 
 If you don't feel like making your own upload interface, you can simply use
-the ``girder.views.UploadWidget`` to provide a nice GUI interface for uploading.
+the ``girder/views/widgets/UploadWidget`` to provide a nice GUI interface for uploading.
 It will prompt the user to drag and drop or browse for files, and then shows
 a current and overall progress bar and also provides controls for resuming a
 failed upload.
@@ -103,7 +105,9 @@ by passing in options like so:
 
 .. code-block:: javascript
 
-    new girder.views.UploadWidget({
+    import UploadWidget from 'girder/views/widgets/UploadWidget';
+
+    new UploadWidget({
         option: value,
         ...
     });

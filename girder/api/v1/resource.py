@@ -151,95 +151,6 @@ class Resource(BaseResource):
             raise RestException('Invalid resources format.')
         return model
 
-    def _lookUpToken(self, token, parentType, parent):
-        """
-        Find a particular child resource by name or throw an exception.
-
-        :param token: the name of the child resource to find
-        :param parentType: the type of the parent to search
-        :param parent: the parent resource
-        :returns: the child resource
-        """
-
-        seekFolder = (parentType in ('user', 'collection', 'folder'))
-        seekItem = (parentType == 'folder')
-        seekFile = (parentType == 'item')
-
-        # (model name, mask, search filter)
-        searchTable = (
-            ('folder', seekFolder, {'name': token,
-                                    'parentId': parent['_id'],
-                                    'parentCollection': parentType}),
-            ('item', seekItem, {'name': token, 'folderId': parent['_id']}),
-            ('file', seekFile, {'name': token, 'itemId': parent['_id']}),
-        )
-
-        for candidateModel, mask, filterObject in searchTable:
-            if not mask:
-                continue
-
-            candidateChild = self.model(candidateModel).findOne(filterObject)
-            if candidateChild is not None:
-                return candidateChild, candidateModel
-
-        # if no folder, item, or file matches, give up
-        raise RestException('Child resource not found: %s(%s)->%s' % (
-            parentType, parent.get('name', parent.get('_id')), token))
-
-    def _lookUpPath(self, path, user, test=False):
-        """
-        Look up a resource in the data hierarchy by path.
-
-        :param path: path of the resource
-        :param user: user with correct privileges to access path
-        :param test: defaults to false, when set to true
-            will return None instead of throwing exception when
-            path doesn't exist
-        """
-        path = path.lstrip('/')
-        pathArray = path_util.split(path)
-        model = pathArray[0]
-
-        parent = None
-        if model == 'user':
-            username = pathArray[1]
-            parent = self.model('user').findOne({'login': username})
-
-            if parent is None:
-                if test:
-                    return None
-                else:
-                    raise RestException('User not found: %s' % username)
-
-        elif model == 'collection':
-            collectionName = pathArray[1]
-            parent = self.model('collection').findOne({'name': collectionName})
-
-            if parent is None:
-                if test:
-                    return None
-                else:
-                    raise RestException(
-                        'Collection not found: %s' % collectionName)
-
-        else:
-            raise RestException('Invalid path format')
-
-        try:
-            document = parent
-            self.model(model).requireAccess(document, user)
-            for token in pathArray[2:]:
-                document, model = self._lookUpToken(token, model, document)
-                self.model(model).requireAccess(document, user)
-        except RestException:
-            if test:
-                return None
-            else:
-                raise RestException('Path not found: %s' % path)
-
-        result = self.model(model).filter(document, user)
-        return result
-
     @access.public(scope=TokenScope.DATA_READ)
     @describeRoute(
         Description('Look up a resource in the data hierarchy by path.')
@@ -259,7 +170,7 @@ class Resource(BaseResource):
     def lookup(self, params):
         self.requireParams('path', params)
         test = self.boolParam('test', params, default=False)
-        return self._lookUpPath(params['path'], self.getCurrentUser(), test)
+        return path_util.lookUpPath(params['path'], self.getCurrentUser(), test)['document']
 
     def _getResourceName(self, type, doc):
         if type == 'user':
@@ -267,9 +178,7 @@ class Resource(BaseResource):
         elif type in ('file', 'item', 'folder', 'user', 'collection'):
             return doc['name']
         else:
-            raise RestException(
-                'Invalid resource type.'
-            )
+            raise RestException('Invalid resource type.')
 
     def _getResourceParent(self, type, doc):
         if type == 'file':

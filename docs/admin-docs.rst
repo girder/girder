@@ -9,3 +9,4 @@ Administrator Documentation
    deploy
    configuration
    provisioning
+   sftp

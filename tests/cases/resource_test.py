@@ -421,7 +421,7 @@ class ResourceTestCase(base.TestCase):
         resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
                             params={'path': '/user/goodlogin/Private'})
-        self.assertStatus(resp, 403)
+        self.assertStatus(resp, 400)
 
         # test subfolders
         resp = self.request(path='/resource/lookup',
