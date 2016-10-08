@@ -4,6 +4,7 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 import events from 'girder/events';
 import { restRequest, cancelRestRequests } from 'girder/rest';
+import { restartServerPrompt } from 'girder/server';
 
 import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.pug';
 
@@ -61,7 +62,7 @@ var SystemConfigurationView = View.extend({
         'click .g-edit-collection-create-policy': function () {
             this.collectionCreateAccessWidget.render();
         },
-        'click #g-restart-server': girder.restartServerPrompt
+        'click #g-restart-server': restartServerPrompt
     },
 
     initialize: function () {

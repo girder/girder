@@ -214,10 +214,7 @@ def setup(test=False, plugins=None, curConfig=None):
 
 
 class BaseWebroot(object):
-    expose = True
-
-    def __init__(self):
-        pass
+    exposed = True
 
 
 class _StaticFileRoute(object):
