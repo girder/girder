@@ -18,7 +18,6 @@
 ###############################################################################
 
 import json
-import mock
 import os
 
 from .. import base
@@ -26,11 +25,9 @@ from girder.constants import GIRDER_ROUTE_ID, SettingKey
 
 
 def setUpModule():
-    with mock.patch('girder.utility.plugin_utilities.defaultPluginDir',
-                    return_value=os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                              'test_plugins')):
-        base.enabledPlugins.append('has_webroot')
-        base.startServer()
+    base.mockPluginDir(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
+    base.enabledPlugins.append('has_webroot')
+    base.startServer()
 
 
 def tearDownModule():
@@ -39,10 +36,7 @@ def tearDownModule():
 
 class RouteTableTestCase(base.TestCase):
     def setUp(self):
-        with mock.patch('girder.utility.plugin_utilities.defaultPluginDir',
-                        return_value=os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                                  'test_plugins')):
-            base.TestCase.setUp(self)
+        super(RouteTableTestCase, self).setUp()
 
         self.admin = self.model('user').createUser(
             email='admin@email.com', login='admin', firstName='Admin',

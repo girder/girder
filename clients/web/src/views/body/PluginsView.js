@@ -4,9 +4,8 @@ import _ from 'underscore';
 import events from 'girder/events';
 import router from 'girder/router';
 import View from 'girder/views/View';
-import { confirm } from 'girder/dialog';
 import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
-import { restartServer, restartServerPrompt } from 'girder/server';
+import { restartServerPrompt } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
 import PluginsTemplate from 'girder/templates/body/plugins.pug';
