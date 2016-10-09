@@ -4,6 +4,7 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 import events from 'girder/events';
 import { restRequest, cancelRestRequests } from 'girder/rest';
+import { restartServerPrompt } from 'girder/server';
 
 import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.pug';
 
@@ -23,6 +24,15 @@ var SystemConfigurationView = View.extend({
             this.$('#g-settings-error-message').empty();
 
             var settings = _.map(this.settingsKeys, function (key) {
+                if (key === 'core.route_table') {
+                    return {
+                        key: key,
+                        value: _.object(_.map($('.g-core-route-table'), function (el) {
+                            return [$(el).data('webroot-name'), $(el).val()];
+                        }))
+                    };
+                }
+
                 return {
                     key: key,
                     value: this.$('#g-' + key.replace(/[_.]/g, '-')).val() || null
@@ -51,7 +61,8 @@ var SystemConfigurationView = View.extend({
         },
         'click .g-edit-collection-create-policy': function () {
             this.collectionCreateAccessWidget.render();
-        }
+        },
+        'click #g-restart-server': restartServerPrompt
     },
 
     initialize: function () {
@@ -74,7 +85,8 @@ var SystemConfigurationView = View.extend({
             'core.cors.allow_headers',
             'core.add_to_group_policy',
             'core.collection_create_policy',
-            'core.user_default_folders'
+            'core.user_default_folders',
+            'core.route_table'
         ];
         this.settingsKeys = keys;
         restRequest({
@@ -104,6 +116,12 @@ var SystemConfigurationView = View.extend({
         this.$el.html(SystemConfigurationTemplate({
             settings: this.settings,
             defaults: this.defaults,
+            routes: this.settings['core.route_table'] || this.defaults['core.route_table'],
+            routeKeys: _.sortBy(_.keys(this.settings['core.route_table'] ||
+                                       this.defaults['core.route_table']),
+                                function (a) {
+                                    return a.indexOf('core_') === 0 ? -1 : 0;
+                                }),
             JSON: window.JSON
         }));
 

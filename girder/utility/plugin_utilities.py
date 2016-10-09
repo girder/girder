@@ -41,9 +41,12 @@ import pkg_resources
 from pkg_resources import iter_entry_points
 
 from girder import logprint
-from girder.constants import PACKAGE_DIR, ROOT_DIR, ROOT_PLUGINS_PACKAGE
+from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, PACKAGE_DIR, ROOT_DIR, \
+    ROOT_PLUGINS_PACKAGE, SettingKey
 from girder.models.model_base import ValidationException
-from girder.utility import mail_utils
+from girder.utility import mail_utils, model_importer
+
+_pluginWebroots = {}
 
 
 def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
@@ -172,11 +175,17 @@ def loadPlugin(name, root, appconf, apiRoot=None):
     if moduleName not in sys.modules:
         fp = None
         try:
+            # @todo this query is run for every plugin that's loaded
+            setting = model_importer.ModelImporter().model('setting')
+            routeTable = setting.get(SettingKey.ROUTE_TABLE)
+
             info = {
                 'name': name,
                 'config': appconf,
                 'serverRoot': root,
+                'serverRootPath': routeTable[GIRDER_ROUTE_ID],
                 'apiRoot': apiRoot,
+                'staticRoot': routeTable[GIRDER_STATIC_ROUTE_ID],
                 'pluginRootDir': os.path.abspath(pluginDir)
             }
 
@@ -356,6 +365,21 @@ def addChildNode(node, name, obj=None):
         hiddenNode = type('', (), dict(exposed=False))()
         setattr(node, name, hiddenNode)
         return hiddenNode
+
+
+def getPluginWebroots():
+    global _pluginWebroots
+    return _pluginWebroots
+
+
+def registerPluginWebroot(webroot, name):
+    """
+    Adds a webroot to the global registry for plugins based on
+    the plugin name.
+    """
+    global _pluginWebroots
+
+    _pluginWebroots[name] = webroot
 
 
 class config(object):  # noqa: class name
