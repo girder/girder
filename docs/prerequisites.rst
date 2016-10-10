@@ -91,6 +91,13 @@ Install Node.js and NPM using APT: ::
 
     sudo apt-get install nodejs
 
+.. note:: It's recommended to get the latest version of the npm package manager, and Girder currently
+   requires at least version 3 of npm. To upgrade to the latest npm, run: ::
+
+      npm install -g npm
+
+   This may need to be run as root using ``sudo``.
+
 .. _centos-fedora-rhel:
 
 CentOS / Fedora / Red Hat Enterprise Linux
