@@ -30,7 +30,7 @@ import shutil
 import six
 import tempfile
 
-__version__ = '1.3.1'
+__version__ = '2.0.0'
 __license__ = 'Apache 2.0'
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
