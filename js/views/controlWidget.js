@@ -38,43 +38,6 @@ slicer.views.ControlWidget = girder.View.extend({
     },
 
     /**
-     * For image types, this sets the current value to the loaded image.  To be
-     * called both on initialization and whenever the viewed image changes.
-     *
-     * TODO: restore this in the main application code
-     *
-    _useLoadedImage: function () {
-        var current = this.model.get('value');
-
-        if (current) {
-            this.stopListening(current);
-        }
-
-        // get the large image file id, and trigger a change when fetched
-        current = slicer.dialogs.image.model.get('value');
-
-        if (!current) {
-            return;
-        }
-
-        current.once('g:fetched', function () {
-            var largeImage = current.get('largeImage');
-            var fileId = largeImage && (largeImage.originalId || largeImage.fileId);
-            var file;
-
-            if (fileId) {
-                file = new girder.models.FileModel({_id: fileId});
-                this.model.set('value', file, {trigger: false});
-
-                file.once('g:fetched', function () {
-                    this.model.trigger('change', this.model);
-                }, this).fetch();
-            }
-        }, this).fetch();
-    },
-     */
-
-    /**
      * Type definitions mapping used internally.  Each widget type
      * specifies it's jade template and possibly more custimizations
      * as needed.
