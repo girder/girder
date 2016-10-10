@@ -17,6 +17,7 @@ girder.views.FolderListWidget = girder.View.extend({
     initialize: function (settings) {
         this.checked = [];
         this._checkboxes = settings.checkboxes;
+        this.navigate = settings.navigate || false;
 
         new girder.views.LoadingAnimation({
             el: this.$el,
@@ -39,7 +40,8 @@ girder.views.FolderListWidget = girder.View.extend({
         this.$el.html(girder.templates.folderList({
             folders: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
-            checkboxes: this._checkboxes
+            checkboxes: this._checkboxes,
+            navigate: this.navigate
         }));
 
         var view = this;

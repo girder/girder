@@ -12,7 +12,6 @@ girder.views.HierarchyWidget = girder.View.extend({
         'click a.g-create-item': 'createItemDialog',
         'click .g-upload-here-button': 'uploadDialog',
         'click .g-edit-access': 'editAccess',
-        'click .g-hierarchy-level-up': 'upOneLevel',
         'click a.g-download-checked': 'downloadChecked',
         'click a.g-pick-checked': 'pickChecked',
         'click a.g-move-picked': 'movePickedResources',
@@ -46,15 +45,17 @@ girder.views.HierarchyWidget = girder.View.extend({
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
         this.upload = settings.upload;
+        this.navigate = settings.navigate || false;
 
         this._showActions = _.has(settings, 'showActions') ? settings.showActions : true;
         this._showItems = _.has(settings, 'showItems') ? settings.showItems : true;
         this._checkboxes = _.has(settings, 'checkboxes') ? settings.checkboxes : true;
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
         this._appendPages = _.has(settings, 'appendPages') ? settings.appendPages : false;
-        this._onItemClick = settings.onItemClick || function (item) {
-            girder.router.navigate('item/' + item.get('_id'), {trigger: true});
-        };
+        this._onItemClick = settings.onItemClick || (
+            this.navigate ? this.$.noop : function (item) {
+                girder.router.navigate('item/' + item.id, {trigger: true});
+            });
 
         this.folderAccess = settings.folderAccess;
         this.folderCreate = settings.folderCreate;
@@ -85,13 +86,16 @@ girder.views.HierarchyWidget = girder.View.extend({
             parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id'),
             checkboxes: this._checkboxes,
+            navigate: this.navigate,
             parentView: this
         });
         this.folderListView.on('g:folderClicked', function (folder) {
-            this.descend(folder);
+            if (!this.navigate) {
+                this.descend(folder);
 
-            if (this.uploadWidget) {
-                this.uploadWidget.folder = folder;
+                if (this.uploadWidget) {
+                    this.uploadWidget.folder = folder;
+                }
             }
         }, this).off('g:checkboxesChanged')
                 .on('g:checkboxesChanged', this.updateChecked, this)
@@ -134,6 +138,7 @@ girder.views.HierarchyWidget = girder.View.extend({
         this.itemListView = new girder.views.ItemListWidget({
             folderId: this.parentModel.get('_id'),
             checkboxes: this._checkboxes,
+            navigate: this.navigate,
             parentView: this
         });
         this.itemListView.on('g:itemClicked', this._onItemClick, this)
@@ -236,6 +241,12 @@ girder.views.HierarchyWidget = girder.View.extend({
 
         this.fetchAndShowChildCount();
 
+        if (this.folderListView && this.folderListView.collection && this.itemListView && this.itemListView.collection) {
+            this.folderCount = this.folderListView.collection.length;
+            this.itemCount = this.itemListView.collection.length;
+            this._childCountCheck();
+        }
+
         return this;
     },
 
@@ -245,14 +256,6 @@ girder.views.HierarchyWidget = girder.View.extend({
     descend: function (folder) {
         this.breadcrumbs.push(folder);
         this.setCurrentModel(folder);
-    },
-
-    /**
-     * Go to the parent of the current folder
-     */
-    upOneLevel: function () {
-        this.breadcrumbs.pop();
-        this.setCurrentModel(this.breadcrumbs[this.breadcrumbs.length - 1]);
     },
 
     /**
@@ -898,13 +901,6 @@ girder.resetPickedResources = function () {
  * Renders the breadcrumb list in the hierarchy widget.
  */
 girder.views.HierarchyBreadcrumbView = girder.View.extend({
-    events: {
-        'click a.g-breadcrumb-link': function (event) {
-            var link = $(event.currentTarget);
-            this.trigger('g:breadcrumbClicked', parseInt(link.attr('g-index'), 10));
-        }
-    },
-
     initialize: function (settings) {
         this.objects = settings.objects;
     },

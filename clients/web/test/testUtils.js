@@ -13,6 +13,24 @@ window.alert = function (msg) {
 // Timeout to wait for asynchronous actions
 girderTest.TIMEOUT = 5000;
 
+// Override jquery click so that it follows links with hrefs
+girderTest._oldJqClick = $.fn.click;
+
+$.fn.click = function () {
+    var val = girderTest._oldJqClick.apply(this, arguments);
+    if (arguments.length) {  // bind
+        return val;
+    } else {  // trigger
+        this.each(function (idx, el) {
+            el = $(el);
+            if (el.is('a') && el.attr('href')) {
+                window.location.hash = el.attr('href');
+            }
+        });
+        return val;
+    }
+};
+
 girderTest.createUser = function (login, email, firstName, lastName, password, userList) {
 
     return function () {

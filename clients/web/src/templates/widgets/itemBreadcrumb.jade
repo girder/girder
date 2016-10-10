@@ -1,8 +1,9 @@
 ol.breadcrumb
   each parent in parentChain
     li
-      a.g-item-breadcrumb-link(data-id="#{parent.object._id}"
-                               data-type="#{parent.type}")
+      a.g-item-breadcrumb-link(data-id="#{parent.object._id}",
+                               data-type="#{parent.type}",
+                               href="##{parent.type}/#{parent.object._id}")
           if (parent.type === "user")
             i.icon-user
             | #{parent.object.login}
@@ -13,5 +14,7 @@ ol.breadcrumb
             | #{parent.object.name}
 
   .pull-right
-    a.g-hierarchy-level-up(title="Go to parent folder")
+    - var last = parentChain.pop().object;
+    a.g-hierarchy-level-up(title="Go to parent folder",
+                           href="/#folder/#{last._id}")
       i.icon-level-up
