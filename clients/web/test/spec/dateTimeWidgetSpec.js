@@ -3,7 +3,7 @@ describe('Test DateTimeWidget', function() {
 
     describe('default construction', function() {
         beforeEach(function() {
-            widget = new girder.views.DateTimeWidget({
+            widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null
             });
             widget.render();
@@ -14,7 +14,7 @@ describe('Test DateTimeWidget', function() {
         });
 
         it('create multiple widgets', function() {
-            var widget2 = new girder.views.DateTimeWidget({
+            var widget2 = new girder.views.widgets.DateTimeWidget({
                 parentView: null
             });
             widget2.render();
@@ -32,7 +32,7 @@ describe('Test DateTimeWidget', function() {
 
     describe('custom construction', function() {
         it('default date', function() {
-            widget = new girder.views.DateTimeWidget({
+            widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null,
                 defaultDate: '2015-02-01T12:00Z'
             });
@@ -43,7 +43,7 @@ describe('Test DateTimeWidget', function() {
         });
 
         it('null default date', function() {
-            widget = new girder.views.DateTimeWidget({
+            widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null,
                 defaultDate: null
             });
@@ -53,7 +53,7 @@ describe('Test DateTimeWidget', function() {
         });
 
         it('blank default date', function() {
-            widget = new girder.views.DateTimeWidget({
+            widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null,
                 defaultDate: ''
             });
@@ -64,7 +64,7 @@ describe('Test DateTimeWidget', function() {
 
         it('without icon', function() {
             var parent = $('body').append('<div></div>');
-            widget = new girder.views.DateTimeWidget({
+            widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null,
                 el: parent,
                 showIcon: false
@@ -80,7 +80,7 @@ describe('Test DateTimeWidget', function() {
 
         it('with icon', function() {
             var parent = $('body').append('<div></div>');
-            widget = new girder.views.DateTimeWidget({
+            widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null,
                 el: parent,
                 showIcon: true
@@ -97,7 +97,7 @@ describe('Test DateTimeWidget', function() {
 
     describe('set/get date', function() {
         beforeEach(function() {
-            widget = new girder.views.DateTimeWidget({
+            widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null
             });
             widget.render();
@@ -169,7 +169,7 @@ describe('Test DateTimeRangeWidget', function() {
 
     describe('default construction', function() {
         beforeEach(function() {
-            widget = new girder.views.DateTimeRangeWidget({
+            widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null
             });
             widget.render();
@@ -181,7 +181,7 @@ describe('Test DateTimeRangeWidget', function() {
         });
 
         it('create multiple widgets', function() {
-            var widget2 = new girder.views.DateTimeRangeWidget({
+            var widget2 = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null
             });
             widget2.render();
@@ -204,7 +204,7 @@ describe('Test DateTimeRangeWidget', function() {
 
     describe('custom construction', function() {
         it('default dates', function() {
-            widget = new girder.views.DateTimeRangeWidget({
+            widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null,
                 defaultFromDate: '2015-02-01T12:00Z',
                 defaultToDate: '2015-03-01T12:00Z'
@@ -218,7 +218,7 @@ describe('Test DateTimeRangeWidget', function() {
         });
 
         it('null default dates', function() {
-            widget = new girder.views.DateTimeRangeWidget({
+            widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null,
                 defaultFromDate: null,
                 defaultToDate: null
@@ -230,7 +230,7 @@ describe('Test DateTimeRangeWidget', function() {
         });
 
         it('blank default dates', function() {
-            widget = new girder.views.DateTimeRangeWidget({
+            widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null,
                 defaultFromDate: '',
                 defaultToDate: ''
@@ -243,7 +243,7 @@ describe('Test DateTimeRangeWidget', function() {
 
         it('without icon', function() {
             var parent = $('body').append('<div></div>');
-            widget = new girder.views.DateTimeRangeWidget({
+            widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null,
                 el: parent,
                 showIcon: false
@@ -266,7 +266,7 @@ describe('Test DateTimeRangeWidget', function() {
 
         it('with icon', function() {
             var parent = $('body').append('<div></div>');
-            widget = new girder.views.DateTimeRangeWidget({
+            widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null,
                 el: parent,
                 showIcon: true
@@ -288,7 +288,7 @@ describe('Test DateTimeRangeWidget', function() {
         });
 
         it('custom labels', function() {
-            widget = new girder.views.DateTimeRangeWidget({
+            widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null,
                 fromLabel: 'Custom From',
                 toLabel: 'Custom To'
@@ -302,7 +302,7 @@ describe('Test DateTimeRangeWidget', function() {
 
     describe('set/get dates', function() {
         beforeEach(function() {
-            widget = new girder.views.DateTimeRangeWidget({
+            widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null
             });
             widget.render();

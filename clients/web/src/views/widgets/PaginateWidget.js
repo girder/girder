@@ -1,8 +1,12 @@
+import View from 'girder/views/View';
+
+import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.pug';
+
 /**
  * This widget is used to provide a consistent widget for iterating amongst
- * pages of a girder.Collection.
+ * pages of a Collection.
  */
-girder.views.PaginateWidget = girder.View.extend({
+var PaginateWidget = View.extend({
     events: {
         'click .g-page-next': function (e) {
             if (!$(e.currentTarget).hasClass('disabled')) {
@@ -24,7 +28,7 @@ girder.views.PaginateWidget = girder.View.extend({
      * Do not call render() until the collection has been fetched once.
      */
     render: function () {
-        this.$el.html(girder.templates.paginateWidget({
+        this.$el.html(PaginateWidgetTemplate({
             collection: this.collection
         }));
 
@@ -42,3 +46,5 @@ girder.views.PaginateWidget = girder.View.extend({
         return this;
     }
 });
+
+export default PaginateWidget;

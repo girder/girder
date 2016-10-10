@@ -1,0 +1,50 @@
+.panel.panel-default
+  .panel-heading(data-toggle="collapse",
+      data-parent="#g-assetstore-accordion",
+      data-target="#g-create-hdfs-tab")
+    .panel-title
+      a
+        i.icon-share Create new #[b HDFS] assetstore
+  #g-create-hdfs-tab.panel-collapse.collapse
+    .panel-body
+      p.
+        This type of assetstore will store files in a Hadoop Distributed
+        Filesystem (HDFS). It can also import data from an existing HDFS
+        instance into the Girder data hierarchy.
+      p.
+        If the specified root directory does not already exist, the server
+        will attempt to create it. The root path specifies where new files
+        will be stored if this is used as a managed assetstore; if you are using
+        it only for import, simply specify "/" for the root path since that
+        value will not be used.
+      p.
+        If you wish to store new files in this assetstore, you will need to have
+        the WebHDFS service enabled on your Hadoop cluster.
+      form#g-new-hdfs-form(role="form")
+        .form-group
+          label.control-label(for="g-new-hdfs-name") Assetstore name
+          input.input-sm.form-control#g-new-hdfs-name(
+              type="text", placeholder="Name")
+        .form-group
+          label.control-label(for="g-new-hdfs-path") Root path
+          input.input-sm.form-control#g-new-hdfs-path(
+              type="text", placeholder="Root path")
+        .form-group
+          label.control-label(for="g-new-hdfs-host") Namenode host
+          input.input-sm.form-control#g-new-hdfs-host(
+              type="text", placeholder="Host")
+        .form-group
+          label.control-label(for="g-new-hdfs-port") Namenode RPC port
+          input.input-sm.form-control#g-new-hdfs-port(
+              type="text", placeholder="Port")
+        .form-group
+          label.control-label(for="g-new-webhdfs-host") WebHDFS port (default is 50070)
+          input.input-sm.form-control#g-new-hdfs-host(
+              type="text", placeholder="WebHDFS port")
+        .form-group
+          label.control-label(for="g-new-hdfs-user") Effective user (default is current user)
+          input.input-sm.form-control#g-new-hdfs-user(
+              type="text", placeholder="Username")
+        p#g-new-hdfs-error.g-validation-failed-message
+        input.g-new-assetstore-submit.btn.btn-sm.btn-primary(
+            type="submit", value="Create")

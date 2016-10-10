@@ -1,188 +1,34 @@
-/**
- * This widget shows a list of metadata in a given item.
- */
-girder.views.MetadataWidget = girder.View.extend({
-    events: {
-        'click .g-add-json-metadata': function (event) {
-            this.addMetadata(event, 'json');
-        },
-        'click .g-add-simple-metadata': function (event) {
-            this.addMetadata(event, 'simple');
-        }
-    },
+import $ from 'jquery';
+import _ from 'underscore';
 
-    /**
-     * Creates a widget to display and optionally edit metadata fields.
-     *
-     * @param settings.item {girder.Model} The model object whose metadata to display.
-     *    Can be any model type that inherits girder.models.MetadataMixin.
-     * @param [settings.fieldName='meta'] {string} The name of the model attribute
-     *    to display/edit. The model attribute with this name should be an object
-     *    whose top level keys represent metadata keys.
-     * @param [settings.title='Metadata'] {string} Title for the widget.
-     * @param [settings.apiPath] {string} The relative API path to use when editing
-     *    metadata keys for this model. Defaults to using the MetadataMixin default path.
-     * @param [settings.accessLevel=girder.AccessType.READ] {girder.AccessType} The
-     *    access level for this widget. Use READ for read-only, or WRITE (or greater)
-     *    for adding editing capabilities as well.
-     * @param [settings.onMetadataAdded] {Function} A custom callback for when a
-     *    new metadata key is added to the list. If passed, will override the
-     *    default behavior of calling MetadataMixin.addMetadata.
-     * @param [settings.onMetadataEdited] {Function} A custom callback for when an
-     *    existing metadata key is updated. If passed, will override the default
-     *    behavior of calling MetadataMixin.editMetadata.
-     */
-    initialize: function (settings) {
-        this.item = settings.item;
-        this.fieldName = settings.fieldName || 'meta';
-        this.title = settings.title || 'Metadata';
-        this.apiPath = settings.apiPath;
-        this.accessLevel = settings.accessLevel;
-        this.onMetadataEdited = settings.onMetadataEdited;
-        this.onMetadataAdded = settings.onMetadataAdded;
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { confirm } from 'girder/dialog';
+import events from 'girder/events';
+import { localeSort } from 'girder/misc';
 
-        this.item.on('g:changed', function () {
-            this.render();
-        }, this);
-        this.render();
-    },
+import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.pug';
+import JsonMetadatumViewTemplate from 'girder/templates/widgets/jsonMetadatumView.pug';
+import MetadataWidgetTemplate from 'girder/templates/widgets/metadataWidget.pug';
+import MetadatumEditWidgetTemplate from 'girder/templates/widgets/metadatumEditWidget.pug';
+import MetadatumViewTemplate from 'girder/templates/widgets/metadatumView.pug';
 
-    modes: {
-        simple: {
-            editor: function (args) {
-                return new girder.views.MetadatumEditWidget(args);
-            },
-            displayValue: function () {
-                return this.value;
-            },
-            template: girder.templates.metadatumView
-        },
-        json: {
-            editor: function (args) {
-                if (args.value !== undefined) {
-                    args.value = JSON.parse(args.value);
-                }
-                return new girder.views.JsonMetadatumEditWidget(args);
-            },
-            displayValue: function () {
-                return JSON.stringify(this.value, null, 4);
-            },
-            validation: {
-                from: {
-                    simple: [
-                        function (value) {
-                            try {
-                                JSON.parse(value);
-                                return true;
-                            } catch (e) {}
+import 'girder/stylesheets/widgets/metadataWidget.styl';
 
-                            return false;
-                        },
-                        'The simple field is not valid JSON and can not be converted.'
-                    ]
-                }
-            },
-            template: girder.templates.jsonMetadatumView
-        }
-    },
+import JSONEditor from 'jsoneditor/dist/jsoneditor.js'; // can't 'jsoneditor'
+import 'jsoneditor/dist/jsoneditor.css';
 
-    setItem: function (item) {
-        this.item = item;
-        return this;
-    },
+import 'bootstrap/js/dropdown';
+import 'bootstrap/js/tooltip';
 
-    // Does not support modal editing
-    getModeFromValue: function (value) {
-        return _.isString(value) ? 'simple' : 'json';
-    },
-
-    addMetadata: function (event, mode) {
-        var EditWidget = this.modes[mode].editor;
-        var newRow = $('<div>').attr({
-            class: 'g-widget-metadata-row editing'
-        }).appendTo(this.$el.find('.g-widget-metadata-container'));
-        var value = (mode === 'json') ? '{}' : '';
-
-        var widget = new girder.views.MetadatumWidget({
-            el: newRow,
-            mode: mode,
-            key: '',
-            value: value,
-            item: this.item,
-            fieldName: this.fieldName,
-            apiPath: this.apiPath,
-            accessLevel: this.accessLevel,
-            girder: girder,
-            parentView: this,
-            onMetadataEdited: this.onMetadataEdited,
-            onMetadataAdded: this.onMetadataAdded
-        });
-
-        var newEditRow = $('<div>').appendTo(widget.$el);
-
-        new EditWidget({
-            el: newEditRow,
-            item: this.item,
-            key: '',
-            value: value,
-            fieldName: this.fieldName,
-            apiPath: this.apiPath,
-            accessLevel: this.accessLevel,
-            newDatum: true,
-            parentView: widget,
-            onMetadataEdited: this.onMetadataEdited,
-            onMetadataAdded: this.onMetadataAdded
-        }).render();
-    },
-
-    render: function () {
-        var metaDict = this.item.get(this.fieldName) || {};
-        var metaKeys = Object.keys(metaDict);
-        metaKeys.sort(girder.localeSort);
-
-        // Metadata header
-        this.$el.html(girder.templates.metadataWidget({
-            item: this.item,
-            title: this.title,
-            accessLevel: this.accessLevel,
-            girder: girder
-        }));
-
-        // Append each metadatum
-        _.each(metaKeys, function (metaKey) {
-            this.$el.find('.g-widget-metadata-container').append(new girder.views.MetadatumWidget({
-                mode: this.getModeFromValue(metaDict[metaKey]),
-                key: metaKey,
-                value: metaDict[metaKey],
-                accessLevel: this.accessLevel,
-                girder: girder,
-                parentView: this,
-                fieldName: this.fieldName,
-                apiPath: this.apiPath,
-                onMetadataEdited: this.onMetadataEdited,
-                onMetadataAdded: this.onMetadataAdded
-            }).render().$el);
-        }, this);
-
-        this.$('.g-widget-metadata-add-button').tooltip({
-            container: this.$el,
-            placement: 'left',
-            animation: false,
-            delay: {show: 100}
-        });
-
-        return this;
-    }
-});
-
-girder.views.MetadatumWidget = girder.View.extend({
+var MetadatumWidget = View.extend({
     events: {
         'click .g-widget-metadata-edit-button': 'editMetadata'
     },
 
     initialize: function (settings) {
         if (!_.has(this.parentView.modes, settings.mode)) {
-            throw 'Unsupported metadatum mode ' + settings.mode + ' detected.';
+            throw new Error('Unsupported metadatum mode ' + settings.mode + ' detected.');
         }
 
         this.mode = settings.mode;
@@ -206,7 +52,7 @@ girder.views.MetadatumWidget = girder.View.extend({
             var msg = newMode.validation.from[from][1];
 
             if (!validate(value)) {
-                girder.events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     text: msg,
                     type: 'warning'
                 });
@@ -220,7 +66,7 @@ girder.views.MetadatumWidget = girder.View.extend({
     // @todo too much duplication with editMetadata
     toggleEditor: function (event, newEditorMode, existingEditor, overrides) {
         var fromEditorMode =
-                (existingEditor instanceof girder.views.JsonMetadatumEditWidget)
+                (existingEditor instanceof JsonMetadatumEditWidget)
                     ? 'json' : 'simple';
         var newValue = (overrides || {}).value || existingEditor.$el.attr('g-value');
         if (!this._validate(fromEditorMode, newEditorMode, newValue)) {
@@ -293,14 +139,14 @@ girder.views.MetadatumWidget = girder.View.extend({
             key: this.key,
             value: _.bind(this.parentView.modes[this.mode].displayValue, this)(),
             accessLevel: this.accessLevel,
-            girder: girder
+            AccessType: AccessType
         }));
 
         return this;
     }
 });
 
-girder.views.MetadatumEditWidget = girder.View.extend({
+var MetadatumEditWidget = View.extend({
     events: {
         'click .g-widget-metadata-cancel-button': 'cancelEdit',
         'click .g-widget-metadata-save-button': 'save',
@@ -309,7 +155,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             var editorType;
             // @todo modal
             // in the future this event will have the new editorType (assuming a dropdown)
-            if (this instanceof girder.views.JsonMetadatumEditWidget) {
+            if (this instanceof JsonMetadatumEditWidget) {
                 editorType = 'simple';
             } else {
                 editorType = 'json';
@@ -336,7 +182,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         this.onMetadataAdded = settings.onMetadataAdded;
     },
 
-    editTemplate: girder.templates.metadatumEditWidget,
+    editTemplate: MetadatumEditWidgetTemplate,
 
     getCurrentValue: function () {
         return this.$el.find('.g-widget-metadata-value-input').val();
@@ -359,7 +205,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
                 });
             }, this)
         };
-        girder.confirm(params);
+        confirm(params);
     },
 
     cancelEdit: function (event) {
@@ -379,7 +225,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             tempValue = (value !== undefined) ? value : curRow.find('.g-widget-metadata-value-input').val();
 
         if (this.newDatum && tempKey === '') {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 text: 'A key is required for all metadata.',
                 type: 'warning'
             });
@@ -393,7 +239,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             this.parentView.key = this.key;
             this.parentView.value = this.value;
 
-            if (this instanceof girder.views.JsonMetadatumEditWidget) {
+            if (this instanceof JsonMetadatumEditWidget) {
                 this.parentView.mode = 'json';
             } else {
                 this.parentView.mode = 'simple';
@@ -405,7 +251,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
         }, this);
 
         var errorCallback = function (out) {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 text: out.message,
                 type: 'danger'
             });
@@ -439,7 +285,7 @@ girder.views.MetadatumEditWidget = girder.View.extend({
             value: this.value,
             accessLevel: this.accessLevel,
             newDatum: this.newDatum,
-            girder: girder
+            AccessType: AccessType
         }));
         this.$el.find('.g-widget-metadata-key-input').focus();
 
@@ -454,8 +300,8 @@ girder.views.MetadatumEditWidget = girder.View.extend({
     }
 });
 
-girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
-    editTemplate: girder.templates.jsonMetadatumEditWidget,
+var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
+    editTemplate: JsonMetadatumEditWidgetTemplate,
 
     getCurrentValue: function () {
         return this.editor.getText();
@@ -463,10 +309,10 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
 
     save: function (event) {
         try {
-            girder.views.MetadatumEditWidget.prototype.save.call(
+            MetadatumEditWidget.prototype.save.call(
                 this, event, this.editor.get());
         } catch (err) {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 text: 'The field contains invalid JSON and can not be saved.',
                 type: 'warning'
             });
@@ -474,13 +320,13 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
     },
 
     render: function () {
-        girder.views.MetadatumEditWidget.prototype.render.apply(this, arguments);
+        MetadatumEditWidget.prototype.render.apply(this, arguments);
 
         this.editor = new JSONEditor(this.$el.find('.g-json-editor')[0], {
             mode: 'tree',
             modes: ['code', 'tree'],
             error: function () {
-                girder.events.trigger('g:alert', {
+                events.trigger('g:alert', {
                     text: 'The field contains invalid JSON and can not be viewed in Tree Mode.',
                     type: 'warning'
                 });
@@ -495,3 +341,180 @@ girder.views.JsonMetadatumEditWidget = girder.views.MetadatumEditWidget.extend({
         return this;
     }
 });
+
+/**
+ * This widget shows a list of metadata in a given item.
+ */
+var MetadataWidget = View.extend({
+    events: {
+        'click .g-add-json-metadata': function (event) {
+            this.addMetadata(event, 'json');
+        },
+        'click .g-add-simple-metadata': function (event) {
+            this.addMetadata(event, 'simple');
+        }
+    },
+
+    /**
+     * Creates a widget to display and optionally edit metadata fields.
+     *
+     * @param settings.item {Model} The model object whose metadata to display.
+     *    Can be any model type that inherits MetadataMixin.
+     * @param [settings.fieldName='meta'] {string} The name of the model attribute
+     *    to display/edit. The model attribute with this name should be an object
+     *    whose top level keys represent metadata keys.
+     * @param [settings.title='Metadata'] {string} Title for the widget.
+     * @param [settings.apiPath] {string} The relative API path to use when editing
+     *    metadata keys for this model. Defaults to using the MetadataMixin default path.
+     * @param [settings.accessLevel=AccessType.READ] {AccessType} The
+     *    access level for this widget. Use READ for read-only, or WRITE (or greater)
+     *    for adding editing capabilities as well.
+     * @param [settings.onMetadataAdded] {Function} A custom callback for when a
+     *    new metadata key is added to the list. If passed, will override the
+     *    default behavior of calling MetadataMixin.addMetadata.
+     * @param [settings.onMetadataEdited] {Function} A custom callback for when an
+     *    existing metadata key is updated. If passed, will override the default
+     *    behavior of calling MetadataMixin.editMetadata.
+     */
+    initialize: function (settings) {
+        this.item = settings.item;
+        this.fieldName = settings.fieldName || 'meta';
+        this.title = settings.title || 'Metadata';
+        this.apiPath = settings.apiPath;
+        this.accessLevel = settings.accessLevel;
+        this.onMetadataEdited = settings.onMetadataEdited;
+        this.onMetadataAdded = settings.onMetadataAdded;
+
+        this.item.on('g:changed', function () {
+            this.render();
+        }, this);
+        this.render();
+    },
+
+    modes: {
+        simple: {
+            editor: function (args) {
+                return new MetadatumEditWidget(args);
+            },
+            displayValue: function () {
+                return this.value;
+            },
+            template: MetadatumViewTemplate
+        },
+        json: {
+            editor: function (args) {
+                if (args.value !== undefined) {
+                    args.value = JSON.parse(args.value);
+                }
+                return new JsonMetadatumEditWidget(args);
+            },
+            displayValue: function () {
+                return JSON.stringify(this.value, null, 4);
+            },
+            validation: {
+                from: {
+                    simple: [
+                        function (value) {
+                            try {
+                                JSON.parse(value);
+                                return true;
+                            } catch (e) {}
+
+                            return false;
+                        },
+                        'The simple field is not valid JSON and can not be converted.'
+                    ]
+                }
+            },
+            template: JsonMetadatumViewTemplate
+        }
+    },
+
+    setItem: function (item) {
+        this.item = item;
+        return this;
+    },
+
+    // Does not support modal editing
+    getModeFromValue: function (value) {
+        return _.isString(value) ? 'simple' : 'json';
+    },
+
+    addMetadata: function (event, mode) {
+        var EditWidget = this.modes[mode].editor;
+        var newRow = $('<div>').attr({
+            class: 'g-widget-metadata-row editing'
+        }).appendTo(this.$el.find('.g-widget-metadata-container'));
+        var value = (mode === 'json') ? '{}' : '';
+
+        var widget = new MetadatumWidget({
+            el: newRow,
+            mode: mode,
+            key: '',
+            value: value,
+            item: this.item,
+            fieldName: this.fieldName,
+            apiPath: this.apiPath,
+            accessLevel: this.accessLevel,
+            parentView: this,
+            onMetadataEdited: this.onMetadataEdited,
+            onMetadataAdded: this.onMetadataAdded
+        });
+
+        var newEditRow = $('<div>').appendTo(widget.$el);
+
+        new EditWidget({
+            el: newEditRow,
+            item: this.item,
+            key: '',
+            value: value,
+            fieldName: this.fieldName,
+            apiPath: this.apiPath,
+            accessLevel: this.accessLevel,
+            newDatum: true,
+            parentView: widget,
+            onMetadataEdited: this.onMetadataEdited,
+            onMetadataAdded: this.onMetadataAdded
+        }).render();
+    },
+
+    render: function () {
+        var metaDict = this.item.get(this.fieldName) || {};
+        var metaKeys = Object.keys(metaDict);
+        metaKeys.sort(localeSort);
+
+        // Metadata header
+        this.$el.html(MetadataWidgetTemplate({
+            item: this.item,
+            title: this.title,
+            accessLevel: this.accessLevel,
+            AccessType: AccessType
+        }));
+
+        // Append each metadatum
+        _.each(metaKeys, function (metaKey) {
+            this.$el.find('.g-widget-metadata-container').append(new MetadatumWidget({
+                mode: this.getModeFromValue(metaDict[metaKey]),
+                key: metaKey,
+                value: metaDict[metaKey],
+                accessLevel: this.accessLevel,
+                parentView: this,
+                fieldName: this.fieldName,
+                apiPath: this.apiPath,
+                onMetadataEdited: this.onMetadataEdited,
+                onMetadataAdded: this.onMetadataAdded
+            }).render().$el);
+        }, this);
+
+        this.$('.g-widget-metadata-add-button').tooltip({
+            container: this.$el,
+            placement: 'left',
+            animation: false,
+            delay: {show: 100}
+        });
+
+        return this;
+    }
+});
+
+export default MetadataWidget;

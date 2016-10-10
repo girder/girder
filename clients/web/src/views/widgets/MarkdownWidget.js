@@ -1,10 +1,25 @@
+import _ from 'underscore';
+
+import FileModel from 'girder/models/FileModel';
+import View from 'girder/views/View';
+import events from 'girder/events';
+import { renderMarkdown, formatSize } from 'girder/misc';
+
+import MarkdownWidgetTemplate from 'girder/templates/widgets/markdownWidget.pug';
+
+import 'girder/stylesheets/widgets/markdownWidget.styl';
+
+import 'girder/utilities/jquery/girderEnable';
+
+import 'bootstrap/js/tab';
+
 /**
  * A simple widget for editing markdown text with a preview tab.
  */
-girder.views.MarkdownWidget = girder.View.extend({
+var MarkdownWidget = View.extend({
     events: {
         'show.bs.tab .g-preview-link': function () {
-            girder.renderMarkdown(this.val().trim() || 'Nothing to show',
+            renderMarkdown(this.val().trim() || 'Nothing to show',
                                   this.$('.g-markdown-preview'));
         },
 
@@ -81,7 +96,7 @@ girder.views.MarkdownWidget = girder.View.extend({
         try {
             this.validateFiles();
         } catch (err) {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 type: 'danger',
                 text: err.message,
                 icon: 'cancel',
@@ -91,14 +106,14 @@ girder.views.MarkdownWidget = girder.View.extend({
         }
 
         var file = this.files[0];
-        var fileModel = new girder.models.FileModel();
+        var fileModel = new FileModel();
 
         fileModel.on('g:upload.complete', function () {
             var val = this.$('.g-markdown-text').val();
             val += '![' + file.name + '](' + fileModel.downloadUrl() + ')\n';
 
             this.$('.g-upload-overlay').addClass('hide');
-            this.$('.g-markdown-text').removeAttr('disabled').val(val);
+            this.$('.g-markdown-text').girderEnable(true).val(val);
 
             this.trigger('g:fileUploaded', {
                 file: file,
@@ -110,31 +125,31 @@ girder.views.MarkdownWidget = girder.View.extend({
                 Math.ceil(100 * currentProgress / info.total) + '%');
             this.$('.g-markdown-upload-progress-message').text(
                 'Uploading ' + info.file.name + ' - ' +
-                   girder.formatSize(currentProgress) + ' / ' +
-                   girder.formatSize(info.total)
+                   formatSize(currentProgress) + ' / ' +
+                   formatSize(info.total)
             );
         }, this).on('g:upload.error', function (info) {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 type: 'danger',
                 text: info.message,
                 icon: 'cancel',
                 timeout: 5000
             });
             this.$('.g-upload-overlay').addClass('hide');
-            this.$('.g-markdown-text').removeAttr('disabled');
+            this.$('.g-markdown-text').girderEnable(true);
         }, this).on('g:upload.errorStarting', function (info) {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 type: 'danger',
                 text: info.message,
                 icon: 'cancel',
                 timeout: 5000
             });
             this.$('.g-upload-overlay').addClass('hide');
-            this.$('.g-markdown-text').removeAttr('disabled');
+            this.$('.g-markdown-text').girderEnable(true);
         }, this).upload(this.parent, file);
 
         this.$('.g-upload-overlay').removeClass('hide');
-        this.$('.g-markdown-text').attr('disabled', true);
+        this.$('.g-markdown-text').girderEnable(false);
     },
 
     /**
@@ -145,29 +160,29 @@ girder.views.MarkdownWidget = girder.View.extend({
         files = files || this.files;
 
         if (this.files.length !== 1) {
-            throw {message: 'Please add only one file at a time.'};
+            throw new Error('Please add only one file at a time.');
         }
 
         var file = files[0],
             ext = file.name.split('.').pop().toLowerCase();
 
         if (this.maxUploadSize && file.size > this.maxUploadSize) {
-            throw {
-                message: 'That file is too large. You may only attach files ' +
-                         'up to ' + girder.formatSize(this.maxUploadSize) + '.'
-            };
+            throw new Error(
+                'That file is too large. You may only attach files ' +
+                'up to ' + formatSize(this.maxUploadSize) + '.'
+            );
         }
 
         if (this.allowedExtensions && !_.contains(this.allowedExtensions, ext)) {
-            throw {
-                message: 'Only files with the following extensions are allowed: ' +
-                         this.allowedExtensions.join(', ') + '.'
-            };
+            throw new Error(
+                'Only files with the following extensions are allowed: ' +
+                this.allowedExtensions.join(', ') + '.'
+            );
         }
     },
 
     render: function () {
-        this.$el.html(girder.templates.markdownWidget({
+        this.$el.html(MarkdownWidgetTemplate({
             text: this.text,
             placeholder: this.placeholder,
             prefix: this.prefix,
@@ -189,3 +204,5 @@ girder.views.MarkdownWidget = girder.View.extend({
         }
     }
 });
+
+export default MarkdownWidget;

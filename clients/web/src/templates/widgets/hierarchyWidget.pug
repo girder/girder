@@ -1,0 +1,84 @@
+.g-hierarchy-widget
+  .g-hierarchy-breadcrumb-bar
+    ol.breadcrumb
+  if showActions
+    .g-hierarchy-actions-header
+      if checkboxes
+        input.g-select-all(type="checkbox", data-toggle="tooltip",
+            title="Select / Unselect all")
+
+        .btn-group
+          button.g-checked-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
+            data-toggle="dropdown", disabled="disabled", title="Checked actions")
+            i.icon-check
+            i.icon-down-dir
+          ul.g-checked-actions-menu.dropdown-menu(role="menu")
+
+      .g-folder-header-buttons
+        if (type === 'folder')
+          button.g-folder-info-button.btn.btn-sm.btn-info(title="Show folder info")
+            i.icon-info
+          if (level >= AccessType.WRITE)
+            button.g-upload-here-button.btn.btn-sm.btn-success(title="Upload here")
+              i.icon-upload
+          if (level >= AccessType.ADMIN)
+            button.g-folder-access-button.g-edit-access.btn.btn-sm.btn-warning(title="Access control")
+              i.icon-lock
+        else if (type === 'collection')
+          button.g-collection-info-button.btn.btn-sm.btn-info(title="Show collection info")
+            i.icon-info
+          if (level >= AccessType.ADMIN)
+            button.g-edit-access.btn.btn-sm.btn-warning(title="Access control")
+              i.icon-lock
+        .btn-group
+          button.g-folder-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
+              data-toggle="dropdown", title=`${capitalize(type)} actions`, placement="left")
+            if type === 'collection'
+              i.icon-sitemap
+            else if type === 'user'
+              i.icon-user
+            else if type === 'folder'
+              i.icon-folder-open
+            i.icon-down-dir
+          ul.g-folder-actions-menu.dropdown-menu.pull-right(role="menu")
+            li.dropdown-header(role="presentation")
+              if type === 'collection'
+                i.icon-sitemap
+              else if type === 'user'
+                i.icon-user
+              else if type === 'folder'
+                i.icon-folder-open
+              |  #{model.name()}
+            if type === 'folder' || type === 'collection'
+              li(role="presentation")
+                a.g-download-folder(role="menuitem", href=model.downloadUrl())
+                  i.icon-download
+                  | Download #{type}
+            if level >= AccessType.WRITE
+              li(role="presentation")
+                a.g-create-subfolder(role="menuitem")
+                  i.icon-folder
+                  | Create folder here
+              if type === 'folder' || type === 'collection'
+                if type === 'folder'
+                  li(role="presentation")
+                    a.g-create-item(role="menuitem")
+                      i.icon-doc
+                      | Create item here
+                li(role="presentation")
+                  a.g-edit-folder(role="menuitem")
+                    i.icon-edit
+                    | Edit #{type}
+            if level >= AccessType.ADMIN && (type === 'folder' || type === 'collection')
+              li.divider(role="presentation")
+              li(role="presentation")
+                a.g-delete-folder(role="menuitem")
+                  i.icon-trash
+                  | Delete this #{type}
+      .g-clear-right
+  .g-folder-list-container
+  .g-item-list-container
+  .g-empty-parent-message.g-info-message-container.hide
+    i.icon-info-circled
+    |  This folder is empty.
+.g-folder-metadata

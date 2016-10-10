@@ -1,0 +1,49 @@
+.modal-dialog
+  .modal-content
+    form#g-api-key-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          if apiKey
+            | Edit API key
+          else
+            | Create new API key
+      .modal-body
+        .form-group
+          label.control-label(for="g-api-key-name") Name
+          input.input-sm#g-api-key-name.form-control(type="text", placeholder="Enter a name for this API key")
+        .form-group
+          label.control-label(for="g-api-key-token-duration") Token duration in days (optional)
+          input.input-sm#g-api-key-token-duration.form-control(placeholder="Enter number of days")
+
+        label.control-label Permission scope for this key
+        .g-scope-selection-container
+          .radio
+            label
+              input#g-scope-mode-full(type="radio", name="scopeType", value="full", checked)
+              | Allow all actions on behalf of my user
+          .radio
+            label
+              input#g-scope-mode-custom(type="radio", name="scopeType", value="custom")
+              | Only allow specific permissions for this key:
+          each tokenScope in userTokenScopes
+            .checkbox.disabled
+              label.g-custom-scope-description(title=tokenScope.description)
+                input.g-custom-scope-checkbox(type="checkbox", value=tokenScope.id, disabled)
+                span= tokenScope.name
+          if user.get('admin')
+            each tokenScope in adminTokenScopes
+              .checkbox.disabled
+                label.g-custom-scope-description(title=tokenScope.description)
+                  input.g-custom-scope-checkbox(type="checkbox", value=tokenScope.id, disabled)
+                  span= tokenScope.name
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        button.g-save-api-key.btn.btn-small.btn-primary(type="submit")
+          if apiKey
+            i.icon-edit
+            |  Save
+          else
+            i.icon-plus-squared
+            |  Create

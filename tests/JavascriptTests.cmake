@@ -5,36 +5,24 @@ function(javascript_tests_init)
     return()
   endif()
 
-  if(RUN_CORE_TESTS)
-    set(_core_cov_flag "--include-core")
-  else()
-    set(_core_cov_flag "--skip-core")
-  endif()
-
   add_test(
     NAME js_coverage_reset
-    COMMAND "${PYTHON_EXECUTABLE}"
-            "${PROJECT_SOURCE_DIR}/tests/js_coverage_tool.py"
-            reset
-            "${PROJECT_BINARY_DIR}/js_coverage"
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${PROJECT_BINARY_DIR}/js_coverage"
   )
   add_test(
     NAME js_coverage_combine_report
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-    COMMAND "${PYTHON_EXECUTABLE}"
-            "${PROJECT_SOURCE_DIR}/tests/js_coverage_tool.py"
-            "--threshold=${JS_COVERAGE_MINIMUM_PASS}"
-            "--source=${PROJECT_SOURCE_DIR}"
-            "${_core_cov_flag}"
-            combine_report
-            "${PROJECT_BINARY_DIR}/js_coverage"
+    COMMAND "${ISTANBUL_EXECUTABLE}"
+            "report"
+            "--config" "${PROJECT_SOURCE_DIR}/.istanbul.yml"
+            "--root" "${PROJECT_BINARY_DIR}/js_coverage"
+            "--include" "*.cvg"
+            "--dir" "${PROJECT_BINARY_DIR}/coverage"
+            "text-summary" "lcovonly" "cobertura" "html"
   )
   set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser)
   set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_browser)
 endfunction()
-
-include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigExpandRelpaths.cmake)
-include(${PROJECT_SOURCE_DIR}/scripts/JsonConfigMerge.cmake)
 
 function(add_eslint_test name input)
   if (NOT BUILD_JAVASCRIPT_TESTS)
@@ -68,81 +56,21 @@ function(add_eslint_test name input)
   set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
 endfunction()
 
-function(add_javascript_style_test name input)
+function(add_puglint_test name path)
   if (NOT BUILD_JAVASCRIPT_TESTS)
     return()
   endif()
 
-  message(
-    AUTHOR_WARNING
-    "The use of 'add_javascript_style_test' is deprecated.  Use 'add_eslint_test' for JavaScript static analysis."
-  )
-  set(_args JSHINT_EXTRA_CONFIGS JSSTYLE_EXTRA_CONFIGS)
-  cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
-
-  # jshint
-  set(jshint_config "${PROJECT_BINARY_DIR}/tests/${name}_jshint.cfg")
-  json_config_merge(
-    INPUTFILES
-      "${PROJECT_SOURCE_DIR}/tests/jshint.cfg"
-      ${fn_JSHINT_EXTRA_CONFIGS}
-    OUTPUTFILE
-      ${jshint_config}
-    )
-
-  # jsstyle
-  set(inputfiles
-    "${PROJECT_SOURCE_DIR}/tests/jsstyle.cfg"
-    ${fn_JSSTYLE_EXTRA_CONFIGS}
-    )
-  set(expanded_jsstyle_inputfiles)
-  foreach(inputfile IN LISTS inputfiles)
-    set(outputfile ${CMAKE_CURRENT_BINARY_DIR}/${inputfile})
-    get_filename_component(outputdir ${outputfile} PATH)
-    file(MAKE_DIRECTORY ${outputdir})
-    list(APPEND expanded_jsstyle_inputfiles ${outputfile})
-    json_config_expand_relpaths(
-      INPUTFILE ${inputfile}
-      OUTPUTFILE ${outputfile}
-      RELATIVE_PATH_KEYS excludeFiles
-      )
-  endforeach()
-
-  set(jsstyle_config "${PROJECT_BINARY_DIR}/tests/${name}_jsstyle.cfg")
-  json_config_merge(
-    INPUTFILES ${expanded_jsstyle_inputfiles}
-    OUTPUTFILE ${jsstyle_config}
-    )
-
-  # add tests
-  set(working_dir "${PROJECT_SOURCE_DIR}/clients/web")
-  if(NOT IS_ABSOLUTE ${input})
-    set(input ${working_dir}/${input})
-  endif()
-  if(NOT EXISTS ${input})
-    message(FATAL_ERROR "Failed to add javascript style tests."
-                        "Directory or file '${input}' does not exist.")
-  endif()
-
-  # check if the input is a directory or file and set the working directory
-  if(IS_DIRECTORY "${input}")
-    set(test_directory "${input}")
-  else()
-    get_filename_component(test_directory "${input}" DIRECTORY)
+  if (NOT PUGLINT_EXECUTABLE)
+    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable BUILD_JAVASCRIPT_TESTS.")
   endif()
 
   add_test(
-    NAME "jshint_${name}"
-    WORKING_DIRECTORY "${test_directory}"
-    COMMAND "${JSHINT_EXECUTABLE}" --config "${jshint_config}" "${input}"
+    NAME "puglint_${name}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
   )
-  add_test(
-    NAME "jsstyle_${name}"
-    WORKING_DIRECTORY "${test_directory}"
-    COMMAND "${JSSTYLE_EXECUTABLE}"  --config "${jsstyle_config}" "${input}"
-  )
-  set_property(TEST "jshint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
-  set_property(TEST "jsstyle_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
+  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
 endfunction()
 
 function(add_web_client_test case specFile)
@@ -153,8 +81,7 @@ function(add_web_client_test case specFile)
   # PLUGIN (name of plugin) : this plugin and all dependencies are loaded
   # (unless overridden with ENABLEDPLUGINS) and the test name includes the
   # plugin name
-  # PLUGIN_DIRS (list of plugin dirs) : A list of directories plugins
-  # should live in.
+  # PLUGIN_DIR Alternate directory in which to look for plugins.
   # ASSETSTORE (assetstore type) : use the specified assetstore type when
   #     running the test.  Defaults to 'filesystem'
   # WEBSECURITY (boolean) : if false, don't use CORS validatation.  Defaults to
@@ -176,7 +103,7 @@ function(add_web_client_test case specFile)
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
-  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIRS TIMEOUT TEST_MODULE REQUIRED_FILES)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -187,10 +114,10 @@ function(add_web_client_test case specFile)
     set(plugins "")
   endif()
 
-  if(fn_PLUGIN_DIRS)
-    set(pluginDirs ${fn_PLUGIN_DIRS})
+  if(fn_PLUGIN_DIR)
+    set(pluginDir ${fn_PLUGIN_DIR})
   else()
-    set(pluginDirs "")
+    set(pluginDir "")
   endif()
 
   if(fn_ASSETSTORE)
@@ -235,7 +162,7 @@ function(add_web_client_test case specFile)
     "ASSETSTORE_TYPE=${assetstoreType}"
     "WEB_SECURITY=${webSecurity}"
     "ENABLED_PLUGINS=${plugins}"
-    "PLUGIN_DIRS=${pluginDirs}"
+    "PLUGIN_DIR=${pluginDir}"
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${testname}"
     "GIRDER_TEST_ASSETSTORE=${testname}"
     "GIRDER_PORT=${web_client_port}"

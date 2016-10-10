@@ -53,18 +53,6 @@ class Item(acl_mixin.AccessControlMixin, Model):
             'creatorId', 'folderId', 'name', 'baseParentType', 'baseParentId',
             'copyOfItem'))
 
-    def filter(self, *args, **kwargs):
-        """
-        Preserved override for kwarg backwards compatibility. Prior to the
-        refactor for centralizing model filtering, this method's first formal
-        parameter was called "item", whereas the centralized version's first
-        parameter is called "doc". This override simply detects someone using
-        the old kwarg and converts it to the new form.
-        """
-        if 'item' in kwargs:
-            args = [kwargs.pop('item')] + list(args)
-        return Model.filter(self, *args, **kwargs)
-
     def _validateString(self, value):
         """
         Make sure a value is a string and is stripped of whitespace.
@@ -464,25 +452,23 @@ class Item(acl_mixin.AccessControlMixin, Model):
             return True
         return file['mimeType'] in mimeFilter
 
-    def isOrphan(self, item, user=None):
+    def isOrphan(self, item):
         """
         Returns True if this item is orphaned (its folder is missing).
 
         :param item: The item to check.
         :type item: dict
-        :param user: (deprecated) Not used.
         """
         return not self.model('folder').load(
             item.get('folderId'), force=True)
 
-    def updateSize(self, doc, user=None):
+    def updateSize(self, doc):
         """
         Recomputes the size of this item and its underlying
         files and fixes the sizes as needed.
 
         :param doc: The item.
         :type doc: dict
-        :param user: (deprecated) Not used.
         """
         # get correct size from child files
         size = 0

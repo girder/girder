@@ -1,4 +1,4 @@
-FROM node:4.4.5
+FROM node:5
 MAINTAINER Patrick Reynolds <patrick.reynolds@kitware.com>
 
 EXPOSE 8080
@@ -28,7 +28,7 @@ COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 
 RUN pip install -e .[plugins]
+RUN npm install --unsafe-perm
+RUN npm run build
 
-RUN npm install -g grunt-cli && npm cache clear
-RUN npm install --production --unsafe-perm && npm cache clear
 ENTRYPOINT ["python", "-m", "girder"]

@@ -23,6 +23,7 @@ import cherrypy
 import io
 import json
 import logging
+import mock
 import os
 import shutil
 import signal
@@ -33,7 +34,7 @@ import uuid
 
 from six import BytesIO
 from six.moves import urllib
-from girder.utility import model_importer
+from girder.utility import model_importer, plugin_utilities
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
 from girder.models import getDbConnection
@@ -117,10 +118,30 @@ def dropFsAssetstore(path):
     """
     Delete all of the files in a filesystem assetstore.  This unlinks the path,
     which is potentially dangerous.
+
     :param path: the path to remove.
     """
     if os.path.isdir(path):
         shutil.rmtree(path)
+
+
+def mockPluginDir(path):
+    """
+    Modify the location that the server will search when loading plugins. Call this prior to
+    calling startServer. Returns the original un-mocked function.
+
+    :param path: The directory in which to search for plugins.
+    """
+    oldFn = plugin_utilities.getPluginDir
+    plugin_utilities.getPluginDir = mock.Mock(return_value=path)
+    return oldFn
+
+
+def unmockPluginDir(oldFn):
+    """
+    Restore the getPluginDir function to its original un-mocked version.
+    """
+    plugin_utilities.getPluginDir = oldFn
 
 
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
@@ -166,7 +187,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             self.assetstore = self.model('assetstore'). \
                 createFilesystemAssetstore(name='Test', root=assetstorePath)
 
-        addr = ':'.join(map(str, mockSmtp.address))
+        addr = ':'.join(map(str, mockSmtp.address or ('localhost', 25)))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         self.model('setting').set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
@@ -178,6 +199,12 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         # If "self.setUp" is overridden, "self.assetstoreType" may not be set
         if getattr(self, 'assetstoreType', None) == 'gridfsrs':
             mongo_replicaset.stopMongoReplicaSet()
+
+    def mockPluginDir(self, path):
+        self._oldPluginDirFn = mockPluginDir(path)
+
+    def unmockPluginDir(self):
+        unmockPluginDir(self._oldPluginDirFn)
 
     def assertStatusOk(self, response):
         """
@@ -383,7 +410,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
                 type=None, exception=False, cookie=None, token=None,
                 additionalHeaders=None, useHttps=False,
-                authHeader='Girder-Authorization'):
+                authHeader='Girder-Authorization', appPrefix=''):
         """
         Make an HTTP request.
 
@@ -408,6 +435,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param useHttps: If True, pretend to use HTTPS.
         :param authHeader: The HTTP request header to use for authentication.
         :type authHeader: str
+        :param appPrefix: The CherryPy application prefix (mounted location without trailing slash)
+        :type appPrefix: str
         :returns: The cherrypy response object from the request.
         """
         if not params:
@@ -434,7 +463,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         elif params:
             qs = urllib.parse.urlencode(params)
 
-        app = cherrypy.tree.apps['']
+        app = cherrypy.tree.apps[appPrefix]
         request, response = app.get_serving(
             local, remote, 'http' if not useHttps else 'https', 'HTTP/1.1')
         request.show_tracebacks = True

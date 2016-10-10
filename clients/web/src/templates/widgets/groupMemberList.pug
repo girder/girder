@@ -1,0 +1,39 @@
+.g-group-members-header.g-group-list-header
+  i.icon-users
+  span Members
+  if level >= accessType.WRITE
+    form.g-group-invite-form.form-inline(role="form")
+      span
+        i.icon-mail-alt
+      .form-group.g-group-invite-container
+  .g-member-pagination
+.g-group-members-body
+  ul.g-group-members
+    each member in members
+      li(cid=member.cid)
+        a.g-member-name
+          i.icon-user
+          span #{member.name()} (#{member.get('login')})
+        .g-group-member-controls.pull-right
+          if level >= accessType.ADMIN
+            span.dropdown
+              a.g-group-member-promote.dropdown-toggle(
+                  title="Promote user", data-toggle="dropdown")
+                i.icon-up-big
+                i.icon-down-dir
+              ul.dropdown-menu.pull-right(role="menu")
+                li(role="presentation")
+                  a.g-promote-moderator(role="menuitem")
+                    i.icon-plus
+                    span Promote to moderator
+                li(role="presentation")
+                  a.g-promote-admin(role="menuitem")
+                    i.icon-plus
+                    span Promote to administrator
+          if level >= accessType.WRITE
+            a.g-group-member-remove(title="Remove user from the group")
+              i.icon-block
+    if (!members.length)
+      .g-member-list-empty
+        i.icon-info-circled
+        span There are no members in this group.

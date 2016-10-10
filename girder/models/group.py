@@ -70,33 +70,6 @@ class Group(AccessControlledModel):
                     CoreEventHandler.GROUP_CREATOR_ACCESS,
                     self._grantCreatorAccess)
 
-    def filter(self, *args, **kwargs):
-        """
-        Preserved override for kwarg backwards compatibility. Prior to the
-        refactor for centralizing model filtering, this method's first formal
-        parameter was called "group", whereas the centralized version's first
-        parameter is called "doc". This override simply detects someone using
-        the old kwarg and converts it to the new form.
-
-        The old method for this model took two boolean kwargs, ``accessList``
-        and ``requests``. These options are now deprecated, but are still
-        supported for backward compatibility.
-        """
-        if 'group' in kwargs:
-            args = [kwargs.pop('group')] + list(args)
-
-        acl = kwargs.pop('accessList') if 'accessList' in kwargs else False
-        reqs = kwargs.pop('requests') if 'requests' in kwargs else False
-
-        group = super(Group, self).filter(*args, **kwargs)
-
-        if acl and 'access' not in group:
-            group['access'] = self.getFullAccessList(args[0])
-        if reqs and 'requests' not in group:
-            group['requests'] = list(self.getFullRequestList(args[0]))
-
-        return group
-
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         doc['lowerName'] = doc['name'].lower()

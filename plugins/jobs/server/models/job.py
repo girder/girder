@@ -38,11 +38,9 @@ class Job(AccessControlledModel):
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
-            'progress', 'log', 'meta', '_id', 'public', 'async', 'updated',
-            'timestamps'})
+            'progress', 'log', 'meta', '_id', 'public', 'async', 'updated', 'timestamps'})
 
-        self.exposeFields(level=AccessType.SITE_ADMIN, fields={
-            'args', 'kwargs'})
+        self.exposeFields(level=AccessType.SITE_ADMIN, fields={'args', 'kwargs'})
 
     def validate(self, job):
         self._validateStatus(job['status'])
@@ -432,50 +430,16 @@ class Job(AccessControlledModel):
             user, job['title'], total, state=state, current=current,
             message=message, estimateTime=False)
 
-    def filter(self, *args, **kwargs):
+    def filter(self, doc, user=None, additionalKeys=None):
         """
-        This predates the core generic model filtering utilities, so it does
-        a bunch of stuff that is not best practice but is preserved here for
-        backward compatibility. The ``jobs.filter`` event is now deprecated
-        and will be removed in the next major release in favor of the normal
-        ``exposeFields`` et al.
+        Overrides the parent ``filter`` method to also deserialize the ``kwargs``
+        field if it is still in serialized form. This is handled in ``load``, but
+        required here also for fetching lists of jobs.
         """
-        if 'job' in kwargs:
-            args = [kwargs.pop('folder')] + list(args)
-
-        job = args[0]
-
-        if 'user' in kwargs:
-            user = kwargs.pop('user')
-        else:
-            user = args[1]
-
-        # Allow downstreams to filter job info as they see fit
-        event = events.trigger('jobs.filter', info={
-            'job': job,
-            'user': user
-        })
-
-        keys = []
-
-        if 'additionalKeys' in kwargs:
-            keys.extend(kwargs.pop('additionalKeys'))
-
-        removeFields = set()
-        for resp in event.responses:
-            if 'exposeFields' in resp:
-                keys.extend(resp['exposeFields'])
-            if 'removeFields' in resp:
-                removeFields |= set(resp['removeFields'])
-
-        doc = super(Job, self).filter(job, user, additionalKeys=keys, **kwargs)
+        doc = super(Job, self).filter(doc, user, additionalKeys=additionalKeys)
 
         if 'kwargs' in doc and isinstance(doc['kwargs'], six.string_types):
             doc['kwargs'] = json_util.loads(doc['kwargs'])
-
-        for field in removeFields:
-            if field in doc:
-                del doc[field]
 
         return doc
 

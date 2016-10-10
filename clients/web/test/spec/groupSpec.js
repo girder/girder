@@ -81,7 +81,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
             curUser = 'admin';
         }
         runs(function () {
-            var resp = girder.restRequest({
+            var resp = girder.rest.restRequest({
                 path: 'system/setting',
                 type: 'PUT',
                 data: {

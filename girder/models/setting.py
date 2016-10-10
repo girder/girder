@@ -22,7 +22,7 @@ import cherrypy
 import pymongo
 import six
 
-from ..constants import SettingDefault, SettingKey
+from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault, SettingKey
 from .model_base import Model, ValidationException
 from girder import logprint
 from girder.utility import plugin_utilities, setting_utilities
@@ -292,6 +292,27 @@ class Setting(Model):
         if doc['value'] not in ('required', 'optional', 'disabled'):
             raise ValidationException(
                 'Email verification must be "required", "optional", or "disabled".', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.ROUTE_TABLE)
+    def validateCoreRouteTable(doc):
+        nonEmptyRoutes = [route for route in doc['value'].values() if route]
+        if GIRDER_ROUTE_ID not in doc['value'] or not doc['value'][GIRDER_ROUTE_ID]:
+            raise ValidationException('Girder must be routeable.')
+
+        if not all(route.startswith('/') for route in nonEmptyRoutes):
+            raise ValidationException('Routes must begin with a forward slash.')
+
+        if len(nonEmptyRoutes) > len(set(nonEmptyRoutes)):
+            raise ValidationException('Routes must be unique.')
+
+    @staticmethod
+    @setting_utilities.default(SettingKey.ROUTE_TABLE)
+    def defaultCoreRouteTable():
+        return {
+            GIRDER_ROUTE_ID: '/',
+            GIRDER_STATIC_ROUTE_ID: '/static'
+        }
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SMTP_HOST)

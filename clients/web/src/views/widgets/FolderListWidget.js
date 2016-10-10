@@ -1,9 +1,18 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import FolderCollection from 'girder/collections/FolderCollection';
+import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import View from 'girder/views/View';
+
+import FolderListTemplate from 'girder/templates/widgets/folderList.pug';
+
 /**
  * This widget shows a list of folders under a given parent.
  * Initialize this with a "parentType" and "parentId" value, which will
  * be passed to the folder GET endpoint.
  */
-girder.views.FolderListWidget = girder.View.extend({
+var FolderListWidget = View.extend({
     events: {
         'click a.g-folder-list-link': function (event) {
             var cid = $(event.currentTarget).attr('g-folder-cid');
@@ -18,12 +27,12 @@ girder.views.FolderListWidget = girder.View.extend({
         this.checked = [];
         this._checkboxes = settings.checkboxes;
 
-        new girder.views.LoadingAnimation({
+        new LoadingAnimation({
             el: this.$el,
             parentView: this
         }).render();
 
-        this.collection = new girder.collections.FolderCollection();
+        this.collection = new FolderCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.on('g:changed', function () {
             this.render();
@@ -36,7 +45,7 @@ girder.views.FolderListWidget = girder.View.extend({
 
     render: function () {
         this.checked = [];
-        this.$el.html(girder.templates.folderList({
+        this.$el.html(FolderListTemplate({
             folders: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             checkboxes: this._checkboxes
@@ -91,3 +100,6 @@ girder.views.FolderListWidget = girder.View.extend({
         }, this);
     }
 });
+
+export default FolderListWidget;
+

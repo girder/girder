@@ -1,8 +1,0 @@
-if collection.getAccessLevel() >= girder.AccessType.ADMIN
-  li(role="presentation")
-    a.g-collection-policies(role="menuitem")
-      i.icon-box
-      if girder.currentUser.get('admin')
-        | Quota and assetstore policies
-      else
-        | Quota

@@ -1,7 +1,15 @@
+import { sprintf } from 'sprintf-js';
+
+import View from 'girder/views/View';
+
+import TaskProgressTemplate from 'girder/templates/widgets/taskProgress.pug';
+
+import 'girder/stylesheets/widgets/taskProgress.styl';
+
 /**
  * This widget renders the state of a progress notification.
  */
-girder.views.TaskProgressWidget = girder.View.extend({
+var TaskProgressWidget = View.extend({
 
     initialize: function (settings) {
         this.progress = settings.progress;
@@ -48,7 +56,7 @@ girder.views.TaskProgressWidget = girder.View.extend({
             this._scheduleHide(10000);
         }
 
-        this.$el.html(girder.templates.taskProgress({
+        this.$el.html(TaskProgressTemplate({
             progress: this.progress,
             width: width,
             barClass: barClass.join(' '),
@@ -80,3 +88,5 @@ girder.views.TaskProgressWidget = girder.View.extend({
         }, ms);
     }
 });
+
+export default TaskProgressWidget;

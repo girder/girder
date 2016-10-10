@@ -1,0 +1,31 @@
+@import '~nib/index.styl'
+
+.g-jobs-list-table
+  width 100%
+
+  th
+    border-bottom 1px solid #d7d7d7
+
+  tbody>tr
+    transition background 0.4s linear
+
+    td
+      padding 3px 0
+
+    &:hover
+      background-color #f6f6f6
+
+    &.g-highlight
+      background-color #f1db74
+
+  td.g-status-icon-container
+    &[status="0"]
+      color #777
+    &[status="1"]
+      color #d28a0a
+    &[status="3"]
+      color #4c4
+    &[status="4"]
+      color #c44
+    &[status="5"]
+      color #777

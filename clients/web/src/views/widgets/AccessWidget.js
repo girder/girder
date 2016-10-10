@@ -1,7 +1,27 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import accessEditorNonModalTemplate from 'girder/templates/widgets/accessEditorNonModal.pug';
+import accessEditorTemplate from 'girder/templates/widgets/accessEditor.pug';
+import accessEntryTemplate from 'girder/templates/widgets/accessEntry.pug';
+import GroupModel from 'girder/models/GroupModel';
+import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import UserModel from 'girder/models/UserModel';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { handleClose, handleOpen } from 'girder/dialog';
+
+import 'girder/stylesheets/widgets/accessWidget.styl';
+
+import 'bootstrap/js/tooltip';
+
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This view allows users to see and control access on a resource.
  */
-girder.views.AccessWidget = girder.View.extend({
+var AccessWidget = View.extend({
     events: {
         'click button.g-save-access-list': function (e) {
             $(e.currentTarget).attr('disabled', 'disabled');
@@ -29,7 +49,7 @@ girder.views.AccessWidget = girder.View.extend({
         this.hideSaveButton = settings.hideSaveButton || false;
         this.modal = _.has(settings, 'modal') ? settings.modal : true;
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             placeholder: 'Start typing a name...',
             modes: ['prefix', 'text'],
             types: ['group', 'user'],
@@ -47,7 +67,7 @@ girder.views.AccessWidget = girder.View.extend({
 
     render: function () {
         if (!this.model.get('access')) {
-            new girder.views.LoadingAnimation({
+            new LoadingAnimation({
                 el: this.$el,
                 parentView: this
             }).render();
@@ -56,23 +76,23 @@ girder.views.AccessWidget = girder.View.extend({
 
         var closeFunction;
         if (this.modal && this.modelType === 'folder') {
-            girder.dialogs.handleOpen('folderaccess');
+            handleOpen('folderaccess');
             closeFunction = function () {
-                girder.dialogs.handleClose('folderaccess');
+                handleClose('folderaccess');
             };
         } else if (this.modal) {
-            girder.dialogs.handleOpen('access');
+            handleOpen('access');
             closeFunction = function () {
-                girder.dialogs.handleClose('access');
+                handleClose('access');
             };
         }
 
-        var template = this.modal ? girder.templates.accessEditor
-                                  : girder.templates.accessEditorNonModal;
+        var template = this.modal ? accessEditorTemplate
+                                  : accessEditorNonModalTemplate;
         this.$el.html(template({
             model: this.model,
             modelType: this.modelType,
-            public: this.model.get('public'),
+            publicFlag: this.model.get('public'),
             hideRecurseOption: this.hideRecurseOption,
             hideSaveButton: this.hideSaveButton
         }));
@@ -82,8 +102,8 @@ girder.views.AccessWidget = girder.View.extend({
         }
 
         _.each(this.model.get('access').groups, function (groupAccess) {
-            this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
-                accessTypes: girder.AccessType,
+            this.$('#g-ac-list-groups').append(accessEntryTemplate({
+                accessTypes: AccessType,
                 type: 'group',
                 entry: _.extend(groupAccess, {
                     title: groupAccess.name,
@@ -93,8 +113,8 @@ girder.views.AccessWidget = girder.View.extend({
         }, this);
 
         _.each(this.model.get('access').users, function (userAccess) {
-            this.$('#g-ac-list-users').append(girder.templates.accessEntry({
-                accessTypes: girder.AccessType,
+            this.$('#g-ac-list-users').append(accessEntryTemplate({
+                accessTypes: AccessType,
                 type: 'user',
                 entry: _.extend(userAccess, {
                     title: userAccess.name,
@@ -143,16 +163,16 @@ girder.views.AccessWidget = girder.View.extend({
         }, this);
 
         if (!exists) {
-            var model = new girder.models.UserModel();
+            var model = new UserModel();
             model.set('_id', entry.id).on('g:fetched', function () {
-                this.$('#g-ac-list-users').append(girder.templates.accessEntry({
-                    accessTypes: girder.AccessType,
+                this.$('#g-ac-list-users').append(accessEntryTemplate({
+                    accessTypes: AccessType,
                     type: 'user',
                     entry: {
                         title: model.name(),
                         subtitle: model.get('login'),
                         id: entry.id,
-                        level: girder.AccessType.READ
+                        level: AccessType.READ
                     }
                 }));
 
@@ -171,16 +191,16 @@ girder.views.AccessWidget = girder.View.extend({
         }, this);
 
         if (!exists) {
-            var model = new girder.models.GroupModel();
+            var model = new GroupModel();
             model.set('_id', entry.id).on('g:fetched', function () {
-                this.$('#g-ac-list-groups').append(girder.templates.accessEntry({
-                    accessTypes: girder.AccessType,
+                this.$('#g-ac-list-groups').append(accessEntryTemplate({
+                    accessTypes: AccessType,
                     type: 'group',
                     entry: {
                         title: model.name(),
                         subtitle: model.get('description'),
                         id: entry.id,
-                        level: girder.AccessType.READ
+                        level: AccessType.READ
                     }
                 }));
 
@@ -254,3 +274,5 @@ girder.views.AccessWidget = girder.View.extend({
         selected.parents('.radio').addClass('g-selected');
     }
 });
+
+export default AccessWidget;

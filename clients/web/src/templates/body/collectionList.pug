@@ -1,0 +1,35 @@
+.g-collection-list-header
+
+  .g-collection-pagination
+  form.g-collection-search-form.form-inline(role="form")
+    .form-group.g-collections-search-container
+
+  if getCurrentUser()
+    button.g-collection-create-button.btn.btn-sm.btn-default
+      i.icon-plus-squared
+      |  Create collection
+
+each collection in collections
+  .g-collection-list-entry.g-top-level-list-entry(public=(collection.get('public') ? "true" : "false"))
+    .g-collection-right-column
+      .g-collection-created
+        i.icon-clock
+        | Created on
+        span.g-collection-created-date  #{formatDate(collection.get('created'), DATE_MINUTE)}
+      if collection.has('size')
+        .g-space-used
+          i.icon-floppy
+          | Currently using
+          span.g-user-space-used  #{formatSize(collection.get('size'))}
+    .g-list-public-status-icon
+      if collection.get('public')
+        i.icon-globe(title="Public collection")
+      else
+        i.icon-lock(title="Private collection")
+    .g-top-level-list-title-container
+      .g-collection-title
+        a.g-collection-link(g-collection-cid=collection.cid)
+          b= collection.name()
+      .g-collection-subtitle
+        span.g-collection-description= collection.get('description')
+    .g-clear-right

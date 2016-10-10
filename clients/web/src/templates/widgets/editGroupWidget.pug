@@ -1,0 +1,54 @@
+.modal-dialog
+  .modal-content
+    form#g-group-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          if (group)
+            | Edit group
+          else
+            | Create group
+      .modal-body
+        .g-public-container
+          .radio
+            label
+              input#g-access-private(type="radio", name="privacy",
+                  checked=(publicFlag ? undefined : "checked"))
+              i.icon-lock
+              | Private &mdash; Only members can see this group
+          .radio
+            label
+              input#g-access-public(type="radio", name="privacy",
+                  checked=(publicFlag ? "checked" : undefined))
+              i.icon-globe
+              | Public &mdash; Anyone can see this group
+        .form-group
+          label.control-label(for="g-name") Name
+          input.input-sm#g-name.form-control(type="text", placeholder="Enter group name")
+        .form-group
+          label.control-label(for="g-description") Description (optional)
+          textarea#g-description.input-sm.form-control(placeholder="Enter group description")
+        if groupAddAllowed
+            .form-group
+              label.control-label(for="g-add-to-group") Allow members to be directly added to this group
+              select#g-add-to-group.form-control.input-sm
+                if addToGroupPolicy === 'yesadmin'
+                    option(value='default', selected=(addAllowed === 'default')) Default - Yes, allow group administrators to add members
+                else if addToGroupPolicy === 'yesmod'
+                    option(value='default', selected=(addAllowed === 'default')) Default - Yes, allow group administrators and moderators to add members
+                else
+                    option(value='default', selected=(addAllowed === 'default')) Default - No
+                option(value='no', selected=(addAllowed === 'no')) No - members must be invited and accept invitations
+                if groupAddAllowed === 'mod'
+                    option(value='yesmod', selected=(addAllowed === 'yesmod')) Yes - allow group administrators and moderators to directly add members
+                option(value='yesadmin', selected=(addAllowed === 'yesadmin')) Yes - allow group administrators to directly add members
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        button.g-save-group.btn.btn-small.btn-primary(type="submit")
+          if (group)
+            i.icon-edit
+            | Save
+          else
+            i.icon-plus-squared
+            | Create

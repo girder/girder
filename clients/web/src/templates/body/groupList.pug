@@ -1,0 +1,30 @@
+.g-groups-list-header
+
+  .g-group-pagination
+  form.g-group-search-form.form-inline(role="form")
+    .form-group.g-groups-search-container
+
+  if getCurrentUser()
+    button.g-group-create-button.btn.btn-sm.btn-default
+      i.icon-plus-squared
+      |  Create Group
+
+each group in groups
+  .g-group-list-entry.g-top-level-list-entry(public=(group.get('public') ? "true" : "false"))
+    .g-group-right-column
+      .g-group-created
+        i.icon-clock
+        | Created on
+        span.g-group-created-date  #{formatDate(group.get('created'), DATE_DAY)}
+    .g-list-public-status-icon
+      if group.get('public')
+        i.icon-globe(title="Public group")
+      else
+        i.icon-lock(title="Private group")
+    .g-top-level-list-title-container
+      .g-group-title
+        a.g-group-link(g-group-cid=group.cid)
+          b= group.name()
+      .g-group-subtitle
+        span.g-group-description= group.get('description')
+    .g-clear-right

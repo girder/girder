@@ -318,10 +318,12 @@ internally. You can use it on any user model with the ``_id`` field set, as in t
 
 .. code-block:: javascript
 
-    if (girder.currentUser) {
+    import { getCurrentUser } from 'girder/auth';
+
+    const currentUser = getCurrentUser();
+    if (currentUser) {
         this.$('div.gravatar-portrait').css(
-            'background-image', 'url(' +
-            girder.currentUser.getGravatarUrl(36) + ')');
+            'background-image', `url(${currentUser.getGravatarUrl(36)})`);
     }
 
 .. note:: Gravatar images are always square; the ``size`` parameter refers to

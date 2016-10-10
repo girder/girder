@@ -1,9 +1,25 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
+
+import SearchFieldTemplate from 'girder/templates/widgets/searchField.pug';
+import SearchHelpTemplate from 'girder/templates/widgets/searchHelp.pug';
+import SearchModeSelectTemplate from 'girder/templates/widgets/searchModeSelect.pug';
+import SearchResultsTemplate from 'girder/templates/widgets/searchResults.pug';
+
+import 'girder/stylesheets/widgets/searchFieldWidget.styl';
+
+import 'bootstrap/js/tooltip';
+import 'bootstrap/js/popover';
+
 /**
  * This widget provides a text field that will search any set of data types
  * and show matching results as the user types. Results can be clicked,
  * triggering a callback.
  */
-girder.views.SearchFieldWidget = girder.View.extend({
+var SearchFieldWidget = View.extend({
     events: {
         'input .g-search-field': 'search',
 
@@ -103,7 +119,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.searchField({
+        this.$el.html(SearchFieldTemplate({
             placeholder: this.placeholder,
             modes: this.modes,
             currentMode: this.currentMode
@@ -121,7 +137,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
                 padding: 10
             },
             content: _.bind(function () {
-                return girder.templates.searchHelp({
+                return SearchHelpTemplate({
                     mode: this.currentMode
                 });
             }, this)
@@ -137,7 +153,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
                 padding: 10
             },
             content: _.bind(function () {
-                return girder.templates.searchModeSelect({
+                return SearchModeSelectTemplate({
                     modes: this.modes,
                     currentMode: this.currentMode
                 });
@@ -177,7 +193,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
         this.ajaxLock = true;
         this.pending = null;
 
-        girder.restRequest({
+        restRequest({
             path: 'resource/search',
             data: {
                 q: q,
@@ -232,7 +248,7 @@ girder.views.SearchFieldWidget = girder.View.extend({
                         });
                     }, this);
                 }, this);
-                list.html(girder.templates.searchResults({
+                list.html(SearchResultsTemplate({
                     results: resources
                 }));
 
@@ -241,3 +257,5 @@ girder.views.SearchFieldWidget = girder.View.extend({
         }, this));
     }
 });
+
+export default SearchFieldWidget;

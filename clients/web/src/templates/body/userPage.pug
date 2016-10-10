@@ -1,0 +1,40 @@
+.g-user-header
+
+  if user.getAccessLevel() >= AccessType.WRITE
+    .btn-group.pull-right
+      button.g-user-actions-button.btn.btn-default.dropdown-toggle(
+        data-toggle="dropdown", title="Item actions")
+        i.icon-user
+        |  Actions
+        i.icon-down-dir
+      ul.g-item-actions-menu.dropdown-menu.pull-right(role="menu")
+        li(role="presentation")
+          a.g-edit-user(role="menuitem")
+            i.icon-edit
+            | Edit user
+        if user.getAccessLevel() >= AccessType.ADMIN
+          li.divider(role="presentation")
+          if user.get('status') === 'pending'
+            li(role="presentation")
+              a.g-approve-user(role="menuitem")
+                i.icon-ok-squared
+                | Approve account
+          else if user.get('status') === 'enabled'
+            li(role="presentation")
+              a.g-disable-user(role="menuitem")
+                i.icon-cancel
+                | Disable account
+          else if user.get('status') === 'disabled'
+            li(role="presentation")
+              a.g-enable-user(role="menuitem")
+                i.icon-ok
+                | Enable account
+          li(role="presentation")
+            a.g-delete-user(role="menuitem")
+              i.icon-trash
+              | Delete user
+
+  .g-user-name.g-body-title #{user.get('firstName')} #{user.get('lastName')}
+  .g-user-login.g-body-subtitle #{user.get('login')}
+
+.g-user-hierarchy-container

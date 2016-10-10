@@ -1,17 +1,27 @@
+import _ from 'underscore';
+
+import CollectionCollection from 'girder/collections/CollectionCollection';
+import UserCollection from 'girder/collections/UserCollection';
+import View from 'girder/views/View';
+import events from 'girder/events';
+import { getCurrentUser } from 'girder/auth';
+
+import RootSelectorWidgetTemplate from 'girder/templates/widgets/rootSelectorWidget.pug';
+
 /**
  * This widget creates a dropdown box allowing the user to select
  * "root" paths for a hierarchy widget.
  *
  * @emits RootSelectorWidget#g:selected The selected element changed
  * @type {object}
- * @property {girder.Model|null} root The selected root model
+ * @property {Model|null} root The selected root model
  * @property {string|null} group The selection group
  *
  * @emits RootSelectorWidget#g:group A collection group was updated
  * @type {object}
- * @property {girder.Collection} collection
+ * @property {Collection} collection
  */
-girder.views.RootSelectorWidget = girder.View.extend({
+var RootSelectorWidget = View.extend({
     events: {
         'change #g-root-selector': '_selectRoot'
     },
@@ -25,8 +35,8 @@ girder.views.RootSelectorWidget = girder.View.extend({
      * for example:
      *
      *   {
-     *     friends: new girder.collections.UserCollection([...]),
-     *     saved: new girder.collections.FolderCollection([...])
+     *     friends: new UserCollection([...]),
+     *     saved: new FolderCollection([...])
      *   }
      *
      * Only a single page of results are displayed for each collection provided.
@@ -35,10 +45,10 @@ girder.views.RootSelectorWidget = girder.View.extend({
      * rerender.
      *
      * @param {object} settings
-     * @param {girder.models.UserModel} [settings.home=girder.currentUser]
+     * @param {UserModel} [settings.home=getCurrentUser()]
      * @param {object} [settings.groups] Additional collection groups to add
      * @param {number} [settings.pageLimit=25] The maximum number of models to fetch
-     * @param {girder.Model} [settings.selected] The default/current selection
+     * @param {Model} [settings.selected] The default/current selection
      * @param {string[]} [settings.display=['Home', 'Collections', 'Users'] Display order
      * @param {boolean} [settings.reset=true] Always fetch from offset 0
      */
@@ -49,8 +59,8 @@ girder.views.RootSelectorWidget = girder.View.extend({
 
         // collections are provided for public access here
         this.groups = {
-            'Collections': new girder.collections.CollectionCollection(),
-            'Users': new girder.collections.UserCollection()
+            'Collections': new CollectionCollection(),
+            'Users': new UserCollection()
         };
 
         this.groups.Collections.pageLimit = settings.pageLimit;
@@ -67,11 +77,11 @@ girder.views.RootSelectorWidget = girder.View.extend({
 
         // possible values that determine rendered behavior for "Home":
         //   - model: show this model as Home
-        //   - undefined|null: use girder.currentUser
+        //   - undefined|null: use getCurrentUser()
         this.home = settings.home;
 
         // we need to fetch the collections and rerender on login
-        this.listenTo(girder.events, 'g:login', this.fetch);
+        this.listenTo(events, 'g:login', this.fetch);
 
         this.selected = settings.selected;
         this.display = settings.display || ['Home', 'Collections', 'Users'];
@@ -80,10 +90,10 @@ girder.views.RootSelectorWidget = girder.View.extend({
     },
 
     render: function () {
-        this._home = this.home || girder.currentUser;
+        this._home = this.home || getCurrentUser();
 
         this.$el.html(
-            girder.templates.rootSelectorWidget({
+            RootSelectorWidgetTemplate({
                 home: this._home,
                 groups: this.groups,
                 display: this.display,
@@ -150,3 +160,6 @@ girder.views.RootSelectorWidget = girder.View.extend({
         });
     }
 });
+
+export default RootSelectorWidget;
+

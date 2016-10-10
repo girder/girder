@@ -1,0 +1,21 @@
+.modal-dialog
+  .modal-content
+    form#g-file-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title Edit file
+      .modal-body
+        .form-group
+          label.control-label(for="g-name") Name
+          input.input-sm#g-name.form-control(
+            type="text", placeholder="Enter file name", value=file.name())
+        .form-group
+          label.control-label(for="g-mimetype") MIME type
+          input.input-sm#g-mimetype.form-control(
+            type="text", placeholder="Enter MIME type", value=file.get('mimeType'))
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        button.g-save-file.btn.btn-small.btn-primary(type="submit")
+          i.icon-edit
+          | Save

@@ -1,32 +1,61 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import events from 'girder/events';
+import router from 'girder/router';
+import View from 'girder/views/View';
+import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
+import { restartServerPrompt } from 'girder/server';
+import { restRequest, cancelRestRequests } from 'girder/rest';
+
+import PluginsTemplate from 'girder/templates/body/plugins.pug';
+
+import 'girder/utilities/jquery/girderEnable';
+import 'girder/stylesheets/body/plugins.styl';
+
+import 'bootstrap/js/tooltip';
+import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
+import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
+
 /**
  * This is the plugin management page for administrators.
  */
-girder.views.PluginsView = girder.View.extend({
+var PluginsView = View.extend({
     events: {
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
-            girder.router.navigate(route, {trigger: true});
+            router.navigate(route, {trigger: true});
         },
-        'click .g-plugin-restart-button': function () {
-            var params = {
-                text: 'Are you sure you want to restart the server?  This ' +
-                      'will interrupt all running tasks for all users.',
-                yesText: 'Restart',
-                confirmCallback: girder.restartServer
-            };
-            girder.confirm(params);
+        'click .g-plugin-restart-button': restartServerPrompt,
+        'click .g-rebuild-web-code': function (e) {
+            $(e.currentTarget).girderEnable(false);
+            restRequest({
+                path: 'system/web_build',
+                type: 'POST',
+                data: {
+                    progress: true
+                }
+            }).done(() => {
+                events.trigger('g:alert', {
+                    text: 'Web client code built successfully',
+                    type: 'success',
+                    duration: 3000
+                });
+            }).complete(() => {
+                $(e.currentTarget).girderEnable(true);
+            });
         }
     },
 
     initialize: function (settings) {
-        girder.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.render();
         } else {
             // Fetch the plugin list
-            girder.restRequest({
+            restRequest({
                 path: 'system/plugins',
                 type: 'GET'
             }).done(_.bind(function (resp) {
@@ -38,6 +67,7 @@ girder.views.PluginsView = girder.View.extend({
     },
 
     render: function () {
+        var pluginsChanged = false;
         _.each(this.allPlugins, function (info, name) {
             info.unmetDependencies = this._unmetDependencies(info);
             if (!_.isEmpty(info.unmetDependencies)) {
@@ -47,11 +77,11 @@ girder.views.PluginsView = girder.View.extend({
 
             if (_.contains(this.enabled, name)) {
                 info.enabled = true;
-                info.configRoute = girder.getPluginConfigRoute(name);
+                info.configRoute = getPluginConfigRoute(name);
             }
         }, this);
 
-        this.$el.html(girder.templates.plugins({
+        this.$el.html(PluginsTemplate({
             allPlugins: this._sortPlugins(this.allPlugins)
         }));
 
@@ -68,7 +98,7 @@ girder.views.PluginsView = girder.View.extend({
                       view.enabled.splice(idx, 1);
                   }
               }
-              girder.pluginsChanged = true;
+              pluginsChanged = true;
               $('.g-plugin-restart').addClass('g-plugin-restart-show');
               view._updatePlugins();
           });
@@ -83,7 +113,7 @@ girder.views.PluginsView = girder.View.extend({
             animation: false,
             delay: {show: 100}
         });
-        if (girder.pluginsChanged) {
+        if (pluginsChanged) {
             $('.g-plugin-restart').addClass('g-plugin-restart-show');
         }
 
@@ -112,9 +142,8 @@ girder.views.PluginsView = girder.View.extend({
          * @param plugins: a dictionary to sort.  Each entry has a .name
          *                 attribute used for sorting.
          * @returns sortedPlugins: the sorted list. */
-        var sortedPlugins = [];
-        _.each(plugins, function (value, key) {
-            sortedPlugins.push({key: key, value: value});
+        var sortedPlugins = _.map(plugins, function (value, key) {
+            return {key: key, value: value};
         });
         sortedPlugins.sort(function (a, b) {
             return a.value.name.localeCompare(b.value.name);
@@ -127,7 +156,7 @@ girder.views.PluginsView = girder.View.extend({
         // if the directory of an enabled plugin disappears.
         this.enabled = _.intersection(this.enabled, _.keys(this.allPlugins));
 
-        girder.restRequest({
+        restRequest({
             path: 'system/plugins',
             type: 'PUT',
             data: {
@@ -144,14 +173,4 @@ girder.views.PluginsView = girder.View.extend({
     }
 });
 
-girder.router.route('plugins', 'plugins', function () {
-    // Fetch the plugin list
-    girder.restRequest({
-        path: 'system/plugins',
-        type: 'GET'
-    }).done(_.bind(function (resp) {
-        girder.events.trigger('g:navigateTo', girder.views.PluginsView, resp);
-    }, this)).error(_.bind(function () {
-        girder.events.trigger('g:navigateTo', girder.views.UsersView);
-    }, this));
-});
+export default PluginsView;

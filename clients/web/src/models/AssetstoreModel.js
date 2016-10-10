@@ -1,4 +1,10 @@
-girder.models.AssetstoreModel = girder.Model.extend({
+import _ from 'underscore';
+
+import { formatSize } from 'girder/misc';
+import Model from 'girder/models/Model';
+import { restRequest } from 'girder/rest';
+
+var AssetstoreModel = Model.extend({
     resourceName: 'assetstore',
 
     capacityKnown: function () {
@@ -8,12 +14,12 @@ girder.models.AssetstoreModel = girder.Model.extend({
 
     capacityString: function () {
         var cap = this.get('capacity');
-        return girder.formatSize(cap.free) + ' free of ' +
-            girder.formatSize(cap.total) + ' total';
+        return formatSize(cap.free) + ' free of ' +
+            formatSize(cap.total) + ' total';
     },
 
     import: function (params) {
-        girder.restRequest({
+        return restRequest({
             path: 'assetstore/' + this.get('_id') + '/import',
             type: 'POST',
             data: params,
@@ -23,8 +29,6 @@ girder.models.AssetstoreModel = girder.Model.extend({
         }, this)).error(_.bind(function (resp) {
             this.trigger('g:error', resp);
         }, this));
-
-        return this;
     },
 
     save: function () {
@@ -32,6 +36,8 @@ girder.models.AssetstoreModel = girder.Model.extend({
             // Coerce to an octal string to disambiguate
             this.set('perms', this.get('perms').toString(8));
         }
-        girder.Model.prototype.save.call(this, arguments);
+        return Model.prototype.save.call(this, arguments);
     }
 });
+
+export default AssetstoreModel;

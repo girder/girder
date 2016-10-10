@@ -115,7 +115,7 @@ to install the plugins as well.
 To build the client-side code project, cd into the root of the repository
 and run: ::
 
-    npm install
+    girder-install web
 
 This will run multiple `Grunt <http://gruntjs.com>`_ tasks, to build all of
 the Javascript and CSS files needed to run the web client application.
@@ -129,17 +129,9 @@ To run the server, first make sure the Mongo daemon is running. To manually star
 
     mongod &
 
-If you installed with pip, you will have the ``girder-server`` executable on your
-path and can simply call ::
+Then to run Girder itself, just use the following command: ::
 
     girder-server
-
-**- or -**
-
-If you checked out the source tree, you can start the server with the
-following command, which will have identical behavior: ::
-
-    python -m girder
 
 Then open http://localhost:8080/ in your web browser, and you should see the application.
 

@@ -87,7 +87,7 @@ describe('Test collection actions', function () {
                    $('#g-dialog-container:visible').length === 0;
         }, 'dialog to fully disappear');
         waitsFor(function () {
-            return girder.numberOutstandingRestRequests() === 0;
+            return girder.rest.numberOutstandingRestRequests() === 0;
         }, 'dialog rest requests to finish');
 
         waitsFor(function () {

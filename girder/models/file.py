@@ -62,9 +62,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             updating its size.
         """
         if file.get('assetstoreId'):
-            assetstore = self.model('assetstore').load(file['assetstoreId'])
-            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            adapter.deleteFile(file)
+            self.getAssetstoreAdapter(file).deleteFile(file)
 
         if file['itemId']:
             item = self.model('item').load(file['itemId'], force=True)
@@ -96,9 +94,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type extraParameters: str or None
         """
         if file.get('assetstoreId'):
-            assetstore = self.model('assetstore').load(file['assetstoreId'])
-            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            return adapter.downloadFile(
+            return self.getAssetstoreAdapter(file).downloadFile(
                 file, offset=offset, headers=headers, endByte=endByte,
                 contentDisposition=contentDisposition,
                 extraParameters=extraParameters)
@@ -106,8 +102,10 @@ class File(acl_mixin.AccessControlMixin, Model):
             if headers:
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
             else:
+                endByte = endByte or len(file['linkUrl'])
+
                 def stream():
-                    yield file['linkUrl']
+                    yield file['linkUrl'][offset:endByte]
                 return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')
@@ -274,11 +272,16 @@ class File(acl_mixin.AccessControlMixin, Model):
         file = self.save(file)
 
         if file.get('assetstoreId'):
-            assetstore = self.model('assetstore').load(file['assetstoreId'])
-            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            adapter.fileUpdated(file)
+            self.getAssetstoreAdapter(file).fileUpdated(file)
 
         return file
+
+    def getAssetstoreAdapter(self, file):
+        """
+        Return the assetstore adapter for the given file.
+        """
+        assetstore = self.model('assetstore').load(file['assetstoreId'])
+        return assetstore_utilities.getAssetstoreAdapter(assetstore)
 
     def copyFile(self, srcFile, creator, item=None):
         """
@@ -301,22 +304,19 @@ class File(acl_mixin.AccessControlMixin, Model):
         if item:
             file['itemId'] = item['_id']
         if file.get('assetstoreId'):
-            assetstore = self.model('assetstore').load(file['assetstoreId'])
-            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-            adapter.copyFile(srcFile, file)
+            self.getAssetstoreAdapter(file).copyFile(srcFile, file)
         elif file.get('linkUrl'):
             file['linkUrl'] = srcFile['linkUrl']
 
         return self.save(file)
 
-    def isOrphan(self, file, user=None):
+    def isOrphan(self, file):
         """
         Returns True if this file is orphaned (its item or attached entity is
         missing).
 
         :param file: The file to check.
         :type file: dict
-        :param user: (deprecated) Not used.
         """
         if file.get('attachedToId'):
             attachedToType = file.get('attachedToType')

@@ -76,3 +76,16 @@ to take effect.
 This raises the limits for all users on the system.  You can limit this change
 to just the user that runs the Girder server.  See the documentation for
 ``/etc/security/limits.conf`` for details.
+
+.. _managing-routes:
+
+Managing Routes
+---------------
+
+When plugins which have their own custom webroot are enabled, they are mounted at /pluginName.
+In certain cases it may be desirable for the site administrator to mount such plugins at their own
+specified paths.
+
+These paths can be modified by navigating to Admin Console -> Server Configuration and
+visiting the Routing section.
+

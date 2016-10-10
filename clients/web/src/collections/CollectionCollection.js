@@ -1,4 +1,9 @@
-girder.collections.CollectionCollection = girder.Collection.extend({
+import Collection from 'girder/collections/Collection';
+import CollectionModel from 'girder/models/CollectionModel';
+
+var CollectionCollection = Collection.extend({
     resourceName: 'collection',
-    model: girder.models.CollectionModel
+    model: CollectionModel
 });
+
+export default CollectionCollection;

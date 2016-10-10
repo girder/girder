@@ -1,0 +1,38 @@
+.g-field-container
+  .g-job-info-key.inline(property="title") Title:
+  .g-job-info-value.inline(property="title")= job.get('title')
+.g-field-container
+  .g-job-info-key.inline(property="_id") Job ID:
+  .g-job-info-value.inline(property="_id")= job.get('_id')
+.g-field-container
+  .g-job-info-key.inline(property="status") Status:
+  .g-job-status-badge(status=statusText.toLowerCase(), class=colorClass)
+    i(class=JobStatus.icon(job.get('status')))
+    |  #{statusText}
+if job.get('timestamps') && job.get('timestamps').length
+  .g-field-container
+    .g-job-info-key Timeline:
+    .g-job-timeline-container
+.g-field-container
+  .g-job-info-key.inline(property="created") Created:
+  .g-job-info-value.inline(property="created")= formatDate(job.get('created'), DATE_SECOND)
+.g-field-container
+  .g-job-info-key.inline(property="when") Scheduled start:
+  .g-job-info-value.inline(property="when")= formatDate(job.get('when'), DATE_SECOND)
+if job.get('updated')
+  .g-field-container
+    .g-job-info-key.inline(property="updated") Last update:
+    .g-job-info-value.inline(property="updated")= formatDate(job.get('updated'), DATE_SECOND)
+if job.get('log')
+  - var log = job.get('log').join('')
+  .g-job-info-key(property="log") Log output:
+  .g-job-log-container.g-monospace-viewer(property="log")= log
+if job.get('meta') && !_.isEmpty(job.get('meta'))
+  .g-job-info-key(property="args") Job metadata:
+  .g-monospace-viewer(property="args")= JSON.stringify(job.get('meta'), null, '  ')
+if job.get('args') && job.get('args').length
+  .g-job-info-key(property="args") Positional arguments:
+  .g-monospace-viewer(property="args")= JSON.stringify(job.get('args'), null, '  ')
+if job.get('kwargs')
+  .g-job-info-key(property="kwargs") Keyword arguments:
+  .g-monospace-viewer(property="kwargs")= JSON.stringify(job.get('kwargs'), null, '  ')

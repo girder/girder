@@ -63,7 +63,7 @@ def genToken(length=64):
     Use this utility function to generate a random string of a desired length.
     """
     return ''.join(random.choice(string.ascii_letters + string.digits)
-                   for x in range(length))
+                   for _ in range(length))
 
 
 def camelcase(value):

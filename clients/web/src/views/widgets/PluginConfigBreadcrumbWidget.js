@@ -1,14 +1,19 @@
+import router from 'girder/router';
+import View from 'girder/views/View';
+
+import PluginConfigBreadcrumbTemplate from 'girder/templates/widgets/pluginConfigBreadcrumb.pug';
+
 /**
  * This widget provides a consistent breadcrumb to be displayed on the admin
  * configuration pages for plugins.
  */
-girder.views.PluginConfigBreadcrumbWidget = girder.View.extend({
+var PluginConfigBreadcrumbWidget = View.extend({
     events: {
         'click a.g-admin-console-link': function () {
-            girder.router.navigate('admin', {trigger: true});
+            router.navigate('admin', {trigger: true});
         },
         'click a.g-plugins-link': function () {
-            girder.router.navigate('plugins', {trigger: true});
+            router.navigate('plugins', {trigger: true});
         }
     },
 
@@ -17,10 +22,12 @@ girder.views.PluginConfigBreadcrumbWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.pluginConfigBreadcrumb({
+        this.$el.html(PluginConfigBreadcrumbTemplate({
             pluginName: this.pluginName
         }));
 
         return this;
     }
 });
+
+export default PluginConfigBreadcrumbWidget;

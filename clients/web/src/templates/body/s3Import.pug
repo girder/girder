@@ -1,0 +1,31 @@
+.g-body-title Import existing data from S3
+.g-body-subtitle= assetstore.get('name')
+
+.g-import-instructions.g-s3import-instructions.
+  Use this page to import existing data from this assetstore's S3 bucket
+  (#[b= assetstore.get('bucket') ]). You may import a specific directory of keys
+  within the bucket, or a specific key by path. If you wish to import the entire
+  bucket into the selected destination, simply leave the import path field blank.
+  If you specify a directory, it will be imported recursively. You must also
+  specify a destination collection, user, or folder ID under which to place the
+  imported data.
+
+form.g-s3-import-form
+  .form-group
+    label(for="g-s3-import-path") Import path (key or directory)
+    input.form-control.input-sm#g-s3-import-path(type="text")
+  .form-group
+    label(for="g-s3-import-dest-type") Destination type
+    select.form-control#g-s3-import-dest-type
+      option(value="folder") Folder
+      option(value="user") User
+      option(value="collection") Collection
+  .form-group
+    label(for="g-s3-import-dest-id") Destination ID
+    input.form-control.input-sm#g-s3-import-dest-id(
+        type="text",
+        placeholder="Existing folder, user, or collection ID to use as the destination")
+  .g-validation-failed-message
+  button.g-submit-assetstore-import.g-submit-s3-import.btn.btn-success(type="submit")
+    i.icon-link-ext
+    |  Begin import

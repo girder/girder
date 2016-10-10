@@ -1,7 +1,20 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import FolderModel from 'girder/models/FolderModel';
+import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
+import View from 'girder/views/View';
+import { handleClose, handleOpen } from 'girder/dialog';
+
+import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.pug';
+
+import 'girder/utilities/jquery/girderEnable';
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This widget is used to create a new folder or edit an existing one.
  */
-girder.views.EditFolderWidget = girder.View.extend({
+var EditFolderWidget = View.extend({
     events: {
         'submit #g-folder-edit-form': function (e) {
             e.preventDefault();
@@ -16,7 +29,7 @@ girder.views.EditFolderWidget = girder.View.extend({
                 this.createFolder(fields);
             }
 
-            this.$('button.g-save-folder').addClass('disabled');
+            this.$('button.g-save-folder').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         }
     },
@@ -24,7 +37,7 @@ girder.views.EditFolderWidget = girder.View.extend({
     initialize: function (settings) {
         this.folder = settings.folder || null;
         this.parentModel = settings.parentModel;
-        this.descriptionEditor = new girder.views.MarkdownWidget({
+        this.descriptionEditor = new MarkdownWidget({
             text: this.folder ? this.folder.get('description') : '',
             prefix: 'folder-description',
             placeholder: 'Enter a description',
@@ -39,20 +52,20 @@ girder.views.EditFolderWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(girder.templates.editFolderWidget({
+        var modal = this.$el.html(EditFolderWidgetTemplate({
             folder: this.folder
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
             if (view.folder) {
-                girder.dialogs.handleOpen('folderedit');
+                handleOpen('folderedit');
             } else {
-                girder.dialogs.handleOpen('foldercreate');
+                handleOpen('foldercreate');
             }
         }).on('hidden.bs.modal', function () {
             if (view.create) {
-                girder.dialogs.handleClose('foldercreate');
+                handleClose('foldercreate');
             } else {
-                girder.dialogs.handleClose('folderedit');
+                handleClose('folderedit');
             }
         }).on('ready.girder.modal', function () {
             if (view.folder) {
@@ -72,7 +85,7 @@ girder.views.EditFolderWidget = girder.View.extend({
     },
 
     createFolder: function (fields) {
-        var folder = new girder.models.FolderModel();
+        var folder = new FolderModel();
         folder.set(_.extend(fields, {
             parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id')
@@ -82,7 +95,7 @@ girder.views.EditFolderWidget = girder.View.extend({
             this.trigger('g:saved', folder);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-folder').removeClass('disabled');
+            this.$('button.g-save-folder').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -94,8 +107,10 @@ girder.views.EditFolderWidget = girder.View.extend({
             this.trigger('g:saved', this.folder);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-folder').removeClass('disabled');
+            this.$('button.g-save-folder').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     }
 });
+
+export default EditFolderWidget;

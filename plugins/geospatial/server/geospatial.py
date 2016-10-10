@@ -342,6 +342,8 @@ class GeospatialItem(Resource):
         .param('offset', 'Offset into result set (default=0).', required=False,
                dataType='integer')
         .errorResponse()
+        .errorResponse('Field on which to search was not indexed.')
+        .errorResponse('Index creation was denied.', 403)
         .notes("Either parameter 'geometry' or both parameters 'center' "
                " and 'radius' are required.")
     )

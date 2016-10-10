@@ -22,7 +22,7 @@ from .. import base
 from girder.api import access, describe, docs
 from girder.api.rest import Resource
 
-OrderedRoutes = [
+Routes = [
     ('GET', (), ''),
     ('GET', (':id',), '/{id}'),
     ('UNKNOWN', (':id',), '/{id}'),
@@ -43,7 +43,7 @@ class DummyResource(Resource):
     def __init__(self):
         super(DummyResource, self).__init__()
         self.resourceName = 'foo'
-        for method, pathElements, testPath in OrderedRoutes:
+        for method, pathElements, testPath in Routes:
             self.route(method, pathElements, self.handler)
 
     @access.public
@@ -126,43 +126,80 @@ class ApiDescribeTestCase(base.TestCase):
         # Test top level describe endpoint
         resp = self.request(path='/describe', method='GET')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['swaggerVersion'], describe.SWAGGER_VERSION)
-        self.assertEqual(resp.json['apiVersion'], describe.API_VERSION)
-        self.assertTrue({'path': '/group'} in resp.json['apis'])
+        self.assertHasKeys(resp.json, ('basePath', 'host', 'definitions',
+                                       'info', 'paths', 'swagger', 'tags'))
+        self.assertHasKeys(resp.json['info'], ('title', 'version'))
+        self.assertEqual(resp.json['swagger'], describe.SWAGGER_VERSION)
+        self.assertEqual(resp.json['info']['version'], describe.API_VERSION)
+        self.assertIn('/group', resp.json['paths'])
+        self.assertIn({'name': 'group'}, resp.json['tags'])
+        self.assertHasKeys(
+            resp.json['paths']['/group'], ('get', 'post'))
+        self.assertHasKeys(
+            resp.json['paths']['/group']['get'],
+            ('operationId', 'parameters', 'responses'))
+        self.assertHasKeys(
+            resp.json['paths']['/group']['post'],
+            ('operationId', 'parameters', 'responses'))
+        self.assertGreater(len(
+            resp.json['paths']['/group']['get']['operationId']), 0)
+        self.assertGreater(len(
+            resp.json['paths']['/group']['get']['parameters']), 0)
+        self.assertGreater(len(
+            resp.json['paths']['/group']['get']['responses']), 0)
+        param = resp.json['paths']['/group']['get']['parameters'][0]
+        self.assertHasKeys(
+            param,
+            ('description', 'in', 'name', 'required', 'type'))
+        self.assertGreater(len(param['description']), 0)
+        self.assertGreater(len(param['in']), 0)
+        self.assertGreater(len(param['name']), 0)
+        self.assertGreater(len(param['type']), 0)
+        self.assertTrue(isinstance(param['required'], bool))
+        self.assertIn(
+            '200',
+            resp.json['paths']['/group']['get']['responses'])
+        self.assertIn(
+            'description',
+            resp.json['paths']['/group']['get']['responses']['200'])
 
-        # Request a specific resource's description, sanity check
-        resp = self.request(path='/describe/user', method='GET')
+    def testRoutesExist(self):
+        # Check that the resources and operations exist
+        resp = self.request(path='/describe', method='GET')
         self.assertStatusOk(resp)
-        for routeDoc in resp.json['apis']:
-            self.assertHasKeys(('path', 'operations'), routeDoc)
-            self.assertTrue(len(routeDoc['operations']) > 0)
-
-        # Request an unknown resource's description to get an error
-        resp = self.request(path='/describe/unknown', method='GET')
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'Invalid resource: unknown')
-
-    def testRouteOrder(self):
-        # Check that the resources and operations are listed in the order we
-        # expect
-        resp = self.request(path='/describe/foo', method='GET')
-        self.assertStatusOk(resp)
-        listedRoutes = [(method['httpMethod'], route['path'])
-                        for route in resp.json['apis']
-                        for method in route['operations']]
-        expectedRoutes = [(method, '/foo'+testPath)
-                          for method, pathElements, testPath in OrderedRoutes]
-        self.assertEqual(listedRoutes, expectedRoutes)
+        self.assertHasKeys(
+            resp.json['paths'],
+            ('/foo', '/foo/{id}', '/foo/{id}/action', '/foo/action',
+             '/foo/action/{id}', '/foo/noaction'))
+        self.assertHasKeys(
+            resp.json['paths']['/foo'],
+            ('get',))
+        self.assertEqual(len(resp.json['paths']['/foo']), 1)
+        self.assertHasKeys(
+            resp.json['paths']['/foo/{id}'],
+            ('get', 'unknown'))
+        self.assertEqual(len(resp.json['paths']['/foo/{id}']), 2)
+        self.assertHasKeys(
+            resp.json['paths']['/foo/{id}/action'],
+            ('get',))
+        self.assertEqual(len(resp.json['paths']['/foo/{id}/action']), 1)
+        self.assertHasKeys(
+            resp.json['paths']['/foo/action'],
+            ('get', 'put', 'post', 'patch', 'delete', 'newmethod', 'unknown'))
+        self.assertEqual(len(resp.json['paths']['/foo/action']), 7)
+        self.assertHasKeys(
+            resp.json['paths']['/foo/action/{id}'],
+            ('get',))
+        self.assertEqual(len(resp.json['paths']['/foo/action/{id}']), 1)
+        self.assertHasKeys(
+            resp.json['paths']['/foo/noaction'],
+            ('get',))
+        self.assertEqual(len(resp.json['paths']['/foo/noaction']), 1)
 
     def testAddModel(self):
-        resp = self.request(path='/describe/model')
+        resp = self.request(path='/describe')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['models'], {
-            'Body': testModel,
-            'Global': globalModel
-        })
-
-        resp = self.request(path='/describe/folder')
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['models'],
-                         dict(Global=globalModel, **docs.models['folder']))
+        self.assertTrue('definitions' in resp.json)
+        self.assertHasKeys(('Body', 'Global'), resp.json['definitions'])
+        self.assertEqual(resp.json['definitions']['Body'], testModel)
+        self.assertEqual(resp.json['definitions']['Global'], globalModel)

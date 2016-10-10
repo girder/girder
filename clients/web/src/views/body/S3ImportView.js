@@ -1,4 +1,9 @@
-girder.views.S3ImportView = girder.View.extend({
+import router from 'girder/router';
+import View from 'girder/views/View';
+
+import S3ImportTemplate from 'girder/templates/body/s3Import.pug';
+
+var S3ImportView = View.extend({
     events: {
         'submit .g-s3-import-form': function (e) {
             e.preventDefault();
@@ -9,7 +14,7 @@ girder.views.S3ImportView = girder.View.extend({
             this.$('.g-validation-failed-message').empty();
 
             this.assetstore.off('g:imported').on('g:imported', function () {
-                girder.router.navigate(destType + '/' + destId, {trigger: true});
+                router.navigate(destType + '/' + destId, {trigger: true});
             }, this).on('g:error', function (resp) {
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);
             }, this).import({
@@ -27,22 +32,10 @@ girder.views.S3ImportView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.s3Import({
+        this.$el.html(S3ImportTemplate({
             assetstore: this.assetstore
         }));
     }
 });
 
-// This route is only preserved for backward compatibility. The generic route
-// "assetstore/:id/import" is preferred, and is defined in AssetstoresView.js.
-girder.router.route('assetstore/:id/s3import', 's3Import', function (assetstoreId) {
-    var assetstore = new girder.models.AssetstoreModel({
-        _id: assetstoreId
-    });
-
-    assetstore.once('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.S3ImportView, {
-            assetstore: assetstore
-        });
-    }).fetch();
-});
+export default S3ImportView;

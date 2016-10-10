@@ -30,6 +30,10 @@ ROOT_PLUGINS_PACKAGE = 'girder.plugins'
 MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
 LOG_BACKUP_COUNT = 5
 
+# Identifier for Girder's entry in the route table
+GIRDER_ROUTE_ID = 'core_girder'
+GIRDER_STATIC_ROUTE_ID = 'core_static_root'
+
 # Threshold below which text search results will be sorted by their text score.
 # Setting this too high causes mongodb to use too many resources for searches
 # that yield lots of results.
@@ -148,6 +152,7 @@ class SettingKey:
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
+    ROUTE_TABLE = 'core.route_table'
 
 
 class SettingDefault:

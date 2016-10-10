@@ -1,0 +1,12 @@
+p Choose search mode:
+
+for mode in modes
+  .radio
+    label
+      input.g-search-mode-radio(
+          type="radio", name="search-mode", value=mode,
+          checked=(mode === currentMode ? 'checked' : undefined))
+      if mode === 'prefix'
+        |  Search by prefix
+      else if mode === 'text'
+        |  Full text search

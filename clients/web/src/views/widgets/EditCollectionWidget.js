@@ -1,7 +1,18 @@
+import $ from 'jquery';
+
+import CollectionModel from 'girder/models/CollectionModel';
+import View from 'girder/views/View';
+import { handleClose, handleOpen } from 'girder/dialog';
+
+import EditCollectionWidgetTemplate from 'girder/templates/widgets/editCollectionWidget.pug';
+
+import 'girder/utilities/jquery/girderEnable';
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This widget is used to create a new collection or edit an existing one.
  */
-girder.views.EditCollectionWidget = girder.View.extend({
+var EditCollectionWidget = View.extend({
     events: {
         'submit #g-collection-edit-form': function (e) {
             e.preventDefault();
@@ -17,7 +28,7 @@ girder.views.EditCollectionWidget = girder.View.extend({
                 this.createCollection(fields);
             }
 
-            this.$('button.g-save-collection').addClass('disabled');
+            this.$('button.g-save-collection').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         }
     },
@@ -28,15 +39,15 @@ girder.views.EditCollectionWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(girder.templates.editCollectionWidget({
+        var modal = this.$el.html(EditCollectionWidgetTemplate({
             collection: view.model
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
         }).on('hidden.bs.modal', function () {
             if (view.create) {
-                girder.dialogs.handleClose('create');
+                handleClose('create');
             } else {
-                girder.dialogs.handleClose('edit');
+                handleClose('edit');
             }
         }).on('ready.girder.modal', function () {
             if (view.model) {
@@ -51,23 +62,23 @@ girder.views.EditCollectionWidget = girder.View.extend({
         this.$('#g-name').focus();
 
         if (view.model) {
-            girder.dialogs.handleOpen('edit');
+            handleOpen('edit');
         } else {
-            girder.dialogs.handleOpen('create');
+            handleOpen('create');
         }
 
         return this;
     },
 
     createCollection: function (fields) {
-        var collection = new girder.models.CollectionModel();
+        var collection = new CollectionModel();
         collection.set(fields);
         collection.on('g:saved', function () {
             this.$el.modal('hide');
             this.trigger('g:saved', collection);
         }, this).off('g:error').on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-collection').removeClass('disabled');
+            this.$('button.g-save-collection').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -79,8 +90,11 @@ girder.views.EditCollectionWidget = girder.View.extend({
             this.trigger('g:saved', this.model);
         }, this).off('g:error').on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-collection').removeClass('disabled');
+            this.$('button.g-save-collection').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     }
 });
+
+export default EditCollectionWidget;
+

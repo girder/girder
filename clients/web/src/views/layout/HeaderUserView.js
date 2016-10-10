@@ -1,39 +1,52 @@
+import router from 'girder/router';
+import View from 'girder/views/View';
+import events from 'girder/events';
+import { logout, getCurrentUser } from 'girder/auth';
+
+import LayoutHeaderUserTemplate from 'girder/templates/layout/layoutHeaderUser.pug';
+
+import 'girder/stylesheets/layout/headerUser.styl';
+
+import 'bootstrap/js/dropdown';
+
 /**
  * This view shows the user menu, or register/sign in links if the user is
  * not logged in.
  */
-girder.views.LayoutHeaderUserView = girder.View.extend({
+var LayoutHeaderUserView = View.extend({
     events: {
         'click a.g-login': function () {
-            girder.events.trigger('g:loginUi');
+            events.trigger('g:loginUi');
         },
 
         'click a.g-register': function () {
-            girder.events.trigger('g:registerUi');
+            events.trigger('g:registerUi');
         },
 
-        'click a.g-logout': girder.logout,
+        'click a.g-logout': logout,
 
         'click a.g-my-folders': function () {
-            girder.router.navigate('user/' + girder.currentUser.get('_id'), {trigger: true});
+            router.navigate('user/' + getCurrentUser().get('_id'), {trigger: true});
         },
 
         'click a.g-my-settings': function () {
-            girder.router.navigate('useraccount/' + girder.currentUser.get('_id') +
+            router.navigate('useraccount/' + getCurrentUser().get('_id') +
                                    '/info', {trigger: true});
         }
     },
 
     initialize: function () {
-        girder.events.on('g:login', this.render, this);
-        girder.events.on('g:login-changed', this.render, this);
-        girder.events.on('g:logout', this.render, this);
+        events.on('g:login', this.render, this);
+        events.on('g:login-changed', this.render, this);
+        events.on('g:logout', this.render, this);
     },
 
     render: function () {
-        this.$el.html(girder.templates.layoutHeaderUser({
-            user: girder.currentUser
+        this.$el.html(LayoutHeaderUserTemplate({
+            user: getCurrentUser()
         }));
         return this;
     }
 });
+
+export default LayoutHeaderUserView;

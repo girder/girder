@@ -48,7 +48,7 @@ class Collection(Resource):
     @filtermodel(model='collection')
     @describeRoute(
         Description('List or search for collections.')
-        .responseClass('Collection')
+        .responseClass('Collection', array=True)
         .param('text', "Pass this to perform a text search for collections.",
                required=False)
         .pagingParams(defaultSort='name')

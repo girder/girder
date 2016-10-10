@@ -35,6 +35,9 @@ depends on. If your plugin has dependencies, the other plugins will be
 enabled whenever your plugin is enabled. The contents of plugin.json for our
 example will be:
 
+.. note:: If you have both ``plugin.json`` and ``plugin.yml`` files in the directory, the
+   ``plugin.json`` will take precedence.
+
 .. code-block:: json
 
     {
@@ -410,11 +413,14 @@ files, they must be prefixed by your plugin name as follows
 Then inside your unittest, the file will be available under the main data path
 as ``os.environ['GIRDER_TEST_DATA_PREFIX'] + '/plugins/cats/test_file.txt'``.
 
+
+.. _client-side-plugins:
+
 Extending the Client-Side Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The web client may be extended independently of the server side. Plugins may
-import Jade templates, Stylus files, and JavaScript files into the application.
+import Pug templates, Stylus files, and JavaScript files into the application.
 The plugin loading system ensures that only content from enabled plugins gets
 loaded into the application at runtime.
 
@@ -423,40 +429,14 @@ the top level of your plugin called **web_client**. ::
 
     cd plugins/cats ; mkdir web_client
 
-Under the **web_client** directory, there are three optional subdirectories
-that can be used to import content:
-
-- ``stylesheets``: Any files ending with **.styl** in this directory or any
-  of its subdirectories will be automatically built into CSS and loaded if your
-  plugin is enabled. These files must obey
-  `Stylus syntax <http://learnboost.github.io/stylus/docs/css-style.html>`_.
-  Because these CSS scripts are imported *after* all of the core CSS, any rules
-  you write will override any existing core style rules.
-
-- ``templates``: Any files ending with **.jade** in this directory or any of its
-  subdirectories will be automatically built as templates available in the
-  application. Just like in core, these templates are uniquely identified by
-  the name of their file; e.g., ``myTemplate.jade`` could be rendered at runtime
-  by calling ``girder.templates.myTemplate()``. So, if you want to override an
-  existing core template, simply create one in this directory with the same
-  name. If you want to create a template that is not an override of a core
-  template, but simply belongs to your plugin, convention dictates that it should
-  begin with your plugin name followed by an underscore to avoid collisions, e.g.,
-  ``cats_catPage.jade``. Documentation for the Jade language can be found
-  `here <http://jade-lang.com/reference/>`_.
-
-- ``js``: Any files ending with **.js** in this directory or any of its
-  subdirectories will be compiled using uglify and imported into the front-end
-  application. The compiled JavaScript file will be loaded after all of the core
-  JavaScript files are loaded, so it can access all of the objects declared by
-  core. The source map for these files will be automatically built and served
-  as well.
-
-- ``extra``: Any files in this directory or any of its subdirectories will be
-  copied into the **extra** directory under your plugin's built static
-  directory. Any additional public static content that is required by your
-  plugin that doesn't fall into one of the above categories can be placed here,
-  such as static images, fonts, or third-party static libraries.
+Under the **web_client** directory, you must have a webpack entry point file called **main.js**.
+In this file, you can import code from your plugin using relative paths, or relative to the special alias
+**girder_plugins/<your_plugin_key>**. For example,
+``import template from 'girder_plugins/cats/templates/myTemplate.pug`` would import the template file
+located at ``plugins/cats/web_client/templates/myTemplate.pug``. Core Girder code can be imported
+relative to the path **girder**, for example ``import View from 'girder/views/View';``. The entry
+point defined in your **main.js** file will be automatically built once the plugin has been enabled,
+and your built code will be served with the application once the server has been restarted.
 
 Linting and Style Checking Client-Side Code
 *******************************************
@@ -501,22 +481,45 @@ semicolons, you can put the following in your **.eslintrc**
         }
     }
 
+You can also lint your pug templates using the ``pug-lint`` tool.
+
+.. code-block:: cmake
+
+   add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
+
 Installing custom dependencies from npm
 ***************************************
 
 There are two types of node dependencies you may need to install for your plugin.
 Each type needs to be installed differently due to how node manages external packages.
 
-- Run time dependencies that your application relies on should be installed into
-  your plugin's **node_modules** directory.  These should be provided in a
-  `package.json <https://docs.npmjs.com/files/package.json>`_
-  file as they are for standalone node applications.  When such a file exists
-  in your plugin directory, ``npm install`` will be executed in a new process
-  from within your package's directory.
+- Run time dependencies that your application relies on may be handled in one
+  of two ways. If you are writing a simple plugin that does not contain its own
+  Gruntfile, these dependencies should be installed into Girder's own
+  **node_modules** directory by specifying them in the ``npm.dependencies``
+  section of your ``plugin.json`` file.
 
-- Build time dependencies that your grunt tasks rely on to assemble the sources
+  .. code-block:: json
+
+      {
+          "name": "MY_PLUGIN",
+          "npm": {
+              "dependencies": {
+                  "vega": "^2.6.0"
+              }
+          }
+      }
+
+  If instead you are using a custom Grunt build with a Gruntfile, the
+  dependencies should be installed into your plugin's **node_modules** directory
+  by providing a `package.json <https://docs.npmjs.com/files/package.json>`_
+  file just as they are used for standalone node applications.  When such a file
+  exists in your plugin directory, ``npm install`` will be executed in a new
+  process from within your package's directory.
+
+- Build time dependencies that your Grunt tasks rely on to assemble the sources
   for deployment need to be installed into Girder's own **node_modules** directory.
-  These dependencies will typically be grunt extensions defining extra tasks used
+  These dependencies will typically be Grunt extensions defining extra tasks used
   by your build.  Such dependencies should be listed under ``grunt.dependencies``
   as an object (much like dependencies in **package.json**) inside your
   **plugin.json** or **plugin.yml** file.
@@ -566,7 +569,7 @@ and add any target to the default one using the "defaultTargets" array.
    relative to the root directory of your plugin. It does not have to be called
    ``Gruntfile.js``, it can be called anything you want.
 
-.. note:: Girder creates a number of grunt build tasks that expect plugins to be
+.. note:: Girder creates a number of Grunt build tasks that expect plugins to be
    organized according to a certain convention.  To opt out of these tasks, add
    an **autobuild** key (default: **true**) within the **grunt** object and set
    it to **false**.
@@ -585,8 +588,18 @@ of the Girder source repository, rather than relative to the plugin directory.
 JavaScript extension capabilities
 *********************************
 
-Plugins may bind to any of the normal events triggered by core via the
-``girder.events`` object. This will accommodate certain events, such as before
+Plugins may bind to any of the normal events triggered by core via a global
+events object that can be imported like so:
+
+.. code-block:: javascript
+
+    import events from 'girder/events';
+
+    ...
+
+    this.listenTo(events, 'g:event_name', () => { do.something(); });
+
+This will accommodate certain events, such as before
 and after the application is initially loaded, and when a user logs in or out,
 but most of the time plugins will augment the core system using the power of
 JavaScript rather than the explicit events framework. One of the most common
@@ -597,17 +610,26 @@ parent method. The prototypal nature of JavaScript makes that pattern impossible
 instead, we'll use a slightly less straightforward but equally powerful
 mechanism. This is best demonstrated by example. Let's say we want to execute
 some code any time the core ``HierarchyWidget`` is rendered, for instance to
-inject some additional elements into the view. We use the ``girder.wrap``
+inject some additional elements into the view. We use Girder's ``wrap`` utility
 function to `wrap` the method of the core prototype with our own function.
 
 .. code-block:: javascript
 
-    girder.wrap(girder.views.HierarchyWidget, 'render', function (render) {
+    import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+    import { wrap } from 'girder/utilities/PluginUtils';
+
+    // Import our template file from our plugin using a relative path
+    import myTemplate from './templates/hierachyWidgetExtension.pug';
+
+    // CSS files pertaining to this view should be imported as a side-effect
+    import './stylesheets/hierarchyWidgetExtension.styl';
+
+    wrap(HierarchyWidget, 'render', function (render) {
         // Call the underlying render function that we are wrapping
         render.call(this);
 
-        // Add a link just below the widget
-        this.$('.g-hierarchy-widget').after('<a class="cat-link">Meow</a>');
+        // Add a link just below the widget using our custom template
+        this.$('.g-hierarchy-widget').after(myTemplate());
     });
 
 Notice that instead of simply calling ``render()``, we call ``render.call(this)``.
@@ -619,7 +641,7 @@ it to make it functional:
 
 .. code-block:: javascript
 
-    girder.views.HierarchyWidget.prototype.events['click a.cat-link'] = function () {
+    HierarchyWidget.prototype.events['click a.cat-link'] = () => {
         alert('meow!');
     };
 
@@ -641,15 +663,21 @@ route to your plugin.
 
 .. code-block:: javascript
 
-    girder.router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
-        var collection = new girder.models.CollectionModel();
+    import events from 'girder/events';
+    import router from 'girder/router';
+    import { Layout } from 'girder/constants';
+    import CollectionModel from 'girder/models/CollectionModel';
+    import CollectionView from 'girder/views/body/CollectionView';
+
+    router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
+        var collection = new CollectionModel();
         collection.set({
             _id: collectionId
         }).on('g:fetched', function () {
-            girder.events.trigger('g:navigateTo', girder.views.CollectionView, _.extend({
+            events.trigger('g:navigateTo', CollectionView, _.extend({
                 collection: collection
-            }, params || {}), {layout: girder.Layout.EMPTY});
+            }, params || {}), {layout: Layout.EMPTY});
         }, this).on('g:error', function () {
-            girder.router.navigate('/collections', {trigger: true});
+            router.navigate('/collections', {trigger: true});
         }, this).fetch();
     });

@@ -1,0 +1,41 @@
+.g-body-title Import existing data from the filesystem
+.g-body-subtitle= assetstore.name()
+
+.g-import-instructions.
+  Use this page to import existing data from this assetstore's filesystem.
+  Specify a root directory on the filesystem, and it will be imported recursively.
+  The directory does not need to be under the assetstore's root dir. You must also
+  specify a destination collection, user, or folder ID under which to place the
+  imported data. Files that are imported are not managed directly by the server.
+  They will not be copied, but will be served from their existing location. When
+  the referencing files in Girder are deleted, the underlying imported file will
+  not be removed.
+
+form.g-filesystem-import-form
+  .form-group
+    label(for="g-filesystem-import-path") Import path (absolute path to directory or file)
+    input.form-control.input-sm#g-filesystem-import-path(type="text")
+  .form-group
+    label(for="g-filesystem-import-dest-type") Destination type
+    select.form-control#g-filesystem-import-dest-type
+      option(value="folder") Folder
+      option(value="user") User
+      option(value="collection") Collection
+  .form-group
+    label(for="g-filesystem-import-dest-id") Destination ID
+    .input-group.input-group-sm
+      input.form-control.input-sm#g-filesystem-import-dest-id(
+          type="text",
+          placeholder="Existing folder, user, or collection ID to use as the destination")
+      .input-group-btn
+        button.g-open-browser.btn.btn-default(type="button")
+          i.icon-folder-open
+  .form-group
+    label(for="g-filesystem-import-leaf-items") Leaf Folders as Items
+    select.form-control#g-filesystem-import-leaf-items
+      option(value="false") False
+      option(value="true") True
+  .g-validation-failed-message
+  button.g-submit-assetstore-import.btn.btn-success(type="submit")
+    i.icon-link-ext
+    |  Begin import

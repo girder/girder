@@ -1,0 +1,53 @@
+.modal-dialog
+  .modal-content
+    form#g-curation-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title Curation details
+        .g-dialog-subtitle
+          i.icon-folder
+          = folder.name()
+      .modal-body
+        .g-curation-summary
+          | Curation is
+          b= curation.enabled ? "enabled" : "disabled"
+          | .
+          if curation.enabled
+            | Curation status is
+            b= curation.status
+            | .
+          | Folder is
+          b= curation.public ? "public" : "private"
+          | .
+        if curation.timeline.length > 0
+          .g-curation-timeline-container
+            table.table.table-hover.table-condensed
+              thead
+                tr
+                  th User
+                  th Action
+                  th Timestamp
+              tbody
+                each item in curation.timeline
+                  tr
+                    td= item.userLogin
+                    td= item.text
+                    - var timestamp = moment.utc(item.timestamp)
+                    - var title = timestamp.local().format('YYYY-MM-DD HH:mm:ss')
+                    td(title=title)= timestamp.fromNow()
+        #g-curation-error-message.g-validation-failed-message
+      .modal-footer
+        .g-curation-action-container
+          button#g-curation-enable.btn.btn-small.btn-primary
+            | Enable Curation
+          button#g-curation-request.btn.btn-small.btn-primary
+            | Request Approval
+          button#g-curation-approve.btn.btn-small.btn-success
+            | Approve Request
+          button#g-curation-reject.btn.btn-small.btn-danger
+            | Reject Request
+          button#g-curation-reopen.btn.btn-small.btn-default
+            | Reopen Folder
+          button#g-curation-disable.btn.btn-small.btn-warning
+            | Disable Curation
+        a.btn.btn-small.btn-default(data-dismiss="modal") Close

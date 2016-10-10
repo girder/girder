@@ -1,0 +1,42 @@
+mixin dateInfo(intro, property)
+  .g-folder-info-line(property=property)
+    i.icon-clock
+    span= intro
+    span.g-bold-part= formatDate(folder.get(property), DATE_SECOND)
+
+.modal-dialog
+  .modal-content
+    .modal-header
+      button.close(data-dismiss="modal", aria-hidden="true") &times;
+      h4.modal-title Folder information
+      .g-dialog-subtitle
+        i.icon-folder
+        span= folder.name()
+    .modal-body
+      if folder.get('description')
+        .g-info-dialog-description.g-folder-description!= renderMarkdown(folder.get('description'))
+
+      .g-folder-info-lines
+        +dateInfo('Created ', 'created')
+        if folder.get('created') !== folder.get('updated')
+          +dateInfo('Last updated ', 'updated')
+
+        .g-folder-info-line(property="nItems")
+          i.icon-doc-text-inv
+          span Contains
+          span.g-bold-part  #{folder.get('nItems')} items
+          span  totaling
+          span.g-bold-part  #{formatSize(folder.get('size'))}
+
+        .g-folder-info-line(property="nFolders")
+          i.icon-folder
+          span Contains
+          span.g-bold-part  #{folder.get('nFolders')} subfolders
+
+        .g-folder-info-line(property="id")
+          i.icon-share
+          span Unique ID:
+          span.g-bold-part  #{folder.id}
+
+    .modal-footer
+      a.btn.btn-small.btn-default(data-dismiss="modal") Close

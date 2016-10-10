@@ -1,7 +1,19 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import ItemModel from 'girder/models/ItemModel';
+import View from 'girder/views/View';
+import { handleClose, handleOpen } from 'girder/dialog';
+
+import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.pug';
+
+import 'girder/utilities/jquery/girderEnable';
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This widget is used to create a new item or edit an existing one.
  */
-girder.views.EditItemWidget = girder.View.extend({
+var EditItemWidget = View.extend({
     events: {
         'submit #g-item-edit-form': function () {
             var fields = {
@@ -15,7 +27,7 @@ girder.views.EditItemWidget = girder.View.extend({
                 this.createItem(fields);
             }
 
-            this.$('button.g-save-item').addClass('disabled');
+            this.$('button.g-save-item').girderEnable(false);
             this.$('.g-validation-failed-message').empty();
 
             return false;
@@ -29,20 +41,20 @@ girder.views.EditItemWidget = girder.View.extend({
 
     render: function () {
         var view = this;
-        var modal = this.$el.html(girder.templates.editItemWidget({
+        var modal = this.$el.html(EditItemWidgetTemplate({
             item: this.item}))
             .girderModal(this).on('shown.bs.modal', function () {
                 view.$('#g-name').focus();
                 if (view.item) {
-                    girder.dialogs.handleOpen('itemedit');
+                    handleOpen('itemedit');
                 } else {
-                    girder.dialogs.handleOpen('itemcreate');
+                    handleOpen('itemcreate');
                 }
             }).on('hidden.bs.modal', function () {
                 if (view.create) {
-                    girder.dialogs.handleClose('itemcreate');
+                    handleClose('itemcreate');
                 } else {
-                    girder.dialogs.handleClose('itemedit');
+                    handleClose('itemedit');
                 }
             }).on('ready.girder.modal', function () {
                 if (view.item) {
@@ -59,7 +71,7 @@ girder.views.EditItemWidget = girder.View.extend({
     },
 
     createItem: function (fields) {
-        var item = new girder.models.ItemModel();
+        var item = new ItemModel();
         item.set(_.extend(fields, {
             folderId: this.parentModel.get('_id')
         }));
@@ -68,7 +80,7 @@ girder.views.EditItemWidget = girder.View.extend({
             this.trigger('g:saved', item);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-item').removeClass('disabled');
+            this.$('button.g-save-item').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -80,8 +92,10 @@ girder.views.EditItemWidget = girder.View.extend({
             this.trigger('g:saved', this.item);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-item').removeClass('disabled');
+            this.$('button.g-save-item').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     }
 });
+
+export default EditItemWidget;

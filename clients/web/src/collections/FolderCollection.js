@@ -1,6 +1,11 @@
-girder.collections.FolderCollection = girder.Collection.extend({
+import Collection from 'girder/collections/Collection';
+import FolderModel from 'girder/models/FolderModel';
+
+var FolderCollection = Collection.extend({
     resourceName: 'folder',
-    model: girder.models.FolderModel,
+    model: FolderModel,
 
     pageLimit: 100
 });
+
+export default FolderCollection;

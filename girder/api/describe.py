@@ -17,14 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
-import functools
 import os
 import six
 
 from girder import constants
+from girder.constants import TerminalColor
+from girder.utility import config
 from girder.utility.webroot import WebrootBase
 from . import docs, access
-from .rest import Resource, RestException, getApiUrl
+from .rest import Resource, getApiUrl, getUrlParts
 
 """
 Whenever we add new return values or new options we should increment the
@@ -35,7 +36,7 @@ the top level package.json.
 """
 API_VERSION = constants.VERSION['apiVersion']
 
-SWAGGER_VERSION = '1.2'
+SWAGGER_VERSION = '2.0'
 
 
 class Description(object):
@@ -46,33 +47,79 @@ class Description(object):
     decorator to itself (called with an instance of this class) in order to
     describe itself.
     """
+
+    # Data Type map from common name or type to (type, format)
+    # See Data Type spec:
+    #   https://github.com/OAI/OpenAPI-Specification/blob/
+    #   0122c22e7fb93b571740dd3c6e141c65563a18be/versions/2.0.md#data-types
+    _dataTypeMap = {
+        # Primitives
+        'integer': ('integer', 'int32'),
+        'long': ('integer', 'int64'),
+        'number': ('number', None),
+        'float': ('number', 'float'),
+        'double': ('number', 'double'),
+        'string': ('string', None),
+        'byte': ('string', 'byte'),
+        'binary': ('string', 'binary'),
+        'boolean': ('boolean', None),
+        'date': ('string', 'date'),
+        'dateTime': ('string', 'date-time'),
+        'password': ('string', 'password'),
+        'file': ('file', None)
+    }
+
     def __init__(self, summary):
         self._summary = summary
         self._params = []
-        self._responses = []
+        self._responses = {}
         self._consumes = []
         self._responseClass = None
+        self._responseClassArray = False
         self._notes = None
 
     def asDict(self):
         """
         Returns this description object as an appropriately formatted dict
         """
+
+        # Responses Object spec:
+        # The Responses Object MUST contain at least one response code, and it
+        # SHOULD be the response for a successful operation call.
+        if '200' not in self._responses:
+            self._responses['200'] = {
+                'description': 'Success'
+            }
+        if self._responseClass is not None:
+            schema = {
+                '$ref': '#/definitions/%s' % self._responseClass
+            }
+            if self._responseClassArray:
+                schema = {
+                    'type': 'array',
+                    'items': schema
+                }
+            self._responses['200']['schema'] = schema
+
         resp = {
             'summary': self._summary,
-            'notes': self._notes,
-            'parameters': self._params,
-            'responseMessages': self._responses,
-            'responseClass': self._responseClass
+            'responses': self._responses
         }
+
+        if self._params:
+            resp['parameters'] = self._params
+
+        if self._notes is not None:
+            resp['description'] = self._notes
 
         if self._consumes:
             resp['consumes'] = self._consumes
 
         return resp
 
-    def responseClass(self, obj):
+    def responseClass(self, obj, array=False):
         self._responseClass = obj
+        self._responseClassArray = array
         return self
 
     def param(self, name, description, paramType='query', dataType='string',
@@ -82,43 +129,88 @@ class Description(object):
         common options as defaults, so you won't have to repeat yourself as much
         when declaring the APIs.
 
-        Note that we could expose more parameters: allowMultiple, format,
-        defaultValue, minimum, maximum, uniqueItems, $ref, type (return type).
-        We also haven't exposed the complex data types.
+        Note that we could expose more parameters from the Parameter Object
+        spec, for example: format, allowEmptyValue, minimum, maximum, pattern,
+        uniqueItems.
 
         :param name: name of the parameter used in the REST query.
         :param description: explanation of the parameter.
         :param paramType: how is the parameter sent.  One of 'query', 'path',
-                          'body', 'header', or 'form'.
-        :param dataType: the data type expected in the parameter.  This is one
+                          'body', 'header', or 'formData'.
+        :param dataType: the data type expected in the parameter. This is one
                          of 'integer', 'long', 'float', 'double', 'string',
-                         'byte', 'boolean', 'date', 'dateType', 'array', or
-                         'File'.
+                         'byte', 'binary', 'boolean', 'date', 'dateTime',
+                         'password', or 'file'.
         :param required: True if the request will fail if this parameter is not
                          present, False if the parameter is optional.
         :param enum: a fixed list of possible values for the field.
         """
+        # Legacy data type conversions
         if dataType == 'int':
             dataType = 'integer'
+        elif dataType == 'File':
+            print(TerminalColor.warning(
+                "WARNING: dataType 'File' should be updated to 'file'"))
+            dataType = 'file'
+
+        # Get type and format from common name
+        dataTypeFormat = None
+        if dataType in self._dataTypeMap:
+            (dataType, dataTypeFormat) = self._dataTypeMap[dataType]
+        else:
+            print(TerminalColor.warning(
+                "WARNING: Invalid dataType '%s' specified for parameter "
+                "named '%s'" % (dataType, name)))
+
+        # Parameter Object spec:
+        # Since the parameter is not located at the request body, it is limited
+        # to simple types (that is, not an object).
+        if paramType != 'body':
+            if dataType not in ('string', 'number', 'integer', 'boolean',
+                                'array', 'file'):
+                print(TerminalColor.warning(
+                    "WARNING: Invalid dataType '%s' specified for parameter "
+                    "named '%s'" % (dataType, name)))
+
+        if paramType == 'form':
+            print(TerminalColor.warning(
+                "WARNING: paramType 'form' should be updated to 'formData'"))
+            paramType = 'formData'
+
+        # Parameter Object spec:
+        # If type is "file", then consumes MUST be either
+        # "multipart/form-data", "application/x-www-form-urlencoded" or both
+        # and the parameter MUST be in "formData".
+        if dataType == 'file':
+            if paramType != 'formData':
+                print(TerminalColor.warning(
+                    "WARNING: Invalid paramType '%s' specified for dataType "
+                    "'file' in parameter named '%s'"
+                    % (paramType, name)))
+                paramType = 'formData'
 
         param = {
             'name': name,
             'description': description,
-            'paramType': paramType,
-            'type': dataType,
-            'allowMultiple': False,
+            'in': paramType,
             'required': required
         }
+
+        if paramType == 'body':
+            param['schema'] = {
+                'type': dataType
+            }
+        else:
+            param['type'] = dataType
+
+        if dataTypeFormat is not None:
+            param['format'] = dataTypeFormat
+
         if enum:
             param['enum'] = enum
 
         if default is not None:
-            if dataType == 'boolean':
-                param['defaultValue'] = 'true' if default else 'false'
-            elif dataType == 'integer' and default == 0:
-                param['defaultValue'] = '0'  # workaround swagger-ui bug
-            else:
-                param['defaultValue'] = default
+            param['default'] = default
 
         self._params.append(param)
         return self
@@ -162,11 +254,29 @@ class Description(object):
         This helper will build an errorResponse declaration for you. Many
         endpoints will be able to use the default parameter values for one of
         their responses.
+
+        :param reason: The reason or list of reasons why the error occurred.
+        :type reason: str, list, or tuple
+        :param code: HTTP status code.
+        :type code: int
         """
-        self._responses.append({
-            'message': reason,
-            'code': code
-        })
+        code = str(code)
+
+        # Combine list of reasons into a single string.
+        # swagger-ui renders the description using Markdown.
+        if not isinstance(reason, six.string_types):
+            reason = '\n\n'.join(reason)
+
+        if code in self._responses:
+            print(TerminalColor.warning(
+                "WARNING: Error response for code '%s' is already defined "
+                "(old: '%s', new: '%s')"
+                % (code, self._responses[code]['description'], reason)))
+
+        self._responses[code] = {
+            'description': reason
+        }
+
         return self
 
 
@@ -180,81 +290,69 @@ class ApiDocs(WebrootBase):
                                         'api', 'api_docs.mako')
         super(ApiDocs, self).__init__(templatePath)
 
+        curConfig = config.getConfig()
+        mode = curConfig['server'].get('mode', '')
+
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'title': 'Girder - REST API Documentation'
+            'title': 'Girder - REST API Documentation',
+            'mode': mode
         }
-
-
-def _cmp(a, b):
-    # Since cmp was removed in py3, we use this polyfill instead
-    return (a > b) - (a < b)
 
 
 class Describe(Resource):
     def __init__(self):
         super(Describe, self).__init__()
         self.route('GET', (), self.listResources, nodoc=True)
-        self.route('GET', (':resource',), self.describeResource, nodoc=True)
 
     @access.public
     def listResources(self, params):
+        # Paths Object
+        paths = {}
+
+        # Definitions Object
+        definitions = dict(**docs.models[None])
+
+        # List of Tag Objects
+        tags = []
+
+        for resource in sorted(six.viewkeys(docs.routes)):
+            # Update Definitions Object
+            if resource in docs.models:
+                for name, model in six.viewitems(docs.models[resource]):
+                    definitions[name] = model
+
+            # Tag Object
+            tags.append({
+                'name': resource
+            })
+
+            for route, methods in six.viewitems(docs.routes[resource]):
+                # Path Item Object
+                pathItem = {}
+                for method, operation in six.viewitems(methods):
+                    # Operation Object
+                    pathItem[method.lower()] = operation
+
+                paths[route] = pathItem
+
+        apiUrl = getApiUrl()
+        urlParts = getUrlParts(apiUrl)
+        host = urlParts.netloc
+        basePath = urlParts.path
+
         return {
-            'apiVersion': API_VERSION,
-            'swaggerVersion': SWAGGER_VERSION,
-            'apis': [{'path': '/%s' % resource}
-                     for resource in sorted(six.viewkeys(docs.routes))]
-        }
-
-    def _compareRoutes(self, routeOp1, routeOp2):
-        """
-        Order routes based on path.  Alphabetize this, treating parameters as
-        before fixed paths.
-        :param routeOp1: tuple of (route, op) to compare
-        :param routeOp2: tuple of (route, op) to compare
-        :returns: negative if routeOp1<routeOp2, positive if routeOp1>routeOp2.
-        """
-        # replacing { with ' ' is a simple way to make ASCII sort do what we
-        # want for routes.  We would have to do more work if we allow - in
-        # routes
-        return _cmp(routeOp1[0].replace('{', ' '),
-                    routeOp2[0].replace('{', ' '))
-
-    def _compareOperations(self, op1, op2):
-        """
-        Order operations in our preferred method order.  methods not in our
-        list are put afterwards and sorted alphabetically.
-        :param op1: first operation dictionary to compare.
-        :param op2: second operation dictionary to compare.
-        :returns: negative if op1<op2, positive if op1>op2.
-        """
-        methodOrder = ['GET', 'PUT', 'POST', 'PATCH', 'DELETE']
-        method1 = op1.get('httpMethod', '')
-        method2 = op2.get('httpMethod', '')
-        if method1 in methodOrder and method2 in methodOrder:
-            return _cmp(methodOrder.index(method1), methodOrder.index(method2))
-        if method1 in methodOrder or method2 in methodOrder:
-            return _cmp(method1 not in methodOrder, method2 not in methodOrder)
-        return _cmp(method1, method2)
-
-    @access.public
-    def describeResource(self, resource, params):
-        if resource not in docs.routes:
-            raise RestException('Invalid resource: %s' % resource)
-        return {
-            'apiVersion': API_VERSION,
-            'swaggerVersion': SWAGGER_VERSION,
-            'basePath': getApiUrl(),
-            'models': dict(docs.models[resource], **docs.models[None]),
-            'apis': [{
-                'path': route,
-                'operations': sorted(
-                    op, key=functools.cmp_to_key(self._compareOperations))
-                } for route, op in sorted(
-                    six.viewitems(docs.routes[resource]),
-                    key=functools.cmp_to_key(self._compareRoutes))
-            ]
+            'swagger': SWAGGER_VERSION,
+            'info': {
+                'title': 'Girder REST API',
+                'version': API_VERSION
+            },
+            'host': host,
+            'basePath': basePath,
+            'tags': tags,
+            'paths': paths,
+            'definitions': definitions
         }
 
 

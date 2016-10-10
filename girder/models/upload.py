@@ -238,11 +238,6 @@ class Upload(Model):
 
         if event.responses:
             assetstore = event.responses[-1]
-        elif 'assetstore' in eventParams:
-            # This mode of event response is deprecated, but is preserved here
-            # for backward compatibility
-            # TODO remove in v2.0
-            assetstore = eventParams['assetstore']
         elif not assetstore:
             assetstore = self.model('assetstore').getCurrent()
 

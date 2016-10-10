@@ -1,9 +1,17 @@
+import _ from 'underscore';
+
+import FolderModel from 'girder/models/FolderModel';
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+import View from 'girder/views/View';
+import { cancelRestRequests } from 'girder/rest';
+import events from 'girder/events';
+
 /**
  * This view shows a single folder as a hierarchy widget.
  */
-girder.views.FolderView = girder.View.extend({
+var FolderView = View.extend({
     initialize: function (settings) {
-        girder.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.folder = settings.folder;
         this.upload = settings.upload || false;
         this.folderAccess = settings.folderAccess || false;
@@ -11,7 +19,7 @@ girder.views.FolderView = girder.View.extend({
         this.folderEdit = settings.folderEdit || false;
         this.itemCreate = settings.itemCreate || false;
 
-        this.hierarchyWidget = new girder.views.HierarchyWidget({
+        this.hierarchyWidget = new HierarchyWidget({
             parentModel: this.folder,
             upload: this.upload,
             folderAccess: this.folderAccess,
@@ -28,21 +36,19 @@ girder.views.FolderView = girder.View.extend({
         this.hierarchyWidget.setElement(this.$el).render();
         return this;
     }
+}, {
+    /**
+     * Helper function for fetching the folder by id, then render the view.
+     */
+    fetchAndInit: function (id, params) {
+        var folder = new FolderModel();
+        folder.set({ _id: id }).on('g:fetched', function () {
+            events.trigger('g:navigateTo', FolderView, _.extend({
+                folder: folder
+            }, params || {}));
+        }, this).fetch();
+    }
+
 });
 
-girder.router.route('folder/:id', 'folder', function (id, params) {
-    // Fetch the folder by id, then render the view.
-    var folder = new girder.models.FolderModel();
-    folder.set({
-        _id: id
-    }).on('g:fetched', function () {
-        girder.events.trigger('g:navigateTo', girder.views.FolderView, _.extend({
-            folder: folder,
-            upload: params.dialog === 'upload',
-            folderAccess: params.dialog === 'folderaccess',
-            folderCreate: params.dialog === 'foldercreate',
-            folderEdit: params.dialog === 'folderedit',
-            itemCreate: params.dialog === 'itemcreate'
-        }, params || {}));
-    }, this).fetch();
-});
+export default FolderView;

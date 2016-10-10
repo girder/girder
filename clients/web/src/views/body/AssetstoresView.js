@@ -1,7 +1,41 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import AssetstoreCollection from 'girder/collections/AssetstoreCollection';
+import AssetstoreModel from 'girder/models/AssetstoreModel';
+import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
+import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
+import View from 'girder/views/View';
+import { AssetstoreType } from 'girder/constants';
+import { cancelRestRequests } from 'girder/rest';
+import { confirm } from 'girder/dialog';
+import events from 'girder/events';
+import { formatSize } from 'girder/misc';
+import { getCurrentUser } from 'girder/auth';
+
+import AssetstoresTemplate from 'girder/templates/body/assetstores.pug';
+
+import 'girder/stylesheets/body/assetstores.styl';
+
+import 'as-jqplot/dist/jquery.jqplot.js';
+import 'as-jqplot/dist/jquery.jqplot.css'; // jquery.jqplot.min.css
+import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';
+import 'bootstrap/js/tooltip';
+
+/**
+ * This private data structure is a dynamic way to map assetstore types to the views
+ * that should be rendered to import data into them.
+ */
+import FilesystemImportView from 'girder/views/body/FilesystemImportView';
+import S3ImportView from 'girder/views/body/S3ImportView';
+var assetstoreImportViewMap = {};
+assetstoreImportViewMap[AssetstoreType.FILESYSTEM] = FilesystemImportView;
+assetstoreImportViewMap[AssetstoreType.S3] = S3ImportView;
+
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-girder.views.AssetstoresView = girder.View.extend({
+var AssetstoresView = View.extend({
     events: {
         'click .g-set-current': 'setCurrentAssetstore',
         'click .g-delete-assetstore': 'deleteAssetstore',
@@ -9,32 +43,32 @@ girder.views.AssetstoresView = girder.View.extend({
     },
 
     initialize: function (settings) {
-        girder.cancelRestRequests('fetch');
+        cancelRestRequests('fetch');
         this.assetstoreEdit = settings.assetstoreEdit || false;
         this.importableTypes = [
-            girder.AssetstoreType.FILESYSTEM,
-            girder.AssetstoreType.S3
+            AssetstoreType.FILESYSTEM,
+            AssetstoreType.S3
         ].concat(settings.importableTypes || []);
 
-        this.newAssetstoreWidget = new girder.views.NewAssetstoreWidget({
+        this.newAssetstoreWidget = new NewAssetstoreWidget({
             parentView: this
         }).on('g:created', this.addAssetstore, this);
 
         // Fetch all of the current assetstores
-        this.collection = new girder.collections.AssetstoreCollection();
+        this.collection = new AssetstoreCollection();
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
     },
 
     render: function () {
-        if (!girder.currentUser || !girder.currentUser.get('admin')) {
+        if (!getCurrentUser() || !getCurrentUser().get('admin')) {
             this.$el.text('Must be logged in as admin to view this page.');
             return;
         }
-        this.$el.html(girder.templates.assetstores({
+        this.$el.html(AssetstoresTemplate({
             assetstores: this.collection.toArray(),
-            types: girder.AssetstoreType,
+            types: AssetstoreType,
             importableTypes: this.importableTypes,
             getAssetstoreImportRoute: this.getAssetstoreImportRoute
         }));
@@ -67,8 +101,8 @@ girder.views.AssetstoresView = girder.View.extend({
         var capacity = assetstore.get('capacity');
         var used = capacity.total - capacity.free;
         var data = [
-            ['Used (' + girder.formatSize(used) + ')', used],
-            ['Free (' + girder.formatSize(capacity.free) + ')', capacity.free]
+            ['Used (' + formatSize(used) + ')', used],
+            ['Free (' + formatSize(capacity.free) + ')', capacity.free]
         ];
         $(el).jqplot([data], {
             seriesDefaults: {
@@ -103,7 +137,7 @@ girder.views.AssetstoresView = girder.View.extend({
         var assetstore = this.collection.get(el.attr('cid'));
         assetstore.set({current: true});
         assetstore.off('g:saved').on('g:saved', function () {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Changed current assetstore.',
                 type: 'success',
@@ -111,7 +145,7 @@ girder.views.AssetstoresView = girder.View.extend({
             });
             this.collection.fetch({}, true);
         }, this).off('g:error').on('g:error', function (err) {
-            girder.events.trigger('g:alert', {
+            events.trigger('g:alert', {
                 icon: 'cancel',
                 text: err.responseJSON.message,
                 type: 'danger'
@@ -123,7 +157,7 @@ girder.views.AssetstoresView = girder.View.extend({
         var el = $(evt.currentTarget);
         var assetstore = this.collection.get(el.attr('cid'));
 
-        girder.confirm({
+        confirm({
             text: 'Are you sure you want to delete the assetstore <b>' +
                   assetstore.escape('name') + '</b>?  There are no files ' +
                   'stored in it, and no data will be lost.',
@@ -131,7 +165,7 @@ girder.views.AssetstoresView = girder.View.extend({
             yesText: 'Delete',
             confirmCallback: _.bind(function () {
                 assetstore.on('g:deleted', function () {
-                    girder.events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'ok',
                         text: 'Assetstore deleted.',
                         type: 'success',
@@ -139,7 +173,7 @@ girder.views.AssetstoresView = girder.View.extend({
                     });
                     this.collection.fetch({}, true);
                 }, this).off('g:error').on('g:error', function (resp) {
-                    girder.events.trigger('g:alert', {
+                    events.trigger('g:alert', {
                         icon: 'attention',
                         text: resp.responseJSON.message,
                         type: 'danger',
@@ -159,7 +193,7 @@ girder.views.AssetstoresView = girder.View.extend({
         var assetstore = this.collection.get(cid);
         var container = $('#g-dialog-container');
 
-        var editAssetstoreWidget = new girder.views.EditAssetstoreWidget({
+        var editAssetstoreWidget = new EditAssetstoreWidget({
             el: container,
             model: assetstore,
             parentView: this
@@ -168,37 +202,21 @@ girder.views.AssetstoresView = girder.View.extend({
         }, this);
         editAssetstoreWidget.render();
     }
+}, {
+    import: function (assetstoreId) {
+        var assetstore = new AssetstoreModel({ _id: assetstoreId });
+        assetstore.once('g:fetched', function () {
+            var View = assetstoreImportViewMap[assetstore.get('type')];
+            if (View) {
+                events.trigger('g:navigateTo', View, {
+                    assetstore: assetstore
+                });
+            } else {
+                throw new Error('No such view');
+            }
+        }).fetch();
+    }
 });
 
-/**
- * This data structure is a dynamic way to map assetstore types to the views
- * that should be rendered to import data into them.
- */
-girder.assetstoreImportViewMap = {};
-girder.assetstoreImportViewMap[girder.AssetstoreType.FILESYSTEM] = 'FilesystemImportView';
-girder.assetstoreImportViewMap[girder.AssetstoreType.S3] = 'S3ImportView';
+export default AssetstoresView;
 
-girder.router.route('assetstores', 'assetstores', function (params) {
-    girder.events.trigger('g:navigateTo', girder.views.AssetstoresView, {
-        assetstoreEdit: params.dialog === 'assetstoreedit'
-                        ? params.dialogid : false
-    });
-});
-
-girder.router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
-    var assetstore = new girder.models.AssetstoreModel({
-        _id: assetstoreId
-    });
-
-    assetstore.once('g:fetched', function () {
-        var viewName = girder.assetstoreImportViewMap[assetstore.get('type')],
-            view = girder.views[viewName];
-
-        if (!view) {
-            throw 'No such view: ' + viewName;
-        }
-        girder.events.trigger('g:navigateTo', view, {
-            assetstore: assetstore
-        });
-    }).fetch();
-});

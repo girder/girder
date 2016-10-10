@@ -264,10 +264,6 @@ def trigger(eventName, info=None, pre=None, async=False):
     return e
 
 
-_deprecated = {
-    'assetstore.adapter.get':
-        'use girder.utility.assetstore_utilities.setAssetstoreAdapter instead'
-}
-
+_deprecated = {}
 _mapping = {}
 daemon = AsyncEventsThread()

@@ -1,7 +1,18 @@
+import $ from 'jquery';
+
+import GroupModel from 'girder/models/GroupModel';
+import View from 'girder/views/View';
+import { getCurrentUser } from 'girder/auth';
+import { handleClose, handleOpen } from 'girder/dialog';
+
+import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.pug';
+
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This widget is used to create a new group or edit an existing one.
  */
-girder.views.EditGroupWidget = girder.View.extend({
+var EditGroupWidget = View.extend({
     events: {
         'submit #g-group-edit-form': function (e) {
             e.preventDefault();
@@ -21,7 +32,7 @@ girder.views.EditGroupWidget = girder.View.extend({
                 this.createGroup(fields);
             }
 
-            this.$('button.g-save-group').addClass('disabled');
+            this.$('button.g-save-group').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
 
@@ -37,31 +48,31 @@ girder.views.EditGroupWidget = girder.View.extend({
         var pub = this.model ? this.model.get('public') : false;
         var groupAddAllowed;
         var addToGroupPolicy = this.model ? this.model.get('_addToGroupPolicy') : null;
-        if (girder.currentUser.get('admin')) {
+        if (getCurrentUser().get('admin')) {
             if (addToGroupPolicy === 'nomod' || addToGroupPolicy === 'yesmod') {
                 groupAddAllowed = 'mod';
             } else if (addToGroupPolicy === 'noadmin' || addToGroupPolicy === 'yesadmin') {
                 groupAddAllowed = 'admin';
             }
         }
-        var modal = this.$el.html(girder.templates.editGroupWidget({
+        var modal = this.$el.html(EditGroupWidgetTemplate({
             group: this.model,
-            public: pub,
+            publicFlag: pub,
             addToGroupPolicy: addToGroupPolicy,
             groupAddAllowed: groupAddAllowed,
             addAllowed: this.model ? this.model.get('addAllowed') : false
         })).girderModal(this).on('shown.bs.modal', function () {
             view.$('#g-name').focus();
             if (view.model) {
-                girder.dialogs.handleOpen('edit');
+                handleOpen('edit');
             } else {
-                girder.dialogs.handleOpen('create');
+                handleOpen('create');
             }
         }).on('hidden.bs.modal', function () {
             if (view.create) {
-                girder.dialogs.handleClose('create');
+                handleClose('create');
             } else {
-                girder.dialogs.handleClose('edit');
+                handleClose('edit');
             }
         }).on('ready.girder.modal', function () {
             if (view.model) {
@@ -81,14 +92,14 @@ girder.views.EditGroupWidget = girder.View.extend({
     },
 
     createGroup: function (fields) {
-        var group = new girder.models.GroupModel();
+        var group = new GroupModel();
         group.set(fields);
         group.on('g:saved', function () {
             this.$el.modal('hide');
             this.trigger('g:saved', group);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-group').removeClass('disabled');
+            this.$('button.g-save-group').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -100,7 +111,7 @@ girder.views.EditGroupWidget = girder.View.extend({
             this.trigger('g:saved', this.model);
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-group').removeClass('disabled');
+            this.$('button.g-save-group').girderEnable(true);
             this.$('#g-' + err.responseJSON.field).focus();
         }, this).save();
     },
@@ -111,3 +122,5 @@ girder.views.EditGroupWidget = girder.View.extend({
         selected.parents('.radio').addClass('g-selected');
     }
 });
+
+export default EditGroupWidget;

@@ -1,0 +1,46 @@
+li.g-checked-menu-header.dropdown-header(role="presentation")
+  if folderCount
+    i.icon-folder
+    span.g-checked-folder-count #{folderCount}
+  if itemCount
+    i.icon-doc-text-inv
+    span.g-checked-item-count #{itemCount}
+  if pickedCount
+    i.icon-plus-circled
+    span.g-checked-picked-count #{pickedCount}
+if folderCount || itemCount
+  li
+    a.g-download-checked
+      i.icon-download
+      | Download checked resources
+  li
+    a.g-pick-checked
+      i.icon-plus-circled
+      | Pick checked resources for Move or Copy
+
+if HierarchyWidget.getPickedResources()
+  li.g-admin.divider
+  if pickedMoveAllowed
+    li
+      a.g-move-picked
+        i.icon-move
+        | Move picked resources here
+  if pickedCopyAllowed
+    li
+      a.g-copy-picked
+        i.icon-paste
+        | Copy picked resources here
+  li
+    a.g-clear-picked
+      i.icon-minus-circled
+      | Clear picked resources
+      if pickedDesc
+        |  (#{pickedDesc})
+
+if folderCount || itemCount
+  if (minFolderLevel >= AccessType.ADMIN && minItemLevel >= AccessType.WRITE)
+    li.g-admin.divider
+    li.g-admin
+      a.g-delete-checked
+        i.icon-trash
+        | Delete checked resources

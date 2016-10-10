@@ -1,11 +1,28 @@
+import $ from 'jquery';
+
+import CollectionCollection from 'girder/collections/CollectionCollection';
+import CollectionModel from 'girder/models/CollectionModel';
+import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
+import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+import router from 'girder/router';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import View from 'girder/views/View';
+import { cancelRestRequests } from 'girder/rest';
+import { formatDate, formatSize, DATE_MINUTE } from 'girder/misc';
+import { getCurrentUser } from 'girder/auth';
+
+import CollectionListTemplate from 'girder/templates/body/collectionList.pug';
+
+import 'girder/stylesheets/body/collectionList.styl';
+
 /**
  * This view lists the collections.
  */
-girder.views.CollectionsView = girder.View.extend({
+var CollectionsView = View.extend({
     events: {
         'click a.g-collection-link': function (event) {
             var cid = $(event.currentTarget).attr('g-collection-cid');
-            girder.router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
+            router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
         },
         'click button.g-collection-create-button': 'createCollectionDialog',
         'submit .g-collections-search-form': function (event) {
@@ -14,18 +31,18 @@ girder.views.CollectionsView = girder.View.extend({
     },
 
     initialize: function (settings) {
-        girder.cancelRestRequests('fetch');
-        this.collection = new girder.collections.CollectionCollection();
+        cancelRestRequests('fetch');
+        this.collection = new CollectionCollection();
         this.collection.on('g:changed', function () {
             this.render();
         }, this).fetch();
 
-        this.paginateWidget = new girder.views.PaginateWidget({
+        this.paginateWidget = new PaginateWidget({
             collection: this.collection,
             parentView: this
         });
 
-        this.searchWidget = new girder.views.SearchFieldWidget({
+        this.searchWidget = new SearchFieldWidget({
             placeholder: 'Search collections...',
             types: ['collection'],
             parentView: this
@@ -40,19 +57,22 @@ girder.views.CollectionsView = girder.View.extend({
     createCollectionDialog: function () {
         var container = $('#g-dialog-container');
 
-        new girder.views.EditCollectionWidget({
+        new EditCollectionWidget({
             el: container,
             parentView: this
         }).on('g:saved', function (collection) {
-            girder.router.navigate('collection/' + collection.get('_id'),
+            router.navigate('collection/' + collection.get('_id'),
                                    {trigger: true});
         }, this).render();
     },
 
     render: function () {
-        this.$el.html(girder.templates.collectionList({
+        this.$el.html(CollectionListTemplate({
             collections: this.collection.toArray(),
-            girder: girder
+            getCurrentUser: getCurrentUser,
+            formatDate: formatDate,
+            DATE_MINUTE: DATE_MINUTE,
+            formatSize: formatSize
         }));
 
         this.paginateWidget.setElement(this.$('.g-collection-pagination')).render();
@@ -70,14 +90,11 @@ girder.views.CollectionsView = girder.View.extend({
      * will navigate them to the view for that specific collection.
      */
     _gotoCollection: function (result) {
-        var collection = new girder.models.CollectionModel();
+        var collection = new CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
-            girder.router.navigate('/collection/' + collection.get('_id'), {trigger: true});
+            router.navigate('/collection/' + collection.get('_id'), {trigger: true});
         }, this).fetch();
     }
 });
 
-girder.router.route('collections', 'collections', function (params) {
-    girder.events.trigger('g:navigateTo', girder.views.CollectionsView, params || {});
-    girder.events.trigger('g:highlightItem', 'CollectionsView');
-});
+export default CollectionsView;

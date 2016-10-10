@@ -7,7 +7,7 @@
 set(CTEST_SOURCE_DIRECTORY "/home/cpatrick/Dashboards/girder")
 set(CTEST_BINARY_DIRECTORY "/home/cpatrick/Dashboards/girder-nightly")
 
-file(RENAME "${CTEST_BINARY_DIRECTORY}/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/../coverage.xml")
+file(RENAME "${CTEST_BINARY_DIRECTORY}/coverage/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/../coverage.xml")
 ctest_empty_binary_directory( ${CTEST_BINARY_DIRECTORY} )
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)

@@ -1,6 +1,13 @@
-@import 'nib'
+@import '~nib/index.styl'
 
 $warnColor = #f0ad4e
+
+.g-rebuild-container
+  display inline
+  button
+    float right
+  .g-clear
+    clear both
 
 .g-plugin-list-container
   border 1px solid #e2e2e2
@@ -51,6 +58,11 @@ $warnColor = #f0ad4e
 
 .g-plugin-restart
   visibility hidden
+  max-height 0px
+  transition max-height 0.35s ease-in-out
+  overflow hidden
+  margin-top 9px
+
   button.g-plugin-restart-button
     float right
   .g-plugin-restart-text
@@ -58,9 +70,7 @@ $warnColor = #f0ad4e
     font-size 14px
   .g-plugin-clear
     clear right
-  max-height 0px
-  transition max-height 0.35s ease-in-out
-  overflow hidden
+
   &.g-plugin-restart-show
     visibility visible
     max-height 40px

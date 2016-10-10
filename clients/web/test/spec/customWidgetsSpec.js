@@ -6,7 +6,7 @@
             runs(function () {
                 $('body').off();
 
-                new girder.views.UploadWidget({
+                new girder.views.widgets.UploadWidget({
                     noParent: true,
                     modal: false,
                     title: null,
@@ -35,7 +35,9 @@
                     lastName: 'Last'
                 }).on('g:saved', function () {
                     user = _user;
-                }).save();
+                });
+
+                _user.save();
             });
 
             waitsFor(function () {
@@ -51,7 +53,9 @@
                     name: 'top level folder'
                 }).on('g:saved', function () {
                     folder = _folder;
-                }).save();
+                });
+
+                _folder.save();
             });
 
             waitsFor(function () {
@@ -67,7 +71,9 @@
                     name: 'subfolder'
                 }).on('g:saved', function () {
                     subfolder = _subfolder;
-                }).save();
+                });
+
+                _subfolder.save();
             });
 
             waitsFor(function () {
@@ -82,7 +88,9 @@
                     name: 'an item'
                 }).on('g:saved', function () {
                     item = _item;
-                }).save();
+                });
+
+                _item.save();
             });
 
             waitsFor(function () {
@@ -94,7 +102,7 @@
             runs(function () {
                 $('body').off();
 
-                widget = new girder.views.HierarchyWidget({
+                widget = new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     onItemClick: function (item) {
@@ -133,7 +141,7 @@
 
                 $('body').empty().off();
 
-                new girder.views.HierarchyWidget({
+                new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     checkboxes: false,
@@ -162,7 +170,7 @@
     describe('Test access widget with non-standard options', function () {
         it('test non-modal rendering', function () {
             runs(function () {
-                new girder.views.AccessWidget({
+                new girder.views.widgets.AccessWidget({
                     el: 'body',
                     modal: false,
                     model: folder,
@@ -189,7 +197,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.AccessWidget({
+                new girder.views.widgets.AccessWidget({
                     el: 'body',
                     modal: false,
                     model: folder,
@@ -220,7 +228,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.SearchFieldWidget({
+                new girder.views.widgets.SearchFieldWidget({
                     el: 'body',
                     modes: 'prefix',
                     types: ['folder'],
@@ -249,7 +257,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.SearchFieldWidget({
+                new girder.views.widgets.SearchFieldWidget({
                     el: 'body',
                     modes: ['text', 'prefix'],
                     types: ['folder'],
@@ -317,11 +325,11 @@
             };
 
             runs(function () {
-                widget = new girder.views.MetadataWidget({
+                widget = new girder.views.widgets.MetadataWidget({
                     el: 'body',
                     parentView: null,
                     item: model,
-                    accessLevel: girder.AccessType.WRITE,
+                    accessLevel: girder.constants.AccessType.WRITE,
                     onMetadataAdded: addCb,
                     onMetadataEdited: editCb,
                     fieldName: 'customMeta'

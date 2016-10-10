@@ -1,16 +1,25 @@
+import $ from 'jquery';
+
+import router from 'girder/router';
+import View from 'girder/views/View';
+
+import IteamBreadcrumbTemplate from 'girder/templates/widgets/itemBreadcrumb.pug';
+
+import 'bootstrap/js/tooltip';
+
 /**
  * Renders the a breadcrumb for the item page
  */
-girder.views.ItemBreadcrumbWidget = girder.View.extend({
+var ItemBreadcrumbWidget = View.extend({
     events: {
         'click a.g-item-breadcrumb-link': function (event) {
             var link = $(event.currentTarget);
-            girder.router.navigate(link.data('type') + '/' + link.data('id'),
+            router.navigate(link.data('type') + '/' + link.data('id'),
                                    {trigger: true});
         },
         'click a.g-hierarchy-level-up': function () {
             var folder = this.parentChain.pop().object;
-            girder.router.navigate('folder/' + folder._id, {trigger: true});
+            router.navigate('folder/' + folder._id, {trigger: true});
         }
     },
 
@@ -20,7 +29,7 @@ girder.views.ItemBreadcrumbWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.itemBreadcrumb({
+        this.$el.html(IteamBreadcrumbTemplate({
             parentChain: this.parentChain
         }));
 
@@ -32,3 +41,5 @@ girder.views.ItemBreadcrumbWidget = girder.View.extend({
         });
     }
 });
+
+export default ItemBreadcrumbWidget;

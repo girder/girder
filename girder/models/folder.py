@@ -54,18 +54,6 @@ class Folder(AccessControlledModel):
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
             'baseParentType', 'baseParentId'))
 
-    def filter(self, *args, **kwargs):
-        """
-        Preserved override for kwarg backwards compatibility. Prior to the
-        refactor for centralizing model filtering, this method's first formal
-        parameter was called "folder", whereas the centralized version's first
-        parameter is called "doc". This override simply detects someone using
-        the old kwarg and converts it to the new form.
-        """
-        if 'folder' in kwargs:
-            args = [kwargs.pop('folder')] + list(args)
-        return super(Folder, self).filter(*args, **kwargs)
-
     def validate(self, doc, allowRename=False):
         """
         Validate the name and description of the folder, ensure that it is
@@ -832,25 +820,23 @@ class Folder(AccessControlledModel):
 
         return doc
 
-    def isOrphan(self, folder, user=None):
+    def isOrphan(self, folder):
         """
         Returns True if this folder is orphaned (its parent is missing).
 
         :param folder: The folder to check.
         :type folder: dict
-        :param user: (deprecated) Not used.
         """
         return not self.model(folder.get('parentCollection')).load(
             folder.get('parentId'), force=True)
 
-    def updateSize(self, doc, user=None):
+    def updateSize(self, doc):
         """
         Recursively recomputes the size of this folder and its underlying
         folders and fixes the sizes as needed.
 
         :param doc: The folder.
         :type doc: dict
-        :param user: (deprecated) Not used.
         """
         size = 0
         fixes = 0

@@ -1,8 +1,18 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import TaskProgressWidget from 'girder/views/widgets/TaskProgressWidget';
+import View from 'girder/views/View';
+
+import LayoutProgressAreaTemplate from 'girder/templates/layout/layoutProgressArea.pug';
+
+import 'girder/stylesheets/layout/progressArea.styl';
+
 /**
  * Container showing list of active tasks that are reporting progress
- * via a girder.EventStream object.
+ * via a EventStream object.
  */
-girder.views.ProgressListView = girder.View.extend({
+var ProgressListView = View.extend({
 
     initialize: function (settings) {
         this.eventStream = settings.eventStream;
@@ -13,7 +23,7 @@ girder.views.ProgressListView = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.layoutProgressArea());
+        this.$el.html(LayoutProgressAreaTemplate());
 
         this._onUpdate();
 
@@ -28,7 +38,7 @@ girder.views.ProgressListView = girder.View.extend({
                 class: 'g-progress-widget-container'
             }).appendTo(this.$('.g-progress-list-container'));
 
-            this._map[progress._id] = new girder.views.TaskProgressWidget({
+            this._map[progress._id] = new TaskProgressWidget({
                 el: el,
                 progress: progress,
                 parentView: null
@@ -49,3 +59,5 @@ girder.views.ProgressListView = girder.View.extend({
         }
     }
 });
+
+export default ProgressListView;

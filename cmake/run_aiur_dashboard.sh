@@ -5,6 +5,7 @@ workon girder
 cd /home/cpatrick/Dashboards/girder
 ./scripts/InstallPythonRequirements.py --mode=dev
 npm install
+npm run build
 python setup.py install
 # Copy compile plugin template files so that the javascript coverage locates
 # them properly.  There are certainly nicer ways to do this.

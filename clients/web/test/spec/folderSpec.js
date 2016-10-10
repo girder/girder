@@ -67,7 +67,7 @@ function _editFolder(button, buttonText, testValidation) {
 
         waitsFor(function () {
             return $('#g-dialog-container .g-markdown-text').val().indexOf(
-                '![fake.jpg](' + girder.apiRoot) !== -1;
+                '![fake.jpg](' + girder.rest.apiRoot) !== -1;
         }, 'image to be attached to the markdown');
 
         runs(function () {

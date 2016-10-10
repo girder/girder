@@ -88,19 +88,11 @@ fi
 # Use the already downloaded fontello archive.
 export GIRDER_LOCAL_FONTELLO_ARCHIVE=${PROJECT_SOURCE_DIR}/clients/web/static/built/fontello.zip
 # Build the web client code
-# If we have npm-install-retry use it
-extra_options=""
-npm_install_retry_path=$(which npm-install-retry)
-
-if [ $? -eq 0 ]; then
-    extra_options="--npm ${npm_install_retry_path}"
-fi
-
-girder-install web ${extra_options} || exit 1
+girder-install web || exit 1
 
 # Make sure that our grunt targets got built
 webroot=$(girder-install web-root)
-if [ ! -f "${webroot}/static/built/plugins/jobs/plugin.min.js" ] ; then
+if [ ! -f "${webroot}/static/built/girder.app.min.js" ] ; then
     echo "Error: Grunt targets were not built correctly"
     exit 1
 fi

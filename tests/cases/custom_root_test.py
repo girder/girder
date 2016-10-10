@@ -21,19 +21,13 @@ import os
 import types
 
 from .. import base
-from girder.utility import config
 
 
 class CustomRootTestCase(base.TestCase):
 
     def setUp(self):
-        pluginRoots = [os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                    'test_plugins'),
-                       os.path.join(os.path.dirname(os.path.dirname(__file__)),
-                                    'test_additional_plugins')]
-
-        conf = config.getConfig()
-        conf['plugins'] = {'plugin_directory': ':'.join(pluginRoots)}
+        self.mockPluginDir(
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
         base.enabledPlugins.append('test_plugin')
 
         base.startServer()
@@ -44,6 +38,7 @@ class CustomRootTestCase(base.TestCase):
 
     def tearDown(self):
         base.stopServer()
+        self.unmockPluginDir()
 
     def testCustomWebRoot(self):
         """
@@ -57,30 +52,23 @@ class CustomRootTestCase(base.TestCase):
         # Normal web client should now be served from /girder
         resp = self.request('/girder', prefix='', isJson=False)
         self.assertStatusOk(resp)
-        self.assertTrue(
-            'g-global-info-apiroot' in self.getBody(resp))
+        self.assertIn('g-global-info-apiroot', self.getBody(resp))
 
         # Api should be served out of /api/v1
         resp = self.request('/api/v1', prefix='', isJson=False)
         self.assertStatusOk(resp)
-        self.assertTrue(
-            'Girder REST API Documentation' in self.getBody(resp))
+        self.assertIn('Girder REST API Documentation', self.getBody(resp))
 
         # /api should redirect to /api/v1
         resp = self.request('/api', prefix='', isJson=False)
         self.assertStatus(resp, 303)
-        self.assertTrue('/api/v1' in self.getBody(resp))
+        self.assertIn('/api/v1', self.getBody(resp))
 
         # Our custom API augmentations should still work
         resp = self.request('/describe')
         self.assertStatusOk(resp)
-        self.assertTrue('apis' in resp.json)
-        otherDocs = [x for x in resp.json['apis'] if x['path'] == '/other']
-        self.assertEqual(len(otherDocs), 1)
-
-        resp = self.request('/describe/other')
-        self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json['apis']), 1)
+        self.assertIn('paths', resp.json)
+        self.assertIn('/other', resp.json['paths'])
 
         resp = self.request('/other')
         self.assertStatusOk(resp)

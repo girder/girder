@@ -1,4 +1,9 @@
-girder.collections.ApiKeyCollection = girder.Collection.extend({
+import ApiKeyModel from 'girder/models/ApiKeyModel';
+import Collection from 'girder/collections/Collection';
+
+var ApiKeyCollection = Collection.extend({
     resourceName: 'api_key',
-    model: girder.models.ApiKeyModel
+    model: ApiKeyModel
 });
+
+export default ApiKeyCollection;

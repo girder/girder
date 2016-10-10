@@ -1,0 +1,33 @@
+table.g-jobs-list-table
+  if showHeader
+    thead
+      tr
+        if columns & columnEnum.COLUMN_STATUS_ICON
+          th
+        if columns & columnEnum.COLUMN_TITLE
+          th Title
+        if columns & columnEnum.COLUMN_UPDATED
+          th Last update
+        if columns & columnEnum.COLUMN_STATUS
+          th Status
+  tbody
+    each job in jobs
+      tr(g-job-id=job.id)
+        if columns & columnEnum.COLUMN_STATUS_ICON
+          td.g-status-icon-container(status=job.get('status'))
+            i(class=JobStatus.icon(job.get('status')))
+        if columns & columnEnum.COLUMN_TITLE
+          if triggerJobClick
+            td
+              a.g-job-trigger-link(cid=job.cid)= job.get('title')
+          else if linkToJob
+            td
+              a(href=`#job/${job.id}`)= job.get('title')
+          else
+            td= job.get('title')
+        if columns & columnEnum.COLUMN_UPDATED
+          td.g-job-updated-cell= formatDate(job.get('updated'), DATE_SECOND)
+        if columns & columnEnum.COLUMN_STATUS
+          td.g-job-status-cell= JobStatus.text(job.get('status'))
+
+.g-job-pagination

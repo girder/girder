@@ -9,10 +9,12 @@ girder.egg-info
 .*.swo
 .vagrant
 phantom-*.png
+phantom_*.png
 girder-*.tar.gz
 __pycache__
 ### PyCharm ###
 .idea/
 .PyCharm50/
 .eslintcache
+/npm-debug.log
 **/*.retry

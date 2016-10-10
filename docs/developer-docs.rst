@@ -12,3 +12,4 @@ Developer Documentation
    python-client
    security
    build-docs
+   migration-guide

@@ -254,8 +254,8 @@ class Assetstore(Resource):
         Description('Delete an assetstore.')
         .notes('This will fail if there are any files in the assetstore.')
         .param('id', 'The ID of the assetstore.', paramType='path')
-        .errorResponse()
-        .errorResponse('The assetstore is not empty.')
+        .errorResponse(('A parameter was invalid.',
+                        'The assetstore is not empty.'))
         .errorResponse('You are not an administrator.', 403)
     )
     def deleteAssetstore(self, assetstore, params):

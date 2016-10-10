@@ -51,7 +51,7 @@ class Folder(Resource):
     @filtermodel(model='folder')
     @describeRoute(
         Description('Search for folders by certain properties.')
-        .responseClass('Folder')
+        .responseClass('Folder', array=True)
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
@@ -250,9 +250,9 @@ class Folder(Resource):
         .param('parentId', "The ID of the folder's parent.")
         .param('name', "Name of the folder.")
         .param('description', "Description for the folder.", required=False)
-        .param('public', """Whether the folder should be publicly visible. By
-               default, inherits the value from parent folder, or in the
-               case of user or collection parentType, defaults to False.""",
+        .param('public', "Whether the folder should be publicly visible. By "
+               "default, inherits the value from parent folder, or in the "
+               "case of user or collection parentType, defaults to False.",
                required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
@@ -347,9 +347,9 @@ class Folder(Resource):
         .param('id', 'The ID of the folder.', paramType='path')
         .param('body', 'A JSON object containing the metadata keys to add',
                paramType='body')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Invalid JSON passed in request body.')
-        .errorResponse('Metadata key name was invalid.')
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the folder.', 403)
     )
     def setMetadata(self, folder, params):
@@ -375,17 +375,17 @@ class Folder(Resource):
         .param('parentId', 'The ID of the parent document.', required=False)
         .param('name', 'Name for the new folder.', required=False)
         .param('description', "Description for the new folder.", required=False)
-        .param('public', """Whether the folder should be publicly visible.  By
-               default, inherits the value from parent folder, or in the case
-               of user or collection parentType, defaults to False.  If
-               'original', use the value of the original folder.""",
+        .param('public', "Whether the folder should be publicly visible. By "
+               "default, inherits the value from parent folder, or in the case "
+               "of user or collection parentType, defaults to False. If "
+               "'original', use the value of the original folder.",
                required=False, enum=[True, False, 'original'])
         .param('progress', 'Whether to record progress on this task. Default '
                'is false.', required=False, dataType='boolean')
-        .errorResponse()
-        .errorResponse('ID was invalid.')
-        .errorResponse('Read access was denied on the original folder.', 403)
-        .errorResponse('Write access was denied on the parent.', 403)
+        .errorResponse(('A parameter was invalid.',
+                        'ID was invalid.'))
+        .errorResponse('Read access was denied on the original folder.\n\n'
+                       'Write access was denied on the parent.', 403)
     )
     def copyFolder(self, folder, params):
         user = self.getCurrentUser()

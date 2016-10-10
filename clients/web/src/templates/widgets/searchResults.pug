@@ -1,0 +1,11 @@
+each result in results
+  li.g-search-result(role="presentation")
+    a(resourceid=result.id, resourcetype=result.type, g-icon=result.icon,
+        role="menuitem", tabindex="-1")
+      i(class=`icon-${result.icon}`)
+      |  #{result.text}
+if results.length === 0
+  li.g-no-search-results.disabled(role="presentation")
+    a(role="menuitem", tabindex="-1")
+      i.icon-block
+      |  No results found

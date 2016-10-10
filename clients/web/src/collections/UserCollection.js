@@ -1,8 +1,13 @@
-girder.collections.UserCollection = girder.Collection.extend({
+import Collection from 'girder/collections/Collection';
+import UserModel from 'girder/models/UserModel';
+
+var UserCollection = Collection.extend({
     resourceName: 'user',
-    model: girder.models.UserModel,
+    model: UserModel,
 
     // Override default sort field
     sortField: 'lastName',
     secondarySortField: 'firstName'
 });
+
+export default UserCollection;

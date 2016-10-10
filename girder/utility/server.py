@@ -20,6 +20,7 @@
 import cherrypy
 import mimetypes
 import os
+import six
 
 import girder.events
 from girder import constants, logprint
@@ -43,18 +44,13 @@ def configureServer(test=False, plugins=None, curConfig=None):
     if curConfig is None:
         curConfig = config.getConfig()
 
-    curStaticRoot = constants.STATIC_ROOT_DIR
+    routeTable = loadRouteTable()
 
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-            'tools.staticdir.root': curStaticRoot,
             'request.show_tracebacks': test,
             'request.methods_with_bodies': ('POST', 'PUT', 'PATCH')
-        },
-        '/static': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': 'clients/web/static'
         }
     }
     # Add MIME types for serving Fontello files from staticdir;
@@ -66,18 +62,22 @@ def configureServer(test=False, plugins=None, curConfig=None):
     if test:
         appconf['/src'] = {
             'tools.staticdir.on': True,
+            'tools.staticdir.root': constants.STATIC_ROOT_DIR,
             'tools.staticdir.dir': 'clients/web/src',
         }
         appconf['/test'] = {
             'tools.staticdir.on': True,
+            'tools.staticdir.root': constants.STATIC_ROOT_DIR,
             'tools.staticdir.dir': 'clients/web/test',
         }
         appconf['/clients'] = {
             'tools.staticdir.on': True,
+            'tools.staticdir.root': constants.STATIC_ROOT_DIR,
             'tools.staticdir.dir': 'clients'
         }
         appconf['/plugins'] = {
             'tools.staticdir.on': True,
+            'tools.staticdir.root': constants.STATIC_ROOT_DIR,
             'tools.staticdir.dir': 'plugins',
         }
 
@@ -108,48 +108,113 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
     if plugins is None:
         settings = model_importer.ModelImporter().model('setting')
-        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED,
-                               default=())
+        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
 
-    plugins = list(plugin_utilities.getToposortedPlugins(
-        plugins, curConfig, ignoreMissing=True))
+    plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
     root.updateHtmlVars({
         'apiRoot': curConfig['server']['api_root'],
-        'staticRoot': curConfig['server']['static_root'],
+        'staticRoot': os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+                                      routeTable[constants.GIRDER_ROUTE_ID]),
         'plugins': plugins
     })
 
-    apiStaticRoot = curConfig['server'].get('api_static_root', '')
-    if not apiStaticRoot:
-        apiStaticRoot = curConfig['server']['static_root']
     root.api.v1.updateHtmlVars({
         'apiRoot': curConfig['server']['api_root'],
-        'staticRoot': apiStaticRoot,
+        'staticRoot': routeTable[constants.GIRDER_STATIC_ROUTE_ID],
     })
 
     root, appconf, _ = plugin_utilities.loadPlugins(
-        plugins, root, appconf, root.api.v1, curConfig=curConfig,
-        buildDag=False)
+        plugins, root, appconf, root.api.v1, buildDag=False)
 
     return root, appconf
 
 
+def loadRouteTable(reconcileRoutes=False):
+    """
+    Retrieves the route table from Girder and reconciles the state of it with the current
+    application state.
+
+    Reconciliation deals with 2 scenarios:
+    1) A plugin is no longer active (by being disabled or removed) and the route for the
+    plugin needs to be removed.
+    2) A webroot was added (a new plugin was enabled) and a default route needs to be added.
+
+    :returns: The non empty routes (as a dict of name -> route) to be mounted by CherryPy
+    during Girder's setup phase.
+    """
+    pluginWebroots = plugin_utilities.getPluginWebroots()
+    setting = model_importer.ModelImporter().model('setting')
+    routeTable = setting.get(constants.SettingKey.ROUTE_TABLE)
+    reservedRoutes = (constants.GIRDER_ROUTE_ID, constants.GIRDER_STATIC_ROUTE_ID)
+
+    def reconcileRouteTable(routeTable):
+        hasChanged = False
+
+        # GIRDER_ROUTE_ID is a special route, which can't be removed
+        for name in routeTable.keys():
+            if name not in reservedRoutes and name not in pluginWebroots:
+                del routeTable[name]
+                hasChanged = True
+
+        for name in pluginWebroots.keys():
+            if name not in routeTable:
+                routeTable[name] = os.path.join('/', name)
+                hasChanged = True
+
+        if hasChanged:
+            setting.set(constants.SettingKey.ROUTE_TABLE, routeTable)
+
+        return routeTable
+
+    if reconcileRoutes:
+        routeTable = reconcileRouteTable(routeTable)
+
+    return {name: route for (name, route) in six.viewitems(routeTable) if route}
+
+
 def setup(test=False, plugins=None, curConfig=None):
     """
-    Configure and mount the Girder server under '/'.
+    Configure and mount the Girder server and plugins under the
+    appropriate routes.
+
+    See ROUTE_TABLE setting.
 
     :param test: Whether to start in test mode.
     :param plugins: List of plugins to enable.
     :param curConfig: The config object to update.
     """
-    root, appconf = configureServer(test, plugins, curConfig)
+    pluginWebroots = plugin_utilities.getPluginWebroots()
+    girderWebroot, appconf = configureServer(test, plugins, curConfig)
+    routeTable = loadRouteTable(reconcileRoutes=True)
 
-    application = cherrypy.tree.mount(root, '/', appconf)
+    # Mount Girder
+    application = cherrypy.tree.mount(girderWebroot,
+                                      str(routeTable[constants.GIRDER_ROUTE_ID]), appconf)
+
+    # Mount static files
+    cherrypy.tree.mount(BaseWebroot(), routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+                        {'/':
+                         {'tools.staticdir.on': True,
+                          'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR,
+                                                              'clients/web/static')}})
+
+    # Mount API (special case)
+    # The API is always mounted at /api AND at api relative to the Girder root
+    cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
+
+    # Mount everything else in the routeTable
+    for (name, route) in six.viewitems(routeTable):
+        if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
+            cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 
     if test:
         application.merge({'server': {'mode': 'testing'}})
 
     return application
+
+
+class BaseWebroot(object):
+    exposed = True
 
 
 class _StaticFileRoute(object):

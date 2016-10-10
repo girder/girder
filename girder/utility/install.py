@@ -22,14 +22,16 @@ into the current Girder installation.  Note that Girder must
 be restarted for these changes to take effect.
 """
 
-import sys
 import os
 import pip
+import select
 import shutil
 import subprocess
+import string
+import sys
 
 from girder import constants
-from girder.utility.plugin_utilities import getPluginDir
+from girder.utility import model_importer, plugin_utilities
 
 version = constants.VERSION['apiVersion']
 webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
@@ -44,7 +46,7 @@ def print_version(parser):
 
 
 def print_plugin_path(parser):
-    print(getPluginDir())
+    print(plugin_utilities.getPluginDir())
 
 
 def print_web_root(parser):
@@ -63,9 +65,65 @@ def fix_path(path):
     return os.path.abspath(os.path.expanduser(path))
 
 
-def runNpmInstall(wd=None, dev=False, npm='npm'):
+def _getPluginBuildArgs(buildAll, plugins):
+    if buildAll:
+        return ['--all-plugins']
+    elif not plugins:  # build only the enabled plugins
+        settings = model_importer.ModelImporter().model('setting')
+        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+        plugins = ','.join(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
+
+    return ['--plugins=%s' % plugins]
+
+
+def _pipeOutputToProgress(proc, progress):
     """
-    Use this to run `npm install` inside the package.
+    Pipe the latest contents of the stdout and stderr pipes of a subprocess into the
+    message of a progress context.
+
+    :param proc: The subprocess to listen to.
+    :type proc: subprocess.Popen
+    :param progress: The progress context.
+    :type progress: girder.utility.progress.ProgressContext
+    """
+    fds = [proc.stdout, proc.stderr]
+    while True:
+        ready = select.select(fds, (), fds, 1)[0]
+
+        for pipe in (proc.stdout, proc.stderr):
+            if pipe in ready:
+                buf = os.read(pipe.fileno(), 1024)
+                if buf:
+                    buf = buf.decode('utf8', errors='ignore')
+                    # Filter out non-printable characters
+                    msg = ''.join(c for c in buf if c in string.printable)
+                    if msg:
+                        progress.update(message=msg)
+                else:
+                    pipe.close()
+                    fds.remove(pipe)
+        if (not fds or not ready) and proc.poll() is not None:
+            break
+        elif not fds and proc.poll() is None:
+            proc.wait()
+
+
+def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, progress=None):
+    """
+    Use this to run `npm install` inside the package. Also builds the web code
+    using `npm run build`.
+
+    :param wd: Working directory to use. If not specified, uses the girder package directory.
+    :param dev: Whether to build the code in dev mode.
+    :type dev: bool
+    :param npm: Path to the npm executable to use.
+    :type npm: str
+    :param allPlugins: Enable this to build all available plugins as opposed to only enabled ones.
+    :type allPlugins: bool
+    :param plugins: A specific set of plugins to build.
+    :type plugins: list or None
+    :param progress: A progress context for reporting output of the tasks.
+    :type progress: ``girder.utility.progress.ProgressContext`` or None
     """
     if shutil.which(npm) is None:
         print(constants.TerminalColor.error(
@@ -76,16 +134,23 @@ def runNpmInstall(wd=None, dev=False, npm='npm'):
         raise Exception('npm executable not found')
 
     wd = wd or constants.PACKAGE_DIR
+    env = 'dev' if dev else 'prod'
+    commands = [
+        (npm, 'install', '--unsafe-perm'),
+        [npm, 'run', 'build', '--', '--env=%s' % env] + _getPluginBuildArgs(allPlugins, plugins)
+    ]
 
-    args = (npm, 'install', '--production', '--unsafe-perm') if not dev \
-        else (npm, 'install', '--unsafe-perm')
+    for cmd in commands:
+        if progress and progress.on:
+            proc = subprocess.Popen(cmd, cwd=wd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            _pipeOutputToProgress(proc, progress)
+        else:
+            proc = subprocess.Popen(cmd, cwd=wd)
+            proc.communicate()
 
-    proc = subprocess.Popen(args, cwd=wd)
-    proc.communicate()
-
-    if proc.returncode != 0:
-        raise Exception('Web client install failed: npm install returned %s.' %
-                        proc.returncode)
+        if proc.returncode != 0:
+            raise Exception('Web client install failed: `%s` returned %s.' %
+                            (' '.join(cmd), proc.returncode))
 
 
 def install_web(opts=None):
@@ -94,9 +159,11 @@ def install_web(opts=None):
     the entire build and install process.
     """
     if opts is None:
-        runNpmInstall()
+        runWebBuild()
     else:
-        runNpmInstall(dev=opts.development, npm=opts.npm)
+        runWebBuild(
+            dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
+            plugins=opts.plugins)
 
 
 def install_plugin(opts):
@@ -132,7 +199,7 @@ def install_plugin(opts):
                     if pip.main(['install', '-r', reqs]) != 0:
                         raise Exception('Failed to install pip requirements at %s.' % reqs)
 
-        targetPath = os.path.join(getPluginDir(), name)
+        targetPath = os.path.join(plugin_utilities.getPluginDir(), name)
 
         if (os.path.isdir(targetPath) and
                 os.path.samefile(pluginPath, targetPath) and not
@@ -161,9 +228,6 @@ def install_plugin(opts):
         else:
             shutil.copytree(pluginPath, targetPath)
 
-    if not opts.skip_web_client:
-        runNpmInstall(dev=opts.development, npm=opts.npm)
-
 
 def main():
     """
@@ -187,17 +251,14 @@ def main():
     plugin.add_argument('-s', '--symlink', action='store_true',
                         help='Install by symlinking to the plugin directory.')
 
-    plugin.add_argument('--skip-web-client', action='store_true',
-                        help='Skip the step of running the web client build.')
-
     plugin.add_argument('--skip-requirements', action='store_true',
                         help='Skip the step of pip installing the requirements.txt file.')
 
     plugin.add_argument('--dev', action='store_true',
                         dest='development',
-                        help='Install server/client development dependencies')
+                        help='Install development dependencies')
 
-    plugin.add_argument('--npm', default="npm",
+    plugin.add_argument('--npm', default='npm',
                         help='specify the full path to the npm executable.')
 
     plugin.add_argument('plugin', nargs='+',
@@ -209,8 +270,11 @@ def main():
                      dest='development',
                      help='Install client development dependencies')
 
-    web.add_argument('--npm', default="npm",
+    web.add_argument('--npm', default='npm',
                      help='specify the full path to the npm executable.')
+    web.add_argument('--all-plugins', action='store_true',
+                     help='build all available plugins rather than just enabled ones')
+    web.add_argument('--plugins', default='', help='comma-separated list of plugins to build')
 
     web.set_defaults(func=install_web)
 

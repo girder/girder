@@ -38,8 +38,8 @@ module.exports = function (grunt) {
 
                         var fname = 'girder-' + grunt.config.get('pkg').version +
                             '.tar.gz';
-                        var stat = fs.statSync(fname);
-                        if (!err && stat.isFile() && stat.size > 0) {
+                        var stat = fs.existsSync(fname) && fs.statSync(fname);
+                        if (!err && stat && stat.isFile() && stat.size > 0) {
                             grunt.verbose.write(stdout);
                             grunt.log.write('Created ' + fname.cyan + ' (' +
                                             stat.size + ' bytes)\n');

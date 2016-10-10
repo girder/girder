@@ -1,13 +1,25 @@
+import $ from 'jquery';
+import _ from 'underscore';
+
+import router from 'girder/router';
+import View from 'girder/views/View';
+import { AccessType } from 'girder/constants';
+import { confirm } from 'girder/dialog';
+
+import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.pug';
+
+import 'bootstrap/js/tooltip';
+
 /**
  * This view shows a list of pending invitations to the group.
  */
-girder.views.GroupInvitesWidget = girder.View.extend({
+var GroupInvitesWidget = View.extend({
     events: {
         'click .g-group-uninvite': function (e) {
             var li = $(e.currentTarget).parents('li');
             var view = this;
 
-            girder.confirm({
+            confirm({
                 text: 'Are you sure you want to remove the invitation ' +
                     'for <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
@@ -24,7 +36,7 @@ girder.views.GroupInvitesWidget = girder.View.extend({
 
         'click a.g-member-name': function (e) {
             var user = this.collection.get($(e.currentTarget).parents('li').attr('cid'));
-            girder.router.navigate('user/' + user.get('_id'), {trigger: true});
+            router.navigate('user/' + user.get('_id'), {trigger: true});
         }
     },
 
@@ -34,10 +46,10 @@ girder.views.GroupInvitesWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.groupInviteList({
+        this.$el.html(GroupInviteListTemplate({
             level: this.group.get('_accessLevel'),
             invitees: this.collection.toArray(),
-            accessType: girder.AccessType
+            accessType: AccessType
         }));
 
         this.$('a[title]').tooltip({
@@ -50,3 +62,5 @@ girder.views.GroupInvitesWidget = girder.View.extend({
         return this;
     }
 });
+
+export default GroupInvitesWidget;

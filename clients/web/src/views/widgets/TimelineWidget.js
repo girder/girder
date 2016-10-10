@@ -1,3 +1,13 @@
+import _ from 'underscore';
+
+import View from 'girder/views/View';
+
+import TimelineTemplate from 'girder/templates/widgets/timeline.pug';
+
+import 'girder/stylesheets/widgets/timelineWidget.styl';
+
+import 'bootstrap/js/tooltip';
+
 /**
  * This widget displays a timeline of events. This is visualized as a line (a bar)
  * with two sorts of primitives overlaid:
@@ -13,7 +23,7 @@
  * this widget, it is not possible to mix the numeric/relative values with datestamp
  * values.
  */
-girder.views.TimelineWidget = girder.View.extend({
+var TimelineWidget = View.extend({
     /**
      * Initialize the timeline widget.
      *
@@ -137,7 +147,7 @@ girder.views.TimelineWidget = girder.View.extend({
     },
 
     render: function () {
-        this.$el.html(girder.templates.timeline({
+        this.$el.html(TimelineTemplate({
             segments: this._processedSegments,
             points: this._processedPoints,
             startLabel: this.startLabel,
@@ -152,3 +162,6 @@ girder.views.TimelineWidget = girder.View.extend({
         return this;
     }
 });
+
+export default TimelineWidget;
+

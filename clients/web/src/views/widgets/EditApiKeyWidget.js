@@ -1,7 +1,19 @@
+import _ from 'underscore';
+
+import ApiKeyModel from 'girder/models/ApiKeyModel';
+import View from 'girder/views/View';
+import { getCurrentUser } from 'girder/auth';
+import { restRequest } from 'girder/rest';
+
+import EditApiKeyWidgetTemplate from 'girder/templates/widgets/editApiKeyWidget.pug';
+
+import 'girder/utilities/jquery/girderEnable';
+import 'girder/utilities/jquery/girderModal';
+
 /**
  * This widget is used to create a new API key or edit an existing one.
  */
-girder.views.EditApiKeyWidget = girder.View.extend({
+var EditApiKeyWidget = View.extend({
     events: {
         'submit #g-api-key-edit-form': function (e) {
             e.preventDefault();
@@ -20,18 +32,18 @@ girder.views.EditApiKeyWidget = girder.View.extend({
 
             this.saveModel(this.model, fields);
 
-            this.$('button.g-save-api-key').addClass('disabled');
+            this.$('button.g-save-api-key').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
 
         'change .g-scope-selection-container .radio input': function (e) {
             var mode = this._getSelectedScopeMode();
             if (mode === 'full') {
-                this.$('.g-custom-scope-checkbox').attr('disabled', 'disabled')
-                    .parent().parent().addClass('disabled');
+                this.$('.g-custom-scope-checkbox').girderEnable(false)
+                    .parent().parent().girderEnable(false);
             } else if (mode === 'custom') {
-                this.$('.g-custom-scope-checkbox').removeAttr('disabled')
-                    .parent().parent().removeClass('disabled');
+                this.$('.g-custom-scope-checkbox').girderEnable(true)
+                    .parent().parent().girderEnable(true);
             }
         }
     },
@@ -41,7 +53,7 @@ girder.views.EditApiKeyWidget = girder.View.extend({
         this.scopeInfo = null;
         this._shouldRender = false;
 
-        girder.restRequest({
+        restRequest({
             path: 'token/scopes'
         }).done(_.bind(function (resp) {
             this.scopeInfo = resp;
@@ -58,9 +70,9 @@ girder.views.EditApiKeyWidget = girder.View.extend({
             return;
         }
 
-        var modal = this.$el.html(girder.templates.editApiKeyWidget({
+        var modal = this.$el.html(EditApiKeyWidgetTemplate({
             apiKey: this.model,
-            user: girder.currentUser,
+            user: getCurrentUser(),
             userTokenScopes: this.scopeInfo.custom,
             adminTokenScopes: this.scopeInfo.adminCustom
         })).girderModal(this).on('shown.bs.modal', _.bind(function () {
@@ -71,7 +83,7 @@ girder.views.EditApiKeyWidget = girder.View.extend({
                 this.$('#g-api-key-token-duration').val(this.model.get('tokenDuration') || '');
                 if (this.model.get('scope')) {
                     this.$('#g-scope-mode-custom').attr('checked', 'checked');
-                    this.$('.g-custom-scope-checkbox').removeAttr('disabled');
+                    this.$('.g-custom-scope-checkbox').girderEnable(true);
                     _.each(this.model.get('scope'), function (scope) {
                         this.$('.g-custom-scope-checkbox[value="' + scope + '"]').attr('checked', 'checked');
                     }, this);
@@ -91,7 +103,7 @@ girder.views.EditApiKeyWidget = girder.View.extend({
     },
 
     saveModel: function (model, fields) {
-        model = model || new girder.models.ApiKeyModel();
+        model = model || new ApiKeyModel();
 
         model.set(fields);
         model.once('g:saved', function () {
@@ -99,7 +111,7 @@ girder.views.EditApiKeyWidget = girder.View.extend({
             this.trigger('g:saved', model);
         }, this).off('g:error', null, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-api-key').removeClass('disabled');
+            this.$('button.g-save-api-key').girderEnable(true);
         }, this).save();
     },
 
@@ -107,3 +119,5 @@ girder.views.EditApiKeyWidget = girder.View.extend({
         return this.$('.g-scope-selection-container .radio input:checked').attr('value');
     }
 });
+
+export default EditApiKeyWidget;

@@ -1,0 +1,76 @@
+.g-account-header
+  .g-user-name.g-body-title= user.name()
+  .g-user-description.g-body-subtitle= user.get('login')
+
+ul.g-account-tabs.nav.nav-tabs
+  li.active
+    a(href="#g-account-tab-info", data-toggle="tab", name="info")
+      i.icon-info-circled
+      |  Profile
+  li
+    a(href="#g-account-tab-password", data-toggle="tab", name="password")
+      i.icon-lock
+      | Password
+  li
+    a(href="#g-account-tab-api-keys", data-toggle="tab", name="apikeys")
+      i.icon-key-inv
+      | API keys
+
+.tab-content
+  #g-account-tab-info.tab-pane.active
+    .g-user-info-container.g-user-settings-container
+      form#g-user-info-form(role="form")
+        .form-group
+          label(for="g-login") Login
+          p.form-control-static= user.get('login')
+        .form-group
+          label(for="g-email") Email
+          input.input-sm.form-control#g-email(type="text", value=user.get('email'))
+        .form-group
+          label(for="g-firstName") First name
+          input.input-sm.form-control#g-firstName(type="text", value=user.get('firstName'))
+        .form-group
+          label(for="g-lastName") Last name
+          input.input-sm.form-control#g-lastName(type="text", value=user.get('lastName'))
+        if getCurrentUser().get('admin')
+          .form-group
+            label(for="g-admin") User is site admin
+            if user.get('admin')
+              input.input-sm-form-control#g-admin(type="checkbox", checked)
+            else
+              input.input-sm-form-control#g-admin(type="checkbox")
+        button.btn.btn-default.btn-sm(type="submit")
+          i.icon-edit
+          | Save
+        #g-user-info-error-msg.g-validation-failed-message
+
+  #g-account-tab-password.tab-pane
+    .g-password-change-container.g-user-settings-container
+      form#g-password-change-form(role="form")
+        if temporaryToken
+            input.input-sm.form-control#g-password-old(type="hidden", value=temporaryToken)
+        else if isCurrentUser
+          .form-group
+            label(for="g-password-old") Current password
+            input.input-sm.form-control#g-password-old(type="password", placeholder="Enter current password")
+        .form-group
+          label(for="g-password-new") New password
+          input.input-sm.form-control#g-password-new(type="password", placeholder="Enter new password")
+        .form-group
+          label(for="g-password-retype") Retype new password
+          input.input-sm.form-control#g-password-retype(type="password", placeholder="Retype new password")
+        button.btn.btn-default.btn-sm(type="submit")
+          i.icon-lock
+          | Change
+        #g-password-change-error-msg.g-validation-failed-message
+  #g-account-tab-api-keys.tab-pane
+    .g-api-keys-container.g-user-settings-container
+      .g-api-keys-info-text.
+        API keys can be used to grant limited or total access to client applications on your behalf.
+        Clients can use these keys to create tokens that can be used for authenticated access. You may
+        limit the tokens created with a given key to certain authorization scopes, or allow the tokens
+        complete access to everything your user can do. You may also choose the maximum time that
+        tokens created with a given key will last before expiration. If you do not specify a duration,
+        the default expiration for user login sessions will be used.
+
+      .g-api-keys-list-container

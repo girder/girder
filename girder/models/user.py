@@ -21,10 +21,9 @@ import datetime
 import os
 import re
 
-from .model_base import AccessControlledModel, ValidationException
+from .model_base import AccessControlledModel, AccessException, ValidationException
 from girder import events
-from girder.constants import AccessType, CoreEventHandler, SettingKey, \
-    TokenScope
+from girder.constants import AccessType, CoreEventHandler, SettingKey, TokenScope
 from girder.utility import config, mail_utils
 
 
@@ -57,19 +56,6 @@ class User(AccessControlledModel):
         events.bind('model.user.save.created',
                     CoreEventHandler.USER_DEFAULT_FOLDERS,
                     self._addDefaultFolders)
-
-    def filter(self, *args, **kwargs):
-        """
-        Preserved override for kwarg backwards compatibility. Prior to the
-        refactor for centralizing model filtering, this method's first formal
-        parameter was called "folder", whereas the centralized version's first
-        parameter is called "doc". This override simply detects someone using
-        the old kwarg and converts it to the new form.
-        """
-        if 'currentUser' in kwargs and 'user' in kwargs:
-            args = [kwargs.pop('user')] + list(args)
-            kwargs['user'] = kwargs.pop('currentUser')
-        return super(User, self).filter(*args, **kwargs)
 
     def validate(self, doc):
         """
@@ -138,6 +124,42 @@ class User(AccessControlledModel):
             doc['status'] = 'enabled'
 
         return doc
+
+    def authenticate(self, login, password):
+        """
+        Validate a user login via username and password. If authentication fails,
+        a ``AccessException`` is raised.
+
+        :param login: The user's login or email.
+        :type login: str
+        :param password: The user's password.
+        :type password: str
+        :returns: The corresponding user if the login was successful.
+        :rtype: dict
+        """
+        login = login.lower().strip()
+        loginField = 'email' if '@' in login else 'login'
+
+        user = self.model('user').findOne({loginField: login})
+        if user is None:
+            raise AccessException('Login failed.')
+
+        if not self.model('password').authenticate(user, password):
+            raise AccessException('Login failed.')
+
+        # This has the same behavior as User.canLogin, but returns more
+        # detailed error messages
+        if user.get('status', 'enabled') == 'disabled':
+            raise AccessException('Account is disabled.', extra='disabled')
+
+        if self.model('user').emailVerificationRequired(user):
+            raise AccessException(
+                'Email verification required.', extra='emailVerification')
+
+        if self.model('user').adminApprovalRequired(user):
+            raise AccessException('Account approval required.', extra='accountApproval')
+
+        return user
 
     def remove(self, user, progress=None, **kwargs):
         """
@@ -454,14 +476,13 @@ class User(AccessControlledModel):
             return sum(1 for _ in folderModel.filterResultsByPermission(
                 cursor=folders, user=filterUser, level=level))
 
-    def updateSize(self, doc, user=None):
+    def updateSize(self, doc):
         """
         Recursively recomputes the size of this user and its underlying
         folders and fixes the sizes as needed.
 
         :param doc: The user.
         :type doc: dict
-        :param user: (deprecated) Not used.
         """
         size = 0
         fixes = 0
