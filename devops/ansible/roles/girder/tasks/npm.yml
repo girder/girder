@@ -16,3 +16,8 @@
     name: nodejs
   become: yes
   become_user: root
+
+- name: NodeJS | Update npm
+  command: "npm install -g npm@3"
+  become: yes
+  become_user: root
