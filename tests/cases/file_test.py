@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import httmock
 import io
 import json
 import mock
@@ -942,21 +941,6 @@ class FileTestCase(base.TestCase):
         # The file should just contain the URL of the link
         extracted = zip.read('Private/My Link Item').decode('utf8')
         self.assertEqual(extracted, params['linkUrl'].strip())
-
-        @httmock.urlmatch(netloc=r'(.*\.)?google\.com$')
-        def google_mock(url, request):
-            headers = {'content-type': 'application/json',
-                       'content-length': '20'}
-            content = {'message': 'Mock google call'}
-            return httmock.response(content=content, headers=headers)
-
-        params['name'] = 'File with size'
-        with httmock.HTTMock(google_mock):
-            resp = self.request(
-                path='/file', method='POST', user=self.user, params=params)
-            self.assertStatusOk(resp)
-            file = resp.json
-            self.assertEqual(file['size'], 20)
 
     def tearDown(self):
         if self.testForFinalizeUpload:
