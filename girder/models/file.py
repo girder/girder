@@ -130,7 +130,7 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         return doc
 
-    def createLinkFile(self, name, parent, parentType, url, creator):
+    def createLinkFile(self, name, parent, parentType, url, creator, size=0):
         """
         Create a file that is a link to a URL, rather than something we maintain
         in an assetstore.
@@ -144,6 +144,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param url: The URL that this file points to
         :param creator: The user creating the file.
         :type creator: dict
+        :param size: The size of the file in bytes.
+        :type size: int
         """
         if parentType == 'folder':
             # Create a new item with the name of the file.
@@ -158,12 +160,14 @@ class File(acl_mixin.AccessControlMixin, Model):
             'creatorId': creator['_id'],
             'assetstoreId': None,
             'name': name,
+            'size': size,
             'linkUrl': url
         }
 
         try:
-            r = requests.head(url.strip())
-            file['size'] = int(r.headers['Content-Length'])
+            if file['size'] == 0:
+                r = requests.head(url.strip())
+                file['size'] = int(r.headers['Content-Length'])
         except (KeyError, ValueError, TypeError):
             pass  # No Content-Length in headers, or Content-Length is not int
         except requests.exceptions.RequestException:
