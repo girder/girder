@@ -107,7 +107,7 @@ class File(Resource):
             return self.model('file').filter(
                 self.model('file').createLinkFile(
                     url=params['linkUrl'], parent=parent, name=params['name'],
-                    parentType=parentType, creator=user), user)
+                    parentType=parentType, creator=user, size=params.get('size')), user)
         else:
             self.requireParams('size', params)
             assetstore = None

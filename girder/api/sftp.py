@@ -55,10 +55,7 @@ def _handleErrors(fun):
 
 
 def _getFileSize(file):
-    if file.get('assetstoreId'):
-        return file['size']
-    elif file.get('linkUrl'):
-        return len(file['linkUrl'])
+    return file.get('size', len(file.get('linkUrl', '')))
 
 
 def _stat(doc, model):
