@@ -615,3 +615,13 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual([f['name'] for f in self.model('folder').childFolders(
             parentType='folder', parent=parent,
             user=testUser, limit=0)], ['sub0', 'sub1', 'sub2'])
+
+    def testUploadFileWithDifferentName(self):
+        itemName = 'MyStash'
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      itemName)
+
+        path = os.path.join(self.libTestDir, 'sub1', 'f1')
+        uploadedFile = self.client.uploadFileToItem(item['_id'], path, filename='g1')
+
+        self.assertEqual(uploadedFile['name'], 'g1')
