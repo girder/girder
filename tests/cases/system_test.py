@@ -226,6 +226,8 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/system/plugins', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertIn('all', resp.json)
+        self.assertNotIn('.gitignore', resp.json['all'])
+
         self.mockPluginDir(
             os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
 
