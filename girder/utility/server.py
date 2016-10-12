@@ -135,12 +135,13 @@ def loadRouteTable(reconcileRoutes=False):
     application state.
 
     Reconciliation deals with 2 scenarios:
-    1) A plugin is no longer active (by being disabled or removed) and the route for the
-    plugin needs to be removed.
-    2) A webroot was added (a new plugin was enabled) and a default route needs to be added.
+
+    1. A plugin is no longer active (by being disabled or removed) and the route for the
+       plugin needs to be removed.
+    2. A webroot was added (a new plugin was enabled) and a default route needs to be added.
 
     :returns: The non empty routes (as a dict of name -> route) to be mounted by CherryPy
-    during Girder's setup phase.
+              during Girder's setup phase.
     """
     pluginWebroots = plugin_utilities.getPluginWebroots()
     setting = model_importer.ModelImporter().model('setting')

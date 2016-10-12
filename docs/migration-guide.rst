@@ -47,7 +47,7 @@ Web client changes
 ++++++++++++++++++
 
 * In version 1.x, running ``npm install`` would install our npm dependencies, as well as run the
-  web client build process afterwords. That is no longer the case; ``npm install`` now only installs
+  web client build process afterwards. That is no longer the case; ``npm install`` now only installs
   the dependencies, and the build is run with ``npm run build``.
 
     * The old web client build process used to build *all available* plugins in the plugin directory.
