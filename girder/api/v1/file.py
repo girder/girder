@@ -104,11 +104,10 @@ class File(Resource):
                                              level=AccessType.WRITE, exc=True)
 
         if 'linkUrl' in params:
-            size = int(params.get('size', 0))
             return self.model('file').filter(
                 self.model('file').createLinkFile(
                     url=params['linkUrl'], parent=parent, name=params['name'],
-                    parentType=parentType, creator=user, size=size), user)
+                    parentType=parentType, creator=user, size=params.get('size')), user)
         else:
             self.requireParams('size', params)
             assetstore = None
