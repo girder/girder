@@ -5,7 +5,21 @@
 
   th
     border-bottom 1px solid #d7d7d7
-
+    .dropdown
+      ul.dropdown-menu
+        input[type="checkbox"]
+          margin-top 0px
+          margin-left 5px
+          margin-right 5px
+          vertical-align middle
+        span
+          vertical-align middle
+    a.g-job-checkbox-menu-link
+      display inline-block
+      overflow hidden
+      text-overflow ellipsis
+      white-space nowrap
+      color: #333
   tbody>tr
     transition background 0.4s linear
 
@@ -29,3 +43,9 @@
       color #c44
     &[status="5"]
       color #777
+
+.g-job-list-header
+  padding-bottom 10px
+
+#g-job-checkbox-menu
+  display inline

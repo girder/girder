@@ -8,8 +8,11 @@ table.g-jobs-list-table
           th Title
         if columns & columnEnum.COLUMN_UPDATED
           th Last update
+        if columns & columnEnum.COLUMN_TYPE
+          th.g-job-type-header
         if columns & columnEnum.COLUMN_STATUS
-          th Status
+          th.g-job-status-header
+
   tbody
     each job in jobs
       tr(g-job-id=job.id)
@@ -27,6 +30,8 @@ table.g-jobs-list-table
             td= job.get('title')
         if columns & columnEnum.COLUMN_UPDATED
           td.g-job-updated-cell= formatDate(job.get('updated'), DATE_SECOND)
+        if columns & columnEnum.COLUMN_TYPE
+          td= job.get('type')
         if columns & columnEnum.COLUMN_STATUS
           td.g-job-status-cell= JobStatus.text(job.get('status'))
 
