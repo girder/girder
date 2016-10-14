@@ -105,6 +105,11 @@ module.exports = {
                 loader: 'babel-loader',
                 exclude: [paths.node_modules]
             },
+            // JSON files
+            {
+                test: /\.json$/,
+                loader: 'json-loader'
+            },
             // Stylus
             {
                 test: /\.styl$/,

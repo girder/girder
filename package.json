@@ -20,6 +20,7 @@
     "bootstrap": "3.3.x",
     "bootstrap-switch": "3.3.2",
     "colors": "0.6.2",
+    "css-loader": "^0.23.1",
     "eonasdan-bootstrap-datetimepicker": "~4.15",
     "event-source": "0.1.1",
     "extract-text-webpack-plugin": "^2.0.0-beta.2",
@@ -42,6 +43,7 @@
     "pug": "^2.0.0-beta6",
     "pug-loader": "^2.3.0",
     "jquery": "2.1.1",
+    "json-loader": "^0.5.4",
     "jsoneditor": "4.1.2",
     "nib": "^1.1.0",
     "nopt-grunt-fix": "^1.0.0",
@@ -59,7 +61,6 @@
   },
   "devDependencies": {
     "babel-plugin-istanbul": "^2.0.1",
-    "css-loader": "^0.23.1",
     "eslint": "^3.3.1",
     "eslint-config-semistandard": "^6.0.2",
     "pug-lint": "^2.3.0",
