@@ -227,6 +227,17 @@ def getCurrentUser(returnToken=False):
         return retVal(user, token)
 
 
+def setCurrentUser(user):
+    """
+    Explicitly set the user for the current request thread. This can be used
+    to enable specialized auth behavior on a per-request basis.
+
+    :param user: The user to set as the current user of this request.
+    :type user: dict or None
+    """
+    cherrypy.request.girderUser = user
+
+
 def requireAdmin(user, message=None):
     """
     Calling this on a user will ensure that they have admin rights.  If not,
