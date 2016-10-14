@@ -40,15 +40,15 @@ def _loadConfigsByPrecedent():
     """
     Load configuration in reverse order of precedent.
     """
-    configPaths = []
-    configPaths.append(
-        os.path.join(PACKAGE_DIR, 'conf', 'girder.dist.cfg'))
-    configPaths.append(
-        os.path.join(PACKAGE_DIR, 'conf', 'girder.local.cfg'))
-    configPaths.append(
-        os.path.join('/etc', 'girder.cfg'))
-    configPaths.append(
-        os.path.join(os.path.expanduser('~'), '.girder', 'girder.cfg'))
+    configPaths = [os.path.join(PACKAGE_DIR, 'conf', 'girder.dist.cfg')]
+
+    if 'GIRDER_TEST_DB' not in os.environ:
+        # we don't want to load the local config file if we are running tests
+        configPaths.append(os.path.join(PACKAGE_DIR, 'conf', 'girder.local.cfg'))
+
+    configPaths.append(os.path.join('/etc', 'girder.cfg'))
+    configPaths.append(os.path.join(os.path.expanduser('~'), '.girder', 'girder.cfg'))
+
     if 'GIRDER_CONFIG' in os.environ:
         configPaths.append(os.environ['GIRDER_CONFIG'])
 
