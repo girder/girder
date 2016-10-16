@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import mock
 import six
 import time
 import unittest
@@ -139,10 +140,8 @@ class EventsTestCase(unittest.TestCase):
             self.assertEqual(self.responses, ['foo'])
             events.daemon.stop()
 
+    @mock.patch.object(events, 'daemon', new=events.ForegroundEventsDaemon())
     def testForegroundDaemon(self):
-        oldDaemon = events.daemon
-        events.daemon = events.ForegroundEventsDaemon()
-
         # Should still be able to call start
         events.daemon.start()
 
@@ -161,4 +160,3 @@ class EventsTestCase(unittest.TestCase):
         self.assertEqual(self.responses, ['foo'])
 
         events.daemon.stop()
-        events.daemon = oldDaemon
