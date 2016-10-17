@@ -41,9 +41,9 @@ class AuthorizedUpload(Resource):
         .param('duration', 'How many days the token should last.', required=False, dataType='int')
     )
     def createAuthorizedUpload(self, folder, params):
-        if 'duration' in params:
-            days = int(params['duration'])
-        else:
+        try:
+            days = int(params.get('duration'))
+        except Exception:
             days = self.model('setting').get(SettingKey.COOKIE_LIFETIME)
 
         token = self.model('token').createToken(days=days, user=self.getCurrentUser(), scope=(
