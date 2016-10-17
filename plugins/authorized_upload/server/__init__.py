@@ -19,7 +19,7 @@
 
 from girder import events
 from girder.api.rest import getCurrentToken, setCurrentUser
-from girder.constants import TokenScope
+from girder.utility import mail_utils
 from girder.utility.model_importer import ModelImporter
 
 from .constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
@@ -67,8 +67,7 @@ def _authorizeUploadStep(event):
         setCurrentUser(user)
 
 
-
-def _removeToken(event):
+def _uploadComplete(event):
     """
     Called after an upload finishes. We check if our current token is a special
     authorized upload token, and if so, delete it.
@@ -78,6 +77,12 @@ def _removeToken(event):
     """
     token = getCurrentToken()
     if 'authorizedUploadId' in token:
+        user = ModelImporter.model('user').load(token['userId'], force=True)
+        item = ModelImporter.model('item').load(event.info['file']['itemId'], force=True)
+        text = mail_utils.renderTemplate('authorized_upload.uploadFinished.mako', {
+            'itemId': item['_id']
+        })
+        mail_utils.sendEmail(to=user['email'], subject='Authorized upload complete', text=text)
         ModelImporter.model('token').remove(token)
 
 
@@ -88,7 +93,6 @@ def load(info):
     events.bind('rest.post.file.after', name, _storeUploadId)
     events.bind('rest.post.file/chunk.before', name, _authorizeUploadStep)
     events.bind('rest.post.file/completion.before', name, _authorizeUploadStep)
-    events.bind('model.file.finalizeUpload.after', name, _removeToken)
+    events.bind('model.file.finalizeUpload.after', name, _uploadComplete)
 
     info['apiRoot'].authorized_upload = AuthorizedUpload()
-
