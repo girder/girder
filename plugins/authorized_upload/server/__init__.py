@@ -63,7 +63,7 @@ def _authorizeUploadStep(event):
     token = getCurrentToken()
     uploadId = ObjectId(event.info['params'].get('uploadId'))
 
-    if 'authorizedUploadId' in token and token['authorizedUploadId'] == uploadId:
+    if token and 'authorizedUploadId' in token and token['authorizedUploadId'] == uploadId:
         user = ModelImporter.model('user').load(token['userId'], force=True)
         setCurrentUser(user)
 
