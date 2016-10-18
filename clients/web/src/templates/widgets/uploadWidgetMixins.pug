@@ -17,7 +17,7 @@ mixin g-upload-widget-browse-or-drop
     else
       |  Browse or drop files here
   .form-group.hide
-    if (parentType === 'file')
+    if (parentType === 'file' || !multiFile)
       input#g-files(type="file")
     else
       input#g-files(type="file", multiple)

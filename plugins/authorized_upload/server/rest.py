@@ -50,6 +50,6 @@ class AuthorizedUpload(Resource):
             TOKEN_SCOPE_AUTHORIZED_UPLOAD, 'authorized_upload_folder_%s' % folder['_id']))
 
         url = '%s#authorized_upload/%s/%s' % (
-            mail_utils.getEmailUrlPrefix(), token['_id'], folder['_id'])
+            mail_utils.getEmailUrlPrefix(), folder['_id'], token['_id'])
 
         return {'url': url}

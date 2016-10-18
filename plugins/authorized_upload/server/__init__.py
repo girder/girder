@@ -17,7 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
+from bson.objectid import ObjectId
 from girder import events
+from girder.api import access
 from girder.api.rest import getCurrentToken, setCurrentUser
 from girder.utility import mail_utils
 from girder.utility.model_importer import ModelImporter
@@ -26,10 +28,8 @@ from .constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
 from .rest import AuthorizedUpload
 
 
+@access.public
 def _authorizeInitUpload(event):
-    # This relies on the fact that the REST layer caches the token on each request.
-    # Update the scope, but do not save the token. We want this to only apply to
-    # this request thread.
     token = getCurrentToken()
     params = event.info['params']
     tokenModel = ModelImporter.model('token')
@@ -58,9 +58,10 @@ def _storeUploadId(event):
         tokenModel.save(token)
 
 
+@access.public
 def _authorizeUploadStep(event):
     token = getCurrentToken()
-    uploadId = event.info['params'].get('uploadId')
+    uploadId = ObjectId(event.info['params'].get('uploadId'))
 
     if 'authorizedUploadId' in token and token['authorizedUploadId'] == uploadId:
         user = ModelImporter.model('user').load(token['userId'], force=True)
@@ -93,6 +94,7 @@ def load(info):
     events.bind('rest.post.file.after', name, _storeUploadId)
     events.bind('rest.post.file/chunk.before', name, _authorizeUploadStep)
     events.bind('rest.post.file/completion.before', name, _authorizeUploadStep)
+    events.bind('rest.get.file/offset.before', name, _authorizeUploadStep)
     events.bind('model.file.finalizeUpload.after', name, _uploadComplete)
 
     info['apiRoot'].authorized_upload = AuthorizedUpload()

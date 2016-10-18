@@ -92,6 +92,8 @@ var UploadWidget = View.extend({
      * event of this widget. The caller is then responsible for calling "uploadNextFile()"
      * on the widget when they have completed their actions and are ready to actually
      * send the files.
+     * @param [multiFile=true] By default, this widget allows selection of multiple
+     * files. Set this to false to only allow a single file to be chosen.
      *
      * Other events:
      *   - "g:filesChanged": This is triggered any time the user changes the
@@ -112,6 +114,7 @@ var UploadWidget = View.extend({
         this.totalSize = 0;
         this.title = _.has(settings, 'title') ? settings.title : 'Upload files';
         this.modal = _.has(settings, 'modal') ? settings.modal : true;
+        this.multiFile = _.has(settings, 'multiFile') ? settings.multiFile : true;
         this.overrideStart = settings.overrideStart || false;
     },
 
@@ -120,7 +123,8 @@ var UploadWidget = View.extend({
             this.$el.html(UploadWidgetTemplate({
                 parent: this.parent,
                 parentType: this.parentType,
-                title: this.title
+                title: this.title,
+                multiFile: this.multiFile
             }));
 
             var base = this;
@@ -144,7 +148,8 @@ var UploadWidget = View.extend({
             this.$el.html(UploadWidgetNonModalTemplate({
                 parent: this.parent,
                 parentType: this.parentType,
-                title: this.title
+                title: this.title,
+                multiFile: this.multiFile
             }));
         }
         return this;
@@ -192,8 +197,12 @@ var UploadWidget = View.extend({
     startUpload: function () {
         this.setUploadEnabled(false);
         this.$('.g-drop-zone').addClass('hide');
-        this.$('.g-progress-overall,.g-progress-current').removeClass('hide');
+        this.$('.g-progress-overall').removeClass('hide');
         this.$('.g-upload-error-message').empty();
+
+        if (this.multiFile) {
+            this.$('.g-progress-current').removeClass('hide');
+        }
 
         this.currentIndex = 0;
         this.overallProgress = 0;
