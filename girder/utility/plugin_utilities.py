@@ -278,9 +278,13 @@ def findAllPlugins():
     pluginDir = getPluginDir()
 
     for plugin in os.listdir(pluginDir):
+        path = os.path.join(pluginDir, plugin)
+        if not os.path.isdir(path):  # this also allows for symlinked directories
+            continue
+
         data = {}
-        configJson = os.path.join(pluginDir, plugin, 'plugin.json')
-        configYml = os.path.join(pluginDir, plugin, 'plugin.yml')
+        configJson = os.path.join(path, 'plugin.json')
+        configYml = os.path.join(path, 'plugin.yml')
         if os.path.isfile(configJson):
             with open(configJson) as conf:
                 try:
