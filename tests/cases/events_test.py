@@ -142,6 +142,8 @@ class EventsTestCase(unittest.TestCase):
 
     @mock.patch.object(events, 'daemon', new=events.ForegroundEventsDaemon())
     def testForegroundDaemon(self):
+        self.assertIsInstance(events.daemon, events.ForegroundEventsDaemon)
+
         # Should still be able to call start
         events.daemon.start()
 
