@@ -197,4 +197,8 @@ page.open(pageUrl, function (status) {
         console.error('Could not load page: ' + pageUrl);
         phantom.exit(1);
     }
+    // In phantom 2.x, calling console.error triggers page.onError, which we don't want.
+    page.evaluate(function () {
+        console.error = console.log;
+    });
 });
