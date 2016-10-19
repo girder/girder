@@ -71,7 +71,6 @@
     "eslint-plugin-underscore": "0.0.10",
     "istanbul": "1.1.0-alpha.1",
     "phantomjs": "^2.1.7",
-    "phantomjs-polyfill": "0.0.x",
     "webpack-dev-server": "^2.1.0-beta.0"
   },
   "scripts": {

@@ -36,18 +36,7 @@ module.exports = function (grunt) {
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
                     ]
                 }
-            },
-            polyfill: {
-                files: {
-                    'clients/web/static/built/testing/polyfill.min.js': [
-                        'node_modules/phantomjs-polyfill/bind-polyfill.js'
-                    ]
-                }
             }
-        },
-
-        init: {
-            'uglify:polyfill': {}
         },
 
         default: {
