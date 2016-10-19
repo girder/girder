@@ -797,7 +797,7 @@ describe('Test FileModel static upload functions', function () {
     girderTest.shimBlobBuilder();
 
     it('test FileModel.uploadToFolder()', function () {
-        var text, filename, speech, fileModel, file;
+        var text = null, filename, speech, fileModel, file;
 
         filename = 'hal.txt';
 
@@ -850,8 +850,14 @@ describe('Test FileModel static upload functions', function () {
         });
 
         waitsFor(function () {
-            return file._id === fileModel.get('_id') && file.name === filename && text === speech;
-        });
+            return text !== null;
+        }, 'file to be downloaded');
+
+        runs(function () {
+            expect(file._id).toBe(fileModel.id);
+            expect(file.name).toBe(filename);
+            expect(text).toBe(speech);
+        })
     });
 
     it('test FileModel.uploadToItem()', function () {
