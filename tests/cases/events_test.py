@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import mock
+import six
 import time
 import unittest
 
@@ -136,3 +138,27 @@ class EventsTestCase(unittest.TestCase):
             self.assertEqual(events.daemon.eventQueue.qsize(), 0)
             self.assertEqual(self.ctr, 3)
             self.assertEqual(self.responses, ['foo'])
+            events.daemon.stop()
+
+    @mock.patch.object(events, 'daemon', new=events.ForegroundEventsDaemon())
+    def testForegroundDaemon(self):
+        self.assertIsInstance(events.daemon, events.ForegroundEventsDaemon)
+
+        # Should still be able to call start
+        events.daemon.start()
+
+        def callback(event):
+            self.ctr += 1
+            self.responses = event.responses
+
+        with events.bound('_test.event',  '_test.handler', self._raiseException):
+            with six.assertRaisesRegex(self, Exception, 'Failure condition'):
+                events.daemon.trigger('_test.event', None, callback)
+
+        with events.bound('_test.event',  '_test.handler', self._incrementWithResponse):
+            events.daemon.trigger('_test.event', {'amount': 2}, callback)
+
+        self.assertEqual(self.ctr, 3)
+        self.assertEqual(self.responses, ['foo'])
+
+        events.daemon.stop()
