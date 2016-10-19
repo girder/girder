@@ -794,8 +794,6 @@ describe('Test FileModel static upload functions', function () {
         }, 'item creation');
     });
 
-    girderTest.shimBlobBuilder();
-
     it('test FileModel.uploadToFolder()', function () {
         var text = null, filename, speech, fileModel, file;
 
