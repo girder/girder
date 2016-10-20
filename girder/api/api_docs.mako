@@ -50,9 +50,6 @@
     <script src="${staticRoot}/built/swagger/lib/handlebars-2.0.0.js"></script>
     <script src="${staticRoot}/built/swagger/lib/underscore-min.js"></script>
     <script src="${staticRoot}/built/swagger/lib/backbone-min.js"></script>
-    % if mode == 'testing':
-    <script src="${staticRoot}/built/testing/polyfill.min.js"></script>
-    % endif
     <script src="${staticRoot}/built/swagger/swagger-ui.min.js"></script>
     <script src="${staticRoot}/built/swagger/lib/highlight.7.3.pack.js"></script>
     <script src='${staticRoot}/built/swagger/lib/jsoneditor.min.js'></script>
