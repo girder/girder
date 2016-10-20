@@ -839,11 +839,10 @@ describe('Test FileModel static upload functions', function () {
                 var resp = girder.rest.restRequest({
                     path: '/file/' + file._id + '/download',
                     type: 'GET',
-                    dataType: 'text',
-                    async: false
+                    dataType: 'text'
+                }).done(function () {
+                    text = resp.responseText;
                 });
-
-                text = resp.responseText;
             }
         });
 
@@ -855,11 +854,11 @@ describe('Test FileModel static upload functions', function () {
             expect(file._id).toBe(fileModel.id);
             expect(file.name).toBe(filename);
             expect(text).toBe(speech);
-        })
+        });
     });
 
     it('test FileModel.uploadToItem()', function () {
-        var text, filename, speech, file, fileModel;
+        var text = null, filename, speech, file, fileModel;
 
         filename = 'dave.txt';
 
@@ -890,16 +889,21 @@ describe('Test FileModel static upload functions', function () {
                     path: '/file/' + file._id + '/download',
                     type: 'GET',
                     dataType: 'text',
-                    async: false
+                }).done(function () {
+                    text = resp.responseText;
                 });
-
-                text = resp.responseText;
             }
         });
 
         waitsFor(function () {
-            return file._id === fileModel.get('_id') && file.name === filename && text === speech;
-        });
+            return text !== null;
+        }, 'file to be downloaded');
+
+        runs(function () {
+            expect(file._id).toBe(fileModel.id);
+            expect(file.name).toBe(filename);
+            expect(text).toBe(speech);
+        })
     });
 
     it('logout from test account', girderTest.logout('logout from test account'));
