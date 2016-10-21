@@ -33,7 +33,8 @@ module.exports = function (grunt) {
                 files: {
                     'clients/web/static/built/testing/testing.min.js': [
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
-                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js'
+                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js',
+                        'clients/web/test/testUtils.js'
                     ]
                 }
             }
@@ -51,8 +52,7 @@ module.exports = function (grunt) {
         var pug = require('pug');
         var buffer = fs.readFileSync('clients/web/test/testEnv.pug');
         var dependencies = [
-            '/clients/web/static/built/girder.ext.min.js',
-            '/clients/web/test/testUtils.js'
+            '/clients/web/static/built/girder.ext.min.js'
         ];
         var inputs = [
             '/clients/web/static/built/girder.app.min.js'
