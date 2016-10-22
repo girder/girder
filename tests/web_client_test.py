@@ -146,7 +146,8 @@ class WebClientTestCase(base.TestCase):
 
         cmd = (
             os.path.join(
-                ROOT_DIR, 'node_modules', 'phantomjs', 'bin', 'phantomjs'),
+                ROOT_DIR, 'node_modules', 'phantomjs-prebuilt', 'lib', 'phantom',
+                'bin', 'phantomjs'),
             '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
             'http://localhost:%s%s' % (os.environ['GIRDER_PORT'], baseUrl),

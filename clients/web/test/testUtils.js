@@ -1114,18 +1114,11 @@ girderTest.confirmDialog = function () {
     girderTest.waitForLoad();
 };
 
-girderTest.shimBlobBuilder = function () {
-    var oldPrototype = window.Blob.prototype;
-    window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder;
-    window.Blob = function (data) {
-        var builder = new window.BlobBuilder();
-        _.each(data, function (d) {
-            builder.append(d);
-        });
-        return builder.getBlob();
-    };
-    window.Blob.prototype = oldPrototype;
-};
+/**
+ * @DEPRECATED TODO remove in major version
+ * This is now a no-op since phantom 2.x has a Blob implementation
+ */
+girderTest.shimBlobBuilder = $.noop;
 
 /*
  * Loads a particular fragment as anonymous and checks whether the login dialog

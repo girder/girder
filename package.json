@@ -70,8 +70,7 @@
     "eslint-plugin-standard": "^2.0.0",
     "eslint-plugin-underscore": "0.0.10",
     "istanbul": "1.1.0-alpha.1",
-    "phantomjs": "1.9.x",
-    "phantomjs-polyfill": "0.0.x",
+    "phantomjs-prebuilt": "^2.1.13",
     "webpack-dev-server": "^2.1.0-beta.0"
   },
   "scripts": {
