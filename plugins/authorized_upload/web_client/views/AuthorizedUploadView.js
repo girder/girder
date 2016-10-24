@@ -19,7 +19,13 @@ var AuthorizedUploadView = View.extend({
             title: false,
             multiFile: false,
             modal: false,
-            parentView: this
+            parentView: this,
+            otherParams: () => {
+                return {
+                    authorizedUploadDescription: this.$('#g-authorized-upload-description').val(),
+                    authorizedUploadEmail: this.$('#g-authorized-upload-email').val()
+                };
+            }
         }).on('g:uploadFinished', function () {
             this.$('.g-upload-wrapper').addClass('hide');
             this.$('.g-complete-wrapper').removeClass('hide');

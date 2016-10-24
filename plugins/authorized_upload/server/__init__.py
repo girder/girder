@@ -53,8 +53,11 @@ def _storeUploadId(event):
     isAuthorizedUpload = tokenModel.hasScope(token, TOKEN_SCOPE_AUTHORIZED_UPLOAD)
 
     if isAuthorizedUpload and returnVal.get('_modelType', 'upload') == 'upload':
+        params = event.info['params']
         token['scope'].remove(TOKEN_SCOPE_AUTHORIZED_UPLOAD)
         token['authorizedUploadId'] = returnVal['_id']
+        token['authorizedUploadDescription'] = params.get('authorizedUploadDescription', '')
+        token['authorizedUploadEmail'] = params.get('authorizedUploadEmail')
         tokenModel.save(token)
 
 
@@ -80,6 +83,12 @@ def _uploadComplete(event):
     if 'authorizedUploadId' in token:
         user = ModelImporter.model('user').load(token['userId'], force=True)
         item = ModelImporter.model('item').load(event.info['file']['itemId'], force=True)
+
+        # Save the metadata on the item
+        item['description'] = token['authorizedUploadDescription']
+        item['authorizedUploadEmail'] = token['authorizedUploadEmail']
+        ModelImporter.model('item').save(item)
+
         text = mail_utils.renderTemplate('authorized_upload.uploadFinished.mako', {
             'itemId': item['_id']
         })

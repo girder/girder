@@ -94,6 +94,9 @@ var UploadWidget = View.extend({
      * send the files.
      * @param [multiFile=true] By default, this widget allows selection of multiple
      * files. Set this to false to only allow a single file to be chosen.
+     * @param [otherParams={}] An object containing other parameters to pass into the
+     * upload initialization endpoint, or a function that returns such an object. If a
+     * function, will be called when the upload is started.
      *
      * Other events:
      *   - "g:filesChanged": This is triggered any time the user changes the
@@ -116,6 +119,7 @@ var UploadWidget = View.extend({
         this.modal = _.has(settings, 'modal') ? settings.modal : true;
         this.multiFile = _.has(settings, 'multiFile') ? settings.multiFile : true;
         this.overrideStart = settings.overrideStart || false;
+        this.otherParams = settings.otherParams || {};
     },
 
     render: function () {
@@ -278,7 +282,11 @@ var UploadWidget = View.extend({
         if (this.parentType === 'file') {
             this.currentFile.updateContents(this.files[this.currentIndex]);
         } else {
-            this.currentFile.upload(this.parent, this.files[this.currentIndex]);
+            var otherParams = this.otherParams;
+            if (_.isFunction(this.otherParams)) {
+                otherParams = this.otherParams(this);
+            }
+            this.currentFile.upload(this.parent, this.files[this.currentIndex], null, otherParams);
         }
     }
 });
