@@ -22,6 +22,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var ProvidePlugin = webpack.ProvidePlugin;
 
 var paths = require('./webpack.paths.js');
+var es2015Preset = require.resolve('babel-preset-es2015');
 
 function fileLoader() {
     return {
@@ -103,7 +104,10 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
-                exclude: [paths.node_modules]
+                exclude: /node_modules/,
+                query: {
+                    presets: [es2015Preset]
+                }
             },
             // JSON files
             {
@@ -136,7 +140,12 @@ module.exports = {
             {
                 test: /\.(pug|jade)$/,
                 loaders: [
-                    'babel-loader',
+                    {
+                        loader: 'babel-loader',
+                        query: {
+                            presets: [es2015Preset]
+                        }
+                    },
                     'pug-loader'
                 ]
             },
