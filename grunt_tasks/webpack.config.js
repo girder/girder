@@ -103,7 +103,10 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
-                exclude: [paths.node_modules]
+                exclude: [paths.node_modules],
+                query: {
+                    presets: ['es2015']
+                }
             },
             // JSON files
             {
@@ -136,7 +139,12 @@ module.exports = {
             {
                 test: /\.(pug|jade)$/,
                 loaders: [
-                    'babel-loader',
+                    {
+                        loader: 'babel-loader',
+                        query: {
+                            presets: ['es2015']
+                        }
+                    },
                     'pug-loader'
                 ]
             },
