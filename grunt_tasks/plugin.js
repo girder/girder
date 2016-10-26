@@ -137,20 +137,15 @@ module.exports = function (grunt) {
             npm = (
                 _(deps || [])
                     .map(function (version, dep) {
-                        // escape any periods in the dependency version so
-                        // that grunt.config.set does not descend on each
-                        // version number component
-                        var escapedVersion = version.replace(/\./g, '\\.');
-
                         return [
                             dep,
-                            escapedVersion
+                            version
                         ].join('@');
                     })
             );
 
             if (npm.length) {
-                grunt.config.set('default.npm-install:' + npm.join(':'), {});
+                grunt.config.set('default.npm-install:' + grunt.config.escape(npm.join(':')), {});
             }
         }
 
