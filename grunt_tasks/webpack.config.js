@@ -60,30 +60,9 @@ module.exports = {
         filename: '[name].min.js'
     },
     plugins: [
-        // See http://stackoverflow.com/a/29087883/250457
-        // TODO: there is still too much code going in each plugin.min.js
-        // new webpack.optimize.CommonsChunkPlugin({
-        //     name: 'girder.app',
-        //     minChunks: function (module) {
-        //         var include = module.resource &&
-        //             module.resource.indexOf(paths.clients_web) !== -1;
-        //         if (include) {
-        //           // console.log('[girder.app] <=', module.resource.replace(paths.node_modules, ''));
-        //         }
-        //         return include;
-        //     }
-        // }),
         new CommonsChunkPlugin({
-            name: 'girder.ext',
-            minChunks: function (module) {
-                var include = module.resource &&
-                    module.resource.indexOf(paths.clients_web) === -1 &&
-                    module.resource.indexOf(paths.plugins) === -1;
-                if (include) {
-                  // console.log('[girder.ext] <=', module.resource.replace(paths.node_modules, ''));
-                }
-                return include;
-            }
+            names: ['girder.app', 'girder.ext'],
+            minChunks: 2
         }),
         // Automatically detect jQuery and $ as free var in modules
         // and inject the jquery library. This is required by many jquery plugins
