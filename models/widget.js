@@ -1,7 +1,11 @@
+import _ from 'underscore';
+import Backbone from 'backbone';
+import tinycolor from 'tinycolor';
+
 /**
  * A backbone model controlling the behavior and rendering of widgets.
  */
-slicer.models.Widget = Backbone.Model.extend({
+var Widget = Backbone.Model.extend({
     defaults: {
         type: '',          // The specific widget type
         title: '',         // The label to display with the widget
@@ -294,33 +298,4 @@ slicer.models.Widget = Backbone.Model.extend({
     ]
 });
 
-slicer.collections.Widget = Backbone.Collection.extend({
-    model: slicer.models.Widget,
-
-    /**
-     * Get an object containing all of the current parameter values as
-     *   modelId -> value
-     */
-    values: function () {
-        var params = {};
-        this.each(function (m) {
-            // apply special handling for certain parameter types
-            // https://github.com/DigitalSlideArchive/slicer/blob/9e5112ab3444ad8c699d70452a5fe4a74ebbc778/server/__init__.py#L44-L46
-            switch (m.get('type')) {
-                case 'file':
-                    params[m.id + '_girderItemId'] = m.value().id;
-                    break;
-                case 'new-file':
-                    params[m.id + '_girderFolderId'] = m.value().get('folderId');
-                    params[m.id + '_name'] = m.value().get('name');
-                    break;
-                case 'image':
-                    params[m.id + '_girderFileId'] = m.value().id;
-                    break;
-                default:
-                    params[m.id] = JSON.stringify(m.value());
-            }
-        });
-        return params;
-    }
-});
+export default Widget;
