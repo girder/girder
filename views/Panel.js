@@ -1,4 +1,8 @@
-slicer.views.Panel = girder.View.extend({
+import View from 'girder/views/View';
+
+import panel from '../templates/panel.pug';
+
+var Panel = View.extend({
     events: {
         'show.bs.collapse': 'expand',
         'hide.bs.collapse': 'collapse',
@@ -8,7 +12,7 @@ slicer.views.Panel = girder.View.extend({
         this.spec = settings.spec;
     },
     render: function () {
-        this.$el.html(slicer.templates.panel(this.spec));
+        this.$el.html(panel(this.spec));
     },
     expand: function () {
         this.$('.icon-down-open').attr('class', 'icon-up-open');
@@ -23,3 +27,5 @@ slicer.views.Panel = girder.View.extend({
         }
     }
 });
+
+export default Panel;
