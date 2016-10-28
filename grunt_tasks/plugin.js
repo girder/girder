@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 Kitware Inc.
+ * Copyright 2016 Kitware Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,6 @@ module.exports = function (grunt) {
         return;
     }
 
-    grunt.config.merge({
-        default: {
-            plugin: {}
-        }
-    });
-
     /**
      * Adds configuration for plugin related multitasks:
      *
@@ -47,32 +41,21 @@ module.exports = function (grunt) {
         var pluginTarget = 'plugin-' + plugin,
             pluginPath = path.resolve(grunt.config.get('pluginDir'), plugin),
             staticPath = path.resolve(grunt.config.get('staticDir'), 'built', 'plugins', plugin),
-            cfg = {
-                copy: {},
-                default: {},
-                plugin: {}
-            };
+            cfg = {};
 
         // create the plugin's build directory under the web-root
         grunt.file.mkdir(staticPath);
 
         // TODO: this could be moved to Webpack using kevlened/copy-webpack-plugin
-        cfg.copy[pluginTarget] = {
-            files: [{
-                expand: true,
-                cwd: pluginPath + '/web_client',
-                src: ['extra/**'],
-                dest: staticPath
-            }]
-        };
-
-        // the task 'plugin:<plugin name>' is a task alias to run all
-        // of the main tasks defined above and possibly more if
-        // the plugin itself appends tasks to this array
-        cfg.plugin[plugin] = {
-            tasks: [
-                'copy:' + pluginTarget
-            ]
+        cfg.copy = {
+            [pluginTarget]: {
+                files: [{
+                    expand: true,
+                    cwd: pluginPath + '/web_client',
+                    src: ['extra/**'],
+                    dest: staticPath
+                }]
+            }
         };
 
         grunt.config.merge(cfg);
@@ -193,21 +176,4 @@ module.exports = function (grunt) {
             configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name));
         });
     }
-
-    /**
-     * Register a "meta" task that will configure and run other tasks
-     * to build a plugin. Keys in the config for this task should be the
-     * directory of the plugin within the base plugins path.
-     */
-    grunt.registerMultiTask('plugin', 'Build and configure plugins', function () {
-        var plugin = this.target,
-            tasks = 'plugin.' + plugin + '.tasks';
-
-        this.requiresConfig('pluginDir', tasks);
-
-        // queue the build tasks
-        grunt.config.get(tasks).forEach(function (task) {
-            grunt.task.run(task);
-        });
-    });
 };
