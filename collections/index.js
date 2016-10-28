@@ -1,5 +1,5 @@
-import Widget from './widget';
+import WidgetCollection from './WidgetCollection';
 
 export {
-    Widget
+    WidgetCollection
 };

@@ -5,7 +5,7 @@ import tinycolor from 'tinycolor';
 /**
  * A backbone model controlling the behavior and rendering of widgets.
  */
-var Widget = Backbone.Model.extend({
+var WidgetModel = Backbone.Model.extend({
     defaults: {
         type: '',          // The specific widget type
         title: '',         // The label to display with the widget
@@ -298,4 +298,4 @@ var Widget = Backbone.Model.extend({
     ]
 });
 
-export default Widget;
+export default WidgetModel;

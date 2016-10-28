@@ -6,7 +6,7 @@ import { restRequest } from 'girder/rest';
 import { confirm } from 'girder/dialog';
 
 import parse from '../parser';
-import WidgetCollection from '../collections/Widget';
+import WidgetCollection from '../collections/WidgetCollection';
 import events from '../events';
 import JobsPanel from './JobsPanel';
 import ControlsPanel from './ControlsPanel';

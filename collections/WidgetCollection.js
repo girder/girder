@@ -1,8 +1,8 @@
 import Backbone from 'backbone';
 
-import WidgetModel from '../models/Widget';
+import WidgetModel from '../models/WidgetModel';
 
-var Widget = Backbone.Collection.extend({
+var WidgetCollection = Backbone.Collection.extend({
     model: WidgetModel,
 
     /**
@@ -33,4 +33,4 @@ var Widget = Backbone.Collection.extend({
     }
 });
 
-export default Widget;
+export default WidgetCollection;
