@@ -12,7 +12,7 @@ import JobsPanel from './JobsPanel';
 import ControlsPanel from './ControlsPanel';
 
 import panelGroup from '../templates/panelGroup.pug';
-import '../templates/panelGroup.styl';
+import '../stylesheets/panelGroup.styl';
 
 var PanelGroup = View.extend({
     events: {

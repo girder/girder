@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
-import tinycolor from 'tinycolor';
+import tinycolor from 'tinycolor2';
 
 /**
  * A backbone model controlling the behavior and rendering of widgets.

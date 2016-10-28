@@ -1,13 +1,12 @@
 import _ from 'underscore';
 
 import { getCurrentUser } from 'girder/auth';
-import HierarchyWidget from 'girder/views/HierarchyWidget';
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import View from 'girder/views/View';
 import ItemModel from 'girder/models/ItemModel';
 import FileModel from 'girder/models/FileModel';
 
 import itemSelectorWidget from '../templates/itemSelectorWidget';
-import '../stylesheets/itemSelectorWidget';
 
 var ItemSelectorWidget = View.extend({
     events: {

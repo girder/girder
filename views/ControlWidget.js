@@ -11,6 +11,11 @@ import fileWidget from '../templates/fileWidget.pug';
 import rangeWidget from '../templates/rangeWidget.pug';
 import widget from '../templates/widget.pug';
 
+import 'bootstrap-colorpicker/dist/js/bootstrap-colorpicker';
+import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
+import 'bootstrap-slider/dist/bootstrap-slider';
+import 'bootstrap-slider/dist/css/bootstrap-slider.css';
+
 var ControlWidget = View.extend({
     events: {
         'change input,select': '_input',
