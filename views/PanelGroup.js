@@ -1,4 +1,20 @@
-slicer.views.PanelGroup = girder.View.extend({
+import _ from 'underscore';
+
+import View from 'girder/views/View';
+import girderEvents from 'girder/events';
+import { restRequest } from 'girder/rest';
+import { confirm } from 'girder/dialog';
+
+import parse from '../parser';
+import WidgetCollection from '../collections/Widget';
+import events from '../events';
+import JobsPanel from './JobsPanel';
+import ControlsPanel from './ControlsPanel';
+
+import panelGroup from '../templates/panelGroup.pug';
+import '../templates/panelGroup.styl';
+
+var PanelGroup = View.extend({
     events: {
         'click .s-info-panel-reload': 'reload',
         'click .s-info-panel-submit': 'submit',
@@ -8,7 +24,7 @@ slicer.views.PanelGroup = girder.View.extend({
         this.panels = [];
         this._panelViews = {};
 
-        this._jobsPanelView = new slicer.views.JobsPanel({
+        this._jobsPanelView = new JobsPanel({
             parentView: this,
             spec: {
                 title: 'Jobs',
@@ -16,10 +32,10 @@ slicer.views.PanelGroup = girder.View.extend({
             }
         });
 
-        this.listenTo(slicer.events, 'query:analysis', this.schema);
+        this.listenTo(events, 'query:analysis', this.schema);
     },
     render: function () {
-        this.$el.html(slicer.templates.panelGroup({
+        this.$el.html(panelGroup({
             info: this._gui,
             panels: this.panels
         }));
@@ -31,9 +47,9 @@ slicer.views.PanelGroup = girder.View.extend({
         this._jobsPanelView.setElement(this.$('.s-jobs-panel')).render();
         _.each(this.panels, _.bind(function (panel) {
             this.$el.removeClass('hidden');
-            this._panelViews[panel.id] = new slicer.views.ControlsPanel({
+            this._panelViews[panel.id] = new ControlsPanel({
                 parentView: this,
-                collection: new slicer.collections.Widget(panel.parameters),
+                collection: new WidgetCollection(panel.parameters),
                 title: panel.label,
                 advanced: panel.advanced,
                 el: this.$el.find('#' + panel.id)
@@ -52,9 +68,9 @@ slicer.views.PanelGroup = girder.View.extend({
         invalid = this.invalidModels();
 
         if (invalid.length) {
-            girder.events.trigger('g:alert', {
+            girderEvents.trigger('g:alert', {
                 icon: 'attention',
-                text: 'Please enter a valid value for: ' + invalid.map(function (m) {return m.get('title');}).join(', '),
+                text: 'Please enter a valid value for: ' + invalid.map((m) => m.get('title')).join(', '),
                 type: 'danger'
             });
             return;
@@ -68,12 +84,12 @@ slicer.views.PanelGroup = girder.View.extend({
         });
 
         // post the job to the server
-        girder.restRequest({
+        restRequest({
             path: this._submit,
             type: 'POST',
             data: params
         }).then(function (data) {
-            slicer.events.trigger('h:submit', data);
+            events.trigger('h:submit', data);
         });
     },
 
@@ -127,7 +143,7 @@ slicer.views.PanelGroup = girder.View.extend({
      * Remove a panel after confirmation from the user.
      */
     removePanel: function (e) {
-        girder.confirm({
+        confirm({
             text: 'Are you sure you want to remove this panel?',
             confirmCallback: _.bind(function () {
                 var el = $(e.currentTarget).data('target');
@@ -182,12 +198,12 @@ slicer.views.PanelGroup = girder.View.extend({
      * and cause submissions to post to `path + '/run'`.
      */
     setAnalysis: function (path) {
-        return girder.restRequest({
+        return restRequest({
             path: path + '/xmlspec'
         }).then(_.bind(function (xml) {
             this._submit = path + '/run';
             this._schema(xml);
-            slicer.events.trigger('h:analysis', path, xml);
+            events.trigger('h:analysis', path, xml);
         }, this));
     },
 
@@ -203,13 +219,13 @@ slicer.views.PanelGroup = girder.View.extend({
         }
 
         try {
-            this._json(slicer.schema.parse(xml));
+            this._json(parse(xml));
         } catch (e) {
             fail = true;
         }
 
         if (fail) {
-            girder.events.trigger('g:alert', {
+            girderEvents.trigger('g:alert', {
                 icon: 'attention',
                 text: 'Invalid XML schema',
                 type: 'danger'
@@ -233,3 +249,5 @@ slicer.views.PanelGroup = girder.View.extend({
         return this;
     }
 });
+
+export default PanelGroup;

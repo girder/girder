@@ -1,4 +1,17 @@
-slicer.views.ControlWidget = girder.View.extend({
+import _ from 'underscore';
+
+import View from 'girder/views/View';
+
+import ItemSelectorWidget from './ItemSelectorWidget';
+
+import booleanWidget from '../templates/booleanWidget.pug';
+import colorWidget from '../templates/colorWidget.pug';
+import enumerationWidget from '../templates/enumerationWidget.pug';
+import fileWidget from '../templates/fileWidget.pug';
+import rangeWidget from '../templates/rangeWidget.pug';
+import widget from '../templates/widget.pug';
+
+var ControlWidget = View.extend({
     events: {
         'change input,select': '_input',
         'changeColor': '_input',
@@ -39,48 +52,48 @@ slicer.views.ControlWidget = girder.View.extend({
 
     /**
      * Type definitions mapping used internally.  Each widget type
-     * specifies it's jade template and possibly more custimizations
+     * specifies it's pug template and possibly more customizations
      * as needed.
      */
     _typedef: {
         range: {
-            template: 'rangeWidget'
+            template: rangeWidget
         },
         color: {
-            template: 'colorWidget'
+            template: colorWidget
         },
         string: {
-            template: 'widget'
+            template: widget
         },
         number: {
-            template: 'widget'
+            template: widget
         },
         boolean: {
-            template: 'booleanWidget'
+            template: booleanWidget
         },
         'string-vector': {
-            template: 'widget'
+            template: widget
         },
         'number-vector': {
-            template: 'widget'
+            template: widget
         },
         'string-enumeration': {
-            template: 'enumerationWidget'
+            template: enumerationWidget
         },
         'number-enumeration': {
-            template: 'enumerationWidget'
+            template: enumerationWidget
         },
         file: {
-            template: 'fileWidget'
+            template: fileWidget
         },
         image: {
-            template: 'fileWidget'
+            template: fileWidget
         },
         directory: {
-            template: 'fileWidget'
+            template: fileWidget
         },
         'new-file': {
-            template: 'fileWidget'
+            template: fileWidget
         }
     },
 
@@ -95,7 +108,7 @@ slicer.views.ControlWidget = girder.View.extend({
             console.warn('Invalid widget type "' + type + '"'); // eslint-disable-line no-console
             def = {};
         }
-        return slicer.templates[def.template] || _.template('');
+        return def.template || _.template('');
     },
 
     /**
@@ -120,13 +133,15 @@ slicer.views.ControlWidget = girder.View.extend({
      * input element.
      */
     _selectFile: function () {
-        var modal = new slicer.views.ItemSelectorWidget({
+        var modal = new ItemSelectorWidget({
             el: $('#g-dialog-container'),
             parentView: this,
             model: this.model
         });
-        modal.once('g:saved', _.bind(function () {
+        modal.once('g:saved', () => {
             modal.$el.modal('hide');
-        }, this)).render();
+        }).render();
     }
 });
+
+export default ControlWidget;

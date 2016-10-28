@@ -1,4 +1,10 @@
-slicer.views.ControlsPanel = slicer.views.Panel.extend({
+import Panel from './Panel';
+import ControlWidget from './ControlWidget';
+
+import controlsPanel from '../templates/controlsPanel.pug';
+import '../stylesheets/controlsPanel.styl';
+
+var ControlsPanel = Panel.extend({
     initialize: function (settings) {
         this.title = settings.title || '';
         this.advanced = settings.advanced || false;
@@ -8,7 +14,7 @@ slicer.views.ControlsPanel = slicer.views.Panel.extend({
     },
 
     render: function () {
-        this.$el.html(slicer.templates.controlsPanel({
+        this.$el.html(controlsPanel({
             title: this.title,
             collapsed: this.advanced,
             id: this.$el.attr('id')
@@ -17,7 +23,7 @@ slicer.views.ControlsPanel = slicer.views.Panel.extend({
     },
 
     addOne: function (model) {
-        var view = new slicer.views.ControlWidget({
+        var view = new ControlWidget({
             model: model,
             parentView: this
         });
@@ -33,3 +39,5 @@ slicer.views.ControlsPanel = slicer.views.Panel.extend({
         model.destroy();
     }
 });
+
+export default ControlsPanel;

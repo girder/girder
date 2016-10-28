@@ -1,6 +1,7 @@
 import View from 'girder/views/View';
 
 import panel from '../templates/panel.pug';
+import '../stylesheets/panel.styl';
 
 var Panel = View.extend({
     events: {

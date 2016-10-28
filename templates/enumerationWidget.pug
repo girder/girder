@@ -1,8 +1,6 @@
-extends ./widget.jade
+extends ./widget.pug
 
 block input
-  select.form-control(
-    id=id
-    name=title)
+  select.form-control(id=id, name=title)
     each v in values
       option(selected=v === value) #{v}

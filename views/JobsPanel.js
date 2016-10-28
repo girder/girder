@@ -1,24 +1,32 @@
-slicer.views.JobsPanel = slicer.views.Panel.extend({
-    events: _.extend(slicer.views.Panel.prototype.events, {
+import _ from 'underscore';
+
+import { getCurrentUser } from 'girder/auth';
+import JobListWidget from 'girder_plugins/jobs/views/JobListWidget';
+
+import events from '../events';
+import Panel from './Panel';
+
+var JobsPanel = Panel.extend({
+    events: _.extend(Panel.prototype.events, {
         'g:login': 'render',
         'g:login-changed': 'render',
         'g:logout': 'render'
     }),
     initialize: function (settings) {
         this.spec = settings.spec;
-        this.listenTo(slicer.events, 'h:submit', function () {
+        this.listenTo(events, 'h:submit', function () {
             this._jobsListWidget.collection.fetch(undefined, true);
         });
     },
     render: function () {
-        var CE = girder.views.jobs_JobListWidget.prototype.columnEnum;
+        var CE = JobListWidget.prototype.columnEnum;
         var columns =  CE.COLUMN_STATUS_ICON | CE.COLUMN_TITLE;
 
-        slicer.views.Panel.prototype.render.apply(this, arguments);
+        Panel.prototype.render.apply(this, arguments);
 
-        if (girder.currentUser) {
+        if (getCurrentUser()) {
             if (!this._jobsListWidget) {
-                this._jobsListWidget = new girder.views.jobs_JobListWidget({
+                this._jobsListWidget = new JobListWidget({
                     columns: columns,
                     showHeader: false,
                     pageLimit: 5,
@@ -38,3 +46,5 @@ slicer.views.JobsPanel = slicer.views.Panel.extend({
         }
     }
 });
+
+export default JobsPanel;
