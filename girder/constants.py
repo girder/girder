@@ -29,6 +29,7 @@ LOG_ROOT = os.path.join(os.path.expanduser('~'), '.girder', 'logs')
 ROOT_PLUGINS_PACKAGE = 'girder.plugins'
 MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
 LOG_BACKUP_COUNT = 5
+PERMISSION_FLAGS = set()
 
 # Identifier for Girder's entry in the route table
 GIRDER_ROUTE_ID = 'core_girder'

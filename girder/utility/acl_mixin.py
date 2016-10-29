@@ -73,8 +73,8 @@ class AccessControlMixin(object):
         """
         resource = self.model(self.resourceColl) \
                        .load(resource[self.resourceParent], force=True)
-        return self.model(self.resourceColl).hasAccess(resource, user=user,
-                                                       level=level)
+        return self.model(self.resourceColl).hasAccess(
+            resource, user=user, level=level)
 
     def requireAccess(self, doc, user=None, level=AccessType.READ):
         """
