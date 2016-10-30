@@ -236,7 +236,8 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(folder2['access'], {
             'users': [{
                 'id': self.user['_id'],
-                'level': AccessType.WRITE
+                'level': AccessType.WRITE,
+                'flags': []
             }],
             'groups': []
         })
@@ -261,7 +262,8 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(folder2['access'], {
             'users': [{
                 'id': self.user['_id'],
-                'level': AccessType.READ
+                'level': AccessType.READ,
+                'flags': []
             }],
             'groups': []
         })
@@ -315,11 +317,13 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(coll['access']['users'], [])
         self.assertEqual(folder['access']['users'], [{
             'id': self.admin['_id'],
-            'level': AccessType.ADMIN
+            'level': AccessType.ADMIN,
+            'flags': []
         }])
         self.assertEqual(folder['access']['groups'], [{
             'id': group['_id'],
-            'level': AccessType.WRITE
+            'level': AccessType.WRITE,
+            'flags': []
         }])
         self.assertEqual(folder['access']['groups'], coll['access']['groups'])
 

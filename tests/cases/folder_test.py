@@ -492,6 +492,7 @@ class FolderTestCase(base.TestCase):
                 'login': self.admin['login'],
                 'level': AccessType.ADMIN,
                 'id': str(self.admin['_id']),
+                'flags': [],
                 'name': '%s %s' % (
                     self.admin['firstName'], self.admin['lastName'])}],
             'groups': []
