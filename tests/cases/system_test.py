@@ -26,7 +26,8 @@ from subprocess import check_output, CalledProcessError
 
 from .. import base
 from girder.api.describe import API_VERSION
-from girder.constants import SettingKey, SettingDefault, ROOT_DIR
+from girder.constants import (
+    AccessType, SettingKey, SettingDefault, registerPermissionFlag, ROOT_DIR)
 from girder.utility import config
 
 
@@ -434,3 +435,44 @@ class SystemTestCase(base.TestCase):
             '=== Last 0 bytes of %s/info.log: ===\n\n' % logRoot)
 
         del config.getConfig()['logging']
+
+    def testPermissionFlags(self):
+        resp = self.request('/system/permission_flag')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, {})
+
+        registerPermissionFlag('my_key', name='hello', description='a custom flag')
+
+        resp = self.request('/system/permission_flag')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, {
+            'my_key': {
+                'name': 'hello',
+                'description': 'a custom flag'
+            }
+        })
+
+        user = self.users[1]
+
+        # Manage custom permission flags on an access controlled resource
+        self.assertFalse(self.model('user').hasAccessFlags(user, user, flags=['my_key']))
+
+        # Admin should always have permission
+        self.assertTrue(self.model('user').hasAccessFlags(user, self.users[0], flags=['my_key']))
+
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(acl['users'][0]['flags'], [])
+
+        user = self.model('user').setAccessList(self.users[0], access={
+            'users': [{
+                'id': user['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['my_key', 'not a registered flag']
+            }],
+            'groups': []
+        }, save=True)
+
+        # Only registered flags should be stored
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(acl['users'][0]['flags'], ['my_key'])
+        self.assertTrue(self.model('user').hasAccessFlags(user, user, flags=['my_key']))

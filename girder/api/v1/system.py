@@ -48,7 +48,7 @@ class System(Resource):
         self.route('GET', ('version',), self.getVersion)
         self.route('GET', ('setting',), self.getSetting)
         self.route('GET', ('plugins',), self.getPlugins)
-        self.route('GET', ('permission_flags',), self.getPermissionFlags)
+        self.route('GET', ('permission_flag',), self.getPermissionFlags)
         self.route('PUT', ('setting',), self.setSetting)
         self.route('PUT', ('plugins',), self.enablePlugins)
         self.route('PUT', ('restart',), self.restartServer)
