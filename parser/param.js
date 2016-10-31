@@ -12,7 +12,7 @@ import constraints from './constraints';
  */
 function param(paramTag) {
     var $param = $(paramTag);
-    var type = widget(param);
+    var type = widget(paramTag);
     var values = {};
     var channel = $param.find('channel');
 
@@ -27,7 +27,7 @@ function param(paramTag) {
     }
 
     if (!type) {
-        console.warn('Unhandled parameter type "' + param.tagName + '"'); // eslint-disable-line no-console
+        console.warn('Unhandled parameter type "' + paramTag.tagName + '"'); // eslint-disable-line no-console
     }
 
     if (type === 'string-enumeration' || type === 'number-enumeration') {
@@ -41,7 +41,7 @@ function param(paramTag) {
     return _.extend(
         {
             type: type,
-            slicerType: param.tagName,
+            slicerType: paramTag.tagName,
             id: $param.find('name').text() || $param.find('longflag').text(),
             title: $param.find('label').text(),
             description: $param.find('description').text(),
