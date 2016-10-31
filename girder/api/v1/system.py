@@ -26,7 +26,7 @@ import six
 import os
 
 from girder.api import access
-from girder.constants import SettingKey, TokenScope, VERSION
+from girder.constants import SettingKey, TokenScope, PERMISSION_FLAGS, VERSION
 from girder.models.model_base import GirderException
 from girder.utility import install, plugin_utilities, system
 from girder.utility.progress import ProgressContext
@@ -48,6 +48,7 @@ class System(Resource):
         self.route('GET', ('version',), self.getVersion)
         self.route('GET', ('setting',), self.getSetting)
         self.route('GET', ('plugins',), self.getPlugins)
+        self.route('GET', ('permission_flags',), self.getPermissionFlags)
         self.route('PUT', ('setting',), self.setSetting)
         self.route('PUT', ('plugins',), self.enablePlugins)
         self.route('PUT', ('restart',), self.restartServer)
@@ -333,8 +334,15 @@ class System(Resource):
         if mode != 'basic':
             self.requireAdmin(user)
         status = system.getStatus(mode, user)
-        status["requestBase"] = cherrypy.request.base.rstrip('/')
+        status['requestBase'] = cherrypy.request.base.rstrip('/')
         return status
+
+    @access.public
+    @describeRoute(
+        Description('List all permission flags available in the system.')
+    )
+    def getPermissionFlags(self, params):
+        return PERMISSION_FLAGS
 
     @access.admin
     @describeRoute(

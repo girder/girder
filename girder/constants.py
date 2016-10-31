@@ -29,7 +29,7 @@ LOG_ROOT = os.path.join(os.path.expanduser('~'), '.girder', 'logs')
 ROOT_PLUGINS_PACKAGE = 'girder.plugins'
 MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
 LOG_BACKUP_COUNT = 5
-PERMISSION_FLAGS = set()
+PERMISSION_FLAGS = {}
 
 # Identifier for Girder's entry in the route table
 GIRDER_ROUTE_ID = 'core_girder'
@@ -59,6 +59,25 @@ except IOError:  # pragma: no cover
 STATIC_ROOT_DIR = ROOT_DIR
 if not os.path.exists(os.path.join(STATIC_ROOT_DIR, 'clients')):
     STATIC_ROOT_DIR = PACKAGE_DIR
+
+
+def registerPermissionFlag(key, name, description=None):
+    """
+    Register a new permission flag in the set of PERMISSION_FLAGS available
+    on data in the hierarchy. These are boolean switches that can be used
+    to control access to specific functionality on specific resoruces.
+
+    :param key: The unique identifier for this permission flag.
+    :type key: str
+    :param name: Human readable name for this permission (displayed in UI).
+    :type name: str
+    :param description: Human readable longer description for the flag.
+    :type description: str
+    """
+    PERMISSION_FLAGS[key] = {
+        'name': name,
+        'description': description
+    }
 
 
 class TerminalColor(object):

@@ -783,7 +783,7 @@ class AccessControlledModel(Model):
         """
         if not isinstance(flags, (list, tuple, set)):
             flags = (flags,)
-        flags = set(flags) & PERMISSION_FLAGS
+        flags = set(flags) & set(PERMISSION_FLAGS.keys())
 
         return list(flags)
 
