@@ -28,6 +28,7 @@ module.exports = function (grunt) {
     if (_.isString(plugins) && plugins) {
         plugins = plugins.split(',');
     } else if (!buildAll) {
+        fs.writeFileSync('clients/web/src/plugins.js', 'export {};');
         return;
     }
 
