@@ -136,7 +136,8 @@ module.exports = function (grunt) {
                         // Add an import alias to the global config for this plugin
                         resolve: {
                             alias: {
-                                [`girder_plugins/${plugin}`]: webClient
+                                [`girder_plugins/${plugin}`]: webClient,
+                                node: path.resolve(process.cwd(), 'node_modules_' + plugin, 'node_modules')
                             }
                         }
                     }
@@ -158,18 +159,30 @@ module.exports = function (grunt) {
                 _(deps || [])
                     .map(function (version, dep) {
                         return [
-                            dep,
-                            version
+                            dep.replace(':', '\\:'),
+                            version.replace(':', '\\:')
                         ].join('@');
                     })
             );
 
             if (npm.length) {
-                grunt.config.set('default.npm-install:' + grunt.config.escape(npm.join(':')), {});
+                grunt.config.set('default.npm-install:' + plugin + ':' + grunt.config.escape(npm.join(':')), {});
             }
         }
 
         if (config.npm) {
+            // If the config contains a "file" section, load NPM dependencies
+            // from it.
+            if (config.npm.file) {
+                var npmFile = require(path.resolve(dir, config.npm.file));
+                var fields = config.npm.fields || ['devDependencies', 'dependencies', 'optionalDependencies'];
+                fields.forEach(function (field) {
+                    addDependencies(npmFile[field]);
+                });
+            }
+
+            // Additionally add any extra dependencies found in the
+            // "dependencies" property.
             addDependencies(config.npm.dependencies);
         }
 

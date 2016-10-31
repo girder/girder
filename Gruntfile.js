@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+var path = require('path');
+
 /**
  * This function takes an object like `grunt.config.get('init')` and
  * returns a topologically sorted array of tasks.
@@ -73,8 +75,38 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-curl');
     grunt.loadNpmTasks('grunt-zip');
     grunt.loadNpmTasks('grunt-file-creator');
-    grunt.loadNpmTasks('grunt-npm-install');
     grunt.loadNpmTasks('grunt-webpack');
+
+    grunt.registerTask('npm-install', 'Install plugin NPM dependencies', function (plugin) {
+        var done = this.async();
+
+        var target = path.resolve('node_modules_' + plugin);
+
+        if (fs.existsSync(target + '/node_modules')) {
+            grunt.log.writeln('NPM dependencies for plugin ' + plugin + ' already installed.');
+            done();
+        }
+
+        var npm = require('npm');
+        var npmConf = {
+            prefix: target,
+            g: true
+        };
+        var errorHandler = require('npm/lib/utils/error-handler');
+
+        var modules = Array.prototype.slice.call(arguments, 1);
+        npm.load(npmConf, function (err) {
+            if (err) {
+                return errorHandler(err);
+            }
+            npm.commands.install(modules, function (err, results) {
+                if (err) {
+                    return errorHandler(err);
+                }
+                done();
+            });
+        });
+    });
 
     // This task should be run once manually at install time.
     grunt.registerTask('setup', 'Initial install/setup tasks', function () {
