@@ -9,6 +9,7 @@ import * as server from './server';
 import * as utilities from './utilities';
 import * as version from './version';
 import * as views from './views';
+import * as plugins from './plugins';
 import events from './events';
 import router from './router';
 
@@ -20,6 +21,7 @@ export {
   events,
   misc,
   models,
+  plugins,
   rest,
   router,
   server,

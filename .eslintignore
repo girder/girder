@@ -9,3 +9,4 @@ clients/web/static/
 clients/web/test/
 build/
 _build/
+clients/web/src/plugins.js
