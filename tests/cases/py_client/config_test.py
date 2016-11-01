@@ -74,14 +74,14 @@ class TestConfigScript(unittest.TestCase):
 
         info = self._runConfigScript(['get', 'girder_client', 'host'])
         self.assertEqual(info['rc'], 0)
-        self.assertEqual(info['stdout'].strip(), 'localhost')
+        self.assertEqual(info['stdout'].split()[-1].strip(), 'localhost')
 
-        info = self._runConfigScript(['set', 'girder_client', 'port', '80'])
+        info = self._runConfigScript(['set', 'girder_client', 'port', '82'])
         self.assertEqual(info['rc'], 0)
 
         info = self._runConfigScript(['get', 'girder_client', 'port'])
         self.assertEqual(info['rc'], 0)
-        self.assertEqual(info['stdout'].strip(), '80')
+        self.assertEqual(info['stdout'].strip(), '82')
 
         info = self._runConfigScript(['rm', 'girder_client', 'port'])
         self.assertEqual(info['rc'], 0)
@@ -90,8 +90,8 @@ class TestConfigScript(unittest.TestCase):
             self._runConfigScript(['get', 'girder_client', 'foo'])
 
         tmpcfg_fd, tmpcfg_fname = tempfile.mkstemp()
-        gcfg.GirderConfig().write_config(tmpcfg_fd)
-        tmpcfg_fd.close()
+        with open(tmpcfg_fname, 'w') as fh:
+            gcfg.GirderConfig().write_config(fh)
 
         info = self._runConfigScript(['-c', tmpcfg_fname, 'set',
                                       'girder_client', 'port', '90'])
@@ -105,4 +105,5 @@ class TestConfigScript(unittest.TestCase):
         self.assertEqual(info['rc'], 0)
         self.assertEqual(info['stdout'].strip(), 'None')
 
+        os.close(tmpcfg_fd)
         os.remove(tmpcfg_fname)

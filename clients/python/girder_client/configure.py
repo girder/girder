@@ -34,9 +34,8 @@ class GirderConfig(object):
             self.config_dir = os.path.dirname(self.config_file)
 
         if not os.path.isfile(self.config_file):
-            sys.stderr.write(
-                'The config file: "%s" does not exist.' % self.config_file,
-                'Falling back to defaults.\n')
+            print('The config file: "%s" does not exist. '
+                  'Falling back to defaults.' % self.config_file)
         self.config.read([self.config_file])
 
         if not self.config.has_section("girder_client"):
@@ -54,8 +53,7 @@ class GirderConfig(object):
     def write_config(self, fd=None):
         _safeMakedirs(self.config_dir)
         if fd is None:
-            path = os.path.join(self.config_dir, 'girder-cli.conf')
-            with open(path, 'w') as fd:
+            with open(self.config_file, 'w') as fd:
                 self.config.write(fd)
         else:
             self.config.write(fd)
