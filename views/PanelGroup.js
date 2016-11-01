@@ -112,7 +112,7 @@ var PanelGroup = View.extend({
      * and model filtering function.
      */
     models: function (panelId, modelFilter) {
-        modelFilter = modelFilter || function () { return true; };
+        modelFilter = modelFilter || _.constant(true);
         return _.chain(this._panelViews)
             .filter(function (v, i) {
                 return panelId === undefined || panelId === i;
@@ -148,9 +148,7 @@ var PanelGroup = View.extend({
             confirmCallback: _.bind(function () {
                 var el = $(e.currentTarget).data('target');
                 var id = $(el).attr('id');
-                this.panels = _.filter(this.panels, function (panel) {
-                    return panel.id !== id;
-                });
+                this.panels = _.reject(this.panels, _.matcher({id: id}));
                 this.render();
             }, this)
         });

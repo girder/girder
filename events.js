@@ -1,3 +1,3 @@
-import events from 'girder/events';
+import girderEvents from 'girder/events';
 
-export default events;
+export default girderEvents;

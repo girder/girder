@@ -6,6 +6,13 @@ import tinycolor from 'tinycolor2';
  * A backbone model controlling the behavior and rendering of widgets.
  */
 var WidgetModel = Backbone.Model.extend({
+    /**
+     * Sets initial model attributes with normalization.
+     */
+    initialize: function (model) {
+        this.set(_.defaults(model || {}, this.defaults));
+    },
+
     defaults: {
         type: '',          // The specific widget type
         title: '',         // The label to display with the widget
@@ -21,13 +28,6 @@ var WidgetModel = Backbone.Model.extend({
         max: undefined,    // A maximum value
         step: 1            // Discrete value intervals
         */
-    },
-
-    /**
-     * Sets initial model attributes with normalization.
-     */
-    initialize: function (model) {
-        this.set(_.defaults(model || {}, this.defaults));
     },
 
     /**
