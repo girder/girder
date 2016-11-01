@@ -75,6 +75,10 @@ parser.add_argument('--host', required=False, default=None)
 parser.add_argument('--port', required=False, default=None)
 parser.add_argument('--api-root', required=False, default=None,
                     help='relative path to the Girder REST API')
+parser.add_argument('--config', required=False, default=None,
+                    help='full path to the config file')
+parser.add_argument('--ignore-config', required=False, action='store_true',
+                    help='prevent reading any config files')
 
 subparsers = parser.add_subparsers(
     title='subcommands', dest='subcommand', description='Valid subcommands')
@@ -85,9 +89,6 @@ _commonArgs = [
     ('--parent-type', dict(
         required=False, default='folder',
         help='type of Girder parent target, one of (collection, folder, user)')),
-    ('--config', dict(
-        required=False, default=None, dest='config',
-        help='The location of the config file.')),
     ('parent_id', dict(help='id of Girder parent target')),
     ('local_folder', dict(help='path to local target folder'))
 ]
@@ -120,7 +121,10 @@ for name, kwargs in _commonArgs:
 def main():
     args = parser.parse_args()
 
-    config = GirderConfig(args.config)
+    if args.ignore_config:
+        config = None
+    else:
+        config = GirderConfig(args.config)
 
     gc = GirderCli(
         args.username, args.password, host=args.host, port=args.port, apiRoot=args.api_root,
