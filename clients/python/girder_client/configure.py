@@ -34,8 +34,9 @@ class GirderConfig(object):
             self.config_dir = os.path.dirname(self.config_file)
 
         if not os.path.isfile(self.config_file):
-            print('The config file: "%s" does not exist.' % self.config_file,
-                  'Falling back to defaults.')
+            sys.stderr.write(
+                'The config file: "%s" does not exist.' % self.config_file,
+                'Falling back to defaults.\n')
         self.config.read([self.config_file])
 
         if not self.config.has_section("girder_client"):
