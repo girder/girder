@@ -29,24 +29,6 @@ import requests
 import shutil
 import six
 import tempfile
-from six.moves.configparser import ConfigParser
-
-_config_defaults = {
-    'host': 'localhost',
-    'scheme':  'http',
-    'apiRoot': '/api/v1',
-    'apiUrl': None,
-    'port': None,
-    'apiKey': None,
-    'username': None,
-    'password': None,
-}
-CONFIG_DIR = os.environ.get(
-    'XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config'))
-config = ConfigParser(_config_defaults, allow_no_value=True)
-config.read([os.path.join(CONFIG_DIR, "girder-cli.conf")])
-if not config.has_section("girder_client"):
-    config.add_section("girder_client")
 
 __version__ = '2.0.0'
 __license__ = 'Apache 2.0'
@@ -142,7 +124,7 @@ class GirderClient(object):
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
-                 cacheSettings=None):
+                 cacheSettings=None, config=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
@@ -164,21 +146,32 @@ class GirderClient(object):
             to pass 443 for the port
         :param cacheSettings: Settings to use with the diskcache library, or
             None to disable caching.
+        :param config: ConfigParser instance.
         """
-        if apiUrl is None:
-            if apiRoot is None:
-                apiRoot = config.get('girder_client', 'apiRoot')
-            self.scheme = scheme or config.get('girder_client', 'scheme')
-            self.host = host or config.get('girder_client', 'host')
+        if config:
+            configScheme = config.get('girder_client', 'scheme')
+            configHost = config.get('girder_client', 'host')
+            configApiRoot = config.get('girder_client', 'apiRoot')
+            configApiUrl = config.get('girder_client', 'apiUrl')
             try:
                 configPort = config.getint('girder_client', 'port')
             except TypeError:
                 configPort = None
-            self.port = port or configPort or \
-                (443 if self.scheme == 'https' else 80)
+        else:
+            configScheme = configHost = configApiRoot = configPort = configApiUrl = None
 
-            self.urlBase = '%s://%s:%s%s' % (
-                self.scheme, self.host, str(self.port), apiRoot)
+        if apiUrl is None:
+            if not any((apiRoot, host, scheme, port)) and configApiUrl:
+                self.urlBase = configApiUrl
+            else:
+                apiRoot = apiRoot or configApiRoot or '/api/v1'
+                self.host = host or configHost or 'localhost'
+                self.scheme = scheme or configScheme or 'http'
+                self.port = port or configPort or \
+                    (443 if self.scheme == 'https' else 80)
+
+                self.urlBase = '%s://%s:%s%s' % (
+                    self.scheme, self.host, str(self.port), apiRoot)
         else:
             self.urlBase = apiUrl
 

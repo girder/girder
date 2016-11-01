@@ -1,33 +1,67 @@
 import argparse
 import os
 import sys
-import girder_client
+from girder_client import _safeMakedirs
+from six.moves.configparser import ConfigParser
 
 
-def get_config(section, option):
-    return girder_client.config.get(section, option)
+class GirderConfig(object):
 
+    def __init__(self, config_file=None, allow_no_value=True):
+        _config_defaults = {
+            'host': 'localhost',
+            'scheme':  'http',
+            'apiRoot': '/api/v1',
+            'apiUrl': None,
+            'port': None,
+            'apiKey': None,
+            'username': None,
+            'password': None,
+        }
+        self.config = ConfigParser(_config_defaults, allow_no_value=allow_no_value)
 
-def set_config(section, option, value):
-    if not girder_client.config.has_section(section):
-        girder_client.config.add_section(section)
-    girder_client.config.set(section, option, value)
-    write_config()
+        try:
+            config_home = os.path.join(os.path.expanduser('~'), '.config')
+        except ImportError:
+            config_home = None
 
+        if config_file is None:
+            self.config_dir = os.environ.get('XDG_CONFIG_HOME', config_home)
+            self.config_file = os.path.join(self.config_dir, "girder-cli.conf")
+            self.config.read([os.path.join(self.config_dir, "girder-cli.conf")])
+        else:
+            self.config_file = config_file
+            self.config_dir = os.path.dirname(self.config_file)
 
-def write_config(fd=None):
-    girder_client._safeMakedirs(girder_client.CONFIG_DIR)
-    if fd is None:
-        path = os.path.join(girder_client.CONFIG_DIR, 'girder-cli.conf')
-        with open(path, 'w') as fd:
-            girder_client.config.write(fd)
-    else:
-        girder_client.config.write(fd)
+        if not os.path.isfile(self.config_file):
+            print('The config file: "%s" does not exist.' % self.config_file,
+                  'Falling back to defaults.')
+        self.config.read([self.config_file])
 
+        if not self.config.has_section("girder_client"):
+            self.config.add_section("girder_client")
 
-def rm_config(section, option):
-    girder_client.config.remove_option(section, option)
-    write_config()
+    def get_config(self, section, option):
+        return self.config.get(section, option)
+
+    def set_config(self, section, option, value):
+        if not self.config.has_section(section):
+            self.config.add_section(section)
+        self.config.set(section, option, value)
+        self.write_config()
+
+    def write_config(self, fd=None):
+        _safeMakedirs(self.config_dir)
+        if fd is None:
+            path = os.path.join(self.config_dir, 'girder-cli.conf')
+            with open(path, 'w') as fd:
+                self.config.write(fd)
+        else:
+            self.config.write(fd)
+
+    def rm_config(self, section, option):
+        self.config.remove_option(section, option)
+        self.write_config()
 
 
 def main():
@@ -58,22 +92,16 @@ def main():
 
     args = parser.parse_args()
 
-    if args.config is not None:
-        if not os.path.isfile(args.config):
-            print('The config file: "{}" does not exist.'.format(args.config),
-                  'Falling back to defaults.')
-        girder_client.config.read([args.config])
-        if not girder_client.config.has_section('girder_client'):
-            girder_client.config.add_section('girder_client')
+    config = GirderConfig(args.config)
 
     if args.cmd == 'get':
-        print(get_config(args.section, args.option))
+        print(config.get_config(args.section, args.option))
     elif args.cmd == 'set':
-        set_config(args.section, args.option, args.value)
+        config.set_config(args.section, args.option, args.value)
     elif args.cmd == 'list':
-        write_config(sys.stdout)
+        config.write_config(sys.stdout)
     elif args.cmd == 'rm':
-        rm_config(args.section, args.option)
+        config.rm_config(args.section, args.option)
 
 if __name__ == '__main__':
     main()  # pragma: no cover

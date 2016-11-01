@@ -2,12 +2,11 @@ import contextlib
 import mock
 import os
 import tempfile
-import girder_client
-import girder_client.configure
+import girder_client.configure as gcfg
 import unittest
 import sys
 import six
-from six.moves.configparser import ConfigParser, NoOptionError
+from six.moves.configparser import NoOptionError
 
 
 @contextlib.contextmanager
@@ -26,27 +25,23 @@ def captureOutput():
 class SysExitException(Exception):
     pass
 
-LOCAL_CFG = os.path.join(girder_client.CONFIG_DIR, "girder-cli.conf")
-
 
 def setUpModule():
     # Backup local config file if it exists
-    if os.path.exists(LOCAL_CFG):
-        os.rename(LOCAL_CFG, LOCAL_CFG + '.bak')
-        # Re-read the config
-        girder_client.config = ConfigParser(girder_client._config_defaults,
-                                            allow_no_value=True)
-        if not girder_client.config.has_section("girder_client"):
-            girder_client.config.add_section("girder_client")
+    config = gcfg.GirderConfig()
+    if os.path.exists(config.config_file):
+        os.rename(config.config_file, config.config_file + '.bak')
 
 
 def tearDownModule():
     # Restore local config from backup if it exists
-    if os.path.exists(LOCAL_CFG + '.bak'):
-        os.rename(LOCAL_CFG + '.bak', LOCAL_CFG)
+    config = gcfg.GirderConfig()
+    if os.path.exists(config.config_file + '.bak'):
+        os.rename(config.config_file + '.bak', config.config_file)
 
 
 class TestConfigScript(unittest.TestCase):
+
     def _runConfigScript(self, args):
         args = ['girder-cli-config'] + args
         rc = 0
@@ -54,7 +49,7 @@ class TestConfigScript(unittest.TestCase):
                 mock.patch('sys.exit', side_effect=SysExitException) as exit,\
                 captureOutput() as output:
             try:
-                girder_client.configure.main()
+                gcfg.main()
             except SysExitException:
                 args = exit.mock_calls[0][1]
                 rc = args[0] if len(args) else 0
@@ -65,7 +60,7 @@ class TestConfigScript(unittest.TestCase):
         }
 
     def testConfigCommands(self):
-        self.assertFalse(os.path.exists(LOCAL_CFG))
+        self.assertFalse(os.path.exists(gcfg.GirderConfig().config_file))
 
         info = self._runConfigScript(['--help'])
         self.assertEqual(info['rc'], 0)
@@ -95,7 +90,7 @@ class TestConfigScript(unittest.TestCase):
             self._runConfigScript(['get', 'girder_client', 'foo'])
 
         tmpcfg_fd, tmpcfg_fname = tempfile.mkstemp()
-        girder_client.config.write_config(tmpcfg_fd)
+        gcfg.GirderConfig().write_config(tmpcfg_fd)
         tmpcfg_fd.close()
 
         info = self._runConfigScript(['-c', tmpcfg_fname, 'set',
