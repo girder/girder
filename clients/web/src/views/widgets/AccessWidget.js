@@ -9,8 +9,10 @@ import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
+import { getCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
 import { handleClose, handleOpen } from 'girder/dialog';
+import { restRequest } from 'girder/rest';
 
 import 'girder/stylesheets/widgets/accessWidget.styl';
 
@@ -27,8 +29,13 @@ var AccessWidget = View.extend({
             $(e.currentTarget).attr('disabled', 'disabled');
             this.saveAccessList();
         },
+        'click .g-close-flags-popover': function (e) {
+            $(e.currentTarget).parents('.g-access-action-container')
+                .find('.g-action-manage-flags').popover('hide');
+        },
         'click a.g-action-remove-access': 'removeAccessEntry',
-        'change .g-public-container .radio input': 'privacyChanged'
+        'change .g-public-container .radio input': 'privacyChanged',
+        'change .g-flag-checkbox': '_togglePermissionFlag'
     },
 
     /**
@@ -48,6 +55,7 @@ var AccessWidget = View.extend({
         this.hideRecurseOption = settings.hideRecurseOption || false;
         this.hideSaveButton = settings.hideSaveButton || false;
         this.modal = _.has(settings, 'modal') ? settings.modal : true;
+        this.currentUser = getCurrentUser();
 
         this.searchWidget = new SearchFieldWidget({
             placeholder: 'Start typing a name...',
@@ -56,17 +64,22 @@ var AccessWidget = View.extend({
             parentView: this
         }).on('g:resultClicked', this.addEntry, this);
 
-        if (this.model.get('access')) {
+        var flagListPromise = restRequest({
+            path: 'system/permission_flag'
+        }).done((resp) => {
+            this.flagList = resp;
+        });
+
+        $.when(
+            flagListPromise,
+            this.model.fetchAccess()
+        ).then(() => {
             this.render();
-        } else {
-            this.model.on('g:accessFetched', function () {
-                this.render();
-            }, this).fetchAccess();
-        }
+        });
     },
 
     render: function () {
-        if (!this.model.get('access')) {
+        if (!this.model.get('access') || !this.flagList) {
             new LoadingAnimation({
                 el: this.$el,
                 parentView: this
@@ -116,6 +129,8 @@ var AccessWidget = View.extend({
             this.$('#g-ac-list-users').append(accessEntryTemplate({
                 accessTypes: AccessType,
                 type: 'user',
+                flagList: this.flagList,
+                isAdmin: this.currentUser && this.currentUser.get('admin'),
                 entry: _.extend(userAccess, {
                     title: userAccess.name,
                     subtitle: userAccess.login
@@ -133,10 +148,29 @@ var AccessWidget = View.extend({
     },
 
     _makeTooltips: function () {
-        this.$('.g-action-remove-access').tooltip({
+        this.$('.g-access-action-container a').tooltip({
             placement: 'bottom',
             animation: false,
             delay: {show: 100}
+        });
+
+        this.$('.g-flag-label span').tooltip({
+            placement: 'bottom'
+        });
+
+        this.$('.g-action-manage-flags').popover({
+            trigger: 'manual',
+            html: true,
+            placement: 'left',
+            viewport: {
+                selector: 'body',
+                padding: 10
+            },
+            content: function () {
+                return $(this).parent().find('.g-flags-popover-container').html();
+            }
+        }).click(function () {
+            $(this).popover('toggle');
         });
     },
 
@@ -224,7 +258,10 @@ var AccessWidget = View.extend({
                 level: parseInt(
                     $el.find('.g-access-col-right>select').val(),
                     10
-                )
+                ),
+                flags: _.map($el.find('.g-flag-checkbox:checked'), (checkbox) => {
+                    return $(checkbox).attr('flag')
+                })
             });
         }, this);
 
@@ -237,7 +274,10 @@ var AccessWidget = View.extend({
                 level: parseInt(
                     $el.find('.g-access-col-right>select').val(),
                     10
-                )
+                ),
+                flags: _.map($el.find('.g-flag-checkbox:checked'), (checkbox) => {
+                    return $(checkbox).attr('flag')
+                })
             });
         }, this);
 
@@ -272,6 +312,19 @@ var AccessWidget = View.extend({
         this.$('.g-public-container .radio').removeClass('g-selected');
         var selected = this.$('.g-public-container .radio input:checked');
         selected.parents('.radio').addClass('g-selected');
+    },
+
+    _togglePermissionFlag: function (e) {
+        var el = $(e.currentTarget),
+            type = el.attr('resourcetype'),
+            id = el.attr('resourceid'),
+            flag = el.attr('flag');
+
+        // Since we clicked in a cloned popover element, we must apply this
+        // change within the original element as well.
+        this.$(`.g-flags-popover-container[resourcetype='${type}'][resourceid='${id}']`)
+            .find(`.g-flag-checkbox[flag=${flag}]`)
+            .attr('checked', el.is(':checked') ? 'checked' : null);
     }
 });
 
