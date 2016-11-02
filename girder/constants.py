@@ -61,7 +61,7 @@ if not os.path.exists(os.path.join(STATIC_ROOT_DIR, 'clients')):
     STATIC_ROOT_DIR = PACKAGE_DIR
 
 
-def registerPermissionFlag(key, name, description=None):
+def registerPermissionFlag(key, name, description=None, admin=False):
     """
     Register a new permission flag in the set of PERMISSION_FLAGS available
     on data in the hierarchy. These are boolean switches that can be used
@@ -73,10 +73,15 @@ def registerPermissionFlag(key, name, description=None):
     :type name: str
     :param description: Human readable longer description for the flag.
     :type description: str
+    :param admin: Set this to True to only allow site admin users to set
+        this flag. If True, the flag will only appear in the list for
+        site admins. This can be useful for flags with security
+        considerations.
     """
     PERMISSION_FLAGS[key] = {
         'name': name,
-        'description': description
+        'description': description,
+        'admin': admin
     }
 
 

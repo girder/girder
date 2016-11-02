@@ -338,9 +338,7 @@ class System(Resource):
         return status
 
     @access.public
-    @describeRoute(
-        Description('List all permission flags available in the system.')
-    )
+    @describeRoute(Description('List all permission flags available in the system.'))
     def getPermissionFlags(self, params):
         return PERMISSION_FLAGS
 

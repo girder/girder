@@ -448,7 +448,8 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json, {
             'my_key': {
                 'name': 'hello',
-                'description': 'a custom flag'
+                'description': 'a custom flag',
+                'admin': False
             }
         })
 
@@ -465,7 +466,7 @@ class SystemTestCase(base.TestCase):
 
         user = self.model('user').setAccessList(self.users[0], access={
             'users': [{
-                'id': user['_id'],
+                'id': self.users[1]['_id'],
                 'level': AccessType.ADMIN,
                 'flags': ['my_key', 'not a registered flag']
             }],
@@ -476,3 +477,45 @@ class SystemTestCase(base.TestCase):
         acl = self.model('user').getFullAccessList(user)
         self.assertEqual(acl['users'][0]['flags'], ['my_key'])
         self.assertTrue(self.model('user').hasAccessFlags(user, user, flags=['my_key']))
+
+        # Create an admin-only permission flag
+        registerPermissionFlag('admin_flag', name='admin flag', admin=True)
+
+        # Non-admin shouldn't be able to set it
+        user = self.model('user').setAccessList(self.users[0], access={
+            'users': [{
+                'id': self.users[1]['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['admin_flag']
+            }],
+            'groups': []
+        }, save=True, user=self.users[1])
+
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(acl['users'][0]['flags'], [])
+
+        # Admin user should be able to set it
+        user = self.model('user').setAccessList(self.users[1], access={
+            'users': [{
+                'id': self.users[1]['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['admin_flag']
+            }],
+            'groups': []
+        }, save=True, user=self.users[0])
+
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(acl['users'][0]['flags'], ['admin_flag'])
+
+        # An already-enabled admin-only flag should stay enabled for non-admin user
+        user = self.model('user').setAccessList(self.users[1], access={
+            'users': [{
+                'id': self.users[1]['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['my_key', 'admin_flag']
+            }],
+            'groups': []
+        }, save=True, user=self.users[1])
+
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(set(acl['users'][0]['flags']), {'my_key', 'admin_flag'})

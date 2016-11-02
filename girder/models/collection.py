@@ -236,7 +236,7 @@ class Collection(AccessControlledModel):
         progress.update(increment=1, message='Updating ' + doc['name'])
         if setPublic is not None:
             self.setPublic(doc, setPublic, save=False)
-        doc = AccessControlledModel.setAccessList(self, doc, access, save=save)
+        doc = AccessControlledModel.setAccessList(self, doc, access, save=save, user=user)
 
         if recurse:
             cursor = self.model('folder').find({
