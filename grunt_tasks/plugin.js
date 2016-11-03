@@ -123,9 +123,6 @@ module.exports = function (grunt) {
             grunt.config.merge({
                 webpack: {
                     options: {
-                        entry: {
-                            [`plugins/${plugin}/plugin`]: main
-                        },
                         resolve: {
                             alias: {
                                 [`girder_plugins/${plugin}`]: webClient
@@ -134,6 +131,8 @@ module.exports = function (grunt) {
                     }
                 }
             });
+
+            pluginExports.push(`import 'girder_plugins/${plugin}/main';`);
         }
         if (fs.existsSync(index)) {
             pluginExports.push(
