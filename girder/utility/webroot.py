@@ -88,16 +88,3 @@ class Webroot(WebrootBase):
             'staticRoot': '',
             'title': 'Girder'
         }
-
-    def _renderHTML(self):
-        self.vars['pluginCss'] = []
-        self.vars['pluginJs'] = []
-        builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web',
-                                'static', 'built', 'plugins')
-        for plugin in self.vars['plugins']:
-            if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.css')):
-                self.vars['pluginCss'].append(plugin)
-            if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.js')):
-                self.vars['pluginJs'].append(plugin)
-
-        return super(Webroot, self)._renderHTML()

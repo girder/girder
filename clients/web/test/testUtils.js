@@ -621,17 +621,9 @@ girderTest.waitForDialog = function (desc) {
 girderTest.promise = $.when();
 
 /**
- * Import a javascript file and.
+ * This function is no longer necessary.
  */
-girderTest.addScript = function (url) {
-    var defer = new $.Deferred();
-    girderTest.promise.then(function () {
-        $.getScript(url).done(function () {
-            defer.resolve();
-        });
-    });
-    girderTest.promise = defer.promise();
-};
+girderTest.addScript = $.noop;
 
 /**
  * An alias to addScript for backwards compatibility.

@@ -39,13 +39,7 @@ assuming Girder is hosted at ``/girder``:
 
 .. code-block:: html
 
-    <script src="/girder/static/built/girder.ext.min.js"></script>
     <script src="/girder/static/built/girder.app.min.js"></script>
-
-.. note::
-   ``girder.ext.min.js`` includes requirements for Girder, including jQuery,
-   Bootstrap, Underscore, and Backbone. You may wish to use your own versions
-   of these separately and not include ``girder.ext.min.js``.
 
 
 Extending Girder's Backbone application
@@ -119,13 +113,7 @@ To use Girder UI components, you will need the following CSS files in your HTML:
 
 .. code-block:: html
 
-    <link rel="stylesheet" href="/girder/static/built/girder.ext.min.css">
     <link rel="stylesheet" href="/girder/static/built/girder.app.min.css">
-
-.. note::
-   ``girder.ext.min.css`` includes requirements for Girder, including Bootstrap
-   and some additional Bootstrap extensions. You may wish to use your own
-   versions of these separately and not include ``girder.ext.min.css``.
 
 To make login and logout controls, provide a dialog container and
 login/logout/register links, and a container where the dialogs will be rendered:

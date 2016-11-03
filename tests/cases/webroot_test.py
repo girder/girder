@@ -39,4 +39,4 @@ class WebRootTestCase(base.TestCase):
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
         self.assertTrue('girder.app.min.js' in body)
-        self.assertTrue('girder.ext.min.js' in body)
+        self.assertTrue('girder.app.min.css' in body)
