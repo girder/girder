@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
+
+/**
+ * This file contains options that apply to ALL target build configurations. Because we use
+ * the DllPlugin for dynamic loading, each individual bundle has its own config options
+ * that can extend these.
+ */
 var webpack = require('webpack');
 var path = require('path');
 
-var CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var ProvidePlugin = webpack.ProvidePlugin;
 
@@ -33,7 +38,7 @@ function fileLoader() {
     };
 }
 
-function urlLoader(options) {
+function urlLoader (options) {
     options = options || {};
     var loader = {
         loader: 'url-loader',
@@ -48,22 +53,12 @@ function urlLoader(options) {
 }
 
 module.exports = {
-    entry: {
-        'girder.ext': [
-            // This make sure some globals like $, moment, Backbone are available for testing
-            path.join(paths.web_src, 'globals.js')
-        ],
-        'girder.app': path.join(paths.web_src, 'main.js')
-    },
     output: {
         path: paths.web_built,
-        filename: '[name].min.js'
+        filename: '[name].min.js',
+        library: '[name]'
     },
     plugins: [
-        new CommonsChunkPlugin({
-            names: ['girder.app', 'girder.ext'],
-            minChunks: 2
-        }),
         // Automatically detect jQuery and $ as free var in modules
         // and inject the jquery library. This is required by many jquery plugins
         new ProvidePlugin({
@@ -196,11 +191,6 @@ module.exports = {
             paths.plugins,
             paths.node_modules
         ]
-        // modulesDirectories: [ // deprecated in Webpack 2 beta, remove once 100% sure
-        //     paths.web_src,
-        //     paths.plugins,
-        //     paths.node_modules
-        // ]
     },
     node: {
         canvas: 'empty',
