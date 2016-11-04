@@ -123,7 +123,8 @@ module.exports = function (grunt) {
             // This watch subtask is a lot faster than using grunt-contrib-watch below
             watch: _.extend({}, webpackConfig, {
                 watch: true,
-                keepalive: true
+                keepalive: true,
+                failOnError: false
             })
         },
         // The grunt-contrib-watch task can be used with webpack, as described here:
