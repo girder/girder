@@ -30,7 +30,6 @@ module.exports = function (grunt) {
     if (_.isString(plugins) && plugins) {
         plugins = plugins.split(',');
     } else if (!buildAll) {
-        fs.writeFileSync('clients/web/src/plugins.js', 'export {};');
         return;
     }
 
@@ -81,7 +80,6 @@ module.exports = function (grunt) {
         grunt.config.merge(cfg);
     };
 
-    var pluginExports = [];
     var configurePluginForBuilding = function (dir) {
         var plugin = path.basename(dir);
         var json = path.resolve(dir, 'plugin.json');
@@ -119,7 +117,6 @@ module.exports = function (grunt) {
         // Add webpack target and name resolution for this plugin if web_client/main.js exists
         var webClient = path.resolve(dir + '/web_client');
         var main =  webClient + '/main.js';
-        // TODO remove ? var index = webClient + '/index.js';
 
         if (fs.existsSync(main)) {
             grunt.config.merge({
@@ -154,11 +151,6 @@ module.exports = function (grunt) {
                 }
             });
         }
-        /* TODO if (fs.existsSync(index)) {
-            pluginExports.push(
-                `import * as ${plugin} from 'girder_plugins/${plugin}'; export { ${plugin} };`
-            );
-        }*/
 
         function addDependencies(deps) {
             // install any additional npm packages during init
@@ -221,8 +213,6 @@ module.exports = function (grunt) {
             configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name));
         });
     }
-
-    fs.writeFileSync('clients/web/src/plugins.js', pluginExports.join('\n'));
 
     /**
      * Register a "meta" task that will configure and run other tasks

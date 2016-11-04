@@ -7,8 +7,8 @@ var webpack = require('webpack');
 
 /**
  * We wrap the normal DllReferencePlugin to be able to accept a path to a manifest file
- * rather than its contents. This is because at grunt config time, the path to the reference
- * file may not exist yet, so we want to defer reading the file until task runtime.
+ * rather than its contents. This is because at grunt config time, the manifest
+ * file may not exist yet, so we need to defer reading the file until task runtime.
  */
 var DllReferenceByPathPlugin = function (options) {
     // called at config time
