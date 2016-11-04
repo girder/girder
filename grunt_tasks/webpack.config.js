@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-
 /**
  * This file contains options that apply to ALL target build configurations. Because we use
  * the DllPlugin for dynamic loading, each individual bundle has its own config options
  * that can extend these.
  */
 var webpack = require('webpack');
-var path = require('path');
 
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var ProvidePlugin = webpack.ProvidePlugin;
 
 var paths = require('./webpack.paths.js');
 var es2015Preset = require.resolve('babel-preset-es2015');
@@ -60,7 +57,7 @@ module.exports = {
     plugins: [
         // Automatically detect jQuery and $ as free var in modules
         // and inject the jquery library. This is required by many jquery plugins
-        new ProvidePlugin({
+        new webpack.ProvidePlugin({
             jQuery: 'jquery',
             $: 'jquery',
             'window.jQuery': 'jquery'

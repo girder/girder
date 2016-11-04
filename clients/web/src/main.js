@@ -25,6 +25,6 @@ if (!window.disableGirderMainApp) {
     new girder.views.App({
         el: 'body',
         parentView: null
-    });
+    }).render();
     girder.events.trigger('g:appload.after');
 }

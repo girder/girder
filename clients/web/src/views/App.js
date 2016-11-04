@@ -174,6 +174,9 @@ var App = View.extend({
     },
 
     render: function () {
+        if (!this._started) {
+            return;
+        }
         this.$el.html(LayoutTemplate());
 
         this.globalNavView.setElement(this.$('#g-global-nav-container')).render();

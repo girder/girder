@@ -93,7 +93,7 @@ module.exports = function (grunt) {
     var config = {
         webpack: {
             options: _.extend({}, webpackConfig, gruntWebpackConfig),
-            core_lib:{
+            core_lib: {
                 entry: {
                     girder_lib: [paths.web_src]
                 },

@@ -27,7 +27,6 @@ module.exports = function (grunt) {
     var buildAll = grunt.option('all-plugins');
     var plugins = grunt.option('plugins');
 
-
     if (_.isString(plugins) && plugins) {
         plugins = plugins.split(',');
     } else if (!buildAll) {
@@ -120,7 +119,7 @@ module.exports = function (grunt) {
         // Add webpack target and name resolution for this plugin if web_client/main.js exists
         var webClient = path.resolve(dir + '/web_client');
         var main =  webClient + '/main.js';
-        var index = webClient + '/index.js';
+        // TODO remove ? var index = webClient + '/index.js';
 
         if (fs.existsSync(main)) {
             grunt.config.merge({
@@ -155,7 +154,7 @@ module.exports = function (grunt) {
                 }
             });
         }
-        /*TODO if (fs.existsSync(index)) {
+        /* TODO if (fs.existsSync(index)) {
             pluginExports.push(
                 `import * as ${plugin} from 'girder_plugins/${plugin}'; export { ${plugin} };`
             );

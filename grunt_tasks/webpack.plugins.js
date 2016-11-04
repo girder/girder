@@ -16,7 +16,7 @@ var DllReferenceByPathPlugin = function (options) {
 
 DllReferenceByPathPlugin.prototype.apply = function (compiler) {
     // called at runtime
-    if (typeof this.options.manifest == 'string') {
+    if (typeof this.options.manifest === 'string') {
         this.options.manifest = require(this.options.manifest);
     }
 
