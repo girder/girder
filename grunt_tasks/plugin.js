@@ -21,9 +21,12 @@ module.exports = function (grunt) {
     var _ = require('underscore');
     var fs = require('fs');
     var path = require('path');
+    var customWebpackPlugins = require('./webpack.plugins.js');
+    var paths = require('./webpack.paths.js');
 
     var buildAll = grunt.option('all-plugins');
     var plugins = grunt.option('plugins');
+
 
     if (_.isString(plugins) && plugins) {
         plugins = plugins.split(',');
@@ -122,10 +125,19 @@ module.exports = function (grunt) {
         if (fs.existsSync(main)) {
             grunt.config.merge({
                 webpack: {
-                    options: {
+                    [`plugin_${plugin}`]: {
                         entry: {
-                            [`plugins/${plugin}/plugin`]: main
+                            [`plugins/${plugin}/plugin`]: [main]
                         },
+                        plugins: [
+                            new customWebpackPlugins.DllReferenceByPathPlugin({
+                                context: '.',
+                                manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                            })
+                        ]
+                    },
+                    options: {
+                        // Add an import alias to the global config for this plugin
                         resolve: {
                             alias: {
                                 [`girder_plugins/${plugin}`]: webClient
@@ -134,12 +146,20 @@ module.exports = function (grunt) {
                     }
                 }
             });
+
+            grunt.config.merge({
+                default: {
+                    [`webpack:plugin_${plugin}`]: {
+                        dependencies: ['build'] // plugin builds must run after core build
+                    }
+                }
+            });
         }
-        if (fs.existsSync(index)) {
+        /*TODO if (fs.existsSync(index)) {
             pluginExports.push(
                 `import * as ${plugin} from 'girder_plugins/${plugin}'; export { ${plugin} };`
             );
-        }
+        }*/
 
         function addDependencies(deps) {
             // install any additional npm packages during init

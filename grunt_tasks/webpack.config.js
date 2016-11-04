@@ -55,8 +55,7 @@ function urlLoader (options) {
 module.exports = {
     output: {
         path: paths.web_built,
-        filename: '[name].min.js',
-        library: '[name]'
+        filename: '[name].min.js'
     },
     plugins: [
         // Automatically detect jQuery and $ as free var in modules

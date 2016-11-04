@@ -21,7 +21,7 @@ var noptFix = require('nopt-grunt-fix');
 var webpack = require('webpack');
 var webpackGlobalConfig = require('./webpack.config.js');
 var paths = require('./webpack.paths.js');
-var customWebpackPlugins = require('./webpack.plugins.js')
+var customWebpackPlugins = require('./webpack.plugins.js');
 
 module.exports = function (grunt) {
     noptFix(grunt);
@@ -96,6 +96,10 @@ module.exports = function (grunt) {
             core_lib:{
                 entry: {
                     girder_lib: [paths.web_src]
+                },
+                output: {
+                    library: '[name]'
+
                 },
                 plugins: [
                     // Remove this if it turns out we don't want to use it for every bundle target.
