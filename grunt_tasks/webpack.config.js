@@ -74,6 +74,7 @@ module.exports = {
             // ES2015
             {
                 test: /\.js$/,
+                include: /clients\/web\/src/,
                 loader: 'babel-loader',
                 exclude: /node_modules/,
                 query: {
@@ -92,11 +93,16 @@ module.exports = {
             // JSON files
             {
                 test: /\.json$/,
+                include: /clients\/web\/src/,
                 loader: 'json-loader'
             },
             // Stylus
             {
                 test: /\.styl$/,
+                include: [
+                    /clients\/web\/src/,
+                    // /node_modules/
+                ],
                 loaders: [
                     ExtractTextPlugin.extract('style-loader'),
                     'css-loader',
@@ -111,6 +117,10 @@ module.exports = {
             // CSS
             {
                 test: /\.css$/,
+                include: [
+                    /clients\/web\/src/,
+                    /node_modules/
+                ],
                 loaders: [
                     ExtractTextPlugin.extract('style-loader'),
                     'css-loader'
@@ -119,6 +129,7 @@ module.exports = {
             // Pug
             {
                 test: /\.(pug|jade)$/,
+                include: /clients\/web\/src/,
                 loaders: [
                     {
                         loader: 'babel-loader',
@@ -132,6 +143,10 @@ module.exports = {
             // PNG, JPEG
             {
                 test: /\.(png|jpg)$/,
+                include: [
+                    /clients\/web\/src/,
+                    /node_modules/
+                ],
                 loaders: [
                     urlLoader(),
                     fileLoader()
@@ -140,6 +155,10 @@ module.exports = {
             // WOFF
             {
                 test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+                include: [
+                    /clients\/web\/src/,
+                    /node_modules/
+                ],
                 loaders: [
                     urlLoader({ mimetype: 'application/font-woff' }),
                     fileLoader()
@@ -148,6 +167,10 @@ module.exports = {
             // WOFF2
             {
                 test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+                include: [
+                    /clients\/web\/src/,
+                    /node_modules/
+                ],
                 loaders: [
                     urlLoader({ mimetype: 'application/font-woff2' }),
                     fileLoader()
@@ -156,6 +179,10 @@ module.exports = {
             // TTF
             {
                 test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+                include: [
+                    /clients\/web\/src/,
+                    /node_modules/
+                ],
                 loaders: [
                     urlLoader({ mimetype: 'application/octet-stream' }),
                     fileLoader()
@@ -164,6 +191,10 @@ module.exports = {
             // EOT
             {
                 test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+                include: [
+                    /clients\/web\/src/,
+                    /node_modules/
+                ],
                 loaders: [
                     fileLoader()
                 ]
@@ -171,6 +202,10 @@ module.exports = {
             // SVG
             {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+                include: [
+                    /clients\/web\/src/,
+                    /node_modules/
+                ],
                 loaders: [
                     urlLoader({ mimetype: 'image/svg+xml' }),
                     fileLoader()
