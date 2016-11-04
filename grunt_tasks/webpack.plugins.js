@@ -2,6 +2,7 @@
  * This file contains custom webpack plugins.
  */
 
+var _ = require('underscore');
 var webpack = require('webpack');
 
 /**
@@ -16,7 +17,7 @@ var DllReferenceByPathPlugin = function (options) {
 
 DllReferenceByPathPlugin.prototype.apply = function (compiler) {
     // called at runtime
-    if (typeof this.options.manifest === 'string') {
+    if (_.isString(this.options.manifest)) {
         this.options.manifest = require(this.options.manifest);
     }
 

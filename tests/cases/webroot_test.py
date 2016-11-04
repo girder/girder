@@ -38,5 +38,5 @@ class WebRootTestCase(base.TestCase):
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
-        self.assertTrue('girder.app.min.js' in body)
-        self.assertTrue('girder.ext.min.js' in body)
+        self.assertTrue('girder_app.min.js' in body)
+        self.assertTrue('girder_lib.min.js' in body)

@@ -35,7 +35,7 @@ function fileLoader() {
     };
 }
 
-function urlLoader (options) {
+function urlLoader(options) {
     options = options || {};
     var loader = {
         loader: 'url-loader',
