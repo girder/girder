@@ -114,16 +114,45 @@ module.exports = function (grunt) {
             addMultitasks(plugin);
         }
 
-        // Add webpack target and name resolution for this plugin if web_client/main.js exists
+        // Find the plugin's webpack helper file; default to the identity
+        // function.
+        var webpackHelperFile = path.resolve(dir, config.webpack && config.webpack.configHelper || 'webpack.helper.js');
+        var webpackHelper = function (x) {
+            return x;
+        };
+        if (fs.existsSync(webpackHelperFile)) {
+            console.log(`Loading webpack helper from ${webpackHelperFile}`);
+            webpackHelper = require(webpackHelperFile);
+        } else {
+            console.log('No webpack helper file found.');
+        }
+
+        // Configure the output file; default to 'plugin.min.js' - Girder loads
+        // files named "plugin.min.js" into the Girder web client at runtime, so
+        // the user can control whether this is a "Girder client extension" or
+        // just a standalone web client.
+        var output = config.webpack && config.webpack.output || 'plugin';
+        var pluginEntry =  `plugins/${plugin}/${output}`
+
+        var pluginNodeDir = path.resolve(process.cwd(), 'node_modules_' + plugin, 'node_modules');
+        var helperConfig = {
+            plugin: plugin,
+            pluginEntry: pluginEntry,
+            pluginDir: dir,
+            nodeDir: pluginNodeDir
+        };
+
+        // Add webpack target and name resolution for this plugin if
+        // web_client/main.js (or user-specified name) exists.
         var webClient = path.resolve(dir + '/web_client');
-        var main =  webClient + '/main.js';
+        var main = config.webpack && config.webpack.main && path.resolve(dir, config.webpack.main) || webClient + '/main.js';
 
         if (fs.existsSync(main)) {
             grunt.config.merge({
                 webpack: {
                     [`plugin_${plugin}`]: {
                         entry: {
-                            [`plugins/${plugin}/plugin`]: [main]
+                            [helperConfig.pluginEntry]: [main]
                         },
                         plugins: [
                             new customWebpackPlugins.DllReferenceByPathPlugin({
@@ -137,8 +166,18 @@ module.exports = function (grunt) {
                         resolve: {
                             alias: {
                                 [`girder_plugins/${plugin}`]: webClient,
-                                node: path.resolve(process.cwd(), 'node_modules_' + plugin, 'node_modules')
-                            }
+                                node: pluginNodeDir
+                            },
+                            modules: [
+                                path.resolve(process.cwd(), 'node_modules'),
+                                pluginNodeDir
+                            ]
+                        },
+                        resolveLoader: {
+                            modules: [
+                                path.resolve(process.cwd(), 'node_modules'),
+                                pluginNodeDir
+                            ]
                         }
                     }
                 }
@@ -151,6 +190,9 @@ module.exports = function (grunt) {
                     }
                 }
             });
+
+            var newConfig = webpackHelper(grunt.config.get('webpack.options'), helperConfig);
+            grunt.config.set('webpack.options', newConfig);
         }
 
         function addDependencies(deps) {
