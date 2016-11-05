@@ -38,6 +38,7 @@ module.exports = function (grunt) {
     if (!process.env.NODE_ENV) {
         process.env.NODE_ENV = environment;
     }
+    var isWatch = grunt.option('watch');
 
     // Extend the global webpack config options with environment-specific changes
     if (isDev) {
@@ -82,12 +83,12 @@ module.exports = function (grunt) {
             reasons: false,
             errorDetails: true
         },
-        progress: true,    // show progress
-        failOnError: true, // report error to grunt if webpack find errors; set to false if
-        watch: false,      // use webpacks watcher (you need to keep the grunt process alive)
-        keepalive: false,  // don't finish the grunt task (in combination with the watch option)
-        inline: false,     // embed the webpack-dev-server runtime into the bundle (default false)
-        hot: false         // adds HotModuleReplacementPlugin and switch the server to hot mode
+        progress: true,        // show progress
+        failOnError: !isWatch, // report error to grunt if webpack find errors; set to false if
+        watch: isWatch,        // use webpacks watcher (you need to keep the grunt process alive)
+        keepalive: isWatch,    // don't finish the grunt task (in combination with the watch option)
+        inline: false,         // embed the webpack-dev-server runtime into the bundle (default false)
+        hot: false             // adds HotModuleReplacementPlugin and switch the server to hot mode
     };
 
     var config = {
@@ -119,13 +120,7 @@ module.exports = function (grunt) {
                         manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
                     })
                 ]
-            },
-            // This watch subtask is a lot faster than using grunt-contrib-watch below
-            watch: _.extend({}, webpackConfig, {
-                watch: true,
-                keepalive: true,
-                failOnError: false
-            })
+            }
         },
         // The grunt-contrib-watch task can be used with webpack, as described here:
         // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
@@ -155,7 +150,7 @@ module.exports = function (grunt) {
 
     // Warn about not using grunt-contrib-watch, use webpack:watch or grunt --watch instead
     grunt.registerTask('warnWatch', function () {
-        grunt.log.warn('WARNING: the "watch" task will not build; use the "webpack:watch" task or run grunt --watch'['yellow']);
+        grunt.log.warn('WARNING: the "watch" task will not build; run grunt --watch'.yellow);
     });
 
     grunt.config.merge(config);

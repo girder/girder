@@ -76,7 +76,7 @@
   },
   "scripts": {
     "build": "grunt init && grunt",
-    "watch": "grunt webpack:watch",
+    "watch": "grunt --watch",
     "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts && pug-lint clients/web/src/templates",
     "docs": "grunt docs"
   }
