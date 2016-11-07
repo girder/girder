@@ -12,6 +12,9 @@ import * as views from './views';
 import events from './events';
 import router from './router';
 
+// This will be modified dynamically when plugins are loaded.
+var plugins = {};
+
 export {
   auth,
   collections,
@@ -20,6 +23,7 @@ export {
   events,
   misc,
   models,
+  plugins,
   rest,
   router,
   server,

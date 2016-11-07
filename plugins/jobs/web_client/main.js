@@ -1,12 +1,9 @@
-import $ from 'jquery';
 import './routes';
 
 // Extends and overrides API
 import './views/HeaderUserView';
 
-// For testing (potentially temporary)
+import { registerPluginNamespace } from 'girder/pluginUtils';
 import * as jobs from './index';
-$(function () {
-    window.girder.plugins = window.girder.plugins || {};
-    window.girder.plugins.jobs = jobs;
-});
+
+registerPluginNamespace('jobs', jobs);

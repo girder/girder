@@ -129,7 +129,7 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         return doc
 
-    def createLinkFile(self, name, parent, parentType, url, creator, size=None):
+    def createLinkFile(self, name, parent, parentType, url, creator, size=None, mimeType=None):
         """
         Create a file that is a link to a URL, rather than something we maintain
         in an assetstore.
@@ -145,6 +145,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type creator: dict
         :param size: The size of the file in bytes. (optional)
         :type size: int
+        :param mimeType: The mimeType of the file. (optional)
+        :type mimeType: str
         """
         if parentType == 'folder':
             # Create a new item with the name of the file.
@@ -159,6 +161,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             'creatorId': creator['_id'],
             'assetstoreId': None,
             'name': name,
+            'mimeType': mimeType,
             'linkUrl': url
         }
 
