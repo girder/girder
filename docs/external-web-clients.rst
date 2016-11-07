@@ -39,19 +39,18 @@ assuming Girder is hosted at ``/girder``:
 
 .. code-block:: html
 
-    <script src="/girder/static/built/girder.ext.min.js"></script>
-    <script src="/girder/static/built/girder.app.min.js"></script>
+    <script src="/girder/static/built/girder_lib.min.js"></script>
+    <script src="/girder/static/built/girder_app.min.js"></script>
 
 .. note::
-   ``girder.ext.min.js`` includes requirements for Girder, including jQuery,
-   Bootstrap, Underscore, and Backbone. You may wish to use your own versions
-   of these separately and not include ``girder.ext.min.js``.
+   ``girder_app.min.js`` is just a light wrapper file that exposes the ``window.girder``
+   namespace for use in external applications that are not built using webpack.
 
 
 Extending Girder's Backbone application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Girder defines a top-level class at ``girder.App``.  This object is responsible
+Girder defines a main application class at ``girder.views.App``.  This object is responsible
 for bootstraping the application, setting up the overall layout, and responding
 to global events like ``g:login`` and ``g:navigateTo``.  Developers can choose
 to derive their own application from this class to use the functionality that
@@ -63,14 +62,14 @@ application bootstrapping
    // set the path where girder's API is mounted
    girder.apiRoot = '/girder/api/v1';
 
-   var App = girder.App.extend({
+   var App = girder.views.App.extend({
       start: function () {
 
          // disable girder's router
          girder.router.enabled(false);
 
          // call the super method
-         return girder.App.prototype.start.call(this, {
+         return girder.view.App.prototype.start.call(this, {
              fetch: false,  // disable automatic fetching of the user model
              history: false,// disable initialization of Backbone's router
              render: false  // disable automatic rendering on start
@@ -78,7 +77,7 @@ application bootstrapping
 
             // set the current user somehow
             girder.currentUser = new girder.models.UserModel({...});
-            girder.eventStream.open();
+            girder.utilities.eventStream.open();
 
             // replace the header with a customized class
             this.headerView = new MyHeaderView({parentView: this});
@@ -115,17 +114,11 @@ Other methods that one may need to override include the following:
 Using Girder Register and Login UI
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To use Girder UI components, you will need the following CSS files in your HTML:
+To use Girder UI components, you will need the following CSS file in your page:
 
 .. code-block:: html
 
-    <link rel="stylesheet" href="/girder/static/built/girder.ext.min.css">
-    <link rel="stylesheet" href="/girder/static/built/girder.app.min.css">
-
-.. note::
-   ``girder.ext.min.css`` includes requirements for Girder, including Bootstrap
-   and some additional Bootstrap extensions. You may wish to use your own
-   versions of these separately and not include ``girder.ext.min.css``.
+    <link rel="stylesheet" href="/girder/static/built/girder_lib.min.css">
 
 To make login and logout controls, provide a dialog container and
 login/logout/register links, and a container where the dialogs will be rendered:

@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
+var path = require('path');
 var _ = require('underscore');
 var noptFix = require('nopt-grunt-fix');
 
-var webpackConfig = require('./webpack.config.js');
-var webpackDevConfig = require('./webpack.dev.js');
-var webpackProdConfig = require('./webpack.prod.js');
+var webpack = require('webpack');
+var webpackGlobalConfig = require('./webpack.config.js');
+var paths = require('./webpack.paths.js');
+var customWebpackPlugins = require('./webpack.plugins.js');
 
 module.exports = function (grunt) {
     noptFix(grunt);
     var environment = grunt.option('env') || 'dev';
+    var webpackConfig = _.extend({}, webpackGlobalConfig);
+
     if (['dev', 'prod'].indexOf(environment) === -1) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
     }
@@ -36,6 +40,40 @@ module.exports = function (grunt) {
     }
     var isWatch = grunt.option('watch');
 
+    // Extend the global webpack config options with environment-specific changes
+    if (isDev) {
+        webpackConfig.devtool = 'source-map';
+        webpackConfig.cache = true;
+        webpackConfig.plugins.push(new webpack.LoaderOptionsPlugin({
+            minimize: false,
+            debug: true
+        }));
+    } else {
+        webpackConfig.devtool = false;
+        webpackConfig.cache = false;
+        webpackConfig.plugins = webpackConfig.plugins.concat([
+            // https://github.com/webpack/webpack/issues/283
+            // https://github.com/webpack/webpack/issues/2061#issuecomment-228932941
+            // https://gist.github.com/sokra/27b24881210b56bbaff7#loader-options--minimize
+            // but unclear and confusing as to how far it has been implemented
+            new webpack.LoaderOptionsPlugin({
+                minimize: true,
+                debug: false
+            }),
+            new webpack.optimize.DedupePlugin(),
+            new webpack.optimize.UglifyJsPlugin({
+                // ASCIIOnly: true,
+                // sourceMapIncludeSources: true,
+                compress: {
+                    warnings: false
+                },
+                output: {
+                    comments: false
+                }
+            })
+        ]);
+    }
+
     // https://github.com/webpack/grunt-webpack
     var gruntWebpackConfig = {
         stats: {
@@ -45,25 +83,44 @@ module.exports = function (grunt) {
             reasons: false,
             errorDetails: true
         },
-        progress: true,    // show progress
-        failOnError: true, // report error to grunt if webpack find errors; set to false if
-        watch: false,      // use webpacks watcher (you need to keep the grunt process alive)
-        keepalive: false,  // don't finish the grunt task (in combination with the watch option)
-        inline: false,     // embed the webpack-dev-server runtime into the bundle (default false)
-        hot: false         // adds HotModuleReplacementPlugin and switch the server to hot mode
+        progress: true,        // show progress
+        failOnError: !isWatch, // report error to grunt if webpack find errors; set to false if
+        watch: isWatch,        // use webpacks watcher (you need to keep the grunt process alive)
+        keepalive: isWatch,    // don't finish the grunt task (in combination with the watch option)
+        inline: false,         // embed the webpack-dev-server runtime into the bundle (default false)
+        hot: false             // adds HotModuleReplacementPlugin and switch the server to hot mode
     };
 
     var config = {
         webpack: {
             options: _.extend({}, webpackConfig, gruntWebpackConfig),
-            prod: webpackProdConfig,
-            dev: webpackDevConfig,
-            // This watch subtask is a lot faster than using grunt-contrib-watch below
-            watch: _.extend({}, isDev ? webpackDevConfig : webpackProdConfig, {
-                watch: true,
-                keepalive: true,
-                failOnError: false
-            })
+            core_lib: {
+                entry: {
+                    girder_lib: [paths.web_src]
+                },
+                output: {
+                    library: '[name]'
+
+                },
+                plugins: [
+                    // Remove this if it turns out we don't want to use it for every bundle target.
+                    new webpack.DllPlugin({
+                        path: path.join(paths.web_built, '[name]-manifest.json'),
+                        name: '[name]'
+                    })
+                ]
+            },
+            core_app: {
+                entry: {
+                    girder_app: [path.join(paths.web_src, 'main.js')]
+                },
+                plugins: [
+                    new customWebpackPlugins.DllReferenceByPathPlugin({
+                        context: '.',
+                        manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                    })
+                ]
+            }
         },
         // The grunt-contrib-watch task can be used with webpack, as described here:
         // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
@@ -87,12 +144,13 @@ module.exports = function (grunt) {
     // Need an alias that can be used as a dependency (for testing). It will then trigger dev or
     // prod based on options passed
     grunt.registerTask('build', 'Build the web client.', [
-        isWatch ? 'webpack:watch' : (isDev ? 'webpack:dev' : 'webpack:prod')
+        'webpack:core_lib',
+        'webpack:core_app'
     ]);
 
     // Warn about not using grunt-contrib-watch, use webpack:watch or grunt --watch instead
     grunt.registerTask('warnWatch', function () {
-        grunt.log.warn('WARNING: the "watch" task will not build; use the "webpack:watch" task or run grunt --watch'['yellow']);
+        grunt.log.warn('WARNING: the "watch" task will not build; run grunt --watch'.yellow);
     });
 
     grunt.config.merge(config);
