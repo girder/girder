@@ -17,6 +17,16 @@
     <div id="g-global-info-staticroot" class="hide">${staticRoot}</div>
     <script src="${staticRoot}/built/girder_lib.min.js"></script>
     <script src="${staticRoot}/built/girder_app.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            girder.events.trigger('g:appload.before');
+            new girder.views.App({
+                el: 'body',
+                parentView: null
+            }).render();
+            girder.events.trigger('g:appload.after');
+        });
+    </script>
     % for plugin in pluginJs:
     <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js"></script>
     % endfor

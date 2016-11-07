@@ -11,10 +11,6 @@ html(lang="en")
     #g-global-info-apiroot.hide %HOST%#{apiRoot}
     #g-global-info-staticroot.hide %HOST%#{staticRoot}
 
-    script(type="text/javascript").
-      // Disable default app binding to body in testing mode
-      window.disableGirderMainApp = true;
-
     each js in jsFiles
       script(src=js)
 

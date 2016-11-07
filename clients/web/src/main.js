@@ -19,12 +19,3 @@ window.$ = $;
 window._ = _;
 window.moment = moment;
 window.Backbone = Backbone;
-
-if (!window.disableGirderMainApp) {
-    girder.events.trigger('g:appload.before');
-    new girder.views.App({
-        el: 'body',
-        parentView: null
-    }).render();
-    girder.events.trigger('g:appload.after');
-}
