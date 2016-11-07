@@ -165,8 +165,8 @@ module.exports = function (grunt) {
                         // Add an import alias to the global config for this plugin
                         resolve: {
                             alias: {
-                                [`girder_plugins/${plugin}`]: webClient,
-                                node: pluginNodeDir
+                                [`girder_plugins/${plugin}/node`]: pluginNodeDir,
+                                [`girder_plugins/${plugin}`]: webClient
                             },
                             modules: [
                                 path.resolve(process.cwd(), 'node_modules'),
