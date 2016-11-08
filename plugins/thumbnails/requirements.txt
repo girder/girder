@@ -1,3 +1,3 @@
-Pillow==3.1.0
+Pillow==3.4.2
 pydicom==0.9.9
 numpy==1.11.1
