@@ -22,10 +22,9 @@ div(class=`g-${type}-access-entry`, resourceid=entry.id)
             .checkbox(class=disabled)
               label.g-flag-label(title=flag.description)
                 input.g-flag-checkbox(resourcetype=type, resourceid=entry.id, flag=key, type="checkbox",
-                                      checked=checked, disabled=disabled)
+                    checked=checked, disabled=disabled)
                 span= flag.name
-          button.g-close-flags-popover.btn.btn-xs.btn-default.pull-right Close
-
+          button.g-close-flags-popover.btn.btn-xs.btn-default Close
 
       a.g-action-remove-access(title="Remove access")
         i.icon-cancel

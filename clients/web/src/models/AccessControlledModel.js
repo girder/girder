@@ -29,7 +29,8 @@ var AccessControlledModel = Model.extend({
             type: 'PUT',
             data: _.extend({
                 access: JSON.stringify(this.get('access')),
-                public: this.get('public')
+                public: this.get('public'),
+                publicFlags: JSON.stringify(this.get('publicFlags') || [])
             }, params || {})
         }).done(_.bind(function () {
             this.trigger('g:accessListSaved');
