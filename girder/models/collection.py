@@ -43,7 +43,6 @@ class Collection(AccessControlledModel):
             '_id', 'name', 'description', 'public', 'created', 'updated', 'size'})
         self.exposeFields(level=AccessType.ADMIN, fields={'publicFlags'})
 
-
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
         if doc['description']:
