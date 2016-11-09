@@ -53,6 +53,7 @@ class Folder(AccessControlledModel):
             '_id', 'name', 'public', 'description', 'created', 'updated',
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
             'baseParentType', 'baseParentId'))
+        self.exposeFields(level=AccessType.ADMIN, fields={'publicFlags'})
 
     def validate(self, doc, allowRename=False):
         """

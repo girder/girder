@@ -113,6 +113,7 @@ var AccessWidget = View.extend({
             model: this.model,
             modelType: this.modelType,
             publicFlag: this.model.get('public'),
+            publicFlags: this.model.get('publicFlags'),
             hideRecurseOption: this.hideRecurseOption,
             hideSaveButton: this.hideSaveButton,
             flagList: this.flagList,
