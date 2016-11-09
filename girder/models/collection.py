@@ -209,7 +209,7 @@ class Collection(AccessControlledModel):
         return count
 
     def setAccessList(self, doc, access, save=False, recurse=False, user=None,
-                      progress=noProgress, setPublic=None):
+                      progress=noProgress, setPublic=None, publicFlags=None):
         """
         Overrides AccessControlledModel.setAccessList to add a recursive
         option. When `recurse=True`, this will set the access list on all
@@ -232,10 +232,17 @@ class Collection(AccessControlledModel):
         :param setPublic: Pass this if you wish to set the public flag on the
             resources being updated.
         :type setPublic: bool or None
+        :param publicFlags: Pass this if you wish to set the public flag list on
+            resources being updated.
+        :type publicFlags: list or None
         """
         progress.update(increment=1, message='Updating ' + doc['name'])
         if setPublic is not None:
             self.setPublic(doc, setPublic, save=False)
+
+        if publicFlags is not None:
+            doc = self.setPublicFlags(doc, publicFlags, save=False)
+
         doc = AccessControlledModel.setAccessList(self, doc, access, save=save, user=user)
 
         if recurse:

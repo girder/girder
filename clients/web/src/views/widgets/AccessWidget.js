@@ -193,11 +193,11 @@ var AccessWidget = View.extend({
                 padding: 10
             },
             content: function () {
-                return $(this).parent().find('.g-public-flags-popover-container').html()
+                return $(this).parent().find('.g-public-flags-popover-container').html();
             }
         }).click(function () {
             $(this).popover('toggle');
-        })
+        });
     },
 
     /**

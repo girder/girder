@@ -769,9 +769,9 @@ class AccessControlledModel(Model):
             flags = [flags]
 
         if append:
-            doc['publicAccessFlags'] = doc.get('publicAccessFlags', []).extend(list(flags))
+            doc['publicFlags'] = doc.get('publicFlags', []).extend(list(flags))
         else:
-            doc['publicAccessFlags'] = flags
+            doc['publicFlags'] = flags
 
         if save:
             doc = self.save(doc)
@@ -1030,7 +1030,7 @@ class AccessControlledModel(Model):
             flags = set(flags)
 
         # Remove any publicly allowed flags from the required set
-        requiredFlags = flags - set(doc.get('publicAccessFlags', ()))
+        requiredFlags = flags - set(doc.get('publicFlags', ()))
 
         if requiredFlags and user is None:
             return False
