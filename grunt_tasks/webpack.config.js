@@ -25,6 +25,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 var paths = require('./webpack.paths.js');
 var es2015Preset = require.resolve('babel-preset-es2015');
+var istanbulPlugin = require.resolve('babel-plugin-istanbul');
 
 function fileLoader() {
     return {
@@ -76,7 +77,16 @@ module.exports = {
                 loader: 'babel-loader',
                 exclude: /node_modules/,
                 query: {
-                    presets: [es2015Preset]
+                    presets: [es2015Preset],
+                    env: {
+                        cover: {
+                            plugins: [[
+                                istanbulPlugin, {
+                                    exclude: ['**/*.pug', '**/*.jade', 'node_modules/**/*']
+                                }
+                            ]]
+                        }
+                    }
                 }
             },
             // JSON files
