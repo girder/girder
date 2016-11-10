@@ -808,7 +808,7 @@ class Folder(AccessControlledModel):
             self.setPublic(doc, setPublic, save=False)
 
         if publicFlags is not None:
-            doc = self.setPublicFlags(doc, publicFlags, save=False)
+            doc = self.setPublicFlags(doc, publicFlags, user=user, save=False)
 
         doc = AccessControlledModel.setAccessList(self, doc, access, save=save, user=user)
 
@@ -824,7 +824,7 @@ class Folder(AccessControlledModel):
             for folder in subfolders:
                 self.setAccessList(
                     folder, access, save=True, recurse=True, user=user,
-                    progress=progress, setPublic=setPublic)
+                    progress=progress, setPublic=setPublic, publicFlags=publicFlags)
 
         return doc
 

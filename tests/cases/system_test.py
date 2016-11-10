@@ -519,3 +519,34 @@ class SystemTestCase(base.TestCase):
 
         acl = self.model('user').getFullAccessList(user)
         self.assertEqual(set(acl['users'][0]['flags']), {'my_key', 'admin_flag'})
+
+        # Test setting public flags on a collection and folder
+        collection = self.model('collection').createCollection(
+            'coll', creator=self.users[0], public=True)
+        folder = self.model('folder').createFolder(
+            collection, 'folder', parentType='collection', creator=self.users[0])
+        folder = self.model('folder').setUserAccess(
+            folder, self.users[1], level=AccessType.ADMIN, save=True, currentUser=self.users[0])
+
+        collection = self.model('collection').setAccessList(
+            collection, access=collection['access'], save=True, recurse=True, user=self.users[0],
+            publicFlags=['my_key'])
+
+        # Make sure recursive setting of public flags worked
+        folder = self.model('folder').load(folder['_id'], force=True)
+        self.assertEqual(folder['publicFlags'], ['my_key'])
+
+        # Non-admin shouldn't be able to set admin-only public flags
+        folder = self.model('folder').setPublicFlags(
+            folder, flags=['admin_flag'], user=self.users[1], save=True)
+        self.assertEqual(folder['publicFlags'], [])
+
+        # Admin users should be able to set admin-only public flags
+        folder = self.model('folder').setPublicFlags(
+            folder, flags=['admin_flag'], user=self.users[0], save=True, append=True)
+        self.assertEqual(folder['publicFlags'], ['admin_flag'])
+
+        # Non-admin users can set admin-only public flags if they are already enabled
+        folder = self.model('folder').setPublicFlags(
+            folder, flags=['admin_flag', 'my_key'], user=self.users[0], save=True)
+        self.assertEqual(set(folder['publicFlags']), {'admin_flag', 'my_key'})

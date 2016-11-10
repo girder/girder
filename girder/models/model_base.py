@@ -750,28 +750,49 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def setPublicFlags(self, doc, flags, append=False, save=False):
+    def setPublicFlags(self, doc, flags, user, append=False, save=False, force=False):
         """
         Set permission flags that are granted on this resource to anonymous users.
         This means any user, whether anonymous or logged in, will receive all
-        of the specified permissions.
+        of the specified permissions. This also validates that the user attempting
+        to set the flags has permission to do so.
 
         :param doc: The document to update permission flags on.
         :type doc: dict
         :param flags: Flags or set of flags to add.
         :type flags: flag identifier, or a list/set/tuple of them
+        :param user: The user performing this action.
+        :type user:
         :param append: Whether to append to the list or replace it.
         :type append: bool
         :param save: Whether to save the document to the database afterward.
         :type save: bool
+        :param force: Set this to True to disable validation of the current
+            user's ability to set the flags.
+        :type force: bool
         """
+        currentFlags = doc.get('publicFlags', [])
+
         if not isinstance(flags, (list, tuple, set)):
             flags = [flags]
 
         if append:
-            doc['publicFlags'] = doc.get('publicFlags', []).extend(list(flags))
+            flags = currentFlags + list(flags)
+
+        flags = set(flags) & set(PERMISSION_FLAGS.keys())
+
+        if force or user['admin']:
+            doc['publicFlags'] = list(flags)
         else:
-            doc['publicFlags'] = flags
+            allowedFlags = []
+            for flag in flags:
+                info = PERMISSION_FLAGS[flag]
+
+                # If this is an admin-only flag, we only allow it if it's already enabled.
+                if not info['admin'] or (info['admin'] and flag in currentFlags):
+                    allowedFlags.append(flag)
+
+            doc['publicFlags'] = allowedFlags
 
         if save:
             doc = self.save(doc)
