@@ -133,9 +133,9 @@ def _cacheAuthUser(fun):
 
         user = fun(returnToken, *args, **kwargs)
         if isinstance(user, tuple):
-            setattr(cherrypy.request, 'girderUser', user[0])
+            setCurrentUser(user[0])
         else:
-            setattr(cherrypy.request, 'girderUser', user)
+            setCurrentUser(user)
 
         return user
     return inner
@@ -575,7 +575,7 @@ def ensureTokenScopes(token, scope):
         return
 
     if not tokenModel.hasScope(token, scope):
-        setattr(cherrypy.request, 'girderUser', None)
+        setCurrentUser(None)
         if isinstance(scope, six.string_types):
             scope = (scope,)
         raise AccessException(
