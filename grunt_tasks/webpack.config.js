@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
+/**
+ * This file contains options that apply to ALL target build configurations. Because we use
+ * the DllPlugin for dynamic loading, each individual bundle has its own config options
+ * that can extend these.
+ */
 var webpack = require('webpack');
-var path = require('path');
 
-var CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var ProvidePlugin = webpack.ProvidePlugin;
 
 var paths = require('./webpack.paths.js');
+var es2015Preset = require.resolve('babel-preset-es2015');
+var istanbulPlugin = require.resolve('babel-plugin-istanbul');
 
 function fileLoader() {
     return {
@@ -47,46 +51,14 @@ function urlLoader(options) {
 }
 
 module.exports = {
-    entry: {
-        'girder.ext': [
-            // This make sure some globals like $, moment, Backbone are available for testing
-            path.join(paths.web_src, 'globals.js')
-        ],
-        'girder.app': path.join(paths.web_src, 'main.js')
-    },
     output: {
         path: paths.web_built,
         filename: '[name].min.js'
     },
     plugins: [
-        // See http://stackoverflow.com/a/29087883/250457
-        // TODO: there is still too much code going in each plugin.min.js
-        // new webpack.optimize.CommonsChunkPlugin({
-        //     name: 'girder.app',
-        //     minChunks: function (module) {
-        //         var include = module.resource &&
-        //             module.resource.indexOf(paths.clients_web) !== -1;
-        //         if (include) {
-        //           // console.log('[girder.app] <=', module.resource.replace(paths.node_modules, ''));
-        //         }
-        //         return include;
-        //     }
-        // }),
-        new CommonsChunkPlugin({
-            name: 'girder.ext',
-            minChunks: function (module) {
-                var include = module.resource &&
-                    module.resource.indexOf(paths.clients_web) === -1 &&
-                    module.resource.indexOf(paths.plugins) === -1;
-                if (include) {
-                  // console.log('[girder.ext] <=', module.resource.replace(paths.node_modules, ''));
-                }
-                return include;
-            }
-        }),
         // Automatically detect jQuery and $ as free var in modules
         // and inject the jquery library. This is required by many jquery plugins
-        new ProvidePlugin({
+        new webpack.ProvidePlugin({
             jQuery: 'jquery',
             $: 'jquery',
             'window.jQuery': 'jquery'
@@ -103,7 +75,19 @@ module.exports = {
             {
                 test: /\.js$/,
                 loader: 'babel-loader',
-                exclude: [paths.node_modules]
+                exclude: /node_modules/,
+                query: {
+                    presets: [es2015Preset],
+                    env: {
+                        cover: {
+                            plugins: [[
+                                istanbulPlugin, {
+                                    exclude: ['**/*.pug', '**/*.jade', 'node_modules/**/*']
+                                }
+                            ]]
+                        }
+                    }
+                }
             },
             // JSON files
             {
@@ -136,7 +120,12 @@ module.exports = {
             {
                 test: /\.(pug|jade)$/,
                 loaders: [
-                    'babel-loader',
+                    {
+                        loader: 'babel-loader',
+                        query: {
+                            presets: [es2015Preset]
+                        }
+                    },
                     'pug-loader'
                 ]
             },
@@ -208,11 +197,6 @@ module.exports = {
             paths.plugins,
             paths.node_modules
         ]
-        // modulesDirectories: [ // deprecated in Webpack 2 beta, remove once 100% sure
-        //     paths.web_src,
-        //     paths.plugins,
-        //     paths.node_modules
-        // ]
     },
     node: {
         canvas: 'empty',

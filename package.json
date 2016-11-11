@@ -62,8 +62,8 @@
   "devDependencies": {
     "babel-plugin-istanbul": "^2.0.1",
     "eslint": "^3.3.1",
+    "eslint-config-girder": "^1.0.0",
     "eslint-config-semistandard": "^6.0.2",
-    "pug-lint": "^2.3.0",
     "eslint-config-standard": "^5.3.5",
     "eslint-plugin-backbone": "^2.0.2",
     "eslint-plugin-promise": "^2.0.1",
@@ -71,11 +71,12 @@
     "eslint-plugin-underscore": "0.0.10",
     "istanbul": "1.1.0-alpha.1",
     "phantomjs-prebuilt": "^2.1.13",
+    "pug-lint": "^2.3.0",
     "webpack-dev-server": "^2.1.0-beta.0"
   },
   "scripts": {
     "build": "grunt init && grunt",
-    "watch": "grunt webpack:watch",
+    "watch": "grunt --watch",
     "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts && pug-lint clients/web/src/templates",
     "docs": "grunt docs"
   }

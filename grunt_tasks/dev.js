@@ -51,12 +51,6 @@ module.exports = function (grunt) {
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
         var pug = require('pug');
         var buffer = fs.readFileSync('clients/web/test/testEnv.pug');
-        var dependencies = [
-            '/clients/web/static/built/girder.ext.min.js'
-        ];
-        var inputs = [
-            '/clients/web/static/built/girder.app.min.js'
-        ];
 
         var fn = pug.compile(buffer, {
             client: false,
@@ -65,11 +59,13 @@ module.exports = function (grunt) {
         fs.writeFileSync('clients/web/static/built/testing/testEnv.html', fn({
             cssFiles: [
                 '/clients/web/static/built/fontello/css/fontello.css',
-                '/clients/web/static/built/girder.ext.min.css',
-                '/clients/web/static/built/girder.app.min.css'
+                '/clients/web/static/built/girder_lib.min.css',
+                '/clients/web/static/built/girder_app.min.css'
             ],
-            jsFilesUncovered: dependencies,
-            jsFilesCovered: inputs,
+            jsFiles: [
+                '/clients/web/static/built/girder_lib.min.js',
+                '/clients/web/static/built/girder_app.min.js'
+            ],
             staticRoot: '/static',
             apiRoot: '/api/v1'
         }));

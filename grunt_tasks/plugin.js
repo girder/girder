@@ -21,6 +21,8 @@ module.exports = function (grunt) {
     var _ = require('underscore');
     var fs = require('fs');
     var path = require('path');
+    var customWebpackPlugins = require('./webpack.plugins.js');
+    var paths = require('./webpack.paths.js');
 
     var buildAll = grunt.option('all-plugins');
     var plugins = grunt.option('plugins');
@@ -115,18 +117,36 @@ module.exports = function (grunt) {
         // Add webpack target and name resolution for this plugin if web_client/main.js exists
         var webClient = path.resolve(dir + '/web_client');
         var main =  webClient + '/main.js';
+
         if (fs.existsSync(main)) {
             grunt.config.merge({
                 webpack: {
-                    options: {
+                    [`plugin_${plugin}`]: {
                         entry: {
-                            [`plugins/${plugin}/plugin`]: main
+                            [`plugins/${plugin}/plugin`]: [main]
                         },
+                        plugins: [
+                            new customWebpackPlugins.DllReferenceByPathPlugin({
+                                context: '.',
+                                manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                            })
+                        ]
+                    },
+                    options: {
+                        // Add an import alias to the global config for this plugin
                         resolve: {
                             alias: {
                                 [`girder_plugins/${plugin}`]: webClient
                             }
                         }
+                    }
+                }
+            });
+
+            grunt.config.merge({
+                default: {
+                    [`webpack:plugin_${plugin}`]: {
+                        dependencies: ['build'] // plugin builds must run after core build
                     }
                 }
             });
@@ -137,20 +157,15 @@ module.exports = function (grunt) {
             npm = (
                 _(deps || [])
                     .map(function (version, dep) {
-                        // escape any periods in the dependency version so
-                        // that grunt.config.set does not descend on each
-                        // version number component
-                        var escapedVersion = version.replace(/\./g, '\\.');
-
                         return [
                             dep,
-                            escapedVersion
+                            version
                         ].join('@');
                     })
             );
 
             if (npm.length) {
-                grunt.config.set('default.npm-install:' + npm.join(':'), {});
+                grunt.config.set('default.npm-install:' + grunt.config.escape(npm.join(':')), {});
             }
         }
 
