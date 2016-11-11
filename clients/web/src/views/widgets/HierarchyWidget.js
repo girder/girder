@@ -179,7 +179,9 @@ var HierarchyWidget = View.extend({
         } else {
             this.render();
         }
-        events.on('g:login', this.constructor.resetPickedResources, this);
+        events.on('g:login', () => {
+            this.constructor.resetPickedResources();
+        }, this);
     },
 
     /**
