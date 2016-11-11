@@ -1,6 +1,7 @@
 machine:
   environment:
     CXX: g++-4.8
+    BABEL_ENV: cover
   node:
     version: 5.12
   post:
@@ -9,9 +10,12 @@ machine:
 dependencies:
   cache_directories:
     - "~/cmake"
-  pre:
+  override:
     - ./scripts/install_cmake.sh:
         environment:
           CACHE: "~/cmake"
           CMAKE_VERSION: 3.4.3
           CMAKE_SHORT_VERSION: 3.4
+    - npm install; npm update; npm prune
+    - pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python
+    - girder-install web --all-plugins --dev
