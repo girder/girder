@@ -2,6 +2,11 @@ machine:
   environment:
     CXX: g++-4.8
     BABEL_ENV: cover
+    CACHE: $HOME/cache
+    CMAKE_SHORT_VERSION: 3.4
+    CMAKE_VERSION: 3.4.3
+    PATH: $CACHE/cmake-$CMAKE_VERSION/bin:$PATH
+    JASMINE_TIMEOUT: 15000
   node:
     version: 5.12
   post:
@@ -9,11 +14,18 @@ machine:
 
 dependencies:
   cache_directories:
-    - "~/cmake"
+    - "~/cache"
   override:
-    - CACHE=~/cmake CMAKE_VERSION=3.4.3 CMAKE_SHORT_VERSION=3.4 source ./scripts/install_cmake.sh
-    - cmake --version
+    - pyenv rehash
+    - sudo apt-get update; sudo apt-get install libgif-dev
+    - ./scripts/install_cmake.sh
     - npm install; npm update; npm prune
     - pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python
     - girder-install web --all-plugins --dev
+
+test:
+  pre:
+    - mkdir _build
+  override:
+    - ctest -VV -S cmake/circle_continuous.cmake || true; if [ -f _build/test_failed ] ; then false ; fi
 
