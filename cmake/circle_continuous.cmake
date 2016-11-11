@@ -3,8 +3,12 @@ set(CTEST_BINARY_DIRECTORY "$ENV{HOME}/_build")
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 if($ENV{CIRCLE_NODE_INDEX} EQUAL "0")
+  set(python_version 2.7)
   set(test_group "python")
 elseif($ENV{CIRCLE_NODE_INDEX} EQUAL "1")
+  set(python_version 3.4)
+  set(test_group "python")
+elseif($ENV{CIRCLE_NODE_INDEX} EQUAL "2")
   set(test_group "browser")
 endif()
 
@@ -14,7 +18,7 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
 ctest_start("Continuous")
 ctest_configure(
-  OPTIONS "-DPYTHON_COVERAGE=ON"
+  OPTIONS "-DPYTHON_COVERAGE=ON;-DPYTHON_VERSION=${python_version}"
 )
 ctest_build()
 

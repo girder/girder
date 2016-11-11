@@ -10,7 +10,9 @@ machine:
   node:
     version: 5.12
   post:
-    - pyenv global 2.7.11 3.4.4
+    - pyenv global 2.7.11
+    - if [ "$CIRCLE_NODE_INDEX" -eq 1 ] ; then pyenv global 3.4.4 ; fi
+    - pyenv rehash
 
 dependencies:
   cache_directories:
@@ -27,5 +29,6 @@ test:
   pre:
     - mkdir _build
   override:
-    - ctest -VV -S cmake/circle_continuous.cmake || true; if [ -f _build/test_failed ] ; then false ; fi
+    - ctest -VV -S cmake/circle_continuous.cmake || true; if [ -f _build/test_failed ] ; then false ; fi:
+        parallel: true
 
