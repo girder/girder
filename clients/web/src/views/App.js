@@ -57,7 +57,6 @@ var App = View.extend({
         if (this._started) {
             return promise;
         }
-        this._started = true;
 
         // set defaults
         settings = _.defaults(settings || {}, {
@@ -81,6 +80,8 @@ var App = View.extend({
                 setCurrentUser(new UserModel(user));
                 eventStream.open();
             }
+
+            this._started = true;
 
             if (settings.render) {
                 this.render();
