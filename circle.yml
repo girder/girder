@@ -1,0 +1,17 @@
+machine:
+  environment:
+    CXX: g++-4.8
+  node:
+    version: 5.12
+  post:
+    - pyenv global 2.7.11 3.4.4
+
+dependencies:
+  cache_directories:
+    - "~/cmake"
+  pre:
+    - ./scripts/install_cmake.sh:
+        environment:
+          CACHE: "~/cmake"
+          CMAKE_VERSION: 3.4.3
+          CMAKE_SHORT_VERSION: 3.4
