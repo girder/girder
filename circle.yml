@@ -2,6 +2,8 @@ machine:
   environment:
     CXX: g++-4.8
     BABEL_ENV: cover
+    CMAKE_VERSION: 3.4.3
+    CMAKE_SHORT_VERSION: 3.4
   node:
     version: 5.12
   post:
@@ -11,11 +13,14 @@ dependencies:
   cache_directories:
     - "~/cmake"
   override:
-    - ./scripts/install_cmake.sh:
-        environment:
-          CACHE: "~/cmake"
-          CMAKE_VERSION: 3.4.3
-          CMAKE_SHORT_VERSION: 3.4
+    - CACHE="~/cmake" source ./scripts/install_cmake.sh:
     - npm install; npm update; npm prune
     - pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python
     - girder-install web --all-plugins --dev
+
+test:
+  override:
+    - mkdir _build && cd _build
+    - "~/cmake-$CMAKE_SHORT_VERSION/bin/cmake" -DPYTHON_COVERAGE:BOOL=ON -DPYTHON_VERSION:STRING=2.7.11 ..
+    - "~/cmake-$CMAKE_SHORT_VERSION/bin/ctest" -VV -S ../cmake/circle_continuous.cmake || true
+
