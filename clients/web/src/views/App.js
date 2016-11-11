@@ -67,13 +67,6 @@ var App = View.extend({
 
         // define a function to be run after fetching the user model
         var afterFetch = _.bind(function (user) {
-            // TODO: this below is the old, pre-webpack code. eventStream is now a singleton
-            // imported from 'girder/utilities/EventStream'. This mean it is not "re-newed" if
-            // start is called another time (is it, ever)
-            // girder.eventStream = new girder.EventStream({
-            //     timeout: girder.sseTimeout || null
-            // });
-
             this._createLayout();
 
             if (user) {
