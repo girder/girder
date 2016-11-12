@@ -25,7 +25,7 @@ dependencies:
     - pyenv exec pip install -U pip | cat
     - pyenv exec pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python | cat
     - pyenv rehash
-    - pyenv exec girder-install web --all-plugins --dev
+    - pyenv exec girder-install web --all-plugins --dev | cat
 
 test:
   pre:
