@@ -31,6 +31,6 @@ test:
   pre:
     - mkdir _build
   override:
-    - PYENV_VERSION=`pyenv version-name` ctest -VV -S cmake/circle_continuous.cmake || true; test ! -f _build/test_failed:
+    - ~/girder/cmake/run_circleci.sh:
         parallel: true
 
