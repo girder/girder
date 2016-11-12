@@ -1,15 +1,11 @@
 set(CTEST_SOURCE_DIRECTORY "$ENV{HOME}/girder")
-set(CTEST_BINARY_DIRECTORY "$ENV{HOME}/_build")
+set(CTEST_BINARY_DIRECTORY "$ENV{HOME}/build")
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
-if($ENV{CIRCLE_NODE_INDEX} LESS "0")
-  set(test_group "python")
-elseif($ENV{CIRCLE_NODE_INDEX} EQUAL "2")
-  set(test_group "browser")
-endif()
 
+set(test_group $ENV{TEST_GROUP})
 set(CTEST_SITE "CircleCI")
-set(CTEST_BUILD_NAME "Linux-$ENV{CIRCLE_BRANCH}-Mongo-$ENV{MONGO_VERSION}-${test_group}")
+set(CTEST_BUILD_NAME "Linux-$ENV{CIRCLE_BRANCH}-${test_group}")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 set(cfg_options
   -DPYTHON_COVERAGE=ON

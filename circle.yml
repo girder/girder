@@ -29,7 +29,7 @@ dependencies:
 
 test:
   pre:
-    - mkdir _build
+    - mkdir ~/build
   override:
     - ~/girder/cmake/run_circleci.sh:
         parallel: true
