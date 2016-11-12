@@ -138,7 +138,8 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     commands = [
         (npm, 'install', '--unsafe-perm'),
-        [npm, 'run', 'build', '--', quiet, '--env=%s' % env] + _getPluginBuildArgs(allPlugins, plugins)
+        [npm, 'run', 'build', '--',
+         quiet, '--env=%s' % env] + _getPluginBuildArgs(allPlugins, plugins)
     ]
 
     for cmd in commands:
