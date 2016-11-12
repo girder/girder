@@ -20,6 +20,7 @@ dependencies:
     - sudo apt-get update; sudo apt-get install libgif-dev
     - ./scripts/install_cmake.sh
     - npm update; npm prune
+    - pyenv exec pip install -U pip
     - pyenv exec pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python
     - pyenv rehash
     - pyenv exec girder-install web --all-plugins --dev
