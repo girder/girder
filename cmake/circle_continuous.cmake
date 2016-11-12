@@ -5,7 +5,7 @@ include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 
 set(test_group $ENV{TEST_GROUP})
 set(CTEST_SITE "CircleCI")
-set(CTEST_BUILD_NAME "Linux-$ENV{CIRCLE_BRANCH}-${test_group}")
+set(CTEST_BUILD_NAME "Linux-$ENV{CIRCLE_BRANCH}-$ENV{PYTHON_VERSION}-${test_group}")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 set(cfg_options
   -DPYTHON_COVERAGE=ON
