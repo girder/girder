@@ -12,23 +12,22 @@ machine:
   post:
     - pyenv global 2.7.11
     - if [ "$CIRCLE_NODE_INDEX" -eq 1 ] ; then pyenv global 3.4.4 ; fi
-    - pyenv rehash
 
 dependencies:
   cache_directories:
     - "~/cache"
   override:
-    - pyenv rehash
     - sudo apt-get update; sudo apt-get install libgif-dev
     - ./scripts/install_cmake.sh
-    - npm install; npm update; npm prune
-    - pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python
-    - girder-install web --all-plugins --dev
+    - npm update; npm prune
+    - pyenv exec pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python
+    - pyenv rehash
+    - pyenv exec girder-install web --all-plugins --dev
 
 test:
   pre:
     - mkdir _build
   override:
-    - ctest -VV -S cmake/circle_continuous.cmake || true; if [ -f _build/test_failed ] ; then false ; fi:
+    - PYENV_VERSION=`pyenv version-name` ctest -VV -S cmake/circle_continuous.cmake || true; test ! -f _build/test_failed:
         parallel: true
 

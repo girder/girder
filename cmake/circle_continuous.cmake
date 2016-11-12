@@ -2,11 +2,7 @@ set(CTEST_SOURCE_DIRECTORY "$ENV{HOME}/girder")
 set(CTEST_BINARY_DIRECTORY "$ENV{HOME}/_build")
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
-if($ENV{CIRCLE_NODE_INDEX} EQUAL "0")
-  set(python_version 2.7)
-  set(test_group "python")
-elseif($ENV{CIRCLE_NODE_INDEX} EQUAL "1")
-  set(python_version 3.4)
+if($ENV{CIRCLE_NODE_INDEX} LESS "0")
   set(test_group "python")
 elseif($ENV{CIRCLE_NODE_INDEX} EQUAL "2")
   set(test_group "browser")
@@ -15,11 +11,16 @@ endif()
 set(CTEST_SITE "CircleCI")
 set(CTEST_BUILD_NAME "Linux-$ENV{CIRCLE_BRANCH}-Mongo-$ENV{MONGO_VERSION}-${test_group}")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
+set(cfg_options
+  -DPYTHON_COVERAGE=ON
+  -DPYTHON_VERSION="$ENV{PYENV_VERSION}"
+  -DPYTHON_COVERAGE_EXECUTABLE="pyenv exec coverage"
+  -DVIRTUALENV_EXECUTABLE="pyenv exec virtualenv"
+  -DFLAKE8_EXECUTABLE="pyenv exec flake8"
+)
 
 ctest_start("Continuous")
-ctest_configure(
-  OPTIONS "-DPYTHON_COVERAGE=ON;-DPYTHON_VERSION=${python_version}"
-)
+ctest_configure(OPTIONS "${cfg_options}")
 ctest_build()
 
 if(test_group STREQUAL python)
