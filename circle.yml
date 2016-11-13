@@ -28,13 +28,6 @@ dependencies:
     - pyenv exec girder-install web --all-plugins --dev | cat
 
 test:
-  pre:
-    - mkdir ~/build
   override:
     - ~/girder/cmake/run_circleci.sh:
         parallel: true
-  post:
-    - mkdir -p $CIRCLE_ARTIFACTS/coverage/python $CIRCLE_ARTIFACTS/coverage/js
-    - cp -r ~/build/coverage.xml ~/girder/clients/web/dev/built/py_coverage/* $CIRCLE_ARTIFACTS/coverage/python || true
-    - cp -r ~/build/coverage/* $CIRCLE_ARTIFACTS/coverage/js || true
-    - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
