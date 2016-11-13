@@ -22,12 +22,12 @@ ctest_build()
 
 if(test_group STREQUAL python)
   ctest_test(
-    PARALLEL_LEVEL 16 RETURN_VALUE res
+    PARALLEL_LEVEL 4 RETURN_VALUE res
     INCLUDE_LABEL girder_python
   )
 elseif(test_group STREQUAL browser)
   ctest_test(
-    PARALLEL_LEVEL 16 RETURN_VALUE res
+    PARALLEL_LEVEL 4 RETURN_VALUE res
     EXCLUDE_LABEL girder_python
   )
   file(RENAME "${CTEST_BINARY_DIRECTORY}/coverage/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
