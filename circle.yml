@@ -1,0 +1,33 @@
+machine:
+  environment:
+    CXX: g++-4.8
+    BABEL_ENV: cover
+    CACHE: $HOME/cache
+    CMAKE_SHORT_VERSION: 3.4
+    CMAKE_VERSION: 3.4.3
+    PATH: $CACHE/cmake-$CMAKE_VERSION/bin:$PATH
+    JASMINE_TIMEOUT: 15000
+    DEBIAN_FRONTEND: noninteractive
+  node:
+    version: 5.12
+  post:
+    - pyenv global 2.7.11
+    - if [ "$CIRCLE_NODE_INDEX" -eq 1 ] ; then pyenv global 3.4.4 ; fi
+
+dependencies:
+  cache_directories:
+    - "~/cache"
+  override:
+    - sudo apt-get -q update; sudo apt-get install -q -y libgif-dev
+    - ./scripts/install_cmake.sh
+    - npm config set progress false
+    - npm update; npm prune
+    - pyenv exec pip install -U pip | cat
+    - pyenv exec pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python | cat
+    - pyenv rehash
+    - pyenv exec girder-install web --all-plugins --dev | cat
+
+test:
+  override:
+    - ~/girder/cmake/run_circleci.sh:
+        parallel: true

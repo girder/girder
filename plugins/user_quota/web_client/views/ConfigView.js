@@ -31,8 +31,10 @@ var ConfigView = View.extend({
             type: 'GET',
             path: 'system/setting',
             data: {
-                list: JSON.stringify(['user_quota.default_user_quota',
-                'user_quota.default_collection_quota'])
+                list: JSON.stringify([
+                    'user_quota.default_user_quota',
+                    'user_quota.default_collection_quota'
+                ])
             }
         }).done(_.bind(function (resp) {
             this.settings = resp;
