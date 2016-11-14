@@ -26,6 +26,8 @@ var customWebpackPlugins = require('./webpack.plugins.js');
 module.exports = function (grunt) {
     noptFix(grunt);
     var environment = grunt.option('env') || 'dev';
+    var progress = !grunt.option('no-progress');
+
     var webpackConfig = _.extend({}, webpackGlobalConfig);
 
     if (['dev', 'prod'].indexOf(environment) === -1) {
@@ -83,7 +85,7 @@ module.exports = function (grunt) {
             reasons: false,
             errorDetails: true
         },
-        progress: true,        // show progress
+        progress: progress,    // show progress
         failOnError: !isWatch, // report error to grunt if webpack find errors; set to false if
         watch: isWatch,        // use webpacks watcher (you need to keep the grunt process alive)
         keepalive: isWatch,    // don't finish the grunt task (in combination with the watch option)

@@ -251,7 +251,8 @@ class InstallTestCase(base.TestCase):
                 list(p.mock_calls[0][1][0]), ['npm', 'install', '--unsafe-perm'])
             self.assertEqual(
                 list(p.mock_calls[1][1][0]),
-                ['npm', 'run', 'build', '--', '--env=prod', '--plugins='])
+                ['npm', 'run', 'build', '--',
+                 '--no-progress=true', '--env=prod', '--plugins='])
 
         # Test with progress (requires actually calling a subprocess)
         os.environ['PATH'] = '%s:%s' % (
