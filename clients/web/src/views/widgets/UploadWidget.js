@@ -169,6 +169,11 @@ var UploadWidget = View.extend({
             .removeClass('g-dropzone-show')
             .html(`<i class="icon-docs"/> ${this._browseText}`);
         this.files = e.originalEvent.dataTransfer.files;
+
+        if (!this.multiFile && this.files.length > 1) {
+            this.files = [this.files[0]];
+        }
+
         this.filesChanged();
     },
 
