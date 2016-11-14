@@ -21,6 +21,7 @@ from girder.api import access
 from girder.api.describe import describeRoute, Description
 from girder.api.rest import loadmodel, Resource
 from girder.constants import AccessType, SettingKey, TokenScope
+from girder.models.model_base import ValidationException
 from girder.utility import mail_utils
 
 from .constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
@@ -42,9 +43,12 @@ class AuthorizedUpload(Resource):
     )
     def createAuthorizedUpload(self, folder, params):
         try:
-            days = int(params.get('duration'))
-        except Exception:
-            days = self.model('setting').get(SettingKey.COOKIE_LIFETIME)
+            if params.get('duration'):
+                days = int(params.get('duration'))
+            else:
+                days = self.model('setting').get(SettingKey.COOKIE_LIFETIME)
+        except ValueError:
+            raise ValidationException('Token duration must be an integer, or leave it empty.')
 
         token = self.model('token').createToken(days=days, user=self.getCurrentUser(), scope=(
             TOKEN_SCOPE_AUTHORIZED_UPLOAD, 'authorized_upload_folder_%s' % folder['_id']))

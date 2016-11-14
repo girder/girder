@@ -117,7 +117,7 @@ var UploadWidget = View.extend({
         this.totalSize = 0;
         this.title = _.has(settings, 'title') ? settings.title : 'Upload files';
         this.modal = _.has(settings, 'modal') ? settings.modal : true;
-        this.multiFile = _.has(settings, 'multiFile') ? settings.multiFile : true;
+        this.multiFile = _.has(settings, 'multiFile') ? settings.multiFile : this.parentType !== 'file';
         this.overrideStart = settings.overrideStart || false;
         this.otherParams = settings.otherParams || {};
     },

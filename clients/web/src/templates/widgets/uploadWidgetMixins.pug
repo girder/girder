@@ -7,26 +7,26 @@ mixin g-upload-widget-subtitle
         i.icon-doc-text-inv
       else if (parentType === 'file')
         i.icon-doc-inv
-      | #{parent.name()}
+      = parent.name()
 
 mixin g-upload-widget-browse-or-drop
   .g-drop-zone
     i.icon-docs
-    if (parentType === 'file')
-      |  Browse or drop a file here
-    else
+    if (multiFile)
       |  Browse or drop files here
-  .form-group.hide
-    if (parentType === 'file' || !multiFile)
-      input#g-files(type="file")
     else
-      input#g-files(type="file", multiple)
+      |  Browse or drop a file here
+  .form-group.hide
+    input#g-files(type="file", multiple=(multiFile ? 'multiple' : null))
 
 mixin g-upload-widget-progress
   .g-current-progress-message
   .g-progress-current.progress.progress-striped.hide
     .progress-bar.progress-bar-info(role="progressbar")
-  .g-overall-progress-message No files selected
+  if (multiFile)
+    .g-overall-progress-message No files selected
+  else
+    .g-overall-progress-message No file selected
   .g-progress-overall.progress.progress-striped.hide
     .progress-bar.progress-bar-info(role="progressbar")
   .g-upload-error-message.g-validation-failed-message

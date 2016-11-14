@@ -30,6 +30,11 @@ from .rest import AuthorizedUpload
 
 @access.public
 def _authorizeInitUpload(event):
+    """
+    Called when initializing an upload, prior to the default handler. Checks if
+    the user is passing an authorized upload token, and if so, sets the current
+    request-thread user to be whoever created the token.
+    """
     token = getCurrentToken()
     params = event.info['params']
     tokenModel = ModelImporter.model('token')
@@ -63,6 +68,11 @@ def _storeUploadId(event):
 
 @access.public
 def _authorizeUploadStep(event):
+    """
+    Called before any requests dealing with partially completed uploads. Sets the
+    request thread user to the authorized upload token creator if the requested
+    upload is an authorized upload.
+    """
     token = getCurrentToken()
     uploadId = ObjectId(event.info['params'].get('uploadId'))
 
@@ -90,7 +100,9 @@ def _uploadComplete(event):
         ModelImporter.model('item').save(item)
 
         text = mail_utils.renderTemplate('authorized_upload.uploadFinished.mako', {
-            'itemId': item['_id']
+            'itemId': item['_id'],
+            'itemName': item['name'],
+            'itemDescription': item.get('description', '')
         })
         mail_utils.sendEmail(to=user['email'], subject='Authorized upload complete', text=text)
         ModelImporter.model('token').remove(token)
