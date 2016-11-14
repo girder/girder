@@ -12,10 +12,7 @@ mixin g-upload-widget-subtitle
 mixin g-upload-widget-browse-or-drop
   .g-drop-zone
     i.icon-docs
-    if (multiFile)
-      |  Browse or drop files here
-    else
-      |  Browse or drop a file here
+    |  #{browseText}
   .form-group.hide
     input#g-files(type="file", multiple=(multiFile ? 'multiple' : null))
 
@@ -23,10 +20,7 @@ mixin g-upload-widget-progress
   .g-current-progress-message
   .g-progress-current.progress.progress-striped.hide
     .progress-bar.progress-bar-info(role="progressbar")
-  if (multiFile)
-    .g-overall-progress-message No files selected
-  else
-    .g-overall-progress-message No file selected
+  .g-overall-progress-message= noneSelectedText
   .g-progress-overall.progress.progress-striped.hide
     .progress-bar.progress-bar-info(role="progressbar")
   .g-upload-error-message.g-validation-failed-message

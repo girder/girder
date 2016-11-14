@@ -120,16 +120,23 @@ var UploadWidget = View.extend({
         this.multiFile = _.has(settings, 'multiFile') ? settings.multiFile : this.parentType !== 'file';
         this.overrideStart = settings.overrideStart || false;
         this.otherParams = settings.otherParams || {};
+
+        this._browseText = this.multiFile ? 'Browse or drop files here' : 'Browse or drop a file here';
+        this._noneSelectedText = this.multiFile ? 'No files selected' : 'No file selected';
     },
 
     render: function () {
+        var templateParams = {
+            parent: this.parent,
+            parentType: this.parentType,
+            title: this.title,
+            multiFile: this.multiFile,
+            browseText: this._browseText,
+            noneSelectedText: this._noneSelectedText
+        };
+
         if (this.modal) {
-            this.$el.html(UploadWidgetTemplate({
-                parent: this.parent,
-                parentType: this.parentType,
-                title: this.title,
-                multiFile: this.multiFile
-            }));
+            this.$el.html(UploadWidgetTemplate(templateParams));
 
             var base = this;
             var dialogid;
@@ -149,12 +156,7 @@ var UploadWidget = View.extend({
 
             handleOpen('upload', undefined, dialogid);
         } else {
-            this.$el.html(UploadWidgetNonModalTemplate({
-                parent: this.parent,
-                parentType: this.parentType,
-                title: this.title,
-                multiFile: this.multiFile
-            }));
+            this.$el.html(UploadWidgetNonModalTemplate(templateParams));
         }
         return this;
     },
@@ -162,16 +164,17 @@ var UploadWidget = View.extend({
     filesDropped: function (e) {
         e.stopPropagation();
         e.preventDefault();
+
         this.$('.g-drop-zone')
             .removeClass('g-dropzone-show')
-            .html('<i class="icon-docs"/> Browse or drop files');
+            .html(`<i class="icon-docs"/> ${this._browseText}`);
         this.files = e.originalEvent.dataTransfer.files;
         this.filesChanged();
     },
 
     filesChanged: function () {
         if (this.files.length === 0) {
-            this.$('.g-overall-progress-message').text('No files selected');
+            this.$('.g-overall-progress-message').text(this._noneSelectedText);
             this.setUploadEnabled(false);
         } else {
             this.totalSize = 0;
