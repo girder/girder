@@ -133,7 +133,6 @@ module.exports = {
             {
                 test: /\.(png|jpg)$/,
                 loaders: [
-                    urlLoader(),
                     fileLoader()
                 ]
             },

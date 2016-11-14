@@ -82,35 +82,36 @@
   border none
   background-color transparent
 
-.g-widget-metadata-add-button
+button.g-widget-metadata-add-button
   float right
   margin-right 10px
   padding 2px 3px
   margin-top 4px
 
-.g-widget-metadata-edit-button
+.g-widget-metadata-container .g-widget-metadata-edit-button
   margin 2px 8px 0 0
   float right
   font-size 12px
   padding 3px
 
-.g-widget-metadata-cancel-button, .g-widget-metadata-save-button, .g-widget-metadata-delete-button, .g-widget-metadata-toggle-button
-  margin-right 4px
-  margin-top 1px
-  display inline-block
-  height 23px
-  font-size 12px
-  padding 2px
+.g-widget-metadata-row.editing
+  .g-widget-metadata-key-input, .g-widget-metadata-value-input
+    height 24px
+    margin-left 5px
+    margin-right 5px
+    display inline-block
+    vertical-align middle
 
-.g-widget-metadata-key-input, .g-widget-metadata-value-input
-  height 22px
-  margin-left 5px
-  margin-right 5px
-  display inline-block
-  vertical-align middle
+  .g-widget-metadata-key-input
+    width 30%
 
-.g-widget-metadata-key-input
-  width: 30%
+  .g-widget-metadata-value-input
+    width 54%
 
-.g-widget-metadata-value-input
-  width: 54%
+  .g-widget-metadata-cancel-button, .g-widget-metadata-save-button, .g-widget-metadata-delete-button, .g-widget-metadata-toggle-button
+    margin-right 4px
+    margin-top 1px
+    display inline-block
+    height 24px
+    font-size 12px
+    padding 2px
