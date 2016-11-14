@@ -62,6 +62,14 @@ var UploadWidget = View.extend({
                 .html('<i class="icon-docs"/> Browse or drop files');
         },
         'dragover .g-drop-zone': function (e) {
+            var dataTransfer = e.originalEvent.dataTransfer;
+            if (!dataTransfer) {
+                return;
+            }
+            // The following two lines enable drag and drop from the chrome download bar
+            var allowed = dataTransfer.effectAllowed;
+            dataTransfer.dropEffect = (allowed === 'move' || allowed === 'linkMove') ? 'move' : 'copy';
+
             e.preventDefault();
         },
         'drop .g-drop-zone': 'filesDropped'
