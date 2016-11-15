@@ -216,7 +216,10 @@ class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
         return 'password'
 
     def check_auth_none(self, username):
-        return paramiko.AUTH_FAILED
+        if username.lower() == 'anonymous':
+            return paramiko.AUTH_SUCCESSFUL
+        else:
+            return paramiko.AUTH_FAILED
 
     def check_auth_password(self, username, password):
         if username.lower() == 'anonymous':
