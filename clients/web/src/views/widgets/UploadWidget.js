@@ -179,6 +179,8 @@ var UploadWidget = View.extend({
         this.files = e.originalEvent.dataTransfer.files;
 
         if (!this.multiFile && this.files.length > 1) {
+            // If in single-file mode and the user drops multiple files,
+            // we just take the first one.
             this.files = [this.files[0]];
         }
 
