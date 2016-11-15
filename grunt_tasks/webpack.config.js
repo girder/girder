@@ -77,7 +77,7 @@ function defaultLoaderPlugins() {
         if (pluginFile) {
             var config = yaml.safeLoad(fs.readFileSync(pluginFile));
             if (!config || !config.webpack || config.webpack.defaultLoaders === undefined || config.webpack.defaultLoaders !== false) {
-                paths.push(path.resolve(dir));
+                paths.push(path.resolve('plugins', dir));
             }
         }
     });
