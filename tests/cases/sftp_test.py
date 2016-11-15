@@ -193,6 +193,25 @@ class SftpTestCase(base.TestCase):
         sftpClient.close()
         client.close()
 
+        # Test that any username other than anonymous will fail using auth_none.
+        sock = socket.socket()
+        sock.connect(('localhost', TEST_PORT))
+        trans = paramiko.Transport(sock)
+        trans.connect()
+        with self.assertRaises(paramiko.ssh_exception.BadAuthenticationType):
+            trans.auth_none('')
+        trans.close()
+        sock.close()
+
+        sock = socket.socket()
+        sock.connect(('localhost', TEST_PORT))
+        trans = paramiko.Transport(sock)
+        trans.connect()
+        with self.assertRaises(paramiko.ssh_exception.BadAuthenticationType):
+            trans.auth_none('eponymous')
+        trans.close()
+        sock.close()
+
         # Test that a connection can be opened for anonymous access using auth_none.
         sock = socket.socket()
         sock.connect(('localhost', TEST_PORT))
