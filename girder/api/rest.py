@@ -133,9 +133,9 @@ def _cacheAuthUser(fun):
 
         user = fun(returnToken, *args, **kwargs)
         if isinstance(user, tuple):
-            setattr(cherrypy.request, 'girderUser', user[0])
+            setCurrentUser(user[0])
         else:
-            setattr(cherrypy.request, 'girderUser', user)
+            setCurrentUser(user)
 
         return user
     return inner
@@ -225,6 +225,17 @@ def getCurrentUser(returnToken=False):
 
         user = ModelImporter.model('user').load(token['userId'], force=True)
         return retVal(user, token)
+
+
+def setCurrentUser(user):
+    """
+    Explicitly set the user for the current request thread. This can be used
+    to enable specialized auth behavior on a per-request basis.
+
+    :param user: The user to set as the current user of this request.
+    :type user: dict or None
+    """
+    cherrypy.request.girderUser = user
 
 
 def requireAdmin(user, message=None):
@@ -564,7 +575,7 @@ def ensureTokenScopes(token, scope):
         return
 
     if not tokenModel.hasScope(token, scope):
-        setattr(cherrypy.request, 'girderUser', None)
+        setCurrentUser(None)
         if isinstance(scope, six.string_types):
             scope = (scope,)
         raise AccessException(

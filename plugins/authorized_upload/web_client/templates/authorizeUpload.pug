@@ -1,0 +1,21 @@
+.g-body-title Authorize upload into folder #[a(href=`#folder/${folder.id}`)= folder.name()]
+
+p.
+  This will generate a secure URL that can be used to upload a single file into this folder.
+
+form
+  .form-group
+    label Number of days until URL expires (optional, defaults to lifetime of user sessions)
+    input.g-num-days.form-control
+
+btn.g-create-authorized-upload.btn.btn-primary
+  i.icon-link
+  |  Generate URL
+
+.g-url-container.hide
+  p.
+    Your secure URL is below. Copy this value and send it to the user who will perform the
+    upload. They do not need to register a user in order to perform the upload. This token
+    will allow the user to upload a single file to the destination folder.
+  p You will be notified via email when the upload is complete.
+  input.g-authorized-upload-url-target.form-control(readonly)
