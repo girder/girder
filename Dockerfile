@@ -26,10 +26,8 @@ COPY Gruntfile.js /girder/Gruntfile.js
 COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
-COPY .babelrc /girder/.babelrc
 
 RUN pip install -e .[plugins]
-RUN npm install --production --unsafe-perm
-RUN npm run build -- --env=prod
+RUN girder-install web --all-plugins
 
 ENTRYPOINT ["python", "-m", "girder"]
