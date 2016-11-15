@@ -13,8 +13,8 @@ We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
 
 .. |logo| image:: clients/web/static/img/Girder_Favicon.png
 
-.. |build-status| image:: https://travis-ci.org/girder/girder.svg?branch=master
-    :target: https://travis-ci.org/girder/girder
+.. |build-status| image:: https://circleci.com/gh/girder/girder.png?style=shield
+    :target: https://circleci.com/gh/girder/girder
     :alt: Build Status
 
 .. |docs-status| image:: https://readthedocs.org/projects/girder/badge?version=latest
