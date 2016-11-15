@@ -133,7 +133,7 @@ module.exports = function (grunt) {
         // the user can control whether this is a "Girder client extension" or
         // just a standalone web client.
         var output = config.webpack && config.webpack.output || 'plugin';
-        var pluginEntry =  `plugins/${plugin}/${output}`
+        var pluginEntry =  `plugins/${plugin}/${output}`;
 
         var pluginNodeDir = path.resolve(process.cwd(), 'node_modules_' + plugin, 'node_modules');
         var helperConfig = {
