@@ -19,6 +19,9 @@
  * the DllPlugin for dynamic loading, each individual bundle has its own config options
  * that can extend these.
  */
+var fs = require('fs');
+var path = require('path');
+var yaml = require('js-yaml');
 var webpack = require('webpack');
 
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -50,6 +53,40 @@ function urlLoader(options) {
     return loader;
 }
 
+function defaultLoaderPlugins() {
+    // Computes a list of plugin paths that are opting to use Girder's loader
+    // configuration directly; these paths will be added to the "include"
+    // directive for the loaders in the config template below.
+    var dirs = fs.readdirSync('plugins');
+    var paths = [];
+
+    dirs.forEach(function (dir) {
+        // Find a plugin config file.
+        var pluginFile = path.resolve('plugins', dir, 'plugin.yml');
+        if (!fs.existsSync(pluginFile)) {
+            pluginFile = path.resolve('plugins', dir, 'plugin.json');
+            if (!fs.existsSync(pluginFile)) {
+                pluginFile = null;
+            }
+        }
+
+        // If there's a plugin file, and it has no config, no webpack section,
+        // no defaultLoaders property, or the defaultLoaders property is
+        // explicitly set to anything besdies false, then add the plugin to the
+        // list of plugins that want to use Girder's loader configuration.
+        if (pluginFile) {
+            var config = yaml.safeLoad(fs.readFileSync(pluginFile));
+            if (!config || !config.webpack || config.webpack.defaultLoaders === undefined || config.webpack.defaultLoaders !== false) {
+                paths.push(path.resolve(dir));
+            }
+        }
+    });
+
+    return paths;
+}
+
+var loaderPaths = defaultLoaderPlugins().concat([/clients\/web\/src/]);
+
 module.exports = {
     output: {
         path: paths.web_built,
@@ -74,7 +111,7 @@ module.exports = {
             // ES2015
             {
                 test: /\.js$/,
-                include: /clients\/web\/src/,
+                include: loaderPaths,
                 loader: 'babel-loader',
                 exclude: /node_modules/,
                 query: {
@@ -93,16 +130,13 @@ module.exports = {
             // JSON files
             {
                 test: /\.json$/,
-                include: /clients\/web\/src/,
+                include: loaderPaths,
                 loader: 'json-loader'
             },
             // Stylus
             {
                 test: /\.styl$/,
-                include: [
-                    /clients\/web\/src/,
-                    // /node_modules/
-                ],
+                include: loaderPaths,
                 loaders: [
                     ExtractTextPlugin.extract('style-loader'),
                     'css-loader',
@@ -117,10 +151,9 @@ module.exports = {
             // CSS
             {
                 test: /\.css$/,
-                include: [
-                    /clients\/web\/src/,
+                include: loaderPaths.concat([
                     /node_modules/
-                ],
+                ]),
                 loaders: [
                     ExtractTextPlugin.extract('style-loader'),
                     'css-loader'
@@ -129,7 +162,7 @@ module.exports = {
             // Pug
             {
                 test: /\.(pug|jade)$/,
-                include: /clients\/web\/src/,
+                include: loaderPaths,
                 loaders: [
                     {
                         loader: 'babel-loader',
@@ -143,10 +176,9 @@ module.exports = {
             // PNG, JPEG
             {
                 test: /\.(png|jpg)$/,
-                include: [
-                    /clients\/web\/src/,
+                include: loaderPaths.concat([
                     /node_modules/
-                ],
+                ]),
                 loaders: [
                     fileLoader()
                 ]
@@ -154,10 +186,9 @@ module.exports = {
             // WOFF
             {
                 test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-                include: [
-                    /clients\/web\/src/,
+                include: loaderPaths.concat([
                     /node_modules/
-                ],
+                ]),
                 loaders: [
                     urlLoader({ mimetype: 'application/font-woff' }),
                     fileLoader()
@@ -166,10 +197,9 @@ module.exports = {
             // WOFF2
             {
                 test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-                include: [
-                    /clients\/web\/src/,
+                include: loaderPaths.concat([
                     /node_modules/
-                ],
+                ]),
                 loaders: [
                     urlLoader({ mimetype: 'application/font-woff2' }),
                     fileLoader()
@@ -178,10 +208,9 @@ module.exports = {
             // TTF
             {
                 test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-                include: [
-                    /clients\/web\/src/,
+                include: loaderPaths.concat([
                     /node_modules/
-                ],
+                ]),
                 loaders: [
                     urlLoader({ mimetype: 'application/octet-stream' }),
                     fileLoader()
@@ -190,10 +219,9 @@ module.exports = {
             // EOT
             {
                 test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-                include: [
-                    /clients\/web\/src/,
+                include: loaderPaths.concat([
                     /node_modules/
-                ],
+                ]),
                 loaders: [
                     fileLoader()
                 ]
@@ -201,10 +229,9 @@ module.exports = {
             // SVG
             {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-                include: [
-                    /clients\/web\/src/,
+                include: loaderPaths.concat([
                     /node_modules/
-                ],
+                ]),
                 loaders: [
                     urlLoader({ mimetype: 'image/svg+xml' }),
                     fileLoader()
