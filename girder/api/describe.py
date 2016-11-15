@@ -268,14 +268,11 @@ class Description(object):
             reason = '\n\n'.join(reason)
 
         if code in self._responses:
-            print(TerminalColor.warning(
-                "WARNING: Error response for code '%s' is already defined "
-                "(old: '%s', new: '%s')"
-                % (code, self._responses[code]['description'], reason)))
-
-        self._responses[code] = {
-            'description': reason
-        }
+            self._responses[code]['description'] += '\n\n' + reason
+        else:
+            self._responses[code] = {
+                'description': reason
+            }
 
         return self
 

@@ -148,7 +148,6 @@ module.exports = {
                     /node_modules/
                 ],
                 loaders: [
-                    urlLoader(),
                     fileLoader()
                 ]
             },

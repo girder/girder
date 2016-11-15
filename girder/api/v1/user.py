@@ -23,7 +23,8 @@ import datetime
 
 from ..describe import Description, describeRoute
 from girder.api import access
-from girder.api.rest import Resource, RestException, AccessException, filtermodel, loadmodel
+from girder.api.rest import Resource, RestException, AccessException, filtermodel, loadmodel,\
+    setCurrentUser
 from girder.constants import AccessType, SettingKey, TokenScope
 from girder.models.token import genToken
 from girder.utility import mail_utils
@@ -129,7 +130,7 @@ class User(Resource):
             login, password = credentials.split(':', 1)
             user = self.model('user').authenticate(login, password)
 
-            setattr(cherrypy.request, 'girderUser', user)
+            setCurrentUser(user)
             token = self.sendAuthTokenCookie(user)
 
         return {
@@ -194,7 +195,7 @@ class User(Resource):
 
         outputUser = self.model('user').filter(user, user)
         if not currentUser and self.model('user').canLogin(user):
-            setattr(cherrypy.request, 'girderUser', user)
+            setCurrentUser(user)
             token = self.sendAuthTokenCookie(user)
             outputUser['authToken'] = {
                 'token': token['_id'],
@@ -440,7 +441,7 @@ class User(Resource):
         user = self.model('user').save(user)
 
         if self.model('user').canLogin(user):
-            setattr(cherrypy.request, 'girderUser', user)
+            setCurrentUser(user)
             authToken = self.sendAuthTokenCookie(user)
             return {
                 'user': self.model('user').filter(user, user),
