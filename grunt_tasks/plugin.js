@@ -117,14 +117,15 @@ module.exports = function (grunt) {
         // Find the plugin's webpack helper file; default to the identity
         // function.
         var webpackHelperFile = path.resolve(dir, config.webpack && config.webpack.configHelper || 'webpack.helper.js');
-        var webpackHelper = function (x) {
-            return x;
-        };
+        var webpackHelper;
         if (fs.existsSync(webpackHelperFile)) {
             console.log(`Loading webpack helper from ${webpackHelperFile}`);
             webpackHelper = require(webpackHelperFile);
         } else {
             console.log('No webpack helper file found.');
+            webpackHelper = function (x) {
+                return x;
+            };
         }
 
         // Configure the output file; default to 'plugin.min.js' - Girder loads
