@@ -19,6 +19,7 @@
 
 import paramiko
 import six
+import socket
 import stat
 import threading
 
@@ -191,6 +192,31 @@ class SftpTestCase(base.TestCase):
 
         sftpClient.close()
         client.close()
+
+        # Test that a connection can be opened for anonymous access using auth_none.
+        sock = socket.socket()
+        sock.connect(('localhost', TEST_PORT))
+        trans = paramiko.Transport(sock)
+        trans.connect()
+        trans.auth_none(username='anonymous')
+        sftpClient = paramiko.SFTPClient.from_transport(trans)
+
+        # Only public data should be visible
+        self.assertEqual(set(sftpClient.listdir('/user')), {'admin', 'regularuser'})
+        self.assertEqual(sftpClient.listdir('/collection'), ['public collection'])
+        self.assertEqual(sftpClient.listdir('/user/admin'), ['Public'])
+
+        # Make sure the client cannot distinguish between a resource that does not exist
+        # vs. one they simply don't have read access to.
+        with six.assertRaisesRegex(self, IOError, 'No such file'):
+            sftpClient.listdir('/user/regularuser/Private')
+
+        with six.assertRaisesRegex(self, IOError, 'No such file'):
+            sftpClient.file('/user/regularuser/Private/test.txt/test.txt', 'r')
+
+        sftpClient.close()
+        trans.close()
+        sock.close()
 
         # Test anonymous access
         client = paramiko.SSHClient()
