@@ -11,6 +11,23 @@ var uploadHandlers = {};
 var uploadChunkSize = 1024 * 1024 * 64; // 64MB
 
 /**
+ * Set the root path to the API.
+ *
+ * @param path The full root path for the API.
+ */
+function setApiRoot(root) {
+    apiRoot = root;
+}
+
+/** Set the root path to the static content.
+ *
+ * @param path The full root path for the static content.
+ */
+function setStaticRoot(root) {
+    staticRoot = root;
+}
+
+/**
  * Make a request to the REST API. Bind a "done" handler to the return
  * value that will be called when the response is successful. To bind a
  * custom error handler, bind an "error" handler to the return promise,
@@ -183,6 +200,8 @@ function setUploadChunkSize(val) {
 export {
     apiRoot,
     staticRoot,
+    setApiRoot,
+    setStaticRoot,
     uploadHandlers,
     restRequest,
     numberOutstandingRestRequests,
