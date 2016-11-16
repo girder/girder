@@ -10,11 +10,9 @@ describe('Test setApiRoot() and setStaticRoot() functions', function () {
         });
 
         runs(function () {
-            var host = 'http://localhost:30019';
-
             // Test the default values.
-            expect(girder.rest.apiRoot).toBe(host + '/api/v1');
-            expect(girder.rest.staticRoot).toBe(host + '/static');
+            expect(girder.rest.apiRoot.slice(girder.rest.apiRoot.indexOf('/', 7))).toBe('/api/v1');
+            expect(girder.rest.staticRoot.slice(girder.rest.staticRoot.indexOf('/', 7))).toBe('/static');
 
             var apiRootVal = '/foo/bar/v2';
             girder.rest.setApiRoot(apiRootVal);
