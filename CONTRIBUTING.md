@@ -13,7 +13,7 @@ do better.
 We encourage a range of Pull Requests, from patches that include passing tests and
 documentation, all the way down to half-baked ideas that launch discussions.
 
-The PR Process, Circle CI, and Related Gotchas
+The PR Process, CircleCI, and Related Gotchas
 ----------------------------------------------
 
 #### How to submit a PR ?
@@ -56,15 +56,15 @@ Then, click on the "Delete branch" button that appears afterward.
 
 #### Automatic testing of pull requests
 
-When you submit a PR to the Girder repo, Circle CI will run the full build on two different branches
+When you submit a PR to the Girder repo, CircleCI will run the full build on two different branches
 
   * The commit at the head of the PR branch, the `push` build
   * The head of the PR branch that is then merged into `master`, the `pr` branch
 
-The Circle CI build will run according to the [circle.yml file](/circle.yml), which is
+The CircleCI build will run according to the [circle.yml file](/circle.yml), which is
 useful as an example for how to set up your own environment for testing.
 
-The tests that run in Circle are harnessed with CTest, which submits the results of its
+The tests that run in CircleCI are harnessed with CTest, which submits the results of its
 automated testing to [Girder's CDash dashboard](http://my.cdash.org/index.php?project=girder)
 where the test and coverage results can be easily visualized and explored.
 
