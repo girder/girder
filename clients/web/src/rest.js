@@ -5,8 +5,8 @@ import Backbone from 'backbone';
 import events from 'girder/events';
 import { getCurrentToken, cookie } from 'girder/auth';
 
-var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin);
-var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin);
+var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin) || '/api/v1';
+var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin) || 'static';
 var uploadHandlers = {};
 var uploadChunkSize = 1024 * 1024 * 64; // 64MB
 
