@@ -77,6 +77,7 @@ if(RUN_CORE_TESTS)
   add_web_client_test(empty_layout "${PROJECT_SOURCE_DIR}/clients/web/test/spec/emptyLayoutSpec.js")
   add_web_client_test(swagger "${PROJECT_SOURCE_DIR}/clients/web/test/spec/swaggerSpec.js" BASEURL "/api/v1")
   add_web_client_test(browser "${PROJECT_SOURCE_DIR}/clients/web/test/spec/browserSpec.js")
+  add_web_client_test(set_api "${PROJECT_SOURCE_DIR}/clients/web/test/spec/setApiSpec.js")
 
   if (BUILD_JAVASCRIPT_TESTS)
     set_property(TEST web_client_admin PROPERTY RUN_SERIAL ON)
