@@ -324,7 +324,7 @@ var AccessWidget = View.extend({
 
         var recurse = this.$('#g-apply-recursive').is(':checked');
 
-        this.model.off('g:accessListSaved')
+        this.model.off('g:accessListSaved', null, this)
                   .on('g:accessListSaved', function () {
                       if (this.modal) {
                           this.$el.modal('hide');

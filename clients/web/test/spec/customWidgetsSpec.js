@@ -168,9 +168,10 @@
     });
 
     describe('Test access widget with non-standard options', function () {
+        var widget;
         it('test non-modal rendering', function () {
             runs(function () {
-                new girder.views.widgets.AccessWidget({
+                widget = new girder.views.widgets.AccessWidget({
                     el: 'body',
                     modal: false,
                     model: folder,
@@ -219,6 +220,185 @@
                 expect($('.g-ac-list').length).toBe(1);
                 expect($('.g-grant-access-container').length).toBe(1);
                 expect($('.g-recursive-container').length).toBe(0);
+            });
+        });
+
+        it('test custom permission flags UI', function () {
+            var xhr, saved = false;
+            runs(function () {
+                // Register a couple permission flags in the system
+                xhr = girder.rest.restRequest({
+                    path: 'webclienttest/permission_flag',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        openFlag: {
+                            name: 'Open flag',
+                            description: 'Anyone can set this flag',
+                            admin: false
+                        },
+                        adminFlag: {
+                            name: 'Admin-only flag',
+                            description: 'Only admins may enable this flag',
+                            admin: true
+                        }
+                    })
+                });
+            });
+
+            waitsFor(function () {
+                return xhr.status !== undefined;
+            }, 'register permission flag XHR to return');
+
+            runs(function () {
+                // Re-render the access widget
+                widget.destroy();
+                widget = new girder.views.widgets.AccessWidget({
+                    el: 'body',
+                    modal: false,
+                    model: folder,
+                    modelType: 'folder',
+                    parentView: null
+                });
+            });
+
+            waitsFor(function () {
+                return $('.g-public-container').length === 1;
+            }, 'the access widget to render');
+
+            runs(function () {
+                // Flag control for specific user should be visible, but public flag control
+                // should not be since this resource is set to private.
+                expect($('.g-access-action-container a.g-action-manage-flags').length).toBe(1);
+                expect($('.g-action-manage-public-flags:visible').length).toBe(0);
+
+                // Switching resource to public should show public flags link
+                $('#g-access-public').click();
+                expect($('.g-action-manage-public-flags:visible').length).toBe(1);
+
+                $('.g-action-manage-public-flags').click();
+            });
+
+            waitsFor(function () {
+                return $('.popover input.g-public-flag-checkbox').length > 0;
+            }, 'public flag popover to display');
+
+            runs(function () {
+                // Make sure the public flags popover rendered properly
+                expect($('.popover input.g-public-flag-checkbox').length).toBe(2);
+
+                var adminCheckbox = $('.popover input.g-public-flag-checkbox[flag="adminFlag"]');
+                var openCheckbox = $('.popover .g-public-flag-checkbox[flag="openFlag"]');
+                expect(adminCheckbox.parent().text()).toBe('Admin-only flag');
+                expect(openCheckbox.parent().text()).toBe('Open flag');
+                expect(adminCheckbox.is(':checked')).toBe(false);
+                expect(openCheckbox.is(':checked')).toBe(false);
+                expect(adminCheckbox.is(':disabled')).toBe(true);
+                expect(openCheckbox.is(':disabled')).toBe(false);
+
+                // Enable the open flag and close the popover
+                openCheckbox.click();
+                $('.popover .g-close-public-flags-popover').click();
+            });
+
+            waitsFor(function () {
+                return $('.popover').length === 0;
+            }, 'public flags popover to disappear');
+
+            runs(function () {
+                $('.g-action-manage-flags').click();
+            });
+
+            waitsFor(function () {
+                return $('.popover input.g-flag-checkbox').length > 0;
+            }, 'individual user flag popover to display');
+
+            runs(function () {
+                // Make sure the per-user flag checkbox rendered properly
+                expect($('.popover input.g-flag-checkbox').length).toBe(2);
+
+                var adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
+                var openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');
+                expect(adminCheckbox.parent().text()).toBe('Admin-only flag');
+                expect(openCheckbox.parent().text()).toBe('Open flag');
+                expect(adminCheckbox.is(':checked')).toBe(false);
+                expect(openCheckbox.is(':checked')).toBe(false);
+                expect(adminCheckbox.is(':disabled')).toBe(true);
+                expect(openCheckbox.is(':disabled')).toBe(false);
+
+                openCheckbox.click();
+                $('.popover .g-close-flags-popover').click();
+            });
+
+            waitsFor(function () {
+                return $('.popover').length === 0;
+            }, 'user flags popover to disappear');
+
+            runs(function () {
+                widget.once('g:accessListSaved', function () {
+                    saved = true;
+                });
+                $('.g-save-access-list').click();
+            });
+
+            waitsFor(function () {
+                return saved;
+            }, 'access list to be saved to the server');
+
+            runs(function () {
+                // force re-fetch of access list of folder
+                xhr = folder.fetchAccess(true);
+            });
+
+            waitsFor(function () {
+                return xhr.status !== undefined;
+            }, 'access fetch to be complete');
+
+            runs(function () {
+                var access = folder.get('access');
+                expect(access.users.length).toBe(1);
+                expect(access.users[0].level).toBe(girder.constants.AccessType.ADMIN);
+                expect(access.users[0].flags).toEqual(['openFlag']);
+
+                expect(folder.get('publicFlags')).toEqual(['openFlag']);
+                expect(folder.get('public')).toBe(true);
+            });
+
+            runs(function () {
+                // Re-render the access widget
+                widget.destroy();
+                widget = new girder.views.widgets.AccessWidget({
+                    el: 'body',
+                    modal: false,
+                    model: folder,
+                    modelType: 'folder',
+                    parentView: null
+                });
+            });
+            waitsFor(function () {
+                return $('.g-public-container').length === 1;
+            }, 'the access widget to render');
+
+            runs(function () {
+                $('.g-action-manage-flags').click();
+            });
+
+            waitsFor(function () {
+                return $('.popover input.g-flag-checkbox').length > 0;
+            }, 'individual user flag popover to display');
+
+            runs(function () {
+                // Make sure enabled flags render properly
+                expect($('.popover input.g-flag-checkbox').length).toBe(2);
+
+                var adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
+                var openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');
+                expect(adminCheckbox.parent().text()).toBe('Admin-only flag');
+                expect(openCheckbox.parent().text()).toBe('Open flag');
+                expect(adminCheckbox.is(':checked')).toBe(false);
+                expect(openCheckbox.is(':checked')).toBe(true);
+                expect(adminCheckbox.is(':disabled')).toBe(true);
+                expect(openCheckbox.is(':disabled')).toBe(false);
             });
         });
     });
