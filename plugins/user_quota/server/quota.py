@@ -26,7 +26,7 @@ from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException, loadmodel
 from girder.constants import AccessType
-from girder.models.model_base import GirderException
+from girder.models.model_base import GirderException, ValidationException
 from girder.utility import assetstore_utilities
 from girder.utility.system import formatSize
 from . import constants
@@ -411,14 +411,14 @@ class QuotaPolicy(Resource):
             return
         quotaInfo = self._checkUploadSize(event.info)
         if quotaInfo:
-            raise GirderException(
+            raise ValidationException(
                 'Upload would exceed file storage quota (need %s, only %s '
                 'available - used %s out of %s)' %
                 (formatSize(quotaInfo['sizeNeeded']),
                  formatSize(quotaInfo['quotaLeft']),
                  formatSize(quotaInfo['quotaUsed']),
                  formatSize(quotaInfo['fileSizeQuota'])),
-                'user_quota.upload-exceeds-quota')
+                field='size')
 
     def checkUploadFinalize(self, event):
         """
@@ -432,11 +432,11 @@ class QuotaPolicy(Resource):
         if quotaInfo:
             # Delete the upload
             self.model('upload').cancelUpload(upload)
-            raise GirderException(
+            raise ValidationException(
                 'Upload exceeded file storage quota (need %s, only %s '
                 'available - used %s out of %s)' %
                 (formatSize(quotaInfo['sizeNeeded']),
                  formatSize(quotaInfo['quotaLeft']),
                  formatSize(quotaInfo['quotaUsed']),
                  formatSize(quotaInfo['fileSizeQuota'])),
-                'user_quota.upload-exceeds-quota')
+                field='size')
