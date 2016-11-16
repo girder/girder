@@ -135,7 +135,6 @@ class WebClientTestEndpoints(Resource):
             registerPermissionFlag(key, info['name'], info['description'], info['admin'])
 
 
-
 class WebClientTestCase(base.TestCase):
     def setUp(self):
         self.specFile = os.environ['SPEC_FILE']

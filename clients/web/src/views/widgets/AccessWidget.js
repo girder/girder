@@ -170,34 +170,44 @@ var AccessWidget = View.extend({
             placement: 'bottom'
         });
 
-        this.$('.g-action-manage-flags').popover({
-            trigger: 'manual',
-            html: true,
-            placement: 'left',
-            viewport: {
-                selector: 'body',
-                padding: 10
-            },
-            content: function () {
-                return $(this).parent().find('.g-flags-popover-container').html();
+        // Re-binding popovers actually breaks them, so we make sure to
+        // only bind ones that aren't already bound.
+        _.each(this.$('.g-action-manage-flags'), el => {
+            if (!$(el).data('bs.popover')) {
+                $(el).popover({
+                    trigger: 'manual',
+                    html: true,
+                    placement: 'left',
+                    viewport: {
+                        selector: 'body',
+                        padding: 10
+                    },
+                    content: function () {
+                        return $(this).parent().find('.g-flags-popover-container').html();
+                    }
+                }).click(function () {
+                    $(this).popover('toggle');
+                });
             }
-        }).click(function () {
-            $(this).popover('toggle');
         });
 
-        this.$('.g-action-manage-public-flags').popover({
-            trigger: 'manual',
-            html: true,
-            placement: 'right',
-            viewport: {
-                selector: 'body',
-                padding: 10
-            },
-            content: function () {
-                return $(this).parent().find('.g-public-flags-popover-container').html();
+        _.each(this.$('.g-action-manage-public-flags'), el => {
+            if (!$(el).data('bs.popover')) {
+                $(el).popover({
+                    trigger: 'manual',
+                    html: true,
+                    placement: 'right',
+                    viewport: {
+                        selector: 'body',
+                        padding: 10
+                    },
+                    content: function () {
+                        return $(this).parent().find('.g-public-flags-popover-container').html();
+                    }
+                }).click(function () {
+                    $(this).popover('toggle');
+                });
             }
-        }).click(function () {
-            $(this).popover('toggle');
         });
     },
 
