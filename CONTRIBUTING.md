@@ -56,10 +56,10 @@ Then, click on the "Delete branch" button that appears afterward.
 
 #### Automatic testing of pull requests
 
-When you submit a PR to the Girder repo, CircleCI will run the full build on two different branches
-
-  * The commit at the head of the PR branch, the `push` build
-  * The head of the PR branch that is then merged into `master`, the `pr` branch
+When you submit a PR to the Girder repo, CircleCI will run the build and test suite on the
+head of the branch. If you add new commits onto the branch, those will also automatically
+be run through the CI process. The status of the CI process (passing, failing, or in progress) will
+be displayed directly in the PR page in GitHub.
 
 The CircleCI build will run according to the [circle.yml file](/circle.yml), which is
 useful as an example for how to set up your own environment for testing.
