@@ -69,7 +69,7 @@ class QuotaTestCase(base.TestCase):
             public=True, creator=self.admin)
 
     def _uploadFile(self, name, parent, parentType='folder', size=1024,
-                    error=None, partial=False):
+                    error=None, partial=False, validationError=None):
         """
         Upload a random file to an item.
 
@@ -102,6 +102,11 @@ class QuotaTestCase(base.TestCase):
             self.assertStatus(resp, 500)
             self.assertEqual(resp.json['type'], 'girder')
             self.assertEqual(resp.json['message'][:len(error)], error)
+            return None
+        elif validationError:
+            self.assertStatus(resp, 400)
+            self.assertEqual(resp.json['type'], 'validation')
+            self.assertEqual(resp.json['message'][:len(validationError)], validationError)
             return None
         # We don't create the contents until after we check for the first
         # error.  This means that we can try to upload huge files without
@@ -264,12 +269,12 @@ class QuotaTestCase(base.TestCase):
         self._setPolicy({'fileSizeQuota': 4096, 'useQuotaDefault': False},
                         model, resource, user)
         self._uploadFile('File too large', folder, size=4096,
-                         error='Upload would exceed file storage quota')
+                         validationError='Upload would exceed file storage quota')
         # But a 2 kb file will succeed
         file = self._uploadFile('Second upload', folder, size=2048)
         # And a second 2 kb file will fail
         self._uploadFile('File too large', folder, size=2048,
-                         error='Upload would exceed file storage quota')
+                         validationError='Upload would exceed file storage quota')
         # If we start uploading two files, only one should complete
         file1kwargs = self._uploadFile('First partial', folder, size=768,
                                        partial=True)
@@ -279,7 +284,7 @@ class QuotaTestCase(base.TestCase):
         self.assertStatusOk(resp)
         try:
             resp = self.multipartRequest(**file2kwargs)
-            self.assertStatus(resp, 500)
+            self.assertStatus(resp, 400)
         except AssertionError as exc:
             self.assertTrue('Upload exceeded' in exc.args[0])
         # Shrink the quota to smaller than all of our files.  Replacing an
@@ -295,12 +300,12 @@ class QuotaTestCase(base.TestCase):
         # should fail
         self._setQuotaDefault(model, 8192)
         self._uploadFile('File too large', folder, size=4096,
-                         error='Upload would exceed file storage quota')
+                         validationError='Upload would exceed file storage quota')
         # But a 2 kb file will succeed
         file = self._uploadFile('Fifth upload', folder, size=2048)
         # And a second 2 kb file will fail
         self._uploadFile('File too large', folder, size=2048,
-                         error='Upload would exceed file storage quota')
+                         validationError='Upload would exceed file storage quota')
         # Set a policy with a large quota to test using NumberLong in the
         # mongo settings.
         self._setQuotaDefault(model, 5*1024**3)
@@ -308,7 +313,7 @@ class QuotaTestCase(base.TestCase):
         file = self._uploadFile('Six upload', folder, size=2048)
         # But a huge one will fail
         self._uploadFile('File too large', folder, size=6*1024**3,
-                         error='Upload would exceed file storage quota')
+                         validationError='Upload would exceed file storage quota')
 
     def testAssetstorePolicy(self):
         """

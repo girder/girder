@@ -513,7 +513,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         return data
 
     def multipartRequest(self, fields, files, path, method='POST', user=None,
-                         prefix='/api/v1', isJson=True):
+                         prefix='/api/v1', isJson=True, token=None):
         """
         Make an HTTP request with multipart/form-data encoding. This can be
         used to send files with the request.
@@ -526,10 +526,11 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :type method: str
         :param prefix: The prefix to use before the path.
         :param isJson: Whether the response is a JSON object.
+        :param token: Auth token to use.
+        :type token: str
         :returns: The cherrypy response object from the request.
         """
-        contentType, body, size = MultipartFormdataEncoder().encode(
-            fields, files)
+        contentType, body, size = MultipartFormdataEncoder().encode(fields, files)
 
         headers = [('Host', '127.0.0.1'),
                    ('Accept', 'application/json'),
@@ -540,7 +541,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
         request.show_tracebacks = True
 
-        if user is not None:
+        if token is not None:
+            headers.append(('Girder-Token', token))
+        elif user is not None:
             headers.append(('Girder-Token', self._genToken(user)))
 
         fd = io.BytesIO(body)

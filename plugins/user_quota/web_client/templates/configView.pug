@@ -8,9 +8,9 @@ form#g-user-quota-form(role="form")
       label.control-label(for=`g-${resource.model}SizeValue`)
         | Default #{resource.name} File Size Quota
       p.g-quota-description
-        | This is the maximum allowed size of all files for individual
-        | #{resource.model}s, unless that #{resource.model}'s quota is
-        | explicitly set.
+        | This is the maximum allowed size of all files for
+        | individual #{resource.model}s, unless that #{resource.model}'s
+        | quota is explicitly set.
       input.input-sm.g-sizeValue.form-control(
           type="text", value=resource.sizeValue ? resource.sizeValue : '',
           placeholder="Maximum allowed size of all files, or blank for no limit",
