@@ -28,6 +28,7 @@ from .. import base
 from girder.api.describe import API_VERSION
 from girder.constants import (
     AccessType, SettingKey, SettingDefault, registerPermissionFlag, ROOT_DIR)
+from girder.models.model_base import AccessException
 from girder.utility import config
 
 
@@ -453,6 +454,8 @@ class SystemTestCase(base.TestCase):
             }
         })
 
+        group = self.model('group').createGroup('test group', creator=self.users[1])
+
         user = self.users[1]
 
         # Manage custom permission flags on an access controlled resource
@@ -460,6 +463,12 @@ class SystemTestCase(base.TestCase):
 
         # Admin should always have permission
         self.assertTrue(self.model('user').hasAccessFlags(user, self.users[0], flags=['my_key']))
+
+        # Test the requireAccessFlags method
+        with self.assertRaises(AccessException):
+            self.model('user').requireAccessFlags(user, user=user, flags='my_key')
+
+        self.model('user').requireAccessFlags(user, user=self.users[0], flags='my_key')
 
         acl = self.model('user').getFullAccessList(user)
         self.assertEqual(acl['users'][0]['flags'], [])
@@ -470,7 +479,11 @@ class SystemTestCase(base.TestCase):
                 'level': AccessType.ADMIN,
                 'flags': ['my_key', 'not a registered flag']
             }],
-            'groups': []
+            'groups': [{
+                'id': group['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['my_key']
+            }]
         }, save=True)
 
         # Only registered flags should be stored
@@ -528,9 +541,13 @@ class SystemTestCase(base.TestCase):
         folder = self.model('folder').setUserAccess(
             folder, self.users[1], level=AccessType.ADMIN, save=True, currentUser=self.users[0])
 
+        with self.assertRaises(AccessException):
+            self.model('collection').requireAccessFlags(collection, user=None, flags='my_key')
+
         collection = self.model('collection').setAccessList(
             collection, access=collection['access'], save=True, recurse=True, user=self.users[0],
             publicFlags=['my_key'])
+        self.model('collection').requireAccessFlags(collection, user=None, flags='my_key')
 
         # Make sure recursive setting of public flags worked
         folder = self.model('folder').load(folder['_id'], force=True)
@@ -548,5 +565,5 @@ class SystemTestCase(base.TestCase):
 
         # Non-admin users can set admin-only public flags if they are already enabled
         folder = self.model('folder').setPublicFlags(
-            folder, flags=['admin_flag', 'my_key'], user=self.users[0], save=True)
+            folder, flags=['admin_flag', 'my_key'], user=self.users[1], save=True)
         self.assertEqual(set(folder['publicFlags']), {'admin_flag', 'my_key'})
