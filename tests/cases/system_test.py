@@ -25,15 +25,35 @@ import six
 from subprocess import check_output, CalledProcessError
 
 from .. import base
-from girder.api.describe import API_VERSION
+from girder.api import access
+from girder.api.describe import describeRoute, API_VERSION
+from girder.api.rest import loadmodel, Resource
 from girder.constants import (
     AccessType, SettingKey, SettingDefault, registerPermissionFlag, ROOT_DIR)
 from girder.models.model_base import AccessException
 from girder.utility import config
 
+testServer = None
+
+
+class TestEndpoints(Resource):
+    def __init__(self):
+        super(TestEndpoints, self).__init__()
+        self.resourceName = 'test_endpoints'
+
+        self.route('GET', ('loadmodel_with_flags', ':id'), self.loadModelFlags)
+
+    @access.public
+    @describeRoute(None)
+    @loadmodel(model='user', level=AccessType.READ, requiredFlags='my_key')
+    def loadModelFlags(self, user, params):
+        return 'success'
+
 
 def setUpModule():
-    base.startServer()
+    global testServer
+    testServer = base.startServer()
+    testServer.root.api.v1.test_endpoints = TestEndpoints()
 
 
 def tearDownModule():
@@ -473,6 +493,11 @@ class SystemTestCase(base.TestCase):
         acl = self.model('user').getFullAccessList(user)
         self.assertEqual(acl['users'][0]['flags'], [])
 
+        # Test loadmodel requiredFlags argument via REST endpoint
+        resp = self.request(
+            '/test_endpoints/loadmodel_with_flags/%s' % user['_id'], user=self.users[1])
+        self.assertStatus(resp, 403)
+
         user = self.model('user').setAccessList(self.users[0], access={
             'users': [{
                 'id': self.users[1]['_id'],
@@ -485,6 +510,11 @@ class SystemTestCase(base.TestCase):
                 'flags': ['my_key']
             }]
         }, save=True)
+
+        resp = self.request(
+            '/test_endpoints/loadmodel_with_flags/%s' % user['_id'], user=self.users[1])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, 'success')
 
         # Only registered flags should be stored
         acl = self.model('user').getFullAccessList(user)

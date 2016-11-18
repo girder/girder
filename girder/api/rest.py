@@ -319,10 +319,13 @@ class loadmodel(ModelImporter):  # noqa: class name
     :type force: bool
     :param exc: Whether an exception should be raised for a nonexistent
         resource.
+    :param requiredFlags: Custom permission flags that are required on
+        the object being loaded.
+    :type requiredFlags: str or list/set/tuple of str
     :type exc: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,
-                 force=False, exc=True, **kwargs):
+                 force=False, exc=True, requiredFlags=None, **kwargs):
         if map is None:
             self.map = {'id': model}
         else:
@@ -334,6 +337,7 @@ class loadmodel(ModelImporter):  # noqa: class name
         self.plugin = plugin
         self.exc = exc
         self.kwargs = kwargs
+        self.requiredFlags = requiredFlags
 
     def _getIdValue(self, kwargs, idParam):
         if idParam in kwargs:
@@ -364,6 +368,10 @@ class loadmodel(ModelImporter):  # noqa: class name
                 if kwargs[converted] is None and self.exc:
                     raise RestException(
                         'Invalid %s id (%s).' % (model.name, str(id)))
+
+                if self.requiredFlags and not self.force:
+                    model.requireAccessFlags(
+                        kwargs[converted], user=getCurrentUser(), flags=self.requiredFlags)
 
             return fun(*args, **kwargs)
         return wrapped
