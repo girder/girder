@@ -77,7 +77,7 @@ class File(Resource):
         .param('reference', 'If included, this information is passed to the '
                'data.process event when the upload is complete.',
                required=False)
-        .param('assetstoreId', 'Direct the upload to a specific assetstore.',
+        .param('assetstoreId', 'Direct the upload to a specific assetstore (admin-only).',
                required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
@@ -113,6 +113,8 @@ class File(Resource):
             self.requireParams('size', params)
             assetstore = None
             if params.get('assetstoreId'):
+                self.requireAdmin(
+                    user, message='You must be an admin to select a destination assetstore.')
                 assetstore = self.model('assetstore').load(
                     params['assetstoreId'])
             try:
@@ -390,8 +392,9 @@ class File(Resource):
             return self.model('file').filter(
                 self.model('upload').finalizeUpload(upload), user)
 
-    @access.user(scope=TokenScope.DATA_WRITE)
+    @access.admin(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='file', level=AccessType.WRITE)
+    @filtermodel(model='file')
     @describeRoute(
         Description('Move a file to a different assetstore.')
         .param('id', 'The ID of the file.', paramType='path')
