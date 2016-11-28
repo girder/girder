@@ -76,6 +76,10 @@ class AccessControlMixin(object):
         return self.model(self.resourceColl).hasAccess(
             resource, user=user, level=level)
 
+    def hasAccessFlags(self, doc, user=None, flags=None):
+        resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
+        return self.model(self.resourceColl).hasAccessFlags(resource, user, flags)
+
     def requireAccess(self, doc, user=None, level=AccessType.READ):
         """
         This wrapper just provides a standard way of throwing an
@@ -97,6 +101,10 @@ class AccessControlMixin(object):
             raise AccessException("%s access denied for %s %s (user %s)." %
                                   (perm, self.name, doc.get('_id', 'unknown'),
                                    userid))
+
+    def requireAccessFlags(self, doc, user=None, flags=None):
+        resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
+        return self.model(self.resourceColl).requireAccessFlags(resource, user, flags)
 
     def filterResultsByPermission(self, cursor, user, level, limit, offset,
                                   removeKeys=()):
