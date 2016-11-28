@@ -1,0 +1,4 @@
+name: Worker tasks
+description: Allows items in Girder to be used as specifications for tasks to be run on the worker.
+dependencies:
+  - worker
