@@ -53,39 +53,7 @@ function urlLoader(options) {
     return loader;
 }
 
-function defaultLoaderPlugins() {
-    // Computes a list of plugin paths that are opting to use Girder's loader
-    // configuration directly; these paths will be added to the "include"
-    // directive for the loaders in the config template below.
-    var dirs = fs.readdirSync('plugins');
-    var paths = [];
-
-    dirs.forEach(function (dir) {
-        // Find a plugin config file.
-        var pluginFile = path.resolve('plugins', dir, 'plugin.yml');
-        if (!fs.existsSync(pluginFile)) {
-            pluginFile = path.resolve('plugins', dir, 'plugin.json');
-            if (!fs.existsSync(pluginFile)) {
-                pluginFile = null;
-            }
-        }
-
-        // If there's a plugin file, and it has no config, no webpack section,
-        // no defaultLoaders property, or the defaultLoaders property is
-        // explicitly set to anything besdies false, then add the plugin to the
-        // list of plugins that want to use Girder's loader configuration.
-        if (pluginFile) {
-            var config = yaml.safeLoad(fs.readFileSync(pluginFile));
-            if (!config || !config.webpack || config.webpack.defaultLoaders === undefined || config.webpack.defaultLoaders !== false) {
-                paths.push(path.resolve('plugins', dir));
-            }
-        }
-    });
-
-    return paths;
-}
-
-var loaderPaths = defaultLoaderPlugins().concat([/clients\/web\/src/]);
+var loaderPaths = [/clients\/web\/src/];
 var loaderPathsNodeModules = loaderPaths.concat([/node_modules/]);
 
 module.exports = {
