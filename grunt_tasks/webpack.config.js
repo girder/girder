@@ -86,6 +86,7 @@ function defaultLoaderPlugins() {
 }
 
 var loaderPaths = defaultLoaderPlugins().concat([/clients\/web\/src/]);
+var loaderPathsNodeModules = loaderPaths.concat([/node_modules/]);
 
 module.exports = {
     output: {
@@ -151,9 +152,7 @@ module.exports = {
             // CSS
             {
                 test: /\.css$/,
-                include: loaderPaths.concat([
-                    /node_modules/
-                ]),
+                include: loaderPathsNodeModules,
                 loaders: [
                     ExtractTextPlugin.extract('style-loader'),
                     'css-loader'
@@ -176,9 +175,7 @@ module.exports = {
             // PNG, JPEG
             {
                 test: /\.(png|jpg)$/,
-                include: loaderPaths.concat([
-                    /node_modules/
-                ]),
+                include: loaderPathsNodeModules,
                 loaders: [
                     fileLoader()
                 ]
@@ -186,9 +183,7 @@ module.exports = {
             // WOFF
             {
                 test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPaths.concat([
-                    /node_modules/
-                ]),
+                include: loaderPathsNodeModules,
                 loaders: [
                     urlLoader({ mimetype: 'application/font-woff' }),
                     fileLoader()
@@ -197,9 +192,7 @@ module.exports = {
             // WOFF2
             {
                 test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPaths.concat([
-                    /node_modules/
-                ]),
+                include: loaderPathsNodeModules,
                 loaders: [
                     urlLoader({ mimetype: 'application/font-woff2' }),
                     fileLoader()
@@ -208,9 +201,7 @@ module.exports = {
             // TTF
             {
                 test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPaths.concat([
-                    /node_modules/
-                ]),
+                include: loaderPathsNodeModules,
                 loaders: [
                     urlLoader({ mimetype: 'application/octet-stream' }),
                     fileLoader()
@@ -219,9 +210,7 @@ module.exports = {
             // EOT
             {
                 test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPaths.concat([
-                    /node_modules/
-                ]),
+                include: loaderPathsNodeModules,
                 loaders: [
                     fileLoader()
                 ]
@@ -229,9 +218,7 @@ module.exports = {
             // SVG
             {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPaths.concat([
-                    /node_modules/
-                ]),
+                include: loaderPathsNodeModules,
                 loaders: [
                     urlLoader({ mimetype: 'image/svg+xml' }),
                     fileLoader()
