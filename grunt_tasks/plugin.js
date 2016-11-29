@@ -196,6 +196,37 @@ module.exports = function (grunt) {
             grunt.config.set('webpack.options', newConfig);
         }
 
+        grunt.registerTask('npm-install', 'Install plugin NPM dependencies', function (plugin) {
+            var done = this.async();
+
+            var target = path.resolve('node_modules_' + plugin);
+
+            if (fs.existsSync(target + '/node_modules')) {
+                grunt.log.writeln('NPM dependencies for plugin ' + plugin + ' already installed.');
+                done();
+            }
+
+            var npm = require('npm');
+            var npmConf = {
+                prefix: target,
+                g: true
+            };
+            var errorHandler = require('npm/lib/utils/error-handler');
+
+            var modules = Array.prototype.slice.call(arguments, 1);
+            npm.load(npmConf, function (err) {
+                if (err) {
+                    return errorHandler(err);
+                }
+                npm.commands.install(modules, function (err, results) {
+                    if (err) {
+                        return errorHandler(err);
+                    }
+                    done();
+                });
+            });
+        });
+
         function addDependencies(deps) {
             // install any additional npm packages during init
             npm = (
