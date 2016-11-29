@@ -424,7 +424,7 @@ import Pug templates, Stylus files, and JavaScript files into the application.
 The plugin loading system ensures that only content from enabled plugins gets
 loaded into the application at runtime.
 
-All of your plugin's extensions to the web client must live in a directory in
+By default, all of your plugin's extensions to the web client must live in a directory in
 the top level of your plugin called **web_client**. ::
 
     cd plugins/cats ; mkdir web_client
@@ -437,6 +437,57 @@ located at ``plugins/cats/web_client/templates/myTemplate.pug``. Core Girder cod
 relative to the path **girder**, for example ``import View from 'girder/views/View';``. The entry
 point defined in your **main.js** file will be automatically built once the plugin has been enabled,
 and your built code will be served with the application once the server has been restarted.
+
+You can also customize which file is used as the webpack entry point, using a
+`webpack` section in your plugin config. The `main` property is a path relative
+to your plugin directory naming the entry point file (by default, as discussed
+above, the value of this property is `web_client/main.js`):
+
+.. code-block:: json
+
+    {
+        "name": "MY_PLUGIN",
+        "webpack": {
+            "main": "web_external/index.js"
+        }
+    }
+
+Customizing the Webpack Build
+*****************************
+
+Girder's core webpack configuration may not be quite right for your plugin. The
+plugin config's `webpack` section may contain a `configHelper` property (default
+value: `webpack.helper.js`) that names a relative path to a JavaScript file that
+exports a "webpack helper". This helper is simply a function of two arguments -
+Girder's core webpack configuration object, and a hash of useful data about the
+plugin build - that returns a modified webpack configuration to use to build the
+plugin. This can be useful if you wish to use custom webpack loaders or plugins
+to build your plugin.
+
+The hash passed to the helper function contains the following information:
+
+- `plugin`: the name of the plugin
+- `pluginEntry`: the webpack entry point for the plugin (e.g.
+  `plugins/MY_PLUGIN/plugin`)
+- `pluginDir`: the full path to the plugin directory
+- `nodeDir`: the full path to the plugin's dedicated NPM dependencies
+
+Additionally, you can instruct the build system to start with an empty loader
+list. You may want to do this to ensure that your plugin files are processed by
+webpack exactly as you see fit, and not risk any of Girder's predefined loaders
+getting involved where you may not expect them. To use this option, set the
+`webpack.defaultLoaders` property to `false` (the property is `true` by
+default):
+
+.. code-block:: json
+
+    {
+        "name": "MY_PLUGIN",
+        "webpack": {
+            "configHelper": "plugin_webpack.js",
+            "defaultLoaders": false
+        }
+    }
 
 Linting and Style Checking Client-Side Code
 *******************************************
@@ -494,7 +545,7 @@ There are two types of node dependencies you may need to install for your plugin
 Each type needs to be installed differently due to how node manages external packages.
 
 - Run time dependencies that your application relies on may be handled in one
-  of two ways. If you are writing a simple plugin that does not contain its own
+  of three ways. If you are writing a simple plugin that does not contain its own
   Gruntfile, these dependencies should be installed into Girder's own
   **node_modules** directory by specifying them in the ``npm.dependencies``
   section of your ``plugin.json`` file.
@@ -510,12 +561,50 @@ Each type needs to be installed differently due to how node manages external pac
           }
       }
 
+  You can also name a JSON file containing NPM dependencies, as follows:
+
+  .. code-block:: json
+
+      {
+          "name": "MY_PLUGIN",
+          "npm": {
+              "file": "package.json",
+              "fields": ["devDependencies"]
+          }
+      }
+
+  The `npm.file` property is a path to a JSON file relative to the plugin
+  directory (`package.json` is a convenient choice, simply because the `npm
+  install --save-dev` command manipulates this file by default), while
+  `npm.fields` specifies which top-level keys in that file contain package names
+  to install (by default, this property has the value `['devDependencies',
+  'dependencies', 'optionalDependencies']`). Using this method causes the
+  dependencies to be installed to a directory named `node_modules_<pluginname>`,
+  alongside Girder's own `node_modules` directory. Such modules must be
+  referenced in plugin code with a special alias: `plugins/<pluginname>/node`.
+  For example:
+
+  .. code-block:: javascript
+
+      import foobar from 'plugins/MY_PLUGIN/node/foobar'
+
+  would import the default value from NPM dependency `foobar` as installed
+  in `MY_PLUGIN`'s dedicated `node_modules_MY_PLUGIN` directory. This is mainly
+  useful if you need a different version of a package already in use by Girder
+  core, or if for any other reason you prefer to keep your plugin dependencies
+  isolated.
+
   If instead you are using a custom Grunt build with a Gruntfile, the
   dependencies should be installed into your plugin's **node_modules** directory
   by providing a `package.json <https://docs.npmjs.com/files/package.json>`_
   file just as they are used for standalone node applications.  When such a file
   exists in your plugin directory, ``npm install`` will be executed in a new
   process from within your package's directory.
+
+  Finally, if your plugin is built using webpack, but you wish to maintain an
+  independent set of NPM dependencies, you can include them in a file
+  and reference it in the `webpack` section of your plugin configuration as
+  follows:
 
 - Build time dependencies that your Grunt tasks rely on to assemble the sources
   for deployment need to be installed into Girder's own **node_modules** directory.
@@ -541,6 +630,21 @@ Each type needs to be installed differently due to how node manages external pac
 .. note:: Packages installed into Girder's scope can possibly overwrite an alternate
           version of the same package.  Care should be taken to only list packages here
           that are not already provided by Girder's own build time dependencies.
+
+Controlling the Build Output
+****************************
+
+In the plugin config's `webpack` section, you can set the `webpack.output`
+property to control the name of the plugin bundle file. By default this value is
+`plugin`, so that the resulting file will be
+`clients/web/static/build/plugins/MY_PLUGIN/plugin.min.js`. Girder automatically
+detects such files named `plugin.min.js` and automatically loads them into the
+main web client.
+
+To create an "external" plugin, simply change the output name to any other
+value. One reasonable choice is `index`. These plugins can be used to create
+wholly independent web clients that don't explicitly depend on the core Girder
+client being loaded.
 
 Executing custom Grunt build steps for your plugin
 **************************************************
