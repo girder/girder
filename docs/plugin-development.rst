@@ -439,9 +439,9 @@ point defined in your **main.js** file will be automatically built once the plug
 and your built code will be served with the application once the server has been restarted.
 
 You can also customize which file is used as the webpack entry point, using a
-`webpack` section in your plugin config. The `main` property is a path relative
+``webpack`` section in your plugin config. The ``main`` property is a path relative
 to your plugin directory naming the entry point file (by default, as discussed
-above, the value of this property is `web_client/main.js`):
+above, the value of this property is ``web_client/main.js``):
 
 .. code-block:: json
 
@@ -456,8 +456,8 @@ Customizing the Webpack Build
 *****************************
 
 Girder's core webpack configuration may not be quite right for your plugin. The
-plugin config's `webpack` section may contain a `configHelper` property (default
-value: `webpack.helper.js`) that names a relative path to a JavaScript file that
+plugin config's ``webpack`` section may contain a ``configHelper`` property (default
+value: ``webpack.helper.js``) that names a relative path to a JavaScript file that
 exports a "webpack helper". This helper is simply a function of two arguments -
 Girder's core webpack configuration object, and a hash of useful data about the
 plugin build - that returns a modified webpack configuration to use to build the
@@ -466,17 +466,17 @@ to build your plugin.
 
 The hash passed to the helper function contains the following information:
 
-- `plugin`: the name of the plugin
-- `pluginEntry`: the webpack entry point for the plugin (e.g.
-  `plugins/MY_PLUGIN/plugin`)
-- `pluginDir`: the full path to the plugin directory
-- `nodeDir`: the full path to the plugin's dedicated NPM dependencies
+- ``plugin``: the name of the plugin
+- ``pluginEntry``: the webpack entry point for the plugin (e.g.
+  ``plugins/MY_PLUGIN/plugin``)
+- ``pluginDir``: the full path to the plugin directory
+- ``nodeDir``: the full path to the plugin's dedicated NPM dependencies
 
 Additionally, you can instruct the build system to start with an empty loader
 list. You may want to do this to ensure that your plugin files are processed by
 webpack exactly as you see fit, and not risk any of Girder's predefined loaders
 getting involved where you may not expect them. To use this option, set the
-`webpack.defaultLoaders` property to `false` (the property is `true` by
+``webpack.defaultLoaders`` property to ``false`` (the property is ``true`` by
 default):
 
 .. code-block:: json
@@ -573,23 +573,23 @@ Each type needs to be installed differently due to how node manages external pac
           }
       }
 
-  The `npm.file` property is a path to a JSON file relative to the plugin
-  directory (`package.json` is a convenient choice, simply because the `npm
-  install --save-dev` command manipulates this file by default), while
-  `npm.fields` specifies which top-level keys in that file contain package names
-  to install (by default, this property has the value `['devDependencies',
-  'dependencies', 'optionalDependencies']`). Using this method causes the
-  dependencies to be installed to a directory named `node_modules_<pluginname>`,
-  alongside Girder's own `node_modules` directory. Such modules must be
-  referenced in plugin code with a special alias: `plugins/<pluginname>/node`.
+  The ``npm.file`` property is a path to a JSON file relative to the plugin
+  directory (``package.json`` is a convenient choice, simply because the ``npm
+  install --save-dev`` command manipulates this file by default), while
+  ``npm.fields`` specifies which top-level keys in that file contain package names
+  to install (by default, this property has the value ``['devDependencies',
+  'dependencies', 'optionalDependencies']``). Using this method causes the
+  dependencies to be installed to a directory named ``node_modules_<pluginname>``,
+  alongside Girder's own ``node_modules`` directory. Such modules must be
+  referenced in plugin code with a special alias: ``plugins/<pluginname>/node``.
   For example:
 
   .. code-block:: javascript
 
       import foobar from 'plugins/MY_PLUGIN/node/foobar'
 
-  would import the default value from NPM dependency `foobar` as installed
-  in `MY_PLUGIN`'s dedicated `node_modules_MY_PLUGIN` directory. This is mainly
+  would import the default value from NPM dependency ``foobar`` as installed
+  in ``MY_PLUGIN``'s dedicated ``node_modules_MY_PLUGIN`` directory. This is mainly
   useful if you need a different version of a package already in use by Girder
   core, or if for any other reason you prefer to keep your plugin dependencies
   isolated.
@@ -603,7 +603,7 @@ Each type needs to be installed differently due to how node manages external pac
 
   Finally, if your plugin is built using webpack, but you wish to maintain an
   independent set of NPM dependencies, you can include them in a file
-  and reference it in the `webpack` section of your plugin configuration as
+  and reference it in the ``webpack`` section of your plugin configuration as
   follows:
 
 - Build time dependencies that your Grunt tasks rely on to assemble the sources
@@ -634,15 +634,15 @@ Each type needs to be installed differently due to how node manages external pac
 Controlling the Build Output
 ****************************
 
-In the plugin config's `webpack` section, you can set the `webpack.output`
+In the plugin config's ``webpack`` section, you can set the ``webpack.output``
 property to control the name of the plugin bundle file. By default this value is
-`plugin`, so that the resulting file will be
-`clients/web/static/build/plugins/MY_PLUGIN/plugin.min.js`. Girder automatically
-detects such files named `plugin.min.js` and automatically loads them into the
+``plugin``, so that the resulting file will be
+``clients/web/static/build/plugins/MY_PLUGIN/plugin.min.js``. Girder automatically
+detects such files named ``plugin.min.js`` and automatically loads them into the
 main web client.
 
 To create an "external" plugin, simply change the output name to any other
-value. One reasonable choice is `index`. These plugins can be used to create
+value. One reasonable choice is ``index``. These plugins can be used to create
 wholly independent web clients that don't explicitly depend on the core Girder
 client being loaded.
 
