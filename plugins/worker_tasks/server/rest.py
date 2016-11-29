@@ -71,8 +71,9 @@ class WorkerTask(Resource):
                dataType='boolean', default=True)
     )
     def executeTask(self, item, params):
-        includeJobInfo = self.boolParam('includeJobInfo')
+        includeJobInfo = self.boolParam('includeJobInfo', params, default=True)
         title = params.get('jobTitle', item['name'])
+        task = self._validateTask(item)
 
         jobModel = self.model('job', 'jobs')
 
@@ -82,7 +83,7 @@ class WorkerTask(Resource):
 
         job['workerTaskItemId'] = item['_id']
         job['kwargs'] = {
-            'task': self._validateTask(item),
+            'task': task,
             'inputs': self.getParamJson('inputs', params, default=[]),
             'outputs': self.getParamJson('outputs', params, default=[]),
             'validate': False,
