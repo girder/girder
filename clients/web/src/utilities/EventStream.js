@@ -66,6 +66,7 @@ prototype.open = function () {
             }
             stream.trigger('g:event.' + obj.type, obj);
         };
+        this._stopHeartbeat = false;
         this._heartbeat();
     } else {
         console.error('EventSource is not supported on this platform.');
