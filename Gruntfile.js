@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-var path = require('path');
-
 /**
  * This function takes an object like `grunt.config.get('init')` and
  * returns a topologically sorted array of tasks.

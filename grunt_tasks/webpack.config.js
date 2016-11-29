@@ -19,9 +19,6 @@
  * the DllPlugin for dynamic loading, each individual bundle has its own config options
  * that can extend these.
  */
-var fs = require('fs');
-var path = require('path');
-var yaml = require('js-yaml');
 var webpack = require('webpack');
 
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
