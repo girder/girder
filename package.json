@@ -75,8 +75,8 @@
     "webpack-dev-server": "^2.1.0-beta.0"
   },
   "scripts": {
-    "build": "grunt init && grunt",
-    "watch": "grunt --watch",
+    "build": "grunt init && NODE_PATH=$PWD/node_modules grunt",
+    "watch": "NODE_PATH=$PWD/node_modules grunt --watch",
     "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts && pug-lint clients/web/src/templates",
     "docs": "grunt docs"
   }
