@@ -197,7 +197,6 @@ module.exports = function (grunt) {
             // explicitly set to anything besides false, then augment the
             // webpack loader configurations with the plugin source directory.
             if (!config.webpack || config.webpack.defaultLoaders === undefined || config.webpack.defaultLoaders !== false) {
-                console.log('using!');
                 var numLoaders = grunt.config.get('webpack.options.module.loaders').length;
                 for (var i = 0; i < numLoaders; i++) {
                     var selector = 'webpack.options.module.loaders.' + i + '.include';
