@@ -32,7 +32,8 @@ pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plug
 
 class PluginOpts():
     def __init__(self, plugin=None, force=False, symlink=False, dev=False, npm='npm',
-                 skip_requirements=False, all_plugins=False, plugins=None):
+                 skip_requirements=False, all_plugins=False, plugins=None, watch=False,
+                 watch_plugin=None):
         self.plugin = plugin
         self.force = force
         self.symlink = symlink
@@ -41,14 +42,21 @@ class PluginOpts():
         self.skip_requirements = skip_requirements
         self.all_plugins = all_plugins
         self.plugins = plugins
+        self.watch = watch
+        self.watch_plugin = watch_plugin
 
 
 class ProcMock(object):
-    def __init__(self, rc=0):
+    def __init__(self, rc=0, keyboardInterrupt=False):
         self.returncode = rc
+        self.kbi = keyboardInterrupt
 
     def communicate(self):
         return (None, None)
+
+    def wait(self):
+        if self.kbi:
+            raise KeyboardInterrupt()
 
 
 def setUpModule():
@@ -263,3 +271,23 @@ class InstallTestCase(base.TestCase):
             'progress': True
         })
         self.assertStatusOk(resp)
+
+        # Test watch commands
+        with mock.patch('subprocess.Popen', return_value=ProcMock()) as p:
+            install.install_web(PluginOpts(watch=True))
+
+            self.assertEqual(len(p.mock_calls), 1)
+            self.assertEqual(list(p.mock_calls[0][1][0]), ['npm', 'run', 'watch'])
+
+        with mock.patch('subprocess.Popen', return_value=ProcMock()) as p:
+            install.install_web(PluginOpts(watch_plugin='jobs'))
+
+            self.assertEqual(len(p.mock_calls), 1)
+            self.assertEqual(
+                list(p.mock_calls[0][1][0]),
+                ['npm', 'run', 'watch', '--', '--all-plugins', 'webpack:plugin_jobs']
+            )
+
+        # Keyboard interrupt should be handled gracefully
+        with mock.patch('subprocess.Popen', return_value=ProcMock(keyboardInterrupt=True)):
+            install.install_web(PluginOpts(watch=True))
