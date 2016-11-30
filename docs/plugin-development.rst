@@ -545,7 +545,7 @@ There are two types of node dependencies you may need to install for your plugin
 Each type needs to be installed differently due to how node manages external packages.
 
 - Run time dependencies that your application relies on may be handled in one
-  of three ways. If you are writing a simple plugin that does not contain its own
+  of two ways. If you are writing a simple plugin that does not contain its own
   Gruntfile, these dependencies should be installed into Girder's own
   **node_modules** directory by specifying them in the ``npm.dependencies``
   section of your ``plugin.json`` file.
@@ -600,11 +600,6 @@ Each type needs to be installed differently due to how node manages external pac
   file just as they are used for standalone node applications.  When such a file
   exists in your plugin directory, ``npm install`` will be executed in a new
   process from within your package's directory.
-
-  Finally, if your plugin is built using webpack, but you wish to maintain an
-  independent set of NPM dependencies, you can include them in a file
-  and reference it in the ``webpack`` section of your plugin configuration as
-  follows:
 
 - Build time dependencies that your Grunt tasks rely on to assemble the sources
   for deployment need to be installed into Girder's own **node_modules** directory.
