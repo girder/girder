@@ -164,6 +164,142 @@
                 expect($('.g-folder-list-link').text()).toBe('subfolder');
                 expect($('.g-item-list-link').length).toBe(0);
             });
+
+            runs(function () {
+                $('body').empty().off();
+
+                new girder.views.widgets.HierarchyWidget({
+                    el: 'body',
+                    parentModel: folder,
+                    downloadLinks: false,
+                    showActions: false,
+                    parentView: null
+                });
+            });
+
+            waitsFor(function () {
+                return $('.g-hierarchy-widget').length > 0 &&
+                       $('.g-folder-list-link').length > 0 &&
+                       $('.g-item-list-link').length > 0;
+            }, 'the hierarchy widget to display without download links');
+
+            runs(function () {
+                expect($('.g-upload-here-button').length).toBe(0);
+                expect($('.g-hierarchy-actions-header').length).toBe(0);
+                expect($('.g-list-checkbox').length).toBe(2);
+                expect($('.g-select-all').length).toBe(0);
+                expect($('a[title="Download item"]').length).toBe(0);
+            });
+
+            runs(function () {
+                $('body').empty().off();
+
+                new girder.views.widgets.HierarchyWidget({
+                    el: 'body',
+                    parentModel: folder,
+                    viewLinks: false,
+                    showActions: false,
+                    parentView: null
+                });
+            });
+
+            waitsFor(function () {
+                return $('.g-hierarchy-widget').length > 0 &&
+                       $('.g-folder-list-link').length > 0 &&
+                       $('.g-item-list-link').length > 0;
+            }, 'the hierarchy widget to display without view links');
+
+            runs(function () {
+                expect($('.g-upload-here-button').length).toBe(0);
+                expect($('.g-hierarchy-actions-header').length).toBe(0);
+                expect($('.g-list-checkbox').length).toBe(2);
+                expect($('.g-select-all').length).toBe(0);
+                expect($('.g-view-inline').length).toBe(0);
+            });
+
+            runs(function () {
+                $('body').empty().off();
+
+                new girder.views.widgets.HierarchyWidget({
+                    el: 'body',
+                    parentModel: folder,
+                    downloadLinks: false,
+                    viewLinks: false,
+                    showActions: false,
+                    parentView: null
+                });
+            });
+
+            waitsFor(function () {
+                return $('.g-hierarchy-widget').length > 0 &&
+                       $('.g-folder-list-link').length > 0 &&
+                       $('.g-item-list-link').length > 0;
+            }, ('the hierarchy widget to display neither ' +
+                'view nor download links'));
+
+            runs(function () {
+                expect($('.g-upload-here-button').length).toBe(0);
+                expect($('.g-hierarchy-actions-header').length).toBe(0);
+                expect($('.g-list-checkbox').length).toBe(2);
+                expect($('.g-select-all').length).toBe(0);
+                expect($('.g-view-inline').length).toBe(0);
+                expect($('a[title="Download item"]').length).toBe(0);
+
+                /* no border shown when there are no links */
+                expect($('.g-right-border').length).toBe(0);
+            });
+
+            runs(function () {
+                $('body').empty().off();
+
+                new girder.views.widgets.HierarchyWidget({
+                    el: 'body',
+                    parentModel: folder,
+                    showMetadata: false,
+                    showActions: false,
+                    parentView: null
+                });
+            });
+
+            waitsFor(function () {
+                return $('.g-hierarchy-widget').length > 0 &&
+                       $('.g-folder-list-link').length > 0 &&
+                       $('.g-item-list-link').length > 0;
+            }, 'the hierarchy widget to display without the metadata widget');
+
+            runs(function () {
+                expect($('.g-upload-here-button').length).toBe(0);
+                expect($('.g-hierarchy-actions-header').length).toBe(0);
+                expect($('.g-list-checkbox').length).toBe(2);
+                expect($('.g-select-all').length).toBe(0);
+                expect($('.g-folder-metadata').length).toBe(0);
+            });
+
+            runs(function () {
+                $('body').empty().off();
+
+                new girder.views.widgets.HierarchyWidget({
+                    el: 'body',
+                    parentModel: folder,
+                    showSizes: false,
+                    showActions: false,
+                    parentView: null
+                });
+            });
+
+            waitsFor(function () {
+                return $('.g-hierarchy-widget').length > 0 &&
+                       $('.g-folder-list-link').length > 0 &&
+                       $('.g-item-list-link').length > 0;
+            }, 'the hierarchy widget to display without item sizes');
+
+            runs(function () {
+                expect($('.g-upload-here-button').length).toBe(0);
+                expect($('.g-hierarchy-actions-header').length).toBe(0);
+                expect($('.g-list-checkbox').length).toBe(2);
+                expect($('.g-select-all').length).toBe(0);
+                expect($('.g-item-size').length).toBe(0);
+            });
         });
     });
 
