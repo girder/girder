@@ -14,9 +14,9 @@ mixin privacyEditor(typeName)
         | #[b Public] &mdash; Anyone can view this #{typeName}
 
     if _.keys(flagList).length
-      a.g-action-manage-public-flags.hide(title="Public permission flags")
+      a.g-action-manage-public-flags.hide(title="Public access flags")
         i.icon-flag
-        |  Manage public permission flags...
+        |  Manage public access flags...
       .g-public-flags-popover-container.hide
         each flag, key in flagList
           - var checked = _.contains(publicFlags, key) ? 'checked' : null;

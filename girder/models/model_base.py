@@ -28,7 +28,7 @@ from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from pymongo.errors import WriteError
 from girder import events, logprint
-from girder.constants import AccessType, CoreEventHandler, PERMISSION_FLAGS, TEXT_SCORE_SORT_MAX
+from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
@@ -667,12 +667,33 @@ class AccessControlledModel(Model):
         return filtered
 
     def _hasGroupAccessFlag(self, perms, groupIds, flag):
+        """
+        Helper to test whether a user has a specific access flag via membership in a group.
+
+        :param perms: The group access list (stored under doc['access']['groups'])
+        :type perms: list
+        :param groupIds: The list of groups that the user belongs to.
+        :type groupIds: list
+        :param flag: The access flag identifier to test.
+        :type flag: str
+        """
         for groupAccess in perms:
             if groupAccess['id'] in groupIds and flag in groupAccess.get('flags', ()):
                 return True
         return False
 
     def _hasUserAccessFlag(self, perms, userId, flag):
+        """
+        Helper to test whether a user has been granted an access flag directly
+        on a resource.
+
+        :param perms: The user access list (stored under doc['access']['users'])
+        :type perms: list
+        :param userId: The user ID to test.
+        :type userId: ObjectId
+        :param flag: The access flag identifier to test.
+        :type flag: str
+        """
         for userAccess in perms:
             if userAccess['id'] == userId and flag in userAccess.get('flags', ()):
                 return True
@@ -752,23 +773,24 @@ class AccessControlledModel(Model):
 
     def setPublicFlags(self, doc, flags, user, append=False, save=False, force=False):
         """
-        Set permission flags that are granted on this resource to anonymous users.
+        Set access flags that are granted on this resource to anonymous users.
         This means any user, whether anonymous or logged in, will receive all
         of the specified permissions. This also validates that the user attempting
-        to set the flags has permission to do so.
+        to set the flags has permission to do so. Any flags that are invalid or that
+        the user is not authorized to enable will be discarded from the list.
 
-        :param doc: The document to update permission flags on.
+        :param doc: The document to update access flags on.
         :type doc: dict
         :param flags: Flags or set of flags to add.
         :type flags: flag identifier, or a list/set/tuple of them
         :param user: The user performing this action.
-        :type user:
+        :type user: dict
         :param append: Whether to append to the list or replace it.
         :type append: bool
         :param save: Whether to save the document to the database afterward.
         :type save: bool
-        :param force: Set this to True to disable validation of the current
-            user's ability to set the flags.
+        :param force: Set this to True to set the flags regardless of the passed in
+            user's permissions.
         :type force: bool
         """
         currentFlags = doc.get('publicFlags', [])
@@ -779,14 +801,14 @@ class AccessControlledModel(Model):
         if append:
             flags = currentFlags + list(flags)
 
-        flags = set(flags) & set(PERMISSION_FLAGS.keys())
+        flags = set(flags) & set(ACCESS_FLAGS.keys())
 
         if force or user['admin']:
             doc['publicFlags'] = list(flags)
         else:
             allowedFlags = []
             for flag in flags:
-                info = PERMISSION_FLAGS[flag]
+                info = ACCESS_FLAGS[flag]
 
                 # If this is an admin-only flag, we only allow it if it's already enabled.
                 if not info['admin'] or (info['admin'] and flag in currentFlags):
@@ -813,22 +835,22 @@ class AccessControlledModel(Model):
 
     def _validateFlags(self, doc, user, type, entry):
         """
-        Coerces a flag or set/list/tuple of flags into a valid form,
-        returning a list that only contains the valid flags.
+        Coerces a flag or set/list/tuple of flags into a valid form, returning a list
+        that only contains the valid flags that the passed in user has permission to set.
         """
         flags = entry.get('flags', ())
 
         if not isinstance(flags, (list, tuple, set)):
             flags = (flags,)
 
-        flags = set(flags) & set(PERMISSION_FLAGS.keys())
+        flags = set(flags) & set(ACCESS_FLAGS.keys())
 
         if user and user['admin']:
             return list(flags)
 
         allowedFlags = []
         for flag in flags:
-            info = PERMISSION_FLAGS[flag]
+            info = ACCESS_FLAGS[flag]
 
             # If this is an admin-only flag, we only allow it if it's already enabled
             # for this specific group or user rule
@@ -911,7 +933,7 @@ class AccessControlledModel(Model):
                      Set this to False if you want to wait to save the
                      document for performance reasons.
         :type save: bool
-        :param flags: List of special access flags to grant to the group.
+        :param flags: List of access flags to grant to the group.
         :type flags: specific flag identifier, or a list/tuple/set of them
         :param user: The user performing this action. Only required if attempting
             to set admin-only flags on the resource.
@@ -1016,7 +1038,7 @@ class AccessControlledModel(Model):
                      Set this to False if you want to wait to save the
                      document for performance reasons.
         :type save: bool
-        :param flags: List of special access flags to grant to the group.
+        :param flags: List of access flags to grant to the group.
         :type flags: specific flag identifier, or a list/tuple/set of them
         :param currentUser: The user performing this action. Only required if attempting
             to set admin-only flags on the resource.
@@ -1028,7 +1050,8 @@ class AccessControlledModel(Model):
         """
         Test whether a specific user has a given set of access flags on
         the given resource. Returns True only if the user has all of the
-        flags by virtue of
+        flags by virtue of either group membership, public flags, or
+        explicit access granted to the user.
 
         :param doc: The resource to test access on.
         :type doc: dict

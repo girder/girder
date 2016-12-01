@@ -234,7 +234,7 @@ class Collection(AccessControlledModel):
         :type setPublic: bool or None
         :param publicFlags: Pass this if you wish to set the public flag list on
             resources being updated.
-        :type publicFlags: list or None
+        :type publicFlags: flag identifier str, or list/set/tuple of them, or None
         """
         progress.update(increment=1, message='Updating ' + doc['name'])
         if setPublic is not None:

@@ -29,7 +29,7 @@ from girder.api import access
 from girder.api.describe import describeRoute, API_VERSION
 from girder.api.rest import loadmodel, Resource
 from girder.constants import (
-    AccessType, SettingKey, SettingDefault, registerPermissionFlag, ROOT_DIR)
+    AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR)
 from girder.models.model_base import AccessException
 from girder.utility import config
 
@@ -457,14 +457,14 @@ class SystemTestCase(base.TestCase):
 
         del config.getConfig()['logging']
 
-    def testPermissionFlags(self):
-        resp = self.request('/system/permission_flag')
+    def testAccessFlags(self):
+        resp = self.request('/system/access_flag')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, {})
 
-        registerPermissionFlag('my_key', name='hello', description='a custom flag')
+        registerAccessFlag('my_key', name='hello', description='a custom flag')
 
-        resp = self.request('/system/permission_flag')
+        resp = self.request('/system/access_flag')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, {
             'my_key': {
@@ -478,7 +478,7 @@ class SystemTestCase(base.TestCase):
 
         user = self.users[1]
 
-        # Manage custom permission flags on an access controlled resource
+        # Manage custom access flags on an access controlled resource
         self.assertFalse(self.model('user').hasAccessFlags(user, user, flags=['my_key']))
 
         # Admin should always have permission
@@ -521,8 +521,8 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(acl['users'][0]['flags'], ['my_key'])
         self.assertTrue(self.model('user').hasAccessFlags(user, user, flags=['my_key']))
 
-        # Create an admin-only permission flag
-        registerPermissionFlag('admin_flag', name='admin flag', admin=True)
+        # Create an admin-only access flag
+        registerAccessFlag('admin_flag', name='admin flag', admin=True)
 
         # Non-admin shouldn't be able to set it
         user = self.model('user').setAccessList(self.users[0], access={

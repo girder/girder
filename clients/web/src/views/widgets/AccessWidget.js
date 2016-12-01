@@ -39,8 +39,8 @@ var AccessWidget = View.extend({
         },
         'click a.g-action-remove-access': 'removeAccessEntry',
         'change .g-public-container .radio input': 'privacyChanged',
-        'change .g-flag-checkbox': '_togglePermissionFlag',
-        'change .g-public-flag-checkbox': '_togglePublicPermissionFlag'
+        'change .g-flag-checkbox': '_toggleAccessFlag',
+        'change .g-public-flag-checkbox': '_togglePublicAccessFlag'
     },
 
     /**
@@ -71,7 +71,7 @@ var AccessWidget = View.extend({
         }).on('g:resultClicked', this.addEntry, this);
 
         var flagListPromise = restRequest({
-            path: 'system/permission_flag'
+            path: 'system/access_flag'
         }).done((resp) => {
             this.flagList = resp;
         });
@@ -366,7 +366,7 @@ var AccessWidget = View.extend({
         }
     },
 
-    _togglePermissionFlag: function (e) {
+    _toggleAccessFlag: function (e) {
         var el = $(e.currentTarget),
             type = el.attr('resourcetype'),
             id = el.attr('resourceid'),
@@ -379,7 +379,7 @@ var AccessWidget = View.extend({
             .attr('checked', el.is(':checked') ? 'checked' : null);
     },
 
-    _togglePublicPermissionFlag: function (e) {
+    _togglePublicAccessFlag: function (e) {
         var el = $(e.currentTarget),
             flag = el.attr('flag');
 

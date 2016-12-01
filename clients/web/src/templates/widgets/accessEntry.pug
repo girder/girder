@@ -13,9 +13,9 @@ div(class=`g-${type}-access-entry`, resourceid=entry.id)
       option(value=accessTypes.ADMIN, selected=(entry.level === accessTypes.ADMIN ? 'selected' : null)) Is owner
     .g-access-action-container
       if _.keys(flagList).length
-        a.g-action-manage-flags(title="Permission flags")
+        a.g-action-manage-flags(title="Access flags")
           i.icon-flag
-        .g-flags-popover-container.hide(resourcetype=type, resourceid=entry.id, title="Permission flags")
+        .g-flags-popover-container.hide(resourcetype=type, resourceid=entry.id, title="Access flags")
           each flag, key in flagList
             - var checked = _.contains(entry.flags, key) ? 'checked' : null;
             - var disabled = (!isAdmin && flag.admin) ? 'disabled' : null;

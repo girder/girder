@@ -27,7 +27,7 @@ from girder import config
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
-from girder.constants import registerPermissionFlag, ROOT_DIR
+from girder.constants import registerAccessFlag, ROOT_DIR
 from girder.utility.progress import ProgressContext
 from . import base
 from six.moves import range
@@ -64,7 +64,7 @@ class WebClientTestEndpoints(Resource):
         self.route('GET', ('progress', ), self.testProgress)
         self.route('PUT', ('progress', 'stop'), self.testProgressStop)
         self.route('POST', ('file', ), self.uploadFile)
-        self.route('POST', ('permission_flag', ), self.registerPermissionFlags)
+        self.route('POST', ('access_flag', ), self.registerAccessFlags)
         self.stop = False
 
     @access.token
@@ -125,14 +125,14 @@ class WebClientTestEndpoints(Resource):
 
     @access.public
     @describeRoute(None)
-    def registerPermissionFlags(self, params):
+    def registerAccessFlags(self, params):
         """
-        Helper that can be used to register permission flags in the system. This is
-        used to test the permission flags UI since the core does not expose any flags.
+        Helper that can be used to register access flags in the system. This is
+        used to test the access flags UI since the core does not expose any flags.
         """
         flags = self.getBodyJson()
         for key, info in six.viewitems(flags):
-            registerPermissionFlag(key, info['name'], info['description'], info['admin'])
+            registerAccessFlag(key, info['name'], info['description'], info['admin'])
 
 
 class WebClientTestCase(base.TestCase):

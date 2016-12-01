@@ -280,7 +280,7 @@ def getBodyJson(allowConstants=False):
 def getParamJson(name, params, default=None):
     """
     For parameters that are expected to be specified as JSON, use
-    this to parse them, or return a uniform error if parsing fails.
+    this to parse them, or raises a RestException if parsing fails.
 
     :param name: The param name.
     :type name: str
@@ -319,9 +319,8 @@ class loadmodel(ModelImporter):  # noqa: class name
     :type force: bool
     :param exc: Whether an exception should be raised for a nonexistent
         resource.
-    :param requiredFlags: Custom permission flags that are required on
-        the object being loaded.
-    :type requiredFlags: str or list/set/tuple of str
+    :param requiredFlags: Access flags that are required on the object being loaded.
+    :type requiredFlags: str or list/set/tuple of str or None
     :type exc: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,

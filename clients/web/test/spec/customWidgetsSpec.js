@@ -223,12 +223,12 @@
             });
         });
 
-        it('test custom permission flags UI', function () {
+        it('test custom access flags UI', function () {
             var xhr, saved = false;
             runs(function () {
-                // Register a couple permission flags in the system
+                // Register a couple access flags in the system
                 xhr = girder.rest.restRequest({
-                    path: 'webclienttest/permission_flag',
+                    path: 'webclienttest/access_flag',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -248,7 +248,7 @@
 
             waitsFor(function () {
                 return xhr.status !== undefined;
-            }, 'register permission flag XHR to return');
+            }, 'register access flag XHR to return');
 
             runs(function () {
                 // Re-render the access widget
