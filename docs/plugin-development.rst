@@ -586,7 +586,7 @@ Each type needs to be installed differently due to how node manages external pac
 
   .. code-block:: javascript
 
-      import foobar from 'plugins/MY_PLUGIN/node/foobar'
+      import foobar from 'girder_plugins/MY_PLUGIN/node/foobar'
 
   would import the default value from NPM dependency ``foobar`` as installed
   in ``MY_PLUGIN``'s dedicated ``node_modules_MY_PLUGIN`` directory. This is mainly
