@@ -190,7 +190,6 @@ module.exports = {
         alias: {
             'girder': paths.web_src
         },
-        extensions: ['.styl', '.css', '.pug', '.jade', '.js', ''],
         modules: [
             paths.clients_web,
             paths.plugins,
