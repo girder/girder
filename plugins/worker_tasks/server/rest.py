@@ -59,7 +59,7 @@ class WorkerTask(Resource):
 
     @access.token(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
     @loadmodel(
-        model='item', level=AccessType.READ, requiredFlags=constants.PERMISSION_FLAG_EXECUTE_TASK)
+        model='item', level=AccessType.READ, requiredFlags=constants.ACCESS_FLAG_EXECUTE_TASK)
     @filtermodel(model='job', plugin='jobs')
     @describeRoute(
         Description('Execute a task described by an item.')
