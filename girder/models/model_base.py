@@ -678,7 +678,7 @@ class AccessControlledModel(Model):
         :type flag: str
         """
         for groupAccess in perms:
-            if groupAccess['id'] in groupIds and flag in groupAccess.get('flags', ()):
+            if groupAccess['id'] in groupIds and flag in groupAccess.get('flags', []):
                 return True
         return False
 
@@ -695,7 +695,7 @@ class AccessControlledModel(Model):
         :type flag: str
         """
         for userAccess in perms:
-            if userAccess['id'] == userId and flag in userAccess.get('flags', ()):
+            if userAccess['id'] == userId and flag in userAccess.get('flags', []):
                 return True
         return False
 
@@ -717,7 +717,7 @@ class AccessControlledModel(Model):
                 return True
         return False
 
-    def _setAccess(self, doc, id, entity, level, save, flags=None, user=None):
+    def _setAccess(self, doc, id, entity, level, save, flags=None, user=None, force=False):
         """
         Private helper for setting access on a resource.
         """
@@ -740,7 +740,7 @@ class AccessControlledModel(Model):
                 'level': level,
                 'flags': flags
             }
-            entry['flags'] = self._validateFlags(doc, user, entity, entry)
+            entry['flags'] = self._validateFlags(doc, user, entity, entry, force)
             doc['access'][entity].append(entry)
 
         if save:
@@ -796,7 +796,7 @@ class AccessControlledModel(Model):
         currentFlags = doc.get('publicFlags', [])
 
         if not isinstance(flags, (list, tuple, set)):
-            flags = [flags]
+            flags = {flags}
 
         if append:
             flags = currentFlags + list(flags)
@@ -833,19 +833,19 @@ class AccessControlledModel(Model):
         else:  # 'user'
             return self._hasUserAccessFlag(perms.get('users', ()), id, flag)
 
-    def _validateFlags(self, doc, user, type, entry):
+    def _validateFlags(self, doc, user, type, entry, force=False):
         """
         Coerces a flag or set/list/tuple of flags into a valid form, returning a list
         that only contains the valid flags that the passed in user has permission to set.
         """
-        flags = entry.get('flags', ())
+        flags = entry.get('flags', [])
 
         if not isinstance(flags, (list, tuple, set)):
-            flags = (flags,)
+            flags = {flags}
 
         flags = set(flags) & set(ACCESS_FLAGS.keys())
 
-        if user and user['admin']:
+        if force or (user and user['admin']):
             return list(flags)
 
         allowedFlags = []
@@ -861,7 +861,7 @@ class AccessControlledModel(Model):
 
         return allowedFlags
 
-    def setAccessList(self, doc, access, save=False, user=None):
+    def setAccessList(self, doc, access, save=False, user=None, force=False):
         """
         Set the entire access control list to the given value. This also saves
         the resource in its new state to the database.
@@ -875,6 +875,9 @@ class AccessControlledModel(Model):
         :param user: The user performing the update. This is used to control
             updating of access flags that require admin permission to enable.
         :type user: dict
+        :param force: Set this to True to set the flags regardless of the passed in
+            user's permissions.
+        :type force: bool
         :returns: The updated resource.
         """
         # First coerce the access list value into a valid form.
@@ -893,7 +896,7 @@ class AccessControlledModel(Model):
                 acList['users'].append({
                     'id': ObjectId(userAccess['id']),
                     'level': userAccess['level'],
-                    'flags': self._validateFlags(doc, user, 'user', userAccess)
+                    'flags': self._validateFlags(doc, user, 'user', userAccess, force)
                 })
             else:
                 raise ValidationException('Invalid access list', 'access')
@@ -906,7 +909,7 @@ class AccessControlledModel(Model):
                 acList['groups'].append({
                     'id': ObjectId(groupAccess['id']),
                     'level': groupAccess['level'],
-                    'flags': self._validateFlags(doc, user, 'group', groupAccess)
+                    'flags': self._validateFlags(doc, user, 'group', groupAccess, force)
                 })
             else:
                 raise ValidationException('Invalid access list', 'access')
@@ -918,7 +921,7 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def setGroupAccess(self, doc, group, level, save=False, flags=None, user=None):
+    def setGroupAccess(self, doc, group, level, save=False, flags=None, user=None, force=False):
         """
         Set group-level access on the resource.
 
@@ -938,8 +941,11 @@ class AccessControlledModel(Model):
         :param user: The user performing this action. Only required if attempting
             to set admin-only flags on the resource.
         :returns: The updated resource document.
+        :param force: Set this to True to set the flags regardless of the passed in
+            user's permissions (only matters if flags are passed).
+        :type force: bool
         """
-        return self._setAccess(doc, group['_id'], 'groups', level, save, flags, user)
+        return self._setAccess(doc, group['_id'], 'groups', level, save, flags, user, force)
 
     def getAccessLevel(self, doc, user):
         """
@@ -1023,7 +1029,8 @@ class AccessControlledModel(Model):
 
         return acList
 
-    def setUserAccess(self, doc, user, level, save=False, flags=None, currentUser=None):
+    def setUserAccess(self, doc, user, level, save=False, flags=None, currentUser=None,
+                      force=False):
         """
         Set user-level access on the resource.
 
@@ -1042,9 +1049,12 @@ class AccessControlledModel(Model):
         :type flags: specific flag identifier, or a list/tuple/set of them
         :param currentUser: The user performing this action. Only required if attempting
             to set admin-only flags on the resource.
+        :param force: Set this to True to set the flags regardless of the passed in
+            user's permissions (only matters if flags are passed).
+        :type force: bool
         :returns: The modified resource document.
         """
-        return self._setAccess(doc, user['_id'], 'users', level, save, flags, currentUser)
+        return self._setAccess(doc, user['_id'], 'users', level, save, flags, currentUser, force)
 
     def hasAccessFlags(self, doc, user=None, flags=None):
         """
