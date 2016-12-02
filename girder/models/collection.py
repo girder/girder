@@ -208,7 +208,7 @@ class Collection(AccessControlledModel):
         return count
 
     def setAccessList(self, doc, access, save=False, recurse=False, user=None,
-                      progress=noProgress, setPublic=None, publicFlags=None):
+                      progress=noProgress, setPublic=None, publicFlags=None, force=False):
         """
         Overrides AccessControlledModel.setAccessList to add a recursive
         option. When `recurse=True`, this will set the access list on all
@@ -234,15 +234,19 @@ class Collection(AccessControlledModel):
         :param publicFlags: Pass this if you wish to set the public flag list on
             resources being updated.
         :type publicFlags: flag identifier str, or list/set/tuple of them, or None
+        :param force: Set this to True to set the flags regardless of the passed in
+            user's permissions.
+        :type force: bool
         """
         progress.update(increment=1, message='Updating ' + doc['name'])
         if setPublic is not None:
             self.setPublic(doc, setPublic, save=False)
 
         if publicFlags is not None:
-            doc = self.setPublicFlags(doc, publicFlags, user=user, save=False)
+            doc = self.setPublicFlags(doc, publicFlags, user=user, save=False, force=force)
 
-        doc = AccessControlledModel.setAccessList(self, doc, access, user=user, save=save)
+        doc = AccessControlledModel.setAccessList(
+            self, doc, access, user=user, save=save, force=force)
 
         if recurse:
             cursor = self.model('folder').find({

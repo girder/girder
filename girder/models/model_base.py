@@ -771,7 +771,7 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def setPublicFlags(self, doc, flags, user, append=False, save=False, force=False):
+    def setPublicFlags(self, doc, flags, user=None, append=False, save=False, force=False):
         """
         Set access flags that are granted on this resource to anonymous users.
         This means any user, whether anonymous or logged in, will receive all
@@ -829,7 +829,7 @@ class AccessControlledModel(Model):
         perms = doc.get('access', {})
 
         if type == 'group':
-            return self._hasGroupAccessFlag(perms.get('groups', ()), id, flag)
+            return self._hasGroupAccessFlag(perms.get('groups', ()), [id], flag)
         else:  # 'user'
             return self._hasUserAccessFlag(perms.get('users', ()), id, flag)
 
@@ -1041,11 +1041,10 @@ class AccessControlledModel(Model):
         :param user: The user to grant or remove access to.
         :type user: dict
         :param level: What level of access the user should have. Set to None
-                      to remove all access for this user.
+            to remove all access for this user.
         :type level: AccessType or None
         :param save: Whether to save the object to the database afterward.
-                     Set this to False if you want to wait to save the
-                     document for performance reasons.
+            Set this to False if you want to wait to save the document for performance reasons.
         :type save: bool
         :param flags: List of access flags to grant to the group.
         :type flags: specific flag identifier, or a list/tuple/set of them
