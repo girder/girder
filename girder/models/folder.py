@@ -50,10 +50,9 @@ class Folder(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'name', 'public', 'description', 'created', 'updated',
+            '_id', 'name', 'public', 'publicFlags', 'description', 'created', 'updated',
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
             'baseParentType', 'baseParentId'))
-        self.exposeFields(level=AccessType.ADMIN, fields={'publicFlags'})
 
     def validate(self, doc, allowRename=False):
         """
