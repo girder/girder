@@ -921,7 +921,8 @@ class AccessControlledModel(Model):
 
         return doc
 
-    def setGroupAccess(self, doc, group, level, save=False, flags=None, user=None, force=False):
+    def setGroupAccess(self, doc, group, level, save=False, flags=None, currentUser=None,
+                       force=False):
         """
         Set group-level access on the resource.
 
@@ -938,14 +939,15 @@ class AccessControlledModel(Model):
         :type save: bool
         :param flags: List of access flags to grant to the group.
         :type flags: specific flag identifier, or a list/tuple/set of them
-        :param user: The user performing this action. Only required if attempting
+        :param currentUser: The user performing this action. Only required if attempting
             to set admin-only flags on the resource.
+        :type currentUser: dict or None
         :returns: The updated resource document.
         :param force: Set this to True to set the flags regardless of the passed in
             user's permissions (only matters if flags are passed).
         :type force: bool
         """
-        return self._setAccess(doc, group['_id'], 'groups', level, save, flags, user, force)
+        return self._setAccess(doc, group['_id'], 'groups', level, save, flags, currentUser, force)
 
     def getAccessLevel(self, doc, user):
         """

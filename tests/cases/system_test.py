@@ -33,8 +33,6 @@ from girder.constants import (
 from girder.models.model_base import AccessException
 from girder.utility import config
 
-testServer = None
-
 
 class TestEndpoints(Resource):
     def __init__(self):
@@ -51,7 +49,6 @@ class TestEndpoints(Resource):
 
 
 def setUpModule():
-    global testServer
     testServer = base.startServer()
     testServer.root.api.v1.test_endpoints = TestEndpoints()
 

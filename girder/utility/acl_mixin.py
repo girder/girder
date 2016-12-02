@@ -77,6 +77,12 @@ class AccessControlMixin(object):
             resource, user=user, level=level)
 
     def hasAccessFlags(self, doc, user=None, flags=None):
+        """
+        See the documentation of AccessControlledModel.hasAccessFlags, which this wraps.
+        """
+        if not flags:
+            return True
+
         resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
         return self.model(self.resourceColl).hasAccessFlags(resource, user, flags)
 
@@ -103,6 +109,12 @@ class AccessControlMixin(object):
                                    userid))
 
     def requireAccessFlags(self, doc, user=None, flags=None):
+        """
+        See the documentation of AccessControlledModel.requireAccessFlags, which this wraps.
+        """
+        if not flags:
+            return
+
         resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
         return self.model(self.resourceColl).requireAccessFlags(resource, user, flags)
 
