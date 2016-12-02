@@ -809,7 +809,7 @@ class Folder(AccessControlledModel):
         if publicFlags is not None:
             doc = self.setPublicFlags(doc, publicFlags, user=user, save=False)
 
-        doc = AccessControlledModel.setAccessList(self, doc, access, save=save, user=user)
+        doc = AccessControlledModel.setAccessList(self, doc, access, user=user, save=save)
 
         if recurse:
             cursor = self.find({

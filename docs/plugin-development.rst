@@ -215,9 +215,10 @@ access flag on data, have your plugin globally register the flag in the system:
 
 When your plugin is enabled, a new checkbox will automatically appear in the access control
 dialog allowing resource owners to specify what users and groups are allowed to feed
-cats (assuming cats are represented by data in the hierarchy). If your plugin exposes another
-endpoint, say ``POST cat/{id}/food``, inside that route handler, you can call ``requireAccessFlags``,
-e.g.:
+cats (assuming cats are represented by data in the hierarchy). Additionally, if your resource is
+public, you will also be able to configure which access flags are available to the public.
+If your plugin exposes another endpoint, say ``POST cat/{id}/food``, inside that route handler, you
+can call ``requireAccessFlags``, e.g.:
 
 .. code-block:: python
 
