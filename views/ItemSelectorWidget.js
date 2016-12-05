@@ -6,7 +6,7 @@ import View from 'girder/views/View';
 import ItemModel from 'girder/models/ItemModel';
 import FileModel from 'girder/models/FileModel';
 
-import itemSelectorWidget from '../templates/itemSelectorWidget';
+import itemSelectorWidget from '../templates/itemSelectorWidget.pug';
 
 var ItemSelectorWidget = View.extend({
     events: {
@@ -27,6 +27,9 @@ var ItemSelectorWidget = View.extend({
             checkboxes: false,
             routing: false,
             showActions: false,
+            showMetadata: false,
+            downloadLinks: false,
+            viewLinks: false,
             onItemClick: _.bind(this._selectItem, this)
         });
 
