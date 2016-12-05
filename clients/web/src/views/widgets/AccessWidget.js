@@ -377,7 +377,7 @@ var AccessWidget = View.extend({
         // Since we clicked in a cloned popover element, we must apply this
         // change within the original element as well.
         this.$(`.g-flags-popover-container[resourcetype='${type}'][resourceid='${id}']`)
-            .find(`.g-flag-checkbox[flag=${flag}]`)
+            .find(`.g-flag-checkbox[flag="${flag}"]`)
             .attr('checked', el.is(':checked') ? 'checked' : null);
     },
 
@@ -388,7 +388,7 @@ var AccessWidget = View.extend({
         // Since we clicked in a cloned popover element, we must apply this
         // change within the original element as well.
         this.$('.g-public-flags-popover-container')
-            .find(`.g-public-flag-checkbox[flag=${flag}]`)
+            .find(`.g-public-flag-checkbox[flag="${flag}"]`)
             .attr('checked', el.is(':checked') ? 'checked' : null);
     }
 });
