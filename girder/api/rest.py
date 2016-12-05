@@ -368,7 +368,7 @@ class loadmodel(ModelImporter):  # noqa: class name
                     raise RestException(
                         'Invalid %s id (%s).' % (model.name, str(id)))
 
-                if self.requiredFlags and not self.force:
+                if self.requiredFlags:
                     model.requireAccessFlags(
                         kwargs[converted], user=getCurrentUser(), flags=self.requiredFlags)
 
