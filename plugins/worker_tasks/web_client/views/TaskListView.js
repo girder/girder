@@ -2,7 +2,7 @@ import View from 'girder/views/View';
 import ItemCollection from 'girder/collections/ItemCollection';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 
-import template from '../templates/taskListView.pug';
+import template from '../templates/taskList.pug';
 
 var TaskListView = View.extend({
     initialize: function () {

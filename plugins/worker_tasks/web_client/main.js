@@ -1,4 +1,5 @@
 import './routes';
+
 import { wrap } from 'girder/utilities/PluginUtils';
 import GlobalNavView from 'girder/views/layout/GlobalNavView';
 

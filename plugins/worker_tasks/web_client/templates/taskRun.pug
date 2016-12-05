@@ -1,0 +1,12 @@
+.g-body-title Run task #[a(href=`#item/${item.id}`)= item.name()]
+
+if item.get('description')
+  .g-task-description-container!= renderMarkdown(item.get('description'))
+
+.s-panel-group.g-task-setup-container
+  .g-inputs-container.s-panel
+  .g-outputs-container.s-panel
+.g-run-container
+  button.g-run-task.btn.btn-lg.btn-success
+    i.icon-play
+    |  Execute task
