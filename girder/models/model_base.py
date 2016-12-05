@@ -944,7 +944,7 @@ class AccessControlledModel(Model):
         :type currentUser: dict or None
         :returns: The updated resource document.
         :param force: Set this to True to set the flags regardless of the passed in
-            user's permissions (only matters if flags are passed).
+            currentUser's permissions (only matters if flags are passed).
         :type force: bool
         """
         return self._setAccess(doc, group['_id'], 'groups', level, save, flags, currentUser, force)
@@ -1051,7 +1051,7 @@ class AccessControlledModel(Model):
         :param currentUser: The user performing this action. Only required if attempting
             to set admin-only flags on the resource.
         :param force: Set this to True to set the flags regardless of the passed in
-            user's permissions (only matters if flags are passed).
+            currentUser's permissions (only matters if flags are passed).
         :type force: bool
         :returns: The modified resource document.
         """
