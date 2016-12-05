@@ -50,7 +50,7 @@ class Folder(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'name', 'public', 'description', 'created', 'updated',
+            '_id', 'name', 'public', 'publicFlags', 'description', 'created', 'updated',
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
             'baseParentType', 'baseParentId'))
 
@@ -775,7 +775,7 @@ class Folder(AccessControlledModel):
         return self.load(newFolder['_id'], force=True)
 
     def setAccessList(self, doc, access, save=False, recurse=False, user=None,
-                      progress=noProgress, setPublic=None):
+                      progress=noProgress, setPublic=None, publicFlags=None, force=False):
         """
         Overrides AccessControlledModel.setAccessList to add a recursive
         option. When `recurse=True`, this will set the access list on all
@@ -798,11 +798,22 @@ class Folder(AccessControlledModel):
         :param setPublic: Pass this if you wish to set the public flag on the
             resources being updated.
         :type setPublic: bool or None
+        :param publicFlags: Pass this if you wish to set the public flag list on
+            resources being updated.
+        :type publicFlags: flag identifier str, or list/set/tuple of them, or None
+        :param force: Set this to True to set the flags regardless of the passed in
+            user's permissions.
+        :type force: bool
         """
         progress.update(increment=1, message='Updating ' + doc['name'])
         if setPublic is not None:
             self.setPublic(doc, setPublic, save=False)
-        doc = AccessControlledModel.setAccessList(self, doc, access, save=save)
+
+        if publicFlags is not None:
+            doc = self.setPublicFlags(doc, publicFlags, user=user, save=False, force=force)
+
+        doc = AccessControlledModel.setAccessList(
+            self, doc, access, user=user, save=save, force=force)
 
         if recurse:
             cursor = self.find({
@@ -816,7 +827,7 @@ class Folder(AccessControlledModel):
             for folder in subfolders:
                 self.setAccessList(
                     folder, access, save=True, recurse=True, user=user,
-                    progress=progress, setPublic=setPublic)
+                    progress=progress, setPublic=setPublic, publicFlags=publicFlags, force=force)
 
         return doc
 

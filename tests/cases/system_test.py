@@ -25,13 +25,32 @@ import six
 from subprocess import check_output, CalledProcessError
 
 from .. import base
-from girder.api.describe import API_VERSION
-from girder.constants import SettingKey, SettingDefault, ROOT_DIR
+from girder.api import access
+from girder.api.describe import describeRoute, API_VERSION
+from girder.api.rest import loadmodel, Resource
+from girder.constants import (
+    AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR)
+from girder.models.model_base import AccessException
 from girder.utility import config
 
 
+class TestEndpoints(Resource):
+    def __init__(self):
+        super(TestEndpoints, self).__init__()
+        self.resourceName = 'test_endpoints'
+
+        self.route('GET', ('loadmodel_with_flags', ':id'), self.loadModelFlags)
+
+    @access.public
+    @describeRoute(None)
+    @loadmodel(model='user', level=AccessType.READ, requiredFlags='my_key')
+    def loadModelFlags(self, user, params):
+        return 'success'
+
+
 def setUpModule():
-    base.startServer()
+    testServer = base.startServer()
+    testServer.root.api.v1.test_endpoints = TestEndpoints()
 
 
 def tearDownModule():
@@ -434,3 +453,192 @@ class SystemTestCase(base.TestCase):
             '=== Last 0 bytes of %s/info.log: ===\n\n' % logRoot)
 
         del config.getConfig()['logging']
+
+    def testAccessFlags(self):
+        resp = self.request('/system/access_flag')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, {})
+
+        registerAccessFlag('my_key', name='hello', description='a custom flag')
+
+        resp = self.request('/system/access_flag')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, {
+            'my_key': {
+                'name': 'hello',
+                'description': 'a custom flag',
+                'admin': False
+            }
+        })
+
+        group = self.model('group').createGroup('test group', creator=self.users[1])
+        self.users[1] = self.model('user').load(self.users[1]['_id'], force=True)
+        user = self.users[1]
+
+        # Manage custom access flags on an access controlled resource
+        self.assertFalse(self.model('user').hasAccessFlags(user, user, flags=['my_key']))
+
+        # Admin should always have permission
+        self.assertTrue(self.model('user').hasAccessFlags(user, self.users[0], flags=['my_key']))
+
+        # Test the requireAccessFlags method
+        with self.assertRaises(AccessException):
+            self.model('user').requireAccessFlags(user, user=user, flags='my_key')
+
+        self.model('user').requireAccessFlags(user, user=self.users[0], flags='my_key')
+
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(acl['users'][0]['flags'], [])
+
+        # Test loadmodel requiredFlags argument via REST endpoint
+        resp = self.request(
+            '/test_endpoints/loadmodel_with_flags/%s' % user['_id'], user=self.users[1])
+        self.assertStatus(resp, 403)
+
+        user = self.model('user').setAccessList(self.users[0], access={
+            'users': [{
+                'id': self.users[1]['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['my_key', 'not a registered flag']
+            }],
+            'groups': [{
+                'id': group['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['my_key']
+            }]
+        }, save=True)
+
+        resp = self.request(
+            '/test_endpoints/loadmodel_with_flags/%s' % user['_id'], user=self.users[1])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, 'success')
+
+        # Only registered flags should be stored
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(acl['users'][0]['flags'], ['my_key'])
+        self.assertTrue(self.model('user').hasAccessFlags(user, user, flags=['my_key']))
+
+        # Create an admin-only access flag
+        registerAccessFlag('admin_flag', name='admin flag', admin=True)
+
+        # Non-admin shouldn't be able to set it
+        user = self.model('user').setAccessList(self.users[0], access={
+            'users': [{
+                'id': self.users[1]['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['admin_flag']
+            }],
+            'groups': []
+        }, save=True, user=self.users[1])
+
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(acl['users'][0]['flags'], [])
+
+        # Admin user should be able to set it
+        user = self.model('user').setAccessList(self.users[1], access={
+            'users': [{
+                'id': self.users[1]['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['admin_flag']
+            }],
+            'groups': [{
+                'id': group['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['admin_flag']
+            }]
+        }, save=True, user=self.users[0])
+
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(acl['users'][0]['flags'], ['admin_flag'])
+
+        # An already-enabled admin-only flag should stay enabled for non-admin user
+        user = self.model('user').setAccessList(self.users[1], access={
+            'users': [{
+                'id': self.users[1]['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['my_key', 'admin_flag']
+            }],
+            'groups': [{
+                'id': group['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['admin_flag']
+            }]
+        }, save=True, user=self.users[1])
+
+        acl = self.model('user').getFullAccessList(user)
+        self.assertEqual(set(acl['users'][0]['flags']), {'my_key', 'admin_flag'})
+        self.assertEqual(acl['groups'][0]['flags'], ['admin_flag'])
+
+        # Test setting public flags on a collection and folder
+        collectionModel = self.model('collection')
+        folderModel = self.model('folder')
+        itemModel = self.model('item')
+        collection = collectionModel.createCollection('coll', creator=self.users[0], public=True)
+        folder = folderModel.createFolder(
+            collection, 'folder', parentType='collection', creator=self.users[0])
+
+        # Add an item to the folder so we can test AclMixin flag behavior
+        item = itemModel.createItem(folder=folder, name='test', creator=self.users[0])
+
+        folder = folderModel.setUserAccess(
+            folder, self.users[1], level=AccessType.ADMIN, save=True, currentUser=self.users[0])
+
+        with self.assertRaises(AccessException):
+            collectionModel.requireAccessFlags(collection, user=None, flags='my_key')
+
+        # Test AclMixin flag behavior
+        with self.assertRaises(AccessException):
+            itemModel.requireAccessFlags(item, user=None, flags='my_key')
+
+        self.assertFalse(itemModel.hasAccessFlags(item, user=None, flags='my_key'))
+
+        collection = collectionModel.setAccessList(
+            collection, access=collection['access'], save=True, recurse=True, user=self.users[0],
+            publicFlags=['my_key'])
+        collectionModel.requireAccessFlags(collection, user=None, flags='my_key')
+
+        # Make sure recursive setting of public flags worked
+        folder = folderModel.load(folder['_id'], force=True)
+        self.assertEqual(folder['publicFlags'], ['my_key'])
+
+        itemModel.requireAccessFlags(item, user=None, flags='my_key')
+
+        # Non-admin shouldn't be able to set admin-only public flags
+        folder = folderModel.setPublicFlags(
+            folder, flags=['admin_flag'], user=self.users[1], save=True)
+        self.assertEqual(folder['publicFlags'], [])
+
+        # Admin users should be able to set admin-only public flags
+        folder = folderModel.setPublicFlags(
+            folder, flags=['admin_flag'], user=self.users[0], save=True, append=True)
+        self.assertEqual(folder['publicFlags'], ['admin_flag'])
+
+        # Non-admin users can set admin-only public flags if they are already enabled
+        folder = folderModel.setPublicFlags(
+            folder, flags=['admin_flag', 'my_key'], user=self.users[1], save=True)
+        self.assertEqual(set(folder['publicFlags']), {'admin_flag', 'my_key'})
+
+        # Test "force" options
+        folder = folderModel.setPublicFlags(folder, flags='admin_flag', force=True, save=True)
+        self.assertEqual(folder['publicFlags'], ['admin_flag'])
+
+        folder = folderModel.setAccessList(folder, access={
+            'users': [{
+                'id': self.users[1]['_id'],
+                'level': AccessType.ADMIN,
+                'flags': ['my_key', 'admin_flag']
+            }],
+            'groups': []
+        }, save=True, force=True)
+        folderModel.requireAccessFlags(folder, user=self.users[1], flags='my_key')
+
+        folder = folderModel.setUserAccess(
+            folder, self.users[1], level=AccessType.READ, save=True, force=True, flags=[])
+        self.assertFalse(folderModel.hasAccessFlags(folder, self.users[1], flags='my_key'))
+
+        folder = folderModel.setGroupAccess(
+            folder, group, level=AccessType.READ, save=True, force=True, flags='my_key')
+        folderModel.requireAccessFlags(folder, user=self.users[1], flags='my_key')
+
+        # Testing with flags=None should give sensible behavior
+        folderModel.requireAccessFlags(folder, user=None, flags=None)

@@ -277,6 +277,26 @@ def getBodyJson(allowConstants=False):
         raise RestException('Invalid JSON passed in request body.')
 
 
+def getParamJson(name, params, default=None):
+    """
+    For parameters that are expected to be specified as JSON, use
+    this to parse them, or raises a RestException if parsing fails.
+
+    :param name: The param name.
+    :type name: str
+    :param params: The dictionary of parameters.
+    :type params: dict
+    :param default: The default value if no such param was passed.
+    """
+    if name not in params:
+        return default
+
+    try:
+        return json.loads(params[name])
+    except ValueError:
+        raise RestException('The %s parameter must be valid JSON.' % name)
+
+
 class loadmodel(ModelImporter):  # noqa: class name
     """
     This is a decorator that can be used to load a model based on an ID param.
@@ -299,10 +319,12 @@ class loadmodel(ModelImporter):  # noqa: class name
     :type force: bool
     :param exc: Whether an exception should be raised for a nonexistent
         resource.
+    :param requiredFlags: Access flags that are required on the object being loaded.
+    :type requiredFlags: str or list/set/tuple of str or None
     :type exc: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,
-                 force=False, exc=True, **kwargs):
+                 force=False, exc=True, requiredFlags=None, **kwargs):
         if map is None:
             self.map = {'id': model}
         else:
@@ -314,6 +336,7 @@ class loadmodel(ModelImporter):  # noqa: class name
         self.plugin = plugin
         self.exc = exc
         self.kwargs = kwargs
+        self.requiredFlags = requiredFlags
 
     def _getIdValue(self, kwargs, idParam):
         if idParam in kwargs:
@@ -344,6 +367,10 @@ class loadmodel(ModelImporter):  # noqa: class name
                 if kwargs[converted] is None and self.exc:
                     raise RestException(
                         'Invalid %s id (%s).' % (model.name, str(id)))
+
+                if self.requiredFlags:
+                    model.requireAccessFlags(
+                        kwargs[converted], user=getCurrentUser(), flags=self.requiredFlags)
 
             return fun(*args, **kwargs)
         return wrapped
@@ -983,6 +1010,12 @@ class Resource(ModelImporter):
         Bound wrapper for :func:`girder.api.rest.getBodyJson`.
         """
         return getBodyJson()
+
+    def getParamJson(self, name, params, default=None):
+        """
+        Bound wrapper for :func:`girder.api.rest.getParamJson`.
+        """
+        return getParamJson(name, params, default)
 
     def getCurrentToken(self):
         """

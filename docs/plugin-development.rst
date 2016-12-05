@@ -199,6 +199,62 @@ could access it using ::
 
 Where the second argument to ``model`` is the name of your plugin.
 
+Adding custom access flags
+**************************
+
+Girder core provides a way to assign a permission level (read, write, and own) to data in the
+hierarchy to individual users or groups. In addition to this level, users and groups can also
+be granted special access flags on resources in the hierarchy. If you want to expose a new
+access flag on data, have your plugin globally register the flag in the system:
+
+.. code-block:: python
+
+    from girder.constants import registerAccessFlag
+
+    registerAccessFlag(key='cats.feed', name='Feed cats', description='Allows users to feed cats')
+
+When your plugin is enabled, a new checkbox will automatically appear in the access control
+dialog allowing resource owners to specify what users and groups are allowed to feed
+cats (assuming cats are represented by data in the hierarchy). Additionally, if your resource is
+public, you will also be able to configure which access flags are available to the public.
+If your plugin exposes another endpoint, say ``POST cat/{id}/food``, inside that route handler, you
+can call ``requireAccessFlags``, e.g.:
+
+.. code-block:: python
+
+    @access.user
+    @loadmodel(model='cat', plugin='cats', level=AccessType.WRITE)
+    def feedCats(self, cat, params):
+        item = self.model('cat', 'cats').getItemFromCat(cat)
+
+        self.model('item').requireAccessFlags(item, user=getCurrentUser(), flags='cats.feed')
+
+        # Feed the cats ...
+
+That will throw an ``AccessException`` if the user does not possess the specified access
+flag(s) on the given resource. You can equivalently use ``loadmodel`` as a decorator:
+
+.. code-block:: python
+
+    @access.user
+    @loadmodel(model='cat', plugin='cats', level=AccessType.WRITE, requiredFlags='cats.feed')
+    def feedCats(self, cat, params):
+        item = self.model('cat', 'cats').getItemFromCat(cat)
+
+        # Feed the cats ...
+
+Normally, anyone with ownership access on the resource will be allowed to enable the flag on
+their resources. If instead you want to make it so that only site administrators can enable your
+custom access flag, pass ``admin=True`` when registering the flag, e.g.
+
+.. code-block:: python
+
+    registerAccessFlag(key='cats.feed', name='Feed cats', admin=True)
+
+We cannot prescribe exactly how access flags should be used; Girder core does not
+expose any on its own, and the sorts of policies that they will enforce will be entirely
+defined by the logic of your plugin.
+
 The events system
 *****************
 

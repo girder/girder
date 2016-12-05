@@ -225,10 +225,8 @@ class Folder(Resource):
         recurse = self.boolParam('recurse', params, default=False)
         progress = self.boolParam('progress', params, default=False) and recurse
 
-        try:
-            access = json.loads(params['access'])
-        except ValueError:
-            raise RestException('The access parameter must be JSON.')
+        access = self.getParamJson('access', params, default={})
+        publicFlags = self.getParamJson('publicFlags', params, default=None)
 
         with ProgressContext(progress, user=user, title='Updating permissions',
                              message='Calculating progress...') as ctx:
@@ -238,7 +236,7 @@ class Folder(Resource):
                     level=AccessType.ADMIN))
             return self.model('folder').setAccessList(
                 folder, access, save=True, recurse=recurse, user=user,
-                progress=ctx, setPublic=public)
+                progress=ctx, setPublic=public, publicFlags=publicFlags)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='folder')

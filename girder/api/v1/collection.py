@@ -192,10 +192,8 @@ class Collection(Resource):
         recurse = self.boolParam('recurse', params, default=False)
         progress = self.boolParam('progress', params, default=False) and recurse
 
-        try:
-            access = json.loads(params['access'])
-        except ValueError:
-            raise RestException('The access parameter must be JSON.')
+        access = self.getParamJson('access', params, default={})
+        publicFlags = self.getParamJson('publicFlags', params, default=None)
 
         with ProgressContext(progress, user=user, title='Updating permissions',
                              message='Calculating progress...') as ctx:
@@ -205,7 +203,7 @@ class Collection(Resource):
                     level=AccessType.ADMIN))
             return self.model('collection').setAccessList(
                 collection, access, save=True, user=user, recurse=recurse,
-                progress=ctx, setPublic=public)
+                progress=ctx, setPublic=public, publicFlags=publicFlags)
 
     @access.user(scope=TokenScope.DATA_READ)
     @loadmodel(model='collection', level=AccessType.WRITE)

@@ -7,6 +7,9 @@
 .g-public-container
   margin-bottom 16px
 
+  .g-action-manage-public-flags
+    margin-left 20px
+
   .radio
     margin-top 0
     color #aaa
@@ -59,14 +62,21 @@
     display inline-block
     vertical-align top
 
-    .g-action-remove-access
-      color #999
-      margin-left 14px
-      font-size 16px
+    .g-access-action-container
+      margin-left 9px
       display inline-block
-      vertical-align middle
 
-      &:hover
+      a
+        font-size 16px
+        display inline-block
+        vertical-align middle
+        color #999
+        margin-left 5px
+
+      .g-action-manage-flags:hover
+        color #0e84b5
+
+      .g-action-remove-access:hover
         color #d02344
 
     select

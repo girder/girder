@@ -39,9 +39,8 @@ class Collection(AccessControlledModel):
             'description': 1
         })
 
-        self.exposeFields(level=AccessType.READ, fields=(
-            '_id', 'name', 'description', 'public', 'created', 'updated',
-            'size'))
+        self.exposeFields(level=AccessType.READ, fields={
+            '_id', 'name', 'description', 'public', 'publicFlags', 'created', 'updated', 'size'})
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -209,7 +208,7 @@ class Collection(AccessControlledModel):
         return count
 
     def setAccessList(self, doc, access, save=False, recurse=False, user=None,
-                      progress=noProgress, setPublic=None):
+                      progress=noProgress, setPublic=None, publicFlags=None, force=False):
         """
         Overrides AccessControlledModel.setAccessList to add a recursive
         option. When `recurse=True`, this will set the access list on all
@@ -232,11 +231,22 @@ class Collection(AccessControlledModel):
         :param setPublic: Pass this if you wish to set the public flag on the
             resources being updated.
         :type setPublic: bool or None
+        :param publicFlags: Pass this if you wish to set the public flag list on
+            resources being updated.
+        :type publicFlags: flag identifier str, or list/set/tuple of them, or None
+        :param force: Set this to True to set the flags regardless of the passed in
+            user's permissions.
+        :type force: bool
         """
         progress.update(increment=1, message='Updating ' + doc['name'])
         if setPublic is not None:
             self.setPublic(doc, setPublic, save=False)
-        doc = AccessControlledModel.setAccessList(self, doc, access, save=save)
+
+        if publicFlags is not None:
+            doc = self.setPublicFlags(doc, publicFlags, user=user, save=False, force=force)
+
+        doc = AccessControlledModel.setAccessList(
+            self, doc, access, user=user, save=save, force=force)
 
         if recurse:
             cursor = self.model('folder').find({
@@ -250,7 +260,7 @@ class Collection(AccessControlledModel):
             for folder in folders:
                 self.model('folder').setAccessList(
                     folder, access, save=True, recurse=True, user=user,
-                    progress=progress, setPublic=setPublic)
+                    progress=progress, setPublic=setPublic, publicFlags=publicFlags)
 
         return doc
 
