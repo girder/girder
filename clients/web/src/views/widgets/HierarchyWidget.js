@@ -118,6 +118,10 @@ var HierarchyWidget = View.extend({
         this._showActions = _.has(settings, 'showActions') ? settings.showActions : true;
         this._showItems = _.has(settings, 'showItems') ? settings.showItems : true;
         this._checkboxes = _.has(settings, 'checkboxes') ? settings.checkboxes : true;
+        this._downloadLinks = _.has(settings, 'downloadLinks') ? settings.downloadLinks : true;
+        this._viewLinks = _.has(settings, 'viewLinks') ? settings.viewLinks : true;
+        this._showSizes = _.has(settings, 'showSizes') ? settings.showSizes : true;
+        this._showMetadata = _.has(settings, 'showMetadata') ? settings.showMetadata : true;
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
         this._appendPages = _.has(settings, 'appendPages') ? settings.appendPages : false;
         this._onItemClick = settings.onItemClick || function (item) {
@@ -204,6 +208,9 @@ var HierarchyWidget = View.extend({
         this.itemListView = new ItemListWidget({
             folderId: this.parentModel.get('_id'),
             checkboxes: this._checkboxes,
+            downloadLinks: this._downloadLinks,
+            viewLinks: this._viewLinks,
+            showSizes: this._showSizes,
             parentView: this
         });
         this.itemListView.on('g:itemClicked', this._onItemClick, this)
@@ -265,6 +272,7 @@ var HierarchyWidget = View.extend({
             level: this.parentModel.getAccessLevel(),
             AccessType: AccessType,
             showActions: this._showActions,
+            showMetadata: this._showMetadata,
             checkboxes: this._checkboxes,
             capitalize: capitalize
         }));
@@ -282,7 +290,9 @@ var HierarchyWidget = View.extend({
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
             this.metadataWidget.setItem(this.parentModel);
-            this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
+            if (this._showMetadata) {
+                this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
+            }
         }
 
         this.$('[title]').tooltip({
