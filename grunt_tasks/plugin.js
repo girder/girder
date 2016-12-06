@@ -280,6 +280,10 @@ module.exports = function (grunt) {
             if (config.npm.file) {
                 var npmFile = require(path.resolve(dir, config.npm.file));
                 var fields = config.npm.fields || ['devDependencies', 'dependencies', 'optionalDependencies'];
+
+                grunt.log.writeln('Loading NPM dependencies from: ' + config.npm.file);
+                grunt.log.writeln('Using fields: ' + fields.join(', '));
+
                 fields.forEach(function (field) {
                     _.each(npmFile[field] || {}, function (version, dep) {
                         modules[dep] = version;
@@ -289,9 +293,23 @@ module.exports = function (grunt) {
 
             // Additionally add any extra dependencies found in the
             // "dependencies" property.
-            _.each(config.npm.dependencies || {}, function (version, dep) {
-                modules[dep] = version;
-            });
+            if (config.npm.dependencies) {
+                if (config.npm.file) {
+                    grunt.log.writeln('Loading additional dependencies');
+                } else {
+                    grunt.log.writeln('Loading dependencies');
+                }
+
+                _.each(config.npm.dependencies, function (version, dep) {
+                    modules[dep] = version;
+                });
+            }
+
+            if (config.npm.localNodeModules) {
+                grunt.log.writeln('Installing dependencies to dedicated directory: node_modules_' + plugin);
+            } else {
+                grunt.log.writeln('Installing dependencies to Girder node_modules directory');
+            }
 
             // Invoke the npm installation task.
             addDependencies(modules, config.npm.localNodeModules);
