@@ -2,6 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import ItemModel from 'girder/models/ItemModel';
+import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
 import View from 'girder/views/View';
 import { handleClose, handleOpen } from 'girder/dialog';
 
@@ -18,7 +19,7 @@ var EditItemWidget = View.extend({
         'submit #g-item-edit-form': function () {
             var fields = {
                 name: this.$('#g-name').val(),
-                description: this.$('#g-description').val()
+                description: this.descriptionEditor.val()
             };
 
             if (this.item) {
@@ -37,35 +38,44 @@ var EditItemWidget = View.extend({
     initialize: function (settings) {
         this.item = settings.item || null;
         this.parentModel = settings.parentModel;
+        this.descriptionEditor = new MarkdownWidget({
+            text: this.item ? this.item.get('description') : '',
+            prefix: 'item-description',
+            placeholder: 'Enter a description',
+            parent: this.folder,
+            enableUploads: false,
+            parentView: this
+        });
     },
 
     render: function () {
         var view = this;
         var modal = this.$el.html(EditItemWidgetTemplate({
-            item: this.item}))
-            .girderModal(this).on('shown.bs.modal', function () {
-                view.$('#g-name').focus();
-                if (view.item) {
-                    handleOpen('itemedit');
-                } else {
-                    handleOpen('itemcreate');
-                }
-            }).on('hidden.bs.modal', function () {
-                if (view.create) {
-                    handleClose('itemcreate');
-                } else {
-                    handleClose('itemedit');
-                }
-            }).on('ready.girder.modal', function () {
-                if (view.item) {
-                    view.$('#g-name').val(view.item.get('name'));
-                    view.$('#g-description').val(view.item.get('description'));
-                    view.create = false;
-                } else {
-                    view.create = true;
-                }
-            });
+            item: this.item
+        })).girderModal(this).on('shown.bs.modal', function () {
+            view.$('#g-name').focus();
+            if (view.item) {
+                handleOpen('itemedit');
+            } else {
+                handleOpen('itemcreate');
+            }
+        }).on('hidden.bs.modal', function () {
+            if (view.create) {
+                handleClose('itemcreate');
+            } else {
+                handleClose('itemedit');
+            }
+        }).on('ready.girder.modal', function () {
+            if (view.item) {
+                view.$('#g-name').val(view.item.get('name'));
+                view.$('#g-description').val(view.item.get('description'));
+                view.create = false;
+            } else {
+                view.create = true;
+            }
+        });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        this.descriptionEditor.setElement(this.$('.g-description-editor-container')).render();
 
         return this;
     },
