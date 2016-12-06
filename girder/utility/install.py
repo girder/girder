@@ -164,8 +164,9 @@ def _runWatchCmd(*args):
 
 def install_web(opts=None):
     """
-    Build and install Girder's web client. This runs `npm install` to execute
-    the entire build and install process.
+    Build and install Girder's web client, or perform a watch on the web
+    client or a specified plugin. For documentation of all the options, see
+    the argparse configuration for the "web" subcommand in the main() function.
     """
     if opts is None:
         runWebBuild()
