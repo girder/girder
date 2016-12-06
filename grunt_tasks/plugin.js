@@ -84,7 +84,7 @@ module.exports = function (grunt) {
         var plugin = path.basename(dir);
         var json = path.resolve(dir, 'plugin.json');
         var yml = path.resolve(dir, 'plugin.yml');
-        var config = {}, npm;
+        var config = {};
         var cfgFile = 'no config file';
 
         if (!fs.statSync(dir).isDirectory()) {
@@ -242,7 +242,7 @@ module.exports = function (grunt) {
 
         function addDependencies(deps) {
             // install any additional npm packages during init
-            npm = (
+            var npm = (
                 _(deps || [])
                     .map(function (version, dep) {
                         return [
