@@ -28,6 +28,7 @@ var EditItemWidget = View.extend({
                 this.createItem(fields);
             }
 
+            this.descriptionEditor.saveText();
             this.$('button.g-save-item').girderEnable(false);
             this.$('.g-validation-failed-message').empty();
 
@@ -42,7 +43,6 @@ var EditItemWidget = View.extend({
             text: this.item ? this.item.get('description') : '',
             prefix: 'item-description',
             placeholder: 'Enter a description',
-            parent: this.folder,
             enableUploads: false,
             parentView: this
         });

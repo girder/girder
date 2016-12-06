@@ -11,6 +11,7 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
 import { confirm } from 'girder/dialog';
+import { renderMarkdown } from 'girder/misc';
 import events from 'girder/events';
 
 import CollectionPageTemplate from 'girder/templates/body/collectionPage.pug';
@@ -124,7 +125,8 @@ var CollectionView = View.extend({
     render: function () {
         this.$el.html(CollectionPageTemplate({
             collection: this.model,
-            AccessType: AccessType
+            AccessType: AccessType,
+            renderMarkdown: renderMarkdown
         }));
 
         this.hierarchyWidget.setElement(
