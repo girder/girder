@@ -62,18 +62,30 @@ def getUrlParts(url=None):
 def getApiUrl(url=None):
     """
     In a request thread, call this to get the path to the root of the REST API.
-    The returned path does *not* end in a forward slash.
+    The returned path does *not* end in a forward slash.  If no url is
+    specified, and there is a Referer header that includes the REST API root,
+    use that for determining the root.  This allows detection of the root from
+    within and outside of a proxy.
 
     :param url: URL from which to extract the base URL. If not specified, uses
-        `cherrypy.url()`
+        `cherrypy.url()`.
     """
-    url = url or cherrypy.url()
-    idx = url.find('/api/v1')
+    apiPhrase = '/api/v1'
+    if url is None and 'Referer' in cherrypy.request.headers:
+        referer = cherrypy.request.headers['Referer']
+        if referer.endswith(apiPhrase) or (apiPhrase + '/') in referer:
+            url = referer
+    if url is None:
+        url = cherrypy.url()
+    if url.endswith(apiPhrase):
+        idx = url.rfind(apiPhrase)
+    else:
+        idx = url.find(apiPhrase + '/')
 
     if idx < 0:
         raise GirderException('Could not determine API root in %s.' % url)
 
-    return url[:idx + 7]
+    return url[:idx + len(apiPhrase)]
 
 
 def iterBody(length=READ_BUFFER_LEN, strictLength=False):
