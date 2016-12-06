@@ -21,6 +21,8 @@ module.exports = function (grunt) {
     var _ = require('underscore');
     var fs = require('fs');
     var path = require('path');
+    var child_process = require('child_process');
+
     var customWebpackPlugins = require('./webpack.plugins.js');
     var paths = require('./webpack.paths.js');
 
@@ -214,29 +216,24 @@ module.exports = function (grunt) {
 
             var target = path.resolve('node_modules_' + plugin);
 
-            if (fs.existsSync(target + '/node_modules')) {
-                grunt.log.writeln('NPM dependencies for plugin ' + plugin + ' already installed.');
-                done();
-            }
+            // Formulate path to npm executable.
+            var npm = path.resolve(path.dirname(process.argv[0]), 'npm');
 
-            var npm = require('npm');
-            var npmConf = {
-                prefix: target,
-                g: true
-            };
-            var errorHandler = require('npm/lib/utils/error-handler');
-
+            // Launch npm install process.
             var modules = Array.prototype.slice.call(arguments, 1);
-            npm.load(npmConf, function (err) {
-                if (err) {
-                    return errorHandler(err);
-                }
-                npm.commands.install(modules, function (err, results) {
-                    if (err) {
-                        return errorHandler(err);
-                    }
-                    done();
-                });
+            var args = ['--color=always', '--prefix', target, 'install'].concat(modules);
+
+            var child = child_process.spawn(npm, args);
+            child.stdout.on('data', function (data) {
+                process.stdout.write(data);
+            });
+
+            child.stderr.on('data', function (data) {
+                process.stderr.write(data);
+            });
+
+            child.on('close', function (code) {
+                done(code === 0);
             });
         });
 
