@@ -211,19 +211,35 @@ module.exports = function (grunt) {
             grunt.config.set('webpack.options', newConfig);
         }
 
-        grunt.registerTask('npm-install', 'Install plugin NPM dependencies', function (plugin) {
+        grunt.registerTask('npm-install', 'Install plugin NPM dependencies', function (plugin, localNodeModules) {
+            // To attach the stream listeners, we need this to be an
+            // asynchronous child process launch.
             var done = this.async();
 
-            var target = path.resolve('node_modules_' + plugin);
+            // Start building the list of arguments to the NPM executable.
+            //
+            // We want color output embedded in the Grunt output.
+            var args = ['--color=always'];
+
+            // If the plugin requested to install the dependencies in its own
+            // dedicated directory, set the prefix option.
+            if (localNodeModules === 'true') {
+                args = args.concat(['--prefix', path.resolve('node_modules_' + plugin)]);
+            }
+
+            // Get the list of the packages to install and append them to the
+            // args object.
+            var modules = Array.prototype.slice.call(arguments, 2);
+            args = args.concat(['install'], modules);
 
             // Formulate path to npm executable.
             var npm = path.resolve(path.dirname(process.argv[0]), 'npm');
 
-            // Launch npm install process.
-            var modules = Array.prototype.slice.call(arguments, 1);
-            var args = ['--color=always', '--prefix', target, 'install'].concat(modules);
-
+            // Launch the child process.
             var child = child_process.spawn(npm, args);
+
+            // Force the current process to echo everything the child does to
+            // the appropriate streams.
             child.stdout.on('data', function (data) {
                 process.stdout.write(data);
             });
@@ -232,15 +248,17 @@ module.exports = function (grunt) {
                 process.stderr.write(data);
             });
 
+            // Catch NPM's return code and invoke the done callback to conclude
+            // the Grunt task.
             child.on('close', function (code) {
                 done(code === 0);
             });
         });
 
-        function addDependencies(deps) {
+        function addDependencies(deps, localNodeModules) {
             // install any additional npm packages during init
             var npm = (
-                _(deps || [])
+                _(deps || {})
                     .map(function (version, dep) {
                         return [
                             dep.replace(':', '\\:'),
@@ -250,24 +268,33 @@ module.exports = function (grunt) {
             );
 
             if (npm.length) {
-                grunt.config.set('default.npm-install:' + plugin + ':' + grunt.config.escape(npm.join(':')), {});
+                grunt.config.set('default.npm-install:' + plugin + ':' + !!localNodeModules + ':' + grunt.config.escape(npm.join(':')), {});
             }
         }
 
         if (config.npm) {
+            var modules = {};
+
             // If the config contains a "file" section, load NPM dependencies
             // from it.
             if (config.npm.file) {
                 var npmFile = require(path.resolve(dir, config.npm.file));
                 var fields = config.npm.fields || ['devDependencies', 'dependencies', 'optionalDependencies'];
                 fields.forEach(function (field) {
-                    addDependencies(npmFile[field]);
+                    _.each(npmFile[field] || {}, function (version, dep) {
+                        modules[dep] = version;
+                    });
                 });
             }
 
             // Additionally add any extra dependencies found in the
             // "dependencies" property.
-            addDependencies(config.npm.dependencies);
+            _.each(config.npm.dependencies || {}, function (version, dep) {
+                modules[dep] = version;
+            });
+
+            // Invoke the npm installation task.
+            addDependencies(modules, config.npm.localNodeModules);
         }
 
         if (config.grunt) {
