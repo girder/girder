@@ -111,6 +111,20 @@ textarea
 /* Stuff that applies across the top level object lists */
 .g-top-level-list-title-container
   display inline-block
+  overflow hidden
+  white-space nowrap
+  width calc(100% - 350px)
+  position relative
+
+  .g-text-fade
+    height 30px
+    width 45px
+    position absolute
+    right 0
+    background linear-gradient(left, rgba(250, 250, 252, 0), rgba(250, 250, 252, 1))
+
+    &[public="false"]
+      background linear-gradient(left, rgba(255, 249, 234, 0), rgba(255, 249, 234, 1))
 
 .g-list-public-status-icon
   display inline-block

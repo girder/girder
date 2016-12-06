@@ -30,6 +30,9 @@ each collection in collections
       .g-collection-title
         a.g-collection-link(g-collection-cid=collection.cid)
           b= collection.name()
-      .g-collection-subtitle
-        span.g-collection-description= collection.get('description')
+        span.g-text-fade(public=(collection.get('public') ? 'true' : 'false'))
+      if collection.get('description')
+        .g-collection-subtitle
+          a.g-show-description Show description#[i.icon-down-dir]
+          .g-collection-description
     .g-clear-right
