@@ -13,7 +13,7 @@ import { AccessType } from 'girder/constants';
 import { cancelRestRequests } from 'girder/rest';
 import { confirm, handleClose } from 'girder/dialog';
 import events from 'girder/events';
-import { formatSize, formatDate, DATE_SECOND } from 'girder/misc';
+import { formatSize, formatDate, renderMarkdown, DATE_SECOND } from 'girder/misc';
 
 import ItemPageTemplate from 'girder/templates/body/itemPage.pug';
 
@@ -120,6 +120,7 @@ var ItemView = View.extend({
                 AccessType: AccessType,
                 formatSize: formatSize,
                 formatDate: formatDate,
+                renderMarkdown: renderMarkdown,
                 DATE_SECOND: DATE_SECOND
             }));
 

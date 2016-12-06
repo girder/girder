@@ -29,6 +29,7 @@ var EditFolderWidget = View.extend({
                 this.createFolder(fields);
             }
 
+            this.descriptionEditor.saveText();
             this.$('button.g-save-folder').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         }

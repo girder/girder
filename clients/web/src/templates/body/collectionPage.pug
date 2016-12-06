@@ -29,7 +29,8 @@
             | Delete collection
 
   .g-collection-name.g-body-title= collection.name()
-  .g-collection-description.g-body-subtitle= collection.get('description')
+  if collection.get('description')
+    .g-collection-description!= renderMarkdown(collection.get('description'))
   .g-clear-right
 
 .g-collection-hierarchy-container

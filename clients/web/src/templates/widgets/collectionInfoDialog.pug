@@ -14,7 +14,7 @@ mixin dateInfo(intro, property)
         span= collection.name()
     .modal-body
       if collection.get('description')
-        .g-info-dialog-description != renderMarkdown(collection.get('description'))
+        .g-info-dialog-description!= renderMarkdown(collection.get('description'))
 
       .g-collection-info-lines
         +dateInfo('Created ', 'created')
