@@ -569,7 +569,8 @@ Each type needs to be installed differently due to how node manages external pac
           "name": "MY_PLUGIN",
           "npm": {
               "file": "package.json",
-              "fields": ["devDependencies"]
+              "fields": ["devDependencies"],
+              "localNodeModules": true
           }
       }
 
@@ -578,8 +579,9 @@ Each type needs to be installed differently due to how node manages external pac
   install --save-dev`` command manipulates this file by default), while
   ``npm.fields`` specifies which top-level keys in that file contain package names
   to install (by default, this property has the value ``['devDependencies',
-  'dependencies', 'optionalDependencies']``). Using this method causes the
-  dependencies to be installed to a directory named ``node_modules_<pluginname>``,
+  'dependencies', 'optionalDependencies']``). If the ``localNodeModules`` option
+  is set to ``true``, then the
+  dependencies will be installed to a directory named ``node_modules_<pluginname>``,
   alongside Girder's own ``node_modules`` directory. Such modules must be
   referenced in plugin code with a special alias: ``plugins/<pluginname>/node``.
   For example:
@@ -592,7 +594,8 @@ Each type needs to be installed differently due to how node manages external pac
   in ``MY_PLUGIN``'s dedicated ``node_modules_MY_PLUGIN`` directory. This is mainly
   useful if you need a different version of a package already in use by Girder
   core, or if for any other reason you prefer to keep your plugin dependencies
-  isolated.
+  isolated. By default, the ``localNodeModules`` is set to ``false`` and the
+  dependencies will be installed to Girder's own ``node_modules`` directory.
 
   If instead you are using a custom Grunt build with a Gruntfile, the
   dependencies should be installed into your plugin's **node_modules** directory
