@@ -172,17 +172,18 @@ girderTest.createCollection = function (collName, collDesc, createFolderName) {
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-name').length > 0 &&
-                $('.g-save-collection:visible').is(':enabled');
+                $('.g-save-collection:visible').is(':enabled') &&
+                $('#collection-description-write .g-markdown-text').is(':visible');
         }, 'create collection dialog to appear');
 
         runs(function () {
             $('#g-name').val(collName);
-            $('#g-description').val(collDesc);
+            $('#collection-description-write .g-markdown-text').val(collDesc);
             $('.g-save-collection').click();
         });
         waitsFor(function () {
             return $('.g-collection-name').text() === collName &&
-                $('.g-collection-description').text() === collDesc;
+                $('.g-collection-description').text().trim() === collDesc;
         }, 'new collection page to load');
         girderTest.waitForLoad();
 

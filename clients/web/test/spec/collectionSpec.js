@@ -74,11 +74,11 @@ describe('Test collection actions', function () {
         girderTest.waitForDialog();
 
         waitsFor(function () {
-            return $("#g-description").is(':visible');
+            return $('#collection-description-write .g-markdown-text').is(':visible');
         }, 'description text area to appear');
 
         runs(function () {
-            $('#g-description').val('New Description');
+            $('#collection-description-write .g-markdown-text').val('New Description');
             $('.g-save-collection').click();
         });
 
@@ -91,7 +91,7 @@ describe('Test collection actions', function () {
         }, 'dialog rest requests to finish');
 
         waitsFor(function () {
-            return $('.g-collection-description').text().match('New Description');
+            return $('.g-collection-description').text().trim().match('New Description');
         }, 'description to be updated to new text');
 
         waitsFor(function () {
