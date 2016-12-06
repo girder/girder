@@ -155,13 +155,27 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
                             (' '.join(cmd), proc.returncode))
 
 
+def _runWatchCmd(*args):
+    try:
+        subprocess.Popen(args, cwd=constants.PACKAGE_DIR).wait()
+    except KeyboardInterrupt:
+        pass
+
+
 def install_web(opts=None):
     """
-    Build and install Girder's web client. This runs `npm install` to execute
-    the entire build and install process.
+    Build and install Girder's web client, or perform a watch on the web
+    client or a specified plugin. For documentation of all the options, see
+    the argparse configuration for the "web" subcommand in the main() function.
     """
     if opts is None:
         runWebBuild()
+    elif opts.watch:
+        _runWatchCmd('npm', 'run', 'watch')
+    elif opts.watch_plugin:
+        _runWatchCmd(
+            'npm', 'run', 'watch', '--', '--all-plugins', 'webpack:plugin_%s' % opts.watch_plugin
+        )
     else:
         runWebBuild(
             dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
@@ -277,6 +291,10 @@ def main():
     web.add_argument('--all-plugins', action='store_true',
                      help='build all available plugins rather than just enabled ones')
     web.add_argument('--plugins', default='', help='comma-separated list of plugins to build')
+    web.add_argument('--watch', action='store_true',
+                     help='watch for changes and rebuild girder core library in dev mode')
+    web.add_argument('--watch-plugin', default='',
+                     help='watch for changes and rebuild a specific plugin in dev mode')
 
     web.set_defaults(func=install_web)
 
