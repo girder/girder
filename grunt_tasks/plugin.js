@@ -21,7 +21,7 @@ module.exports = function (grunt) {
     var _ = require('underscore');
     var fs = require('fs');
     var path = require('path');
-    var child_process = require('child_process');
+    var child_process = require('child_process'); // eslint-disable-line camelcase
 
     var customWebpackPlugins = require('./webpack.plugins.js');
     var paths = require('./webpack.paths.js');
