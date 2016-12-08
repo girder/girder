@@ -33,6 +33,8 @@ each collection in collections
         span.g-text-fade(public=(collection.get('public') ? 'true' : 'false'))
       if collection.get('description')
         .g-collection-subtitle
-          a.g-show-description Show description#[i.icon-down-dir]
-          .g-collection-description
+          a.g-show-description(state="hidden", cid=collection.cid)
+            span Show description
+            i.icon-down-dir
     .g-clear-right
+    .g-collection-description(cid=collection.cid).hide
