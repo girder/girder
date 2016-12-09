@@ -2,6 +2,7 @@ import WidgetModel from 'girder_plugins/slicer_cli_web/models/WidgetModel';
 import WidgetCollection from 'girder_plugins/slicer_cli_web/collections/WidgetCollection';
 import ControlsPanel from 'girder_plugins/slicer_cli_web/views/ControlsPanel';
 import View from 'girder/views/View';
+import router  from 'girder/router';
 import { restRequest } from 'girder/rest';
 import { renderMarkdown } from 'girder/misc';
 
@@ -122,6 +123,7 @@ const TaskRunView = View.extend({
                     return {
                         mode: 'girder',
                         parent_id: model.value().get('folderId'),
+                        parent_type: 'folder',
                         name: val.name()
                     };
                 default:
@@ -148,8 +150,7 @@ const TaskRunView = View.extend({
             },
             error: null
         }).done((resp) => {
-            console.log(resp);
-            router.navigate(`job/${resp.id}`);
+            router.navigate(`job/${resp.id}`, {trigger: true});
         }).error((resp) => {
             $(e.currentTarget).attr('disabled', 'true').addClass('disabled');
             this.$('.g-validation-failed-message').text('Error: ' + resp.responseJSON.message);

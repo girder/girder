@@ -1,7 +1,9 @@
+import six
+
 from girder.api import access
 from girder.api.describe import describeRoute, Description
-from girder.api.rest import filtermodel, loadmodel, Resource
-from girder.constants import AccessType
+from girder.api.rest import ensureTokenScopes, filtermodel, loadmodel, Resource
+from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
 from girder.plugins.worker import utils
 from . import constants
@@ -57,7 +59,62 @@ class WorkerTask(Resource):
 
         return spec
 
-    @access.token(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
+    def _transformInputs(self, inputs, token):
+        """
+        Validates and sanitizes the input bindings. If they are Girder inputs, adds
+        the necessary token info. If the token does not allow DATA_READ, or if the user
+        does not have read access to the resource, raises an AccessException.
+        """
+        transformed = {}
+        for k, v in six.viewitems(inputs):
+            if v['mode'] == 'girder':
+                ensureTokenScopes(token, TokenScope.DATA_READ)
+                rtype = v.get('resource_type', 'file')
+                if rtype not in {'file', 'item', 'folder'}:
+                    raise ValidationException('Invalid input resource_type: %s.' % rtype)
+
+                resource = self.model(rtype).load(
+                    v['id'], level=AccessType.READ, user=self.getCurrentUser(), exc=True)
+
+                transformed[k] = utils.girderInputSpec(resource, resourceType=rtype, token=token)
+            elif v['mode'] == 'inline':
+                transformed[k] = {
+                    'mode': v['mode'],
+                    'data': v['data'],
+                    'type': 'none',
+                    'format': 'none'
+                }
+            else:
+                raise ValidationException('Invalid input mode: %s.' % v['mode'])
+
+        return transformed
+
+    def _transformOutputs(self, outputs, token):
+        """
+        Validates and sanitizes the input bindings. If they are Girder inputs, adds
+        the necessary token info. If the token does not allow DATA_WRITE, or if the user
+        does not have write access to the destination, raises an AccessException.
+        """
+        transformed = {}
+        for k, v in six.viewitems(outputs):
+            if v['mode'] == 'girder':
+                ensureTokenScopes(token, TokenScope.DATA_WRITE)
+                ptype = v.get('parent_type', 'folder')
+                if ptype not in {'item', 'folder'}:
+                    raise ValidationException('Invalid output parent type: %s.' % ptype)
+
+                parent = self.model(ptype).load(
+                    v['parent_id'], level=AccessType.WRITE, user=self.getCurrentUser(), exc=True)
+
+                transformed[k] = utils.girderOutputSpec(
+                    parent, parentType=ptype, token=token, name=v.get('name'))
+            else:
+                raise ValidationException('Invalid output mode: %s.' % v['mode'])
+
+        return transformed
+
+
+    @access.user(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
     @loadmodel(
         model='item', level=AccessType.READ, requiredFlags=constants.ACCESS_FLAG_EXECUTE_TASK)
     @filtermodel(model='job', plugin='jobs')
@@ -80,12 +137,22 @@ class WorkerTask(Resource):
         job = jobModel.createJob(
             title=title, type='worker_task', handler='worker_handler', user=self.getCurrentUser())
 
+        # If this is a user auth token, we make an IO-enabled token
+        token = self.getCurrentToken()
+        if self.model('token').hasScope(token, TokenScope.USER_AUTH):
+            token = self.model('token').createToken(
+                user=self.getCurrentUser(), days=7, scope=(
+                    TokenScope.DATA_READ, TokenScope.DATA_WRITE))
+            job['workerTaskTempToken'] = token['_id']
+
+        inputs = self.getParamJson('inputs', params, default={})
+        outputs = self.getParamJson('outputs', params, default={})
 
         job['workerTaskItemId'] = item['_id']
         job['kwargs'] = {
             'task': task,
-            'inputs': self.getParamJson('inputs', params, default=[]),
-            'outputs': self.getParamJson('outputs', params, default=[]),
+            'inputs': self._transformInputs(inputs, token),
+            'outputs': self._transformOutputs(outputs, token),
             'validate': False,
             'auto_convert': False,
             'cleanup': True
