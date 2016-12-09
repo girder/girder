@@ -45,9 +45,21 @@ describe('Test collection actions', function () {
         }, 'collection list to appear');
 
         runs(function () {
-            expect($('.g-collection-list-entry').text().match('collName0').length > 0);
-        });
+            expect($('.g-collection-list-entry').text()).toContain('collName0');
+            expect($('.g-collection-subtitle').text()).toBe('Show description');
+            expect($('.g-collection-description:visible').length).toBe(0);
 
+            // Show description
+            $('.g-show-description').click();
+            expect($('.g-collection-subtitle').text()).toBe('Hide description');
+            expect($('.g-collection-description:visible').length).toBe(1);
+            expect($('.g-collection-description').text().trim()).toBe('coll Desc 0');
+
+            // Hide description
+            $('.g-show-description').click();
+            expect($('.g-collection-subtitle').text()).toBe('Show description');
+            expect($('.g-collection-description:visible').length).toBe(0);
+        });
     });
 
     it('create another collection',
