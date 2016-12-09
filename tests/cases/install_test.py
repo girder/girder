@@ -237,7 +237,7 @@ class InstallTestCase(base.TestCase):
 
         with mock.patch('subprocess.Popen', return_value=ProcMock()) as p:
             install.install_web()
-            self.assertNotIn('--production', p.mock_calls[0][1][0])
+            self.assertIn('--production', p.mock_calls[0][1][0])
 
         with mock.patch('subprocess.Popen', return_value=ProcMock()) as p:
             install.install_web(PluginOpts(dev=True))
@@ -256,7 +256,7 @@ class InstallTestCase(base.TestCase):
 
             self.assertEqual(len(p.mock_calls), 2)
             self.assertEqual(
-                list(p.mock_calls[0][1][0]), ['npm', 'install', '--unsafe-perm'])
+                list(p.mock_calls[0][1][0]), ['npm', 'install', '--unsafe-perm', '--production'])
             self.assertEqual(
                 list(p.mock_calls[1][1][0]),
                 ['npm', 'run', 'build', '--',

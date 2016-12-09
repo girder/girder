@@ -25,7 +25,6 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 var paths = require('./webpack.paths.js');
 var es2015Preset = require.resolve('babel-preset-es2015');
-var istanbulPlugin = require.resolve('babel-plugin-istanbul');
 
 function fileLoader() {
     return {
@@ -48,6 +47,22 @@ function urlLoader(options) {
         loader.query.mimetype = options.mimetype;
     }
     return loader;
+}
+
+function _coverageConfig() {
+    try {
+        var istanbulPlugin = require.resolve('babel-plugin-istanbul');
+        return {
+            plugins: [[
+                istanbulPlugin, {
+                    exclude: ['**/*.pug', '**/*.jade', 'node_modules/**/*']
+                }
+            ]]
+        };
+    } catch (e) {
+        // We won't have the istanbul plugin installed in a prod env.
+        return {};
+    }
 }
 
 var loaderPaths = [/clients\/web\/src/];
@@ -83,13 +98,7 @@ module.exports = {
                 query: {
                     presets: [es2015Preset],
                     env: {
-                        cover: {
-                            plugins: [[
-                                istanbulPlugin, {
-                                    exclude: ['**/*.pug', '**/*.jade', 'node_modules/**/*']
-                                }
-                            ]]
-                        }
+                        cover: _coverageConfig()
                     }
                 }
             },
