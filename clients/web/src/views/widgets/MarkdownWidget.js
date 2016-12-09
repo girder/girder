@@ -202,6 +202,15 @@ var MarkdownWidget = View.extend({
         } else {
             return this.$('.g-markdown-text').val();
         }
+    },
+
+    /**
+     * Normally, calling render() on this widget will reset it to its initial text
+     * value. Call this to set the text value that should be shown on re-render
+     * to the current value of the text area.
+     */
+    saveText: function () {
+        this.text = this.val();
     }
 });
 
