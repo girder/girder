@@ -228,11 +228,8 @@ module.exports = function (grunt) {
             var modules = Array.prototype.slice.call(arguments, 2);
             args = args.concat(['install'], modules);
 
-            // Formulate path to npm executable.
-            var npm = path.resolve(path.dirname(process.argv[0]), 'npm');
-
             // Launch the child process.
-            var child = child_process.spawnSync(npm, args, {
+            var child = child_process.spawnSync('npm', args, {
                 stdio: 'inherit'
             });
 
