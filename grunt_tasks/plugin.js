@@ -212,10 +212,6 @@ module.exports = function (grunt) {
         }
 
         grunt.registerTask('npm-install', 'Install plugin NPM dependencies', function (plugin, localNodeModules) {
-            // To attach the stream listeners, we need this to be an
-            // asynchronous child process launch.
-            var done = this.async();
-
             // Start building the list of arguments to the NPM executable.
             //
             // We want color output embedded in the Grunt output.
@@ -236,23 +232,11 @@ module.exports = function (grunt) {
             var npm = path.resolve(path.dirname(process.argv[0]), 'npm');
 
             // Launch the child process.
-            var child = child_process.spawn(npm, args);
-
-            // Force the current process to echo everything the child does to
-            // the appropriate streams.
-            child.stdout.on('data', function (data) {
-                process.stdout.write(data);
+            var child = child_process.spawnSync(npm, args, {
+                stdio: 'inherit'
             });
 
-            child.stderr.on('data', function (data) {
-                process.stderr.write(data);
-            });
-
-            // Catch NPM's return code and invoke the done callback to conclude
-            // the Grunt task.
-            child.on('close', function (code) {
-                done(code === 0);
-            });
+            return child.status === 0;
         });
 
         function addDependencies(deps, localNodeModules) {
