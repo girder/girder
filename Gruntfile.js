@@ -73,7 +73,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-curl');
     grunt.loadNpmTasks('grunt-zip');
     grunt.loadNpmTasks('grunt-file-creator');
-    grunt.loadNpmTasks('grunt-npm-install');
     grunt.loadNpmTasks('grunt-webpack');
 
     // This task should be run once manually at install time.
