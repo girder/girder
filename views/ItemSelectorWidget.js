@@ -10,7 +10,7 @@ import itemSelectorWidget from '../templates/itemSelectorWidget.pug';
 
 var ItemSelectorWidget = View.extend({
     events: {
-        'click .s-select-button': '_selectButton'
+        'submit .s-new-file-select-form': '_selectButton'
     },
 
     initialize: function (settings) {
@@ -87,7 +87,9 @@ var ItemSelectorWidget = View.extend({
         }
     },
 
-    _selectButton: function () {
+    _selectButton: function (e) {
+        e.preventDefault();
+
         var inputEl = this.$('#s-new-file-name');
         var inputElGroup =  inputEl.parent();
         var fileName = inputEl.val();
