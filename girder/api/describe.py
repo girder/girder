@@ -17,12 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
 import os
 import six
 
 from girder import constants
+from girder.api.rest import getCurrentUser, RestException
 from girder.constants import TerminalColor
-from girder.utility import config
+from girder.utility import config, toBool
+from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
@@ -77,6 +80,9 @@ class Description(object):
         self._responseClass = None
         self._responseClassArray = False
         self._notes = None
+        self.hasPagingParams = False
+        self.modelParams = {}
+        self.jsonParams = {}
 
     def asDict(self):
         """
@@ -123,7 +129,7 @@ class Description(object):
         return self
 
     def param(self, name, description, paramType='query', dataType='string',
-              required=True, enum=None, default=None):
+              required=True, enum=None, default=None, strip=False):
         """
         This helper will build a parameter declaration for you. It has the most
         common options as defaults, so you won't have to repeat yourself as much
@@ -144,6 +150,10 @@ class Description(object):
         :param required: True if the request will fail if this parameter is not
                          present, False if the parameter is optional.
         :param enum: a fixed list of possible values for the field.
+        :type enum: list
+        :param strip: For string types, set this to True if the string should be
+            stripped of white space.
+        :type strip: bool
         """
         # Legacy data type conversions
         if dataType == 'int':
@@ -196,6 +206,9 @@ class Description(object):
             'required': required
         }
 
+        if dataType == 'string':
+            param['_strip'] = strip
+
         if paramType == 'body':
             param['schema'] = {
                 'type': dataType
@@ -215,6 +228,74 @@ class Description(object):
         self._params.append(param)
         return self
 
+    def modelParam(self, name, description, destName=None, paramType='path', model=None,
+                   plugin='_core', level=None, force=False, exc=True, requiredFlags=None, **kwargs):
+        """
+        This should be used in lieu of ``param`` if the parameter is a model ID
+        and the model should be loaded and passed into the route handler.
+
+        :param name: The name passed in via the request, e.g. 'id'.
+        :type name: str
+        :param description: The description of the parameter.
+        :type description: str
+        :param destName: The kwarg name after model loading, e.g. 'folder'. Deafults
+            to the value of the model parameter.
+        :type destName: str
+        :param paramType: how is the parameter sent.  One of 'query', 'path',
+            'body', 'header', or 'formData'.
+        :param map: Map of incoming parameter name to corresponding model arg name.
+            If None is passed, this will map the parameter named "id" to a kwarg
+            named the same as the "model" parameter.
+        :type map: dict or None
+        :param model: The model name, e.g. 'folder'
+        :type model: str
+        :param plugin: Plugin name, if loading a plugin model.
+        :type plugin: str
+        :param level: Access level, if this is an access controlled model.
+        :type level: AccessType
+        :param force: Force loading of the model (skip access check).
+        :type force: bool
+        :param exc: Whether an exception should be raised for a nonexistent resource.
+        :type exc: bool
+        :param requiredFlags: Access flags that are required on the object being loaded.
+        :type requiredFlags: str or list/set/tuple of str or None
+        """
+        self.param(name=name, description=description, paramType=paramType)
+
+        self.modelParams[name] = {
+            'destName': destName or model,
+            'level': level,
+            'force': force,
+            'model': model,
+            'plugin': plugin,
+            'exc': exc,
+            'requiredFlags': requiredFlags,
+            'kwargs': kwargs
+        }
+
+        return self
+
+    def jsonParam(self, name, description, paramType='query', required=True, default=None,
+                  requireObject=False, requireArray=False):
+        """
+        Specifies a parameter that should be processed as JSON.
+
+        :param requireObject: Whether the value must be a JSON object / Python dict.
+        :type requireObject: bool
+        :param requireArray: Whether the value must be a JSON array / Python list.
+        :type requireArray: bool
+        """
+        self.param(
+            name=name, description=description, paramType=paramType, required=required,
+            default=default)
+
+        self.jsonParams[name] = {
+            'requireObject': requireObject,
+            'requireList': requireArray
+        }
+
+        return self
+
     def pagingParams(self, defaultSort, defaultSortDir=1, defaultLimit=50):
         """
         Adds the limit, offset, sort, and sortdir parameter documentation to
@@ -227,18 +308,19 @@ class Description(object):
         :param defaultLimit: The default page size.
         :type defaultLimit: int
         """
-        self.param('limit', 'Result set size limit.', default=defaultLimit,
-                   required=False, dataType='int')
-        self.param('offset', 'Offset into result set.', default=0,
-                   required=False, dataType='int')
+        self.param(
+            'limit', 'Result set size limit.', default=defaultLimit, required=False, dataType='int')
+        self.param('offset', 'Offset into result set.', default=0, required=False, dataType='int')
 
         if defaultSort is not None:
-            self.param('sort', 'Field to sort the result set by.',
-                       default=defaultSort, required=False)
+            self.param(
+                'sort', 'Field to sort the result set by.', default=defaultSort, required=False,
+                strip=True)
             self.param(
                 'sortdir', 'Sort order: 1 for ascending, -1 for descending.',
-                required=False, dataType='int', enum=(1, -1),
-                default=defaultSortDir)
+                required=False, dataType='integer', enum=(1, -1), default=defaultSortDir)
+
+        self.hasPagingParams = True
         return self
 
     def consumes(self, value):
@@ -275,6 +357,10 @@ class Description(object):
             }
 
         return self
+
+    @property
+    def params(self):
+        return self._params
 
 
 class ApiDocs(WebrootBase):
@@ -374,3 +460,114 @@ class describeRoute(object):  # noqa: class name
     def __call__(self, fun):
         fun.description = self.description
         return fun
+
+
+class autoDescribeRoute(describeRoute):  # noqa: class name
+    """
+    Like describeRoute, but this decorator also controls behavior of the
+    underlying method. It handles parameter validation and transformation
+    based on the Description object passed.
+    """
+    def __call__(self, fun):
+        @six.wraps(fun)
+        def wrapped(*args, **kwargs):
+            """
+            Transform any passed params according to the spec, or
+            fill in default values for any params not passed.
+            """
+            params = kwargs.get('params', {})
+            for descParam in self.description.params:
+                name = descParam['name']
+                if name in params:
+                    if 'type' not in descParam:
+                        # likely a body param, ignore for now TODO ?
+                        continue
+                    if name in self.description.jsonParams:
+                        info = self.description.jsonParams[name]
+                        kwargs[name] = self._loadJson(name, info, params[name])
+                    if name in self.description.modelParams:
+                        info = self.description.modelParams[name]
+                        kwargs[info['destName']] = self._loadModel(name, info, params[name])
+                    else:
+                        kwargs[name] = self._validateParam(name, descParam, params[name])
+                    del kwargs['params'][name]
+                elif 'default' in descParam:
+                    kwargs[name] = descParam['default']
+                elif descParam['required']:
+                    raise RestException('Parameter "%s" is required.' % name)
+                else:
+                    # If required=False but no default is specified, use None
+                    kwargs[name] = None
+
+            if self.description.hasPagingParams:
+                kwargs['sort'] = [(kwargs['sort'], kwargs['sortdir'])]
+                del kwargs['sortdir']
+
+            return fun(*args, **kwargs)
+
+        wrapped.description = self.description
+        return wrapped
+
+    def _loadJson(self, name, info, value):
+        try:
+            val = json.loads(value)
+        except ValueError:
+            raise RestException('Parameter %s must be valid JSON.' % name)
+
+        if info['requireObject'] and not isinstance(val, dict):
+            raise RestException('Parameter %s must be a JSON object.' % name)
+        if info['requireArray'] and not isinstance(val, list):
+            raise RestException('Parameter %s must be a JSON array.' % name)
+
+        return val
+
+    def _loadModel(self, name, info, id):
+        model = ModelImporter.model(info['model'], info['plugin'])
+        if info['force']:
+            doc = model.load(id, force=True, **self.kwargs)
+        elif info['level'] is not None:
+            doc = model.load(id=id, level=info['level'], user=getCurrentUser(), **self.kwargs)
+        else:
+            doc = model.load(id, **self.kwargs)
+
+        if doc is None and self.exc:
+            raise RestException('Invalid %s id (%s).' % (model.name, str(id)))
+
+        if info['requiredFlags']:
+            model.requireAccessFlags(doc, user=getCurrentUser(), flags=info['requiredFlags'])
+
+        return doc
+
+    def _validateParam(self, name, descParam, value):
+        """
+        Validates and transforms a single parameter that was passed. Raises
+        RestException if the passed value is invalid.
+
+        :param name: The name of the param.
+        :type name: str
+        :param descParam: The formal parameter in the Description.
+        :type descParam: dict
+        :param value: The value passed in for this param for the current request.
+        :returns: The value transformed
+        """
+        type = descParam.get('type')
+
+        # Coerce to the correct data type
+        if type == 'boolean':
+            value = toBool(value)
+        elif type == 'integer':
+            try:
+                value = int(value)
+            except ValueError:
+                raise RestException('Invalid value for integer parameter %s: %s.' % (
+                    name, value
+                ))
+        elif type == 'string' and descParam['_strip']:
+            value = value.strip()
+
+        # Enum validation (should be afer type coercion)
+        if 'enum' in descParam and value not in descParam['enum']:
+            raise RestException('Invalid value for param %s: "%s". Allowed values: %s.' % (
+                name, value, ', '.join(descParam['enum'])))
+
+        return value
