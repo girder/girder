@@ -149,6 +149,11 @@ class WorkerTask(Resource):
         outputs = self.getParamJson('outputs', params, default={})
 
         job['workerTaskItemId'] = item['_id']
+        job['workerTaskBindings'] = {
+            'inputs': inputs,
+            'outputs': outputs
+        }
+
         job['kwargs'] = {
             'task': task,
             'inputs': self._transformInputs(inputs, token),
