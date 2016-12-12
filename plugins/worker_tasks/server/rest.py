@@ -57,6 +57,12 @@ class WorkerTask(Resource):
         if 'mode' not in spec:
             raise ValidationException('Task must contain a "mode" field.')
 
+        # Ensure that format and type keys exist in every task IO spec,
+        # the worker complains otherwise.
+        for ioSpec in inputs + outputs:
+            ioSpec['format'] = ioSpec.get('format', 'none')
+            ioSpec['type'] = ioSpec.get('type', 'none')
+
         return spec
 
     def _transformInputs(self, inputs, token):
@@ -166,7 +172,7 @@ class WorkerTask(Resource):
         if includeJobInfo:
             job['kwargs']['jobInfo'] = utils.jobInfoSpec(job)
 
-        job = jobModel.save('job')
+        job = jobModel.save(job)
         jobModel.scheduleJob(job)
 
         return job

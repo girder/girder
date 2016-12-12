@@ -52,16 +52,21 @@ const TaskRunView = View.extend({
     },
 
     render: function () {
+        var hasInputs = this._inputs.length,
+            hasOutputs = this._outputs.length;
+
         this.$el.html(template({
             item: this.model,
+            hasInputs: hasInputs,
+            hasOuputs: hasOutputs,
             renderMarkdown: renderMarkdown
         }));
 
-        if (this._inputs.length) {
+        if (hasInputs) {
             this._inputsPanel.setElement(this.$('.g-inputs-container')).render();
         }
 
-        if (this._outputs.length) {
+        if (hasOutputs) {
             this._outputsPanel.setElement(this.$('.g-outputs-container')).render();
         }
     },
@@ -150,9 +155,9 @@ const TaskRunView = View.extend({
             },
             error: null
         }).done((resp) => {
-            router.navigate(`job/${resp.id}`, {trigger: true});
+            router.navigate(`job/${resp._id}`, {trigger: true});
         }).error((resp) => {
-            $(e.currentTarget).attr('disabled', 'true').addClass('disabled');
+            $(e.currentTarget).attr('disabled', null).removeClass('disabled');
             this.$('.g-validation-failed-message').text('Error: ' + resp.responseJSON.message);
         });
     }
