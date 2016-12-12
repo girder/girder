@@ -35,6 +35,8 @@ module.exports = function (grunt) {
         return;
     }
 
+    require('colors');
+
     grunt.config.merge({
         default: {
             plugin: {}
@@ -102,7 +104,7 @@ module.exports = function (grunt) {
             config = grunt.file.readYAML(yml);
         }
 
-        console.log(`Configuring plugin ${plugin.magenta} (${cfgFile})`);
+        grunt.log.writeln(`Configuring plugin ${plugin.magenta} (${cfgFile})`);
 
         var doAutoBuild = (
             !_.isObject(config.grunt) ||
@@ -121,10 +123,10 @@ module.exports = function (grunt) {
         var webpackHelperFile = path.resolve(dir, config.webpack && config.webpack.configHelper || 'webpack.helper.js');
         var webpackHelper;
         if (fs.existsSync(webpackHelperFile)) {
-            console.log(`Loading webpack helper from ${webpackHelperFile}`);
+            grunt.log.writeln(`  >> Loading webpack helper from ${webpackHelperFile}`);
             webpackHelper = require(webpackHelperFile);
         } else {
-            console.log('No webpack helper file found.');
+            grunt.verbose.writeln('  >> No webpack helper file found.');
             webpackHelper = function (x) {
                 return x;
             };
@@ -262,8 +264,8 @@ module.exports = function (grunt) {
                 var npmFile = require(path.resolve(dir, config.npm.file));
                 var fields = config.npm.fields || ['devDependencies', 'dependencies', 'optionalDependencies'];
 
-                grunt.log.writeln('Loading NPM dependencies from: ' + config.npm.file);
-                grunt.log.writeln('Using fields: ' + fields.join(', '));
+                grunt.log.writeln('  >> Loading NPM dependencies from: ' + config.npm.file);
+                grunt.log.writeln('  >> Using fields: ' + fields.join(', '));
 
                 fields.forEach(function (field) {
                     _.each(npmFile[field] || {}, function (version, dep) {
@@ -276,9 +278,9 @@ module.exports = function (grunt) {
             // "dependencies" property.
             if (config.npm.dependencies) {
                 if (config.npm.file) {
-                    grunt.log.writeln('Loading additional dependencies');
+                    grunt.log.writeln('  >> Loading additional NPM dependencies');
                 } else {
-                    grunt.log.writeln('Loading dependencies');
+                    grunt.log.writeln('  >> Loading NPM dependencies');
                 }
 
                 _.each(config.npm.dependencies, function (version, dep) {
@@ -287,9 +289,9 @@ module.exports = function (grunt) {
             }
 
             if (config.npm.localNodeModules) {
-                grunt.log.writeln('Installing dependencies to dedicated directory: node_modules_' + plugin);
+                grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: node_modules_${plugin}`);
             } else {
-                grunt.log.writeln('Installing dependencies to Girder node_modules directory');
+                grunt.verbose.writeln('  >> Installing NPM dependencies to Girder node_modules directory');
             }
 
             // Invoke the npm installation task.
