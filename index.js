@@ -31,7 +31,9 @@ module.exports = {
     "backbone/events-on-top": [2, ["tagName", "className"]],
     "backbone/events-sort": 0,
     "backbone/initialize-on-top": [2, {
-      View: ["tagName", "className", "events"]
+      View: ["tagName", "className", "events"],
+      Model: ["defaults", "url", "urlRoot"],
+      Collection: ["model", "url"]
     }],
     "backbone/model-defaults": 0,
     "backbone/no-changed-set": 0,
