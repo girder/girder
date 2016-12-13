@@ -28,9 +28,11 @@ module.exports = {
     "backbone/collection-model": 2,
     "backbone/defaults-on-top": 0,
     "backbone/event-scope": 0,
-    "backbone/events-on-top": 2,
+    "backbone/events-on-top": [2, ["tagName", "className"]],
     "backbone/events-sort": 0,
-    "backbone/initialize-on-top": 2,
+    "backbone/initialize-on-top": [2, {
+      View: ["tagName", "className", "events"]
+    }],
     "backbone/model-defaults": 0,
     "backbone/no-changed-set": 0,
     "backbone/no-collection-models": 0,
