@@ -82,7 +82,8 @@ class WorkerTask(Resource):
                 resource = self.model(rtype).load(
                     v['id'], level=AccessType.READ, user=self.getCurrentUser(), exc=True)
 
-                transformed[k] = utils.girderInputSpec(resource, resourceType=rtype, token=token)
+                transformed[k] = utils.girderInputSpec(
+                    resource, resourceType=rtype, token=token, dataFormat='none')
             elif v['mode'] == 'inline':
                 transformed[k] = {
                     'mode': v['mode'],
@@ -113,7 +114,7 @@ class WorkerTask(Resource):
                     v['parent_id'], level=AccessType.WRITE, user=self.getCurrentUser(), exc=True)
 
                 transformed[k] = utils.girderOutputSpec(
-                    parent, parentType=ptype, token=token, name=v.get('name'))
+                    parent, parentType=ptype, token=token, name=v.get('name'), dataFormat='none')
             else:
                 raise ValidationException('Invalid output mode: %s.' % v['mode'])
 
