@@ -157,7 +157,10 @@ class Description(object):
         dataTypeFormat = None
         if dataType in self._dataTypeMap:
             (dataType, dataTypeFormat) = self._dataTypeMap[dataType]
-        else:
+        # If we are dealing with the body then the dataType might be defined
+        # by a schema added using addModel(...), we don't know for sure as we
+        # don't know the resource name here to look it up.
+        elif paramType != 'body':
             print(TerminalColor.warning(
                 "WARNING: Invalid dataType '%s' specified for parameter "
                 "named '%s'" % (dataType, name)))
@@ -198,7 +201,7 @@ class Description(object):
 
         if paramType == 'body':
             param['schema'] = {
-                'type': dataType
+                '$ref': '#/definitions/%s' % dataType
             }
         else:
             param['type'] = dataType
