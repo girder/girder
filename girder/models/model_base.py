@@ -1280,6 +1280,7 @@ class AccessControlledModel(Model):
         :param removeKeys: List of keys that should be removed from each
                            matching document.
         :type removeKeys: list
+        :param flags: A flag or set of flags to test.
         """
         if flags:
             def hasAccess(doc):

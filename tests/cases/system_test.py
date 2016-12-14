@@ -642,3 +642,19 @@ class SystemTestCase(base.TestCase):
 
         # Testing with flags=None should give sensible behavior
         folderModel.requireAccessFlags(folder, user=None, flags=None)
+
+        # Test filtering results by access flags (both ACModel and AclMixin)
+        for model, doc in ((folderModel, folder), (itemModel, item)):
+            cursor = model.find({})
+            self.assertGreater(len(list(cursor)), 0)
+
+            cursor = model.find({})
+            filtered = list(model.filterResultsByPermission(
+                cursor, user=None, level=AccessType.READ, flags='my_key'))
+            self.assertEqual(len(filtered), 0)
+
+            cursor = model.find({})
+            filtered = list(model.filterResultsByPermission(
+                cursor, user=self.users[1], level=AccessType.READ, flags=('my_key', 'admin_flag')))
+            self.assertEqual(len(filtered), 1)
+            self.assertEqual(filtered[0]['_id'], doc['_id'])

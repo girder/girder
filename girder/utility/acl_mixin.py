@@ -118,7 +118,7 @@ class AccessControlMixin(object):
         resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
         return self.model(self.resourceColl).requireAccessFlags(resource, user, flags)
 
-    def filterResultsByPermission(self, cursor, user, level, limit, offset,
+    def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,
                                   removeKeys=(), flags=None):
         """
         Yields filtered results from the cursor based on the access control
