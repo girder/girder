@@ -1261,11 +1261,12 @@ class AccessControlledModel(Model):
         return dest
 
     def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,
-                                  removeKeys=()):
+                                  removeKeys=(), flags=None):
         """
         Given a database result cursor, this generator will yield only the
         results that the user has the given level of access on, respecting the
-        limit and offset specified.
+        limit and offset specified. It can also only yield results for which the
+        user has certain access flags.
 
         :param cursor: The database cursor object from "find()".
         :param user: The user to check policies against.
@@ -1280,7 +1281,12 @@ class AccessControlledModel(Model):
                            matching document.
         :type removeKeys: list
         """
-        hasAccess = functools.partial(self.hasAccess, user=user, level=level)
+        if flags:
+            def hasAccess(doc):
+                return (self.hasAccess(doc, user=user, level=level) and
+                        self.hasAccessFlags(doc, user=user, flags=flags))
+        else:
+            hasAccess = functools.partial(self.hasAccess, user=user, level=level)
 
         endIndex = offset + limit if limit else None
         filteredCursor = six.moves.filter(hasAccess, cursor)
