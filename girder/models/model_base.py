@@ -1264,9 +1264,8 @@ class AccessControlledModel(Model):
                                   removeKeys=(), flags=None):
         """
         Given a database result cursor, this generator will yield only the
-        results that the user has the given level of access on, respecting the
-        limit and offset specified. It can also only yield results for which the
-        user has certain access flags.
+        results that the user has the given level of access and specified access flags on,
+        respecting the limit and offset specified.
 
         :param cursor: The database cursor object from "find()".
         :param user: The user to check policies against.
@@ -1281,6 +1280,7 @@ class AccessControlledModel(Model):
                            matching document.
         :type removeKeys: list
         :param flags: A flag or set of flags to test.
+        :type flags: flag identifier, or a list/set/tuple of them
         """
         if flags:
             def hasAccess(doc):
