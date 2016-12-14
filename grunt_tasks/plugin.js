@@ -205,7 +205,18 @@ module.exports = function (grunt) {
                 for (var i = 0; i < numLoaders; i++) {
                     var selector = 'webpack.options.module.loaders.' + i + '.include';
                     var loaders = grunt.config.get(selector);
-                    grunt.config.set(selector, loaders.concat([path.resolve(dir)]));
+                    var pluginPath = path.resolve(dir);
+                    var realPath = fs.realpathSync(dir);
+                    var loaderIncludes = [pluginPath];
+
+                    // We add the plugin path to the include list for the loaders, and also
+                    // add the realpath (i.e. following symlinks) to workaround an issue where
+                    // webpack doesn't resolve symlinked include directories correctly.
+                    if (realPath !== pluginPath) {
+                        loaderIncludes.push(realPath);
+                    }
+
+                    grunt.config.set(selector, loaders.concat(loaderIncludes));
                 }
             }
 
