@@ -10,6 +10,22 @@ a listing and brief documentation of some of Girder's standard plugins that come
 pre-packaged with the application.
 
 
+Authorized Uploads
+------------------
+
+This plugin allows registered users to grant access to others to upload data on their behalf
+via a secure URL. The secure URL allows a third party to upload a single file into the selected
+folder, even if that third party does not have a registered user in Girder.
+
+To authorize an upload on behalf of your user, navigate into any folder to which you have
+write access. From the **Folder actions** dropdown menu on the right, choose **Authorize upload here**.
+You will be taken to a page that allows generation of a secure, single-use URL. You can optionally
+specify a number of days until the URL expires; if none is specified, the user session lifetime
+is used, which defaults to 180 days. Click **Generate URL**, and your secure URL will appear
+below. Copy that URL and send it to the third party, and they will be taken to a simple page
+allowing them to upload the file without having to see any details of the normal Girder application.
+
+
 .. _jobsplugin:
 
 Jobs
