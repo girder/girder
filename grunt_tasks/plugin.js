@@ -146,9 +146,9 @@ module.exports = function (grunt) {
         var mains = config.webpack && config.webpack.main || {};
 
         if (_.isString(mains)) {
-            // If main was specified as a string, use "plugin" as the target name.
+            // If main was specified as a string, convert to an object
             mains = {
-                plugin: mains
+                [output]: mains
             };
         } else if (_.isEmpty(mains)) {
             // By default, use web_client/main.js if it exists.
@@ -156,17 +156,17 @@ module.exports = function (grunt) {
 
             if (fs.existsSync(mainJs)) {
                 mains = {
-                    plugin: mainJs
+                    [output]: mainJs
                 };
             }
-        };
+        }
 
         _.each(mains, (main, output) => {
             if (!path.isAbsolute(main)) {
-                main = path.join(dir, main)
+                main = path.join(dir, main);
             }
             if (!fs.existsSync(main)) {
-                throw `Entry point file ${main} not found.`;
+                throw new Error(`Entry point file ${main} not found.`);
             }
 
             var helperConfig = {
