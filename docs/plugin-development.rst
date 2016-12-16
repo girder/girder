@@ -721,6 +721,9 @@ value. One reasonable choice is ``index``. These plugins can be used to create
 wholly independent web clients that don't explicitly depend on the core Girder
 client being loaded.
 
+.. note:: If you use an object to specify an output to entry point mapping in ``webpack.main``,
+          the ``webpack.output`` value will be ignored if specified.
+
 Executing custom Grunt build steps for your plugin
 **************************************************
 
