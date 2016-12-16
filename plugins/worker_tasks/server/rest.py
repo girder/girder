@@ -32,7 +32,8 @@ class WorkerTask(Resource):
         }, sort=sort)
 
         return list(self.model('item').filterResultsByPermission(
-            cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset))
+            cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
+            flags=constants.ACCESS_FLAG_EXECUTE_TASK))
 
     def _validateTask(self, item):
         """
