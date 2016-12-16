@@ -957,3 +957,28 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['assetstoreId'], gridfs_assetstore['_id'])
         uploadedFiles[3] = resp.json
+
+        # Test progress
+        size = chunkSize * 2
+        chunkSize = self.model('upload')._getChunkSize()
+        data = six.BytesIO(b' ' * size)
+        upload = self.model('upload').uploadFromFile(
+            data, size, 'progress', parentType='folder',
+            parent=folder, assetstore=fs_assetstore)
+        params = {
+            'assetstoreId': gridfs_assetstore['_id'],
+            'progress': True
+        }
+        resp = self.request(
+            path='/file/%s/move' % upload['_id'], method='PUT',
+            user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], gridfs_assetstore['_id'])
+
+        resp = self.request(
+            path='/notification/stream', method='GET', user=self.admin,
+            isJson=False, params={'timeout': 1})
+        messages = self.getSseMessages(resp)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0]['type'], 'progress')
+        self.assertEqual(messages[0]['data']['current'], size)

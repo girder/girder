@@ -26,6 +26,7 @@ from ..rest import Resource, RestException, filtermodel, loadmodel
 from ...constants import AccessType, TokenScope
 from girder.models.model_base import AccessException, GirderException
 from girder.api import access
+from girder.utility.progress import ProgressContext
 
 
 class File(Resource):
@@ -399,13 +400,20 @@ class File(Resource):
         Description('Move a file to a different assetstore.')
         .param('id', 'The ID of the file.', paramType='path')
         .param('assetstoreId', 'The destination assetstore.')
+        .param('progress', 'Controls whether progress notifications will be sent.',
+               dataType='boolean', default=False, required=False)
     )
     def moveFileToAssetstore(self, file, params):
         self.requireParams('assetstoreId', params)
         user = self.getCurrentUser()
+        progress = self.boolParam('progress', params, False)
         assetstore = self.model('assetstore').load(params['assetstoreId'])
-        return self.model('upload').moveFileToAssetstore(
-            file=file, user=user, assetstore=assetstore)
+
+        title = 'Moving file \'%s\' to assetstore \'%s\'' \
+            % (file['name'], assetstore['name'])
+        with ProgressContext(progress, user=user, title=title, total=file['size']) as ctx:
+            return self.model('upload').moveFileToAssetstore(
+                file=file, user=user, assetstore=assetstore, progress=ctx)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @loadmodel(model='file', level=AccessType.READ)
