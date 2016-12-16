@@ -137,25 +137,50 @@ module.exports = function (grunt) {
         // the user can control whether this is a "Girder client extension" or
         // just a standalone web client.
         var output = config.webpack && config.webpack.output || 'plugin';
-        var pluginEntry =  `plugins/${plugin}/${output}`;
 
         var pluginNodeDir = path.resolve(process.cwd(), 'node_modules_' + plugin, 'node_modules');
-        var helperConfig = {
-            plugin: plugin,
-            pluginEntry: pluginEntry,
-            pluginDir: dir,
-            nodeDir: pluginNodeDir
-        };
 
         // Add webpack target and name resolution for this plugin if
         // web_client/main.js (or user-specified name) exists.
         var webClient = path.resolve(dir + '/web_client');
-        var main = config.webpack && config.webpack.main && path.resolve(dir, config.webpack.main) || webClient + '/main.js';
+        var mains = config.webpack && config.webpack.main || {};
 
-        if (fs.existsSync(main)) {
+        if (_.isString(mains)) {
+            // If main was specified as a string, convert to an object
+            mains = {
+                [output]: mains
+            };
+        } else if (_.isEmpty(mains)) {
+            // By default, use web_client/main.js if it exists.
+            var mainJs = path.join(webClient, 'main.js');
+
+            if (fs.existsSync(mainJs)) {
+                mains = {
+                    [output]: mainJs
+                };
+            }
+        }
+
+        _.each(mains, (main, output) => {
+            if (!path.isAbsolute(main)) {
+                main = path.join(dir, main);
+            }
+            if (!fs.existsSync(main)) {
+                throw new Error(`Entry point file ${main} not found.`);
+            }
+
+            var helperConfig = {
+                plugin,
+                output,
+                main,
+                pluginEntry: `plugins/${plugin}/${output}`,
+                pluginDir: dir,
+                nodeDir: pluginNodeDir
+            };
+
             grunt.config.merge({
                 webpack: {
-                    [`plugin_${plugin}`]: {
+                    [`${output}_${plugin}`]: {
                         entry: {
                             [helperConfig.pluginEntry]: [main]
                         },
@@ -190,7 +215,7 @@ module.exports = function (grunt) {
 
             grunt.config.merge({
                 default: {
-                    [`webpack:plugin_${plugin}`]: {
+                    [`webpack:${output}_${plugin}`]: {
                         dependencies: ['build'] // plugin builds must run after core build
                     }
                 }
@@ -222,7 +247,7 @@ module.exports = function (grunt) {
 
             var newConfig = webpackHelper(grunt.config.get('webpack.options'), helperConfig);
             grunt.config.set('webpack.options', newConfig);
-        }
+        });
 
         grunt.registerTask('npm-install', 'Install plugin NPM dependencies', function (plugin, localNodeModules) {
             // Start building the list of arguments to the NPM executable.
@@ -341,7 +366,7 @@ module.exports = function (grunt) {
     if (buildAll) {
         // Glob for plugins and configure each one to be built
         grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
-            configurePluginForBuilding(dir);
+            configurePluginForBuilding(path.resolve(dir));
         });
     } else {
         // Build only the plugins that were requested via --plugins
