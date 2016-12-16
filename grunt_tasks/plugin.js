@@ -366,7 +366,7 @@ module.exports = function (grunt) {
     if (buildAll) {
         // Glob for plugins and configure each one to be built
         grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
-            configurePluginForBuilding(dir);
+            configurePluginForBuilding(path.resolve(dir));
         });
     } else {
         // Build only the plugins that were requested via --plugins
