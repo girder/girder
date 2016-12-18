@@ -83,12 +83,6 @@ module.exports = {
     "underscore"
   ],
   "globals": {
-    "_": true,
-    "girder": true,
-    "Backbone": true,
-    "Remarkable": true,
-    "JSONEditor": true,
-    "sprintf": true
   },
   "settings": {
     "backbone": {
