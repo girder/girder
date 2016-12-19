@@ -5,7 +5,7 @@ var taskFile = null;
 
 try {
     taskFile = require.resolve('grunt-webpack/tasks/webpack-dev-server.js');
-} catch(e) {}
+} catch (e) {}
 
 if (taskFile) {
     console.log('Removing unused task file ' + taskFile);
