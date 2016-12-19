@@ -36,7 +36,7 @@ var BrowserWidget = View.extend({
         this.validate = settings.validate || function () {};
         this.helpText = settings.helpText;
         this.showItems = settings.showItems;
-        this.showPreview = settings.showPreview || true;
+        this.showPreview = _.isUndefined(settings.showPreview) ? true : !!settings.showPreview;
         this.submitText = settings.submitText || 'Save';
 
         // generate the root selection view and listen to it's events

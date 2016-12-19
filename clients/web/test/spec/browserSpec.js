@@ -279,6 +279,29 @@ describe('Test the hierarchy browser modal', function () {
             });
         });
 
+        it('preview off', function () {
+            girder.auth.setCurrentUser(new girder.models.UserModel({
+                _id: '0',
+                login: 'johndoe',
+                firstName: 'John',
+                lastName: 'Doe'
+            }));
+
+            returnVal = [];
+            view = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                showPreview: false
+            }).render();
+
+            waitsFor(function () {
+                return $(view.$el).is(':visible');
+            });
+            runs(function () {
+                view.$('#g-root-selector').val('0').trigger('change');
+                expect(view.$('#g-selected-model').length).toBe(0);
+            });
+        });
+
         it('validation', function () {
             returnVal = [];
             view = new girder.views.widgets.BrowserWidget({
