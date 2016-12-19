@@ -306,7 +306,7 @@ describe('Test the hierarchy browser modal', function () {
             returnVal = [];
             view = new girder.views.widgets.BrowserWidget({
                 parentView: null,
-                validate: function () { return 'invalid'; }
+                validate: _.constant('invalid')
             }).render();
             waitsFor(function () {
                 return $(view.$el).is(':visible');
