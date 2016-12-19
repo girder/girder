@@ -43,7 +43,7 @@ var FilesystemImportView = View.extend({
             }
         });
         this.listenTo(this._browserWidgetView, 'g:saved', function (val) {
-            this.$('#g-filesystem-import-dest-id').val(val);
+            this.$('#g-filesystem-import-dest-id').val(val.id);
         });
         this.assetstore = settings.assetstore;
         this.render();

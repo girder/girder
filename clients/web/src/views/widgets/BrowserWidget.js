@@ -6,6 +6,7 @@ import View from 'girder/views/View';
 
 import BrowserWidgetTemplate from 'girder/templates/widgets/browserWidget.pug';
 
+import 'girder/stylesheets/widgets/browserWidget.styl';
 import 'girder/utilities/jquery/girderModal';
 
 /**
@@ -28,6 +29,11 @@ var BrowserWidget = View.extend({
      * @param {boolean} [showPreview=true] Show a preview of the current object id
      * @param {function} [validate] A validation function returning a string that is displayed on error
      * @param {object} [rootSelectorSettings] Settings passed to the root selector widget
+     * @param {Model} [root] The default root model to pass to the hierarchy widget
+     * @param {boolean} [selectItem=false] Adjust behavior to enable selecting items rather
+     *   than folders. This will add a handler to the hierarchy widget responding to
+     *   clicks on items to select a target rather than inferring it from the browsed
+     *   location.
      */
     initialize: function (settings) {
         // store options
@@ -38,13 +44,16 @@ var BrowserWidget = View.extend({
         this.showItems = settings.showItems;
         this.showPreview = _.isUndefined(settings.showPreview) ? true : !!settings.showPreview;
         this.submitText = settings.submitText || 'Save';
+        this.root = settings.root;
+        this.selectItem = !!settings.selectItem;
+        this._selected = null;
 
         // generate the root selection view and listen to it's events
         this._rootSelectionView = new RootSelectorWidget(_.extend({
             parentView: this
         }, settings.rootSelectorSettings));
         this.listenTo(this._rootSelectionView, 'g:selected', function (evt) {
-            this._root = evt.root;
+            this.root = evt.root;
             this._renderHierarchyView();
         });
     },
@@ -63,10 +72,10 @@ var BrowserWidget = View.extend({
     },
 
     /**
-     * Return the selected model id.
+     * Return the selected model.
      */
     selectedModel: function () {
-        return this.$('#g-selected-model').val();
+        return this._selected;
     },
 
     _renderRootSelection: function () {
@@ -80,13 +89,13 @@ var BrowserWidget = View.extend({
             this._hierarchyView.off();
             this.$('.g-hierarchy-widget-container').empty();
         }
-        if (!this._root) {
+        if (!this.root) {
             return;
         }
         this.$('.g-wait-for-root').removeClass('hidden');
         this._hierarchyView = new HierarchyWidget({
             parentView: this,
-            parentModel: this._root,
+            parentModel: this.root,
             checkboxes: false,
             routing: false,
             showActions: false,
@@ -98,14 +107,28 @@ var BrowserWidget = View.extend({
         this._selectModel();
     },
 
-    _selectItem: function () {
-        // for future extensibility, do something when an item is clicked
+    _resetSelection: function (model) {
+        this._selected = model;
+        this.$('.g-validation-failed-message').addClass('hidden');
+        this.$('.g-selected-model').removeClass('has-error');
+        this.$('#g-selected-model').val('');
+        if (this._selected) {
+            this.$('#g-selected-model').val(this._selected.id);
+        }
+    },
+
+    _selectItem: function (item) {
+        if (!this.selectItem) {
+            return;
+        }
+        this._resetSelection(item);
     },
 
     _selectModel: function () {
-        this.$('.g-validation-failed-message').addClass('hidden');
-        this.$('.g-selected-model').removeClass('has-error');
-        this.$('#g-selected-model').val(this._hierarchyView.parentModel.id);
+        if (this.selectItem) {
+            return;
+        }
+        this._resetSelection(this._hierarchyView.parentModel);
     },
 
     _submitButton: function () {
