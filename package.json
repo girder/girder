@@ -77,7 +77,7 @@
     "postinstall": "node scripts/postNpmInstall.js",
     "build": "grunt init && NODE_PATH=$PWD/node_modules grunt",
     "watch": "NODE_PATH=$PWD/node_modules grunt --watch",
-    "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts && pug-lint clients/web/src/templates",
+    "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts clients/web/test && pug-lint clients/web/src/templates",
     "docs": "grunt docs"
   }
 }

@@ -29,7 +29,7 @@
             runs(function () {
                 var _user = new girder.models.UserModel({
                     login: 'mylogin',
-                    password:'mypassword',
+                    password: 'mypassword',
                     email: 'email@email.com',
                     firstName: 'First',
                     lastName: 'Last'
@@ -141,7 +141,7 @@
 
                 $('body').empty().off();
 
-                new girder.views.widgets.HierarchyWidget({
+                return new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     checkboxes: false,
@@ -168,7 +168,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.widgets.HierarchyWidget({
+                return new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     downloadLinks: false,
@@ -194,7 +194,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.widgets.HierarchyWidget({
+                return new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     viewLinks: false,
@@ -220,7 +220,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.widgets.HierarchyWidget({
+                return new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     downloadLinks: false,
@@ -252,7 +252,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.widgets.HierarchyWidget({
+                return new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     showMetadata: false,
@@ -278,7 +278,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.widgets.HierarchyWidget({
+                return new girder.views.widgets.HierarchyWidget({
                     el: 'body',
                     parentModel: folder,
                     showSizes: false,
@@ -334,7 +334,7 @@
             runs(function () {
                 $('body').empty().off();
 
-                new girder.views.widgets.AccessWidget({
+                return new girder.views.widgets.AccessWidget({
                     el: 'body',
                     modal: false,
                     model: folder,
@@ -622,7 +622,7 @@
         it('test editing custom field with custom callbacks', function () {
             var widget;
             var model = new girder.models.FolderModel({
-                customMeta: {},
+                customMeta: {}
             });
             var addCbCalled = false;
             var editCbCalled = false;

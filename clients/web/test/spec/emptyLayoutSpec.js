@@ -1,5 +1,3 @@
-/* globals girderTest, runs, waitsFor, expect, describe, it */
-
 /**
  * Start the girder backbone app.
  */

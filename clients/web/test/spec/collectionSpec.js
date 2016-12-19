@@ -4,7 +4,6 @@
 girderTest.startApp();
 
 describe('Test collection actions', function () {
-
     var privateCollectionFragment, privateFolderFragment;
 
     it('register a user (first is admin)',
@@ -66,7 +65,6 @@ describe('Test collection actions', function () {
         girderTest.createCollection('collName1', 'coll Desc 1', 'Private'));
 
     it('change collection description', function () {
-
         waitsFor(function () {
             return $('.g-collection-actions-button:visible').is(':enabled');
         }, 'collection actions link to appear');
@@ -76,7 +74,7 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $(".g-edit-collection").is(':visible');
+            return $('.g-edit-collection').is(':visible');
         }, 'edit collection menu item to appear');
 
         runs(function () {
@@ -128,7 +126,7 @@ describe('Test collection actions', function () {
             return $('.g-folder-metadata').is(':visible');
         }, 'ensure collection folder is displayed');
 
-        runs(function ()  {
+        runs(function () {
             // Collection actions should disappear once we navigate into subfolder
             expect($('.g-collection-actions-button:visible').length).toBe(0);
             privateFolderFragment = Backbone.history.fragment;
@@ -192,7 +190,7 @@ describe('Test collection actions', function () {
 
         waitsFor(function () {
             return $('.g-save-access-list:visible').is(':enabled') &&
-                   $('.radio.g-selected').text().match("Public").length > 0;
+                   $('.radio.g-selected').text().match('Public').length > 0;
         }, 'access save button to appear');
 
         runs(function () {
@@ -237,7 +235,6 @@ describe('Test collection actions', function () {
         waitsFor(function () {
             return $('.g-collection-list-entry').text().match('collName1').length > 0;
         }, 'new collection to appear');
-
     });
 
     it('logout to become anonymous, and check for redirect to front page from collections list page', function () {
@@ -249,7 +246,6 @@ describe('Test collection actions', function () {
     });
 
     it('check if public collection is viewable (and ensure private is not)', function () {
-
         runs(function () {
             $("a.g-nav-link[g-target='collections']").click();
         });
@@ -266,7 +262,6 @@ describe('Test collection actions', function () {
         waitsFor(function () {
             return $('.g-collection-list-entry').text().match('collName1') !== null;
         }, 'collName1 to appear');
-
     });
 
     it('log back in', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));

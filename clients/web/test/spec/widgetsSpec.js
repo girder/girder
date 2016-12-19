@@ -13,7 +13,7 @@ function _setProgress(test, duration) {
      * :param duration: duration to send to the endpoint
      */
     girder.rest.restRequest({path: 'webclienttest/progress', type: 'GET',
-                        data: {test: test, duration: duration}});
+        data: {test: test, duration: duration}});
 }
 
 describe('Test widgets that are not covered elsewhere', function () {
@@ -60,7 +60,7 @@ describe('Test widgets that are not covered elsewhere', function () {
             var stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
             stream.on('g:error', function () { errorCalled += 1; });
             stream.on('g:event.progress', function () {
-                throw 'intentional error';
+                throw new Error('intentional error');
             });
             _setProgress('success', 0);
         });
@@ -105,7 +105,7 @@ describe('Test widgets that are not covered elsewhere', function () {
 
         runs(function () {
             girder.rest.restRequest({path: 'webclienttest/progress/stop',
-                                type: 'PUT', async: false});
+                type: 'PUT', async: false});
         });
     });
 });

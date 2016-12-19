@@ -1,4 +1,3 @@
-/* globals expect, describe, it, beforeEach, afterEach, runs, waitsFor, spyOn */
 // girderTest.startApp();
 
 describe('Test the hierarchy browser modal', function () {

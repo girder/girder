@@ -1,0 +1,12 @@
+{
+  "globals": {
+    "Backbone": true,
+    "_": true,
+    "girderTest": true,
+    "girder": true,
+    "moment": true
+  },
+  "env": {
+    "jasmine": true
+  }
+}
