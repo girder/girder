@@ -343,7 +343,7 @@ function createImageData(image) {
 
     const values = image.getInterpretedData();
     const dataArray = vtkDataArray.newInstance({values: values});
-    imageData.getPointData().addArray(dataArray);
+    imageData.getPointData().setScalars(dataArray);
 
     return imageData;
 }
