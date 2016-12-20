@@ -1,3 +1,6 @@
+// Since plugins are not dynamically linked against other plugin libraries,
+// we have to modify the runtime global JobStatus, rather than importing it
+// here statically, which would only modify a local copy.
 girder.plugins.jobs.JobStatus.registerStatus({
     WORKER_FETCHING_INPUT: {
         value: 820,
