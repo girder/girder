@@ -26,7 +26,9 @@ const TaskRunView = View.extend({
             return new WidgetModel({
                 type: input.type,
                 title: input.name || input.id,
-                id: input.id || input.name
+                id: input.id || input.name,
+                values: input.values,
+                value: input.value
             });
         }));
 
@@ -134,7 +136,7 @@ const TaskRunView = View.extend({
                 default:
                     return {
                         mode: 'inline',
-                        data: JSON.stringify(model.value())
+                        data: model.value()
                     };
             }
         };
