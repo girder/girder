@@ -110,6 +110,7 @@ var AccessWidget = View.extend({
                                   : accessEditorNonModalTemplate;
 
         this.$el.html(template({
+            _,
             model: this.model,
             modelType: this.modelType,
             publicFlag: this.model.get('public'),
@@ -126,6 +127,7 @@ var AccessWidget = View.extend({
 
         _.each(this.model.get('access').groups, function (groupAccess) {
             this.$('#g-ac-list-groups').append(accessEntryTemplate({
+                _,
                 accessTypes: AccessType,
                 type: 'group',
                 flagList: this.flagList,
@@ -139,6 +141,7 @@ var AccessWidget = View.extend({
 
         _.each(this.model.get('access').users, function (userAccess) {
             this.$('#g-ac-list-users').append(accessEntryTemplate({
+                _,
                 accessTypes: AccessType,
                 type: 'user',
                 flagList: this.flagList,
@@ -239,6 +242,7 @@ var AccessWidget = View.extend({
             var model = new UserModel();
             model.set('_id', entry.id).on('g:fetched', function () {
                 this.$('#g-ac-list-users').append(accessEntryTemplate({
+                    _,
                     accessTypes: AccessType,
                     type: 'user',
                     entry: {
@@ -269,6 +273,7 @@ var AccessWidget = View.extend({
             var model = new GroupModel();
             model.set('_id', entry.id).on('g:fetched', function () {
                 this.$('#g-ac-list-groups').append(accessEntryTemplate({
+                    _,
                     accessTypes: AccessType,
                     type: 'group',
                     entry: {
