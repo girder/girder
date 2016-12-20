@@ -6,7 +6,7 @@ clients/web-external/
 clients/web/lib/
 clients/web/dev/
 clients/web/static/
-clients/web/test/
+clients/web/test/lib/
 build/
 _build/
 clients/web/src/plugins.js

@@ -1,5 +1,3 @@
-/* globals girderTest, runs, waitsFor, expect, describe, it, beforeEach, spyOn */
-
 /**
  * Start the girder backbone app.
  */
@@ -493,20 +491,20 @@ describe('Test the assetstore page', function () {
     }, _testFilesystemImport);
 
     _testAssetstore('gridfs', 'g-create-gridfs-tab',
-                    {'g-new-gridfs-name': 'name',
-                     'g-new-gridfs-db': 'girder_webclient_gridfs'});
+        {'g-new-gridfs-name': 'name',
+            'g-new-gridfs-db': 'girder_webclient_gridfs'});
 
     /* The specified assetstore should NOT exist, and the specified mongohost
      * should NOT be present (nothing should respond on those ports). */
     _testAssetstore('gridfs-rs', 'g-create-gridfs-tab',
-                    {'g-new-gridfs-name': 'name',
-                     'g-new-gridfs-db': 'girder_webclient_gridfsrs',
-                     'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,' +
+        {'g-new-gridfs-name': 'name',
+            'g-new-gridfs-db': 'girder_webclient_gridfsrs',
+            'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,' +
                         '127.0.0.2:27081,127.0.0.2:27082',
-                     'g-new-gridfs-replicaset': 'replicaset'}, null, function () {
-                         return $('.g-validation-failed-message:contains(' +
+            'g-new-gridfs-replicaset': 'replicaset'}, null, function () {
+                return $('.g-validation-failed-message:contains(' +
                               '"Could not connect to the database: ")').length === 1;
-                     }, 'validation failure to display', true);
+            }, 'validation failure to display', true);
 
     _testAssetstore('s3', 'g-create-s3-tab', {
         'g-new-s3-name': 'name',

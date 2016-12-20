@@ -3,12 +3,11 @@
  */
 girderTest.startApp();
 
-function _editItem(button, buttonText)
 /* Show the item edit dialog and click a button.
  * :param button: the jquery selector for the button.
  * :param buttonText: the expected text of the button.
  */
-{
+function _editItem(button, buttonText) {
     waitsFor(function () {
         return $('.g-item-actions-button:visible').length === 1;
     }, 'the item actions button to appear');
@@ -92,7 +91,6 @@ describe('Test item creation, editing, and deletion', function () {
     });
 
     it('create an item in the public folder of the user', function () {
-
         waitsFor(function () {
             return $('a.g-folder-list-link:contains(Public):visible').length === 1;
         }, 'the public folder to be clickable');
@@ -147,8 +145,8 @@ describe('Test item creation, editing, and deletion', function () {
         }, 'the item page to load');
 
         runs(function () {
-            expect($('.g-item-name').text()).toBe("Test Item Name");
-            expect($('.g-item-description').text().trim()).toBe("Test Item Description");
+            expect($('.g-item-name').text()).toBe('Test Item Name');
+            expect($('.g-item-description').text().trim()).toBe('Test Item Description');
         });
     });
 
@@ -165,13 +163,13 @@ describe('Test item creation, editing, and deletion', function () {
     it('Edit files', function () {
         var fileId1;
 
-        runs(function() {
+        runs(function () {
             var id = window.location.hash.split('/')[1].split('?')[0];
             /* Create a link file */
             girder.rest.restRequest({
                 path: 'file', type: 'POST',
                 data: {parentType: 'item', parentId: id, name: 'File 1',
-                       linkUrl: 'http://nowhere.com/file1'
+                    linkUrl: 'http://nowhere.com/file1'
                 },
                 async: false
             });
@@ -215,7 +213,7 @@ describe('Test item creation, editing, and deletion', function () {
         waitsFor(function () {
             return $('.g-file-list-entry .g-update-info').length === 2;
         }, 'the files to be listed');
-        runs(function() {
+        runs(function () {
             $('.g-file-list-entry .g-update-info').eq(0).click();
         });
         waitsFor(function () {
@@ -246,7 +244,7 @@ describe('Test item creation, editing, and deletion', function () {
         waitsFor(function () {
             return $('.g-file-list-entry .g-update-info').length === 2;
         }, 'the files to be listed');
-        runs(function() {
+        runs(function () {
             $('.g-file-list-entry .g-update-info').eq(1).click();
         });
         waitsFor(function () {

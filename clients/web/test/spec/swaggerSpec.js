@@ -1,5 +1,3 @@
-/* globals jasmine, runs, waitsFor, describe, it */
-
 $(function () {
     describe('Test the swagger pages', function () {
         it('Test swagger', function () {
