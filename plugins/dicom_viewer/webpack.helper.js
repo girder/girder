@@ -1,13 +1,9 @@
+var vtkLoaders = require('../../node_modules/vtk.js/Utilities/config/webpack.loaders.js');
+
 module.exports = function(x) {
-    x.module.loaders.push({
-        test: /\.glsl$/,
-        include: [],
-        loader: 'shader',
-    });
-    x.module.loaders.push({
-        test: /\.json$/,
-        include: [],
-        loader: 'json',
-    });
+    for (var i = 0; i < vtkLoaders.length; i++) {
+        vtkLoaders[i].include = ['node_modules'];
+        x.module.loaders.push(vtkLoaders[i]);
+    }
     return x;
 }
