@@ -1,6 +1,11 @@
-import ViewTemplate from 'templates/view.jade';
-import TagsTemplate from 'templates/tags.jade';
-import 'stylesheets/dicom_viewer.styl';
+import ViewTemplate from '../templates/view.pug';
+import TagsTemplate from '../templates/tags.pug';
+import '../stylesheets/dicom_viewer.styl';
+
+import { restRequest, apiRoot } from 'girder/rest';
+import { wrap } from 'girder/utilities/PluginUtils';
+import ItemView from 'girder/views/body/ItemView';
+import View from 'girder/views/View';
 
 import daikon from 'daikon';
 import vtkImageSlice from 'vtk.js/Sources/Rendering/Core/ImageSlice';
@@ -13,11 +18,11 @@ import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
 
-girder.wrap(girder.views.ItemView, 'render', function (render) {
+wrap(ItemView, 'render', function (render) {
     this.once('g:rendered', function () {
         $('.g-item-header').after('<div id="g-dicom-view"></div>');
         /* eslint-disable no-new */
-        new girder.views.DicomView({
+        new DicomView({
             el: $('#g-dicom-view'),
             parentView: this,
             item: this.model
@@ -27,7 +32,7 @@ girder.wrap(girder.views.ItemView, 'render', function (render) {
     render.call(this);
 });
 
-girder.views.DicomView = girder.View.extend({
+var DicomView = View.extend({
     events: {
         'click #dicom-zoom-in': function (event) {
             event.preventDefault();
@@ -140,7 +145,7 @@ girder.views.DicomView = girder.View.extend({
     },
 
     loadFileList: function () {
-        girder.restRequest({
+        restRequest({
             path: '/item/' + this.item.get('_id') + '/dicom',
             data: {
                 filters: 'dummy' // don't need the dicom tags, just want the sorted results
@@ -169,7 +174,7 @@ girder.views.DicomView = girder.View.extend({
             this.xhr.abort();
         }
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', girder.apiRoot + '/file/' + file._id + '/download', true);
+        xhr.open('GET', apiRoot + '/file/' + file._id + '/download', true);
         xhr.responseType = 'arraybuffer';
         xhr.onload = _.bind(function (event) {
             try {
