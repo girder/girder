@@ -1,14 +1,15 @@
-add_python_test(dicom_viewer PLUGIN dicom_viewer)
+get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
+
+add_python_test(${PLUGIN} PLUGIN ${PLUGIN})
 
 add_python_style_test(python_static_analysis_dicom_viewer
-    "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer/server")
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/server")
 
 add_python_style_test(python_static_analysis_dicom_viewer_tests
-    "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer/plugin_tests")
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests")
 
-add_eslint_test(dicom_viewer
-    "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer/web_external/js")
+add_eslint_test(${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_external/js")
 
-# add_web_client_test(dicom_viewer
-#     "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer/plugin_tests/dicomViewerSpec.js"
-#     PLUGIN dicom_viewer)
+add_puglint_test(${PLUGIN}
+    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/templates")
