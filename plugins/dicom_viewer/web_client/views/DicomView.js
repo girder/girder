@@ -7,6 +7,7 @@ import { wrap } from 'girder/utilities/PluginUtils';
 import ItemView from 'girder/views/body/ItemView';
 import View from 'girder/views/View';
 
+import _ from 'underscore';
 import daikon from 'daikon';
 import vtkImageSlice from 'vtk.js/Sources/Rendering/Core/ImageSlice';
 import vtkImageData from 'vtk.js/Sources/Common/DataModel/ImageData';
@@ -21,64 +22,63 @@ import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindo
 wrap(ItemView, 'render', function (render) {
     this.once('g:rendered', function () {
         $('.g-item-header').after('<div id="g-dicom-view"></div>');
-        /* eslint-disable no-new */
-        new DicomView({
-            el: $('#g-dicom-view'),
+        const view = new DicomView({
+            el: this.$('#g-dicom-view'),
             parentView: this,
             item: this.model
         });
-        /* eslint-enable no-new */
+        view.render();
     }, this);
     render.call(this);
 });
 
 var DicomView = View.extend({
     events: {
-        'click #dicom-zoom-in': function (event) {
+        'click .dicom-zoom-in': function (event) {
             event.preventDefault();
             this.camera.zoom(9 / 8);
             this.iren.render();
         },
-        'click #dicom-zoom-out': function (event) {
+        'click .dicom-zoom-out': function (event) {
             event.preventDefault();
             this.camera.zoom(8 / 9);
             this.iren.render();
         },
-        'click #dicom-reset-zoom': function (event) {
+        'click .dicom-reset-zoom': function (event) {
             event.preventDefault();
             this.autoZoom();
             this.iren.render();
         },
-        'click #dicom-first': function (event) {
+        'click .dicom-first': function (event) {
             event.preventDefault();
             this.setIndex(0);
         },
-        'click #dicom-previous': function (event) {
+        'click .dicom-previous': function (event) {
             event.preventDefault();
             this.previous();
         },
-        'click #dicom-next': function (event) {
+        'click .dicom-next': function (event) {
             event.preventDefault();
             this.next();
         },
-        'click #dicom-last': function (event) {
+        'click .dicom-last': function (event) {
             event.preventDefault();
             this.setIndex(this.files.length - 1);
         },
-        'click #dicom-play': function (event) {
+        'click .dicom-play': function (event) {
             event.preventDefault();
             this.play();
         },
-        'click #dicom-pause': function (event) {
+        'click .dicom-pause': function (event) {
             event.preventDefault();
             this.pause();
         },
-        'click #dicom-auto-levels': function (event) {
+        'click .dicom-auto-levels': function (event) {
             event.preventDefault();
             this.autoLevels();
             this.iren.render();
         },
-        'input #dicom-slider': _.debounce(function (event) {
+        'input .dicom-slider': _.debounce(function (event) {
             this.setIndex(event.target.value);
         }, 10)
     },
@@ -94,7 +94,6 @@ var DicomView = View.extend({
         this.imageDataCache = {};
         this.tagCache = {};
         this.xhr = null;
-        this.render();
         this.loadFileList();
     },
 
@@ -102,9 +101,9 @@ var DicomView = View.extend({
         if (index < 0 || index >= this.files.length) {
             return;
         }
-        this.index = index;
-        document.getElementById('dicom-slider').value = index;
+        this.index = parseInt(index);
         this.loadFile(this.files[index]);
+        this.$('.dicom-slider').val(index);
     },
 
     next: function () {
@@ -148,7 +147,8 @@ var DicomView = View.extend({
         restRequest({
             path: '/item/' + this.item.get('_id') + '/dicom',
             data: {
-                filters: 'dummy' // don't need the dicom tags, just want the sorted results
+                // don't need the dicom tags, just want the sorted results
+                filters: 'dummy'
             }
         }).done(_.bind(function (resp) {
             this.handleFileList(resp);
@@ -157,7 +157,7 @@ var DicomView = View.extend({
 
     handleFileList: function (files) {
         this.files = files;
-        var slider = document.getElementById('dicom-slider');
+        var slider = this.$('.dicom-slider')[0];
         slider.min = 0;
         slider.max = this.files.length - 1;
         slider.step = 1;
@@ -169,7 +169,6 @@ var DicomView = View.extend({
             this.showCached(file);
             return;
         }
-        console.log(file.name);
         if (this.xhr) {
             this.xhr.abort();
         }
@@ -234,10 +233,10 @@ var DicomView = View.extend({
     },
 
     showCached: function (file) {
-        document.getElementById('dicom-filename').innerHTML = file.name;
-        document.getElementById('g-dicom-tags').innerHTML = TagsTemplate({
+        this.$('.dicom-filename').html(file.name);
+        this.$('.g-dicom-tags').html(TagsTemplate({
             tags: this.tagCache[file.name]
-        });
+        }));
         this.setImageData(this.imageDataCache[file.name]);
     },
 
@@ -251,7 +250,6 @@ var DicomView = View.extend({
             return;
         }
         const range = this.imageData.getPointData().getScalars().getRange();
-        console.log(range);
         const ww = range[1] - range[0];
         const wc = (range[0] + range[1]) / 2;
         this.actor.getProperty().setColorWindow(ww);
@@ -290,8 +288,8 @@ var DicomView = View.extend({
     },
 
     initVtk: function (imageData) {
-        document.getElementById('g-dicom-view').style.display = 'block';
-        const container = document.getElementById('g-dicom-container');
+        $('#g-dicom-view').css('display', 'block');
+        const container = this.$('.g-dicom-container')[0];
 
         const ren = vtkRenderer.newInstance();
         ren.setBackground(0.33, 0.33, 0.33);
