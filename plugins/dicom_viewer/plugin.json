@@ -6,7 +6,7 @@
         "dependencies": {
             "daikon": "^1.2.15",
             "kw-web-suite": "^2.0.1",
-            "vtk.js": "github:kitware/vtk-js#v2.2.0"
+            "vtk.js": "2.2.0"
         }
     }
 }

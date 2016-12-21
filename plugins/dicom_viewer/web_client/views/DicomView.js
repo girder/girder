@@ -3,8 +3,6 @@ import TagsTemplate from '../templates/tags.pug';
 import '../stylesheets/dicom_viewer.styl';
 
 import { restRequest, apiRoot } from 'girder/rest';
-import { wrap } from 'girder/utilities/PluginUtils';
-import ItemView from 'girder/views/body/ItemView';
 import View from 'girder/views/View';
 
 import _ from 'underscore';
@@ -18,19 +16,6 @@ import vtkOpenGLRenderWindow from 'vtk.js/Sources/Rendering/OpenGL/RenderWindow'
 import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
-
-wrap(ItemView, 'render', function (render) {
-    this.once('g:rendered', function () {
-        $('.g-item-header').after('<div class="g-dicom-view"></div>');
-        const view = new DicomView({
-            el: this.$('.g-dicom-view'),
-            parentView: this,
-            item: this.model
-        });
-        view.render();
-    }, this);
-    render.call(this);
-});
 
 var DicomView = View.extend({
     events: {
@@ -345,3 +330,5 @@ function createImageData(image) {
 
     return imageData;
 }
+
+export default DicomView;
