@@ -21,9 +21,9 @@ import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindo
 
 wrap(ItemView, 'render', function (render) {
     this.once('g:rendered', function () {
-        $('.g-item-header').after('<div id="g-dicom-view"></div>');
+        $('.g-item-header').after('<div class="g-dicom-view"></div>');
         const view = new DicomView({
-            el: this.$('#g-dicom-view'),
+            el: this.$('.g-dicom-view'),
             parentView: this,
             item: this.model
         });
@@ -233,7 +233,7 @@ var DicomView = View.extend({
     },
 
     showCached: function (file) {
-        this.$('.dicom-filename').html(file.name);
+        this.$('.dicom-filename').text(file.name);
         this.$('.g-dicom-tags').html(TagsTemplate({
             tags: this.tagCache[file.name]
         }));
@@ -288,7 +288,7 @@ var DicomView = View.extend({
     },
 
     initVtk: function (imageData) {
-        $('#g-dicom-view').css('display', 'block');
+        $('.g-dicom-view').css('display', 'block');
         const container = this.$('.g-dicom-container')[0];
 
         const ren = vtkRenderer.newInstance();
