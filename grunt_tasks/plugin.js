@@ -274,6 +274,17 @@ module.exports = function (grunt) {
         });
 
         grunt.registerTask('npm-install', 'Install plugin NPM dependencies', function (plugin, localNodeModules) {
+            if (localNodeModules === 'install') {
+                var args = ['--color=always', 'install'];
+
+                var child = child_process.spawnSync('npm', args, {
+                    cwd: path.resolve(dir),
+                    stdio: 'inherit'
+                });
+
+                return child.status === 0;
+            }
+
             // Start building the list of arguments to the NPM executable.
             //
             // We want color output embedded in the Grunt output.
@@ -299,6 +310,11 @@ module.exports = function (grunt) {
         });
 
         function addDependencies(deps, localNodeModules) {
+            if (arguments.length === 0) {
+              grunt.config.set('default.npm-install:' + plugin + ':install', {});
+              return;
+            }
+
             // install any additional npm packages during init
             var npm = (
                 _(deps || {})
@@ -315,7 +331,10 @@ module.exports = function (grunt) {
             }
         }
 
-        if (config.npm) {
+        if (config.npm && config.npm.install) {
+            grunt.log.writeln('  >> Installing NPM dependencies in-place from: ' + path.resolve(dir, 'package.json'));
+            addDependencies();
+        } else if (config.npm) {
             var modules = {};
 
             // If the config contains a "file" section, load NPM dependencies
