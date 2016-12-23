@@ -64,7 +64,9 @@ class WorkerTask(Resource):
             ioSpec['format'] = ioSpec.get('format', 'none')
             ioSpec['type'] = ioSpec.get('type', 'none')
 
-        return spec
+        handler = item.get('meta', {}).get('workerTaskHandler') or 'worker_handler'
+
+        return spec, handler
 
     def _transformInputs(self, inputs, token):
         """
@@ -138,12 +140,12 @@ class WorkerTask(Resource):
     def executeTask(self, item, params):
         includeJobInfo = self.boolParam('includeJobInfo', params, default=True)
         title = params.get('jobTitle', item['name'])
-        task = self._validateTask(item)
+        task, handler = self._validateTask(item)
 
         jobModel = self.model('job', 'jobs')
 
         job = jobModel.createJob(
-            title=title, type='worker_task', handler='worker_handler', user=self.getCurrentUser())
+            title=title, type='worker_task', handler=handler, user=self.getCurrentUser())
 
         # If this is a user auth token, we make an IO-enabled token
         token = self.getCurrentToken()
