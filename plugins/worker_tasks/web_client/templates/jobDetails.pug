@@ -1,11 +1,9 @@
-.g-worker-task-item-link
-  a(href=`#item/${job.get('workerTaskItemId')}`) View task specification
 .g-worker-task-inputs-container
   h4 Inputs
   ul
     each input, id in job.get('workerTaskBindings').inputs
       li
-        span.g-input-name #{id}:&nbsp;
+        b.g-input-name #{id}:&nbsp;
         if input.mode == 'inline'
           span.g-input-value= JSON.stringify(input.data)
         else if input.mode == 'girder'

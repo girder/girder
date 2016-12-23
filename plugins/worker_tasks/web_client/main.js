@@ -31,11 +31,18 @@ wrap(ItemView, 'render', function (render) {
 
 // Show task inputs and outputs on job details view
 import JobDetailsInfoView from './views/JobDetailsInfoView';
+import taskItemLinkTemplate from './templates/taskItemLink.pug';
 wrap(girder.plugins.jobs.views.JobDetailsWidget, 'render', function (render) {
     render.call(this);
 
+    if (this.job.has('workerTaskItemId')) {
+        this.$('.g-job-info-value[property="title"]').html(taskItemLinkTemplate({
+            itemId: this.job.get('workerTaskItemId'),
+            title: this.job.get('title')
+        }));
+    }
     if (this.job.has('workerTaskBindings')) {
-        var el = $('<div/>', {class: 'g-worker-tasks-job-info-container'}).appendTo(this.$el);
+        var el = $('<div/>', {class: 'g-worker-tasks-job-info-container'}).prependTo(this.$el);
 
         new JobDetailsInfoView({
             el,
