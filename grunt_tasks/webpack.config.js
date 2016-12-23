@@ -19,6 +19,7 @@
  * the DllPlugin for dynamic loading, each individual bundle has its own config options
  * that can extend these.
  */
+var path = require('path');
 var webpack = require('webpack');
 
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -65,8 +66,8 @@ function _coverageConfig() {
     }
 }
 
-var loaderPaths = [/clients\/web\/src/];
-var loaderPathsNodeModules = loaderPaths.concat([/node_modules/]);
+var loaderPaths = [path.resolve('clients', 'web', 'src')];
+var loaderPathsNodeModules = loaderPaths.concat([path.resolve('node_modules')]);
 
 module.exports = {
     output: {
