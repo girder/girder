@@ -569,8 +569,13 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 value = int(value)
             except ValueError:
                 raise RestException('Invalid value for integer parameter %s: %s.' % (
-                    name, value
-                ))
+                    name, value))
+        elif type == 'float':
+            try:
+                value = float(value)
+            except ValueError:
+                raise RestException('Invalid value for float parameter %s: %s.' % (
+                    name, value))
         elif type == 'string' and descParam['_strip']:
             value = value.strip()
 
