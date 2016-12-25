@@ -1,5 +1,6 @@
 import six
 
+from girder import events
 from girder.api import access
 from girder.api.describe import describeRoute, Description
 from girder.api.rest import ensureTokenScopes, filtermodel, loadmodel, Resource
@@ -43,6 +44,19 @@ class WorkerTask(Resource):
             raise ValidationException('Item (%s) does not contain a worker task specification.')
         spec = item['meta']['workerTaskSpec']
 
+        handler = item.get('meta', {}).get('workerTaskHandler') or 'worker_handler'
+
+        event = events.trigger('worker_tasks.handler.%s.validate' % handler, {
+            'item': item,
+            'spec': spec
+        })
+
+        if len(event.responses):
+            spec = event.responses[-1]
+        
+        if event.defaultPrevented:
+            return spec, handler
+
         if not isinstance(spec, dict):
             raise ValidationException('Task spec should be a JSON object.')
 
@@ -63,8 +77,6 @@ class WorkerTask(Resource):
         for ioSpec in inputs + outputs:
             ioSpec['format'] = ioSpec.get('format', 'none')
             ioSpec['type'] = ioSpec.get('type', 'none')
-
-        handler = item.get('meta', {}).get('workerTaskHandler') or 'worker_handler'
 
         return spec, handler
 
