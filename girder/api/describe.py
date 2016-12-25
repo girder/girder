@@ -229,7 +229,8 @@ class Description(object):
         return self
 
     def modelParam(self, name, description, destName=None, paramType='path', model=None,
-                   plugin='_core', level=None, force=False, exc=True, requiredFlags=None, **kwargs):
+                   plugin='_core', level=None, required=True, force=False, exc=True,
+                   requiredFlags=None, **kwargs):
         """
         This should be used in lieu of ``param`` if the parameter is a model ID
         and the model should be loaded and passed into the route handler.
@@ -253,6 +254,8 @@ class Description(object):
         :type plugin: str
         :param level: Access level, if this is an access controlled model.
         :type level: AccessType
+        :param required: Whether this parameter is required.
+        :type required: bool
         :param force: Force loading of the model (skip access check).
         :type force: bool
         :param exc: Whether an exception should be raised for a nonexistent resource.
@@ -260,7 +263,7 @@ class Description(object):
         :param requiredFlags: Access flags that are required on the object being loaded.
         :type requiredFlags: str or list/set/tuple of str or None
         """
-        self.param(name=name, description=description, paramType=paramType)
+        self.param(name=name, description=description, paramType=paramType, required=required)
 
         self.modelParams[name] = {
             'destName': destName or model,
@@ -269,6 +272,7 @@ class Description(object):
             'model': model,
             'plugin': plugin,
             'exc': exc,
+            'required': required,
             'requiredFlags': requiredFlags,
             'kwargs': kwargs
         }
@@ -522,6 +526,11 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         return val
 
     def _loadModel(self, name, info, id):
+        if id is None:
+            if info['required']:
+                raise RestException('Parameter %s is required.' % name)
+            return None
+
         model = ModelImporter.model(info['model'], info['plugin'])
         if info['force']:
             doc = model.load(id, force=True, **self.kwargs)
