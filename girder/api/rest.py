@@ -903,8 +903,9 @@ class Resource(ModelImporter):
                 return False
         return wildcards
 
-    def requireParams(self, required, provided):
+    def requireParams(self, required, provided=None):
         """
+        This method has two modes, in the first mode # TODO document,
         Throws an exception if any of the parameters in the required iterable
         is not found in the provided parameter set.
 
@@ -914,12 +915,17 @@ class Resource(ModelImporter):
         :param provided: The list of provided parameters.
         :type provided: dict
         """
-        if isinstance(required, six.string_types):
-            required = (required,)
+        if provided is None and isinstance(required, dict):
+            for name, val in six.viewitems(required):
+                if val is None:
+                    raise RestException("Parameter '%s' is required." % name)
+        else:
+            if isinstance(required, six.string_types):
+                required = (required,)
 
-        for param in required:
-            if param not in provided:
-                raise RestException("Parameter '%s' is required." % param)
+            for param in required:
+                if provided is None or param not in provided:
+                    raise RestException("Parameter '%s' is required." % param)
 
     @staticmethod
     def boolParam(key, params, default=None):

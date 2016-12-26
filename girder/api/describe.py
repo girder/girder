@@ -228,7 +228,7 @@ class Description(object):
         self._params.append(param)
         return self
 
-    def modelParam(self, name, description, destName=None, paramType='path', model=None,
+    def modelParam(self, name, description, model, destName=None, paramType='path',
                    plugin='_core', level=None, required=True, force=False, exc=True,
                    requiredFlags=None, **kwargs):
         """
@@ -295,7 +295,7 @@ class Description(object):
 
         self.jsonParams[name] = {
             'requireObject': requireObject,
-            'requireList': requireArray
+            'requireArray': requireArray
         }
 
         return self
@@ -479,7 +479,10 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             Transform any passed params according to the spec, or
             fill in default values for any params not passed.
             """
-            params = kwargs.get('params', {})
+            # Combine path params with form/query params into a single lookup table
+            params = {k: v for k, v in six.viewitems(kwargs) if k != 'params'}
+            params.update(kwargs.get('params', {}))
+
             for descParam in self.description.params:
                 name = descParam['name']
                 if name in params:
@@ -491,10 +494,11 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                         kwargs[name] = self._loadJson(name, info, params[name])
                     if name in self.description.modelParams:
                         info = self.description.modelParams[name]
+                        kwargs.pop(name, None)  # Remove from path params
                         kwargs[info['destName']] = self._loadModel(name, info, params[name])
                     else:
                         kwargs[name] = self._validateParam(name, descParam, params[name])
-                    del kwargs['params'][name]
+                    kwargs['params'].pop(name, None)  # Remove from form/query params
                 elif 'default' in descParam:
                     kwargs[name] = descParam['default']
                 elif descParam['required']:
@@ -533,11 +537,11 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
         model = ModelImporter.model(info['model'], info['plugin'])
         if info['force']:
-            doc = model.load(id, force=True, **self.kwargs)
+            doc = model.load(id, force=True, **info['kwargs'])
         elif info['level'] is not None:
-            doc = model.load(id=id, level=info['level'], user=getCurrentUser(), **self.kwargs)
+            doc = model.load(id=id, level=info['level'], user=getCurrentUser(), **info['kwargs'])
         else:
-            doc = model.load(id, **self.kwargs)
+            doc = model.load(id, **info['kwargs'])
 
         if doc is None and self.exc:
             raise RestException('Invalid %s id (%s).' % (model.name, str(id)))
@@ -581,7 +585,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
-            raise RestException('Invalid value for param %s: "%s". Allowed values: %s.' % (
+            raise RestException('Invalid value for %s: "%s". Allowed values: %s.' % (
                 name, value, ', '.join(descParam['enum'])))
 
         return value
