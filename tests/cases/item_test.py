@@ -184,7 +184,7 @@ class ItemTestCase(base.TestCase):
         Test Create, Read, Update, and Delete of items.
         """
         self.ensureRequiredParams(
-            path='/item', method='POST', required=('name', 'folderId'),
+            path='/item', method='POST', required=('folderId',),
             user=self.users[1])
 
         # Attempt to create an item without write permission, should fail
@@ -406,9 +406,8 @@ class ItemTestCase(base.TestCase):
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'],
-                         'The key name foo.bar must not contain a period' +
-                         ' or begin with a dollar sign.')
+        self.assertEqual(
+            resp.json['message'], 'Invalid key foo.bar: keys must not contain the "." character.')
 
         # Make sure metadata cannot be added if the key begins with a
         # dollar sign
@@ -419,9 +418,9 @@ class ItemTestCase(base.TestCase):
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'],
-                         'The key name $foobar must not contain a period' +
-                         ' or begin with a dollar sign.')
+        self.assertEqual(
+            resp.json['message'],
+            'Invalid key $foobar: keys must not start with the "$" character.')
 
         # Make sure metadata cannot be added with a blank key
         metadata = {
@@ -431,8 +430,8 @@ class ItemTestCase(base.TestCase):
                             method='PUT', user=self.users[0],
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'],
-                         'Key names must be at least one character long.')
+        self.assertEqual(
+            resp.json['message'], 'Key names must not be empty.')
 
     def testItemFiltering(self):
         """
@@ -571,9 +570,10 @@ class ItemTestCase(base.TestCase):
             'foo': 'value1',
             'test': 2
         }
-        self.request(path='/item/%s/metadata' % origItem['_id'],
-                     method='PUT', user=self.users[0],
-                     body=json.dumps(metadata), type='application/json')
+        resp = self.request(
+            path='/item/%s/metadata' % origItem['_id'], method='PUT', user=self.users[0],
+            body=json.dumps(metadata), type='application/json')
+        self.assertStatusOk(resp)
         self._testUploadFileToItem(origItem, 'file_1', self.users[0], 'foobar')
         self._testUploadFileToItem(origItem, 'file_2', self.users[0], 'foobz')
         # Also upload a link

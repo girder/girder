@@ -17,10 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
-import json
-
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel
+from ..rest import Resource, filtermodel
 from girder.constants import AccessType
 from girder.api import access
 

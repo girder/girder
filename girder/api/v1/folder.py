@@ -20,8 +20,7 @@
 import json
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel, loadmodel, \
-    setResponseHeader
+from ..rest import Resource, RestException, filtermodel, setResponseHeader
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.utility import ziputil
@@ -201,7 +200,6 @@ class Folder(Resource):
     def updateFolderAccess(self, folder, access, publicFlags, public, recurse, progress, params):
         user = self.getCurrentUser()
         progress = progress and recurse  # Only enable progress in recursive case
-
         with ProgressContext(progress, user=user, title='Updating permissions',
                              message='Calculating progress...') as ctx:
             if progress:

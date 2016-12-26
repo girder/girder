@@ -484,15 +484,15 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             params.update(kwargs.get('params', {}))
 
             for descParam in self.description.params:
+                if 'type' not in descParam:
+                    # likely a body param, ignore for now TODO ?
+                    continue
                 name = descParam['name']
                 if name in params:
-                    if 'type' not in descParam:
-                        # likely a body param, ignore for now TODO ?
-                        continue
                     if name in self.description.jsonParams:
                         info = self.description.jsonParams[name]
                         kwargs[name] = self._loadJson(name, info, params[name])
-                    if name in self.description.modelParams:
+                    elif name in self.description.modelParams:
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
                         kwargs[info['destName']] = self._loadModel(name, info, params[name])
@@ -505,7 +505,12 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     raise RestException('Parameter "%s" is required.' % name)
                 else:
                     # If required=False but no default is specified, use None
-                    kwargs[name] = None
+                    if name in self.description.modelParams:
+                        info = self.description.modelParams[name]
+                        kwargs.pop(name, None)  # Remove from path params
+                        kwargs[info['destName']] = None
+                    else:
+                        kwargs[name] = None
 
             if self.description.hasPagingParams:
                 kwargs['sort'] = [(kwargs['sort'], kwargs['sortdir'])]
