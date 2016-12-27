@@ -355,7 +355,7 @@ class File(Resource):
 
     @access.admin(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='file')
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Move a file to a different assetstore.')
         .modelParam('id', 'The ID of the file.', model='file', level=AccessType.WRITE)
         .modelParam('assetstoreId', 'The destination assetstore.', paramType='formData',
@@ -373,7 +373,7 @@ class File(Resource):
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='file')
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Copy a file.')
         .modelParam('id', 'The ID of the file.', model='file', level=AccessType.READ)
         .modelParam('itemId', 'The ID of the item to copy the file to.', model='item',
