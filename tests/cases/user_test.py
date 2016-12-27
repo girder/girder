@@ -381,16 +381,14 @@ class UserTestCase(base.TestCase):
                                               'user2@user.com')
 
         # Reset password should require email param
-        resp = self.request(path='/user/password', method='DELETE', params={})
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], "Parameter 'email' is required.")
+        self.ensureRequiredParams(path='/user/password', method='DELETE', required={'email'})
 
         # Reset email with an incorrect email
         resp = self.request(path='/user/password', method='DELETE', params={
             'email': 'bad_email@user.com'
         })
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], "That email is not registered.")
+        self.assertEqual(resp.json['message'], 'That email is not registered.')
 
         # Actually reset password
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
@@ -398,7 +396,7 @@ class UserTestCase(base.TestCase):
             'email': 'user@user.com'
         })
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], "Sent password reset email.")
+        self.assertEqual(resp.json['message'], 'Sent password reset email.')
 
         # Old password should no longer work
         resp = self.request(path='/user/authentication', method='GET',
@@ -591,10 +589,8 @@ class UserTestCase(base.TestCase):
         self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
                                       'user@user.com')
         # Temporary password should require email param
-        resp = self.request(path='/user/password/temporary', method='PUT',
-                            params={})
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], "Parameter 'email' is required.")
+        self.ensureRequiredParams(
+            path='/user/password/temporary', method='PUT', required={'email'})
         # Temporary password with an incorrect email
         resp = self.request(path='/user/password/temporary', method='PUT',
                             params={'email': 'bad_email@user.com'})
@@ -618,11 +614,8 @@ class UserTestCase(base.TestCase):
         # Checking if a token is a valid temporary token should fail if the
         # token is missing or doesn't match the user ID
         path = '/user/password/temporary/' + userId
-        resp = self.request(path=path, method='GET', params={})
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], "Parameter 'token' is required.")
-        resp = self.request(path=path, method='GET',
-                            params={'token': 'not valid'})
+        self.ensureRequiredParams(path=path, required={'token'})
+        resp = self.request(path=path, method='GET', params={'token': 'not valid'})
         self.assertStatus(resp, 400)
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatusOk(resp)
