@@ -36,7 +36,7 @@ var EditApiKeyWidget = View.extend({
             this.$('.g-validation-failed-message').text('');
         },
 
-        'change .g-scope-selection-container .radio input': function (e) {
+        'change .g-scope-selection-container .radio input': function () {
             var mode = this._getSelectedScopeMode();
             if (mode === 'full') {
                 this.$('.g-custom-scope-checkbox').girderEnable(false)
@@ -82,7 +82,7 @@ var EditApiKeyWidget = View.extend({
                 this.$('#g-api-key-name').val(this.model.get('name'));
                 this.$('#g-api-key-token-duration').val(this.model.get('tokenDuration') || '');
                 if (this.model.get('scope')) {
-                    this.$('#g-scope-mode-custom').attr('checked', 'checked');
+                    this.$('#g-scope-mode-custom').attr('checked', 'checked').trigger('change');
                     this.$('.g-custom-scope-checkbox').girderEnable(true);
                     _.each(this.model.get('scope'), function (scope) {
                         this.$('.g-custom-scope-checkbox[value="' + scope + '"]').attr('checked', 'checked');
