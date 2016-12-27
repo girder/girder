@@ -508,6 +508,25 @@ above, the value of this property is ``web_client/main.js``):
         }
     }
 
+You may also set ``main`` to an object that maps bundle names to entry points, which is
+helpful for plugins that want to build multiple targets using the same loaders. For example:
+
+.. code-block:: json
+
+    {
+        "name": "MY_PLUGIN",
+        "webpack": {
+            "main": {
+                "plugin": "web_client/main.js",
+                "external": "web_external/main.js"
+            }
+        }
+    }
+
+That will cause both ``plugin.min.*`` and ``external.min.*`` files to appear in the
+built directory. The file paths of the entry points should be specified relative to the
+plugin directory.
+
 Customizing the Webpack Build
 *****************************
 
@@ -523,6 +542,8 @@ to build your plugin.
 The hash passed to the helper function contains the following information:
 
 - ``plugin``: the name of the plugin
+- ``output``: the name of the output bundle, which is "plugin" by default.
+- ``main``: the full path to the entry point file for the bundle.
 - ``pluginEntry``: the webpack entry point for the plugin (e.g.
   ``plugins/MY_PLUGIN/plugin``)
 - ``pluginDir``: the full path to the plugin directory
@@ -699,6 +720,9 @@ To create an "external" plugin, simply change the output name to any other
 value. One reasonable choice is ``index``. These plugins can be used to create
 wholly independent web clients that don't explicitly depend on the core Girder
 client being loaded.
+
+.. note:: If you use an object to specify an output to entry point mapping in ``webpack.main``,
+          the ``webpack.output`` value will be ignored if specified.
 
 Executing custom Grunt build steps for your plugin
 **************************************************

@@ -3,10 +3,10 @@
  */
 girderTest.startApp();
 
-function _getFirstId(collection, ids, key, fetchParamsFunc) {
+function _getFirstId(Collection, ids, key, fetchParamsFunc) {
     var coll;
     runs(function () {
-        coll = new collection();
+        coll = new Collection();
         var params;
         if (fetchParamsFunc) {
             params = fetchParamsFunc(coll);
@@ -72,7 +72,7 @@ describe('Test routing paths', function () {
         });
         waitsFor(function () {
             return $('.g-save-access-list:visible').is(':enabled') &&
-                   $('.radio.g-selected').text().match("Public").length > 0;
+                   $('.radio.g-selected').text().match('Public').length > 0;
         }, 'access save button to appear');
         runs(function () {
             $('.g-save-access-list').click();
@@ -99,10 +99,10 @@ describe('Test routing paths', function () {
     });
     it('create an item in the private folder of the user', function () {
         runs(function () {
-            girder.rest.restRequest({type:'POST', path:'file', data: {
+            girder.rest.restRequest({type: 'POST', path: 'file', data: {
                 parentType: 'folder',
                 parentId: ids.userFolder,
-                name:'Link File',
+                name: 'Link File',
                 linkUrl: 'http://data.kitware.com'
             }, async: false});
         });

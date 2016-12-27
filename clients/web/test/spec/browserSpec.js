@@ -1,4 +1,3 @@
-/* globals expect, describe, it, beforeEach, afterEach, runs, waitsFor, spyOn */
 // girderTest.startApp();
 
 describe('Test the hierarchy browser modal', function () {
@@ -252,6 +251,7 @@ describe('Test the hierarchy browser modal', function () {
         }
 
         beforeEach(function () {
+            testEl.addClass('modal');
             spyOn(girder.views.widgets.HierarchyWidget.prototype, 'render');
             spyOn(girder.views.widgets.HierarchyWidget.prototype, 'initialize').andCallFake(fakeInitialize);
         });
@@ -263,7 +263,8 @@ describe('Test the hierarchy browser modal', function () {
         it('defaults', function () {
             returnVal = [];
             view = new girder.views.widgets.BrowserWidget({
-                parentView: null
+                parentView: null,
+                el: testEl
             }).render();
 
             expect(view.$('.modal-title').text()).toBe('Select an item');
@@ -273,9 +274,32 @@ describe('Test the hierarchy browser modal', function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
-                expect($(view.$el).is(':visible')).toBe(true);
-                view.$('.g-submit-button').click();
+                view.$('a:contains(Cancel)').click();
                 expect($(view.$el).is(':visible')).toBe(false);
+            });
+        });
+
+        it('preview off', function () {
+            girder.auth.setCurrentUser(new girder.models.UserModel({
+                _id: '0',
+                login: 'johndoe',
+                firstName: 'John',
+                lastName: 'Doe'
+            }));
+
+            returnVal = [];
+            view = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                showPreview: false
+            }).render();
+
+            waitsFor(function () {
+                return $(view.$el).is(':visible');
+            });
+            runs(function () {
+                view.$('#g-root-selector').val('0').trigger('change');
+                expect(view.$('#g-selected-model').length).toBe(0);
             });
         });
 
@@ -283,7 +307,8 @@ describe('Test the hierarchy browser modal', function () {
             returnVal = [];
             view = new girder.views.widgets.BrowserWidget({
                 parentView: null,
-                validate: function () { return 'invalid'; }
+                el: testEl,
+                validate: _.constant('invalid')
             }).render();
             waitsFor(function () {
                 return $(view.$el).is(':visible');
@@ -307,6 +332,7 @@ describe('Test the hierarchy browser modal', function () {
             returnVal = [];
             view = new girder.views.widgets.BrowserWidget({
                 parentView: null,
+                el: testEl,
                 helpText: 'This is helpful',
                 showItems: false,
                 titleText: 'This is a title',
@@ -323,12 +349,55 @@ describe('Test the hierarchy browser modal', function () {
             expect(view.$('#g-selected-model').val()).toBe(girder.auth.getCurrentUser().id);
 
             var ncalls = 0;
-            view.on('g:saved', function (id) {
+            view.on('g:saved', function (model) {
                 ncalls += 1;
-                expect(id).toBe(girder.auth.getCurrentUser().id);
+                expect(model.id).toBe(girder.auth.getCurrentUser().id);
             });
-            view.$('.g-submit-button').click();
-            expect(ncalls).toBe(1);
+
+            waitsFor(function () {
+                return $(view.$el).is(':visible');
+            });
+            runs(function () {
+                view.$('.g-submit-button').click();
+            });
+            waitsFor(function () {
+                return !$(view.$el).is(':visible');
+            });
+            runs(function () {
+                expect(ncalls).toBe(1);
+            });
+        });
+
+        it('item selection', function () {
+            girder.auth.setCurrentUser(new girder.models.UserModel({
+                _id: '0',
+                login: 'johndoe',
+                firstName: 'John',
+                lastName: 'Doe'
+            }));
+
+            returnVal = [];
+            view = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                selectItem: true,
+                root: girder.auth.getCurrentUser(),
+                rootSelectorSettings: {
+                    display: ['Home']
+                }
+            }).render();
+
+            waitsFor(function () {
+                return $(view.$el).is(':visible');
+            });
+            runs(function () {
+                expect(view.selectedModel()).toBe(null);
+                view.$('#g-root-selector').val('0').trigger('change').trigger('select');
+                hwSettings.onItemClick({id: '1'});
+                expect(view.selectedModel().id).toBe('1');
+            });
         });
     });
 });

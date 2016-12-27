@@ -182,17 +182,17 @@ describe('Create an admin and non-admin user', function () {
             var msg = window.callPhantom({
                 action: 'fetchEmail',
                 suffix: girderTest.getCallbackSuffix()});
-            if (!msg || msg.indexOf('<a href="') <0) {
+            if (!msg || msg.indexOf('<a href="') < 0) {
                 return false;
             }
-            link = msg.substr(msg.indexOf('<a href="')+9);
+            link = msg.substr(msg.indexOf('<a href="') + 9);
             link = link.substr(0, link.indexOf('"'));
             link = link.substr(link.indexOf('#'));
             return link;
         }, 'email to be received');
     });
     it('Use reset link', function () {
-        runs(function(){
+        runs(function () {
             girderTest.testRoute(link, false, function () {
                 return $('#g-password-new:visible').length > 0 &&
                        $('#g-password-old:visible').length === 0;
@@ -224,7 +224,7 @@ describe('Create an admin and non-admin user', function () {
         }, 'new password to be accepted');
         runs(function () {
             window.callPhantom({action: 'uploadCleanup',
-                                suffix: girderTest._uploadSuffix});
+                suffix: girderTest._uploadSuffix});
         });
     });
 });
@@ -350,7 +350,7 @@ describe('test the API key management tab', function () {
         });
         girderTest.waitForLoad();
         waitsFor(function () {
-          return $('tr.g-api-key-container').length === 0;
+            return $('tr.g-api-key-container').length === 0;
         }, 'API key to be removed from list');
 
         runs(function () {
@@ -359,7 +359,7 @@ describe('test the API key management tab', function () {
     });
 });
 
-describe('test email verification', function() {
+describe('test email verification', function () {
     it('Turn on email verification', function () {
         girderTest.logout()();
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
@@ -386,7 +386,7 @@ describe('test email verification', function() {
         }, 'dialog rest requests to finish');
         girderTest.logout()();
     });
-    it('Try to login without verifying email', function() {
+    it('Try to login without verifying email', function () {
         runs(function () {
             expect(girder.auth.getCurrentUser()).toBe(null);
         });
@@ -422,7 +422,7 @@ describe('test email verification', function() {
     });
 });
 
-describe('test account approval', function() {
+describe('test account approval', function () {
     it('Turn on approval policy', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         runs(function () {
@@ -462,7 +462,7 @@ describe('test account approval', function() {
         }, 'dialog rest requests to finish');
         girderTest.logout()();
     });
-    it('Try to login a disabled user', function() {
+    it('Try to login a disabled user', function () {
         runs(function () {
             expect(girder.auth.getCurrentUser()).toBe(null);
         });
