@@ -381,6 +381,8 @@ class File(Resource):
 
         assetstore = None
         if params.get('assetstoreId'):
+            self.requireAdmin(
+                user, message='You must be an admin to select a destination assetstore.')
             assetstore = self.model('assetstore').load(params['assetstoreId'])
         # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(
