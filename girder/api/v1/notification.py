@@ -21,7 +21,7 @@ import cherrypy
 import json
 import time
 
-from ..describe import Description, describeRoute
+from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, setResponseHeader
 from girder.api import access
 
@@ -48,9 +48,8 @@ class Notification(Resource):
 
     @access.cookie
     @access.token
-    @describeRoute(
-        Description('Stream notifications for a given user via the SSE '
-                    'protocol.')
+    @autoDescribeRoute(
+        Description('Stream notifications for a given user via the SSE protocol.')
         .notes('This uses long-polling to keep the connection open for '
                'several minutes at a time (or longer) and should be requested '
                'with an EventSource object or other SSE-capable client. '
@@ -58,28 +57,16 @@ class Notification(Resource):
                'they occur.  When no notification occurs for the timeout '
                'duration, the stream is closed. '
                '<p>This connection can stay open indefinitely long.')
-        .param('timeout', 'The duration without a notification before the '
-               'stream is closed.', dataType='integer', required=False)
+        .param('timeout', 'The duration without a notification before the stream is closed.',
+               dataType='integer', required=False, default=DEFAULT_STREAM_TIMEOUT)
         .errorResponse()
         .errorResponse('You are not logged in.', 403)
     )
-    def stream(self, params):
-        """
-        Streams notifications using the server-sent events protocol. Closes
-        the connection if more than timeout seconds elapse without any new
-        notifications.
-
-        :params timeout: Timeout in seconds; if no notifications appear in
-            this duration, the connection will be closed. (default=300)
-        :type timeout: int
-        """
-        user = self.getCurrentUser()
-        token = self.getCurrentToken()
+    def stream(self, timeout, params):
+        user, token = self.getCurrentUser(returnToken=True)
 
         setResponseHeader('Content-Type', 'text/event-stream')
         setResponseHeader('Cache-Control', 'no-cache')
-
-        timeout = int(params.get('timeout', DEFAULT_STREAM_TIMEOUT))
 
         def streamGen():
             lastUpdate = None
