@@ -89,8 +89,7 @@ class ApiKey(Resource):
             apiKey['name'] = name
         if tokenDuration is not None:
             apiKey['tokenDuration'] = tokenDuration
-        if scope is not None:
-            apiKey['scope'] = scope
+        apiKey['scope'] = scope
 
         return self.model('api_key').save(apiKey)
 
