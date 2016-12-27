@@ -551,7 +551,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         else:
             doc = model.load(id, **info['kwargs'])
 
-        if doc is None and self.exc:
+        if doc is None and info['exc']:
             raise RestException('Invalid %s id (%s).' % (model.name, str(id)))
 
         if info['requiredFlags']:
