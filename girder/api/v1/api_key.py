@@ -57,8 +57,7 @@ class ApiKey(Resource):
     @autoDescribeRoute(
         Description('Create a new API key.')
         .param('name', 'Name for the API key.', required=False, default='', strip=True)
-        .jsonParam('scope', 'JSON list of scopes for this key.', required=False,
-                   requireArray=True)
+        .jsonParam('scope', 'JSON list of scopes for this key.', required=False)
         .param('tokenDuration', 'Max number of days tokens created with this '
                'key will last.', required=False)
         .param('active', 'Whether the key is currently active.', required=False,
@@ -76,7 +75,7 @@ class ApiKey(Resource):
         .modelParam('id', 'The ID of the API key.', model='api_key', destName='apiKey',
                     level=AccessType.WRITE)
         .param('name', 'Name for the key.', required=False, strip=True)
-        .jsonParam('scope', 'JSON list of scopes for this key.', required=False, requireArray=True)
+        .jsonParam('scope', 'JSON list of scopes for this key.', required=False)
         .param('tokenDuration', 'Max number of days tokens created with this key will last.',
                required=False)
         .param('active', 'Whether the key is currently active.', required=False,
