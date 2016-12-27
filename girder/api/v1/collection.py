@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel, setResponseHeader
+from ..rest import Resource, filtermodel, setResponseHeader
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.models.model_base import AccessException
