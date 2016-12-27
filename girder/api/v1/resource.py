@@ -66,7 +66,7 @@ class Resource(BaseResource):
         .pagingParams(defaultSort=None, defaultLimit=10)
         .errorResponse('Invalid type list format.')
     )
-    def search(self, q, mode, types, level, limit, offset, sort, params):
+    def search(self, q, mode, types, level, limit, offset, params):
         level = AccessType.validate(level)
         user = self.getCurrentUser()
 

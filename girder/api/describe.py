@@ -515,7 +515,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     else:
                         kwargs[name] = None
 
-            if self.description.hasPagingParams:
+            if self.description.hasPagingParams and 'sort' in kwargs:
                 kwargs['sort'] = [(kwargs['sort'], kwargs['sortdir'])]
                 del kwargs['sortdir']
 
