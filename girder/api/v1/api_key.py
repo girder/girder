@@ -75,7 +75,8 @@ class ApiKey(Resource):
         .modelParam('id', 'The ID of the API key.', model='api_key', destName='apiKey',
                     level=AccessType.WRITE)
         .param('name', 'Name for the key.', required=False, strip=True)
-        .jsonParam('scope', 'JSON list of scopes for this key.', required=False)
+        .jsonParam('scope', 'JSON list of scopes for this key.', required=False,
+                   default=())
         .param('tokenDuration', 'Max number of days tokens created with this key will last.',
                required=False)
         .param('active', 'Whether the key is currently active.', required=False,
@@ -89,7 +90,8 @@ class ApiKey(Resource):
             apiKey['name'] = name
         if tokenDuration is not None:
             apiKey['tokenDuration'] = tokenDuration
-        apiKey['scope'] = scope
+        if scope != ():
+            apiKey['scope'] = scope
 
         return self.model('api_key').save(apiKey)
 
