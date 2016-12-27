@@ -17,8 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import json
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, RestException, filtermodel, setResponseHeader
 from girder.api import access
@@ -115,7 +113,8 @@ class Folder(Resource):
     @autoDescribeRoute(
         Description('Download an entire folder as a zip archive.')
         .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.READ)
-        .param('mimeFilter', 'JSON list of MIME types to include.', required=False)
+        .jsonParam('mimeFilter', 'JSON list of MIME types to include.', required=False,
+                   requireArray=True)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
@@ -126,17 +125,9 @@ class Folder(Resource):
         """
         setResponseHeader('Content-Type', 'application/zip')
         setResponseHeader(
-            'Content-Disposition',
-            'attachment; filename="%s%s"' % (folder['name'], '.zip'))
+            'Content-Disposition', 'attachment; filename="%s%s"' % (folder['name'], '.zip'))
 
         user = self.getCurrentUser()
-        if mimeFilter:
-            try:
-                mimeFilter = json.loads(mimeFilter)
-                if not isinstance(mimeFilter, list):
-                    raise ValueError()
-            except ValueError:
-                raise RestException('The mimeFilter must be a JSON list.')
 
         def stream():
             zip = ziputil.ZipGenerator(folder['name'])

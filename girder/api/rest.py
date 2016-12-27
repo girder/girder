@@ -918,14 +918,14 @@ class Resource(ModelImporter):
         if provided is None and isinstance(required, dict):
             for name, val in six.viewitems(required):
                 if val is None:
-                    raise RestException("Parameter '%s' is required." % name)
+                    raise RestException('Parameter "%s" is required.' % name)
         else:
             if isinstance(required, six.string_types):
                 required = (required,)
 
             for param in required:
                 if provided is None or param not in provided:
-                    raise RestException("Parameter '%s' is required." % param)
+                    raise RestException('Parameter "%s" is required.' % param)
 
     @staticmethod
     def boolParam(key, params, default=None):
