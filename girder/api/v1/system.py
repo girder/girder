@@ -108,7 +108,7 @@ class System(Resource):
         if default is not None:
             if default == 'none':
                 funcParams['default'] = None
-            elif default== 'default':
+            elif default == 'default':
                 getFuncName = 'getDefault'
             elif default:
                 raise RestException("Default was not 'none', 'default', or blank.")

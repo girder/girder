@@ -128,6 +128,54 @@ class Description(object):
         self._responseClassArray = array
         return self
 
+    def _validateParamInfo(self, dataType, paramType, name):
+        """
+        Helper to convert and validate the dataType and paramType.
+        Prints warnings if invalid values were passed.
+        """
+        # Legacy data type conversions
+        if dataType == 'int':
+            dataType = 'integer'
+        elif dataType == 'File':
+            dataType = 'file'
+
+        # Get type and format from common name
+        dataTypeFormat = None
+        if dataType in self._dataTypeMap:
+            dataType, dataTypeFormat = self._dataTypeMap[dataType]
+        # If we are dealing with the body then the dataType might be defined
+        # by a schema added using addModel(...), we don't know for sure as we
+        # don't know the resource name here to look it up.
+        elif paramType != 'body':
+            print(TerminalColor.warning(
+                'WARNING: Invalid dataType "%s" specified for parameter names "%s"' %
+                (dataType, name)))
+
+        # Parameter Object spec:
+        # Since the parameter is not located at the request body, it is limited
+        # to simple types (that is, not an object).
+        if paramType != 'body' and dataType not in (
+                'string', 'number', 'integer', 'boolean', 'array', 'file'):
+            print(TerminalColor.warning(
+                'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name)))
+
+        if paramType == 'form':
+            print(TerminalColor.warning(
+                'WARNING: paramType "form" should be updated to "formData"'))
+            paramType = 'formData'
+
+        # Parameter Object spec:
+        # If type is "file", then consumes MUST be either
+        # "multipart/form-data", "application/x-www-form-urlencoded" or both
+        # and the parameter MUST be in "formData".
+        if dataType == 'file' and paramType != 'formData':
+            print(TerminalColor.warning(
+                'WARNING: Invalid paramType "%s" specified for dataType '
+                '"file" in parameter %s.' % (paramType, name)))
+            paramType = 'formData'
+
+        return dataType, dataTypeFormat, paramType
+
     def param(self, name, description, paramType='query', dataType='string',
               required=True, enum=None, default=None, strip=False):
         """
@@ -155,52 +203,7 @@ class Description(object):
             stripped of white space.
         :type strip: bool
         """
-        # Legacy data type conversions
-        if dataType == 'int':
-            dataType = 'integer'
-        elif dataType == 'File':
-            print(TerminalColor.warning(
-                "WARNING: dataType 'File' should be updated to 'file'"))
-            dataType = 'file'
-
-        # Get type and format from common name
-        dataTypeFormat = None
-        if dataType in self._dataTypeMap:
-            (dataType, dataTypeFormat) = self._dataTypeMap[dataType]
-        # If we are dealing with the body then the dataType might be defined
-        # by a schema added using addModel(...), we don't know for sure as we
-        # don't know the resource name here to look it up.
-        elif paramType != 'body':
-            print(TerminalColor.warning(
-                "WARNING: Invalid dataType '%s' specified for parameter "
-                "named '%s'" % (dataType, name)))
-
-        # Parameter Object spec:
-        # Since the parameter is not located at the request body, it is limited
-        # to simple types (that is, not an object).
-        if paramType != 'body':
-            if dataType not in ('string', 'number', 'integer', 'boolean',
-                                'array', 'file'):
-                print(TerminalColor.warning(
-                    "WARNING: Invalid dataType '%s' specified for parameter "
-                    "named '%s'" % (dataType, name)))
-
-        if paramType == 'form':
-            print(TerminalColor.warning(
-                "WARNING: paramType 'form' should be updated to 'formData'"))
-            paramType = 'formData'
-
-        # Parameter Object spec:
-        # If type is "file", then consumes MUST be either
-        # "multipart/form-data", "application/x-www-form-urlencoded" or both
-        # and the parameter MUST be in "formData".
-        if dataType == 'file':
-            if paramType != 'formData':
-                print(TerminalColor.warning(
-                    "WARNING: Invalid paramType '%s' specified for dataType "
-                    "'file' in parameter named '%s'"
-                    % (paramType, name)))
-                paramType = 'formData'
+        dataType, format, paramType = self._validateParamInfo(dataType, paramType, name)
 
         param = {
             'name': name,
@@ -219,8 +222,8 @@ class Description(object):
         else:
             param['type'] = dataType
 
-        if dataTypeFormat is not None:
-            param['format'] = dataTypeFormat
+        if format is not None:
+            param['format'] = format
 
         if enum:
             param['enum'] = enum
@@ -470,11 +473,20 @@ class describeRoute(object):  # noqa: class name
 
 
 class autoDescribeRoute(describeRoute):  # noqa: class name
-    """
-    Like describeRoute, but this decorator also controls behavior of the
-    underlying method. It handles parameter validation and transformation
-    based on the Description object passed.
-    """
+    def __init__(self, description, hide=False):
+        """
+        Like describeRoute, but this decorator also controls behavior of the
+        underlying method. It handles parameter validation and transformation
+        based on the Description object passed.
+
+        :param description: The description object.
+        :type description: Description
+        :param hide: If this route should be hidden from the list, set this to True.
+        :type hide: bool
+        """
+        super(autoDescribeRoute, self).__init__(description=description)
+        self.hide = hide
+
     def __call__(self, fun):
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
@@ -521,7 +533,10 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
             return fun(*args, **kwargs)
 
-        wrapped.description = self.description
+        if self.hide:
+            wrapped.description = None
+        else:
+            wrapped.description = self.description
         return wrapped
 
     def _loadJson(self, name, info, value):
