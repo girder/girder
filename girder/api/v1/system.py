@@ -184,7 +184,7 @@ class System(Resource):
         .pagingParams(defaultSort='updated')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def getPartialUploads(self, uploadId, parentId, assetstoreId, minimumAge,
+    def getPartialUploads(self, uploadId, userId, parentId, assetstoreId, minimumAge,
                           includeUntracked, limit, offset, sort, params):
         filters = {}
         if uploadId is not None:
