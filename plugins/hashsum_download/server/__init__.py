@@ -18,9 +18,8 @@
 ###############################################################################
 
 from girder.api import access
-from girder.api.describe import describeRoute, Description
-from girder.api.rest import RestException, setRawResponse, setResponseHeader,\
-    loadmodel
+from girder.api.describe import autoDescribeRoute, Description
+from girder.api.rest import RestException, setRawResponse, setResponseHeader
 from girder.api.v1.file import File
 from girder.constants import AccessType, TokenScope
 from girder.utility.model_importer import ModelImporter
@@ -42,14 +41,11 @@ class HashedFile(File):
 
     @access.cookie
     @access.public(scope=TokenScope.DATA_READ)
-    @loadmodel(model='file', level=AccessType.READ)
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Download the hashsum key file for a given file.')
-        .param('id', 'The ID of the file.', paramType='path')
-        .param('algo', 'The hashsum algorithm.', paramType='path',
-               enum=supportedAlgorithms)
-        .notes('This is meant to be used in conjunction with CMake\'s '
-               'ExternalData module.')
+        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.READ)
+        .param('algo', 'The hashsum algorithm.', paramType='path', enum=supportedAlgorithms)
+        .notes('This is meant to be used in conjunction with CMake\'s ExternalData module.')
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
@@ -58,28 +54,24 @@ class HashedFile(File):
         self._validateAlgo(algo)
 
         if algo not in file:
-            raise RestException('This file does not have the %s hash '
-                                'computed.' % algo)
+            raise RestException('This file does not have the %s hash computed.' % algo)
         hash = file[algo]
         name = '.'.join((file['name'], algo))
 
         setResponseHeader('Content-Length', len(hash))
         setResponseHeader('Content-Type', 'text/plain')
-        setResponseHeader('Content-Disposition',
-                          'attachment; filename="%s"' % name)
+        setResponseHeader('Content-Disposition', 'attachment; filename="%s"' % name)
         setRawResponse()
 
         return hash
 
     @access.cookie
     @access.public(scope=TokenScope.DATA_READ)
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Download a file by its hash sum.')
-        .param('algo', 'The type of the given hash sum. '
-                       'This parameter is case insensitive.',
+        .param('algo', 'The type of the given hash sum (case insensitive).',
                paramType='path', enum=supportedAlgorithms)
-        .param('hash', 'The hexadecimal hash sum of the file to download. '
-                       'This parameter is case insensitive.',
+        .param('hash', 'The hexadecimal hash sum of the file to download (case insensitive).',
                paramType='path')
         .errorResponse('No file with the given hash exists.')
     )

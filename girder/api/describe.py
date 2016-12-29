@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import json
+import bson.json_util
 import os
 import six
 
@@ -541,7 +541,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
     def _loadJson(self, name, info, value):
         try:
-            val = json.loads(value)
+            val = bson.json_util.loads(value)
         except ValueError:
             raise RestException('Parameter %s must be valid JSON.' % name)
 
