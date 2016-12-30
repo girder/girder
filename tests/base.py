@@ -232,6 +232,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 msg += ' Response body was:\n%s' % json.dumps(
                     response.json, sort_keys=True, indent=4,
                     separators=(',', ': '))
+            else:
+                msg += 'Response body was:\n%s' % self.getBody(response)
 
             self.fail(msg)
 

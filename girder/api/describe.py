@@ -177,7 +177,7 @@ class Description(object):
         return dataType, dataTypeFormat, paramType
 
     def param(self, name, description, paramType='query', dataType='string',
-              required=True, enum=None, default=None, strip=False):
+              required=True, enum=None, default=None, strip=False, lower=False, upper=False):
         """
         This helper will build a parameter declaration for you. It has the most
         common options as defaults, so you won't have to repeat yourself as much
@@ -202,6 +202,12 @@ class Description(object):
         :param strip: For string types, set this to True if the string should be
             stripped of white space.
         :type strip: bool
+        :param lower: For string types, set this to True if the string should be
+            converted to lowercase.
+        :type lower: bool
+        :param upper: For string types, set this to True if the string should be
+            converted to uppercase.
+        :type upper: bool
         """
         dataType, format, paramType = self._validateParamInfo(dataType, paramType, name)
 
@@ -214,6 +220,8 @@ class Description(object):
 
         if dataType == 'string':
             param['_strip'] = strip
+            param['_lower'] = lower
+            param['_upper'] = upper
 
         if paramType == 'body':
             param['schema'] = {
@@ -603,8 +611,14 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             except ValueError:
                 raise RestException('Invalid value for float parameter %s: %s.' % (
                     name, value))
-        elif type == 'string' and descParam['_strip']:
-            value = value.strip()
+        elif type == 'string':
+            if descParam['_strip']:
+                value = value.strip()
+            if descParam['_lower']:
+                value = value.lower()
+            if descParam['_upper']:
+                value = value.upper()
+
 
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:

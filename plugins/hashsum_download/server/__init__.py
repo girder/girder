@@ -44,13 +44,13 @@ class HashedFile(File):
     @autoDescribeRoute(
         Description('Download the hashsum key file for a given file.')
         .modelParam('id', 'The ID of the file.', model='file', level=AccessType.READ)
-        .param('algo', 'The hashsum algorithm.', paramType='path', enum=supportedAlgorithms)
+        .param('algo', 'The hashsum algorithm.', paramType='path', lower=True,
+               enum=supportedAlgorithms)
         .notes('This is meant to be used in conjunction with CMake\'s ExternalData module.')
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
     def downloadKeyFile(self, file, algo, params):
-        algo = algo.lower()
         self._validateAlgo(algo)
 
         if algo not in file:
@@ -70,9 +70,9 @@ class HashedFile(File):
     @autoDescribeRoute(
         Description('Download a file by its hash sum.')
         .param('algo', 'The type of the given hash sum (case insensitive).',
-               paramType='path', enum=supportedAlgorithms)
+               paramType='path', lower=True, enum=supportedAlgorithms)
         .param('hash', 'The hexadecimal hash sum of the file to download (case insensitive).',
-               paramType='path')
+               paramType='path', lower=True)
         .errorResponse('No file with the given hash exists.')
     )
     def downloadWithHash(self, algo, hash, params):
@@ -102,10 +102,9 @@ class HashedFile(File):
          Default (none) is the current user.
         :return: A file document.
         """
-        algo = algo.lower()
         self._validateAlgo(algo)
 
-        query = {algo: hash.lower()}  # Always convert to lower case
+        query = {algo: hash}  # Always convert to lower case
         fileModel = self.model('file')
         cursor = fileModel.find(query)
 
