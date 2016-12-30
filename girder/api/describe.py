@@ -583,6 +583,38 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
         return doc
 
+    def _handleString(self, name, descParam, value):
+        if descParam['_strip']:
+            value = value.strip()
+        if descParam['_lower']:
+            value = value.lower()
+        if descParam['_upper']:
+            value = value.upper()
+        return value
+
+    def _handleInt(self, name, descParam, value):
+        try:
+            return int(value)
+        except ValueError:
+            raise RestException('Invalid value for integer parameter %s: %s.' % (name, value))
+
+    def _handleFloat(self, name, descParam, value):
+        try:
+            return float(value)
+        except ValueError:
+            raise RestException('Invalid value for numeric parameter %s: %s.' % (name, value))
+
+    def _handleDate(self, name, descParam, value):
+        try:
+            value = dateutil.parser.parse(value)
+        except ValueError:
+            raise RestException('Invalid date format for parameter %s: %s' % (name, value))
+
+        if type == 'date':
+            value = value.date()
+
+        return value
+
     def _validateParam(self, name, descParam, value):
         """
         Validates and transforms a single parameter that was passed. Raises
@@ -599,32 +631,15 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
         # Coerce to the correct data type
         if type == 'string':
-            if descParam['_strip']:
-                value = value.strip()
-            if descParam['_lower']:
-                value = value.lower()
-            if descParam['_upper']:
-                value = value.upper()
+            value = self._handleString(name, descParam, value)
         elif type == 'boolean':
             value = toBool(value)
         elif type in ('integer', 'long'):
-            try:
-                value = int(value)
-            except ValueError:
-                raise RestException('Invalid value for integer parameter %s: %s.' % (name, value))
+            value = self._handleInt(name, descParam, value)
         elif type in ('number', 'float', 'double'):
-            try:
-                value = float(value)
-            except ValueError:
-                raise RestException('Invalid value for float parameter %s: %s.' % (name, value))
+            value = self._handleFloat(name, descParam, value)
         elif type in ('date', 'dateTime'):
-            try:
-                value = dateutil.parser.parse(value)
-            except ValueError:
-                raise RestException('Invalid date format for parameter %s: %s' % (name, value))
-
-            if type =='date':
-                value = value.date()
+            value = self._handleDate(name, descParam, value)
 
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
