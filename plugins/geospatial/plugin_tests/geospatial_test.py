@@ -78,7 +78,7 @@ class GeospatialItemTestCase(base.TestCase):
         """
         path = '/item/geospatial'
         self.ensureRequiredParams(path=path, method='POST',
-                                  required=['folderId', 'geoJSON'],
+                                  required=['folderId'],
                                   user=self._creator)
 
         filePath = os.path.join(ROOT_DIR, 'plugins', 'geospatial',

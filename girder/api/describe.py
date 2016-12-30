@@ -18,6 +18,7 @@
 ###############################################################################
 
 import bson.json_util
+import dateutil.parser
 import os
 import six
 
@@ -597,28 +598,33 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         type = descParam.get('type')
 
         # Coerce to the correct data type
-        if type == 'boolean':
-            value = toBool(value)
-        elif type == 'integer':
-            try:
-                value = int(value)
-            except ValueError:
-                raise RestException('Invalid value for integer parameter %s: %s.' % (
-                    name, value))
-        elif type == 'float':
-            try:
-                value = float(value)
-            except ValueError:
-                raise RestException('Invalid value for float parameter %s: %s.' % (
-                    name, value))
-        elif type == 'string':
+        if type == 'string':
             if descParam['_strip']:
                 value = value.strip()
             if descParam['_lower']:
                 value = value.lower()
             if descParam['_upper']:
                 value = value.upper()
+        elif type == 'boolean':
+            value = toBool(value)
+        elif type in ('integer', 'long'):
+            try:
+                value = int(value)
+            except ValueError:
+                raise RestException('Invalid value for integer parameter %s: %s.' % (name, value))
+        elif type in ('number', 'float', 'double'):
+            try:
+                value = float(value)
+            except ValueError:
+                raise RestException('Invalid value for float parameter %s: %s.' % (name, value))
+        elif type in ('date', 'dateTime'):
+            try:
+                value = dateutil.parser.parse(value)
+            except ValueError:
+                raise RestException('Invalid date format for parameter %s: %s' % (name, value))
 
+            if type =='date':
+                value = value.date()
 
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
