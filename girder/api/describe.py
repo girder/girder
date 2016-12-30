@@ -156,7 +156,8 @@ class Description(object):
         # Since the parameter is not located at the request body, it is limited
         # to simple types (that is, not an object).
         if paramType != 'body' and dataType not in (
-                'string', 'number', 'integer', 'boolean', 'array', 'file'):
+                'string', 'number', 'integer', 'long', 'boolean', 'array', 'file', 'float',
+                'double', 'date', 'dateTime'):
             print(TerminalColor.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name)))
 
@@ -590,6 +591,17 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             value = value.lower()
         if descParam['_upper']:
             value = value.upper()
+
+        format = descParam.get('format')
+        if format in ('date', 'date-time'):
+            try:
+                value = dateutil.parser.parse(value)
+            except ValueError:
+                raise RestException('Invalid date format for parameter %s: %s.' % (name, value))
+
+            if format == 'date':
+                value = value.date()
+
         return value
 
     def _handleInt(self, name, descParam, value):
@@ -598,22 +610,11 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         except ValueError:
             raise RestException('Invalid value for integer parameter %s: %s.' % (name, value))
 
-    def _handleFloat(self, name, descParam, value):
+    def _handleNumber(self, name, descParam, value):
         try:
             return float(value)
         except ValueError:
             raise RestException('Invalid value for numeric parameter %s: %s.' % (name, value))
-
-    def _handleDate(self, name, descParam, value):
-        try:
-            value = dateutil.parser.parse(value)
-        except ValueError:
-            raise RestException('Invalid date format for parameter %s: %s' % (name, value))
-
-        if type == 'date':
-            value = value.date()
-
-        return value
 
     def _validateParam(self, name, descParam, value):
         """
@@ -634,12 +635,10 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             value = self._handleString(name, descParam, value)
         elif type == 'boolean':
             value = toBool(value)
-        elif type in ('integer', 'long'):
+        elif type == 'integer':
             value = self._handleInt(name, descParam, value)
-        elif type in ('number', 'float', 'double'):
-            value = self._handleFloat(name, descParam, value)
-        elif type in ('date', 'dateTime'):
-            value = self._handleDate(name, descParam, value)
+        elif type == 'number':
+            value = self._handleNumber(name, descParam, value)
 
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
