@@ -244,7 +244,7 @@ class Description(object):
         self._params.append(param)
         return self
 
-    def modelParam(self, name, description, model, destName=None, paramType='path',
+    def modelParam(self, name, description=None, model=None, destName=None, paramType='path',
                    plugin='_core', level=None, required=True, force=False, exc=True,
                    requiredFlags=None, **kwargs):
         """
@@ -253,7 +253,8 @@ class Description(object):
 
         :param name: The name passed in via the request, e.g. 'id'.
         :type name: str
-        :param description: The description of the parameter.
+        :param description: The description of the parameter. If not passed, defaults
+            to "The ID of the <model>."
         :type description: str
         :param destName: The kwarg name after model loading, e.g. 'folder'. Deafults
             to the value of the model parameter.
@@ -264,7 +265,9 @@ class Description(object):
             If None is passed, this will map the parameter named "id" to a kwarg
             named the same as the "model" parameter.
         :type map: dict or None
-        :param model: The model name, e.g. 'folder'
+        :param model: The model name, e.g. 'folder'. If not passed, defaults to stripping
+            the last two characters from the name, such that e.g. 'folderId' would make
+            the model become 'folder'.
         :type model: str
         :param plugin: Plugin name, if loading a plugin model.
         :type plugin: str
@@ -279,6 +282,12 @@ class Description(object):
         :param requiredFlags: Access flags that are required on the object being loaded.
         :type requiredFlags: str or list/set/tuple of str or None
         """
+        if model is None:
+            model = name[:-2]  # strip off "Id"
+
+        if description is None:
+            description = 'The ID of the %s.' % model
+
         self.param(name=name, description=description, paramType=paramType, required=required)
 
         self.modelParams[name] = {

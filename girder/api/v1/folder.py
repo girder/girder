@@ -97,7 +97,7 @@ class Folder(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get detailed information about a folder.')
-        .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.READ)
+        .modelParam('id', model='folder', level=AccessType.READ)
         .errorResponse()
         .errorResponse('Read access was denied on the folder.', 403)
     )
@@ -112,7 +112,7 @@ class Folder(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Download an entire folder as a zip archive.')
-        .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.READ)
+        .modelParam('id', model='folder', level=AccessType.READ)
         .jsonParam('mimeFilter', 'JSON list of MIME types to include.', required=False,
                    requireArray=True)
         .errorResponse('ID was invalid.')
@@ -143,7 +143,7 @@ class Folder(Resource):
     @autoDescribeRoute(
         Description('Update a folder or move it into a new parent.')
         .responseClass('Folder')
-        .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.WRITE)
+        .modelParam('id', model='folder', level=AccessType.WRITE)
         .param('name', 'Name of the folder.', required=False, strip=True)
         .param('description', 'Description for the folder.', required=False, strip=True)
         .param('parentType', "Type of the folder's parent", required=False,
@@ -173,7 +173,7 @@ class Folder(Resource):
     @filtermodel(model='folder', addFields={'access'})
     @autoDescribeRoute(
         Description('Update the access control list for a folder.')
-        .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.ADMIN)
+        .modelParam('id', model='folder', level=AccessType.ADMIN)
         .jsonParam('access', 'The JSON-encoded access control list.', requireObject=True)
         .jsonParam('publicFlags', 'JSON list of public access flags.', requireArray=True,
                    required=False)
@@ -233,7 +233,7 @@ class Folder(Resource):
     @autoDescribeRoute(
         Description('Get a folder by ID.')
         .responseClass('Folder')
-        .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.READ)
+        .modelParam('id', model='folder', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
@@ -244,7 +244,7 @@ class Folder(Resource):
     @autoDescribeRoute(
         Description('Get the access control list for a folder.')
         .responseClass('Folder')
-        .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.ADMIN)
+        .modelParam('id', model='folder', level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403)
     )
@@ -254,7 +254,7 @@ class Folder(Resource):
     @access.user(scope=TokenScope.DATA_OWN)
     @autoDescribeRoute(
         Description('Delete a folder by ID.')
-        .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.ADMIN)
+        .modelParam('id', model='folder', level=AccessType.ADMIN)
         .param('progress', 'Whether to record progress on this task.',
                required=False, dataType='boolean', default=False)
         .errorResponse('ID was invalid.')
@@ -276,7 +276,7 @@ class Folder(Resource):
         Description('Set metadata fields on an folder.')
         .responseClass('Folder')
         .notes('Set metadata fields to null in order to delete them.')
-        .modelParam('id', 'The ID of the folder.', model='folder', level=AccessType.WRITE)
+        .modelParam('id', model='folder', level=AccessType.WRITE)
         .param('body', 'A JSON object containing the metadata keys to add',
                paramType='body')
         .errorResponse(('ID was invalid.',

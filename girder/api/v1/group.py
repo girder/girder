@@ -93,7 +93,7 @@ class Group(Resource):
     @autoDescribeRoute(
         Description('Get a group by ID.')
         .responseClass('Group')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.READ)
+        .modelParam('id', model='group', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403)
     )
@@ -107,7 +107,7 @@ class Group(Resource):
     @autoDescribeRoute(
         Description('Get the access control list for a group.')
         .responseClass('Group')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.READ)
+        .modelParam('id', model='group', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403)
     )
@@ -122,7 +122,7 @@ class Group(Resource):
     @autoDescribeRoute(
         Description('Show outstanding invitations for a group.')
         .responseClass('Group')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.READ)
+        .modelParam('id', model='group', level=AccessType.READ)
         .pagingParams(defaultSort='lastName')
         .errorResponse()
         .errorResponse('Read access was denied for the group.', 403)
@@ -134,7 +134,7 @@ class Group(Resource):
     @filtermodel(model='group')
     @autoDescribeRoute(
         Description('Update a group by ID.')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.WRITE)
+        .modelParam('id', model='group', level=AccessType.WRITE)
         .param('name', 'The name to set on the group.', required=False, strip=True)
         .param('description', 'Description for the group.', required=False, strip=True)
         .param('public', 'Whether the group should be publicly visible', dataType='boolean',
@@ -165,7 +165,7 @@ class Group(Resource):
     @autoDescribeRoute(
         Description('Request to join a group, or accept an invitation to join.')
         .responseClass('Group')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.READ)
+        .modelParam('id', model='group', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('You were not invited to this group, or do not have '
                        'read access to it.', 403)
@@ -181,7 +181,7 @@ class Group(Resource):
     @filtermodel(model='user')
     @autoDescribeRoute(
         Description('List members of a group.')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.READ)
+        .modelParam('id', model='group', level=AccessType.READ)
         .pagingParams(defaultSort='lastName')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403)
@@ -197,8 +197,8 @@ class Group(Resource):
         .notes('The "force" option to this endpoint is only available to '
                'administrators and can be used to bypass the invitation process'
                ' and instead add the user directly to the group.')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.WRITE)
-        .modelParam('userId', 'The ID of the user to invite or accept.', model='user',
+        .modelParam('id', model='group', level=AccessType.WRITE)
+        .modelParam('userId', 'The ID of the user to invite or accept.',
                     destName='userToInvite', level=AccessType.READ, paramType='formData')
         .param('level', 'The access level the user will be given when they accept the invitation.',
                required=False, dataType='integer', default=AccessType.READ)
@@ -258,8 +258,8 @@ class Group(Resource):
     @autoDescribeRoute(
         Description('Promote a member to be a moderator of the group.')
         .responseClass('Group')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.ADMIN)
-        .modelParam('userId', 'The ID of the user to promote.', model='user',
+        .modelParam('id', model='group', level=AccessType.ADMIN)
+        .modelParam('userId', 'The ID of the user to promote.',
                     level=AccessType.READ, paramType='formData')
         .errorResponse('ID was invalid.')
         .errorResponse("You don't have permission to promote users.", 403)
@@ -272,8 +272,8 @@ class Group(Resource):
     @autoDescribeRoute(
         Description('Promote a member to be an administrator of the group.')
         .responseClass('Group')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.ADMIN)
-        .modelParam('userId', 'The ID of the user to promote.', model='user',
+        .modelParam('id', model='group', level=AccessType.ADMIN)
+        .modelParam('userId', 'The ID of the user to promote.',
                     level=AccessType.READ, paramType='formData')
         .errorResponse('ID was invalid.')
         .errorResponse("You don't have permission to promote users.", 403)
@@ -303,8 +303,8 @@ class Group(Resource):
     @autoDescribeRoute(
         Description('Demote a user to a normal group member.')
         .responseClass('Group')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.ADMIN)
-        .modelParam('userId', 'The ID of the user to demote.', model='user',
+        .modelParam('id', model='group', level=AccessType.ADMIN)
+        .modelParam('userId', 'The ID of the user to demote.',
                     level=AccessType.READ, paramType='formData')
         .errorResponse()
         .errorResponse("You don't have permission to demote users.", 403)
@@ -325,9 +325,9 @@ class Group(Resource):
                'will delete any outstanding invitation or membership request for '
                'the user. Passing no userId parameter will assume that the '
                'current user is removing himself.')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.READ)
+        .modelParam('id', model='group', level=AccessType.READ)
         .modelParam('userId', 'The ID of the user to remove. If not passed, will '
-                    'remove yourself from the group.', required=False, model='user',
+                    'remove yourself from the group.', required=False,
                     level=AccessType.READ, destName='userToRemove', paramType='formData')
         .errorResponse()
         .errorResponse("You don't have permission to remove that user.", 403)
@@ -357,7 +357,7 @@ class Group(Resource):
     @access.user
     @autoDescribeRoute(
         Description('Delete a group by ID.')
-        .modelParam('id', 'The ID of the group.', model='group', level=AccessType.ADMIN)
+        .modelParam('id', model='group', level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the group.', 403)
     )

@@ -93,7 +93,7 @@ class Item(Resource):
     @autoDescribeRoute(
         Description('Get an item by ID.')
         .responseClass('Item')
-        .modelParam('id', 'The ID of the item.', model='item', level=AccessType.READ)
+        .modelParam('id', model='item', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -105,7 +105,7 @@ class Item(Resource):
     @autoDescribeRoute(
         Description('Create a new item.')
         .responseClass('Item')
-        .modelParam('folderId', 'The ID of the parent folder.', model='folder',
+        .modelParam('folderId', 'The ID of the parent folder.',
                     level=AccessType.WRITE, paramType='query')
         .param('name', 'Name for the item.', strip=True)
         .param('description', 'Description for the item.', required=False,
@@ -125,10 +125,10 @@ class Item(Resource):
     @autoDescribeRoute(
         Description('Edit an item or move it to another folder.')
         .responseClass('Item')
-        .modelParam('id', 'The ID of the item.', model='item', level=AccessType.WRITE)
+        .modelParam('id', model='item', level=AccessType.WRITE)
         .param('name', 'Name for the item.', required=False, strip=True)
         .param('description', 'Description for the item.', required=False)
-        .modelParam('folderId', 'Pass this to move the item to a new folder.', model='folder',
+        .modelParam('folderId', 'Pass this to move the item to a new folder.',
                     required=False, paramType='query', level=AccessType.WRITE)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item or folder.', 403)
@@ -152,7 +152,7 @@ class Item(Resource):
         Description('Set metadata fields on an item.')
         .responseClass('Item')
         .notes('Set metadata fields to null in order to delete them.')
-        .modelParam('id', 'The ID of the item.', model='item', level=AccessType.WRITE)
+        .modelParam('id', model='item', level=AccessType.WRITE)
         .param('body', 'A JSON object containing the metadata keys to add',
                paramType='body')
         .errorResponse(('ID was invalid.',
@@ -195,7 +195,7 @@ class Item(Resource):
     @autoDescribeRoute(
         Description('Get the files within an item.')
         .responseClass('File', array=True)
-        .modelParam('id', 'The ID of the item.', model='item', level=AccessType.READ)
+        .modelParam('id', model='item', level=AccessType.READ)
         .pagingParams(defaultSort='name')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
@@ -208,7 +208,7 @@ class Item(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Download the contents of an item.')
-        .modelParam('id', 'The ID of the item.', model='item', level=AccessType.READ)
+        .modelParam('id', model='item', level=AccessType.READ)
         .param('offset', 'Byte offset into the file.', dataType='int', default=0)
         .param('format', 'If unspecified, items with one file are downloaded '
                'as that file, and other items are downloaded as a zip '
@@ -242,7 +242,7 @@ class Item(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Delete an item by ID.')
-        .modelParam('id', 'The ID of the item.', model='item', level=AccessType.WRITE)
+        .modelParam('id', model='item', level=AccessType.WRITE)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item.', 403)
     )
@@ -253,7 +253,7 @@ class Item(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get the path to the root of the item\'s hierarchy.')
-        .modelParam('id', 'The ID of the item.', model='item', level=AccessType.READ)
+        .modelParam('id', model='item', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -266,7 +266,7 @@ class Item(Resource):
         Description('Copy an item.')
         .responseClass('Item')
         .modelParam('id', 'The ID of the original item.', model='item', level=AccessType.READ)
-        .modelParam('folderId', 'The ID of the parent folder.', model='folder', required=False,
+        .modelParam('folderId', 'The ID of the parent folder.', required=False,
                     level=AccessType.WRITE)
         .param('name', 'Name for the new item.', required=False, strip=True)
         .param('description', 'Description for the new item.', required=False, strip=True)

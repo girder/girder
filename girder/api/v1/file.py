@@ -55,7 +55,7 @@ class File(Resource):
     @filtermodel(model='file')
     @autoDescribeRoute(
         Description('Get a file\'s information.')
-        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.READ)
+        .modelParam('id', model='file', level=AccessType.READ)
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
@@ -128,8 +128,7 @@ class File(Resource):
         .notes('This is only required in certain non-standard upload '
                'behaviors. Clients should know which behavior models require '
                'the finalize step to be called in their behavior handlers.')
-        .modelParam('uploadId', 'The ID of the upload record.', paramType='formData',
-                    model='upload')
+        .modelParam('uploadId', paramType='formData')
         .errorResponse(('ID was invalid.',
                         'The upload does not require finalization.',
                         'Not enough bytes have been uploaded.'))
@@ -156,7 +155,7 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Request required offset before resuming an upload.')
-        .modelParam('uploadId', 'The ID of the upload record.', model='upload')
+        .modelParam('uploadId', paramType='formData')
         .errorResponse("The ID was invalid, or the offset did not match the server's record.")
     )
     def requestOffset(self, upload, params):
@@ -179,8 +178,7 @@ class File(Resource):
     @autoDescribeRoute(
         Description('Upload a chunk of a file with multipart/form-data.')
         .consumes('multipart/form-data')
-        .modelParam('uploadId', 'The ID of the upload record.', paramType='formData',
-                    model='upload')
+        .modelParam('uploadId', paramType='formData')
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
                paramType='formData')
         .param('chunk', 'The actual bytes of the chunk. For external upload '
@@ -227,7 +225,7 @@ class File(Resource):
         Description('Download a file.')
         .notes('This endpoint also accepts the HTTP "Range" header for partial '
                'file downloads.')
-        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.READ)
+        .modelParam('id', model='file', level=AccessType.READ)
         .param('offset', 'Start downloading at this offset in bytes within '
                'the file.', dataType='integer', required=False, default=0)
         .param('endByte', 'If you only wish to download part of the file, '
@@ -282,7 +280,7 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Delete a file by ID.')
-        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.WRITE)
+        .modelParam('id', model='file', level=AccessType.WRITE)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
@@ -292,7 +290,7 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Cancel a partially completed upload.')
-        .modelParam('id', 'The ID of the upload.', model='upload')
+        .modelParam('id', model='upload')
         .errorResponse('ID was invalid.')
         .errorResponse('You lack permission to cancel this upload.', 403)
     )
@@ -309,7 +307,7 @@ class File(Resource):
     @filtermodel(model='file')
     @autoDescribeRoute(
         Description('Change file metadata such as name or MIME type.')
-        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.WRITE)
+        .modelParam('id', model='file', level=AccessType.WRITE)
         .param('name', 'The name to set on the file.', required=False, strip=True)
         .param('mimeType', 'The MIME type of the file.', required=False, strip=True)
         .errorResponse('ID was invalid.')
@@ -326,7 +324,7 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Change the contents of an existing file.')
-        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.WRITE)
+        .modelParam('id', model='file', level=AccessType.WRITE)
         .param('size', 'Size in bytes of the new file.', dataType='integer')
         .param('reference', 'If included, this information is passed to the '
                'data.process event when the upload is complete.',
@@ -357,9 +355,8 @@ class File(Resource):
     @filtermodel(model='file')
     @autoDescribeRoute(
         Description('Move a file to a different assetstore.')
-        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.WRITE)
-        .modelParam('assetstoreId', 'The destination assetstore.', paramType='formData',
-                    model='assetstore')
+        .modelParam('id', model='file', level=AccessType.WRITE)
+        .modelParam('assetstoreId', 'The destination assetstore.', paramType='formData')
         .param('progress', 'Controls whether progress notifications will be sent.',
                dataType='boolean', default=False, required=False)
     )
@@ -375,8 +372,8 @@ class File(Resource):
     @filtermodel(model='file')
     @autoDescribeRoute(
         Description('Copy a file.')
-        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.READ)
-        .modelParam('itemId', 'The ID of the item to copy the file to.', model='item',
+        .modelParam('id', model='file', level=AccessType.READ)
+        .modelParam('itemId', description='The ID of the item to copy the file to.',
                     level=AccessType.READ, paramType='formData')
     )
     def copy(self, file, item, params):

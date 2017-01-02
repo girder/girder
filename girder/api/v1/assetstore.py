@@ -43,7 +43,7 @@ class Assetstore(Resource):
     @access.admin
     @autoDescribeRoute(
         Description('Get information about an assetstore.')
-        .modelParam('id', 'The assetstore ID.', model='assetstore')
+        .modelParam('id', model='assetstore')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
@@ -118,7 +118,7 @@ class Assetstore(Resource):
                'references to it in the Girder data hierarchy. Deleting '
                'those references will not delete the underlying data. This '
                'operation is currently only supported for S3 assetstores.')
-        .modelParam('id', 'The ID of the assetstore.', model='assetstore')
+        .modelParam('id', model='assetstore')
         .param('importPath', 'Root path within the underlying storage system '
                'to import.', required=False)
         .param('destinationId', 'ID of a folder, collection, or user in Girder '
@@ -155,7 +155,7 @@ class Assetstore(Resource):
     @autoDescribeRoute(
         Description('Update an existing assetstore.')
         .responseClass('Assetstore')
-        .modelParam('id', 'The ID of the assetstore.', model='assetstore')
+        .modelParam('id', model='assetstore')
         .param('name', 'Unique name for the assetstore.', strip=True)
         .param('root', 'Root path on disk (for Filesystem type)', required=False)
         .param('perms', 'File creation permissions (for Filesystem type)', required=False)
@@ -227,7 +227,7 @@ class Assetstore(Resource):
     @autoDescribeRoute(
         Description('Delete an assetstore.')
         .notes('This will fail if there are any files in the assetstore.')
-        .modelParam('id', 'The ID of the assetstore.', model='assetstore')
+        .modelParam('id', model='assetstore')
         .errorResponse(('A parameter was invalid.',
                         'The assetstore is not empty.'))
         .errorResponse('You are not an administrator.', 403)
@@ -239,7 +239,7 @@ class Assetstore(Resource):
     @access.admin
     @autoDescribeRoute(
         Description('Get a list of files controlled by an assetstore.')
-        .modelParam('id', 'The assetstore ID.', model='assetstore')
+        .modelParam('id', model='assetstore')
         .pagingParams(defaultSort='_id')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)

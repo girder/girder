@@ -85,7 +85,7 @@ class Collection(Resource):
     @autoDescribeRoute(
         Description('Get a collection by ID.')
         .responseClass('Collection')
-        .modelParam('id', 'The ID of the collection.', model='collection', level=AccessType.READ)
+        .modelParam('id', model='collection', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the collection.', 403)
     )
@@ -95,7 +95,7 @@ class Collection(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get detailed information about a collection.')
-        .modelParam('id', 'The ID of the collection.', model='collection', level=AccessType.READ)
+        .modelParam('id', model='collection', level=AccessType.READ)
         .errorResponse()
         .errorResponse('Read access was denied on the collection.', 403)
     )
@@ -109,7 +109,7 @@ class Collection(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Download an entire collection as a zip archive.')
-        .modelParam('id', 'The ID of the collection.', model='collection', level=AccessType.READ)
+        .modelParam('id', model='collection', level=AccessType.READ)
         .jsonParam('mimeFilter', 'JSON list of MIME types to include.', requireArray=True,
                    required=False)
         .errorResponse('ID was invalid.')
@@ -132,7 +132,7 @@ class Collection(Resource):
     @access.user(scope=TokenScope.DATA_OWN)
     @autoDescribeRoute(
         Description('Get the access control list for a collection.')
-        .modelParam('id', 'The ID of the collection.', model='collection', level=AccessType.ADMIN)
+        .modelParam('id', model='collection', level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403)
     )
@@ -143,7 +143,7 @@ class Collection(Resource):
     @filtermodel(model='collection', addFields={'access'})
     @autoDescribeRoute(
         Description('Set the access control list for a collection.')
-        .modelParam('id', 'The ID of the collection.', model='collection', level=AccessType.ADMIN)
+        .modelParam('id', model='collection', level=AccessType.ADMIN)
         .jsonParam('access', 'The access control list as JSON.', requireObject=True)
         .jsonParam('publicFlags', 'List of public access flags to set on the collection.',
                    required=False, requireArray=True)
@@ -178,7 +178,7 @@ class Collection(Resource):
     @autoDescribeRoute(
         Description('Edit a collection by ID.')
         .responseClass('Collection')
-        .modelParam('id', 'The ID of the collection.', model='collection', level=AccessType.WRITE)
+        .modelParam('id', model='collection', level=AccessType.WRITE)
         .param('name', 'Unique name for the collection.', required=False, strip=True)
         .param('description', 'Collection description.', required=False, strip=True)
         .errorResponse('ID was invalid.')
@@ -195,7 +195,7 @@ class Collection(Resource):
     @access.user(scope=TokenScope.DATA_OWN)
     @autoDescribeRoute(
         Description('Delete a collection by ID.')
-        .modelParam('id', 'The ID of the collection.', model='collection', level=AccessType.ADMIN)
+        .modelParam('id', model='collection', level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403)
     )

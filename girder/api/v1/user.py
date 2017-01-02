@@ -72,7 +72,7 @@ class User(Resource):
     @autoDescribeRoute(
         Description('Get a user by ID.')
         .responseClass('User')
-        .modelParam('id', 'The ID of the user.', model='user', level=AccessType.READ)
+        .modelParam('id', model='user', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to see this user.', 403)
     )
@@ -188,7 +188,7 @@ class User(Resource):
     @access.user
     @autoDescribeRoute(
         Description('Delete a user by ID.')
-        .modelParam('id', 'The ID of the user.', model='user', level=AccessType.ADMIN)
+        .modelParam('id', model='user', level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to delete this user.', 403)
     )
@@ -200,7 +200,7 @@ class User(Resource):
     @filtermodel(model='user')
     @autoDescribeRoute(
         Description("Update a user's information.")
-        .modelParam('id', 'The ID of the user.', model='user', level=AccessType.WRITE)
+        .modelParam('id', model='user', level=AccessType.WRITE)
         .param('firstName', 'First name of the user.')
         .param('lastName', 'Last name of the user.')
         .param('email', 'The email of the user.')
@@ -239,7 +239,7 @@ class User(Resource):
     @autoDescribeRoute(
         Description('Change a user\'s password.')
         .notes('Only administrators may use this endpoint.')
-        .modelParam('id', 'The ID of the user.', model='user', level=AccessType.ADMIN)
+        .modelParam('id', model='user', level=AccessType.ADMIN)
         .param('password', 'The user\'s new password.')
         .errorResponse('You are not an administrator.', 403)
         .errorResponse('The new password is invalid.')
@@ -364,7 +364,7 @@ class User(Resource):
     @access.public
     @autoDescribeRoute(
         Description('Get detailed information about a user.')
-        .modelParam('id', 'The ID of the user.', model='user', level=AccessType.READ)
+        .modelParam('id', model='user', level=AccessType.READ)
         .errorResponse()
         .errorResponse('Read access was denied on the user.', 403)
     )
