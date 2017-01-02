@@ -234,6 +234,53 @@ You will find many useful methods for client side testing in the ``girderTest`` 
 defined at ``/clients/web/test/testUtils.js``.
 
 
+Ansible Testing
+---------------
+
+Girder provides infrastructure for using Ansible to provision machines to run and configure Girder and its various plugins. Vagrant is used to create development environments and spin up virtual machines as a means of testing the Ansible provisioning infrastructure.
+
+.. seealso::
+
+   Details for usage of our provisioning infrastructure can be found on :doc:`provisioning`.
+
+Girder's Ansible infrastructure can be thought of as 2 components:
+ 1. The Girder Ansible Role (the ``girder_ansible`` CTest label)
+
+    This is primarily responsible for *deploying* Girder
+
+ 2. The Girder Ansible Client (the ``girder_ansible_client`` CTest label)
+
+    This is primarily responsible for *configuring* Girder through its REST API.
+
+
+Testing the Ansible Role
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Ansible role is tested simply by starting and provisioning a virtual machine with Vagrant and ensuring it returns a zero exit code.
+
+The tests for these by default are running Vagrant with each of the Ansible playbooks in ``devops/ansible/examples``.
+
+To test these one can run CMake with the ``ANSIBLE_TESTS`` option enabled, and test only the correct CTest label ::
+
+  cmake -D ANSIBLE_TESTS=ON /path/to/girder
+  ctest -L girder_ansible
+
+.. note:: Since these tests require creating and provisioning several virtual machines, they take a long time to run which is why they're disabled by default.
+
+
+Testing the Ansible Client
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Ansible client is tested by provisioning a single Girder virtual machine and running Ansible playbooks against it.
+
+To test these one can run CMake with the ``ANSIBLE_CLIENT_TESTS`` option enabled, and test only the correct CTest label ::
+
+  cmake -D ANSIBLE_CLIENT_TESTS=ON /path/to/girder
+  ctest -L girder_ansible_client
+
+.. note:: Due to how dependencies are handled in CMake, it's currently not possible to individually run an Ansible Client test without also running the test that starts the virtual machine.
+
+
 Code Review
 -----------
 
