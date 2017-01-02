@@ -370,7 +370,7 @@ class File(Resource):
         .param('reference', 'If included, this information is passed to the '
                'data.process event when the upload is complete.',
                required=False)
-        .param('assetstoreId', 'Direct the upload to a specific assetstore.',
+        .param('assetstoreId', 'Direct the upload to a specific assetstore (admin-only).',
                required=False)
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.')
@@ -381,6 +381,8 @@ class File(Resource):
 
         assetstore = None
         if params.get('assetstoreId'):
+            self.requireAdmin(
+                user, message='You must be an admin to select a destination assetstore.')
             assetstore = self.model('assetstore').load(params['assetstoreId'])
         # Create a new upload record into the existing file
         upload = self.model('upload').createUploadToFile(
