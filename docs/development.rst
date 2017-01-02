@@ -21,11 +21,6 @@ provide helpful development tools and to allow the test suite to run: ::
 During development, once Girder is started via ``python -m girder``, the server
 will reload itself whenever a Python file is modified.
 
-.. note :: Alternatively, you could install the grunt command line interface globally so
-   that the ``grunt`` command is automatically added to your ``PATH``. If you want to do
-   that, run ``npm install -g grunt-cli``. Note that this command requires ``sudo`` on many
-   systems.
-
 If you are doing front-end development, it's much faster to use a *watch* process to perform
 automatic fast rebuilds of your code whenever you make changes to source files. If you are making
 changes to Girder's core web client, run the following watch command: ::
@@ -50,7 +45,7 @@ and provision a virtual machine, provided you have Vagrant and VirtualBox
 installed. Once this process is complete, you can run ``vagrant ssh`` in order
 to start Girder. There is a helper script in the Vagrant home directory that
 will start Girder in a detached screen session. You may want to run a similar
-process to run ``grunt watch`` as detailed above.
+process to run one of the watch commands detailed above.
 
 Utilities
 ---------
