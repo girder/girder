@@ -21,19 +21,6 @@ provide helpful development tools and to allow the test suite to run: ::
 During development, once Girder is started via ``python -m girder``, the server
 will reload itself whenever a Python file is modified.
 
-Girder's web-based client application is built using the `Grunt <http://gruntjs.com/>`_
-task running tool. When you run the ``npm install`` command during Girder's
-installation, it will run all of the grunt tasks required to build the web client.
-Grunt tasks are run with the ``grunt`` executable, which is installed under your Girder source
-directory in the ``./node_modules/.bin/`` directory. You could conveniently update the
-``PATH`` by running ``export PATH=$(pwd)/node_modules/.bin:$PATH`` -- once you do that,
-you can just type ``grunt`` in your shell to run tasks.
-
-.. note :: Alternatively, you could install the grunt command line interface globally so
-   that the ``grunt`` command is automatically added to your ``PATH``. If you want to do
-   that, run ``npm install -g grunt-cli``. Note that this command requires ``sudo`` on many
-   systems.
-
 If you are doing front-end development, it's much faster to use a *watch* process to perform
 automatic fast rebuilds of your code whenever you make changes to source files. If you are making
 changes to Girder's core web client, run the following watch command: ::
@@ -58,7 +45,7 @@ and provision a virtual machine, provided you have Vagrant and VirtualBox
 installed. Once this process is complete, you can run ``vagrant ssh`` in order
 to start Girder. There is a helper script in the Vagrant home directory that
 will start Girder in a detached screen session. You may want to run a similar
-process to run ``grunt watch`` as detailed above.
+process to run one of the watch commands detailed above.
 
 Utilities
 ---------
@@ -348,7 +335,7 @@ recommended process for generating a new release is described here.
     (Packaging in an old directory could cause files and plugins to be
     mistakenly included.)
 
-4.  Run ``npm install && grunt package``.  This will generate the source
+4.  Run ``python setup.py sdist --dist-dir=.``.  This will generate the source
     distribution tarball with a name like ``girder-<version>.tar.gz``.
 
 5.  Create a new virtual environment and install the python package into
