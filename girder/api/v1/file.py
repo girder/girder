@@ -370,7 +370,7 @@ class File(Resource):
         .param('reference', 'If included, this information is passed to the '
                'data.process event when the upload is complete.',
                required=False)
-        .param('assetstoreId', 'Direct the upload to a specific assetstore.',
+        .param('assetstoreId', 'Direct the upload to a specific assetstore (admin-only).',
                required=False)
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.')
