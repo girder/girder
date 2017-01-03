@@ -300,6 +300,75 @@
                 expect($('.g-select-all').length).toBe(0);
                 expect($('.g-item-size').length).toBe(0);
             });
+
+            var folderSelected = false;
+            runs(function () {
+                $('body').empty().off();
+
+                return new girder.views.widgets.HierarchyWidget({
+                    el: 'body',
+                    parentModel: folder,
+                    checkboxes: false,
+                    parentView: null,
+                    showItems: false,
+                    selectFolder: true,
+                    onFolderSelect: function (parent) { folderSelected = true; }
+                });
+            });
+
+            waitsFor(function () {
+                return $('.g-hierarchy-widget').length > 0 &&
+                       $('.g-folder-list-link').length > 0;
+            }, 'the hierarchy widget to display with the folder select button');
+
+            runs(function () {
+                expect($('.g-upload-here-button').length).toBe(1);
+                expect($('.g-hierarchy-actions-header').length).toBe(1);
+                expect($('.g-list-checkbox').length).toBe(0);
+                expect($('.g-select-all').length).toBe(0);
+                expect($('.g-checked-actions-buttons').length).toBe(0);
+                expect($('.g-folder-list-link').text()).toBe('subfolder');
+                expect($('.g-item-list-link').length).toBe(0);
+                expect($('button.g-select-folder').length).toBe(1);
+
+                $('button.g-select-folder').click();
+            });
+
+            waitsFor(
+              function () { return folderSelected; },
+              'the folder select button to be clicked');
+
+            runs(function () {
+                $('body').empty().off();
+
+                return new girder.views.widgets.HierarchyWidget({
+                    el: 'body',
+                    parentModel: folder,
+                    checkboxes: false,
+                    parentView: null,
+                    showItems: false,
+                    selectFolder: true
+                });
+            });
+
+            waitsFor(
+              function () {
+                return $('.g-hierarchy-widget').length > 0 &&
+                       $('.g-folder-list-link').length > 0;
+              },
+              'the hierarchy widget to display without the folder select button'
+            );
+
+            runs(function () {
+                expect($('.g-upload-here-button').length).toBe(1);
+                expect($('.g-hierarchy-actions-header').length).toBe(1);
+                expect($('.g-list-checkbox').length).toBe(0);
+                expect($('.g-select-all').length).toBe(0);
+                expect($('.g-checked-actions-buttons').length).toBe(0);
+                expect($('.g-folder-list-link').text()).toBe('subfolder');
+                expect($('.g-item-list-link').length).toBe(0);
+                expect($('button.g-select-folder').length).toBe(0);
+            });
         });
     });
 

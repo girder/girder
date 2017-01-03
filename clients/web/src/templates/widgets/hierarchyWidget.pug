@@ -76,10 +76,21 @@
                   i.icon-trash
                   | Delete this #{type}
       .g-clear-right
+  if selectFolder
+    .g-select-folder-container
+      ul.g-folder-list
+        li.g-folder-list-entry(public='true')
+          button.g-select-folder.btn.btn-sm.btn-info
+            i.icon-folder
+            |  Select this #{type}.
+            i.icon-right-dir
   .g-folder-list-container
   .g-item-list-container
   .g-empty-parent-message.g-info-message-container.hide
     i.icon-info-circled
-    |  This folder is empty.
+    if itemFilter
+      |  This folder has no suitable items.
+    else
+      |  This folder is empty.
 if showMetadata
   .g-folder-metadata

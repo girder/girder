@@ -39,12 +39,12 @@ var ItemListWidget = View.extend({
 
         this.collection = new ItemCollection();
         this.collection.append = true; // Append, don't replace pages
+        this.collection.filter = settings.itemFilter;
+
         this.collection.on('g:changed', function () {
             this.render();
             this.trigger('g:changed');
-        }, this).fetch({
-            folderId: settings.folderId
-        });
+        }, this).fetch({ folderId: settings.folderId });
     },
 
     render: function () {

@@ -34,6 +34,8 @@ var FolderListWidget = View.extend({
 
         this.collection = new FolderCollection();
         this.collection.append = true; // Append, don't replace pages
+        this.collection.filter = settings.folderFilter;
+
         this.collection.on('g:changed', function () {
             this.render();
             this.trigger('g:changed');
