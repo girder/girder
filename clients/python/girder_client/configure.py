@@ -41,16 +41,16 @@ class GirderConfig(object):
         if not self.config.has_section("girder_client"):
             self.config.add_section("girder_client")
 
-    def get_config(self, section, option):
+    def getConfig(self, section, option):
         return self.config.get(section, option)
 
-    def set_config(self, section, option, value):
+    def setConfig(self, section, option, value):
         if not self.config.has_section(section):
             self.config.add_section(section)
         self.config.set(section, option, value)
-        self.write_config()
+        self.writeConfig()
 
-    def write_config(self, fd=None):
+    def writeConfig(self, fd=None):
         _safeMakedirs(self.config_dir)
         if fd is None:
             with open(self.config_file, 'w') as fd:
@@ -58,9 +58,9 @@ class GirderConfig(object):
         else:
             self.config.write(fd)
 
-    def rm_config(self, section, option):
+    def removeConfig(self, section, option):
         self.config.remove_option(section, option)
-        self.write_config()
+        self.writeConfig()
 
 
 def main():
@@ -94,13 +94,13 @@ def main():
     config = GirderConfig(args.config)
 
     if args.cmd == 'get':
-        print(config.get_config(args.section, args.option))
+        print(config.getConfig(args.section, args.option))
     elif args.cmd == 'set':
-        config.set_config(args.section, args.option, args.value)
+        config.setConfig(args.section, args.option, args.value)
     elif args.cmd == 'list':
-        config.write_config(sys.stdout)
+        config.writeConfig(sys.stdout)
     elif args.cmd == 'rm':
-        config.rm_config(args.section, args.option)
+        config.removeConfig(args.section, args.option)
 
 if __name__ == '__main__':
     main()  # pragma: no cover
