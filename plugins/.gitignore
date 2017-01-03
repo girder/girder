@@ -15,6 +15,7 @@
 !item_previews/
 !jobs/
 !jquery_widgets/
+!ldap/
 !metadata_extractor/
 !mongo_search/
 !oauth/

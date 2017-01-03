@@ -77,6 +77,7 @@ extras_reqs = {
     'celery_jobs': ['celery'],
     'dicom_viewer': ['pydicom'],
     'geospatial': ['geojson'],
+    'ldap': ['pyldap'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
     'oauth': ['pyjwt', 'cryptography']

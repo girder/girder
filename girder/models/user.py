@@ -137,6 +137,14 @@ class User(AccessControlledModel):
         :returns: The corresponding user if the login was successful.
         :rtype: dict
         """
+        event = events.trigger('user_auth', {
+            'login': login,
+            'password': password
+        })
+
+        if event.defaultPrevented and len(event.responses):
+            return event.responses[-1]
+
         login = login.lower().strip()
         loginField = 'email' if '@' in login else 'login'
 
