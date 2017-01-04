@@ -84,6 +84,10 @@ module.exports = function (grunt) {
         grunt.config.merge(cfg);
     };
 
+    var getPluginLocalNodePath = function (plugin) {
+        return path.resolve(path.join('node_modules', `girder_plugin_${plugin}`));
+    };
+
     var configurePluginForBuilding = function (dir) {
         var plugin = path.basename(dir);
         var json = path.resolve(dir, 'plugin.json');
@@ -138,7 +142,7 @@ module.exports = function (grunt) {
         // just a standalone web client.
         var output = config.webpack && config.webpack.output || 'plugin';
 
-        var pluginNodeDir = path.resolve(process.cwd(), 'node_modules_' + plugin, 'node_modules');
+        var pluginNodeDir = path.join(getPluginLocalNodePath(plugin), 'node_modules');
 
         // Add webpack target and name resolution for this plugin if
         // web_client/main.js (or user-specified name) exists.
@@ -229,7 +233,7 @@ module.exports = function (grunt) {
                 var numLoaders = grunt.config.get('webpack.options.module.loaders').length;
                 for (var i = 0; i < numLoaders; i++) {
                     var selector = 'webpack.options.module.loaders.' + i + '.include';
-                    var loaders = grunt.config.get(selector);
+                    var loaders = grunt.config.get(selector) || [];
                     var pluginPath = path.resolve(dir);
                     var realPath = fs.realpathSync(dir);
                     var loaderIncludes = [pluginPath];
@@ -258,7 +262,7 @@ module.exports = function (grunt) {
             // If the plugin requested to install the dependencies in its own
             // dedicated directory, set the prefix option.
             if (localNodeModules === 'true') {
-                args = args.concat(['--prefix', path.resolve('node_modules_' + plugin)]);
+                args = args.concat(['--prefix', getPluginLocalNodePath(plugin)]);
             }
 
             // Get the list of the packages to install and append them to the
