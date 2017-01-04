@@ -1,15 +1,5 @@
 module.exports = function(config) {
     config.module.loaders.push({
-        test: /\.json$/,
-        loader: 'json',
-        include: [
-            /node_modules(\/|\\)vtk\.js(\/|\\)/,
-            /node_modules(\/|\\)diffie-hellman(\/|\\)/,
-            /node_modules(\/|\\)elliptic(\/|\\)/,
-            /node_modules(\/|\\)parse-asn1(\/|\\)/,
-        ],
-    });
-    config.module.loaders.push({
         test: /\.glsl$/,
         loader: 'shader',
         include: [/node_modules(\/|\\)vtk\.js(\/|\\)/],
