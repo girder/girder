@@ -106,7 +106,7 @@ module.exports = {
             // JSON files
             {
                 test: /\.json$/,
-                include: [...loaderPaths, ...loaderPathsNodeModules],
+                include: loaderPaths.concat(loaderPathsNodeModules),
                 loader: 'json-loader'
             },
             // Stylus
