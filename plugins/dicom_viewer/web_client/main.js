@@ -4,7 +4,7 @@ import ItemView from 'girder/views/body/ItemView';
 
 wrap(ItemView, 'render', function (render) {
     this.once('g:rendered', function () {
-        $('.g-item-header').after('<div class="g-dicom-view"></div>');
+        this.$('.g-item-header').after('<div class="g-dicom-view"></div>');
         const view = new DicomView({
             el: this.$('.g-dicom-view'),
             parentView: this,
@@ -12,5 +12,5 @@ wrap(ItemView, 'render', function (render) {
         });
         view.render();
     }, this);
-    render.call(this);
+    return render.call(this);
 });
