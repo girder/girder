@@ -40,7 +40,7 @@ var Collection = Backbone.Collection.extend({
      * property should not be changed in the definition of collections, but
      * after they are instantiated.
      */
-    filter: null,
+    filterFunc: null,
 
     /**
      * If filtering and not appending, this stack is used to record the offsets
@@ -53,7 +53,7 @@ var Collection = Backbone.Collection.extend({
      * i.e. if the offset of the current page start is > 0
      */
     hasPreviousPage: function () {
-        if (this.filter) {
+        if (this.filterFunc) {
             if (this.append) { return false; }
             this.pageOffsetStack = this.pageOffsetStack || [];
             return (this.pageOffsetStack.length > 1);
@@ -74,8 +74,8 @@ var Collection = Backbone.Collection.extend({
      * Fetch the previous page of this collection, emitting g:changed when done.
      */
     fetchPreviousPage: function (params) {
-        if (this.filter) {
-            if(this.append) {
+        if (this.filterFunc) {
+            if (this.append) {
                 this.offset = 0;
             } else {
                 this.pageOffsetStack = this.pageOffsetStack || [];
@@ -107,7 +107,7 @@ var Collection = Backbone.Collection.extend({
      * result when displaying it to the user.
      */
     pageNum: function () {
-        if (this.filter) {
+        if (this.filterFunc) {
             if (this.append) { return 0; }
             this.pageOffsetStack = this.pageOffsetStack || [];
             return this.pageOffsetStack.length - 1;
@@ -129,12 +129,12 @@ var Collection = Backbone.Collection.extend({
             return;
         }
 
-        if (this.filter && !this.append) {
+        if (this.filterFunc && !this.append) {
             this.pageOffsetStack = this.pageOffsetStack || [];
         }
 
         if (reset) {
-            if (this.filter && !this.append) {
+            if (this.filterFunc && !this.append) {
                 this.pageOffsetStack = [];
             }
             this.offset = 0;
@@ -142,7 +142,7 @@ var Collection = Backbone.Collection.extend({
             this.params = params || {};
         }
 
-        if (this.filter && !this.append) {
+        if (this.filterFunc && !this.append) {
             this.pageOffsetStack.push(this.offset);
         }
 
@@ -150,7 +150,7 @@ var Collection = Backbone.Collection.extend({
 
         var finalList = []; /* will be built up in pieces */
 
-        function fetchListFragment () {
+        function fetchListFragment() {
             var xhr = restRequest({
                 path: this.altUrl || this.resourceName,
                 data: _.extend({
@@ -160,6 +160,10 @@ var Collection = Backbone.Collection.extend({
                     sortdir: this.sortDir
                 }, this.params)
             }).done(_.bind(function (list) {
+                if (!_.isArray(list)) {
+                    list = [list];
+                }
+
                 if (this.pageLimit > 0 && list.length > this.pageLimit) {
                     // This means we have more pages to display still. Pop off
                     // the extra that we fetched.
@@ -175,8 +179,8 @@ var Collection = Backbone.Collection.extend({
                  * If filtering, decorate the list with their pre-filtered
                  * indexes.  The index will be needed when adjusting the offset.
                  */
-                if (this.filter) {
-                    var filter = this.filter;
+                if (this.filterFunc) {
+                    var filter = this.filterFunc;
                     list = (
                         list
                             .map(function (x, index) { return [index, x]; })
@@ -194,7 +198,6 @@ var Collection = Backbone.Collection.extend({
 
                 /* page is complete */
                 if (!wantMorePages && this.pageLimit > 0) {
-
                     /*
                      * If we fetched more data than we needed to complete the
                      * page, then newNumUsed will be < numUsed ...
@@ -213,7 +216,7 @@ var Collection = Backbone.Collection.extend({
                      * correct the offset: it must be advanced beyond the
                      * last element that got used.
                      */
-                    if (this.filter) {
+                    if (this.filterFunc) {
                         /*
                          * If filtering, consult the index for the last element
                          * to be featured on this page.
@@ -230,7 +233,7 @@ var Collection = Backbone.Collection.extend({
 
                 list = list.slice(0, numUsed);
                 /* If filtering, undecorate the list. */
-                if (this.filter) {
+                if (this.filterFunc) {
                     list = list.map(function (tuple) { return tuple[1]; });
                 }
 

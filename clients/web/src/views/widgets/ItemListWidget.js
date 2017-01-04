@@ -39,7 +39,7 @@ var ItemListWidget = View.extend({
 
         this.collection = new ItemCollection();
         this.collection.append = true; // Append, don't replace pages
-        this.collection.filter = settings.itemFilter;
+        this.collection.filterFunc = settings.itemFilter;
 
         this.collection.on('g:changed', function () {
             this.render();
