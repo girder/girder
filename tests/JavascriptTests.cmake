@@ -25,12 +25,12 @@ function(javascript_tests_init)
 endfunction()
 
 function(add_eslint_test name input)
-  if (NOT BUILD_JAVASCRIPT_TESTS)
+  if (NOT JAVASCRIPT_STYLE_TESTS)
     return()
   endif()
 
   if (NOT ESLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'npm install' or disable BUILD_JAVASCRIPT_TESTS.")
+    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   set(_args ESLINT_IGNORE_FILE ESLINT_CONFIG_FILE)
@@ -57,12 +57,12 @@ function(add_eslint_test name input)
 endfunction()
 
 function(add_puglint_test name path)
-  if (NOT BUILD_JAVASCRIPT_TESTS)
+  if (NOT JAVASCRIPT_STYLE_TESTS)
     return()
   endif()
 
   if (NOT PUGLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable BUILD_JAVASCRIPT_TESTS.")
+    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   add_test(
