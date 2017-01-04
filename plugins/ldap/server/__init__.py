@@ -2,7 +2,9 @@ import ldap
 import six
 
 from girder import events, logger
-from girder.api.rest import AccessException
+from girder.api import access
+from girder.api.describe import autoDescribeRoute, Description
+from girder.api.rest import boundHandler, AccessException
 from girder.models.model_base import ValidationException
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
@@ -111,9 +113,38 @@ def _ldapAuth(event):
                 raise AccessException('Login failed.')
 
             user = _getLdapUser(attrs)
+            conn.unbind_s()
             if user:
                 event.stopPropagation().preventDefault().addResponse(user)
 
 
+@access.admin
+@boundHandler()
+@autoDescribeRoute(
+    Description('Test connection status to a LDAP server.')
+    .notes('You must be an administrator to call this.')
+    .param('uri', 'The URI of the server.')
+    .param('bindName', 'The LDAP identity to bind with.')
+    .param('password', 'Password to bind with.')
+    .errorResponse('You are not an administrator.', 403)
+)
+def _ldapServerTest(self, uri, bindName, password, params):
+    conn = ldap.initialize(uri)
+    try:
+        conn.bind_s(bindName, password, ldap.AUTH_SIMPLE)
+        return {
+            'connected': True
+        }
+    except ldap.LDAPError as e:
+        return {
+            'connected': False,
+            'error': e.message.get('desc', 'Could not connect to server.')
+        }
+    finally:
+        conn.unbind_s()
+
+
 def load(info):
     events.bind('user_auth', info['name'], _ldapAuth)
+
+    info['apiRoot'].system.route('GET', ('ldap_server', 'status'), _ldapServerTest)
