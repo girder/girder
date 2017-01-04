@@ -27,7 +27,8 @@ import ctypes
 import binascii
 import sys
 
-_HASHLIB_INLINE_EVP_STRUCT = (sys.version_info < (2, 7, 13) or sys.version_info >= (3,))
+_ver = sys.version_info
+_HASHLIB_INLINE_EVP_STRUCT = _ver < (2, 7, 13) or (_ver >= (3,) and _ver < (3, 5, 3))
 
 
 def _getHashStateDataPointer(hashObject):
