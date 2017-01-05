@@ -5,12 +5,12 @@ import TaskListView from './views/TaskListView';
 import TaskRunView from './views/TaskRunView';
 import ItemModel from 'girder/models/ItemModel';
 
-router.route('worker_tasks', 'workerTaskList', () => {
+router.route('item_tasks', 'itemTaskList', () => {
     events.trigger('g:navigateTo', TaskListView);
     events.trigger('g:highlightItem', 'TasksView');
 });
 
-router.route('worker_task/:id/run', (id) => {
+router.route('item_task/:id/run', (id) => {
     const item = new ItemModel({_id: id}).once('g:fetched', function () {
         events.trigger('g:navigateTo', TaskRunView, {
             model: item
@@ -18,7 +18,7 @@ router.route('worker_task/:id/run', (id) => {
             renderNow: true
         });
     }, this).once('g:error', function () {
-        router.navigate('worker_tasks', {trigger: true});
+        router.navigate('item_tasks', {trigger: true});
     }, this);
     item.fetch();
 });

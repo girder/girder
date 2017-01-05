@@ -7,7 +7,7 @@ import template from '../templates/taskList.pug';
 var TaskListView = View.extend({
     initialize: function () {
         this.collection = new ItemCollection();
-        this.collection.altUrl = 'worker_task';
+        this.collection.altUrl = 'item_task';
 
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,

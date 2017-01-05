@@ -12,6 +12,7 @@
 !homepage/
 !item_licenses/
 !item_previews/
+!item_tasks/
 !jobs/
 !jquery_widgets/
 !metadata_extractor/
@@ -22,4 +23,3 @@
 !user_quota/
 !vega/
 !worker/
-!worker_tasks/

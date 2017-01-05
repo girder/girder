@@ -13,13 +13,13 @@ wrap(GlobalNavView, 'initialize', function (initialize) {
     this.defaultNavItems.push({
         name: 'Tasks',
         icon: 'icon-cog-alt',
-        target: 'worker_tasks'
+        target: 'item_tasks'
     });
 });
 
 import itemMenuModTemplate from './templates/itemMenuMod.pug';
 wrap(ItemView, 'render', function (render) {
-    if (_.has(this.model.get('meta'), 'workerTaskSpec')) {
+    if (_.has(this.model.get('meta'), 'itemTaskSpec')) {
         this.once('g:rendered', function () {
             this.$('.g-item-actions-menu').prepend(itemMenuModTemplate({
                 item: this.model
@@ -35,14 +35,14 @@ import taskItemLinkTemplate from './templates/taskItemLink.pug';
 wrap(girder.plugins.jobs.views.JobDetailsWidget, 'render', function (render) {
     render.call(this);
 
-    if (this.job.has('workerTaskItemId')) {
+    if (this.job.has('itemTaskItemId')) {
         this.$('.g-job-info-value[property="title"]').html(taskItemLinkTemplate({
-            itemId: this.job.get('workerTaskItemId'),
+            itemId: this.job.get('itemTaskId'),
             title: this.job.get('title')
         }));
     }
-    if (this.job.has('workerTaskBindings')) {
-        var el = $('<div/>', {class: 'g-worker-tasks-job-info-container'}).prependTo(this.$el);
+    if (this.job.has('itemTaskBindings')) {
+        var el = $('<div/>', {class: 'g-item-tasks-job-info-container'}).prependTo(this.$el);
 
         new JobDetailsInfoView({
             el,

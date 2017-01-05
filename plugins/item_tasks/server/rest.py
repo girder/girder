@@ -10,11 +10,11 @@ from girder.plugins.worker import utils
 from . import constants
 
 
-class WorkerTask(Resource):
+class ItemTask(Resource):
     def __init__(self):
-        super(WorkerTask, self).__init__()
+        super(ItemTask, self).__init__()
 
-        self.resourceName = 'worker_task'
+        self.resourceName = 'item_task'
 
         self.route('GET', (), self.listTasks)
         self.route('POST', (':id', 'execution'), self.executeTask)
@@ -29,7 +29,7 @@ class WorkerTask(Resource):
         limit, offset, sort = self.getPagingParameters(params, 'name')
 
         cursor = self.model('item').find({
-            'meta.workerTaskSpec': {'$exists': True}
+            'meta.itemTaskSpec': {'$exists': True}
         }, sort=sort)
 
         return list(self.model('item').filterResultsByPermission(
@@ -40,20 +40,20 @@ class WorkerTask(Resource):
         """
         Some basic validation of the task spec.
         """
-        if 'workerTaskSpec' not in item.get('meta'):
-            raise ValidationException('Item (%s) does not contain a worker task specification.')
-        spec = item['meta']['workerTaskSpec']
+        if 'itemTaskSpec' not in item.get('meta'):
+            raise ValidationException('Item (%s) does not contain an item task specification.')
+        spec = item['meta']['itemTaskSpec']
 
-        handler = item.get('meta', {}).get('workerTaskHandler') or 'worker_handler'
+        handler = item.get('meta', {}).get('itemTaskHandler') or 'worker_handler'
 
-        event = events.trigger('worker_tasks.handler.%s.validate' % handler, {
+        event = events.trigger('item_tasks.handler.%s.validate' % handler, {
             'item': item,
             'spec': spec
         })
 
         if len(event.responses):
             spec = event.responses[-1]
-        
+
         if event.defaultPrevented:
             return spec, handler
 
@@ -157,7 +157,7 @@ class WorkerTask(Resource):
         jobModel = self.model('job', 'jobs')
 
         job = jobModel.createJob(
-            title=title, type='worker_task', handler=handler, user=self.getCurrentUser())
+            title=title, type='item_task', handler=handler, user=self.getCurrentUser())
 
         # If this is a user auth token, we make an IO-enabled token
         token = self.getCurrentToken()
@@ -165,13 +165,13 @@ class WorkerTask(Resource):
             token = self.model('token').createToken(
                 user=self.getCurrentUser(), days=7, scope=(
                     TokenScope.DATA_READ, TokenScope.DATA_WRITE))
-            job['workerTaskTempToken'] = token['_id']
+            job['itemTaskTempToken'] = token['_id']
 
         inputs = self.getParamJson('inputs', params, default={})
         outputs = self.getParamJson('outputs', params, default={})
 
-        job['workerTaskItemId'] = item['_id']
-        job['workerTaskBindings'] = {
+        job['itemTaskId'] = item['_id']
+        job['itemTaskBindings'] = {
             'inputs': inputs,
             'outputs': outputs
         }

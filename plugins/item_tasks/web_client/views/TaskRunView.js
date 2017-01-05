@@ -15,7 +15,7 @@ const TaskRunView = View.extend({
     },
 
     initialize: function () {
-        this._taskSpec = this.model.get('meta').workerTaskSpec || {};
+        this._taskSpec = this.model.get('meta').itemTaskSpec || {};
         this._inputs = this._taskSpec.inputs || [];
         this._outputs = this._taskSpec.outputs || [];
         this._inputWidgets = new WidgetCollection();
@@ -149,7 +149,7 @@ const TaskRunView = View.extend({
         });
 
         restRequest({
-            path: `worker_task/${this.model.id}/execution`,
+            path: `item_task/${this.model.id}/execution`,
             type: 'POST',
             data: {
                 inputs: JSON.stringify(inputs),
