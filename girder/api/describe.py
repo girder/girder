@@ -304,7 +304,7 @@ class Description(object):
 
         return self
 
-    def jsonParam(self, name, description, paramType='query', required=True, default=None,
+    def jsonParam(self, name, description, paramType='query', dataType='string', required=True, default=None,
                   requireObject=False, requireArray=False):
         """
         Specifies a parameter that should be processed as JSON.
@@ -315,7 +315,7 @@ class Description(object):
         :type requireArray: bool
         """
         self.param(
-            name=name, description=description, paramType=paramType, required=required,
+            name=name, description=description, paramType=paramType, dataType=dataType, required=required,
             default=default)
 
         self.jsonParams[name] = {
