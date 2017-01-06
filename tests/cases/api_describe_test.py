@@ -216,6 +216,8 @@ class ApiDescribeTestCase(base.TestCase):
                 super(AutoDescribe, self).__init__()
                 self.resourceName = 'auto_describe'
                 self.route('GET', ('test',), self.test)
+                self.route('POST', ('body',), self.body)
+                self.route('POST', ('body_required',), self.bodyRequired)
 
             @access.public
             @describe.autoDescribeRoute(
@@ -230,8 +232,8 @@ class ApiDescribeTestCase(base.TestCase):
                 .jsonParam('json1', '', required=False, requireArray=True)
                 .jsonParam('json2', '', required=False, requireObject=True, default={})
             )
-            def test(self, b1, b2, string, integer, float, timestamp, datestamp, json1, json2,
-                     params):
+            def test(self, b1, b2, string, integer, float, timestamp, datestamp, json1,
+                     json2, params):
                 testRuns.append({
                     'b1': b1,
                     'b2': b2,
@@ -242,6 +244,26 @@ class ApiDescribeTestCase(base.TestCase):
                     'datestamp': datestamp,
                     'json1': json1,
                     'json2': json2
+                })
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('body')
+                .jsonParam('json_body', '', required=False, paramType='body')
+            )
+            def body(self, json_body, params):
+                testRuns.append({
+                    'json_body': json_body
+                })
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('body')
+                .jsonParam('json_body', '', required=True, requireObject=True, paramType='body')
+            )
+            def bodyRequired(self, json_body, params):
+                testRuns.append({
+                    'json_body': json_body
                 })
 
         server.root.api.v1.auto_describe = AutoDescribe()
@@ -328,3 +350,53 @@ class ApiDescribeTestCase(base.TestCase):
             'timestamp': datetime.datetime(2017, 1, 1, 11, 35, 22),
             'datestamp': datetime.date(2017, 2, 2)
         })
+
+        # Test request body (optional)
+        body = {
+            'emmet': 'otter'
+        }
+        resp = self.request('/auto_describe/body', method='POST',
+                            body=json.dumps(body), type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(testRuns), 1)
+        expected = {
+            'json_body': body
+        }
+        self.assertEqual(testRuns[0], expected)
+        del testRuns[-1]
+
+        # Test request body (optional), omitting body
+        resp = self.request('/auto_describe/body', method='POST')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(testRuns), 1)
+        expected = {
+            'json_body': None
+        }
+        self.assertEqual(testRuns[0], expected)
+        del testRuns[-1]
+
+        # Test request body (required)
+        body = {
+            'emmet': 'otter'
+        }
+        resp = self.request('/auto_describe/body_required', method='POST',
+                            body=json.dumps(body), type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(testRuns), 1)
+        expected = {
+            'json_body': body
+        }
+        self.assertEqual(testRuns[0], expected)
+        del testRuns[-1]
+
+        # Test request body (required), omitting body
+        resp = self.request('/auto_describe/body_required', method='POST')
+        self.assertStatus(resp, 400)
+
+        # Test request body (required), pass list
+        body = [{
+            'emmet': 'otter'
+        }]
+        resp = self.request('/auto_describe/body_required', method='POST',
+                            body=json.dumps(body), type='application/json')
+        self.assertStatus(resp, 400)

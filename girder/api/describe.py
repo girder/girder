@@ -21,9 +21,10 @@ import bson.json_util
 import dateutil.parser
 import os
 import six
+import cherrypy
 
 from girder import constants
-from girder.api.rest import getCurrentUser, RestException
+from girder.api.rest import getCurrentUser, RestException, getBodyJson
 from girder.constants import TerminalColor
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
@@ -304,8 +305,8 @@ class Description(object):
 
         return self
 
-    def jsonParam(self, name, description, paramType='query', dataType='string', required=True, default=None,
-                  requireObject=False, requireArray=False):
+    def jsonParam(self, name, description, paramType='query', dataType='string', required=True,
+                  default=None, requireObject=False, requireArray=False):
         """
         Specifies a parameter that should be processed as JSON.
 
@@ -315,8 +316,8 @@ class Description(object):
         :type requireArray: bool
         """
         self.param(
-            name=name, description=description, paramType=paramType, dataType=dataType, required=required,
-            default=default)
+            name=name, description=description, paramType=paramType, dataType=dataType,
+            required=required, default=default)
 
         self.jsonParams[name] = {
             'requireObject': requireObject,
@@ -518,8 +519,9 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             params.update(kwargs.get('params', {}))
 
             for descParam in self.description.params:
-                if 'type' not in descParam:
-                    # likely a body param, ignore for now TODO ?
+
+                # We need either a type or a schema ( for message body )
+                if 'type' not in descParam and 'schema' not in descParam:
                     continue
                 name = descParam['name']
                 if name in params:
@@ -533,6 +535,10 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     else:
                         kwargs[name] = self._validateParam(name, descParam, params[name])
                     kwargs['params'].pop(name, None)  # Remove from form/query params
+                elif descParam['in'] == 'body' and name in self.description.jsonParams:
+                    info = self.description.jsonParams[name].copy()
+                    info['required'] = descParam['required']
+                    kwargs[name] = self._loadJsonBody(name, info)
                 elif 'default' in descParam:
                     kwargs[name] = descParam['default']
                 elif descParam['required']:
@@ -558,16 +564,29 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             wrapped.description = self.description
         return wrapped
 
+    def _validateJsonType(self, name, info, val):
+        if info['requireObject'] and not isinstance(val, dict):
+            raise RestException('Parameter %s must be a JSON object.' % name)
+        if info['requireArray'] and not isinstance(val, list):
+            raise RestException('Parameter %s must be a JSON array.' % name)
+
+    def _loadJsonBody(self, name, info):
+        val = None
+        if cherrypy.request.body.length == 0 and info['required']:
+            raise RestException('JSON parameter %s must be passed in request body.' % name)
+        elif cherrypy.request.body.length > 0:
+            val = getBodyJson()
+            self._validateJsonType(name, info, val)
+
+        return val
+
     def _loadJson(self, name, info, value):
         try:
             val = bson.json_util.loads(value)
         except ValueError:
             raise RestException('Parameter %s must be valid JSON.' % name)
 
-        if info['requireObject'] and not isinstance(val, dict):
-            raise RestException('Parameter %s must be a JSON object.' % name)
-        if info['requireArray'] and not isinstance(val, list):
-            raise RestException('Parameter %s must be a JSON array.' % name)
+        self._validateJsonType(name, info, val)
 
         return val
 
