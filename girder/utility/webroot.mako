@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/animation.css">
     <link rel="stylesheet" href="${staticRoot}/built/girder_lib.min.css">
     <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">
+    % for plugin in pluginLibCss:
+    <link rel="stylesheet" href="${staticRoot}/built/plugins/${plugin}/plugin_lib.min.css">
+    % endfor
     % for plugin in pluginCss:
     <link rel="stylesheet" href="${staticRoot}/built/plugins/${plugin}/plugin.min.css">
     % endfor
@@ -27,6 +30,9 @@
             girder.events.trigger('g:appload.after');
         });
     </script>
+    % for plugin in pluginLibJs:
+    <script src="${staticRoot}/built/plugins/${plugin}/plugin_lib.min.js"></script>
+    % endfor
     % for plugin in pluginJs:
     <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js"></script>
     % endfor

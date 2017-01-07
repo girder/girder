@@ -103,7 +103,6 @@ module.exports = function (grunt) {
                 },
                 output: {
                     library: '[name]'
-
                 },
                 plugins: [
                     // Remove this if it turns out we don't want to use it for every bundle target.
