@@ -1,11 +1,12 @@
 /* globals girderTest, describe, expect, it, runs, waitsFor  */
 
 girderTest.addCoveredScripts([
+    '/clients/web/static/built/plugins/jobs/plugin_lib.min.js',
     '/clients/web/static/built/plugins/jobs/plugin.min.js'
 ]);
 
 girderTest.importStylesheet(
-    '/static/built/plugins/jobs/plugin.min.css'
+    '/static/built/plugins/jobs/plugin_lib.min.css'
 );
 
 girder.events.trigger('g:appload.before');

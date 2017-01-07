@@ -81,11 +81,6 @@ module.exports = {
             jQuery: 'jquery',
             $: 'jquery',
             'window.jQuery': 'jquery'
-        }),
-        new ExtractTextPlugin({
-            filename: '[name].min.css',
-            allChunks: true,
-            disable: false
         })
     ],
     module: {

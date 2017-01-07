@@ -22,7 +22,9 @@ module.exports = function (grunt) {
     var fs = require('fs');
     var path = require('path');
     var child_process = require('child_process'); // eslint-disable-line camelcase
+    var webpack = require('webpack');
 
+    var ExtractTextPlugin = require('extract-text-webpack-plugin');
     var customWebpackPlugins = require('./webpack.plugins.js');
     var paths = require('./webpack.paths.js');
 
@@ -141,13 +143,140 @@ module.exports = function (grunt) {
         // the user can control whether this is a "Girder client extension" or
         // just a standalone web client.
         var output = config.webpack && config.webpack.output || 'plugin';
-
+        var dllPlugins = config.webpack && config.webpack.dllPlugins || [];
         var pluginNodeDir = path.join(getPluginLocalNodePath(plugin), 'node_modules');
 
         // Add webpack target and name resolution for this plugin if
         // web_client/main.js (or user-specified name) exists.
         var webClient = path.resolve(dir + '/web_client');
         var mains = config.webpack && config.webpack.main || {};
+        var libs = config.webpack && config.webpack.libs || {};
+
+        if (_.isString(libs)) {
+            // If main was specified as a string, convert to an object
+            libs = {
+                [output]: libs
+            };
+        } else if (_.isEmpty(libs)) {
+            // By default, use web_client/index.js if it exists.
+            var libJs = path.join(webClient, 'index.js');
+
+            if (fs.existsSync(libJs)) {
+                libs = {
+                    [output]: libJs
+                };
+            }
+        }
+
+        _.each(libs, (lib, output) => {
+            output = `${output}_lib`;
+
+            if (!path.isAbsolute(lib)) {
+                lib = path.join(dir, lib);
+            }
+            if (!fs.existsSync(lib)) {
+                throw new Error(`Library entry point file ${lib} not found.`);
+            }
+
+            var helperConfig = {
+                plugin,
+                output,
+                main: lib,
+                pluginEntry: `plugins/${plugin}/${output}`,
+                pluginDir: dir,
+                nodeDir: pluginNodeDir
+            };
+
+            var dllReferencePlugins = dllPlugins.map(function () {
+                return new customWebpackPlugins.DllReferenceByPathPlugin({
+                    context: '.',
+                    manifest: path.join(paths.web_built, 'plugins', plugin, 'plugin_lib-manifest.json')
+                });
+            });
+
+            grunt.config.merge({
+                webpack: {
+                    [`${output}_${plugin}`]: {
+                        entry: {
+                            [helperConfig.pluginEntry]: [lib]
+                        },
+                        output: {
+                            library: `girder_${output}_${plugin}`,
+                            path: path.join(paths.web_built, 'plugins', plugin),
+                            filename: `${output}.min.js`
+                        },
+                        plugins: dllReferencePlugins.concat([
+                            new customWebpackPlugins.DllReferenceByPathPlugin({
+                                context: '.',
+                                manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                            }),
+                            new webpack.DllPlugin({
+                                path: path.join(paths.web_built, 'plugins', plugin, `${output}-manifest.json`),
+                                name: `girder_${output}_${plugin}`
+                            }),
+                            new ExtractTextPlugin({
+                                filename: `${output}.min.css`,
+                                allChunks: true
+                            })
+                        ])
+                    },
+                    options: {
+                        // Add an import alias to the global config for this plugin
+                        resolve: {
+                            alias: {
+                                [`girder_plugins/${plugin}/node`]: pluginNodeDir,
+                                [`girder_plugins/${plugin}`]: webClient
+                            },
+                            modules: [
+                                path.resolve(process.cwd(), 'node_modules'),
+                                pluginNodeDir
+                            ]
+                        },
+                        resolveLoader: {
+                            modules: [
+                                path.resolve(process.cwd(), 'node_modules'),
+                                pluginNodeDir
+                            ]
+                        }
+                    }
+                }
+            });
+
+            grunt.config.merge({
+                default: {
+                    [`webpack:${output}_${plugin}`]: {
+                        dependencies: ['build'] // plugin builds must run after core build
+                    }
+                }
+            });
+
+            // If the plugin config has no webpack section, no defaultLoaders
+            // property in the webpack section, or the defaultLoaders is
+            // explicitly set to anything besides false, then augment the
+            // webpack loader configurations with the plugin source directory.
+            if (!config.webpack || config.webpack.defaultLoaders === undefined || config.webpack.defaultLoaders !== false) {
+                var numLoaders = grunt.config.get('webpack.options.module.loaders').length;
+                for (var i = 0; i < numLoaders; i++) {
+                    var selector = 'webpack.options.module.loaders.' + i + '.include';
+                    var loaders = grunt.config.get(selector) || [];
+                    var pluginPath = path.resolve(dir);
+                    var realPath = fs.realpathSync(dir);
+                    var loaderIncludes = [pluginPath];
+
+                    // We add the plugin path to the include list for the loaders, and also
+                    // add the realpath (i.e. following symlinks) to workaround an issue where
+                    // webpack doesn't resolve symlinked include directories correctly.
+                    if (realPath !== pluginPath) {
+                        loaderIncludes.push(realPath);
+                    }
+
+                    grunt.config.set(selector, loaders.concat(loaderIncludes));
+                }
+            }
+
+            var newConfig = webpackHelper(grunt.config.get('webpack.options'), helperConfig);
+            grunt.config.set('webpack.options', newConfig);
+        });
 
         if (_.isString(mains)) {
             // If main was specified as a string, convert to an object
@@ -182,18 +311,40 @@ module.exports = function (grunt) {
                 nodeDir: pluginNodeDir
             };
 
+            var dllReferencePlugins = dllPlugins.map(function (otherPlugin) {
+                return new customWebpackPlugins.DllReferenceByPathPlugin({
+                    context: '.',
+                    manifest: path.join(paths.web_built, 'plugins', otherPlugin, 'plugin_lib-manifest.json')
+                });
+            });
+
+            if (!_.isEmpty(libs)) {
+                dllReferencePlugins.push(new customWebpackPlugins.DllReferenceByPathPlugin({
+                    context: '.',
+                    manifest: path.join(paths.web_built, 'plugins', plugin, 'plugin_lib-manifest.json')
+                }));
+            }
+
             grunt.config.merge({
                 webpack: {
                     [`${output}_${plugin}`]: {
                         entry: {
                             [helperConfig.pluginEntry]: [main]
                         },
-                        plugins: [
+                        output: {
+                            path: path.join(paths.web_built, 'plugins', plugin),
+                            filename: `${output}.min.js`
+                        },
+                        plugins: dllReferencePlugins.concat([
                             new customWebpackPlugins.DllReferenceByPathPlugin({
                                 context: '.',
                                 manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                            }),
+                            new ExtractTextPlugin({
+                                filename: `${output}.min.css`,
+                                allChunks: true
                             })
-                        ]
+                        ])
                     },
                     options: {
                         // Add an import alias to the global config for this plugin

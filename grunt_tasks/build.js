@@ -19,6 +19,7 @@ var _ = require('underscore');
 var noptFix = require('nopt-grunt-fix');
 
 var webpack = require('webpack');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var webpackGlobalConfig = require('./webpack.config.js');
 var paths = require('./webpack.paths.js');
 var customWebpackPlugins = require('./webpack.plugins.js');
@@ -102,13 +103,16 @@ module.exports = function (grunt) {
                 },
                 output: {
                     library: '[name]'
-
                 },
                 plugins: [
                     // Remove this if it turns out we don't want to use it for every bundle target.
                     new webpack.DllPlugin({
                         path: path.join(paths.web_built, '[name]-manifest.json'),
                         name: '[name]'
+                    }),
+                    new ExtractTextPlugin({
+                        filename: '[name].min.css',
+                        allChunks: true
                     })
                 ]
             },
@@ -120,6 +124,10 @@ module.exports = function (grunt) {
                     new customWebpackPlugins.DllReferenceByPathPlugin({
                         context: '.',
                         manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                    }),
+                    new ExtractTextPlugin({
+                        filename: '[name].min.css',
+                        allChunks: true
                     })
                 ]
             }
