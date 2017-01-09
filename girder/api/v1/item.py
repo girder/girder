@@ -134,9 +134,9 @@ class Item(Resource):
         .errorResponse('Write access was denied for the item or folder.', 403)
     )
     def updateItem(self, item, name, description, folder, params):
-        if name:
+        if name is not None:
             item['name'] = name
-        if description:
+        if description is not None:
             item['description'] = description
 
         self.model('item').updateItem(item)
