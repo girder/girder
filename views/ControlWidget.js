@@ -73,6 +73,9 @@ var ControlWidget = View.extend({
         number: {
             template: widget
         },
+        integer: {
+            template: widget
+        },
         boolean: {
             template: booleanWidget
         },
