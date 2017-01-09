@@ -11,6 +11,7 @@ import fileWidget from '../templates/fileWidget.pug';
 import rangeWidget from '../templates/rangeWidget.pug';
 import widget from '../templates/widget.pug';
 
+import '../stylesheets/controlWidget.styl';
 import 'bootstrap-colorpicker/dist/js/bootstrap-colorpicker';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
 import 'bootstrap-slider/dist/bootstrap-slider';

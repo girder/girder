@@ -16,6 +16,7 @@ var WidgetModel = Backbone.Model.extend({
     defaults: {
         type: '',          // The specific widget type
         title: '',         // The label to display with the widget
+        description: '',   // The description to display with the widget
         value: '',         // The current value of the widget
 
         values: []         // A list of possible values for enum types
