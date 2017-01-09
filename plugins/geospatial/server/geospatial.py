@@ -300,17 +300,15 @@ class GeospatialItem(Resource):
         Description('Set geospatial fields on an item.')
         .notes('Set geospatial fields to null to delete them.')
         .modelParam('id', 'The ID of the item.', model='item', level=AccessType.WRITE)
-        .param('body', 'A JSON object containing the geospatial fields to add.',
-               paramType='body')
+        .jsonParam('geospatial', 'A JSON object containing the geospatial fields to add.',
+                   paramType='body')
         .errorResponse('ID was invalid.')
         .errorResponse('Invalid JSON was passed in request body.')
         .errorResponse('Geospatial key name was invalid.')
         .errorResponse('Geospatial field did not contain valid GeoJSON.')
         .errorResponse('Write access was denied for the item.', 403)
     )
-    def setGeospatial(self, item, params):
-        geospatial = self.getBodyJson()
-
+    def setGeospatial(self, item, geospatial, params):
         for k, v in six.viewitems(geospatial):
             if '.' in k or k[0] == '$':
                 raise RestException('Geospatial key name %s must not contain a'

@@ -277,16 +277,14 @@ class Folder(Resource):
         .responseClass('Folder')
         .notes('Set metadata fields to null in order to delete them.')
         .modelParam('id', model='folder', level=AccessType.WRITE)
-        .param('body', 'A JSON object containing the metadata keys to add',
-               paramType='body')
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='body')
         .errorResponse(('ID was invalid.',
                         'Invalid JSON passed in request body.',
                         'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the folder.', 403)
     )
-    def setMetadata(self, folder, params):
-        metadata = self.getBodyJson()
-
+    def setMetadata(self, folder, metadata, params):
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if '.' in k or k[0] == '$':
