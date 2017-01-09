@@ -28,7 +28,7 @@ const TaskRunView = View.extend({
                 title: input.name || input.id,
                 id: input.id || input.name,
                 values: input.values,
-                value: input.value
+                value: input.default
             });
         }));
 
