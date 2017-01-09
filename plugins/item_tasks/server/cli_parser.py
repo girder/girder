@@ -61,7 +61,6 @@ def parseSlicerCliXml(fd):
     }
 
     args, opts, outputs = cliSpec.classifyParameters()
-    cliArgs = []
 
     for param in itertools.chain(args, opts):
         if param.typ not in _SLICER_TO_GIRDER_WORKER_TYPE_MAP.keys():
@@ -78,7 +77,7 @@ def parseSlicerCliXml(fd):
     def ioSpec(name, param, addDefault=False):
         format = _SLICER_TO_GIRDER_WORKER_TYPE_MAP[param.typ]
         spec = {
-            'id': name,
+            'id': name.strip('-'),
             'name': param.label,
             'description': param.description,
             'type': format,
@@ -96,21 +95,22 @@ def parseSlicerCliXml(fd):
     for param in inputOpts:
         name = param.flag or param.longflag
         info['inputs'].append(ioSpec(name, param, True))
-        cliArgs += [name, '$input{%s}' % name]
+        info['args'] += [name, '$input{%s}' % name.strip('-')]
 
     for param in outputOpts:
         name = param.flag or param.longflag
         info['outputs'].append(ioSpec(name, param))
-        cliArgs += [
+        info['args'] += [
             param.flag or param.longflag,
-            os.path.join(constants.DOCKER_DATA_VOLUME, name)
+            os.path.join(constants.DOCKER_DATA_VOLUME, name.strip('-'))
         ]
 
     for param in inputArgs:
         info['inputs'].append(ioSpec(param.name, param, True))
-        cliArgs.append('$input{%s}' % param.name)
+        info['args'].append('$input{%s}' % param.name)
 
     for param in outputArgs:
         info['outputs'].append(ioSpec(param.name, param))
+        info['args'].append(os.path.join(constants.DOCKER_DATA_VOLUME, param.name))
 
     return info
