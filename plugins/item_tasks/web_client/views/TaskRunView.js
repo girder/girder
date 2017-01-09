@@ -27,6 +27,7 @@ const TaskRunView = View.extend({
                 type: input.type,
                 title: input.name || input.id,
                 id: input.id || input.name,
+                description: input.description || '',
                 values: input.values,
                 value: input.default
             });
@@ -36,7 +37,8 @@ const TaskRunView = View.extend({
             return new WidgetModel({
                 type: output.type,
                 title: output.name || output.id,
-                id: output.id || output.name
+                id: output.id || output.name,
+                description: output.description || ''
             });
         }));
 
