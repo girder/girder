@@ -535,10 +535,11 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     else:
                         kwargs[name] = self._validateParam(name, descParam, params[name])
                     kwargs['params'].pop(name, None)  # Remove from form/query params
-                elif descParam['in'] == 'body' and name in self.description.jsonParams:
-                    info = self.description.jsonParams[name].copy()
-                    info['required'] = descParam['required']
-                    kwargs[name] = self._loadJsonBody(name, info)
+                elif descParam['in'] == 'body':
+                    if name in self.description.jsonParams:
+                        info = self.description.jsonParams[name].copy()
+                        info['required'] = descParam['required']
+                        kwargs[name] = self._loadJsonBody(name, info)
                 elif 'default' in descParam:
                     kwargs[name] = descParam['default']
                 elif descParam['required']:
