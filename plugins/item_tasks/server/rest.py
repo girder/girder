@@ -1,9 +1,10 @@
+import cherrypy
 import six
 
 from girder import events
 from girder.api import access
-from girder.api.describe import describeRoute, Description
-from girder.api.rest import ensureTokenScopes, filtermodel, loadmodel, Resource
+from girder.api.describe import autoDescribeRoute, Description
+from girder.api.rest import ensureTokenScopes, filtermodel, Resource, RestException, getApiUrl
 from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
 from girder.plugins.worker import utils
@@ -18,16 +19,16 @@ class ItemTask(Resource):
 
         self.route('GET', (), self.listTasks)
         self.route('POST', (':id', 'execution'), self.executeTask)
+        self.route('POST', (':id', 'slicer_cli_description'), self.runSlicerCliDescription)
+        self.route('PUT', (':id', 'slicer_cli_xml'), self.setSpecFromXml)
 
     @access.public
-    @describeRoute(
+    @autoDescribeRoute(
         Description('List all available tasks that can be executed.')
         .pagingParams(defaultSort='name')
     )
     @filtermodel(model='item')
-    def listTasks(self, params):
-        limit, offset, sort = self.getPagingParameters(params, 'name')
-
+    def listTasks(self, limit, offset, sort, params):
         cursor = self.model('item').find({
             'meta.itemTaskSpec': {'$exists': True}
         }, sort=sort)
@@ -137,53 +138,51 @@ class ItemTask(Resource):
 
 
     @access.user(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
-    @loadmodel(
-        model='item', level=AccessType.READ, requiredFlags=constants.ACCESS_FLAG_EXECUTE_TASK)
     @filtermodel(model='job', plugin='jobs')
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Execute a task described by an item.')
-        .param('id', 'The ID of the item representing the task specification.', paramType='path')
+        .modelParam('id', 'The ID of the item representing the task specification.', model='item',
+                    level=AccessType.READ, requiredFlags=constants.ACCESS_FLAG_EXECUTE_TASK)
         .param('jobTitle', 'Title for this job execution.', required=False)
-        .param('inputs', 'The input bindings for the task.', required=False)
-        .param('outputs', 'The output bindings for the task.', required=False)
-        .param('includeJobInfo', 'Whether to track the task using a job record.', required=False,
-               dataType='boolean', default=True)
+        .param('includeJobInfo', 'Whether to track the task using a job record.',
+               required=False, dataType='boolean', default=True)
+        .jsonParam('inputs', 'The input bindings for the task.', required=False,
+                   requireObject=True)
+        .jsonParam('outputs', 'The output bindings for the task.', required=False,
+                   requireObject=True)
     )
-    def executeTask(self, item, params):
-        includeJobInfo = self.boolParam('includeJobInfo', params, default=True)
-        title = params.get('jobTitle', item['name'])
+    def executeTask(self, item, jobTitle, includeJobInfo, inputs, outputs, params):
+        user = self.getCurrentUser()
+        if jobTitle is None:
+            jobTitle = item['name']
         task, handler = self._validateTask(item)
 
         jobModel = self.model('job', 'jobs')
-
         job = jobModel.createJob(
-            title=title, type='item_task', handler=handler, user=self.getCurrentUser())
+            title=jobTitle, type='item_task', handler=handler, user=user)
 
         # If this is a user auth token, we make an IO-enabled token
         token = self.getCurrentToken()
         if self.model('token').hasScope(token, TokenScope.USER_AUTH):
             token = self.model('token').createToken(
-                user=self.getCurrentUser(), days=7, scope=(
-                    TokenScope.DATA_READ, TokenScope.DATA_WRITE))
+                user=user, days=7, scope=(TokenScope.DATA_READ, TokenScope.DATA_WRITE))
             job['itemTaskTempToken'] = token['_id']
 
-        inputs = self.getParamJson('inputs', params, default={})
-        outputs = self.getParamJson('outputs', params, default={})
-
-        job['itemTaskId'] = item['_id']
-        job['itemTaskBindings'] = {
-            'inputs': inputs,
-            'outputs': outputs
-        }
-
-        job['kwargs'] = {
-            'task': task,
-            'inputs': self._transformInputs(inputs, token),
-            'outputs': self._transformOutputs(outputs, token),
-            'validate': False,
-            'auto_convert': False,
-            'cleanup': True
-        }
+        job.update({
+            'itemTaskId': item['_id'],
+            'itemTaskBindings': {
+                'inputs': inputs,
+                'outputs': outputs
+            },
+            'kwargs': {
+                'task': task,
+                'inputs': self._transformInputs(inputs, token),
+                'outputs': self._transformOutputs(outputs, token),
+                'validate': False,
+                'auto_convert': False,
+                'cleanup': True
+            }
+        })
 
         if includeJobInfo:
             job['kwargs']['jobInfo'] = utils.jobInfoSpec(job)
@@ -192,3 +191,116 @@ class ItemTask(Resource):
         jobModel.scheduleJob(job)
 
         return job
+
+    @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
+    @autoDescribeRoute(
+        Description('Create an item task spec based on a docker image.')
+        .notes('This operates on an existing item, turning it into an item task '
+               'using Slicer CLI introspection of a docker image.')
+        .modelParam('id', 'The ID of the item that the task spec will be bound to.',
+                    model='item', level=AccessType.WRITE)
+        .param('image', 'The docker image name. If not passed, uses the existing'
+               'itemTaskSpec.docker_image metadata value.' , required=False, strip=True)
+        .param('cli', 'Name of the CLI, if this image contains multiple CLIs.', required=False)
+    )
+    def runSlicerCliDescription(self, item, image, cli, params):
+        if 'meta' not in item:
+            item['meta'] = {}
+
+        if image is None:
+            image = item.get('meta', {}).get('itemTaskSpec', {}).get('docker_image')
+
+        if not image:
+            raise RestException(
+                'You must pass an image parameter, or set the itemTaskSpec.docker_image '
+                'field of the item.')
+
+        jobModel = self.model('job', 'jobs')
+        token = self.model('token').createToken(
+            days=3, scope='item_task.set_task_spec.%s' % item['_id'])
+        job = jobModel.createJob(
+            title='Read docker Slicer CLI: %s' % image, type='item_task.slicer_cli',
+            handler='worker_handler', user=self.getCurrentUser())
+
+        if cli:
+            args = [cli, '--xml']
+        else:
+            args = ['--xml']
+
+        job.update({
+            'itemTaskId': item['_id'],
+            'kwargs': {
+                'task': {
+                    'mode': 'docker',
+                    'docker_image': image,
+                    'container_args': args,
+                    'outputs': [{
+                        'id': '_stdout',
+                        'format': 'text'
+                    }],
+                },
+                'outputs': {
+                    '_stdout': {
+                        'mode': 'http',
+                        'method': 'PUT',
+                        'format': 'text',
+                        'url': '/'.join((getApiUrl(), self.resourceName,
+                                         str(item['_id']), 'slicer_cli_xml')),
+                        'headers': {'Girder-Token': token['_id']}
+                    }
+                },
+                'jobInfo': utils.jobInfoSpec(job),
+                'validate': False,
+                'auto_convert': False,
+                'cleanup': True
+            }
+        })
+
+        job = jobModel.save(job)
+        jobModel.scheduleJob(job)
+
+        item['meta']['itemTaskSpec'] = {
+            'mode': 'docker',
+            'docker_image': image
+        }
+
+        if cli:
+            item['meta']['itemTaskSlicerCliName'] = cli
+
+        self.model('item').save(item)
+
+        return job
+
+    def _parseSlicerCliXml(self, args):
+        print(cherrypy.request.body.read().decode('utf8'))
+        return 1, 2, args
+
+    @access.token
+    @autoDescribeRoute(
+        Description('Set a task spec on an item from a Slicer CLI XML spec.')
+        .modelParam('id', model='item', force=True)
+        .param('xml', 'The Slicer CLI XML spec.', paramType='body'),
+        hide=True
+    )
+    def setSpecFromXml(self, item, params):
+        self.ensureTokenScopes('item_task.set_task_spec.%s' % item['_id'])
+
+        cliNameField = 'itemTaskSlicerCliName'
+        if item.get('meta', {}).get(cliNameField):
+            args = [item['meta'][cliNameField]]
+            del item['meta'][cliNameField]
+        else:
+            args = []
+
+        args, inputs, outputs = self._parseSlicerCliXml(args)
+
+        itemTaskSpec = item.get('meta', {}).get('itemTaskSpec', {})
+        itemTaskSpec.update({
+            'container_args': args,
+            'inputs': inputs,
+            'output': outputs
+        })
+
+        self.model('item').setMetadata(item, {
+            'itemTaskSpec': itemTaskSpec
+        })

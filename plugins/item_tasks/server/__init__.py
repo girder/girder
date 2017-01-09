@@ -2,7 +2,7 @@ from girder import events
 from girder.constants import registerAccessFlag, AccessType, TokenScope
 from girder.plugins.jobs.constants import JobStatus
 from girder.utility.model_importer import ModelImporter
-from .constants import ACCESS_FLAG_EXECUTE_TASK, TOKEN_SCOPE_EXECUTE_TASK
+from . import constants
 from .rest import ItemTask
 
 
@@ -26,9 +26,12 @@ def _onJobSave(event):
 
 
 def load(info):
-    registerAccessFlag(ACCESS_FLAG_EXECUTE_TASK, name='Execute analyses', admin=True)
+    registerAccessFlag(constants.ACCESS_FLAG_EXECUTE_TASK, name='Execute analyses', admin=True)
     TokenScope.describeScope(
-        TOKEN_SCOPE_EXECUTE_TASK, name='Execute tasks', description='Execute item tasks.')
+        constants.TOKEN_SCOPE_EXECUTE_TASK, name='Execute tasks', description='Execute item tasks.')
+    TokenScope.describeScope(
+        constants.TOKEN_SCOPE_AUTO_CREATE_CLI, 'Item task auto-creation',
+        'Create new CLIs via automatic introspection.', admin=True)
 
     ModelImporter.model('item').ensureIndex('meta.itemTaskSpec')
     ModelImporter.model('job', 'jobs').exposeFields(level=AccessType.READ, fields={
