@@ -540,6 +540,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                         info = self.description.jsonParams[name].copy()
                         info['required'] = descParam['required']
                         kwargs[name] = self._loadJsonBody(name, info)
+                    else:
+                        kwargs[name] = cherrypy.request.body
                 elif 'default' in descParam:
                     kwargs[name] = descParam['default']
                 elif descParam['required']:

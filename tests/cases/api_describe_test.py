@@ -217,7 +217,8 @@ class ApiDescribeTestCase(base.TestCase):
                 self.resourceName = 'auto_describe'
                 self.route('GET', ('test',), self.test)
                 self.route('POST', ('body',), self.body)
-                self.route('POST', ('body_required',), self.bodyRequired)
+                self.route('POST', ('json_body',), self.jsonBody)
+                self.route('POST', ('json_body_required',), self.jsonBodyRequired)
 
             @access.public
             @describe.autoDescribeRoute(
@@ -249,19 +250,29 @@ class ApiDescribeTestCase(base.TestCase):
             @access.public
             @describe.autoDescribeRoute(
                 describe.Description('body')
+                .param('body', '', required=False, paramType='body')
+            )
+            def body(self, body, params):
+                testRuns.append({
+                    'body': body
+                })
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('json_body')
                 .jsonParam('json_body', '', required=False, paramType='body')
             )
-            def body(self, json_body, params):
+            def jsonBody(self, json_body, params):
                 testRuns.append({
                     'json_body': json_body
                 })
 
             @access.public
             @describe.autoDescribeRoute(
-                describe.Description('body')
+                describe.Description('json_body_required')
                 .jsonParam('json_body', '', required=True, requireObject=True, paramType='body')
             )
-            def bodyRequired(self, json_body, params):
+            def jsonBodyRequired(self, json_body, params):
                 testRuns.append({
                     'json_body': json_body
                 })
@@ -351,11 +362,21 @@ class ApiDescribeTestCase(base.TestCase):
             'datestamp': datetime.date(2017, 2, 2)
         })
 
-        # Test request body (optional)
+        # Test request body
+        body = 'torso'
+        resp = self.request('/auto_describe/body', method='POST',
+                            body=json.dumps(body), type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(len(testRuns), 1)
+        self.assertTrue('body' in testRuns[0])
+        self.assertTrue(hasattr(testRuns[0]['body'], 'read'))
+        del testRuns[-1]
+
+        # Test request JSON body (optional)
         body = {
             'emmet': 'otter'
         }
-        resp = self.request('/auto_describe/body', method='POST',
+        resp = self.request('/auto_describe/json_body', method='POST',
                             body=json.dumps(body), type='application/json')
         self.assertStatusOk(resp)
         self.assertEqual(len(testRuns), 1)
@@ -365,8 +386,8 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertEqual(testRuns[0], expected)
         del testRuns[-1]
 
-        # Test request body (optional), omitting body
-        resp = self.request('/auto_describe/body', method='POST')
+        # Test request JSON body (optional), omitting body
+        resp = self.request('/auto_describe/json_body', method='POST')
         self.assertStatusOk(resp)
         self.assertEqual(len(testRuns), 1)
         expected = {
@@ -375,11 +396,11 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertEqual(testRuns[0], expected)
         del testRuns[-1]
 
-        # Test request body (required)
+        # Test request JSON body (required)
         body = {
             'emmet': 'otter'
         }
-        resp = self.request('/auto_describe/body_required', method='POST',
+        resp = self.request('/auto_describe/json_body_required', method='POST',
                             body=json.dumps(body), type='application/json')
         self.assertStatusOk(resp)
         self.assertEqual(len(testRuns), 1)
@@ -389,14 +410,14 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertEqual(testRuns[0], expected)
         del testRuns[-1]
 
-        # Test request body (required), omitting body
-        resp = self.request('/auto_describe/body_required', method='POST')
+        # Test request JSON body (required), omitting body
+        resp = self.request('/auto_describe/json_body_required', method='POST')
         self.assertStatus(resp, 400)
 
-        # Test request body (required), pass list
+        # Test request JSON body (required), pass list
         body = [{
             'emmet': 'otter'
         }]
-        resp = self.request('/auto_describe/body_required', method='POST',
+        resp = self.request('/auto_describe/json_body_required', method='POST',
                             body=json.dumps(body), type='application/json')
         self.assertStatus(resp, 400)
