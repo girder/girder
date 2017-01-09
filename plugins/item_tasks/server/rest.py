@@ -8,7 +8,7 @@ from girder.api.rest import ensureTokenScopes, filtermodel, Resource, RestExcept
 from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
 from girder.plugins.worker import utils
-from . import constants
+from . import cli_parser, constants
 
 
 class ItemTask(Resource):
@@ -202,8 +202,12 @@ class ItemTask(Resource):
         .param('image', 'The docker image name. If not passed, uses the existing'
                'itemTaskSpec.docker_image metadata value.' , required=False, strip=True)
         .param('cli', 'Name of the CLI, if this image contains multiple CLIs.', required=False)
+        .param('setName', 'Whether item name should be changed to the title of the CLI.',
+               dataType='boolean', required=False, default=True)
+        .param('setDescription', 'Whether the item description should be changed to the '
+               'description of the CLI.', dataType='boolean', required=False, default=True)
     )
-    def runSlicerCliDescription(self, item, image, cli, params):
+    def runSlicerCliDescription(self, item, image, cli, setName, setDescription, params):
         if 'meta' not in item:
             item['meta'] = {}
 
@@ -246,6 +250,10 @@ class ItemTask(Resource):
                         'format': 'text',
                         'url': '/'.join((getApiUrl(), self.resourceName,
                                          str(item['_id']), 'slicer_cli_xml')),
+                        'params': {
+                            'setName': setName,
+                            'setDescription': setDescription
+                        },
                         'headers': {'Girder-Token': token['_id']}
                     }
                 },
@@ -271,18 +279,18 @@ class ItemTask(Resource):
 
         return job
 
-    def _parseSlicerCliXml(self, args):
-        print(cherrypy.request.body.read().decode('utf8'))
-        return 1, 2, args
-
     @access.token
     @autoDescribeRoute(
         Description('Set a task spec on an item from a Slicer CLI XML spec.')
         .modelParam('id', model='item', force=True)
-        .param('xml', 'The Slicer CLI XML spec.', paramType='body'),
+        .param('xml', 'The Slicer CLI XML spec.', paramType='body')
+        .param('setName', 'Whether item name should be changed to the title of the CLI.',
+               dataType='boolean', required=False, default=True)
+        .param('setDescription', 'Whether the item description should be changed to the '
+               'description of the CLI.', dataType='boolean', required=False, default=True),
         hide=True
     )
-    def setSpecFromXml(self, item, params):
+    def setSpecFromXml(self, item, setName, setDescription, params):
         self.ensureTokenScopes('item_task.set_task_spec.%s' % item['_id'])
 
         cliNameField = 'itemTaskSlicerCliName'
@@ -292,14 +300,19 @@ class ItemTask(Resource):
         else:
             args = []
 
-        args, inputs, outputs = self._parseSlicerCliXml(args)
+        cliSpec = cli_parser.parseSlicerCliXml(cherrypy.request.body)
 
         itemTaskSpec = item.get('meta', {}).get('itemTaskSpec', {})
         itemTaskSpec.update({
-            'container_args': args,
-            'inputs': inputs,
-            'output': outputs
+            'container_args': args + cliSpec['args'],
+            'inputs': cliSpec['inputs'],
+            'outputs': cliSpec['outputs']
         })
+
+        if setName:
+            item['name'] = cliSpec['title']
+        if setDescription:
+            item['description'] = cliSpec['description']
 
         self.model('item').setMetadata(item, {
             'itemTaskSpec': itemTaskSpec
