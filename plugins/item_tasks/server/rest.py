@@ -102,10 +102,8 @@ class ItemTask(Resource):
                     resource, resourceType=rtype, token=token, dataFormat='none')
             elif v['mode'] == 'inline':
                 transformed[k] = {
-                    'mode': v['mode'],
-                    'data': v['data'],
-                    'type': 'none',
-                    'format': 'none'
+                    'mode': 'inline',
+                    'data': v['data']
                 }
             else:
                 raise ValidationException('Invalid input mode: %s.' % v['mode'])

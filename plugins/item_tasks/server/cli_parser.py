@@ -40,11 +40,12 @@ _SLICER_TYPE_TO_GIRDER_MODEL_MAP = {
 
 def _validateParam(param):
     if param.channel == 'input' and param.typ not in _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP:
-        raise ValidationException('Input parameter type %s is currently not supported' % param.typ)
+        raise ValidationException(
+            'Input parameter type %s is currently not supported.' % param.typ)
 
     if param.channel == 'output' and param.typ not in _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP:
         raise ValidationException(
-            'Output parameter type %s is currently not supported' % param.typ)
+            'Output parameter type %s is currently not supported.' % param.typ)
 
 
 def parseSlicerCliXml(fd):

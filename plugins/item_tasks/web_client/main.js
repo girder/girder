@@ -35,7 +35,7 @@ import taskItemLinkTemplate from './templates/taskItemLink.pug';
 wrap(girder.plugins.jobs.views.JobDetailsWidget, 'render', function (render) {
     render.call(this);
 
-    if (this.job.has('itemTaskItemId')) {
+    if (this.job.has('itemTaskId')) {
         this.$('.g-job-info-value[property="title"]').html(taskItemLinkTemplate({
             itemId: this.job.get('itemTaskId'),
             title: this.job.get('title')
