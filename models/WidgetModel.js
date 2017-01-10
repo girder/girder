@@ -213,7 +213,7 @@ var WidgetModel = Backbone.Model.extend({
         // make sure value is approximately an integer number
         // of "steps" larger than "min"
         min = min || 0;
-        if((value - min) % step) {
+        if ((value - min) % step) {
             return `Value does not satisfy step "${step}"`;
         }
     },
