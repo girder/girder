@@ -114,7 +114,7 @@ class ItemTask(Resource):
 
     def _transformOutputs(self, outputs, token):
         """
-        Validates and sanitizes the input bindings. If they are Girder inputs, adds
+        Validates and sanitizes the output bindings. If they are Girder outputs, adds
         the necessary token info. If the token does not allow DATA_WRITE, or if the user
         does not have write access to the destination, raises an AccessException.
         """

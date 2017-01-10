@@ -56,13 +56,13 @@ const TaskRunView = View.extend({
     },
 
     render: function () {
-        var hasInputs = this._inputs.length,
-            hasOutputs = this._outputs.length;
+        var hasInputs = !!this._inputs.length,
+            hasOutputs = !!this._outputs.length;
 
         this.$el.html(template({
             item: this.model,
             hasInputs: hasInputs,
-            hasOuputs: hasOutputs,
+            hasOutputs: hasOutputs,
             renderMarkdown: renderMarkdown
         }));
 

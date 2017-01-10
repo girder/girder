@@ -5,7 +5,7 @@ import os
 from girder.models.model_base import ValidationException
 from girder.plugins.worker import constants
 
-_SLICER_TO_GIRDER_WORKER_TYPE_MAP = {
+_SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'boolean': 'boolean',
     'integer': 'integer',
     'float': 'number',
@@ -25,11 +25,26 @@ _SLICER_TO_GIRDER_WORKER_TYPE_MAP = {
     'pointfile': 'file'
 }
 
+_SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP = {
+    'file': 'new-file',
+    'image': 'new-file',
+    'pointfile': 'new-file'
+}
+
 _SLICER_TYPE_TO_GIRDER_MODEL_MAP = {
     'image': 'file',
     'file': 'file',
     'directory': 'folder'
 }
+
+
+def _validateParam(param):
+    if param.channel == 'input' and param.typ not in _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP:
+        raise ValidationException('Input parameter type %s is currently not supported' % param.typ)
+
+    if param.channel == 'output' and param.typ not in _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP:
+        raise ValidationException(
+            'Output parameter type %s is currently not supported' % param.typ)
 
 
 def parseSlicerCliXml(fd):
@@ -63,8 +78,7 @@ def parseSlicerCliXml(fd):
     args, opts, outputs = cliSpec.classifyParameters()
 
     for param in itertools.chain(args, opts):
-        if param.typ not in _SLICER_TO_GIRDER_WORKER_TYPE_MAP.keys():
-            raise ValidationException('Parameter type %s is currently not supported' % param.typ)
+        _validateParam(param)
 
     args.sort(key=lambda p: p.index)
     opts.sort(key=lambda p: p.flag or p.longflag)
@@ -75,13 +89,17 @@ def parseSlicerCliXml(fd):
     outputOpts = [o for o in opts if o.channel == 'output']
 
     def ioSpec(name, param, addDefault=False):
-        format = _SLICER_TO_GIRDER_WORKER_TYPE_MAP[param.typ]
+        if param.channel == 'output':
+            typ = _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP[param.typ]
+        else:
+            typ = _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP[param.typ]
+
         spec = {
             'id': name.strip('-'),
             'name': param.label,
             'description': param.description,
-            'type': format,
-            'format': format
+            'type': typ,
+            'format': typ
         }
 
         if param.isExternalType():
