@@ -92,6 +92,8 @@ var WidgetModel = Backbone.Model.extend({
     _normalizeValue: function (value) {
         if (this.isNumeric()) {
             value = parseFloat(value);
+        } else if (this.isInteger()) {
+            value = parseInt(value);
         } else if (this.isBoolean()) {
             value = !!value;
         } else if (this.isColor()) {
