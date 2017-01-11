@@ -7,13 +7,13 @@ function canary() {
         }
 
         isDone = true;
-    }
+    };
     result.check = result.bind(result);
 
-  return result;
+    return result;
 }
 
-var failIfError = function(error) { expect(error).toBeUndefined(); };
+var failIfError = function (error) { expect(error).toBeUndefined(); };
 
 var reFiltered = /filterTest(\d+)/;
 
@@ -111,7 +111,7 @@ describe('Test collection filtering', function () {
          *     had not yet been included
          */
         collection.pageLimit = 5;
-        $.when(collection.fetch()).then(function() {
+        $.when(collection.fetch()).then(function () {
             expect(collection.length).toBe(5);
             expect(collection.at(0).get('name')).toBe('filterTest0');
             expect(collection.at(1).get('name')).toBe('filterTest1');
@@ -139,7 +139,7 @@ describe('Test collection filtering', function () {
         collection.pageLimit = 2;
         collection.append = false;
 
-        $.when(collection.fetchNextPage()).then(function() {
+        $.when(collection.fetchNextPage()).then(function () {
             expect(collection.length).toBe(2);
             expect(collection.at(0).get('name')).toBe('filterTest0');
             expect(collection.at(1).get('name')).toBe('filterTest1');
@@ -148,7 +148,7 @@ describe('Test collection filtering', function () {
             expect(collection.offset).toBe(2);
 
             return collection.fetchNextPage();
-        }).then(function() {
+        }).then(function () {
             expect(collection.length).toBe(2);
             expect(collection.at(0).get('name')).toBe('filterTest2');
             expect(collection.at(1).get('name')).toBe('filterTest7');
@@ -157,7 +157,7 @@ describe('Test collection filtering', function () {
             expect(collection.offset).toBe(8);
 
             return collection.fetchNextPage();
-        }).then(function() {
+        }).then(function () {
             expect(collection.length).toBe(2);
             expect(collection.at(0).get('name')).toBe('filterTest8');
             expect(collection.at(1).get('name')).toBe('filterTest9');
@@ -166,7 +166,7 @@ describe('Test collection filtering', function () {
             expect(collection.offset).toBe(10);
 
             return collection.fetchPreviousPage();
-        }).then(function() {
+        }).then(function () {
             expect(collection.length).toBe(2);
             expect(collection.at(0).get('name')).toBe('filterTest2');
             expect(collection.at(1).get('name')).toBe('filterTest7');
@@ -175,7 +175,7 @@ describe('Test collection filtering', function () {
             expect(collection.offset).toBe(8);
 
             return collection.fetchPreviousPage();
-        }).then(function() {
+        }).then(function () {
             expect(collection.length).toBe(2);
             expect(collection.at(0).get('name')).toBe('filterTest0');
             expect(collection.at(1).get('name')).toBe('filterTest1');
