@@ -96,7 +96,7 @@ def parseSlicerCliXml(fd):
             typ = _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP[param.typ]
 
         spec = {
-            'id': name.strip('-'),
+            'id': name,
             'name': param.label,
             'description': param.description,
             'type': typ,
@@ -114,14 +114,18 @@ def parseSlicerCliXml(fd):
     for param in inputOpts:
         name = param.flag or param.longflag
         info['inputs'].append(ioSpec(name, param, True))
-        info['args'] += [name, '$input{%s}' % name.strip('-')]
+
+        if param.typ == 'boolean':
+            info['args'].append('$flag{%s}' % name)
+        else:
+            info['args'] += [name, '$input{%s}' % name]
 
     for param in outputOpts:
         name = param.flag or param.longflag
         info['outputs'].append(ioSpec(name, param))
         info['args'] += [
             param.flag or param.longflag,
-            os.path.join(constants.DOCKER_DATA_VOLUME, name.strip('-'))
+            os.path.join(constants.DOCKER_DATA_VOLUME, name)
         ]
 
     for param in inputArgs:
