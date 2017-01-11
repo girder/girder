@@ -159,7 +159,9 @@ var Collection = Backbone.Collection.extend({
                     sort: this.sortField,
                     sortdir: this.sortDir
                 }, this.params)
-            }).done(_.bind(function (list) {
+            });
+
+            var result = $.when(xhr).then(_.bind(function (list) {
                 if (!_.isArray(list)) {
                     list = [list];
                 }
@@ -247,7 +249,7 @@ var Collection = Backbone.Collection.extend({
                         if (this.append && !reset) {
                             this.add(finalList);
                         } else {
-                            this.reset(finalList);
+                            this.reset(finalList, this.offset);
                         }
                     }
 
@@ -255,7 +257,7 @@ var Collection = Backbone.Collection.extend({
                 }
             }, this));
             xhr.girder = {fetch: true};
-            return xhr;
+            return result;
         }
 
         return fetchListFragment.apply(this);
