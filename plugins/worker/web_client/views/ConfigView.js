@@ -14,6 +14,9 @@ var ConfigView = View.extend({
             this.$('#g-worker-settings-error-message').empty();
 
             this._saveSettings([{
+                key: 'worker.api_url',
+                value: this.$('#g-worker-api-url').val().trim()
+            }, {
                 key: 'worker.broker',
                 value: this.$('#g-worker-broker').val().trim()
             }, {
@@ -29,12 +32,14 @@ var ConfigView = View.extend({
             path: 'system/setting',
             data: {
                 list: JSON.stringify([
+                    'worker.api_url',
                     'worker.broker',
                     'worker.backend'
                 ])
             }
         }).done(_.bind(function (resp) {
             this.render();
+            this.$('#g-worker-api-url').val(resp['worker.api_url']);
             this.$('#g-worker-broker').val(resp['worker.broker']);
             this.$('#g-worker-backend').val(resp['worker.backend']);
         }, this));
