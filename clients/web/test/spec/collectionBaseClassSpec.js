@@ -22,7 +22,7 @@ var reFiltered = /filterTest(\d+)/;
  */
 girderTest.startApp();
 
-describe('Test collection filtering', function () {
+describe('Pre-test setup', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
                               'admin@email.com',
@@ -30,7 +30,144 @@ describe('Test collection filtering', function () {
                               'Admin',
                               'adminpassword!',
                               []));
+});
 
+describe('Test normal collection operation', function () {
+    it('create several dummy api keys', function () {
+        var done = canary();
+
+        var createPromise = $.when(
+            new girder.models.ApiKeyModel({ name: 'test0' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test1' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test2' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test3' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test4' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test5' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test6' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test7' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test8' }).save(),
+            new girder.models.ApiKeyModel({ name: 'test9' }).save()
+        );
+
+        var collection;
+
+        var fetchPromise = createPromise.then(function () {
+            collection = new girder.collections.ApiKeyCollection();
+
+            /* pageLimit shouldn't matter; we should only get ten entries */
+            collection.pageLimit = 100;
+            return collection.fetch();
+        });
+
+        $.when(createPromise, fetchPromise).then(function () {
+            expect(collection.length).toBe(10);
+        }).fail(failIfError).always(done);
+
+        waitsFor(done.check, 'to be done');
+    });
+
+    it('ensure collections can go backwards and forwards', function () {
+        var done = canary();
+        var collection = new girder.collections.ApiKeyCollection();
+
+        collection.pageLimit = 2;
+        collection.append = false;
+
+        $.when(collection.fetchNextPage()).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test0');
+            expect(collection.at(1).get('name')).toBe('test1');
+            expect(collection.hasNextPage()).toBe(true);
+            expect(collection.hasPreviousPage()).toBe(false);
+            expect(collection.offset).toBe(2);
+            expect(collection.pageNum()).toBe(0);
+
+            return collection.fetchNextPage();
+        }).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test2');
+            expect(collection.at(1).get('name')).toBe('test3');
+            expect(collection.hasNextPage()).toBe(true);
+            expect(collection.hasPreviousPage()).toBe(true);
+            expect(collection.offset).toBe(4);
+            expect(collection.pageNum()).toBe(1);
+
+            return collection.fetchNextPage();
+        }).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test4');
+            expect(collection.at(1).get('name')).toBe('test5');
+            expect(collection.hasNextPage()).toBe(true);
+            expect(collection.hasPreviousPage()).toBe(true);
+            expect(collection.offset).toBe(6);
+            expect(collection.pageNum()).toBe(2);
+
+            return collection.fetchNextPage();
+        }).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test6');
+            expect(collection.at(1).get('name')).toBe('test7');
+            expect(collection.hasNextPage()).toBe(true);
+            expect(collection.hasPreviousPage()).toBe(true);
+            expect(collection.offset).toBe(8);
+            expect(collection.pageNum()).toBe(3);
+
+            return collection.fetchNextPage();
+        }).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test8');
+            expect(collection.at(1).get('name')).toBe('test9');
+            expect(collection.hasNextPage()).toBe(false);
+            expect(collection.hasPreviousPage()).toBe(true);
+            expect(collection.offset).toBe(10);
+            expect(collection.pageNum()).toBe(4);
+
+            return collection.fetchPreviousPage();
+        }).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test6');
+            expect(collection.at(1).get('name')).toBe('test7');
+            expect(collection.hasNextPage()).toBe(true);
+            expect(collection.hasPreviousPage()).toBe(true);
+            expect(collection.offset).toBe(8);
+            expect(collection.pageNum()).toBe(3);
+
+            return collection.fetchPreviousPage();
+        }).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test4');
+            expect(collection.at(1).get('name')).toBe('test5');
+            expect(collection.hasNextPage()).toBe(true);
+            expect(collection.hasPreviousPage()).toBe(true);
+            expect(collection.offset).toBe(6);
+            expect(collection.pageNum()).toBe(2);
+
+            return collection.fetchPreviousPage();
+        }).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test2');
+            expect(collection.at(1).get('name')).toBe('test3');
+            expect(collection.hasNextPage()).toBe(true);
+            expect(collection.hasPreviousPage()).toBe(true);
+            expect(collection.offset).toBe(4);
+            expect(collection.pageNum()).toBe(1);
+
+            return collection.fetchPreviousPage();
+        }).then(function () {
+            expect(collection.length).toBe(2);
+            expect(collection.at(0).get('name')).toBe('test0');
+            expect(collection.at(1).get('name')).toBe('test1');
+            expect(collection.hasNextPage()).toBe(true);
+            expect(collection.hasPreviousPage()).toBe(false);
+            expect(collection.offset).toBe(2);
+            expect(collection.pageNum()).toBe(0);
+        }).fail(failIfError).always(done);
+
+        waitsFor(done.check, 'to be done');
+    });
+});
+
+describe('Test collection filtering', function () {
     it('create several dummy api keys', function () {
         var done = canary();
 
@@ -119,6 +256,8 @@ describe('Test collection filtering', function () {
             expect(collection.at(3).get('name')).toBe('filterTest7');
             expect(collection.at(4).get('name')).toBe('filterTest8');
             expect(collection.hasNextPage()).toBe(true);
+            expect(collection.offset).toBe(9);
+            expect(collection.pageNum()).toBe(0);
         }).fail(failIfError).always(done);
 
         waitsFor(done.check, 'to be done');
@@ -146,6 +285,7 @@ describe('Test collection filtering', function () {
             expect(collection.hasNextPage()).toBe(true);
             expect(collection.hasPreviousPage()).toBe(false);
             expect(collection.offset).toBe(2);
+            expect(collection.pageNum()).toBe(0);
 
             return collection.fetchNextPage();
         }).then(function () {
@@ -155,15 +295,18 @@ describe('Test collection filtering', function () {
             expect(collection.hasNextPage()).toBe(true);
             expect(collection.hasPreviousPage()).toBe(true);
             expect(collection.offset).toBe(8);
+            expect(collection.pageNum()).toBe(1);
 
             return collection.fetchNextPage();
         }).then(function () {
             expect(collection.length).toBe(2);
             expect(collection.at(0).get('name')).toBe('filterTest8');
             expect(collection.at(1).get('name')).toBe('filterTest9');
-            expect(collection.hasNextPage()).toBe(false);
+            /* true because the collection hasn't checked every record, yet */
+            expect(collection.hasNextPage()).toBe(true);
             expect(collection.hasPreviousPage()).toBe(true);
             expect(collection.offset).toBe(10);
+            expect(collection.pageNum()).toBe(2);
 
             return collection.fetchPreviousPage();
         }).then(function () {
@@ -173,6 +316,7 @@ describe('Test collection filtering', function () {
             expect(collection.hasNextPage()).toBe(true);
             expect(collection.hasPreviousPage()).toBe(true);
             expect(collection.offset).toBe(8);
+            expect(collection.pageNum()).toBe(1);
 
             return collection.fetchPreviousPage();
         }).then(function () {
@@ -182,6 +326,7 @@ describe('Test collection filtering', function () {
             expect(collection.hasNextPage()).toBe(true);
             expect(collection.hasPreviousPage()).toBe(false);
             expect(collection.offset).toBe(2);
+            expect(collection.pageNum()).toBe(0);
         }).fail(failIfError).always(done);
 
         waitsFor(done.check, 'to be done');
