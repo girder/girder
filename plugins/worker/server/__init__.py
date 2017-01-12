@@ -21,6 +21,7 @@ import celery
 
 from girder import events
 from girder.constants import AccessType
+from girder.models.model_base import ValidationException
 from girder.plugins.jobs.constants import JobStatus
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
@@ -31,6 +32,7 @@ _celeryapp = None
 class PluginSettings(object):
     BROKER = 'worker.broker'
     BACKEND = 'worker.backend'
+    API_URL = 'worker.api_url'
 
 
 class CustomJobStatus(object):
@@ -100,6 +102,15 @@ def validateSettings(doc):
     """
     global _celeryapp
     _celeryapp = None
+
+
+@setting_utilities.validator({
+    PluginSettings.API_URL
+})
+def validateApiUrl(doc):
+    val = doc['value']
+    if val and not val.startswith('http://') and not val.startswith('https://'):
+        raise ValidationException('API URL must start with http:// or https://.', 'value')
 
 
 def validateJobStatus(event):

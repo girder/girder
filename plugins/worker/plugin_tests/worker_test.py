@@ -118,6 +118,13 @@ class WorkerTestCase(base.TestCase):
     def testWorkerDifferentTask(self):
         # Test the settings
         resp = self.request('/system/setting', method='PUT', params={
+            'key': worker.PluginSettings.API_URL,
+            'value': 'bad value'
+        }, user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'API URL must start with http:// or https://.')
+
+        resp = self.request('/system/setting', method='PUT', params={
             'list': json.dumps([{
                 'key': worker.PluginSettings.BROKER,
                 'value': 'amqp://guest@broker.com'
