@@ -107,7 +107,9 @@ def parseSlicerCliXml(fd):
             spec['target'] = 'filepath'
 
         if addDefault and param.default is not None:
-            spec['default'] = param.default
+            spec['default'] = {
+                'data': param.default
+            }
 
         return spec
 
