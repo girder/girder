@@ -2,6 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import './routes';
 
+import { getCurrentUser } from 'girder/auth';
 import { wrap } from 'girder/utilities/PluginUtils';
 import GlobalNavView from 'girder/views/layout/GlobalNavView';
 import ItemView from 'girder/views/body/ItemView';
@@ -19,15 +20,27 @@ wrap(GlobalNavView, 'initialize', function (initialize) {
 
 import itemMenuModTemplate from './templates/itemMenuMod.pug';
 wrap(ItemView, 'render', function (render) {
-    if (_.has(this.model.get('meta'), 'itemTaskSpec')) {
-        this.once('g:rendered', function () {
-            this.$('.g-item-actions-menu').prepend(itemMenuModTemplate({
-                item: this.model
-            }));
-        }, this);
-    }
+    this.once('g:rendered', function () {
+        this.$('.g-item-actions-menu').prepend(itemMenuModTemplate({
+            _: _,
+            item: this.model,
+            currentUser: getCurrentUser()
+        }));
+    }, this);
     return render.call(this);
- });
+});
+
+import ConfigureTaskDialog from './views/ConfigureTaskDialog';
+ItemView.prototype.events['click .g-create-slicer-cli-docker-task'] = function () {
+    if (!this.configureTaskDialog) {
+        this.configureTaskDialog = new ConfigureTaskDialog({
+            model: this.model,
+            parentView: this,
+            el: $('#g-dialog-container')
+        });
+    }
+    this.configureTaskDialog.render();
+};
 
 // Show task inputs and outputs on job details view
 import JobDetailsInfoView from './views/JobDetailsInfoView';

@@ -319,6 +319,9 @@ class Description(object):
         :param requireArray: Whether the value must be a JSON array / Python list.
         :type requireArray: bool
         """
+        if default:
+            default = bson.json_util.dumps(default)
+
         self.param(
             name=name, description=description, paramType=paramType, dataType=dataType,
             required=required, default=default)

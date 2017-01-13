@@ -1,4 +1,15 @@
-li(role="presentation")
-  a(role="menuitem", href=`#item_task/${item.id}/run`)
-    i.icon-play
-    | Run this task
+- var itemsAdded = false
+if _.has(item.get('meta'), 'itemTaskSpec')
+  - itemsAdded = true
+  li(role="presentation")
+    a(role="menuitem", href=`#item_task/${item.id}/run`)
+      i.icon-play
+      | Run this task
+if currentUser && currentUser.get('admin')
+  - itemsAdded = true
+  li(role="presentation")
+    a.g-create-slicer-cli-docker-task(role="menuitem")
+      i.icon-cube
+      | Configure task
+if itemsAdded
+  li.divider(role="presentation")

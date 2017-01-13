@@ -199,13 +199,14 @@ class ItemTask(Resource):
                     model='item', level=AccessType.WRITE)
         .param('image', 'The docker image name. If not passed, uses the existing'
                'itemTaskSpec.docker_image metadata value.' , required=False, strip=True)
-        .param('cli', 'Name of the CLI, if this image contains multiple CLIs.', required=False)
+        .jsonParam('args', 'Arguments to be passed to the docker container to output the '
+                   'Slicer CLI spec.', required=False, default=[], requireArray=True)
         .param('setName', 'Whether item name should be changed to the title of the CLI.',
                dataType='boolean', required=False, default=True)
         .param('setDescription', 'Whether the item description should be changed to the '
                'description of the CLI.', dataType='boolean', required=False, default=True)
     )
-    def runSlicerCliDescription(self, item, image, cli, setName, setDescription, params):
+    def runSlicerCliDescription(self, item, image, args, setName, setDescription, params):
         if 'meta' not in item:
             item['meta'] = {}
 
@@ -224,10 +225,8 @@ class ItemTask(Resource):
             title='Read docker Slicer CLI: %s' % image, type='item_task.slicer_cli',
             handler='worker_handler', user=self.getCurrentUser())
 
-        if cli:
-            args = [cli, '--xml']
-        else:
-            args = ['--xml']
+        if args[-1:] == ['--xml']:
+            args = args[:-1]
 
         job.update({
             'itemTaskId': item['_id'],
@@ -235,7 +234,7 @@ class ItemTask(Resource):
                 'task': {
                     'mode': 'docker',
                     'docker_image': image,
-                    'container_args': args,
+                    'container_args': args + ['--xml'],
                     'outputs': [{
                         'id': '_stdout',
                         'format': 'text'
@@ -270,8 +269,8 @@ class ItemTask(Resource):
             'docker_image': image
         }
 
-        if cli:
-            item['meta']['itemTaskSlicerCliName'] = cli
+        if args:
+            item['meta']['itemTaskSlicerCliArgs'] = args
 
         self.model('item').save(item)
 
@@ -288,17 +287,11 @@ class ItemTask(Resource):
                'description of the CLI.', dataType='boolean', required=False, default=True),
         hide=True
     )
-    def setSpecFromXml(self, item, setName, setDescription, params):
+    def setSpecFromXml(self, item, xml, setName, setDescription, params):
         self.ensureTokenScopes('item_task.set_task_spec.%s' % item['_id'])
 
-        cliNameField = 'itemTaskSlicerCliName'
-        if item.get('meta', {}).get(cliNameField):
-            args = [item['meta'][cliNameField]]
-            del item['meta'][cliNameField]
-        else:
-            args = []
-
-        cliSpec = cli_parser.parseSlicerCliXml(cherrypy.request.body)
+        args = item.get('meta', {}).get('itemTaskSlicerCliArgs') or []
+        cliSpec = cli_parser.parseSlicerCliXml(xml)
 
         itemTaskSpec = item.get('meta', {}).get('itemTaskSpec', {})
         itemTaskSpec.update({
