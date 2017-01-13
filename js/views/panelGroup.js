@@ -183,7 +183,8 @@ slicer.views.PanelGroup = girder.View.extend({
      */
     setAnalysis: function (path) {
         return girder.restRequest({
-            path: path + '/xmlspec'
+            path: path + '/xmlspec',
+            dataType: 'xml'
         }).then(_.bind(function (xml) {
             this._submit = path + '/run';
             this._schema(xml);
