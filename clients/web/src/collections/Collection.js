@@ -105,6 +105,10 @@ var Collection = Backbone.Collection.extend({
     /**
      * Return the 0-indexed page number of the current page. Add 1 to this
      * result when displaying it to the user.
+     *
+     * If this collection hasn't been fully initialized (i.e.: before any pages
+     * have been fetched), pageNum() may return a page number < 0 to signal that
+     * there is no "current page".
      */
     pageNum: function () {
         if (this.filterFunc) {
