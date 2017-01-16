@@ -108,25 +108,23 @@ module.exports = {
             {
                 test: /\.styl$/,
                 include: loaderPaths,
-                loaders: [
-                    ExtractTextPlugin.extract('style-loader'),
-                    'css-loader',
-                    {
+                loader: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: ['css-loader', {
                         loader: 'stylus-loader',
                         query: {
                             'resolve url': true
                         }
-                    }
-                ]
+                    }]
+                })
             },
             // CSS
             {
                 test: /\.css$/,
                 include: loaderPathsNodeModules,
-                loaders: [
-                    ExtractTextPlugin.extract('style-loader'),
-                    'css-loader'
-                ]
+                loader: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: ['css-loader']})
             },
             // Pug
             {
