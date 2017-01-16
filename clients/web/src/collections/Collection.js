@@ -161,7 +161,7 @@ var Collection = Backbone.Collection.extend({
                 }, this.params)
             });
 
-            var result = $.when(xhr).then(_.bind(function (list) {
+            var result = $.when(xhr).then((list) => {
                 if (!_.isArray(list)) {
                     list = [list];
                 }
@@ -255,7 +255,7 @@ var Collection = Backbone.Collection.extend({
 
                     this.trigger('g:changed');
                 }
-            }, this));
+            });
             xhr.girder = {fetch: true};
             return result;
         }
