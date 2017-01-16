@@ -311,7 +311,6 @@
                     checkboxes: false,
                     parentView: null,
                     showItems: false,
-                    selectFolder: true,
                     onFolderSelect: function (parent) { folderSelected = true; }
                 });
             });
@@ -346,8 +345,7 @@
                     parentModel: folder,
                     checkboxes: false,
                     parentView: null,
-                    showItems: false,
-                    selectFolder: true
+                    showItems: false
                 });
             });
 

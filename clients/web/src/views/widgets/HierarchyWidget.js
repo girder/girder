@@ -119,15 +119,6 @@ var HierarchyWidget = View.extend({
         this._showActions = _.has(settings, 'showActions') ? settings.showActions : true;
         this._showItems = _.has(settings, 'showItems') ? settings.showItems : true;
 
-        /*
-         * require that selectFolder be set *and* that a folder select callback
-         * be provided
-         */
-        this._selectFolder = (
-          _.has(settings, 'selectFolder') && _.has(settings, 'onFolderSelect')
-            ? settings.selectFolder : false
-        );
-
         this._itemFilter = settings.itemFilter;
 
         this._checkboxes = _.has(settings, 'checkboxes') ? settings.checkboxes : true;
@@ -288,9 +279,9 @@ var HierarchyWidget = View.extend({
             model: this.parentModel,
             level: this.parentModel.getAccessLevel(),
             AccessType: AccessType,
+            onFolderSelect: this._onFolderSelect,
             showActions: this._showActions,
             showMetadata: this._showMetadata,
-            selectFolder: this._selectFolder,
             checkboxes: this._checkboxes,
             capitalize: capitalize,
             itemFilter: this._itemFilter
