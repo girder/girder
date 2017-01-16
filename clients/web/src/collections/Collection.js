@@ -166,10 +166,6 @@ var Collection = Backbone.Collection.extend({
             });
 
             var result = $.when(xhr).then((list) => {
-                if (!_.isArray(list)) {
-                    list = [list];
-                }
-
                 if (this.pageLimit > 0 && list.length > this.pageLimit) {
                     // This means we have more pages to display still. Pop off
                     // the extra that we fetched.
