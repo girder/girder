@@ -166,9 +166,10 @@ object passed. Two special methods of the ``Description`` object can be used for
 additional behavior control: :py:func:`girder.api.describe.Description.modelParam` and
 :py:func:`girder.api.describe.Description.jsonParam`.
 
-The ``modelParam`` method is used to convert parameters passed in as IDs to the corresponding
-document, and also can perform access checks to ensure that the user calling the endpoint has
-a requisite access level on the resource. For example, we can convert the above handler to use it:
+The ``modelParam`` method is used to convert parameters passed in as IDs to the model document
+corresponding to those IDs, and also can perform access checks to ensure that the user calling the
+endpoint has a requisite access level on the resource. For example, we can convert the above
+handler to use it:
 
 .. code-block:: python
 

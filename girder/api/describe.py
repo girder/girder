@@ -250,22 +250,33 @@ class Description(object):
                    requiredFlags=None, **kwargs):
         """
         This should be used in lieu of ``param`` if the parameter is a model ID
-        and the model should be loaded and passed into the route handler.
+        and the model should be loaded and passed into the route handler. For example,
+        if you have a route like ``GET /item/:id``, you could do:
+
+        >>> modelParam('id', model='item', level=AccessType.READ)
+
+        Which would cause the ``id`` parameter in the path to be mapped to an
+        item model parameter named ``item``, and ensure that the calling user
+        has at least ``READ`` access on that item. For parameters passed in
+        the query string or form data, for example a request like
+        ``POST /item?folderId=...``, you must specify the ``paramType``.
+
+        >>> modelParam('folderId', 'The ID of the parent folder.',
+        ...            level=AccessType.WRITE, paramType='query')
+
+        Note that in the above example, ``model`` is omitted; in this case, the
+        model is inferred to be ``'folder'`` from the parameter name ``'folderId'``.
 
         :param name: The name passed in via the request, e.g. 'id'.
         :type name: str
         :param description: The description of the parameter. If not passed, defaults
             to "The ID of the <model>."
         :type description: str
-        :param destName: The kwarg name after model loading, e.g. 'folder'. Deafults
+        :param destName: The kwarg name after model loading, e.g. 'folder'. Defaults
             to the value of the model parameter.
         :type destName: str
         :param paramType: how is the parameter sent.  One of 'query', 'path',
             'body', 'header', or 'formData'.
-        :param map: Map of incoming parameter name to corresponding model arg name.
-            If None is passed, this will map the parameter named "id" to a kwarg
-            named the same as the "model" parameter.
-        :type map: dict or None
         :param model: The model name, e.g. 'folder'. If not passed, defaults to stripping
             the last two characters from the name, such that e.g. 'folderId' would make
             the model become 'folder'.
@@ -501,7 +512,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
         :param description: The description object.
         :type description: Description
-        :param hide: If this route should be hidden from the list, set this to True.
+        :param hide: Set to True if this route should not appear in the swagger listing.
         :type hide: bool
         """
         super(autoDescribeRoute, self).__init__(description=description)
