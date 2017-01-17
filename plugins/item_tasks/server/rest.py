@@ -110,7 +110,7 @@ class ItemTask(Resource):
 
         return transformed
 
-    def _transformOutputs(self, outputs, token):
+    def _transformOutputs(self, outputs, token, job):
         """
         Validates and sanitizes the output bindings. If they are Girder outputs, adds
         the necessary token info. If the token does not allow DATA_WRITE, or if the user
@@ -128,7 +128,8 @@ class ItemTask(Resource):
                     v['parent_id'], level=AccessType.WRITE, user=self.getCurrentUser(), exc=True)
 
                 transformed[k] = utils.girderOutputSpec(
-                    parent, parentType=ptype, token=token, name=v.get('name'), dataFormat='none')
+                    parent, parentType=ptype, token=token, name=v.get('name'), dataFormat='none',
+                    reference='item_tasks.output:%s:%s' % (k, job['_id']))
             else:
                 raise ValidationException('Invalid output mode: %s.' % v['mode'])
 
@@ -161,10 +162,13 @@ class ItemTask(Resource):
 
         # If this is a user auth token, we make an IO-enabled token
         token = self.getCurrentToken()
-        if self.model('token').hasScope(token, TokenScope.USER_AUTH):
-            token = self.model('token').createToken(
+        tokenModel = self.model('token')
+        if tokenModel.hasScope(token, TokenScope.USER_AUTH):
+            token = tokenModel.createToken(
                 user=user, days=7, scope=(TokenScope.DATA_READ, TokenScope.DATA_WRITE))
             job['itemTaskTempToken'] = token['_id']
+
+        token = tokenModel.addScope(token, 'item_tasks.job_write:%s' % job['_id'])
 
         job.update({
             'itemTaskId': item['_id'],
@@ -175,7 +179,7 @@ class ItemTask(Resource):
             'kwargs': {
                 'task': task,
                 'inputs': self._transformInputs(inputs, token),
-                'outputs': self._transformOutputs(outputs, token),
+                'outputs': self._transformOutputs(outputs, token, job),
                 'validate': False,
                 'auto_convert': False,
                 'cleanup': True

@@ -1,4 +1,5 @@
 from girder import events
+from girder.api.rest import getCurrentToken, getCurrentUser
 from girder.constants import registerAccessFlag, AccessType, TokenScope
 from girder.plugins.jobs.constants import JobStatus
 from girder.utility.model_importer import ModelImporter
@@ -25,6 +26,29 @@ def _onJobSave(event):
         }, multi=False)
 
 
+def _onUpload(event):
+    """
+    Look at uploads containing references related to this plugin. If found,
+    they are used to link item task outputs back to a job document.
+    """
+    ref = event.info.get('reference', '')
+    if ref.startswith('item_tasks.output'):
+        key, jobId = ref.split(':')[-2:]
+        jobModel = ModelImporter.model('job', 'jobs')
+        tokenModel = ModelImporter.model('token')
+
+        if tokenModel.hasScope(getCurrentToken(), 'item_tasks.job_write:%s' % jobId):
+            job = jobModel.load(jobId, force=True, exc=True)
+        else:
+            job = jobModel.load(jobId, level=AccessType.WRITE, user=getCurrentUser(), exc=True)
+
+        file = event.info['file']
+        item = ModelImporter.model('item').load(file['itemId'], force=True)
+
+        job['itemTaskBindings']['outputs'][key]['itemId'] = item['_id']
+        jobModel.save(job)
+
+
 def load(info):
     registerAccessFlag(constants.ACCESS_FLAG_EXECUTE_TASK, name='Execute analyses', admin=True)
     TokenScope.describeScope(
@@ -38,5 +62,6 @@ def load(info):
         'itemTaskId', 'itemTaskBindings'})
 
     events.bind('model.job.save.after', info['name'], _onJobSave)
+    events.bind('data.process', info['name'], _onUpload)
 
     info['apiRoot'].item_task = ItemTask()
