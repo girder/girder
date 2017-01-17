@@ -207,6 +207,7 @@ module.exports = {
         alias: {
             'girder': paths.web_src
         },
+        extensions: ['.js'],
         modules: [
             paths.clients_web,
             paths.plugins,
