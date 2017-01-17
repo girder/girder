@@ -178,7 +178,8 @@ def install_web(opts=None):
         _runWatchCmd('npm', 'run', 'watch')
     elif opts.watch_plugin:
         _runWatchCmd(
-            'npm', 'run', 'watch', '--', '--all-plugins', 'webpack:plugin_%s' % opts.watch_plugin
+            'npm', 'run', 'watch', '--', '--all-plugins', 'webpack:%s_%s' % (
+                opts.plugin_prefix, opts.watch_plugin)
         )
     else:
         runWebBuild(
@@ -299,6 +300,9 @@ def main():
                      help='watch for changes and rebuild girder core library in dev mode')
     web.add_argument('--watch-plugin', default='',
                      help='watch for changes and rebuild a specific plugin in dev mode')
+
+    web.add_argument('--plugin-prefix', default='plugin',
+                     help='prefix of the generated plugin bundle')
 
     web.set_defaults(func=install_web)
 
