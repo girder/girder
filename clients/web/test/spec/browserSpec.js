@@ -11,6 +11,7 @@ describe('Test the hierarchy browser modal', function () {
     beforeEach(function () {
         testEl = $('<div/>').appendTo('body');
         returnVal = null;
+        onRestRequest = null;
         girder.rest.mockRestRequest(function () {
             requestContext.push(this);
             requestArgs.push(_.toArray(arguments));
@@ -78,12 +79,7 @@ describe('Test the hierarchy browser modal', function () {
 
         it('rerender on login', function () {
             returnVal = [];
-            var view = new girder.views.widgets.RootSelectorWidget({
-                el: testEl,
-                parentView: null
-            });
-            view.render();
-            returnVal = {
+            var user = {
                 user: {
                     _id: '0',
                     login: 'johndoe',
@@ -94,6 +90,23 @@ describe('Test the hierarchy browser modal', function () {
                     token: ''
                 }
             };
+            var view = new girder.views.widgets.RootSelectorWidget({
+                el: testEl,
+                parentView: null
+            });
+            view.render();
+
+            onRestRequest = function (params) {
+                if (params.path === '/user/authentication') {
+                    // The return value for the initial login call
+                    return $.when(user);
+                }
+
+                // After login return an empty array for collection fetches
+                // on the RootSelector
+                return $.when([]);
+            };
+
             girder.auth.login('johndoe', 'password');
 
             var select = view.$('select#g-root-selector');

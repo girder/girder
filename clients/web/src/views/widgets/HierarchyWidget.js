@@ -73,6 +73,7 @@ var HierarchyWidget = View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-edit-folder': 'editFolderDialog',
+        'click button.g-select-folder': 'selectFolder',
         'click a.g-delete-folder': 'deleteFolderDialog',
         'click .g-folder-info-button': 'showInfoDialog',
         'click .g-collection-info-button': 'showInfoDialog',
@@ -117,6 +118,9 @@ var HierarchyWidget = View.extend({
 
         this._showActions = _.has(settings, 'showActions') ? settings.showActions : true;
         this._showItems = _.has(settings, 'showItems') ? settings.showItems : true;
+
+        this._itemFilter = settings.itemFilter;
+
         this._checkboxes = _.has(settings, 'checkboxes') ? settings.checkboxes : true;
         this._downloadLinks = _.has(settings, 'downloadLinks') ? settings.downloadLinks : true;
         this._viewLinks = _.has(settings, 'viewLinks') ? settings.viewLinks : true;
@@ -127,6 +131,8 @@ var HierarchyWidget = View.extend({
         this._onItemClick = settings.onItemClick || function (item) {
             router.navigate('item/' + item.get('_id'), {trigger: true});
         };
+
+        this._onFolderSelect = settings.onFolderSelect;
 
         this.folderAccess = settings.folderAccess;
         this.folderCreate = settings.folderCreate;
@@ -154,6 +160,7 @@ var HierarchyWidget = View.extend({
         });
 
         this.folderListView = new FolderListWidget({
+            folderFilter: this._itemFilter,
             parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id'),
             checkboxes: this._checkboxes,
@@ -206,6 +213,7 @@ var HierarchyWidget = View.extend({
      */
     _initFolderViewSubwidgets: function () {
         this.itemListView = new ItemListWidget({
+            itemFilter: this._itemFilter,
             folderId: this.parentModel.get('_id'),
             checkboxes: this._checkboxes,
             downloadLinks: this._downloadLinks,
@@ -271,10 +279,12 @@ var HierarchyWidget = View.extend({
             model: this.parentModel,
             level: this.parentModel.getAccessLevel(),
             AccessType: AccessType,
+            onFolderSelect: this._onFolderSelect,
             showActions: this._showActions,
             showMetadata: this._showMetadata,
             checkboxes: this._checkboxes,
-            capitalize: capitalize
+            capitalize: capitalize,
+            itemFilter: this._itemFilter
         }));
 
         if (this.$('.g-folder-actions-menu>li>a').length === 0) {
@@ -337,6 +347,13 @@ var HierarchyWidget = View.extend({
     upOneLevel: function () {
         this.breadcrumbs.pop();
         this.setCurrentModel(this.breadcrumbs[this.breadcrumbs.length - 1]);
+    },
+
+    /**
+     * Called when the "select this folder" link is clicked.
+     */
+    selectFolder: function () {
+        this._onFolderSelect(this.parentModel);
     },
 
     /**
