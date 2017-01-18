@@ -178,6 +178,10 @@ class Upload(Model):
             file['created'] = datetime.datetime.utcnow()
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
+            # If the file was previously import, it is no longer.
+            if file.get('imported'):
+                file['imported'] = False
+
         else:  # Creating a new file record
             if upload.get('attachParent'):
                 item = None
