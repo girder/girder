@@ -82,7 +82,8 @@ def schedule(event):
         task = job.get('celeryTaskName', 'girder_worker.run')
 
         # Send the task to celery
-        asyncResult = getCeleryApp().send_task(task, job['args'], job['kwargs'])
+        asyncResult = getCeleryApp().send_task(
+            task, job['args'], job['kwargs'], queue=job.get('celeryQueue'))
 
         # Set the job status to queued and record the task ID from celery.
         ModelImporter.model('job', 'jobs').updateJob(job, status=JobStatus.QUEUED, otherFields={
@@ -123,4 +124,5 @@ def load(info):
     events.bind('jobs.schedule', 'worker', schedule)
     events.bind('jobs.status.validate', 'worker', validateJobStatus)
 
-    ModelImporter.model('job', 'jobs').exposeFields(AccessType.SITE_ADMIN, {'celeryTaskId'})
+    ModelImporter.model('job', 'jobs').exposeFields(
+        AccessType.SITE_ADMIN, {'celeryTaskId', 'celeryQueue'})
