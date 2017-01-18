@@ -141,7 +141,8 @@ class WorkerTestCase(base.TestCase):
             title='title', type='foo', handler='worker_handler',
             user=self.admin, public=False, args=(), kwargs={},
             otherFields={
-                'celeryTaskName': 'some_other.task'
+                'celeryTaskName': 'some_other.task',
+                'celeryQueue': 'my_other_q'
             })
 
         job['kwargs'] = {
@@ -166,3 +167,5 @@ class WorkerTestCase(base.TestCase):
             self.assertEqual(len(sendTaskCalls), 1)
             self.assertEqual(sendTaskCalls[0][1], (
                 'some_other.task', job['args'], job['kwargs']))
+            self.assertIn('queue', sendTaskCalls[0][2])
+            self.assertEqual(sendTaskCalls[0][2]['queue'], 'my_other_q')
