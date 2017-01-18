@@ -539,7 +539,8 @@ var HierarchyWidget = View.extend({
                     checkboxes: this._checkboxes,
                     downloadLinks: this._downloadLinks,
                     viewLinks: this._viewLinks,
-                    itemFilter: this._itemFilter
+                    itemFilter: this._itemFilter,
+                    showSizes: this._showSizes
                 });
             } else {
                 this._initFolderViewSubwidgets();
