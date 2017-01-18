@@ -189,6 +189,9 @@ class ItemTask(Resource):
         if includeJobInfo:
             job['kwargs']['jobInfo'] = utils.jobInfoSpec(job)
 
+        if 'itemTaskCeleryQueue' in item.get('meta', {}):
+            job['celeryQueue'] = item['meta']['itemTaskCeleryQueue']
+
         job = jobModel.save(job)
         jobModel.scheduleJob(job)
 
