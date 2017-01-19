@@ -374,7 +374,7 @@ class File(Resource):
         Description('Copy a file.')
         .modelParam('id', model='file', level=AccessType.READ)
         .modelParam('itemId', description='The ID of the item to copy the file to.',
-                    level=AccessType.READ, paramType='formData')
+                    level=AccessType.WRITE, paramType='formData')
     )
     def copy(self, file, item, params):
         return self.model('file').copyFile(file, self.getCurrentUser(), item=item)

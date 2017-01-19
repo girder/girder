@@ -905,9 +905,18 @@ class Resource(ModelImporter):
 
     def requireParams(self, required, provided=None):
         """
-        This method has two modes, in the first mode # TODO document,
-        Throws an exception if any of the parameters in the required iterable
-        is not found in the provided parameter set.
+        This method has two modes. In the first mode, this takes two
+        parameters, the first being a required parameter or list of
+        them, and the second the dictionary of parameters that were
+        passed. If the required parameter does not appear in the
+        passed parameters, a ValidationException is raised.
+
+        The second mode of operation takes only a single
+        parameter, which is a dict mapping required parameter names
+        to passed in values for those params. If the value is ``None``,
+        a ValidationException is raised. This mode works well in conjunction
+        with the ``autoDescribeRoute`` decorator, where the parameters are
+        not all contained in a single dictionary.
 
         :param required: An iterable of required params, or if just one is
             required, you can simply pass it as a string.
@@ -927,8 +936,7 @@ class Resource(ModelImporter):
                 if provided is None or param not in provided:
                     raise RestException('Parameter "%s" is required.' % param)
 
-    @staticmethod
-    def boolParam(key, params, default=None):
+    def boolParam(self, key, params, default=None):
         """
         Coerce a parameter value from a str to a bool.
 
@@ -963,8 +971,7 @@ class Resource(ModelImporter):
         """
         return setRawResponse(*args, **kwargs)
 
-    @staticmethod
-    def getPagingParameters(params, defaultSortField=None, defaultSortDir=SortDir.ASCENDING):
+    def getPagingParameters(self, params, defaultSortField=None, defaultSortDir=SortDir.ASCENDING):
         """
         Pass the URL parameters into this function if the request is for a
         list of resources that should be paginated. It will return a tuple of

@@ -262,6 +262,8 @@ class Item(Resource):
     @filtermodel(model='item')
     @autoDescribeRoute(
         Description('Copy an item.')
+        .notes('If no folderId parameter is specified, creates a copy of the item in '
+               'its current containing folder.')
         .responseClass('Item')
         .modelParam('id', 'The ID of the original item.', model='item', level=AccessType.READ)
         .modelParam('folderId', 'The ID of the parent folder.', required=False,
