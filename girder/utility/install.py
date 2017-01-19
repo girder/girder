@@ -26,6 +26,7 @@ import os
 import pip
 import select
 import shutil
+import six
 import subprocess
 import string
 import sys
@@ -71,9 +72,17 @@ def _getPluginBuildArgs(buildAll, plugins):
     elif not plugins:  # build only the enabled plugins
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
-        plugins = ','.join(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
+        plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
 
-    return ['--plugins=%s' % plugins]
+    # include static-only dependencies that are not in the runtime load set
+    staticPlugins = plugin_utilities.getToposortedPlugins(
+        plugins, ignoreMissing=True, keys=('dependencies', 'staticWebDependencies'))
+    staticPlugins = [p for p in staticPlugins if p not in plugins]
+
+    return [
+        '--plugins=%s' % ','.join(plugins),
+        '--configure-plugins=%s' % ','.join(staticPlugins)
+    ]
 
 
 def _pipeOutputToProgress(proc, progress):
@@ -121,10 +130,13 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     :param allPlugins: Enable this to build all available plugins as opposed to only enabled ones.
     :type allPlugins: bool
     :param plugins: A specific set of plugins to build.
-    :type plugins: list or None
+    :type plugins: str, list or None
     :param progress: A progress context for reporting output of the tasks.
     :type progress: ``girder.utility.progress.ProgressContext`` or None
     """
+    if isinstance(plugins, six.string_types) and plugins:
+        plugins = [plugins]
+
     if shutil.which(npm) is None:
         print(constants.TerminalColor.error(
             'No npm executable was detected.  Please ensure the npm '
@@ -296,6 +308,8 @@ def main():
     web.add_argument('--all-plugins', action='store_true',
                      help='build all available plugins rather than just enabled ones')
     web.add_argument('--plugins', default='', help='comma-separated list of plugins to build')
+    web.add_argument('--configure-plugins', default='',
+                     help='comma-separated list of plugins to configure for static linking')
     web.add_argument('--watch', action='store_true',
                      help='watch for changes and rebuild girder core library in dev mode')
     web.add_argument('--watch-plugin', default='',
