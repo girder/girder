@@ -308,8 +308,6 @@ def main():
     web.add_argument('--all-plugins', action='store_true',
                      help='build all available plugins rather than just enabled ones')
     web.add_argument('--plugins', default='', help='comma-separated list of plugins to build')
-    web.add_argument('--configure-plugins', default='',
-                     help='comma-separated list of plugins to configure for static linking')
     web.add_argument('--watch', action='store_true',
                      help='watch for changes and rebuild girder core library in dev mode')
     web.add_argument('--watch-plugin', default='',

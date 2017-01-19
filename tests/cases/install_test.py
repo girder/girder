@@ -303,9 +303,13 @@ class InstallTestCase(base.TestCase):
             install.install_web(PluginOpts(plugins='has_static_deps'))
 
             self.assertEqual(len(p.mock_calls), 2)
-            self.assertEqual(list(p.mock_calls[1][1][0]), [
+            self.assertEqual(list(p.mock_calls[1][1][0][:-1]), [
                 'npm', 'run', 'build', '--', '--no-progress=true', '--env=prod',
                 '--plugins=has_static_deps',
-                '--configure-plugins=has_webroot,does_nothing,test_plugin,has_deps'
             ])
-
+            lastArg = p.mock_calls[1][1][0][-1]
+            six.assertRegex(self, lastArg, '--configure-plugins=.*')
+            self.assertEqual(
+                set(lastArg.split('=')[-1].split(',')), {
+                    'does_nothing', 'has_deps', 'has_webroot', 'test_plugin'
+                })
