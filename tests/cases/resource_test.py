@@ -336,8 +336,17 @@ class ResourceTestCase(base.TestCase):
         self.assertEqual(zip.namelist(), [])
 
     def testDeleteResources(self):
+        # Make sure an invalid resource type
         # Some of the deletes were tested with the downloads.
         self._createFiles(user=self.user)
+
+        # Make sure we cannot delete a non-AC resource
+        resp = self.request('/resource', method='DELETE', user=self.admin, params={
+            'resources': json.dumps({'assetstore': [str(self.assetstore['_id'])]})
+        })
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid resource types requested: assetstore')
+
         # Test delete of a file
         resp = self.request(
             path='/resource', method='DELETE', user=self.admin, params={
@@ -534,10 +543,20 @@ class ResourceTestCase(base.TestCase):
 
     def testMove(self):
         self._createFiles()
+
+        # Make sure passing invalid resource type is caught gracefully
+        resp = self.request(
+            path='/resource/move', method='PUT', user=self.admin, params={
+                'resources': json.dumps({'invalid_type': [str(self.items[0]['_id'])]}),
+                'parentType': 'folder',
+                'parentId': str(self.adminPrivateFolder['_id'])
+            })
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid resource types requested: invalid_type')
+
         # Move item1 from the public to the private folder
         resp = self.request(
-            path='/resource/move', method='PUT', user=self.admin,
-            params={
+            path='/resource/move', method='PUT', user=self.admin, params={
                 'resources': json.dumps({'item': [str(self.items[0]['_id'])]}),
                 'parentType': 'folder',
                 'parentId': str(self.adminPrivateFolder['_id']),

@@ -23,8 +23,6 @@ from ..describe import Description, autoDescribeRoute
 from ..rest import Resource as BaseResource, RestException, setResponseHeader
 from girder.constants import AccessType, TokenScope
 from girder.api import access
-from girder.models.model_base import AccessControlledModel
-from girder.utility import acl_mixin
 from girder.utility import parseTimestamp
 from girder.utility import ziputil
 from girder.utility import path as path_util
@@ -32,6 +30,7 @@ from girder.utility.progress import ProgressContext
 
 # Plugins can modify this set to allow other types to be searched
 allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
+allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 
 
 class Resource(BaseResource):
@@ -106,7 +105,7 @@ class Resource(BaseResource):
         if allowedModels:
             invalid = set(resources.keys()) - set(allowedModels)
             if invalid:
-                raise RestException('Invalid resource types requested:' % ', '.join(invalid))
+                raise RestException('Invalid resource types requested: ' + ', '.join(invalid))
         count = sum([len(v) for v in six.viewvalues(resources)])
         if not count:
             raise RestException('No resources specified.')
@@ -259,7 +258,7 @@ class Resource(BaseResource):
     )
     def delete(self, resources, progress, params):
         user = self.getCurrentUser()
-        self._validateResourceSet(resources)
+        self._validateResourceSet(resources, allowedDeleteTypes)
         total = sum([len(resources[key]) for key in resources])
         with ProgressContext(
                 progress, user=user, title='Deleting resources',
@@ -269,13 +268,8 @@ class Resource(BaseResource):
             for kind in resources:
                 model = self._getResourceModel(kind, 'remove')
                 for id in resources[kind]:
-                    if (isinstance(model, (acl_mixin.AccessControlMixin,
-                                           AccessControlledModel))):
-                        doc = model.load(id=id, user=user, level=AccessType.ADMIN)
-                    else:
-                        doc = model.load(id=id)
-                    if not doc:
-                        raise RestException('Resource %s %s not found.' % (kind, id))
+                    doc = model.load(id=id, user=user, level=AccessType.ADMIN, exc=True)
+
                     # Don't do a subtree count if we weren't asked for progress
                     if progress:
                         subtotal = model.subtreeCount(doc)
@@ -290,10 +284,7 @@ class Resource(BaseResource):
 
     def _getResource(self, id, type):
         model = self._getResourceModel(type)
-        if (isinstance(model, (acl_mixin.AccessControlMixin, AccessControlledModel))):
-            user = self.getCurrentUser()
-            return model.load(id=id, user=user, level=AccessType.READ)
-        return model.load(id=id)
+        return model.load(id=id, user=self.getCurrentUser(), level=AccessType.READ)
 
     @access.admin
     @autoDescribeRoute(
