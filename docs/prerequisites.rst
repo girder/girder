@@ -40,7 +40,7 @@ Debian / Ubuntu
 
 Install the prerequisites using APT: ::
 
-    sudo apt-get install curl g++ git libffi-dev make python-dev python-pip libjpeg-dev zlib1g-dev
+    sudo apt-get install curl g++ git libffi-dev make python-dev python-pip libssl-dev libjpeg-dev zlib1g-dev
 
 MongoDB 2.6 requires a special incantation to install at this time. Install
 the APT key with the following: ::
@@ -111,7 +111,7 @@ YUM repository: ::
 
 Install the prerequisites using YUM: ::
 
-   sudo yum install curl gcc-c++ git libffi-devel make python-devel python-pip libjpeg-turbo-devel zlib-devel
+   sudo yum install curl gcc-c++ git libffi-devel make python-devel python-pip openssl-devel libjpeg-turbo-devel zlib-devel
 
 Create a file ``/etc/yum.repos.d/mongodb.repo`` that contains the following
 configuration information for the MongoDB YUM repository:

@@ -81,7 +81,7 @@
           else
             .g-assetstore-button-container(title="You must delete all files from the assetstore before you can delete the assetstore.")
               button.g-delete-assetstore.btn.btn-sm.btn-danger.disabled(
-                  cid=assetstore.cid) Delete
+                  cid=assetstore.cid, disabled) Delete
           if !assetstore.get('current') && !assetstore.get('readOnly')
             button.g-set-current.btn.btn-sm.btn-primary(
               cid=assetstore.cid) Set as current

@@ -217,6 +217,13 @@ class Setting(Model):
         raise ValidationException('Cookie lifetime must be an integer > 0.', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.SERVER_ROOT)
+    def validateCoreServerRoot(doc):
+        val = doc['value']
+        if val and not val.startswith('http://') and not val.startswith('https://'):
+            raise ValidationException('Server root must start with http:// or https://.', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_METHODS)
     def validateCoreCorsAllowMethods(doc):
         if isinstance(doc['value'], six.string_types):

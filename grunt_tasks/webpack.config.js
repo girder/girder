@@ -81,11 +81,6 @@ module.exports = {
             jQuery: 'jquery',
             $: 'jquery',
             'window.jQuery': 'jquery'
-        }),
-        new ExtractTextPlugin({
-            filename: '[name].min.css',
-            allChunks: true,
-            disable: false
         })
     ],
     module: {
@@ -106,32 +101,30 @@ module.exports = {
             // JSON files
             {
                 test: /\.json$/,
-                include: loaderPaths,
+                include: loaderPaths.concat(loaderPathsNodeModules),
                 loader: 'json-loader'
             },
             // Stylus
             {
                 test: /\.styl$/,
                 include: loaderPaths,
-                loaders: [
-                    ExtractTextPlugin.extract('style-loader'),
-                    'css-loader',
-                    {
+                loader: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: ['css-loader', {
                         loader: 'stylus-loader',
                         query: {
                             'resolve url': true
                         }
-                    }
-                ]
+                    }]
+                })
             },
             // CSS
             {
                 test: /\.css$/,
                 include: loaderPathsNodeModules,
-                loaders: [
-                    ExtractTextPlugin.extract('style-loader'),
-                    'css-loader'
-                ]
+                loader: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: ['css-loader']})
             },
             // Pug
             {
@@ -214,6 +207,7 @@ module.exports = {
         alias: {
             'girder': paths.web_src
         },
+        extensions: ['.js'],
         modules: [
             paths.clients_web,
             paths.plugins,

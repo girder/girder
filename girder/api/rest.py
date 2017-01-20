@@ -21,6 +21,7 @@ import cherrypy
 import collections
 import datetime
 import json
+import posixpath
 import six
 import sys
 import traceback
@@ -28,8 +29,7 @@ import traceback
 from . import docs
 from girder import events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
-from girder.models.model_base import AccessException, GirderException, \
-    ValidationException
+from girder.models.model_base import AccessException, GirderException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility import toBool, config, JsonEncoder
 from six.moves import range, urllib
@@ -65,8 +65,13 @@ def getApiUrl(url=None):
     The returned path does *not* end in a forward slash.
 
     :param url: URL from which to extract the base URL. If not specified, uses
-        `cherrypy.url()`
+        the server root system setting. If that is not specified, uses `cherrypy.url()`
     """
+    if not url:
+        root = ModelImporter.model('setting').get(SettingKey.SERVER_ROOT)
+        if root:
+            return posixpath.join(root, config.getConfig()['server']['api_root'].lstrip('/'))
+
     url = url or cherrypy.url()
     idx = url.find('/api/v1')
 

@@ -17,8 +17,20 @@
 #  limitations under the License.
 ###############################################################################
 
+from . import PluginSettings
 from girder.api.rest import getApiUrl
 from girder.utility.model_importer import ModelImporter
+
+
+def getWorkerApiUrl():
+    """
+    Return the API base URL to which the worker should callback to
+    write output information back to the server. This is controlled
+    via a system setting, and the default is to use the core server
+    root setting.
+    """
+    apiUrl = ModelImporter.model('setting').get(PluginSettings.API_URL)
+    return apiUrl or getApiUrl()
 
 
 def girderInputSpec(resource, resourceType='file', name=None, token=None,
@@ -51,7 +63,7 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
 
     return {
         'mode': 'girder',
-        'api_url': getApiUrl(),
+        'api_url': getWorkerApiUrl(),
         'token': token,
         'id': str(resource['_id']),
         'name': name or resource['name'],
@@ -93,7 +105,7 @@ def girderOutputSpec(parent, token, parentType='folder', name=None,
 
     return {
         'mode': 'girder',
-        'api_url': getApiUrl(),
+        'api_url': getWorkerApiUrl(),
         'token': token,
         'name': name,
         'parent_id': str(parent['_id']),
@@ -123,7 +135,7 @@ def jobInfoSpec(job, token=None, logPrint=True):
 
     return {
         'method': 'PUT',
-        'url': '/'.join((getApiUrl(), 'job', str(job['_id']))),
+        'url': '/'.join((getWorkerApiUrl(), 'job', str(job['_id']))),
         'reference': str(job['_id']),
         'headers': {'Girder-Token': token},
         'logPrint': logPrint

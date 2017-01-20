@@ -23,6 +23,7 @@ module.exports = function (grunt) {
     var path = require('path');
     var child_process = require('child_process'); // eslint-disable-line camelcase
 
+    var ExtractTextPlugin = require('extract-text-webpack-plugin');
     var customWebpackPlugins = require('./webpack.plugins.js');
     var paths = require('./webpack.paths.js');
 
@@ -188,10 +189,18 @@ module.exports = function (grunt) {
                         entry: {
                             [helperConfig.pluginEntry]: [main]
                         },
+                        output: {
+                            path: path.join(paths.web_built, 'plugins', plugin),
+                            filename: `${output}.min.js`
+                        },
                         plugins: [
                             new customWebpackPlugins.DllReferenceByPathPlugin({
                                 context: '.',
                                 manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                            }),
+                            new ExtractTextPlugin({
+                                filename: `${output}.min.css`,
+                                allChunks: true
                             })
                         ]
                     },
@@ -233,7 +242,7 @@ module.exports = function (grunt) {
                 var numLoaders = grunt.config.get('webpack.options.module.loaders').length;
                 for (var i = 0; i < numLoaders; i++) {
                     var selector = 'webpack.options.module.loaders.' + i + '.include';
-                    var loaders = grunt.config.get(selector);
+                    var loaders = grunt.config.get(selector) || [];
                     var pluginPath = path.resolve(dir);
                     var realPath = fs.realpathSync(dir);
                     var loaderIncludes = [pluginPath];

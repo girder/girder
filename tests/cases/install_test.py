@@ -33,7 +33,7 @@ pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plug
 class PluginOpts():
     def __init__(self, plugin=None, force=False, symlink=False, dev=False, npm='npm',
                  skip_requirements=False, all_plugins=False, plugins=None, watch=False,
-                 watch_plugin=None):
+                 watch_plugin=None, plugin_prefix='plugin'):
         self.plugin = plugin
         self.force = force
         self.symlink = symlink
@@ -44,6 +44,7 @@ class PluginOpts():
         self.plugins = plugins
         self.watch = watch
         self.watch_plugin = watch_plugin
+        self.plugin_prefix = plugin_prefix
 
 
 class ProcMock(object):

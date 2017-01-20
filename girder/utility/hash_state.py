@@ -25,6 +25,10 @@
 import hashlib
 import ctypes
 import binascii
+import sys
+
+_ver = sys.version_info
+_HASHLIB_INLINE_EVP_STRUCT = _ver < (2, 7, 13) or (_ver >= (3,) and _ver < (3, 5, 3))
 
 
 def _getHashStateDataPointer(hashObject):
@@ -35,40 +39,46 @@ def _getHashStateDataPointer(hashObject):
     :return: A ctypes pointer to the internal hash state.
     :rtype: ctypes.POINTER(ctypes.c_char)
     """
-    # From
-    #   * github.com/python/cpython/blob/2.7/Modules/_hashopenssl.c#L58
-    # the layout of a hashObject (_hashlib.HASH) is:
-    #     typedef struct {
-    #         PyObject_HEAD
-    #         PyObject *name;
-    #         EVP_MD_CTX ctx;
-    #         ...
-    #     } EVPobject;
-    #
-    # Using
-    #   * docs.python.org/2/c-api/structures.html#c.PyObject_HEAD
-    #   * github.com/openssl/openssl/blob/OpenSSL_1_0_1f/crypto/evp/evp.h#L265
-    # this expands to:
-    #     typedef struct {
-    #         Py_ssize_t ob_refcnt;      // Word 0
-    #         PyTypeObject *ob_type;     // Word 1
-    #         PyObject *name;            // Word 2
-    #         struct env_md_ctx_st {
-    #             const EVP_MD *digest;  // Word 3
-    #             ENGINE *engine;        // Word 4
-    #             unsigned long flags;   // Word 5
-    #             void *md_data;         // Word 6
-    #             ...
-    #         } /* EVP_MD_CTX */;
-    #         ...
-    #     } EVPobject;
-    #
-    # Thus, an offset of 6 words ( sizeof(void*) is 1 word) is required
-    STATE_POINTER_OFFSET = 6
-
     hashPointer = ctypes.cast(id(hashObject), ctypes.POINTER(ctypes.c_void_p))
-    statePointer = hashPointer[STATE_POINTER_OFFSET]
-    stateDataPointer = ctypes.cast(statePointer, ctypes.POINTER(ctypes.c_char))
+
+    if _HASHLIB_INLINE_EVP_STRUCT:
+        # From
+        #   * github.com/python/cpython/blob/2.7/Modules/_hashopenssl.c#L58
+        # the layout of a hashObject (_hashlib.HASH) is:
+        #     typedef struct {
+        #         PyObject_HEAD
+        #         PyObject *name;
+        #         EVP_MD_CTX ctx;
+        #         ...
+        #     } EVPobject;
+        #
+        # Using
+        #   * docs.python.org/2/c-api/structures.html#c.PyObject_HEAD
+        #   * github.com/openssl/openssl/blob/OpenSSL_1_0_1f/crypto/evp/evp.h#L265
+        # this expands to:
+        #     typedef struct {
+        #         Py_ssize_t ob_refcnt;      // Word 0
+        #         PyTypeObject *ob_type;     // Word 1
+        #         PyObject *name;            // Word 2
+        #         struct env_md_ctx_st {
+        #             const EVP_MD *digest;  // Word 3
+        #             ENGINE *engine;        // Word 4
+        #             unsigned long flags;   // Word 5
+        #             void *md_data;         // Word 6   << this guy is what we want
+        #             ...
+        #         } /* EVP_MD_CTX */;
+        #         ...
+        #     } EVPobject;
+        #
+        # Thus, an offset of 6 words ( sizeof(void*) is 1 word) is required
+        stateDataPointer = ctypes.cast(hashPointer[6], ctypes.POINTER(ctypes.c_char))
+    else:
+        # In cpython 2.7.13, hashlib changed to store a pointer to the OpenSSL hash
+        # object rather than inlining it in the struct, so we require an extra dereference. See
+        # https://github.com/python/cpython/commit/9d9615f6782be4b1f38b47d4d56cee208c26a970
+        evpStruct = ctypes.cast(hashPointer[3], ctypes.POINTER(ctypes.c_void_p))
+        stateDataPointer = ctypes.cast(evpStruct[3], ctypes.POINTER(ctypes.c_char))
+
     assert stateDataPointer
     return stateDataPointer
 
