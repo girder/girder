@@ -514,6 +514,17 @@ class UserTestCase(base.TestCase):
         self.assertStatus(resp, 401)
         self.assertTrue(resp.json['extra'] == 'accountApproval')
 
+        # ensure only admins can change status
+        path = '/user/%s' % user['_id']
+        resp = self.request(path=path, method='PUT', user=user, params={
+            'firstName': user['firstName'],
+            'lastName': user['lastName'],
+            'email': user['email'],
+            'status': 'enabled'
+        })
+        self.assertStatus(resp, 403)
+        self.assertEqual(resp.json['message'], 'Only admins may change status.')
+
         # approve account
         path = '/user/%s' % user['_id']
         resp = self.request(path=path, method='PUT', user=admin, params={

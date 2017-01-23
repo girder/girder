@@ -302,7 +302,6 @@ class ApiDescribeTestCase(base.TestCase):
             def hasModelParamFlags(self, user, params):
                 return user
 
-
         server.root.api.v1.auto_describe = AutoDescribe()
 
         def testBad(inputs, expected):
