@@ -336,8 +336,6 @@ class ResourceTestCase(base.TestCase):
         self.assertEqual(zip.namelist(), [])
 
     def testDeleteResources(self):
-        # Make sure an invalid resource type
-        # Some of the deletes were tested with the downloads.
         self._createFiles(user=self.user)
 
         # Make sure we cannot delete a non-AC resource

@@ -598,11 +598,6 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         return val
 
     def _loadModel(self, name, info, id):
-        if id is None:
-            if info['required']:
-                raise RestException('Parameter %s is required.' % name)
-            return None
-
         model = ModelImporter.model(info['model'], info['plugin'])
         if info['force']:
             doc = model.load(id, force=True, **info['kwargs'])
