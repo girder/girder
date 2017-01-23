@@ -50,6 +50,12 @@ def plainFn(user, params):
     return user
 
 
+@access.public
+@loadmodel(map={'userId': 'user'}, model='user', level=AccessType.READ)
+def loadModelWithMap(user, params):
+    return user
+
+
 class AccessTestResource(Resource):
     def __init__(self):
         super(AccessTestResource, self).__init__()
@@ -123,6 +129,7 @@ def setUpModule():
     accesstest.route('GET', ('public_function_access', ),
                      publicFunctionHandler)
     accesstest.route('GET', ('test_loadmodel_plain', ':id'), plainFn)
+    accesstest.route('GET', ('test_loadmodel_query',), loadModelWithMap)
 
 
 def tearDownModule():
@@ -207,11 +214,15 @@ class AccessTestCase(base.TestCase):
                 else:
                     self.assertStatusOk(resp)
 
-    def testLoadModelPlainFn(self):
-        resp = self.request(path='/accesstest/test_loadmodel_plain/%s' %
-                                 self.user['_id'], method='GET')
+    def testLoadModelDecorator(self):
+        resp = self.request(
+            path='/accesstest/test_loadmodel_plain/%s' % self.user['_id'], method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_id'], str(self.user['_id']))
+
+        resp = self.request(path='/accesstest/test_loadmodel_query', params={'userId': None})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid ObjectId: None')
 
     def testGetFullAccessList(self):
         acl = self.model('user').getFullAccessList(self.admin)
