@@ -140,7 +140,7 @@ class Description(object):
             dataType = 'integer'
 
         # Parameter Object spec:
-        # If type is "file", then consumes MUST be either
+        # If type is "file", then the swagger "consumes" field MUST be either
         # "multipart/form-data", "application/x-www-form-urlencoded" or both
         # and the parameter MUST be in "formData".
         if dataType == 'file':
