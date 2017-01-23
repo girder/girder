@@ -230,15 +230,17 @@ class ApiDescribeTestCase(base.TestCase):
                 .param('timestamp', '', dataType='dateTime', required=False)
                 .param('datestamp', '', dataType='date', required=False)
                 .param('string', '', enum=['hello', 'world'], strip=True, lower=True)
+                .param('upper', '', required=False, upper=True)
                 .jsonParam('json1', '', required=False, requireArray=True)
                 .jsonParam('json2', '', required=False, requireObject=True, default={})
             )
-            def test(self, b1, b2, string, integer, float, timestamp, datestamp, json1,
+            def test(self, b1, b2, string, upper, integer, float, timestamp, datestamp, json1,
                      json2, params):
                 testRuns.append({
                     'b1': b1,
                     'b2': b2,
                     'string': string,
+                    'upper': upper,
                     'integer': integer,
                     'float': float,
                     'timestamp': timestamp,
@@ -330,6 +332,7 @@ class ApiDescribeTestCase(base.TestCase):
             'string': '  WoRlD '
         }, {
             'string': 'world',
+            'upper': None,
             'b1': True,
             'b2': None,
             'integer': None,
@@ -342,6 +345,7 @@ class ApiDescribeTestCase(base.TestCase):
 
         testOk({
             'string': ' hello',
+            'upper': ' hello',
             'b1': 'false',
             'b2': 'true',
             'integer': '3',
@@ -352,6 +356,7 @@ class ApiDescribeTestCase(base.TestCase):
             'datestamp': '2017-02-02T11:33:22'
         }, {
             'string': 'hello',
+            'upper': ' HELLO',
             'b1': False,
             'b2': True,
             'integer': 3,
