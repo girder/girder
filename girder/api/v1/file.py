@@ -183,8 +183,7 @@ class File(Resource):
                paramType='formData')
         .param('chunk', 'The actual bytes of the chunk. For external upload '
                'behaviors, this may be set to an opaque string that will be '
-               'handled by the assetstore adapter.',
-               dataType='file', paramType='formData')
+               'handled by the assetstore adapter.', dataType='file')
         .errorResponse(('ID was invalid.',
                         'Received too many bytes.',
                         'Chunk is smaller than the minimum size.'))

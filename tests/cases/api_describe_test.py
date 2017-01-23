@@ -19,10 +19,12 @@
 
 import datetime
 import json
+import six
 from .. import base
 
 from girder.api import access, describe, docs
 from girder.api.rest import Resource
+from girder.constants import AccessType, registerAccessFlag
 
 server = None
 Routes = [
@@ -211,6 +213,8 @@ class ApiDescribeTestCase(base.TestCase):
     def testAutoDescribeRoute(self):
         testRuns = []
 
+        registerAccessFlag('my_flag', name='My flag')
+
         class AutoDescribe(Resource):
             def __init__(self):
                 super(AutoDescribe, self).__init__()
@@ -219,6 +223,8 @@ class ApiDescribeTestCase(base.TestCase):
                 self.route('POST', ('body',), self.body)
                 self.route('POST', ('json_body',), self.jsonBody)
                 self.route('POST', ('json_body_required',), self.jsonBodyRequired)
+                self.route('GET', ('model_param_flags',), self.hasModelParamFlags)
+                self.route('GET', ('model_param_query',), self.hasModelQueryParam)
 
             @access.public
             @describe.autoDescribeRoute(
@@ -278,6 +284,24 @@ class ApiDescribeTestCase(base.TestCase):
                 testRuns.append({
                     'json_body': json_body
                 })
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('has_model_param_query')
+                .modelParam('userId', model='user', level=AccessType.READ, paramType='query')
+            )
+            def hasModelQueryParam(self, user, params):
+                return user
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('has_model_param_flags')
+                .modelParam('userId', model='user', level=AccessType.READ, paramType='query',
+                            requiredFlags='my_flag')
+            )
+            def hasModelParamFlags(self, user, params):
+                return user
+
 
         server.root.api.v1.auto_describe = AutoDescribe()
 
@@ -426,3 +450,22 @@ class ApiDescribeTestCase(base.TestCase):
         resp = self.request('/auto_describe/json_body_required', method='POST',
                             body=json.dumps(body), type='application/json')
         self.assertStatus(resp, 400)
+
+        # Test omission of required modelParam
+        resp = self.request('/auto_describe/model_param_query')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Parameter "userId" is required.')
+
+        resp = self.request('/auto_describe/model_param_query', params={'userId': None})
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Invalid ObjectId: None')
+
+        # Test requiredFlags in modelParam
+        user = self.model('user').createUser(
+            firstName='admin', lastName='admin', email='a@admin.com', login='admin',
+            password='password')
+        resp = self.request('/auto_describe/model_param_flags', params={
+            'userId': user['_id']
+        })
+        self.assertStatus(resp, 401)
+        six.assertRegex(self, resp.json['message'], '^Access denied for user')

@@ -138,8 +138,13 @@ class Description(object):
         # Legacy data type conversions
         if dataType == 'int':
             dataType = 'integer'
-        elif dataType == 'File':
-            dataType = 'file'
+
+        # Parameter Object spec:
+        # If type is "file", then consumes MUST be either
+        # "multipart/form-data", "application/x-www-form-urlencoded" or both
+        # and the parameter MUST be in "formData".
+        if dataType == 'file':
+            paramType = 'formData'
 
         # Get type and format from common name
         dataTypeFormat = None
@@ -163,18 +168,6 @@ class Description(object):
                 'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name)))
 
         if paramType == 'form':
-            print(TerminalColor.warning(
-                'WARNING: paramType "form" should be updated to "formData"'))
-            paramType = 'formData'
-
-        # Parameter Object spec:
-        # If type is "file", then consumes MUST be either
-        # "multipart/form-data", "application/x-www-form-urlencoded" or both
-        # and the parameter MUST be in "formData".
-        if dataType == 'file' and paramType != 'formData':
-            print(TerminalColor.warning(
-                'WARNING: Invalid paramType "%s" specified for dataType '
-                '"file" in parameter %s.' % (paramType, name)))
             paramType = 'formData'
 
         return dataType, dataTypeFormat, paramType

@@ -199,7 +199,7 @@ class Group(Resource):
                ' and instead add the user directly to the group.')
         .modelParam('id', model='group', level=AccessType.WRITE)
         .modelParam('userId', 'The ID of the user to invite or accept.',
-                    destName='userToInvite', level=AccessType.READ, paramType='formData')
+                    destName='userToInvite', level=AccessType.READ, paramType='form')
         .param('level', 'The access level the user will be given when they accept the invitation.',
                required=False, dataType='integer', default=AccessType.READ)
         .param('quiet', 'If you do not want this action to send an email to '
