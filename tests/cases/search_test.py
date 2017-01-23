@@ -130,8 +130,7 @@ class SearchTestCase(base.TestCase):
             'types': ',,invalid;json!'
         })
         self.assertStatus(resp, 400)
-        self.assertEqual('The types parameter must be JSON.',
-                         resp.json['message'])
+        self.assertEqual('Parameter types must be valid JSON.', resp.json['message'])
 
         # Test searching with no results
         resp = self.request(path='/resource/search', params={

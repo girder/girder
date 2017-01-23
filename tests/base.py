@@ -232,6 +232,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 msg += ' Response body was:\n%s' % json.dumps(
                     response.json, sort_keys=True, indent=4,
                     separators=(',', ': '))
+            else:
+                msg += 'Response body was:\n%s' % self.getBody(response)
 
             self.fail(msg)
 
@@ -310,8 +312,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param param: The name of the missing parameter.
         :type param: str
         """
-        self.assertEqual("Parameter '%s' is required." % param,
-                         response.json.get('message', ''))
+        self.assertEqual('Parameter "%s" is required.' % param, response.json.get('message', ''))
         self.assertStatus(response, 400)
 
     def getSseMessages(self, resp):
@@ -366,8 +367,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         return self.model('file').load(file['_id'], force=True)
 
-    def ensureRequiredParams(self, path='/', method='GET', required=(),
-                             user=None):
+    def ensureRequiredParams(self, path='/', method='GET', required=(), user=None):
         """
         Ensure that a set of parameters is required by the endpoint.
 
@@ -378,8 +378,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         for exclude in required:
             params = dict.fromkeys([p for p in required if p != exclude], '')
-            resp = self.request(path=path, method=method, params=params,
-                                user=user)
+            resp = self.request(path=path, method=method, params=params, user=user)
             self.assertMissingParameter(resp, exclude)
 
     def _genToken(self, user):

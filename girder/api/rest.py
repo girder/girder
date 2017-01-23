@@ -31,7 +31,7 @@ from girder import events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
 from girder.models.model_base import AccessException, GirderException, ValidationException
 from girder.utility.model_importer import ModelImporter
-from girder.utility import config, JsonEncoder
+from girder.utility import toBool, config, JsonEncoder
 from six.moves import range, urllib
 
 # Arbitrary buffer length for stream-reading request bodies
@@ -324,9 +324,9 @@ class loadmodel(ModelImporter):  # noqa: class name
     :type force: bool
     :param exc: Whether an exception should be raised for a nonexistent
         resource.
+    :type exc: bool
     :param requiredFlags: Access flags that are required on the object being loaded.
     :type requiredFlags: str or list/set/tuple of str or None
-    :type exc: bool
     """
     def __init__(self, map=None, model=None, plugin='_core', level=None,
                  force=False, exc=True, requiredFlags=None, **kwargs):
@@ -908,10 +908,20 @@ class Resource(ModelImporter):
                 return False
         return wildcards
 
-    def requireParams(self, required, provided):
+    def requireParams(self, required, provided=None):
         """
-        Throws an exception if any of the parameters in the required iterable
-        is not found in the provided parameter set.
+        This method has two modes. In the first mode, this takes two
+        parameters, the first being a required parameter or list of
+        them, and the second the dictionary of parameters that were
+        passed. If the required parameter does not appear in the
+        passed parameters, a ValidationException is raised.
+
+        The second mode of operation takes only a single
+        parameter, which is a dict mapping required parameter names
+        to passed in values for those params. If the value is ``None``,
+        a ValidationException is raised. This mode works well in conjunction
+        with the ``autoDescribeRoute`` decorator, where the parameters are
+        not all contained in a single dictionary.
 
         :param required: An iterable of required params, or if just one is
             required, you can simply pass it as a string.
@@ -919,35 +929,33 @@ class Resource(ModelImporter):
         :param provided: The list of provided parameters.
         :type provided: dict
         """
-        if isinstance(required, six.string_types):
-            required = (required,)
+        if provided is None and isinstance(required, dict):
+            for name, val in six.viewitems(required):
+                if val is None:
+                    raise RestException('Parameter "%s" is required.' % name)
+        else:
+            if isinstance(required, six.string_types):
+                required = (required,)
 
-        for param in required:
-            if param not in provided:
-                raise RestException("Parameter '%s' is required." % param)
+            for param in required:
+                if provided is None or param not in provided:
+                    raise RestException('Parameter "%s" is required.' % param)
 
     def boolParam(self, key, params, default=None):
         """
-        Coerce a parameter value from a str to a bool. This function is case
-        insensitive. The following string values will be interpreted as True:
+        Coerce a parameter value from a str to a bool.
 
-          - ``'true'``
-          - ``'on'``
-          - ``'1'``
-          - ``'yes'``
-
-        All other strings will be interpreted as False. If the given param
-        is not passed at all, returns the value specified by the default arg.
+        :param key: The parameter key to test.
+        :type key: str
+        :param params: The request parameters.
+        :type params: dict
+        :param default: The default value if no key is passed.
+        :type default: bool or None
         """
         if key not in params:
             return default
 
-        val = params[key]
-
-        if isinstance(val, bool):
-            return val
-
-        return val.lower().strip() in ('true', 'on', '1', 'yes')
+        return toBool(params[key])
 
     def requireAdmin(self, user, message=None):
         """
@@ -968,8 +976,7 @@ class Resource(ModelImporter):
         """
         return setRawResponse(*args, **kwargs)
 
-    def getPagingParameters(self, params, defaultSortField=None,
-                            defaultSortDir=SortDir.ASCENDING):
+    def getPagingParameters(self, params, defaultSortField=None, defaultSortDir=SortDir.ASCENDING):
         """
         Pass the URL parameters into this function if the request is for a
         list of resources that should be paginated. It will return a tuple of

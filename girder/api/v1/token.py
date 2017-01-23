@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..rest import Resource
-from ..describe import Description, describeRoute
+from ..describe import Description, autoDescribeRoute
 from girder.api import access
 from girder.constants import TokenScope
 
@@ -36,33 +36,25 @@ class Token(Resource):
         self.route('GET', ('scopes',), self.listScopes)
 
     @access.public
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Retrieve the current session information.')
         .responseClass('Token')
     )
     def currentSession(self, params):
-        token = self.getCurrentToken()
-        return token
+        return self.getCurrentToken()
 
     @access.public
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Get an anonymous session token for the system.')
-        .notes('If you are logged in, this will return a token associated '
-               'with that login.')
+        .notes('If you are logged in, this will return a token associated with that login.')
         .responseClass('Token')
     )
     def getSession(self, params):
-        """
-        Create an anonymous session.  Sends an auth cookie in the response on
-        success.
-        """
         token = self.getCurrentToken()
 
-        # Only create and send new cookie if token isn't valid or will expire
-        # soon
+        # Only create and send new cookie if token isn't valid or will expire soon
         if not token:
-            token = self.sendAuthTokenCookie(
-                None, scope=TokenScope.ANONYMOUS_SESSION)
+            token = self.sendAuthTokenCookie(None, scope=TokenScope.ANONYMOUS_SESSION)
 
         return {
             'token': token['_id'],
@@ -70,7 +62,7 @@ class Token(Resource):
         }
 
     @access.token
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Remove a session from the system.')
         .responseClass('Token')
         .notes('Attempts to delete your authentication cookie.')
@@ -83,7 +75,7 @@ class Token(Resource):
         return {'message': 'Session deleted.'}
 
     @access.public
-    @describeRoute(
+    @autoDescribeRoute(
         Description('List all token scopes available in the system.')
     )
     def listScopes(self, params):

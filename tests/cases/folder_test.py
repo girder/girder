@@ -53,8 +53,7 @@ class FolderTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         })
-        self.admin, self.user =\
-            [self.model('user').createUser(**user) for user in users]
+        self.admin, self.user = [self.model('user').createUser(**user) for user in users]
 
     def testChildFolders(self):
         # Test with some bad parameters
@@ -67,8 +66,9 @@ class FolderTestCase(base.TestCase):
             'parentId': self.admin['_id']
         })
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'],
-                         'The parentType must be user, collection, or folder.')
+        self.assertEqual(
+            resp.json['message'],
+            'Invalid value for parentType: "invalid". Allowed values: folder, user, collection.')
 
         # We should only be able to see the public folder if we are anonymous
         resp = self.request(path='/folder', method='GET', params={
