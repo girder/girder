@@ -6,6 +6,11 @@ import { getCurrentUser } from 'girder/auth';
 import { wrap } from 'girder/utilities/PluginUtils';
 import GlobalNavView from 'girder/views/layout/GlobalNavView';
 import ItemView from 'girder/views/body/ItemView';
+import { registerPluginNamespace } from 'girder/pluginUtils';
+
+import * as itemTasks from 'girder_plugins/item_tasks';
+
+registerPluginNamespace('item_tasks', itemTasks);
 
 // Add a new global nav item for running analyses
 wrap(GlobalNavView, 'initialize', function (initialize) {

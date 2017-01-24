@@ -1,6 +1,6 @@
-import WidgetModel from 'girder_plugins/slicer_cli_web/models/WidgetModel';
-import WidgetCollection from 'girder_plugins/slicer_cli_web/collections/WidgetCollection';
-import ControlsPanel from 'girder_plugins/slicer_cli_web/views/ControlsPanel';
+import WidgetModel from '../models/WidgetModel';
+import WidgetCollection from '../collections/WidgetCollection';
+import ControlsPanel from './ControlsPanel';
 import View from 'girder/views/View';
 import router  from 'girder/router';
 import { restRequest } from 'girder/rest';
