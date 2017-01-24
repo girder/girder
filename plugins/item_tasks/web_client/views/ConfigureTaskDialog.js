@@ -15,7 +15,7 @@ var ConfigureTaskDialog = View.extend({
 
             var data = {
                 setName: this.$('.g-slicer-cli-use-name').is(':checked'),
-                setDescription: this.$('.g-slicer-cli-use-description').is(':checked'),
+                setDescription: this.$('.g-slicer-cli-use-description').is(':checked')
             };
 
             if (image) {
@@ -29,7 +29,7 @@ var ConfigureTaskDialog = View.extend({
                 path: `item_task/${this.model.id}/slicer_cli_description`,
                 type: 'POST',
                 data,
-                error: null,
+                error: null
             }).done((job) => {
                 console.log(job);
                 router.navigate(`job/${job._id}`, {trigger: true});

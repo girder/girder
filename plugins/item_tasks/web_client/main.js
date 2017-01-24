@@ -50,6 +50,7 @@ ItemView.prototype.events['click .g-create-slicer-cli-docker-task'] = function (
 // Show task inputs and outputs on job details view
 import JobDetailsInfoView from './views/JobDetailsInfoView';
 import taskItemLinkTemplate from './templates/taskItemLink.pug';
+/* global girder */
 wrap(girder.plugins.jobs.views.JobDetailsWidget, 'render', function (render) {
     render.call(this);
 

@@ -6,7 +6,7 @@
         b.g-input-name #{id}:&nbsp;
         if input.mode === 'inline'
           span.g-input-value= JSON.stringify(input.data)
-        else if input.mode == 'girder'
+        else if input.mode === 'girder'
           a.g-input-value(href=`#${input.resource_type || 'file'}/${input.id}`) View #{input.resource_type}
   h4 Outputs
   ul

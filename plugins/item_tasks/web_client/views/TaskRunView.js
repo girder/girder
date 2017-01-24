@@ -82,8 +82,8 @@ const TaskRunView = View.extend({
     validate: function () {
         let ok = true;
         const test = (model) => {
-            if(!model.isValid()) {
-               ok = false;
+            if (!model.isValid()) {
+                ok = false;
             }
         };
 
@@ -109,8 +109,7 @@ const TaskRunView = View.extend({
         this.$('.g-validation-failed-message').empty();
         $(e.currentTarget).attr('disabled', 'true').addClass('disabled');
 
-        const inputs = {},
-              outputs = {};
+        const inputs = {}, outputs = {};
 
         const translate = (model) => {
             const val = model.value();
@@ -120,13 +119,13 @@ const TaskRunView = View.extend({
                     return {
                         mode: 'girder',
                         resource_type: 'file',
-                        id: val.id,
+                        id: val.id
                     };
                 case 'file': // This is an input
                     return {
                         mode: 'girder',
                         resource_type: 'item',
-                        id: val.id,
+                        id: val.id
                     };
                 case 'new-file': // This is an output
                     return {

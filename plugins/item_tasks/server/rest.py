@@ -1,4 +1,3 @@
-import cherrypy
 import six
 
 from girder import events
@@ -135,7 +134,6 @@ class ItemTask(Resource):
 
         return transformed
 
-
     @access.user(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
     @filtermodel(model='job', plugin='jobs')
     @autoDescribeRoute(
@@ -205,7 +203,7 @@ class ItemTask(Resource):
         .modelParam('id', 'The ID of the item that the task spec will be bound to.',
                     model='item', level=AccessType.WRITE)
         .param('image', 'The docker image name. If not passed, uses the existing'
-               'itemTaskSpec.docker_image metadata value.' , required=False, strip=True)
+               'itemTaskSpec.docker_image metadata value.', required=False, strip=True)
         .jsonParam('args', 'Arguments to be passed to the docker container to output the '
                    'Slicer CLI spec.', required=False, default=[], requireArray=True)
         .param('setName', 'Whether item name should be changed to the title of the CLI.',
