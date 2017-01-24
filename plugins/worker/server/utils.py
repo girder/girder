@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from . import PluginSettings
+from .constants import PluginSettings
 from girder.api.rest import getApiUrl
 from girder.utility.model_importer import ModelImporter
 
