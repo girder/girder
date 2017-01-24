@@ -1,0 +1,10 @@
+extends ./widget.pug
+
+block input
+  .input-group
+    if value && value.name
+      - value = value.name();
+    +input(title, type, id, value)(placeholder='Choose a file...', readonly=true)
+    span.input-group-btn
+      button.btn.btn-default.s-select-file-button(type='button')
+        i.icon-folder-open

@@ -1,0 +1,15 @@
+if info
+  .s-panel
+    .s-panel-title-container
+      | #{info.title}
+    .s-panel-content
+      .s-info-panel-description.well
+        | #{info.description}
+      .s-info-panel-buttons
+        button.btn.btn-default.s-info-panel-reload Reload
+        button.btn.btn-primary.s-info-panel-submit Submit
+
+  .s-jobs-panel.s-panel
+
+each panel in panels
+  .s-panel(class=panel.type, id=panel.id)
