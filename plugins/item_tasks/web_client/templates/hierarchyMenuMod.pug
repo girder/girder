@@ -1,0 +1,9 @@
+- var itemsAdded = false
+if parentType == 'folder' && currentUser && currentUser.get('admin')
+  - itemsAdded = true
+  li(role="presentation")
+    a.g-create-docker-tasks(role="menuitem")
+      i.icon-cube
+      | Add tasks
+if itemsAdded
+  li.divider(role="presentation")

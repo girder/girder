@@ -5,6 +5,7 @@ import './routes';
 import { getCurrentUser } from 'girder/auth';
 import { wrap } from 'girder/utilities/PluginUtils';
 import GlobalNavView from 'girder/views/layout/GlobalNavView';
+import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import ItemView from 'girder/views/body/ItemView';
 import { registerPluginNamespace } from 'girder/pluginUtils';
 
@@ -45,6 +46,29 @@ ItemView.prototype.events['click .g-configure-item-task'] = function () {
         });
     }
     this.configureTaskDialog.render();
+};
+
+import hierarchyMenuModTemplate from './templates/hierarchyMenuMod.pug';
+wrap(HierarchyWidget, 'render', function (render) {
+    render.call(this);
+    this.$('.g-folder-actions-menu .dropdown-header').after(hierarchyMenuModTemplate({
+        _: _,
+        parentType: this.parentModel.get('_modelType'),
+        currentUser: getCurrentUser()
+    }));
+    return this;
+});
+
+import ConfigureTasksDialog from './views/ConfigureTasksDialog';
+HierarchyWidget.prototype.events['click .g-create-docker-tasks'] = function () {
+    if (!this.configureTasksDialog) {
+        this.configureTasksDialog = new ConfigureTasksDialog({
+            model: this.parentModel,
+            parentView: this,
+            el: $('#g-dialog-container')
+        });
+    }
+    this.configureTasksDialog.render();
 };
 
 // Show task inputs and outputs on job details view
