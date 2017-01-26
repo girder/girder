@@ -1,3 +1,4 @@
+import json
 import six
 
 from girder import events
@@ -128,7 +129,11 @@ class ItemTask(Resource):
 
                 transformed[k] = utils.girderOutputSpec(
                     parent, parentType=ptype, token=token, name=v.get('name'), dataFormat='none',
-                    reference='item_tasks.output:%s:%s' % (k, job['_id']))
+                    reference=json.dumps({
+                        'type': 'item_tasks.output',
+                        'id': k,
+                        'jobId': str(job['_id'])
+                    }))
             else:
                 raise ValidationException('Invalid output mode: %s.' % v['mode'])
 

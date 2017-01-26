@@ -1,5 +1,6 @@
+import json
+
 from girder import events
-from girder.api.rest import getCurrentToken, getCurrentUser
 from girder.constants import registerAccessFlag, AccessType, TokenScope
 from girder.plugins.jobs.constants import JobStatus
 from girder.utility.model_importer import ModelImporter
@@ -31,21 +32,26 @@ def _onUpload(event):
     Look at uploads containing references related to this plugin. If found,
     they are used to link item task outputs back to a job document.
     """
-    ref = event.info.get('reference', '')
-    if ref.startswith('item_tasks.output'):
-        key, jobId = ref.split(':')[-2:]
+    try:
+        ref = json.loads(event.info.get('reference'))
+    except ValueError:
+        return
+
+    if isinstance(ref, dict) and ref.get('type') == 'item_tasks.output':
         jobModel = ModelImporter.model('job', 'jobs')
         tokenModel = ModelImporter.model('token')
+        token = event.info['currentToken']
 
-        if tokenModel.hasScope(getCurrentToken(), 'item_tasks.job_write:%s' % jobId):
-            job = jobModel.load(jobId, force=True, exc=True)
+        if tokenModel.hasScope(token, 'item_tasks.job_write:%s' % ref['jobId']):
+            job = jobModel.load(ref['jobId'], force=True, exc=True)
         else:
-            job = jobModel.load(jobId, level=AccessType.WRITE, user=getCurrentUser(), exc=True)
+            job = jobModel.load(
+                ref['jobId'], level=AccessType.WRITE, user=event.info['currentUser'], exc=True)
 
         file = event.info['file']
         item = ModelImporter.model('item').load(file['itemId'], force=True)
 
-        job['itemTaskBindings']['outputs'][key]['itemId'] = item['_id']
+        job['itemTaskBindings']['outputs'][ref['id']]['itemId'] = item['_id']
         jobModel.save(job)
 
 
