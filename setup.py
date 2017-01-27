@@ -138,7 +138,7 @@ setup(
             'conf/girder.dist.cfg',
             'mail_templates/*.mako',
             'mail_templates/**/*.mako',
-            'utility/webroot.mako',
+            'utility/*.mako',
             'api/api_docs.mako'
         ]
     },
