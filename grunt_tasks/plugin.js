@@ -24,7 +24,7 @@ module.exports = function (grunt) {
     var child_process = require('child_process'); // eslint-disable-line camelcase
 
     var ExtractTextPlugin = require('extract-text-webpack-plugin');
-    var customWebpackPlugins = require('./webpack.plugins.js');
+    var webpack = require('webpack');
     var paths = require('./webpack.paths.js');
 
     var buildAll = grunt.option('all-plugins');
@@ -140,9 +140,7 @@ module.exports = function (grunt) {
             webpackHelper = require(webpackHelperFile);
         } else {
             grunt.verbose.writeln('  >> No webpack helper file found.');
-            webpackHelper = function (x) {
-                return x;
-            };
+            webpackHelper = x => x;
         }
 
         // Configure the output file; default to 'plugin.min.js' - Girder loads
@@ -225,7 +223,7 @@ module.exports = function (grunt) {
                         filename: `${output}.min.js`
                     },
                     plugins: [
-                        new customWebpackPlugins.DllReferenceByPathPlugin({
+                        new webpack.DllReferencePlugin({
                             context: '.',
                             manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
                         }),
@@ -267,7 +265,7 @@ module.exports = function (grunt) {
                 }
             }
 
-            var newConfig = webpackHelper(grunt.config.get('webpack.options'), helperConfig);
+            var newConfig = webpackHelper(grunt.config.getRaw('webpack.options'), helperConfig);
             grunt.config.set('webpack.options', newConfig);
         });
 

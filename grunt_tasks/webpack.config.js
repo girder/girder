@@ -108,7 +108,7 @@ module.exports = {
             {
                 test: /\.styl$/,
                 include: loaderPaths,
-                loader: ExtractTextPlugin.extract({
+                loaders: ExtractTextPlugin.extract({
                     fallbackLoader: 'style-loader',
                     loader: ['css-loader', {
                         loader: 'stylus-loader',
@@ -122,7 +122,7 @@ module.exports = {
             {
                 test: /\.css$/,
                 include: loaderPathsNodeModules,
-                loader: ExtractTextPlugin.extract({
+                loaders: ExtractTextPlugin.extract({
                     fallbackLoader: 'style-loader',
                     loader: ['css-loader']})
             },
@@ -192,15 +192,6 @@ module.exports = {
                     fileLoader()
                 ]
             }
-        ],
-        noParse: [
-            // Avoid warning:
-            //   This seems to be a pre-built javascript file. Though this is
-            //   possible, it's not recommended. Try to require the original source
-            //   to get better results.
-            // This needs fixing later, as Webpack works better when provided with source.
-            // /node_modules\/pug/,
-            // /node_modules\/remarkable/
         ]
     },
     resolve: {
