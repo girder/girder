@@ -30,12 +30,8 @@ from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
 from . import webroot
 
-# TODO make a pretty error page someday.
-_errorTemplate = """
-<h1>${status}</h1>
-<p>${message}</p>
-<p><i>Girder server version ${version}</i></p>
-"""
+with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
+    _errorTemplate = f.read()
 
 
 def _errorDefault(status, message, *args, **kwargs):
@@ -43,8 +39,7 @@ def _errorDefault(status, message, *args, **kwargs):
     This is used to render error pages outside of the normal Girder app, such as
     404's. This overrides the default cherrypy error pages.
     """
-    return mako.template.Template(_errorTemplate).render(
-        status=status, message=message, version=API_VERSION)
+    return mako.template.Template(_errorTemplate).render(status=status, message=message)
 
 
 def configureServer(test=False, plugins=None, curConfig=None):
