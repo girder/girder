@@ -24,8 +24,7 @@ import os
 import six
 
 import girder.events
-from girder import constants, logprint
-from girder.api.describe import API_VERSION
+from girder import constants, logprint, __version__
 from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
 from . import webroot
@@ -64,7 +63,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
             'request.show_tracebacks': test,
             'request.methods_with_bodies': ('POST', 'PUT', 'PATCH'),
-            'response.headers.server': 'Girder ' + API_VERSION,
+            'response.headers.server': 'Girder %s' % __version__,
             'error_page.default': _errorDefault
         }
     }
