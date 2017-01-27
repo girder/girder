@@ -345,7 +345,7 @@ class ItemTask(Resource):
             title='Read docker task specs: %s' % image, type='item_task.json_description',
             handler='worker_handler', user=self.getCurrentUser())
 
-        job.update({
+        jobOptions = {
             'itemTaskId': folder['_id'],
             'kwargs': {
                 'task': {
@@ -367,6 +367,7 @@ class ItemTask(Resource):
                                          str(folder['_id']), 'add_json_specs')),
                         'headers': {'Girder-Token': token['_id']},
                         'params': {
+                            'image': image,
                             'pullImage': pullImage
                         }
                     }
@@ -376,7 +377,8 @@ class ItemTask(Resource):
                 'auto_convert': False,
                 'cleanup': True
             }
-        })
+        }
+        job.update(jobOptions)
 
         job = jobModel.save(job)
         jobModel.scheduleJob(job)
@@ -387,12 +389,13 @@ class ItemTask(Resource):
         Description('Create item tasks under a folder using a list of JSON specifications.')
         .modelParam('id', model='folder', force=True)
         .jsonParam('json', 'The JSON specs.', paramType='body')
+        .param('image', 'The docker image name.', required=True, strip=True)
         .param('pullImage', 'Whether the image should be pulled from a docker registry. ' +
                'Set to false to use local images only.',
                dataType='boolean', required=False, default=True),
         hide=True
     )
-    def addJsonSpecs(self, folder, json, pullImage, params):
+    def addJsonSpecs(self, folder, json, image, pullImage, params):
         self.ensureTokenScopes('item_task.set_task_spec.%s' % folder['_id'])
         token = self.getCurrentToken()
         user = self.model('user').load(token['userId'], force=True)
@@ -406,6 +409,7 @@ class ItemTask(Resource):
                 reuseExisting=True)
             logger.info(pullImage)
             logger.info(params)
+            itemTaskSpec['docker_image'] = image
             itemTaskSpec['pull_image'] = pullImage
             self.model('item').setMetadata(item, {
                 'itemTaskSpec': itemTaskSpec
