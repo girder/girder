@@ -1,0 +1,11 @@
+{
+    "name": "Candela data visualizations",
+    "description": "Render Candela visualizations in the item page for CSV files.",
+    "version": "0.1.0",
+    "staticDependencies": ["item_tasks"],
+    "npm": {
+        "dependencies": {
+            "candela": "^0.9.1"
+        }
+    }
+}
