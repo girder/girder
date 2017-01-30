@@ -7,6 +7,7 @@ import { getCurrentUser } from 'girder/auth';
 import booleanWidget from '../templates/booleanWidget.pug';
 import colorWidget from '../templates/colorWidget.pug';
 import enumerationWidget from '../templates/enumerationWidget.pug';
+import enumerationMultiWidget from '../templates/enumerationMultiWidget.pug';
 import fileWidget from '../templates/fileWidget.pug';
 import rangeWidget from '../templates/rangeWidget.pug';
 import widget from '../templates/widget.pug';
@@ -89,8 +90,14 @@ var ControlWidget = View.extend({
         'string-enumeration': {
             template: enumerationWidget
         },
+        'string-enumeration-multiple': {
+            template: enumerationMultiWidget
+        },
         'number-enumeration': {
             template: enumerationWidget
+        },
+        'number-enumeration-multiple': {
+            template: enumerationMultiWidget
         },
         file: {
             template: fileWidget
