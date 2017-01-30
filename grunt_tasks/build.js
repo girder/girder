@@ -22,7 +22,6 @@ var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var webpackGlobalConfig = require('./webpack.config.js');
 var paths = require('./webpack.paths.js');
-var customWebpackPlugins = require('./webpack.plugins.js');
 
 module.exports = function (grunt) {
     noptFix(grunt);
@@ -63,10 +62,7 @@ module.exports = function (grunt) {
                 minimize: true,
                 debug: false
             }),
-            new webpack.optimize.DedupePlugin(),
             new webpack.optimize.UglifyJsPlugin({
-                // ASCIIOnly: true,
-                // sourceMapIncludeSources: true,
                 compress: {
                     warnings: false
                 },
@@ -88,10 +84,9 @@ module.exports = function (grunt) {
         },
         progress: progress,    // show progress
         failOnError: !isWatch, // report error to grunt if webpack find errors; set to false if
-        watch: isWatch,        // use webpacks watcher (you need to keep the grunt process alive)
+        watch: isWatch,        // use webpack's watcher (you need to keep the grunt process alive)
         keepalive: isWatch,    // don't finish the grunt task (in combination with the watch option)
-        inline: false,         // embed the webpack-dev-server runtime into the bundle (default false)
-        hot: false             // adds HotModuleReplacementPlugin and switch the server to hot mode
+        inline: false          // embed the webpack-dev-server runtime into the bundle (default false)
     };
 
     var config = {
@@ -122,7 +117,7 @@ module.exports = function (grunt) {
                     girder_app: [path.join(paths.web_src, 'main.js')]
                 },
                 plugins: [
-                    new customWebpackPlugins.DllReferenceByPathPlugin({
+                    new webpack.DllReferencePlugin({
                         context: '.',
                         manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
                     }),
