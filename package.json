@@ -44,7 +44,6 @@
     "json-loader": "^0.5.4",
     "jsoneditor": "4.1.2",
     "nib": "^1.1.0",
-    "nopt-grunt-fix": "^1.0.0",
     "remarkable": "1.6.2",
     "sprintf-js": "1.0.x",
     "style-loader": "^0.13.1",

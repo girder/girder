@@ -16,7 +16,6 @@
 
 var path = require('path');
 var _ = require('underscore');
-var noptFix = require('nopt-grunt-fix');
 
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -24,7 +23,6 @@ var webpackGlobalConfig = require('./webpack.config.js');
 var paths = require('./webpack.paths.js');
 
 module.exports = function (grunt) {
-    noptFix(grunt);
     var environment = grunt.option('env') || 'dev';
     var progress = !grunt.option('no-progress');
 
