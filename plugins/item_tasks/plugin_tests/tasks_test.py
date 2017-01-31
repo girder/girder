@@ -1,6 +1,9 @@
 import json
 import mock
 import os
+import time
+
+from girder.constants import AccessType
 from tests import base
 
 
@@ -17,15 +20,17 @@ class TasksTest(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.user = self.model('user').createUser(
+        self.admin = self.model('user').createUser(
             login='admin', firstName='admin', lastName='admin', email='a@a.com', password='123456')
-        folders = self.model('folder').childFolders(self.user, parentType='user', user=self.user)
+        self.user = self.model('user').createUser(
+            login='user1', firstName='user', lastName='1', email='u@u.com', password='123456')
+        folders = self.model('folder').childFolders(self.admin, parentType='user', user=self.admin)
         self.privateFolder, self.publicFolder = list(folders)
 
     def testSlicerCli(self):
         # Create a new item that will become a task
         item = self.model('item').createItem(
-            name='placeholder', creator=self.user, folder=self.privateFolder)
+            name='placeholder', creator=self.admin, folder=self.privateFolder)
 
         # Create task to introspect container
         with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
@@ -33,7 +38,7 @@ class TasksTest(base.TestCase):
                 '/item_task/%s/slicer_cli_description' % item['_id'], method='POST', params={
                     'image': 'johndoe/foo:v5',
                     'args': json.dumps(['--foo', 'bar'])
-                }, user=self.user)
+                }, user=self.admin)
             self.assertStatusOk(resp)
             self.assertEqual(resp.json['_modelType'], 'job')
             self.assertEqual(len(scheduleMock.mock_calls), 1)
@@ -42,7 +47,7 @@ class TasksTest(base.TestCase):
             self.assertEqual(job['itemTaskId'], item['_id'])
 
         # Task should not be registered until we get the callback
-        resp = self.request('/item_task', user=self.user)
+        resp = self.request('/item_task', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, [])
 
@@ -59,7 +64,7 @@ class TasksTest(base.TestCase):
             '/item_task/%s/slicer_cli_xml' % item['_id'], method='PUT', params={
                 'setName': True,
                 'setDescription': True
-            }, user=self.user, body=xml, type='application/xml')
+            }, user=self.admin, body=xml, type='application/xml')
         self.assertStatusOk(resp)
 
         # We should only be able to see tasks we have read access on
@@ -67,11 +72,20 @@ class TasksTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, [])
 
-        resp = self.request('/item_task', user=self.user)
+        resp = self.request('/item_task', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(item['_id']))
+
         item = self.model('item').load(item['_id'], force=True)
+        self.assertEqual(item['name'], 'PET phantom detector CLI')
+        self.assertEqual(
+            item['description'],
+            u'**Description**: Detects positions of PET/CT pocket phantoms in PET image.\n\n'
+            u'**Author(s)**: D\u017eenan Zuki\u0107\n\n**Version**: 1.0\n\n'
+            u'**License**: Apache 2.0\n\n**Acknowledgements**: *none*\n\n'
+            u'*This description was auto-generated from the Slicer CLI XML specification.*'
+        )
         self.assertEqual(item['meta']['itemTaskSpec'], {
             'mode': 'docker',
             'docker_image': 'johndoe/foo:v5',
@@ -162,3 +176,130 @@ class TasksTest(base.TestCase):
                 'target': 'filepath'
             }]
         })
+
+        # Shouldn't be able to run the task if we don't have execute permission flag
+        self.model('folder').setUserAccess(
+            self.privateFolder, user=self.user, level=AccessType.READ, save=True)
+        resp = self.request(
+            '/item_task/%s/execution' % item['_id'], method='POST', user=self.user)
+        self.assertStatus(resp, 403)
+
+        # Grant the user permission, and run the task
+        from girder.plugins.item_tasks.constants import ACCESS_FLAG_EXECUTE_TASK
+        self.model('folder').setUserAccess(
+            self.privateFolder, user=self.user, level=AccessType.WRITE,
+            flags=ACCESS_FLAG_EXECUTE_TASK, currentUser=self.admin, save=True)
+
+        inputs = {
+            '--InputImage': {
+                'mode': 'girder',
+                'resource_type': 'item',
+                'id': str(item['_id'])
+            },
+            '--MaximumLineStraightnessDeviation': {
+                'mode': 'inline',
+                'data': 1
+            },
+            '--MaximumRadius': {
+                'mode': 'inline',
+                'data': 20
+            },
+            '--MaximumSphereDistance': {
+                'mode': 'inline',
+                'data': 40
+            },
+            '--MinimumRadius': {
+                'mode': 'inline',
+                'data': 3
+            },
+            '--MinimumSphereActivity': {
+                'mode': 'inline',
+                'data': 5000
+            },
+            '--MinimumSphereDistance': {
+                'mode': 'inline',
+                'data': 30
+            },
+            '--SpheresPerPhantom': {
+                'mode': 'inline',
+                'data': 3},
+            '--StrictSorting': {
+                'mode': 'inline',
+                'data': False
+            }
+        }
+
+        outputs = {
+            '--DetectedPoints': {
+                'mode': 'girder',
+                'parent_id': str(self.privateFolder['_id']),
+                'parent_type': 'folder',
+                'name': 'test.txt'
+            }
+        }
+
+        # Ensure task was scheduled
+        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+            resp = self.request(
+                '/item_task/%s/execution' % item['_id'], method='POST', user=self.user, params={
+                    'inputs': json.dumps(inputs),
+                    'outputs': json.dumps(outputs)
+                })
+            self.assertEqual(len(scheduleMock.mock_calls), 1)
+        self.assertStatusOk(resp)
+        job = resp.json
+        self.assertEqual(job['_modelType'], 'job')
+        self.assertNotIn('kwargs', job)  # ordinary user can't see kwargs
+
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.load(job['_id'], force=True)
+        output = job['kwargs']['outputs']['--DetectedPoints']
+
+        # Simulate output from the worker
+        contents = b'Hello world'
+        resp = self.request(
+            path='/file', method='POST', token=output['token'], params={
+                'parentType': output['parent_type'],
+                'parentId': output['parent_id'],
+                'name': output['name'],
+                'size': len(contents),
+                'mimeType': 'text/plain',
+                'reference': output['reference']
+            })
+        self.assertStatusOk(resp)
+
+        uploadId = resp.json['_id']
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        files = [('chunk', output['name'], contents)]
+        resp = self.multipartRequest(
+            path='/file/chunk', fields=fields, files=files, token=output['token'])
+        self.assertStatusOk(resp)
+        file = resp.json
+        self.assertEqual(file['_modelType'], 'file')
+        self.assertEqual(file['size'], 11)
+        self.assertEqual(file['mimeType'], 'text/plain')
+        file = self.model('file').load(file['_id'], force=True)
+
+        # Make sure temp token is removed once we change job status to final state
+        job = jobModel.load(job['_id'], force=True)
+        self.assertIn('itemTaskTempToken', job)
+
+        from girder.plugins.jobs.constants import JobStatus
+        job['status'] = JobStatus.SUCCESS
+        job = jobModel.save(job)
+
+        self.assertNotIn('itemTaskTempToken', job)
+        self.assertIn('itemTaskBindings', job)
+
+        # Wait for async data.process event to bind output provenance
+        start = time.time()
+        while time.time() - start < 15:
+            job = jobModel.load(job['_id'], force=True)
+
+            if 'itemId' in job['itemTaskBindings']['outputs']['--DetectedPoints']:
+                break
+            else:
+                time.sleep(0.2)
+
+        self.assertEqual(
+            job['itemTaskBindings']['outputs']['--DetectedPoints']['itemId'], file['itemId'])

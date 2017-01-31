@@ -25,6 +25,7 @@ def _onJobSave(event):
         ModelImporter.model('job', 'jobs').update({'_id': job['_id']}, update={
             '$unset': {'itemTaskTempToken': True}
         }, multi=False)
+        del job['itemTaskTempToken']
 
 
 def _onUpload(event):
