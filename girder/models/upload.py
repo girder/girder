@@ -115,7 +115,7 @@ class Upload(Model):
 
         return doc
 
-    def handleChunk(self, upload, chunk):
+    def handleChunk(self, upload, chunk, filter=False, user=None):
         """
         When a chunk is uploaded, this should be called to process the chunk.
         If this is the final chunk of the upload, this method will finalize
@@ -125,6 +125,11 @@ class Upload(Model):
         :type upload: dict
         :param chunk: The file object representing the chunk that was uploaded.
         :type chunk: file
+        :param filter: Whether the model should be filtered. Only affects
+            behavior when returning a file model, not the upload model.
+        :type filter: bool
+        :param user: The current user. Only affects behavior if filter=True.
+        :type user: dict or None
         """
         assetstore = self.model('assetstore').load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -133,7 +138,11 @@ class Upload(Model):
 
         # If upload is finished, we finalize it
         if upload['received'] == upload['size']:
-            return self.finalizeUpload(upload, assetstore)
+            file = self.finalizeUpload(upload, assetstore)
+            if filter:
+                return self.model('file').filter(file, user=user)
+            else:
+                return file
         else:
             return upload
 
