@@ -200,8 +200,6 @@ module.exports = {
         },
         extensions: ['.js'],
         modules: [
-            paths.clients_web,
-            paths.plugins,
             paths.node_modules
         ]
     },
