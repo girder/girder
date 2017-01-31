@@ -63,7 +63,7 @@ def load(info):
         constants.TOKEN_SCOPE_AUTO_CREATE_CLI, 'Item task auto-creation',
         'Create new CLIs via automatic introspection.', admin=True)
 
-    ModelImporter.model('item').ensureIndex('meta.itemTaskSpec')
+    ModelImporter.model('item').ensureIndex(['meta.isItemTask', {'sparse': True}])
     ModelImporter.model('job', 'jobs').exposeFields(level=AccessType.READ, fields={
         'itemTaskId', 'itemTaskBindings'})
 

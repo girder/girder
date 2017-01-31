@@ -30,7 +30,7 @@ class ItemTask(Resource):
     @filtermodel(model='item')
     def listTasks(self, limit, offset, sort, params):
         cursor = self.model('item').find({
-            'meta.itemTaskSpec': {'$exists': True}
+            'meta.isItemTask': {'$exists': True}
         }, sort=sort)
 
         return list(self.model('item').filterResultsByPermission(
@@ -201,6 +201,7 @@ class ItemTask(Resource):
         return job
 
     @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
+    @filtermodel(model='job', plugin='jobs')
     @autoDescribeRoute(
         Description('Create an item task spec based on a docker image.')
         .notes('This operates on an existing item, turning it into an item task '
@@ -316,5 +317,6 @@ class ItemTask(Resource):
             item['description'] = cliSpec['description']
 
         self.model('item').setMetadata(item, {
-            'itemTaskSpec': itemTaskSpec
+            'itemTaskSpec': itemTaskSpec,
+            'isItemTask': True
         })
