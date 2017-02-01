@@ -201,7 +201,8 @@ module.exports = {
         extensions: ['.js'],
         modules: [
             paths.node_modules
-        ]
+        ],
+        symlinks: false
     },
     node: {
         canvas: 'empty',

@@ -53,7 +53,7 @@
     "toposort": "^1.0.0",
     "underscore": "~1.8.3",
     "url-loader": "^0.5.7",
-    "webpack": "2.2.0"
+    "webpack": "2.2.1"
   },
   "devDependencies": {
     "babel-plugin-istanbul": "^2.0.1",
