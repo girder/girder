@@ -1,13 +1,28 @@
-module.exports = function(config) {
+module.exports = function (config) {
     config.module.loaders.push({
         test: /\.glsl$/,
-        loader: 'shader',
+        loader: 'shader-loader',
         include: [/node_modules(\/|\\)vtk\.js(\/|\\)/],
     });
     config.module.loaders.push({
         test: /\.js$/,
         include: [/node_modules(\/|\\)vtk\.js(\/|\\)/],
-        loader: 'babel?presets[]=es2015,presets[]=react!string-replace?{"multiple":[{"search":"vtkDebugMacro","replace":"console.debug","flags":"g"},{"search":"vtkErrorMacro","replace":"console.error","flags":"g"},{"search":"vtkWarningMacro","replace":"console.warn","flags":"g"},{"search":"test.onlyIfWebGL","replace":"test","flags":"g"}]}',
+        loaders: [{
+            loader: 'babel-loader',
+            query: {
+                presets: ['es2015', 'react']
+            }
+        }, {
+            loader: 'string-replace-loader',
+            query: {
+                multiple: [
+                    {search: /vtkDebugMacro/g, replace: 'console.debug'},
+                    {search: /vtkErrorMacro/g, replace: 'console.error'},
+                    {search: /vtkWarningMacro/g, replace: 'console.warn'},
+                    {search: /test\.onlyIfWebGL/g, replace: 'test'}
+                ]
+            }
+        }]
     });
     return config;
-}
+};
