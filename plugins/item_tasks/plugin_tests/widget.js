@@ -348,7 +348,7 @@ girderTest.promise.then(function () {
         }
 
         beforeEach(function () {
-            hProto = girder.views.widgets.HierarchyWidget.prototype;
+            hProto = girder.views.widgets.BrowserWidget.prototype;
             hInit = hProto.initialize;
             hRender = hProto.render;
 
@@ -569,11 +569,11 @@ girderTest.promise.then(function () {
         });
 
         it('file', function () {
-            var arg, item = new girder.models.ItemModel({id: 'model id', name: 'b'});
+            var item = new girder.models.ItemModel({id: 'model id', name: 'b'}),
+                browser;
 
-            hProto.initialize = function (_arg) {
-                arg = _arg;
-                this.breadcrumbs = [];
+            hProto.initialize = function () {
+                browser = this;
             };
             hProto.render = function () {};
 
@@ -591,24 +591,23 @@ girderTest.promise.then(function () {
             checkWidgetCommon(w);
 
             w.$('.g-select-file-button').click();
-            expect(arg.parentModel).toBe(girder.auth.getCurrentUser());
-            arg.onItemClick(item);
-            expect(w.model.value().name()).toBe('b');
 
-            expect(w.model.get('path')).toEqual([]);
+            // make sure the browser widget was initialized
+            expect(!!browser).toBe(true);
+
+            // trigger a response from the mocked widget
+            browser.model = item;
+            browser.trigger('g:saved', item);
+
+            expect(w.model.get('value')).toBe(item);
         });
 
         it('new-file', function () {
-            var arg,
-                hView,
-                collection = new girder.models.CollectionModel({id: 'model id', name: 'b'}),
-                folder = new girder.models.FolderModel({id: 'folder id', name: 'c'}),
-                $modal = $('<div id="g-dialog-container"/>').appendTo('body');
+            var browser,
+                folder = new girder.models.FolderModel({id: 'folder id', name: 'c'});
 
-            hProto.initialize = function (_arg) {
-                arg = _arg;
-                hView = this;
-                this.breadcrumbs = [];
+            hProto.initialize = function () {
+                browser = this;
             };
             hProto.render = function () {};
             var w = new itemTasks.views.ControlWidget({
@@ -624,34 +623,18 @@ girderTest.promise.then(function () {
             w.render();
             checkWidgetCommon(w);
 
-            itemTasks.rootPath = {};
             w.$('.g-select-file-button').click();
-            expect(arg.parentModel).toBe(girder.auth.getCurrentUser());
 
-            // selecting without a file name entered should error
-            $modal.find('.g-select-button').click();
-            expect($modal.find('.form-group').hasClass('has-error')).toBe(true);
-            expect($modal.find('.g-modal-error').hasClass('hidden')).toBe(false);
+            // make sure the browser widget was initialized
+            expect(!!browser).toBe(true);
 
-            // selecting with a file name in a collection should error
-            $modal.find('#g-new-file-name').val('my file');
-            hView.parentModel = collection;
-            $modal.find('.g-select-button').click();
-            expect($modal.find('.form-group').hasClass('has-error')).toBe(false);
-            expect($modal.find('.g-modal-error').hasClass('hidden')).toBe(false);
+            // trigger a response from the mocked widget
+            browser.model = folder;
+            browser.trigger('g:saved', folder);
 
-            // selecting a file in a folder should succeed
-            hView.parentModel = folder;
-            $modal.find('.g-select-button').click();
-            expect($modal.find('.form-group').hasClass('has-error')).toBe(false);
-            expect($modal.find('.g-modal-error').hasClass('hidden')).toBe(true);
-            expect(w.model.get('path')).toEqual([]);
-            expect(w.model.get('value').get('name')).toBe('my file');
-
-            // reset the environment
-            $modal.modal('hide');
-            $modal.remove();
+            expect(w.model.get('value')).toBe(folder);
         });
+
         it('invalid', function () {
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,

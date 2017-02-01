@@ -1,8 +1,8 @@
 import _ from 'underscore';
 
 import View from 'girder/views/View';
-
-import ItemSelectorWidget from './ItemSelectorWidget';
+import BrowserWidget from 'girder/views/widgets/BrowserWidget';
+import { getCurrentUser } from 'girder/auth';
 
 import booleanWidget from '../templates/booleanWidget.pug';
 import colorWidget from '../templates/colorWidget.pug';
@@ -142,13 +142,34 @@ var ControlWidget = View.extend({
      * input element.
      */
     _selectFile: function () {
-        var modal = new ItemSelectorWidget({
+        var showItems = false,
+            type = this.model.get('type'),
+            title, help;
+
+        // Customize the browser widget according the argument type
+        if (type === 'file' || type === 'image') {
+            showItems = true;
+            title = 'Select an item';
+            help = 'Click on an item to select it, then click "Save"';
+        }
+
+        if (type === 'directory' || type === 'new-file') {
+            title = 'Select a folder';
+            help = 'Browse to a directory to select it, then click "Save"';
+        }
+
+        var modal = new BrowserWidget({
             el: $('#g-dialog-container'),
             parentView: this,
-            model: this.model
+            showItems: showItems,
+            selectItem: showItems,
+            root: getCurrentUser(),
+            titleText: title,
+            helpText: help
         });
-        modal.once('g:saved', () => {
+        modal.once('g:saved', (model) => {
             modal.$el.modal('hide');
+            this.model.set('value', model);
         }).render();
     }
 });
