@@ -1,0 +1,5 @@
+{
+    "name": "DICOM",
+    "description": "Implementation of the DICOMWeb standard for Girder.",
+    "version": "0.1.0"
+}

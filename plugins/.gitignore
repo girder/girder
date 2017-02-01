@@ -3,6 +3,7 @@
 !authorized_upload
 !autojoin
 !celery_jobs/
+!dicom/
 !curation/
 !geospatial/
 !google_analytics/
