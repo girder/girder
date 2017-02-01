@@ -33,7 +33,7 @@ pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plug
 class PluginOpts():
     def __init__(self, plugin=None, force=False, symlink=False, dev=False, npm='npm',
                  skip_requirements=False, all_plugins=False, plugins=None, watch=False,
-                 watch_plugin=None):
+                 watch_plugin=None, plugin_prefix='plugin'):
         self.plugin = plugin
         self.force = force
         self.symlink = symlink
@@ -44,6 +44,7 @@ class PluginOpts():
         self.plugins = plugins
         self.watch = watch
         self.watch_plugin = watch_plugin
+        self.plugin_prefix = plugin_prefix
 
 
 class ProcMock(object):
@@ -260,7 +261,7 @@ class InstallTestCase(base.TestCase):
             self.assertEqual(
                 list(p.mock_calls[1][1][0]),
                 ['npm', 'run', 'build', '--',
-                 '--no-progress=true', '--env=prod', '--plugins='])
+                 '--no-progress=true', '--env=prod', '--plugins=', '--configure-plugins='])
 
         # Test with progress (requires actually calling a subprocess)
         os.environ['PATH'] = '%s:%s' % (
@@ -291,3 +292,24 @@ class InstallTestCase(base.TestCase):
         # Keyboard interrupt should be handled gracefully
         with mock.patch('subprocess.Popen', return_value=ProcMock(keyboardInterrupt=True)):
             install.install_web(PluginOpts(watch=True))
+
+    def testStaticDependencies(self):
+        for p in ('does_nothing', 'has_deps', 'has_static_deps', 'has_webroot', 'test_plugin'):
+            install.install_plugin(PluginOpts(plugin=[
+                os.path.join(pluginRoot, p)
+            ]))
+
+        with mock.patch('subprocess.Popen', return_value=ProcMock()) as p:
+            install.install_web(PluginOpts(plugins='has_static_deps'))
+
+            self.assertEqual(len(p.mock_calls), 2)
+            self.assertEqual(list(p.mock_calls[1][1][0][:-1]), [
+                'npm', 'run', 'build', '--', '--no-progress=true', '--env=prod',
+                '--plugins=has_static_deps',
+            ])
+            lastArg = p.mock_calls[1][1][0][-1]
+            six.assertRegex(self, lastArg, '--configure-plugins=.*')
+            self.assertEqual(
+                set(lastArg.split('=')[-1].split(',')), {
+                    'does_nothing', 'has_deps', 'has_webroot', 'test_plugin'
+                })

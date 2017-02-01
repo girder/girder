@@ -74,6 +74,7 @@ var SystemConfigurationView = View.extend({
             'core.email_host',
             'core.registration_policy',
             'core.email_verification',
+            'core.server_root',
             'core.smtp_host',
             'core.smtp.port',
             'core.smtp.encryption',

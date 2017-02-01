@@ -81,11 +81,6 @@ module.exports = {
             jQuery: 'jquery',
             $: 'jquery',
             'window.jQuery': 'jquery'
-        }),
-        new ExtractTextPlugin({
-            filename: '[name].min.css',
-            allChunks: true,
-            disable: false
         })
     ],
     module: {
@@ -113,25 +108,23 @@ module.exports = {
             {
                 test: /\.styl$/,
                 include: loaderPaths,
-                loaders: [
-                    ExtractTextPlugin.extract('style-loader'),
-                    'css-loader',
-                    {
+                loaders: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: ['css-loader', {
                         loader: 'stylus-loader',
                         query: {
                             'resolve url': true
                         }
-                    }
-                ]
+                    }]
+                })
             },
             // CSS
             {
                 test: /\.css$/,
                 include: loaderPathsNodeModules,
-                loaders: [
-                    ExtractTextPlugin.extract('style-loader'),
-                    'css-loader'
-                ]
+                loaders: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: ['css-loader']})
             },
             // Pug
             {
@@ -199,26 +192,17 @@ module.exports = {
                     fileLoader()
                 ]
             }
-        ],
-        noParse: [
-            // Avoid warning:
-            //   This seems to be a pre-built javascript file. Though this is
-            //   possible, it's not recommended. Try to require the original source
-            //   to get better results.
-            // This needs fixing later, as Webpack works better when provided with source.
-            // /node_modules\/pug/,
-            // /node_modules\/remarkable/
         ]
     },
     resolve: {
         alias: {
             'girder': paths.web_src
         },
+        extensions: ['.js'],
         modules: [
-            paths.clients_web,
-            paths.plugins,
             paths.node_modules
-        ]
+        ],
+        symlinks: false
     },
     node: {
         canvas: 'empty',

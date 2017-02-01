@@ -161,6 +161,11 @@ form.g-settings-form(role="form")
         .panel-body
           p These settings should only be changed if you are certain of what you are doing.
           .form-group
+            label(for="g-core-server-root") Server root URL
+            input#g-core-server-root.form-control.input-sm(
+                type="text", value=settings['core.server_root'] || '',
+                placeholder='Detect automatically')
+          .form-group
             label(for="g-core-upload-minimum-chunk-size") Upload minimum chunk size (bytes)
             br
             span This applies to Filesystem and GridFS assetstores.

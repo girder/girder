@@ -118,3 +118,14 @@ class RestUtilTestCase(unittest.TestCase):
             self.assertEqual(json.loads(resp), {
                 'key': date.replace(tzinfo=pytz.UTC).isoformat()
             })
+
+    def testRequireParamsDictMode(self):
+        resource = rest.Resource()
+        resource.requireParams('hello', {'hello': 'world'})
+        resource.requireParams('hello', {'hello': None})
+
+        with six.assertRaisesRegex(self, rest.RestException, 'Parameter "hello" is required.'):
+            resource.requireParams(['hello'], {'foo': 'bar'})
+
+        with six.assertRaisesRegex(self, rest.RestException, 'Parameter "hello" is required.'):
+            resource.requireParams(['hello'], None)

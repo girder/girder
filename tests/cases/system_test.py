@@ -27,10 +27,9 @@ from subprocess import check_output, CalledProcessError
 from .. import base
 from girder.api import access
 from girder.api.describe import describeRoute, API_VERSION
-from girder.api.rest import loadmodel, Resource
-from girder.constants import (
-    AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR)
-from girder.models.model_base import AccessException
+from girder.api.rest import getApiUrl, loadmodel, Resource
+from girder.constants import AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR
+from girder.models.model_base import AccessException, ValidationException
 from girder.utility import config
 
 
@@ -658,3 +657,11 @@ class SystemTestCase(base.TestCase):
                 cursor, user=self.users[1], level=AccessType.READ, flags=('my_key', 'admin_flag')))
             self.assertEqual(len(filtered), 1)
             self.assertEqual(filtered[0]['_id'], doc['_id'])
+
+    def testServerRootSetting(self):
+        settingModel = self.model('setting')
+        with self.assertRaises(ValidationException):
+            settingModel.set(SettingKey.SERVER_ROOT, 'bad_value')
+
+        settingModel.set(SettingKey.SERVER_ROOT, 'https://somedomain.org/foo')
+        self.assertEqual(getApiUrl(), 'https://somedomain.org/foo/api/v1')

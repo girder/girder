@@ -3,6 +3,7 @@ module.exports = function (grunt) {
     var path = require('path');
 
     var archivePath = 'clients/web/static/built/fontello.zip';
+    var srcUrl = 'https://data.kitware.com/api/v1/file/57c5d1fc8d777f10f269dece/download';
 
     grunt.config.merge({
         unzip: {
@@ -44,15 +45,13 @@ module.exports = function (grunt) {
     } else {
         // Download font archive from data.kitware.com
         grunt.config.merge({
-            curl: {
+            shell: {
                 fontello: {
-                    src: 'https://data.kitware.com/api/v1/file/57c5d1fc8d777f10f269dece/download',
-                    dest: archivePath
+                    command: 'curl "' + srcUrl + '" -o "' + archivePath + '"'
                 }
             },
-
             init: {
-                'curl:fontello': {},
+                'shell:fontello': {},
                 'unzip:fontello': {
                     dependencies: ['curl:fontello']
                 }

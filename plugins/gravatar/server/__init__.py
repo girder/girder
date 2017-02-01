@@ -22,8 +22,7 @@ import hashlib
 
 from girder import events
 from girder.api import access
-from girder.api.describe import Description, describeRoute
-from girder.api.rest import loadmodel
+from girder.api.describe import Description, autoDescribeRoute
 from girder.models.model_base import AccessType
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
@@ -53,16 +52,13 @@ def computeBaseUrl(user):
 
 
 @access.public
-@loadmodel(model='user', level=AccessType.READ)
-@describeRoute(
+@autoDescribeRoute(
     Description('Redirects to the gravatar image for a user.')
-    .param('id', 'The ID of the user.', paramType='path')
+    .modelParam('id', 'The ID of the user.', model='user', level=AccessType.READ)
     .param('size', 'Size in pixels for the image (default=64).', required=False,
-           dataType='int')
+           dataType='int', default=64)
 )
-def getGravatar(user, params):
-    size = int(params.get('size', 64))
-
+def getGravatar(user, size, params):
     if not user.get('gravatar_baseUrl'):
         # the save hook will cause the gravatar base URL to be computed
         user = ModelImporter.model('user').save(user)

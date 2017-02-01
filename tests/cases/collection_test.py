@@ -251,6 +251,7 @@ class CollectionTestCase(base.TestCase):
                 'recurse': True,
                 'progress': True
             }, user=self.admin)
+        self.assertStatusOk(resp)
         coll = self.model('collection').load(coll['_id'], force=True)
         folder1 = self.model('folder').load(folder1['_id'], force=True)
         folder2 = self.model('folder').load(folder2['_id'], force=True)
@@ -276,6 +277,7 @@ class CollectionTestCase(base.TestCase):
                 'access': json.dumps(obj),
                 'recurse': True
             }, user=self.admin)
+        self.assertStatusOk(resp)
         coll = self.model('collection').load(coll['_id'], force=True)
         folder1 = self.model('folder').load(folder1['_id'], force=True)
         folder2 = self.model('folder').load(folder2['_id'], force=True)

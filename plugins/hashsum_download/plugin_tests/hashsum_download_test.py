@@ -246,7 +246,7 @@ class HashsumDownloadTest(base.TestCase):
         # Test with bad algo
         resp = self.request(template % (self.publicFile['_id'], 'foo'))
         self.assertStatus(resp, 400)
-        six.assertRegex(self, resp.json['message'], '^Invalid algorithm "foo"')
+        six.assertRegex(self, resp.json['message'], '^Invalid value for algo: "foo"')
 
         # Should work with public file
         resp = self.request(template % (self.publicFile['_id'], 'sha512'),

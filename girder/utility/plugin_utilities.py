@@ -92,10 +92,17 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
     return root, appconf, apiRoot
 
 
-def getToposortedPlugins(plugins, ignoreMissing=False):
+def getToposortedPlugins(plugins, ignoreMissing=False, keys=('dependencies',)):
     """
     Given a set of plugins to load, construct the full DAG of required plugins
     to load and yields them in toposorted order.
+
+    :param ignoreMissing: Normally if one of the plugins specified does not exist,
+        this raises a ValidationError. Set this to False to suppress that and instead
+        print an error message and continue.
+    :type ignoreMissing: bool
+    :param keys: Keys that should be used to determine dependencies.
+    :type keys: list of str
     """
     plugins = set(plugins)
 
@@ -112,7 +119,9 @@ def getToposortedPlugins(plugins, ignoreMissing=False):
             else:
                 raise ValidationException(message)
 
-        deps = allPlugins[plugin]['dependencies']
+        deps = set()
+        for key in keys:
+            deps |= allPlugins[plugin][key]
         dag[plugin] = deps
 
         for dep in deps:
@@ -306,7 +315,8 @@ def findAllPlugins():
             'name': data.get('name', plugin),
             'description': data.get('description', ''),
             'version': data.get('version', ''),
-            'dependencies': set(data.get('dependencies', []))
+            'dependencies': set(data.get('dependencies', [])),
+            'staticWebDependencies': set(data.get('staticWebDependencies', []))
         }
     return allPlugins
 

@@ -35,6 +35,7 @@ from girder.constants import AssetstoreType, ROOT_DIR
 from girder.utility import assetstore_utilities
 from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
+from girder.utility import path as path_util
 
 
 def setUpModule():
@@ -982,3 +983,45 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0]['type'], 'progress')
         self.assertEqual(messages[0]['data']['current'], size)
+
+        # Test moving imported file
+
+        # Create assetstore to import file into
+        params = {
+            'name': 'ImportTest',
+            'type': AssetstoreType.FILESYSTEM,
+            'root': os.path.join(fs_assetstore['root'], 'import')
+        }
+        resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                            params=params)
+        self.assertStatusOk(resp)
+        import_assetstore = resp.json
+
+        # Import file
+        params = {
+            'importPath': os.path.join(ROOT_DIR, 'tests', 'cases', 'py_client',
+                                       'testdata', 'world.txt'),
+            'destinationType': 'folder',
+        }
+
+        self.model('assetstore').importData(
+            import_assetstore, parent=folder, parentType='folder', params=params,
+            progress=ProgressContext(False), user=self.admin, leafFoldersAsItems=False)
+
+        file = path_util.lookUpPath('/user/admin/Public/world.txt/world.txt',
+                                    self.admin, False)['document']
+
+        # Move file
+        params = {
+            'assetstoreId': fs_assetstore['_id'],
+        }
+        resp = self.request(
+            path='/file/%s/move' % file['_id'], method='PUT',
+            user=self.admin, params=params)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['assetstoreId'], fs_assetstore['_id'])
+
+        # Check that we can still download the file
+        resp = self.request(
+            path='/file/%s/download' % file['_id'], user=self.admin, isJson=False)
+        self.assertStatusOk(resp)

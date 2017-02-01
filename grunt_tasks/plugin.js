@@ -23,16 +23,24 @@ module.exports = function (grunt) {
     var path = require('path');
     var child_process = require('child_process'); // eslint-disable-line camelcase
 
-    var customWebpackPlugins = require('./webpack.plugins.js');
+    var ExtractTextPlugin = require('extract-text-webpack-plugin');
+    var webpack = require('webpack');
     var paths = require('./webpack.paths.js');
 
     var buildAll = grunt.option('all-plugins');
+    var configurePlugins = grunt.option('configure-plugins');
     var plugins = grunt.option('plugins');
 
     if (_.isString(plugins) && plugins) {
         plugins = plugins.split(',');
     } else if (!buildAll) {
         return;
+    }
+
+    if (_.isString(configurePlugins) && configurePlugins) {
+        configurePlugins = configurePlugins.split(',');
+    } else {
+        configurePlugins = [];
     }
 
     require('colors');
@@ -88,7 +96,7 @@ module.exports = function (grunt) {
         return path.resolve(path.join('node_modules', `girder_plugin_${plugin}`));
     };
 
-    var configurePluginForBuilding = function (dir) {
+    var configurePluginForBuilding = function (dir, buildPlugin) {
         var plugin = path.basename(dir);
         var json = path.resolve(dir, 'plugin.json');
         var yml = path.resolve(dir, 'plugin.yml');
@@ -108,7 +116,8 @@ module.exports = function (grunt) {
             config = grunt.file.readYAML(yml);
         }
 
-        grunt.log.writeln(`Configuring plugin ${plugin.magenta} (${cfgFile})`);
+        var buildText = `build=${buildPlugin ? 'ON'.green : 'OFF'.red}`;
+        grunt.log.writeln(`Configuring plugin ${plugin.magenta} (${cfgFile}, ${buildText})`);
 
         var doAutoBuild = (
             !_.isObject(config.grunt) ||
@@ -131,9 +140,7 @@ module.exports = function (grunt) {
             webpackHelper = require(webpackHelperFile);
         } else {
             grunt.verbose.writeln('  >> No webpack helper file found.');
-            webpackHelper = function (x) {
-                return x;
-            };
+            webpackHelper = x => x;
         }
 
         // Configure the output file; default to 'plugin.min.js' - Girder loads
@@ -182,19 +189,8 @@ module.exports = function (grunt) {
                 nodeDir: pluginNodeDir
             };
 
-            grunt.config.merge({
+            var configOpts = {
                 webpack: {
-                    [`${output}_${plugin}`]: {
-                        entry: {
-                            [helperConfig.pluginEntry]: [main]
-                        },
-                        plugins: [
-                            new customWebpackPlugins.DllReferenceByPathPlugin({
-                                context: '.',
-                                manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
-                            })
-                        ]
-                    },
                     options: {
                         // Add an import alias to the global config for this plugin
                         resolve: {
@@ -215,15 +211,35 @@ module.exports = function (grunt) {
                         }
                     }
                 }
-            });
+            };
 
-            grunt.config.merge({
-                default: {
+            if (buildPlugin) {
+                configOpts.webpack[`${output}_${plugin}`] = {
+                    entry: {
+                        [helperConfig.pluginEntry]: [main]
+                    },
+                    output: {
+                        path: path.join(paths.web_built, 'plugins', plugin),
+                        filename: `${output}.min.js`
+                    },
+                    plugins: [
+                        new webpack.DllReferencePlugin({
+                            context: '.',
+                            manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                        }),
+                        new ExtractTextPlugin({
+                            filename: `${output}.min.css`,
+                            allChunks: true
+                        })
+                    ]
+                };
+                configOpts.default = {
                     [`webpack:${output}_${plugin}`]: {
                         dependencies: ['build'] // plugin builds must run after core build
                     }
-                }
-            });
+                };
+            }
+            grunt.config.merge(configOpts);
 
             // If the plugin config has no webpack section, no defaultLoaders
             // property in the webpack section, or the defaultLoaders is
@@ -249,7 +265,7 @@ module.exports = function (grunt) {
                 }
             }
 
-            var newConfig = webpackHelper(grunt.config.get('webpack.options'), helperConfig);
+            var newConfig = webpackHelper(grunt.config.getRaw('webpack.options'), helperConfig);
             grunt.config.set('webpack.options', newConfig);
         });
 
@@ -367,15 +383,20 @@ module.exports = function (grunt) {
         }
     };
 
+    // Glob for plugins and configure each one to be built
     if (buildAll) {
         // Glob for plugins and configure each one to be built
         grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
-            configurePluginForBuilding(path.resolve(dir));
+            configurePluginForBuilding(path.resolve(dir), true);
         });
     } else {
+        // Configure only the plugins that were requested via --configure-plugins
+        configurePlugins.forEach(function (name) {
+            configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name), false);
+        });
         // Build only the plugins that were requested via --plugins
         plugins.forEach(function (name) {
-            configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name));
+            configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name), true);
         });
     }
 

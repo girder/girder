@@ -152,7 +152,7 @@ class QuotaTestCase(base.TestCase):
                             params={'policy': policyJSON})
         if error:
             self.assertStatus(resp, 400)
-            self.assertTrue(error in resp.json['message'])
+            self.assertIn(error, resp.json['message'])
             return
         self.assertStatusOk(resp)
         resp = self.request(path=path, method='GET', user=user)
@@ -367,10 +367,10 @@ class QuotaTestCase(base.TestCase):
         # We can only set certain keys
         self._setPolicy('this is not json',
                         'user', self.user, self.user,
-                        error='The policy parameter must be JSON.')
+                        error='Parameter policy must be valid JSON.')
         self._setPolicy(json.dumps(['this is not a dictionary']),
                         'user', self.user, self.user,
-                        error='The policy parameter must be a dictionary.')
+                        error='Parameter policy must be a JSON object.')
         # We can only set certain keys
         self._setPolicy({'notAKey': 'notAValue'},
                         'user', self.user, self.user,
