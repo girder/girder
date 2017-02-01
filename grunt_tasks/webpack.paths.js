@@ -17,9 +17,9 @@
 var path = require('path');
 
 module.exports = {
-    clients_web: path.join(__dirname, '../clients/web'),
-    node_modules: path.join(__dirname, '../node_modules'),
-    web_src: path.join(__dirname, '../clients/web/src'),
-    web_built: path.join(__dirname, '../clients/web/static/built/'),
-    plugins: path.join(__dirname, '../plugins')
+    clients_web: path.resolve(__dirname, '../clients/web'),
+    node_modules: path.resolve(__dirname, '../node_modules'),
+    web_src: path.resolve(__dirname, '../clients/web/src'),
+    web_built: path.resolve(__dirname, '../clients/web/static/built/'),
+    plugins: path.resolve(__dirname, '../plugins')
 };

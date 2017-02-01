@@ -412,5 +412,47 @@ $(function () {
           expect($(rows[0]).text()).toContain('1');
         });
       });
+
+      it('Trigger click event.', function () {
+          var jobs, widget;
+
+          runs(function () {
+              jobs = _.map([1, 2, 3], function (i) {
+                  return new girder.plugins.jobs.models.JobModel({
+                      _id: 'foo' + i,
+                      title: 'My batch job ' + i,
+                      status: i,
+                      updated: '2015-01-12T12:00:0' + i,
+                      created: '2015-01-12T12:00:0' + i,
+                      when: '2015-01-12T12:00:0' + i
+                  });
+              });
+
+              widget = new girder.plugins.jobs.views.JobListWidget({
+                  el: $('#g-app-body-container'),
+                  parentView: app,
+                  filter: {},
+                  triggerJobClick: true
+              }).render();
+
+              expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+
+              // Add the jobs to the collection
+              widget.collection.add(jobs);
+          });
+
+          waitsFor(function () {
+              return $('.g-jobs-list-table>tbody>tr').length === 3;
+          }, 'job list to auto-reload when collection is updated');
+
+          runs(function () {
+              var fired = false;
+              widget.on('g:jobClicked', function () {
+                  fired = true;
+              });
+              widget.$('.g-job-trigger-link').click();
+              expect(fired).toBe(true);
+          });
+      });
     });
 });
