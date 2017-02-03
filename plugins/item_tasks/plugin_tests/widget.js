@@ -72,6 +72,28 @@ girderTest.promise.then(function () {
             w.set('value', '-11');
             expect(w.isValid()).toBe(true);
         });
+        it('explicit integer type', function () {
+            var w = new itemTasks.models.WidgetModel({
+                type: 'integer',
+                title: 'Integer widget',
+                min: 2,
+                max: 10
+            });
+            w.set('value', 'not a number');
+            expect(w.value()).toBeNaN();
+            expect(w.isValid()).toBe(false);
+
+            w.set('value', '3.5');
+            expect(w.value()).toBe(3);
+            expect(w.isValid()).toBe(true);
+
+            w.set('value', '-11');
+            expect(w.value()).toBe(-11);
+            expect(w.isValid()).toBe(false);
+
+            w.set('value', '8');
+            expect(w.isValid()).toBe(true);
+        });
         it('float number', function () {
             var w = new itemTasks.models.WidgetModel({
                 type: 'number',
@@ -287,7 +309,8 @@ girderTest.promise.then(function () {
                 {type: 'string-enumeration', id: 'string-enumeration', values: ['a'], value: 'a'},
                 {type: 'number-enumeration', id: 'number-enumeration', values: [1], value: '1'},
                 {type: 'file', id: 'file', value: new Backbone.Model({id: 'a'})},
-                {type: 'new-file', id: 'new-file', value: new Backbone.Model({name: 'a', folderId: 'b'})}
+                {type: 'new-file', id: 'new-file', value: new Backbone.Model({name: 'a', folderId: 'b'})},
+                {type: 'image', id: 'image', value: new Backbone.Model({id: 'c'})}
             ]);
 
             expect(c.values()).toEqual({
@@ -302,7 +325,8 @@ girderTest.promise.then(function () {
                 'number-enumeration': '1',
                 'file_girderItemId': 'a',
                 'new-file_girderFolderId': 'b',
-                'new-file_name': 'a'
+                'new-file_name': 'a',
+                'image_girderFileId': 'c'
             });
         });
     });
