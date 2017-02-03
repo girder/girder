@@ -300,6 +300,8 @@ class TasksTest(base.TestCase):
                 break
             else:
                 time.sleep(0.2)
+        else:
+            raise Exception('Output binding did not occur in time')
 
         self.assertEqual(
             job['itemTaskBindings']['outputs']['--DetectedPoints']['itemId'], file['itemId'])
