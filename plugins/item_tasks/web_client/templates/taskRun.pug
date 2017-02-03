@@ -3,11 +3,11 @@
 if item.get('description')
   .g-task-description-container!= renderMarkdown(item.get('description'))
 
-.s-panel-group.g-task-setup-container
+.g-panel-group.g-task-setup-container
   if hasInputs
-    .g-inputs-container.s-panel
+    .g-inputs-container.g-panel
   if hasOutputs
-    .g-outputs-container.s-panel
+    .g-outputs-container.g-panel
 .g-run-container
   .g-validation-failed-message
   button.g-run-task.btn.btn-lg.btn-success

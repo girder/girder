@@ -1,6 +1,6 @@
 .modal-dialog
   .modal-content
-    form.s-new-file-select-form
+    form.g-new-file-select-form
       .modal-header
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         - var t = type === 'new-file' ? 'directory' : type;
@@ -9,18 +9,17 @@
           - value = value.name()
         h4.modal-title
           | Select a #{t}#{name}
-      .modal-body(
-        data-target-id=id)
-        .alert.alert-danger.s-modal-error.hidden
-        .s-hierarchy-widget
+      .modal-body(data-target-id=id)
+        .alert.alert-danger.g-modal-error.hidden
+        .g-hierarchy-widget
         if type === 'new-file'
           .form-group
-            label.control-label(for='s-new-file-name') Item name
-            input#s-new-file-name.form-control(type='text', value=value, placeholder='Enter an item name...')
+            label.control-label(for='g-new-file-name') Item name
+            input#g-new-file-name.form-control(type='text', value=value, placeholder='Enter an item name...')
 
       if type === 'directory' || type === 'new-file'
         .modal-footer
           a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
-          button.s-select-button.btn.btn-small.btn-primary(type="submit")
+          button.g-select-button.btn.btn-small.btn-primary(type="submit")
             i.icon-edit
             | Save

@@ -6,11 +6,11 @@ mixin input(title, type, id, value)
     - value = value.join(',')
   input.form-control(name=title, type=inputType, id=id, value=value)&attributes(attributes)
 
-.form-group.s-control-item(data-type=type, data-control-id=id)
+.form-group.g-control-item(data-type=type, data-control-id=id)
   block label
-    label.s-control-widget-label.control-label(for=id)= title
+    label.g-control-widget-label.control-label(for=id)= title
   block description
     if description
-      .s-control-widget-description= description
+      .g-control-widget-description= description
   block input
     +input(title, type, id, value)(min=min, max=max, step=step)

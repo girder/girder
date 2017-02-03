@@ -10,7 +10,7 @@ import itemSelectorWidget from '../templates/itemSelectorWidget.pug';
 
 var ItemSelectorWidget = View.extend({
     events: {
-        'submit .s-new-file-select-form': '_selectButton'
+        'submit .g-new-file-select-form': '_selectButton'
     },
 
     initialize: function (settings) {
@@ -37,7 +37,7 @@ var ItemSelectorWidget = View.extend({
             itemSelectorWidget(this.model.attributes)
         ).girderModal(this);
 
-        this._hierarchyView.setElement(this.$('.s-hierarchy-widget')).render();
+        this._hierarchyView.setElement(this.$('.g-hierarchy-widget')).render();
         return this;
     },
 
@@ -69,7 +69,7 @@ var ItemSelectorWidget = View.extend({
             image = item.get('largeImage');
 
             if (!image) {
-                this.$('.s-modal-error').removeClass('hidden')
+                this.$('.g-modal-error').removeClass('hidden')
                     .text('Please select a "large_image" item.');
                 return;
             }
@@ -90,12 +90,12 @@ var ItemSelectorWidget = View.extend({
     _selectButton: function (e) {
         e.preventDefault();
 
-        var inputEl = this.$('#s-new-file-name');
+        var inputEl = this.$('#g-new-file-name');
         var inputElGroup =  inputEl.parent();
         var fileName = inputEl.val();
         var type = this.model.get('type');
         var parent = this._hierarchyView.parentModel;
-        var errorEl = this.$('.s-modal-error').addClass('hidden');
+        var errorEl = this.$('.g-modal-error').addClass('hidden');
 
         inputElGroup.removeClass('has-error');
 

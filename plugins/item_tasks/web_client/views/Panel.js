@@ -7,7 +7,7 @@ var Panel = View.extend({
     events: {
         'show.bs.collapse': 'expand',
         'hide.bs.collapse': 'collapse',
-        'click .s-panel-title-container': '_handleTitleClick'
+        'click .g-panel-title-container': '_handleTitleClick'
     },
     initialize: function (settings) {
         this.spec = settings.spec;
@@ -22,9 +22,9 @@ var Panel = View.extend({
         this.$('.icon-up-open').attr('class', 'icon-down-open');
     },
     _handleTitleClick: function (e) {
-        if (!$(e.target).hasClass('s-remove-panel')) {
+        if (!$(e.target).hasClass('g-remove-panel')) {
             e.stopPropagation();
-            this.$('.s-panel-content').collapse('toggle');
+            this.$('.g-panel-content').collapse('toggle');
         }
     }
 });

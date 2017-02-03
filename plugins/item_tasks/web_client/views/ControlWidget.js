@@ -21,7 +21,7 @@ var ControlWidget = View.extend({
     events: {
         'change input,select': '_input',
         'changeColor': '_input',
-        'click .s-select-file-button': '_selectFile'
+        'click .g-select-file-button': '_selectFile'
     },
 
     initialize: function () {
@@ -37,14 +37,14 @@ var ControlWidget = View.extend({
             return this;
         }
         this.$el.html(this.template()(this.model.attributes));
-        this.$('.s-control-item[data-type="range"] input').slider();
-        this.$('.s-control-item[data-type="color"] .input-group').colorpicker({});
+        this.$('.g-control-item[data-type="range"] input').slider();
+        this.$('.g-control-item[data-type="color"] .input-group').colorpicker({});
         return this;
     },
 
     remove: function () {
-        this.$('.s-control-item[data-type="color"] .input-group').colorpicker('destroy');
-        this.$('.s-control-item[data-type="range"] input').slider('destroy');
+        this.$('.g-control-item[data-type="color"] .input-group').colorpicker('destroy');
+        this.$('.g-control-item[data-type="range"] input').slider('destroy');
         this.$el.empty();
     },
 

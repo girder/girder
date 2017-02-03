@@ -566,7 +566,7 @@ girderTest.promise.then(function () {
             w.render();
             checkWidgetCommon(w);
 
-            w.$('.s-select-file-button').click();
+            w.$('.g-select-file-button').click();
             expect(arg.parentModel).toBe(girder.auth.getCurrentUser());
             arg.onItemClick(item);
             expect(w.model.value().name()).toBe('b');
@@ -601,26 +601,26 @@ girderTest.promise.then(function () {
             checkWidgetCommon(w);
 
             itemTasks.rootPath = {};
-            w.$('.s-select-file-button').click();
+            w.$('.g-select-file-button').click();
             expect(arg.parentModel).toBe(girder.auth.getCurrentUser());
 
             // selecting without a file name entered should error
-            $modal.find('.s-select-button').click();
+            $modal.find('.g-select-button').click();
             expect($modal.find('.form-group').hasClass('has-error')).toBe(true);
-            expect($modal.find('.s-modal-error').hasClass('hidden')).toBe(false);
+            expect($modal.find('.g-modal-error').hasClass('hidden')).toBe(false);
 
             // selecting with a file name in a collection should error
-            $modal.find('#s-new-file-name').val('my file');
+            $modal.find('#g-new-file-name').val('my file');
             hView.parentModel = collection;
-            $modal.find('.s-select-button').click();
+            $modal.find('.g-select-button').click();
             expect($modal.find('.form-group').hasClass('has-error')).toBe(false);
-            expect($modal.find('.s-modal-error').hasClass('hidden')).toBe(false);
+            expect($modal.find('.g-modal-error').hasClass('hidden')).toBe(false);
 
             // selecting a file in a folder should succeed
             hView.parentModel = folder;
-            $modal.find('.s-select-button').click();
+            $modal.find('.g-select-button').click();
             expect($modal.find('.form-group').hasClass('has-error')).toBe(false);
-            expect($modal.find('.s-modal-error').hasClass('hidden')).toBe(true);
+            expect($modal.find('.g-modal-error').hasClass('hidden')).toBe(true);
             expect(w.model.get('path')).toEqual([]);
             expect(w.model.get('value').get('name')).toBe('my file');
 
