@@ -13,6 +13,9 @@ case $CIRCLE_NODE_INDEX in
 	2)
 		export TEST_GROUP=browser
 		;;
+	3)
+		export TEST_GROUP=static
+		;;
 	*)
 		echo "Invalid node index"
 		exit 1
