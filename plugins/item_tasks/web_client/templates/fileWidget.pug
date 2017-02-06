@@ -2,9 +2,29 @@ extends ./widget.pug
 
 block input
   .input-group
-    if value && value.name
-      - value = value.name();
-    +input(title, type, id, value)(placeholder='Choose a file...', readonly=true)
+    // ignore invalid values, let the validation handle it
+    - var name;
+    if !value || !value.name
+      - value = null
+    else
+      - name = value.name()
+
+    // different behavior for different types of inputs
+    if type === 'file'
+      +input(title, type, id, name)(placeholder='Choose a file...', readonly=true)
+
+    else if type === 'directory'
+      +input(title, type, id, name)(placeholder='Choose a folder...', readonly=true)
+
+    else if type === 'new-file' && !value
+      // no directory is set yet...
+      +input(title, type, id, null)(placeholder='Choose a folder...', readonly=true)
+
+    else if type === 'new-file'
+      // after directory is specified make the input box editable to provide a file name
+      +input(title, type, id, fileName)(placeholder='Choose a file name...', readonly=false)
+
+
     span.input-group-btn
       button.btn.btn-default.g-select-file-button(type='button')
         i.icon-folder-open

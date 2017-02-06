@@ -117,7 +117,11 @@ var WidgetModel = Backbone.Model.extend({
 
         if (this.isVector()) {
             return this._validateVector(model.value);
-        } else if (this.isGirderModel()) {
+        } else if (model.type === 'new-file') {
+            return this._validateGirderModel(model) ||
+                (!model.fileName || undefined) &&
+                'No file name provided';
+        } else if (this.isGirderModel() && model.type === 'new-file') {
             return this._validateGirderModel(model);
         }
         return this._validateValue(model.value);
@@ -226,19 +230,8 @@ var WidgetModel = Backbone.Model.extend({
      * the model on the server.
      */
     _validateGirderModel: function (model) {
-        var parent;
         if (!model.value) {
             return 'Empty value';
-        }
-
-        switch (this.get('type')) {
-            case 'new-file':
-                parent = model.parent;
-                if (!parent || parent.resourceName !== 'folder') {
-                    return 'Invalid parent model';
-                }
-                break;
-            // other model types...
         }
     },
 
