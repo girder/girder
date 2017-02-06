@@ -1,5 +1,6 @@
 from tests import base
 import os
+import time
 
 
 def setUpModule():
@@ -42,8 +43,17 @@ class DicomViewerTest(base.TestCase):
                 fp, 25640, 'test.dcm', 'item', item, admin)
 
         # test dicom endpoint
-        path = '/item/%s/dicom' % item.get('_id')
-        resp = self.request(path=path, user=admin)
+        start = time.time()
+        while True:
+            try:
+                path = '/item/%s/dicom' % item.get('_id')
+                resp = self.request(path=path, user=admin)
+                break
+            except AssertionError:
+                if time.time() - start > 15:
+                    raise
+                time.sleep(0.5)
+
         self.assertStatusOk(resp)
 
         # one dicom file found
