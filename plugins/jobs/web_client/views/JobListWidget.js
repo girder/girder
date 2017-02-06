@@ -16,7 +16,7 @@ import '../stylesheets/jobListWidget.styl';
 
 var JobListWidget = View.extend({
     events: {
-        'click .g-job-checkbox-menu input': function (e) {
+        'click .g-job-trigger-link': function (e) {
             var cid = $(e.target).attr('cid');
             this.trigger('g:jobClicked', this.collection.get(cid));
         }
