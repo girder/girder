@@ -158,6 +158,21 @@ If there is a match, the user is added to the group with the specified access
 level.
 
 
+DICOM Viewer
+------------
+
+The DICOM Viewer plugin adds support for previewing DICOM files when viewing
+an item in girder. If multiple DICOM files are present in a single item, they
+are presented as multiple slices. The DICOM image is shown as well as a table
+of DICOM tags. The window center and width can be changed by the user. Controls
+allow the user to step through slices, auto-level the window, auto-zoom, or
+playback the slices at different speeds.
+
+This plugin parses the DICOM tags when files are uploaded and stores them in
+the MongoDB database for quick retrieval. This is mostly used to sort multiple
+images by series and instance.
+
+
 Metadata Extractor
 ------------------
 
