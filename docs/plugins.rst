@@ -17,13 +17,20 @@ This plugin allows registered users to grant access to others to upload data on 
 via a secure URL. The secure URL allows a third party to upload a single file into the selected
 folder, even if that third party does not have a registered user in Girder.
 
-To authorize an upload on behalf of your user, navigate into any folder to which you have
-write access. From the **Folder actions** dropdown menu on the right, choose **Authorize upload here**.
-You will be taken to a page that allows generation of a secure, single-use URL. You can optionally
-specify a number of days until the URL expires; if none is specified, the user session lifetime
-is used, which defaults to 180 days. Click **Generate URL**, and your secure URL will appear
-below. Copy that URL and send it to the third party, and they will be taken to a simple page
-allowing them to upload the file without having to see any details of the normal Girder application.
+To authorize an upload on behalf of your user:
+
+1. Navigate into any folder to which you have write access. From the **Folder actions** dropdown
+   menu on the right, choose **Authorize upload here**. You will be taken to a page that allows generation 
+   of a secure, single-use URL. You can optionally specify a number of days until the URL expires; if none
+   is specified, the user session lifetime is used, which defaults to 180 days. 
+2. Click **Generate URL**, and your secure URL will appear below.
+3. Copy that URL and send it to the third party, and they will be taken to a simple page allowing them
+   to upload the file without having to see any details of the normal Girder application.
+
+.. note::
+
+  When an upload is authorized, it's authorized into a particular folder, and inherits the access control
+  configured on that folder.
 
 
 .. _jobsplugin:
@@ -149,6 +156,21 @@ email address contains the rule pattern as a substring (case insensitive).
 
 If there is a match, the user is added to the group with the specified access
 level.
+
+
+DICOM Viewer
+------------
+
+The DICOM Viewer plugin adds support for previewing DICOM files when viewing
+an item in girder. If multiple DICOM files are present in a single item, they
+are presented as multiple slices. The DICOM image is shown as well as a table
+of DICOM tags. The window center and width can be changed by the user. Controls
+allow the user to step through slices, auto-level the window, auto-zoom, or
+playback the slices at different speeds.
+
+This plugin parses the DICOM tags when files are uploaded and stores them in
+the MongoDB database for quick retrieval. This is mostly used to sort multiple
+images by series and instance.
 
 
 Metadata Extractor

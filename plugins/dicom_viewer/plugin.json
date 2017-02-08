@@ -1,0 +1,12 @@
+{
+    "name": "DICOM Viewer",
+    "description": "View DICOM images in the browser",
+    "version": "0.1.0",
+    "npm": {
+        "dependencies": {
+            "daikon": "^1.2.15",
+            "kw-web-suite": "^2.0.1",
+            "vtk.js": "2.2.0"
+        }
+    }
+}
