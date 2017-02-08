@@ -18,15 +18,27 @@
 ###############################################################################
 
 import cherrypy
+import mako
 import mimetypes
 import os
 import six
 
 import girder.events
-from girder import constants, logprint
+from girder import constants, logprint, __version__
 from girder.utility import plugin_utilities, model_importer
 from girder.utility import config
 from . import webroot
+
+with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
+    _errorTemplate = f.read()
+
+
+def _errorDefault(status, message, *args, **kwargs):
+    """
+    This is used to render error pages outside of the normal Girder app, such as
+    404's. This overrides the default cherrypy error pages.
+    """
+    return mako.template.Template(_errorTemplate).render(status=status, message=message)
 
 
 def configureServer(test=False, plugins=None, curConfig=None):
@@ -50,7 +62,9 @@ def configureServer(test=False, plugins=None, curConfig=None):
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
             'request.show_tracebacks': test,
-            'request.methods_with_bodies': ('POST', 'PUT', 'PATCH')
+            'request.methods_with_bodies': ('POST', 'PUT', 'PATCH'),
+            'response.headers.server': 'Girder %s' % __version__,
+            'error_page.default': _errorDefault
         }
     }
     # Add MIME types for serving Fontello files from staticdir;

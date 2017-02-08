@@ -59,6 +59,15 @@ module.exports = function (grunt) {
         grunt.config.set('girderDir', '.');
     }
 
+    // Ensure our build directory exists
+    try {
+        fs.mkdirSync('clients/web/static/built');
+    } catch (e) {
+        if (e.code !== 'EEXIST') {
+            throw e;
+        }
+    }
+
     /**
      * Load task modules inside `grunt_tasks`.
      */
@@ -70,7 +79,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-symlink');
     grunt.loadNpmTasks('grunt-gitinfo');
-    grunt.loadNpmTasks('grunt-curl');
     grunt.loadNpmTasks('grunt-zip');
     grunt.loadNpmTasks('grunt-file-creator');
     grunt.loadNpmTasks('grunt-webpack');

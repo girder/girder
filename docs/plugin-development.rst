@@ -47,6 +47,12 @@ example will be:
     "dependencies": ["other_plugin"]
     }
 
+.. note:: Some plugins depend on other plugins, but only for building web client code, not
+    at runtime. For these cases, rather than the ``dependencies`` field, use the
+    ``staticWebDependencies`` field instead. This will allow the plugin to import web
+    code from the other plugin, but will not require the other plugin to be built or enabled
+    at runtime.
+
 This information will appear in the web client administration console, and
 administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart is required in order for the

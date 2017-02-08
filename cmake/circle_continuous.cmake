@@ -33,9 +33,6 @@ elseif(test_group STREQUAL browser)
   file(RENAME "${CTEST_BINARY_DIRECTORY}/coverage/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
 endif()
 
-ctest_coverage()
-
-file(REMOVE "${CTEST_BINARY_DIRECTORY}/coverage.xml")
 ctest_submit()
 
 file(REMOVE "${CTEST_BINARY_DIRECTORY}/test_failed")

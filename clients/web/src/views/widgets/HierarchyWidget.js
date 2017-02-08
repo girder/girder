@@ -526,7 +526,8 @@ var HierarchyWidget = View.extend({
         this.folderListView.initialize({
             parentType: parent.resourceName,
             parentId: parent.get('_id'),
-            checkboxes: this._checkboxes
+            checkboxes: this._checkboxes,
+            folderFilter: this._itemFilter
         });
 
         this.updateChecked();
@@ -535,7 +536,11 @@ var HierarchyWidget = View.extend({
             if (this.itemListView) {
                 this.itemListView.initialize({
                     folderId: parent.get('_id'),
-                    checkboxes: this._checkboxes
+                    checkboxes: this._checkboxes,
+                    downloadLinks: this._downloadLinks,
+                    viewLinks: this._viewLinks,
+                    itemFilter: this._itemFilter,
+                    showSizes: this._showSizes
                 });
             } else {
                 this._initFolderViewSubwidgets();

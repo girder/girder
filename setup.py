@@ -75,6 +75,7 @@ install_reqs = [
 
 extras_reqs = {
     'celery_jobs': ['celery'],
+    'dicom_viewer': ['pydicom'],
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
@@ -138,7 +139,7 @@ setup(
             'conf/girder.dist.cfg',
             'mail_templates/*.mako',
             'mail_templates/**/*.mako',
-            'utility/webroot.mako',
+            'utility/*.mako',
             'api/api_docs.mako'
         ]
     },
