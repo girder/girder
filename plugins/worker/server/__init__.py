@@ -31,6 +31,7 @@ from .utils import jobInfoSpec
 
 _celeryapp = None
 
+
 class CustomJobStatus(object):
     """
     The custom job status flags for the worker.

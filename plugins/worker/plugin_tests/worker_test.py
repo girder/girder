@@ -106,9 +106,13 @@ class WorkerTestCase(base.TestCase):
             })
 
             sendTaskCalls = celeryMock.return_value.send_task.mock_calls
+
             self.assertEqual(len(sendTaskCalls), 1)
             self.assertEqual(sendTaskCalls[0][1], (
                 'girder_worker.run', job['args'], job['kwargs']))
+
+            self.assertTrue('headers' in sendTaskCalls[0][2])
+            self.assertTrue('jobInfoSpec' in sendTaskCalls[0][2]['headers'])
 
             # Make sure we got and saved the celery task id
             job = jobModel.load(job['_id'], force=True)
