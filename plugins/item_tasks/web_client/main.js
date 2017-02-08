@@ -36,7 +36,7 @@ wrap(ItemView, 'render', function (render) {
 });
 
 import ConfigureTaskDialog from './views/ConfigureTaskDialog';
-ItemView.prototype.events['click .g-create-slicer-cli-docker-task'] = function () {
+ItemView.prototype.events['click .g-configure-item-task'] = function () {
     if (!this.configureTaskDialog) {
         this.configureTaskDialog = new ConfigureTaskDialog({
             model: this.model,

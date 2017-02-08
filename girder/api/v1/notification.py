@@ -23,6 +23,7 @@ import time
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, setResponseHeader
+from girder.utility import JsonEncoder
 from girder.api import access
 
 # If no timeout param is passed to stream, we default to this value
@@ -37,7 +38,7 @@ def sseMessage(event):
     """
     Serializes an event into the server-sent events protocol.
     """
-    return 'data: %s\n\n' % json.dumps(event, default=str)
+    return 'data: %s\n\n' % json.dumps(event, sort_keys=True, allow_nan=False, cls=JsonEncoder)
 
 
 class Notification(Resource):

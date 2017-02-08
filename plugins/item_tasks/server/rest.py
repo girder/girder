@@ -272,9 +272,6 @@ class ItemTask(Resource):
             }
         })
 
-        job = jobModel.save(job)
-        jobModel.scheduleJob(job)
-
         item['meta']['itemTaskSpec'] = {
             'mode': 'docker',
             'docker_image': image
@@ -284,6 +281,9 @@ class ItemTask(Resource):
             item['meta']['itemTaskSlicerCliArgs'] = args
 
         self.model('item').save(item)
+
+        job = jobModel.save(job)
+        jobModel.scheduleJob(job)
 
         return job
 

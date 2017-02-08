@@ -8,6 +8,7 @@
           span.g-input-value= JSON.stringify(input.data)
         else if input.mode === 'girder'
           a.g-input-value(href=`#${input.resource_type || 'file'}/${input.id}`) View #{input.resource_type}
+.g-item-task-outputs-container
   h4 Outputs
   ul
     each output, id in (job.get('itemTaskBindings').outputs || {})
