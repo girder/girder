@@ -59,6 +59,15 @@ module.exports = function (grunt) {
         grunt.config.set('girderDir', '.');
     }
 
+    // Ensure our build directory exists
+    try {
+        fs.mkdirSync('clients/web/static/built');
+    } catch (e) {
+        if (e.code !== 'EEXIST') {
+            throw e;
+        }
+    }
+
     /**
      * Load task modules inside `grunt_tasks`.
      */

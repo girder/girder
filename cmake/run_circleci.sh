@@ -15,7 +15,7 @@ case $CIRCLE_NODE_INDEX in
 		;;
 	*)
 		echo "Invalid node index"
-		exit 1
+		exit 0
 esac
 
 mkdir $HOME/build
