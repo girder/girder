@@ -172,6 +172,7 @@ This plugin parses the DICOM tags when files are uploaded and stores them in
 the MongoDB database for quick retrieval. This is mostly used to sort multiple
 images by series and instance.
 
+.. image:: images/dicom-viewer.png
 
 Metadata Extractor
 ------------------
