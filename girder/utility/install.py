@@ -189,10 +189,15 @@ def install_web(opts=None):
     elif opts.watch:
         _runWatchCmd('npm', 'run', 'watch')
     elif opts.watch_plugin:
+        staticPlugins = plugin_utilities.getToposortedPlugins(
+            [opts.watch_plugin], ignoreMissing=True,
+            keys=('dependencies', 'staticWebDependencies'))
+        staticPlugins = [p for p in staticPlugins if p != opts.watch_plugin]
+
         _runWatchCmd(
-            'npm', 'run', 'watch', '--', '--all-plugins', 'webpack:%s_%s' % (
-                opts.plugin_prefix, opts.watch_plugin)
-        )
+            'npm', 'run', 'watch', '--', '--plugins=%s' % opts.watch_plugin,
+            '--configure-plugins=%s' % ','.join(staticPlugins),
+            'webpack:%s_%s' % (opts.plugin_prefix, opts.watch_plugin))
     else:
         runWebBuild(
             dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,

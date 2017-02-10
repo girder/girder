@@ -286,7 +286,8 @@ class InstallTestCase(base.TestCase):
             self.assertEqual(len(p.mock_calls), 1)
             self.assertEqual(
                 list(p.mock_calls[0][1][0]),
-                ['npm', 'run', 'watch', '--', '--all-plugins', 'webpack:plugin_jobs']
+                ['npm', 'run', 'watch', '--', '--plugins=jobs', '--configure-plugins=',
+                 'webpack:plugin_jobs']
             )
 
         # Keyboard interrupt should be handled gracefully
