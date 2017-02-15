@@ -62,6 +62,14 @@ var UploadWidget = View.extend({
                 .html('<i class="icon-docs"/> Browse or drop files');
         },
         'dragover .g-drop-zone': function (e) {
+            var dataTransfer = e.originalEvent.dataTransfer;
+            if (!dataTransfer) {
+                return;
+            }
+            // The following two lines enable drag and drop from the chrome download bar
+            var allowed = dataTransfer.effectAllowed;
+            dataTransfer.dropEffect = (allowed === 'move' || allowed === 'linkMove') ? 'move' : 'copy';
+
             e.preventDefault();
         },
         'drop .g-drop-zone': 'filesDropped'
@@ -92,6 +100,11 @@ var UploadWidget = View.extend({
      * event of this widget. The caller is then responsible for calling "uploadNextFile()"
      * on the widget when they have completed their actions and are ready to actually
      * send the files.
+     * @param [multiFile=true] By default, this widget allows selection of multiple
+     * files. Set this to false to only allow a single file to be chosen.
+     * @param [otherParams={}] An object containing other parameters to pass into the
+     * upload initialization endpoint, or a function that returns such an object. If a
+     * function, will be called when the upload is started.
      *
      * Other events:
      *   - "g:filesChanged": This is triggered any time the user changes the
@@ -112,16 +125,26 @@ var UploadWidget = View.extend({
         this.totalSize = 0;
         this.title = _.has(settings, 'title') ? settings.title : 'Upload files';
         this.modal = _.has(settings, 'modal') ? settings.modal : true;
+        this.multiFile = _.has(settings, 'multiFile') ? settings.multiFile : this.parentType !== 'file';
         this.overrideStart = settings.overrideStart || false;
+        this.otherParams = settings.otherParams || {};
+
+        this._browseText = this.multiFile ? 'Browse or drop files here' : 'Browse or drop a file here';
+        this._noneSelectedText = this.multiFile ? 'No files selected' : 'No file selected';
     },
 
     render: function () {
+        var templateParams = {
+            parent: this.parent,
+            parentType: this.parentType,
+            title: this.title,
+            multiFile: this.multiFile,
+            browseText: this._browseText,
+            noneSelectedText: this._noneSelectedText
+        };
+
         if (this.modal) {
-            this.$el.html(UploadWidgetTemplate({
-                parent: this.parent,
-                parentType: this.parentType,
-                title: this.title
-            }));
+            this.$el.html(UploadWidgetTemplate(templateParams));
 
             var base = this;
             var dialogid;
@@ -141,11 +164,7 @@ var UploadWidget = View.extend({
 
             handleOpen('upload', undefined, dialogid);
         } else {
-            this.$el.html(UploadWidgetNonModalTemplate({
-                parent: this.parent,
-                parentType: this.parentType,
-                title: this.title
-            }));
+            this.$el.html(UploadWidgetNonModalTemplate(templateParams));
         }
         return this;
     },
@@ -153,16 +172,24 @@ var UploadWidget = View.extend({
     filesDropped: function (e) {
         e.stopPropagation();
         e.preventDefault();
+
         this.$('.g-drop-zone')
             .removeClass('g-dropzone-show')
-            .html('<i class="icon-docs"/> Browse or drop files');
+            .html(`<i class="icon-docs"/> ${this._browseText}`);
         this.files = e.originalEvent.dataTransfer.files;
+
+        if (!this.multiFile && this.files.length > 1) {
+            // If in single-file mode and the user drops multiple files,
+            // we just take the first one.
+            this.files = [this.files[0]];
+        }
+
         this.filesChanged();
     },
 
     filesChanged: function () {
         if (this.files.length === 0) {
-            this.$('.g-overall-progress-message').text('No files selected');
+            this.$('.g-overall-progress-message').text(this._noneSelectedText);
             this.setUploadEnabled(false);
         } else {
             this.totalSize = 0;
@@ -192,8 +219,12 @@ var UploadWidget = View.extend({
     startUpload: function () {
         this.setUploadEnabled(false);
         this.$('.g-drop-zone').addClass('hide');
-        this.$('.g-progress-overall,.g-progress-current').removeClass('hide');
+        this.$('.g-progress-overall').removeClass('hide');
         this.$('.g-upload-error-message').empty();
+
+        if (this.multiFile) {
+            this.$('.g-progress-current').removeClass('hide');
+        }
 
         this.currentIndex = 0;
         this.overallProgress = 0;
@@ -269,7 +300,11 @@ var UploadWidget = View.extend({
         if (this.parentType === 'file') {
             this.currentFile.updateContents(this.files[this.currentIndex]);
         } else {
-            this.currentFile.upload(this.parent, this.files[this.currentIndex]);
+            var otherParams = this.otherParams;
+            if (_.isFunction(this.otherParams)) {
+                otherParams = this.otherParams(this);
+            }
+            this.currentFile.upload(this.parent, this.files[this.currentIndex], null, otherParams);
         }
     }
 });

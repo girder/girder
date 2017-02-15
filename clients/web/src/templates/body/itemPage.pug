@@ -29,7 +29,8 @@
               | Delete item
 
   .g-item-name.g-body-title= item.name()
-  .g-item-description.g-body-subtitle= item.get('description')
+
+.g-item-description!= renderMarkdown(item.get('description'))
 
 .g-item-info
   .g-item-info-header

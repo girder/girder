@@ -5,6 +5,7 @@ include girder/girder-version.json
 include package.json
 include README.rst
 include girder/conf/girder.dist.cfg
+include scripts/postNpmInstall.js
 recursive-exclude tests *
 recursive-include clients/web *
 recursive-include girder/mail_templates *

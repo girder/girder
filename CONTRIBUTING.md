@@ -13,7 +13,7 @@ do better.
 We encourage a range of Pull Requests, from patches that include passing tests and
 documentation, all the way down to half-baked ideas that launch discussions.
 
-The PR Process, Travis CI, and Related Gotchas
+The PR Process, CircleCI, and Related Gotchas
 ----------------------------------------------
 
 #### How to submit a PR ?
@@ -56,17 +56,15 @@ Then, click on the "Delete branch" button that appears afterward.
 
 #### Automatic testing of pull requests
 
-When you submit a PR to the Girder repo, Travis CI will run the full build on two different branches
+When you submit a PR to the Girder repo, CircleCI will run the build and test suite on the
+head of the branch. If you add new commits onto the branch, those will also automatically
+be run through the CI process. The status of the CI process (passing, failing, or in progress) will
+be displayed directly in the PR page in GitHub.
 
-  * The commit at the head of the PR branch, the `push` build
-  * The head of the PR branch that is then merged into `master`, the `pr` branch
+The CircleCI build will run according to the [circle.yml file](/circle.yml), which is
+useful as an example for how to set up your own environment for testing.
 
-The Travis build will run according to the [.travis.yml file](/.travis.yml), which is
-useful as an example for how to set up your own environment for testing.  We are currently
-using containerized builds on Travis, and for each branch, will test against both Mongo
-v2.6.8 and Mongo v3.0.1.
-
-The tests that run in Travis are harnessed with CTest, which submits the results of its
+The tests that run in CircleCI are harnessed with CTest, which submits the results of its
 automated testing to [Girder's CDash dashboard](http://my.cdash.org/index.php?project=girder)
 where the test and coverage results can be easily visualized and explored.
 
@@ -83,7 +81,7 @@ As an example, the HDFS plugin has a dependency on the Python module `snakebite`
 specified in the
 [HDFS plugin requirements.txt file](https://github.com/girder/girder/blob/master/plugins/hdfs_assetstore/requirements.txt).
 If this dependency was not included in the requirements file, or if that requirements file
-was not included in the [.travis.yml file](/.travis.yml) (or that requirements file was
+was not included in the [circle.yml file](/circle.yml) (or that requirements file was
 not `pip` installed in a local test environment), when the test defined in
 [the assetstore_test.py file](https://github.com/girder/girder/blob/master/plugins/hdfs_assetstore/plugin_tests/assetstore_test.py#L27-L28)
 is run, the `snakebite` module will not be found, but the exception will be swallowed by

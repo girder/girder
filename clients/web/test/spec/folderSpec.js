@@ -1,7 +1,6 @@
 /**
  * Start the girder backbone app.
  */
-/* globals waitsFor, runs, girderTest, expect, describe, it */
 girderTest.startApp();
 
 /* Show the folder edit dialog and click a button.
@@ -177,7 +176,6 @@ describe('Test folder creation, editing, and deletion', function () {
     });
 
     it('create a subfolder in the public folder of the user', function () {
-
         waitsFor(function () {
             return $('a.g-folder-list-link:contains(Public):visible').length === 1;
         }, 'the public folder to be clickable');

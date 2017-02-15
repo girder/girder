@@ -4,6 +4,7 @@ import FolderModel from 'girder/models/FolderModel';
 import ItemModel from 'girder/models/ItemModel';
 import Model from 'girder/models/Model';
 import { restRequest, uploadHandlers, getUploadChunkSize } from 'girder/rest';
+import 'girder/utilities/S3UploadHandler';  // imported for side effect
 
 var FileModel = Model.extend({
     resourceName: 'file',
@@ -91,21 +92,23 @@ var FileModel = Model.extend({
      * @param file The browser File object to be uploaded.
      * @param [_restParams] Override the rest request parameters. This is meant
      * for internal use; do not pass this parameter.
+     * @param [otherParams] Optional Object containing other parameters for the
+     * initUpload request.
      */
-    upload: function (parentModel, file, _restParams) {
+    upload: function (parentModel, file, _restParams, otherParams) {
         this.startByte = 0;
         this.resumeInfo = null;
         this.uploadHandler = null;
         _restParams = _restParams || {
             path: 'file',
             type: 'POST',
-            data: {
+            data: _.extend({
                 parentType: parentModel.resourceName,
                 parentId: parentModel.get('_id'),
                 name: file.name,
                 size: file.size,
                 mimeType: file.type
-            }
+            }, otherParams)
         };
 
         // Authenticate and generate the upload token for this file

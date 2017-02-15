@@ -81,7 +81,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
             curUser = 'admin';
         }
         runs(function () {
-            var resp = girder.rest.restRequest({
+            girder.rest.restRequest({
                 path: 'system/setting',
                 type: 'PUT',
                 data: {
@@ -136,7 +136,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
                    $('.g-group-mods>li').length === 1 &&
                    $('.g-group-admins>li').length === 2;
         }, 'the group page to load');
-     }
+    }
     /* If the invite search field exists or we think it should,
      * test that the add button exists as we expect */
     if (policy.mayAdd === null) {
@@ -150,7 +150,6 @@ function _testDirectAdd(policy, curUser, curSetting) {
 }
 
 describe('Test group actions', function () {
-
     it('register a user (first is admin)',
         girderTest.createUser('admin',
                               'admin@email.com',

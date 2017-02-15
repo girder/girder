@@ -118,6 +118,13 @@ class WorkerTestCase(base.TestCase):
     def testWorkerDifferentTask(self):
         # Test the settings
         resp = self.request('/system/setting', method='PUT', params={
+            'key': worker.PluginSettings.API_URL,
+            'value': 'bad value'
+        }, user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'API URL must start with http:// or https://.')
+
+        resp = self.request('/system/setting', method='PUT', params={
             'list': json.dumps([{
                 'key': worker.PluginSettings.BROKER,
                 'value': 'amqp://guest@broker.com'
@@ -134,7 +141,8 @@ class WorkerTestCase(base.TestCase):
             title='title', type='foo', handler='worker_handler',
             user=self.admin, public=False, args=(), kwargs={},
             otherFields={
-                'celeryTaskName': 'some_other.task'
+                'celeryTaskName': 'some_other.task',
+                'celeryQueue': 'my_other_q'
             })
 
         job['kwargs'] = {
@@ -159,3 +167,5 @@ class WorkerTestCase(base.TestCase):
             self.assertEqual(len(sendTaskCalls), 1)
             self.assertEqual(sendTaskCalls[0][1], (
                 'some_other.task', job['args'], job['kwargs']))
+            self.assertIn('queue', sendTaskCalls[0][2])
+            self.assertEqual(sendTaskCalls[0][2]['queue'], 'my_other_q')

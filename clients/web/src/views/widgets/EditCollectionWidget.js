@@ -2,6 +2,7 @@ import $ from 'jquery';
 
 import CollectionModel from 'girder/models/CollectionModel';
 import View from 'girder/views/View';
+import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
 import { handleClose, handleOpen } from 'girder/dialog';
 
 import EditCollectionWidgetTemplate from 'girder/templates/widgets/editCollectionWidget.pug';
@@ -19,7 +20,7 @@ var EditCollectionWidget = View.extend({
 
             var fields = {
                 name: this.$('#g-name').val(),
-                description: this.$('#g-description').val()
+                description: this.descriptionEditor.val()
             };
 
             if (this.model) {
@@ -28,6 +29,7 @@ var EditCollectionWidget = View.extend({
                 this.createCollection(fields);
             }
 
+            this.descriptionEditor.saveText();
             this.$('button.g-save-collection').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         }
@@ -35,6 +37,13 @@ var EditCollectionWidget = View.extend({
 
     initialize: function (settings) {
         this.model = settings.model || null;
+        this.descriptionEditor = new MarkdownWidget({
+            text: this.model ? this.model.get('description') : '',
+            prefix: 'collection-description',
+            placeholder: 'Enter a description',
+            enableUploads: false,
+            parentView: this
+        });
     },
 
     render: function () {
@@ -59,6 +68,7 @@ var EditCollectionWidget = View.extend({
             }
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        this.descriptionEditor.setElement(this.$('.g-description-editor-container')).render();
         this.$('#g-name').focus();
 
         if (view.model) {

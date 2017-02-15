@@ -22,7 +22,7 @@ import datetime
 import six
 
 from girder.constants import AccessType
-from girder.api.describe import Description, describeRoute
+from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, RestException
 from girder.api import access
 from . import constants, providers
@@ -69,7 +69,7 @@ class OAuth(Resource):
         return redirect
 
     @access.public
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Get the list of enabled OAuth2 providers and their URLs.')
         .notes('By default, returns an object mapping names of providers to '
                'the appropriate URL.')
@@ -78,13 +78,8 @@ class OAuth(Resource):
         .param('list', 'Whether to return the providers as an ordered list.',
                required=False, dataType='boolean', default=False)
     )
-    def listProviders(self, params):
-        self.requireParams(('redirect',), params)
-        redirect = params['redirect']
-        returnList = self.boolParam('list', params, default=False)
-
-        enabledNames = self.model('setting').get(
-            constants.PluginSettings.PROVIDERS_ENABLED)
+    def listProviders(self, redirect, list, params):
+        enabledNames = self.model('setting').get(constants.PluginSettings.PROVIDERS_ENABLED)
 
         enabledProviders = [
             provider
@@ -96,7 +91,7 @@ class OAuth(Resource):
         else:
             state = None
 
-        if returnList:
+        if list:
             return [
                 {
                     'id': provider.getProviderName(external=False),
@@ -112,23 +107,29 @@ class OAuth(Resource):
             }
 
     @access.public
-    @describeRoute(None)
-    def callback(self, provider, params):
-        if 'error' in params:
-            raise RestException("Provider returned error: '%s'." %
-                                params['error'], code=502)
+    @autoDescribeRoute(
+        Description('Callback called by OAuth providers.')
+        .param('provider', 'The provider name.', paramType='path')
+        .param('state', 'Opaque state string.', required=False)
+        .param('code', 'Authorization code from provider.', required=False)
+        .param('error', 'Error message from provider.', required=False),
+        hide=True
+    )
+    def callback(self, provider, state, code, error, params):
+        if error is not None:
+            raise RestException("Provider returned error: '%s'." % error, code=502)
 
-        self.requireParams(('state', 'code'), params)
+        self.requireParams({'state': state, 'code': code})
 
         providerName = provider
         provider = providers.idMap.get(providerName)
         if not provider:
-            raise RestException("Unknown provider '%s'." % providerName)
+            raise RestException('Unknown provider "%s".' % providerName)
 
-        redirect = self._validateCsrfToken(params['state'])
+        redirect = self._validateCsrfToken(state)
 
         providerObj = provider(cherrypy.url())
-        token = providerObj.getToken(params['code'])
+        token = providerObj.getToken(code)
         user = providerObj.getUser(token)
 
         self.sendAuthTokenCookie(user)

@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-var webpack = require('webpack');
+/**
+ * This file contains options that apply to ALL target build configurations. Because we use
+ * the DllPlugin for dynamic loading, each individual bundle has its own config options
+ * that can extend these.
+ */
 var path = require('path');
+var webpack = require('webpack');
 
-var CommonsChunkPlugin = webpack.optimize.CommonsChunkPlugin;
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var ProvidePlugin = webpack.ProvidePlugin;
 
 var paths = require('./webpack.paths.js');
 var es2015Preset = require.resolve('babel-preset-es2015');
@@ -47,34 +50,37 @@ function urlLoader(options) {
     return loader;
 }
 
+function _coverageConfig() {
+    try {
+        var istanbulPlugin = require.resolve('babel-plugin-istanbul');
+        return {
+            plugins: [[
+                istanbulPlugin, {
+                    exclude: ['**/*.pug', '**/*.jade', 'node_modules/**/*']
+                }
+            ]]
+        };
+    } catch (e) {
+        // We won't have the istanbul plugin installed in a prod env.
+        return {};
+    }
+}
+
+var loaderPaths = [path.resolve('clients', 'web', 'src')];
+var loaderPathsNodeModules = loaderPaths.concat([path.resolve('node_modules')]);
+
 module.exports = {
-    entry: {
-        'girder.ext': [
-            // This make sure some globals like $, moment, Backbone are available for testing
-            path.join(paths.web_src, 'globals.js')
-        ],
-        'girder.app': path.join(paths.web_src, 'main.js')
-    },
     output: {
         path: paths.web_built,
         filename: '[name].min.js'
     },
     plugins: [
-        new CommonsChunkPlugin({
-            names: ['girder.app', 'girder.ext'],
-            minChunks: 2
-        }),
         // Automatically detect jQuery and $ as free var in modules
         // and inject the jquery library. This is required by many jquery plugins
-        new ProvidePlugin({
+        new webpack.ProvidePlugin({
             jQuery: 'jquery',
             $: 'jquery',
             'window.jQuery': 'jquery'
-        }),
-        new ExtractTextPlugin({
-            filename: '[name].min.css',
-            allChunks: true,
-            disable: false
         })
     ],
     module: {
@@ -82,42 +88,48 @@ module.exports = {
             // ES2015
             {
                 test: /\.js$/,
+                include: loaderPaths,
                 loader: 'babel-loader',
                 exclude: /node_modules/,
                 query: {
-                    presets: [es2015Preset]
+                    presets: [es2015Preset],
+                    env: {
+                        cover: _coverageConfig()
+                    }
                 }
             },
             // JSON files
             {
                 test: /\.json$/,
+                include: loaderPaths.concat(loaderPathsNodeModules),
                 loader: 'json-loader'
             },
             // Stylus
             {
                 test: /\.styl$/,
-                loaders: [
-                    ExtractTextPlugin.extract('style-loader'),
-                    'css-loader',
-                    {
+                include: loaderPaths,
+                loaders: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: ['css-loader', {
                         loader: 'stylus-loader',
                         query: {
                             'resolve url': true
                         }
-                    }
-                ]
+                    }]
+                })
             },
             // CSS
             {
                 test: /\.css$/,
-                loaders: [
-                    ExtractTextPlugin.extract('style-loader'),
-                    'css-loader'
-                ]
+                include: loaderPathsNodeModules,
+                loaders: ExtractTextPlugin.extract({
+                    fallbackLoader: 'style-loader',
+                    loader: ['css-loader']})
             },
             // Pug
             {
                 test: /\.(pug|jade)$/,
+                include: loaderPaths,
                 loaders: [
                     {
                         loader: 'babel-loader',
@@ -131,14 +143,15 @@ module.exports = {
             // PNG, JPEG
             {
                 test: /\.(png|jpg)$/,
+                include: loaderPathsNodeModules,
                 loaders: [
-                    urlLoader(),
                     fileLoader()
                 ]
             },
             // WOFF
             {
                 test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+                include: loaderPathsNodeModules,
                 loaders: [
                     urlLoader({ mimetype: 'application/font-woff' }),
                     fileLoader()
@@ -147,6 +160,7 @@ module.exports = {
             // WOFF2
             {
                 test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+                include: loaderPathsNodeModules,
                 loaders: [
                     urlLoader({ mimetype: 'application/font-woff2' }),
                     fileLoader()
@@ -155,6 +169,7 @@ module.exports = {
             // TTF
             {
                 test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+                include: loaderPathsNodeModules,
                 loaders: [
                     urlLoader({ mimetype: 'application/octet-stream' }),
                     fileLoader()
@@ -163,6 +178,7 @@ module.exports = {
             // EOT
             {
                 test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+                include: loaderPathsNodeModules,
                 loaders: [
                     fileLoader()
                 ]
@@ -170,37 +186,23 @@ module.exports = {
             // SVG
             {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+                include: loaderPathsNodeModules,
                 loaders: [
                     urlLoader({ mimetype: 'image/svg+xml' }),
                     fileLoader()
                 ]
             }
-        ],
-        noParse: [
-            // Avoid warning:
-            //   This seems to be a pre-built javascript file. Though this is
-            //   possible, it's not recommended. Try to require the original source
-            //   to get better results.
-            // This needs fixing later, as Webpack works better when provided with source.
-            // /node_modules\/pug/,
-            // /node_modules\/remarkable/
         ]
     },
     resolve: {
         alias: {
             'girder': paths.web_src
         },
-        extensions: ['.styl', '.css', '.pug', '.jade', '.js', ''],
+        extensions: ['.js'],
         modules: [
-            paths.clients_web,
-            paths.plugins,
             paths.node_modules
-        ]
-        // modulesDirectories: [ // deprecated in Webpack 2 beta, remove once 100% sure
-        //     paths.web_src,
-        //     paths.plugins,
-        //     paths.node_modules
-        // ]
+        ],
+        symlinks: false
     },
     node: {
         canvas: 'empty',

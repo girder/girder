@@ -4,7 +4,6 @@
  * other than "append"). We fake the chunk request to get around this by
  * wrapping XHR.prototype.send.
  */
-/* globals girderTest, describe, it, runs, expect, waitsFor, spyOn */
 
 /* used for adjusting minimum upload size */
 var minUploadSize;
@@ -360,10 +359,10 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             expect(widget.redirectViaForm).toHaveBeenCalled();
             expect(redirect.method).toBe('POST');
-            expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download.*/.
-                   test(redirect.url)).toBe(true);
-            expect(/{"folder":.*,"item":.*}/.test(redirect.data.resources)).
-                   toBe(true);
+            expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download.*/
+                   .test(redirect.url)).toBe(true);
+            expect(/{"folder":.*,"item":.*}/.test(redirect.data.resources))
+                   .toBe(true);
         });
     });
 
@@ -569,7 +568,7 @@ describe('Create a data hierarchy', function () {
         }, 'items to be deleted');
         runs(function () {
             window.callPhantom({action: 'uploadCleanup',
-                                suffix: girderTest._uploadSuffix});
+                suffix: girderTest._uploadSuffix});
         });
     });
 
@@ -888,7 +887,7 @@ describe('Test FileModel static upload functions', function () {
                 var resp = girder.rest.restRequest({
                     path: '/file/' + file._id + '/download',
                     type: 'GET',
-                    dataType: 'text',
+                    dataType: 'text'
                 }).done(function () {
                     text = resp.responseText;
                 });
@@ -903,7 +902,7 @@ describe('Test FileModel static upload functions', function () {
             expect(file._id).toBe(fileModel.id);
             expect(file.name).toBe(filename);
             expect(text).toBe(speech);
-        })
+        });
     });
 
     it('logout from test account', girderTest.logout('logout from test account'));

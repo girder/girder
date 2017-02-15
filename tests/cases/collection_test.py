@@ -236,7 +236,8 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(folder2['access'], {
             'users': [{
                 'id': self.user['_id'],
-                'level': AccessType.WRITE
+                'level': AccessType.WRITE,
+                'flags': []
             }],
             'groups': []
         })
@@ -250,6 +251,7 @@ class CollectionTestCase(base.TestCase):
                 'recurse': True,
                 'progress': True
             }, user=self.admin)
+        self.assertStatusOk(resp)
         coll = self.model('collection').load(coll['_id'], force=True)
         folder1 = self.model('folder').load(folder1['_id'], force=True)
         folder2 = self.model('folder').load(folder2['_id'], force=True)
@@ -261,7 +263,8 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(folder2['access'], {
             'users': [{
                 'id': self.user['_id'],
-                'level': AccessType.READ
+                'level': AccessType.READ,
+                'flags': []
             }],
             'groups': []
         })
@@ -274,6 +277,7 @@ class CollectionTestCase(base.TestCase):
                 'access': json.dumps(obj),
                 'recurse': True
             }, user=self.admin)
+        self.assertStatusOk(resp)
         coll = self.model('collection').load(coll['_id'], force=True)
         folder1 = self.model('folder').load(folder1['_id'], force=True)
         folder2 = self.model('folder').load(folder2['_id'], force=True)
@@ -315,11 +319,13 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(coll['access']['users'], [])
         self.assertEqual(folder['access']['users'], [{
             'id': self.admin['_id'],
-            'level': AccessType.ADMIN
+            'level': AccessType.ADMIN,
+            'flags': []
         }])
         self.assertEqual(folder['access']['groups'], [{
             'id': group['_id'],
-            'level': AccessType.WRITE
+            'level': AccessType.WRITE,
+            'flags': []
         }])
         self.assertEqual(folder['access']['groups'], coll['access']['groups'])
 

@@ -27,7 +27,7 @@ from girder import config
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
-from girder.constants import ROOT_DIR
+from girder.constants import registerAccessFlag, ROOT_DIR
 from girder.utility.progress import ProgressContext
 from . import base
 from six.moves import range
@@ -64,6 +64,7 @@ class WebClientTestEndpoints(Resource):
         self.route('GET', ('progress', ), self.testProgress)
         self.route('PUT', ('progress', 'stop'), self.testProgressStop)
         self.route('POST', ('file', ), self.uploadFile)
+        self.route('POST', ('access_flag', ), self.registerAccessFlags)
         self.stop = False
 
     @access.token
@@ -122,6 +123,17 @@ class WebClientTestEndpoints(Resource):
 
         return file
 
+    @access.public
+    @describeRoute(None)
+    def registerAccessFlags(self, params):
+        """
+        Helper that can be used to register access flags in the system. This is
+        used to test the access flags UI since the core does not expose any flags.
+        """
+        flags = self.getBodyJson()
+        for key, info in six.viewitems(flags):
+            registerAccessFlag(key, info['name'], info['description'], info['admin'])
+
 
 class WebClientTestCase(base.TestCase):
     def setUp(self):
@@ -146,8 +158,7 @@ class WebClientTestCase(base.TestCase):
 
         cmd = (
             os.path.join(
-                ROOT_DIR, 'node_modules', 'phantomjs-prebuilt', 'lib', 'phantom',
-                'bin', 'phantomjs'),
+                ROOT_DIR, 'node_modules', '.bin', 'phantomjs'),
             '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
             'http://localhost:%s%s' % (os.environ['GIRDER_PORT'], baseUrl),

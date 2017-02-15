@@ -1,7 +1,6 @@
 /**
  * Contains utility functions used in the Girder Jasmine tests.
  */
-/* globals runs, expect, waitsFor */
 
 var girderTest = girderTest || {};
 
@@ -172,17 +171,18 @@ girderTest.createCollection = function (collName, collDesc, createFolderName) {
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-name').length > 0 &&
-                $('.g-save-collection:visible').is(':enabled');
+                $('.g-save-collection:visible').is(':enabled') &&
+                $('#collection-description-write .g-markdown-text').is(':visible');
         }, 'create collection dialog to appear');
 
         runs(function () {
             $('#g-name').val(collName);
-            $('#g-description').val(collDesc);
+            $('#collection-description-write .g-markdown-text').val(collDesc);
             $('.g-save-collection').click();
         });
         waitsFor(function () {
             return $('.g-collection-name').text() === collName &&
-                $('.g-collection-description').text() === collDesc;
+                $('.g-collection-description').text().trim() === collDesc;
         }, 'new collection page to load');
         girderTest.waitForLoad();
 
@@ -318,7 +318,7 @@ girderTest.testMetadata = function () {
         type = type || 'tree';
 
         if (type === 'tree') {
-            if (typeof value !== 'object') {
+            if (!_.isObject(value)) {
                 $('.jsoneditor button.contextmenu:first', elem).click();
 
                 $('.jsoneditor-contextmenu .type-object:first').click();
@@ -894,7 +894,7 @@ girderTest.sendFile = function (uploadItem, selector) {
  *               upload to fail with an error that includes this string.
  */
 girderTest.testUpload = function (uploadItem, needResume, error) {
-    var orig_len;
+    var origLen;
 
     _prepareTestUpload();
 
@@ -903,7 +903,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
     }, 'the upload here button to appear');
 
     runs(function () {
-        orig_len = $('.g-item-list-entry').length;
+        origLen = $('.g-item-list-entry').length;
         $('.g-upload-here-button').click();
     });
 
@@ -945,7 +945,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
             if (needResume === 'abort') {
                 $('.btn-default').click();
-                orig_len -= 1;
+                origLen -= 1;
             } else if ($('.g-resume-upload:visible').length > 0) {
                 $('.g-resume-upload').click();
             } else {
@@ -956,14 +956,14 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
     waitsFor(function () {
         return $('.modal-content:visible').length === 0 &&
-            $('.g-item-list-entry').length === orig_len + 1;
+            $('.g-item-list-entry').length === origLen + 1;
     }, 'the upload to finish');
     girderTest.waitForLoad();
 
     runs(function () {
         window.callPhantom(
             {action: 'uploadCleanup',
-             suffix: girderTest._uploadSuffix});
+                suffix: girderTest._uploadSuffix});
     });
 };
 
@@ -978,14 +978,14 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
  *                  multiples.
  */
 girderTest.testUploadDrop = function (itemSize, multiple) {
-    var orig_len;
+    var origLen;
 
     waitsFor(function () {
         return $('.g-upload-here-button').length > 0;
     }, 'the upload here button to appear');
 
     runs(function () {
-        orig_len = $('.g-item-list-entry').length;
+        origLen = $('.g-item-list-entry').length;
         $('.g-upload-here-button').click();
     });
 
@@ -1016,14 +1016,14 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
 
     waitsFor(function () {
         return $('.modal-content:visible').length === 0 &&
-            $('.g-item-list-entry').length === orig_len + 1;
+            $('.g-item-list-entry').length === origLen + 1;
     }, 'the upload to finish');
     girderTest.waitForLoad();
 
     runs(function () {
         window.callPhantom(
             {action: 'uploadCleanup',
-             suffix: girderTest._uploadSuffix});
+                suffix: girderTest._uploadSuffix});
     });
 };
 
@@ -1164,15 +1164,15 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
  * so we can print the log after a test failure.
  */
 (function () {
-    var ajax_calls = [];
-    var backbone_ajax = Backbone.ajax;
+    var ajaxCalls = [];
+    var backboneAjax = Backbone.ajax;
 
     Backbone.ajax = function () {
         var opts = {}, record;
 
         if (arguments.length === 1) {
             opts = arguments[0];
-            if (typeof opts === 'string') {
+            if (_.isString(opts)) {
                 opts = {url: opts};
             }
         } else if (arguments.length === 2) {
@@ -1184,14 +1184,13 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
             opts: opts
         };
 
-        ajax_calls.push(record);
+        ajaxCalls.push(record);
 
-        return backbone_ajax(opts).done(
+        return backboneAjax(opts).done(
             function (data, textStatus) {
                 record.status = textStatus;
                 // this data structure has circular references that cannot be serialized.
-                //record.result = data;
-
+                // record.result = data;
             }
         ).fail(function (jqxhr, textStatus, errorThrown) {
             record.status = textStatus;
@@ -1200,9 +1199,9 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     };
 
     girderTest.ajaxLog = function (reset) {
-        var calls = ajax_calls;
+        var calls = ajaxCalls;
         if (reset) {
-            ajax_calls = [];
+            ajaxCalls = [];
         }
         return calls;
     };

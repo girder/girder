@@ -8,7 +8,7 @@ import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 import { cancelRestRequests } from 'girder/rest';
-import { formatDate, formatSize, DATE_MINUTE } from 'girder/misc';
+import { formatDate, formatSize, renderMarkdown, DATE_MINUTE } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
 import CollectionListTemplate from 'girder/templates/body/collectionList.pug';
@@ -27,7 +27,8 @@ var CollectionsView = View.extend({
         'click button.g-collection-create-button': 'createCollectionDialog',
         'submit .g-collections-search-form': function (event) {
             event.preventDefault();
-        }
+        },
+        'click .g-show-description': '_toggleDescription'
     },
 
     initialize: function (settings) {
@@ -94,6 +95,25 @@ var CollectionsView = View.extend({
         collection.set('_id', result.id).on('g:fetched', function () {
             router.navigate('/collection/' + collection.get('_id'), {trigger: true});
         }, this).fetch();
+    },
+
+    _toggleDescription: function (e) {
+        const link = $(e.currentTarget);
+        const cid = link.attr('cid');
+        const dest = this.$(`.g-collection-description[cid="${cid}"]`);
+
+        if (link.attr('state') === 'hidden') {
+            renderMarkdown(this.collection.get(cid).get('description'), dest);
+            dest.removeClass('hide');
+            link.attr('state', 'visible');
+            link.find('i').removeClass('icon-down-dir').addClass('icon-up-dir');
+            link.find('span').text('Hide description');
+        } else {
+            dest.addClass('hide');
+            link.attr('state', 'hidden');
+            link.find('i').removeClass('icon-up-dir').addClass('icon-down-dir');
+            link.find('span').text('Show description');
+        }
     }
 });
 

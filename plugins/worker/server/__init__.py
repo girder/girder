@@ -21,6 +21,7 @@ import celery
 
 from girder import events
 from girder.constants import AccessType
+from girder.models.model_base import ValidationException
 from girder.plugins.jobs.constants import JobStatus
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
@@ -31,6 +32,7 @@ _celeryapp = None
 class PluginSettings(object):
     BROKER = 'worker.broker'
     BACKEND = 'worker.backend'
+    API_URL = 'worker.api_url'
 
 
 class CustomJobStatus(object):
@@ -80,7 +82,8 @@ def schedule(event):
         task = job.get('celeryTaskName', 'girder_worker.run')
 
         # Send the task to celery
-        asyncResult = getCeleryApp().send_task(task, job['args'], job['kwargs'])
+        asyncResult = getCeleryApp().send_task(
+            task, job['args'], job['kwargs'], queue=job.get('celeryQueue'))
 
         # Set the job status to queued and record the task ID from celery.
         ModelImporter.model('job', 'jobs').updateJob(job, status=JobStatus.QUEUED, otherFields={
@@ -102,6 +105,15 @@ def validateSettings(doc):
     _celeryapp = None
 
 
+@setting_utilities.validator({
+    PluginSettings.API_URL
+})
+def validateApiUrl(doc):
+    val = doc['value']
+    if val and not val.startswith('http://') and not val.startswith('https://'):
+        raise ValidationException('API URL must start with http:// or https://.', 'value')
+
+
 def validateJobStatus(event):
     """Allow our custom job status values."""
     if CustomJobStatus.isValid(event.info):
@@ -112,4 +124,5 @@ def load(info):
     events.bind('jobs.schedule', 'worker', schedule)
     events.bind('jobs.status.validate', 'worker', validateJobStatus)
 
-    ModelImporter.model('job', 'jobs').exposeFields(AccessType.SITE_ADMIN, {'celeryTaskId'})
+    ModelImporter.model('job', 'jobs').exposeFields(
+        AccessType.SITE_ADMIN, {'celeryTaskId', 'celeryQueue'})

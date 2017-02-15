@@ -25,6 +25,12 @@ var ItemListWidget = View.extend({
     initialize: function (settings) {
         this.checked = [];
         this._checkboxes = settings.checkboxes;
+        this._downloadLinks = (
+          _.has(settings, 'downloadLinks') ? settings.downloadLinks : true);
+        this._viewLinks = (
+          _.has(settings, 'viewLinks') ? settings.viewLinks : true);
+        this._showSizes = (
+          _.has(settings, 'showSizes') ? settings.showSizes : true);
 
         new LoadingAnimation({
             el: this.$el,
@@ -33,12 +39,12 @@ var ItemListWidget = View.extend({
 
         this.collection = new ItemCollection();
         this.collection.append = true; // Append, don't replace pages
+        this.collection.filterFunc = settings.itemFilter;
+
         this.collection.on('g:changed', function () {
             this.render();
             this.trigger('g:changed');
-        }, this).fetch({
-            folderId: settings.folderId
-        });
+        }, this).fetch({ folderId: settings.folderId });
     },
 
     render: function () {
@@ -47,7 +53,10 @@ var ItemListWidget = View.extend({
             items: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             formatSize: formatSize,
-            checkboxes: this._checkboxes
+            checkboxes: this._checkboxes,
+            downloadLinks: this._downloadLinks,
+            viewLinks: this._viewLinks,
+            showSizes: this._showSizes
         }));
 
         this.$('.g-item-list-entry a[title]').tooltip({

@@ -25,12 +25,12 @@ function(javascript_tests_init)
 endfunction()
 
 function(add_eslint_test name input)
-  if (NOT BUILD_JAVASCRIPT_TESTS)
+  if (NOT JAVASCRIPT_STYLE_TESTS)
     return()
   endif()
 
   if (NOT ESLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'npm install' or disable BUILD_JAVASCRIPT_TESTS.")
+    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   set(_args ESLINT_IGNORE_FILE ESLINT_CONFIG_FILE)
@@ -57,12 +57,12 @@ function(add_eslint_test name input)
 endfunction()
 
 function(add_puglint_test name path)
-  if (NOT BUILD_JAVASCRIPT_TESTS)
+  if (NOT JAVASCRIPT_STYLE_TESTS)
     return()
   endif()
 
   if (NOT PUGLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable BUILD_JAVASCRIPT_TESTS.")
+    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   add_test(
@@ -70,7 +70,7 @@ function(add_puglint_test name path)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
   )
-  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
+  set_property(TEST "puglint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
 endfunction()
 
 function(add_web_client_test case specFile)

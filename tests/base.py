@@ -232,6 +232,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 msg += ' Response body was:\n%s' % json.dumps(
                     response.json, sort_keys=True, indent=4,
                     separators=(',', ': '))
+            else:
+                msg += 'Response body was:\n%s' % self.getBody(response)
 
             self.fail(msg)
 
@@ -310,8 +312,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param param: The name of the missing parameter.
         :type param: str
         """
-        self.assertEqual("Parameter '%s' is required." % param,
-                         response.json.get('message', ''))
+        self.assertEqual('Parameter "%s" is required.' % param, response.json.get('message', ''))
         self.assertStatus(response, 400)
 
     def getSseMessages(self, resp):
@@ -366,8 +367,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
         return self.model('file').load(file['_id'], force=True)
 
-    def ensureRequiredParams(self, path='/', method='GET', required=(),
-                             user=None):
+    def ensureRequiredParams(self, path='/', method='GET', required=(), user=None):
         """
         Ensure that a set of parameters is required by the endpoint.
 
@@ -378,8 +378,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         for exclude in required:
             params = dict.fromkeys([p for p in required if p != exclude], '')
-            resp = self.request(path=path, method=method, params=params,
-                                user=user)
+            resp = self.request(path=path, method=method, params=params, user=user)
             self.assertMissingParameter(resp, exclude)
 
     def _genToken(self, user):
@@ -513,7 +512,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         return data
 
     def multipartRequest(self, fields, files, path, method='POST', user=None,
-                         prefix='/api/v1', isJson=True):
+                         prefix='/api/v1', isJson=True, token=None):
         """
         Make an HTTP request with multipart/form-data encoding. This can be
         used to send files with the request.
@@ -526,10 +525,11 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :type method: str
         :param prefix: The prefix to use before the path.
         :param isJson: Whether the response is a JSON object.
+        :param token: Auth token to use.
+        :type token: str
         :returns: The cherrypy response object from the request.
         """
-        contentType, body, size = MultipartFormdataEncoder().encode(
-            fields, files)
+        contentType, body, size = MultipartFormdataEncoder().encode(fields, files)
 
         headers = [('Host', '127.0.0.1'),
                    ('Accept', 'application/json'),
@@ -540,7 +540,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         request, response = app.get_serving(local, remote, 'http', 'HTTP/1.1')
         request.show_tracebacks = True
 
-        if user is not None:
+        if token is not None:
+            headers.append(('Girder-Token', token))
+        elif user is not None:
             headers.append(('Girder-Token', self._genToken(user)))
 
         fd = io.BytesIO(body)

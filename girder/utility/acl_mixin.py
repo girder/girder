@@ -73,8 +73,18 @@ class AccessControlMixin(object):
         """
         resource = self.model(self.resourceColl) \
                        .load(resource[self.resourceParent], force=True)
-        return self.model(self.resourceColl).hasAccess(resource, user=user,
-                                                       level=level)
+        return self.model(self.resourceColl).hasAccess(
+            resource, user=user, level=level)
+
+    def hasAccessFlags(self, doc, user=None, flags=None):
+        """
+        See the documentation of AccessControlledModel.hasAccessFlags, which this wraps.
+        """
+        if not flags:
+            return True
+
+        resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
+        return self.model(self.resourceColl).hasAccessFlags(resource, user, flags)
 
     def requireAccess(self, doc, user=None, level=AccessType.READ):
         """
@@ -98,8 +108,18 @@ class AccessControlMixin(object):
                                   (perm, self.name, doc.get('_id', 'unknown'),
                                    userid))
 
-    def filterResultsByPermission(self, cursor, user, level, limit, offset,
-                                  removeKeys=()):
+    def requireAccessFlags(self, doc, user=None, flags=None):
+        """
+        See the documentation of AccessControlledModel.requireAccessFlags, which this wraps.
+        """
+        if not flags:
+            return
+
+        resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
+        return self.model(self.resourceColl).requireAccessFlags(resource, user, flags)
+
+    def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,
+                                  removeKeys=(), flags=None):
         """
         Yields filtered results from the cursor based on the access control
         existing for the resourceParent.
@@ -119,13 +139,16 @@ class AccessControlMixin(object):
 
             # if the resourceId is not cached, check for permission "level"
             # and set the cache
-            resource = self.model(self.resourceColl).load(resourceId,
-                                                          force=True)
-            resourceAccessCache[resourceId] = \
-                self.model(self.resourceColl).hasAccess(
-                    resource, user=user, level=level)
+            resource = self.model(self.resourceColl).load(resourceId, force=True)
+            val = self.model(self.resourceColl).hasAccess(
+                resource, user=user, level=level)
 
-            return resourceAccessCache[resourceId]
+            if flags:
+                val = val and self.model(self.resourceColl).hasAccessFlags(
+                    resource, user=user, flags=flags)
+
+            resourceAccessCache[resourceId] = val
+            return val
 
         endIndex = offset + limit if limit else None
         filteredCursor = six.moves.filter(hasAccess, cursor)

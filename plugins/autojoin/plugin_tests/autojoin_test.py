@@ -71,9 +71,9 @@ class AutoJoinTest(base.TestCase):
         g1 = self.model('group').load(g1['_id'], force=True)
         g2 = self.model('group').load(g2['_id'], force=True)
         g3 = self.model('group').load(g3['_id'], force=True)
-        self.assertTrue(
-            {u'id': user2['_id'], u'level': AccessType.ADMIN} in
+        self.assertIn(
+            {'id': user2['_id'], 'level': AccessType.ADMIN, 'flags': []},
             g1['access']['users'])
-        self.assertTrue(
-            {u'id': user1['_id'], u'level': AccessType.WRITE} in
+        self.assertIn(
+            {'id': user1['_id'], 'level': AccessType.WRITE, 'flags': []},
             g3['access']['users'])

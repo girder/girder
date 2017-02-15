@@ -16,7 +16,7 @@ function(add_ansible_test case)
     )
 
   set_tests_properties("${name}" PROPERTIES
-    DEPENDS vagrant_up
+    DEPENDS ansible_client_test_vagrant_up
     RUN_SERIAL ON
     ENVIRONMENT "${VAGRANT_ENV_VARS}"
     # This happens in the case where vagrant up fails, failing to generate a valid host file.

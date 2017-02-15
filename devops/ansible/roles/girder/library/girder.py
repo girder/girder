@@ -1775,7 +1775,7 @@ class GirderClientModule(GirderClient):
 
     def setting(self, key, value=None):
         ret = {}
-        list_value = isinstance(value, list)
+        json_value = isinstance(value, (list, dict))
 
         if self.module.params['state'] == 'present':
             # Get existing setting value to determine self.changed
@@ -1783,7 +1783,7 @@ class GirderClientModule(GirderClient):
 
             params = {
                 'key': key,
-                'value': json.dumps(value) if list_value else value
+                'value': json.dumps(value) if json_value else value
             }
 
             try:
@@ -1791,8 +1791,10 @@ class GirderClientModule(GirderClient):
             except HttpError as e:
                 self.fail(json.loads(e.responseText)['message'])
 
-            if response and list_value:
+            if response and isinstance(value, list):
                 self.changed = set(existing_value) != set(value)
+            elif response and isinstance(value, dict):
+                self.changed = set(existing_value.items()) != set(value.items())
             elif response:
                 self.changed = existing_value != value
 
@@ -1809,7 +1811,7 @@ class GirderClientModule(GirderClient):
 
             if existing_value != default:
                 try:
-                    response = self.delete('system/setting', parameters={'key': key})
+                    self.delete('system/setting', parameters={'key': key})
                     self.changed = True
 
                     ret['previous_value'] = existing_value

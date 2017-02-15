@@ -54,6 +54,7 @@ class InstallWithOptions(install):
                     os.path.join(dest, 'clients', 'web', 'src', 'assets'))
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
+        self.mergeDir('scripts', dest)
 
 with open('README.rst') as f:
     readme = f.read()
@@ -74,6 +75,7 @@ install_reqs = [
 
 extras_reqs = {
     'celery_jobs': ['celery'],
+    'dicom_viewer': ['pydicom'],
     'geospatial': ['geojson'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
@@ -137,7 +139,7 @@ setup(
             'conf/girder.dist.cfg',
             'mail_templates/*.mako',
             'mail_templates/**/*.mako',
-            'utility/webroot.mako',
+            'utility/*.mako',
             'api/api_docs.mako'
         ]
     },

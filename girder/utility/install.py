@@ -26,6 +26,7 @@ import os
 import pip
 import select
 import shutil
+import six
 import subprocess
 import string
 import sys
@@ -71,9 +72,17 @@ def _getPluginBuildArgs(buildAll, plugins):
     elif not plugins:  # build only the enabled plugins
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
-        plugins = ','.join(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
+        plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
 
-    return ['--plugins=%s' % plugins]
+    # include static-only dependencies that are not in the runtime load set
+    staticPlugins = plugin_utilities.getToposortedPlugins(
+        plugins, ignoreMissing=True, keys=('dependencies', 'staticWebDependencies'))
+    staticPlugins = [p for p in staticPlugins if p not in plugins]
+
+    return [
+        '--plugins=%s' % ','.join(plugins),
+        '--configure-plugins=%s' % ','.join(staticPlugins)
+    ]
 
 
 def _pipeOutputToProgress(proc, progress):
@@ -121,10 +130,13 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     :param allPlugins: Enable this to build all available plugins as opposed to only enabled ones.
     :type allPlugins: bool
     :param plugins: A specific set of plugins to build.
-    :type plugins: list or None
+    :type plugins: str, list or None
     :param progress: A progress context for reporting output of the tasks.
     :type progress: ``girder.utility.progress.ProgressContext`` or None
     """
+    if isinstance(plugins, six.string_types) and plugins:
+        plugins = [plugins]
+
     if shutil.which(npm) is None:
         print(constants.TerminalColor.error(
             'No npm executable was detected.  Please ensure the npm '
@@ -133,11 +145,17 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
         ))
         raise Exception('npm executable not found')
 
+    npmInstall = [npm, 'install', '--unsafe-perm']
+    if not dev:
+        npmInstall.append('--production')
+
     wd = wd or constants.PACKAGE_DIR
     env = 'dev' if dev else 'prod'
+    quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     commands = [
-        (npm, 'install', '--unsafe-perm'),
-        [npm, 'run', 'build', '--', '--env=%s' % env] + _getPluginBuildArgs(allPlugins, plugins)
+        npmInstall,
+        [npm, 'run', 'build', '--',
+         quiet, '--env=%s' % env] + _getPluginBuildArgs(allPlugins, plugins)
     ]
 
     for cmd in commands:
@@ -153,13 +171,28 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
                             (' '.join(cmd), proc.returncode))
 
 
+def _runWatchCmd(*args):
+    try:
+        subprocess.Popen(args, cwd=constants.PACKAGE_DIR).wait()
+    except KeyboardInterrupt:
+        pass
+
+
 def install_web(opts=None):
     """
-    Build and install Girder's web client. This runs `npm install` to execute
-    the entire build and install process.
+    Build and install Girder's web client, or perform a watch on the web
+    client or a specified plugin. For documentation of all the options, see
+    the argparse configuration for the "web" subcommand in the main() function.
     """
     if opts is None:
         runWebBuild()
+    elif opts.watch:
+        _runWatchCmd('npm', 'run', 'watch')
+    elif opts.watch_plugin:
+        _runWatchCmd(
+            'npm', 'run', 'watch', '--', '--all-plugins', 'webpack:%s_%s' % (
+                opts.plugin_prefix, opts.watch_plugin)
+        )
     else:
         runWebBuild(
             dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
@@ -275,6 +308,13 @@ def main():
     web.add_argument('--all-plugins', action='store_true',
                      help='build all available plugins rather than just enabled ones')
     web.add_argument('--plugins', default='', help='comma-separated list of plugins to build')
+    web.add_argument('--watch', action='store_true',
+                     help='watch for changes and rebuild girder core library in dev mode')
+    web.add_argument('--watch-plugin', default='',
+                     help='watch for changes and rebuild a specific plugin in dev mode')
+
+    web.add_argument('--plugin-prefix', default='plugin',
+                     help='prefix of the generated plugin bundle')
 
     web.set_defaults(func=install_web)
 
