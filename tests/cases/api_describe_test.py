@@ -237,11 +237,13 @@ class ApiDescribeTestCase(base.TestCase):
                 .param('datestamp', '', dataType='date', required=False)
                 .param('string', '', enum=['hello', 'world'], strip=True, lower=True)
                 .param('upper', '', required=False, upper=True)
+                .param('array', '', dataType='array', itemType='integer', required=False)
+                .param('barray', '', dataType='array', itemType='boolean', required=False)
                 .jsonParam('json1', '', required=False, requireArray=True)
                 .jsonParam('json2', '', required=False, requireObject=True, default={})
             )
-            def test(self, b1, b2, string, upper, integer, float, timestamp, datestamp, json1,
-                     json2, params):
+            def test(self, b1, b2, string, upper, integer, float, timestamp, datestamp, array,
+                     barray, json1, json2, params):
                 testRuns.append({
                     'b1': b1,
                     'b2': b2,
@@ -251,6 +253,8 @@ class ApiDescribeTestCase(base.TestCase):
                     'float': float,
                     'timestamp': timestamp,
                     'datestamp': datestamp,
+                    'array': array,
+                    'barray': barray,
                     'json1': json1,
                     'json2': json2
                 })
@@ -351,6 +355,11 @@ class ApiDescribeTestCase(base.TestCase):
             'json2': json.dumps(['hello', 'world'])
         }, 'Parameter json2 must be a JSON object.')
 
+        testBad({
+            'string': 'hello',
+            'array': '1,2,a'
+        }, 'Invalid value for integer parameter array: a.')
+
         testOk({
             'string': '  WoRlD '
         }, {
@@ -363,7 +372,27 @@ class ApiDescribeTestCase(base.TestCase):
             'json1': None,
             'json2': {},
             'timestamp': None,
-            'datestamp': None
+            'datestamp': None,
+            'array': None,
+            'barray': None,
+        })
+
+        testOk({
+            'string': '  WoRlD ',
+            'barray': '0,1'
+        }, {
+            'string': 'world',
+            'upper': None,
+            'b1': True,
+            'b2': None,
+            'integer': None,
+            'float': 1.,
+            'json1': None,
+            'json2': {},
+            'timestamp': None,
+            'datestamp': None,
+            'array': None,
+            'barray': [False, True]
         })
 
         testOk({
@@ -376,7 +405,9 @@ class ApiDescribeTestCase(base.TestCase):
             'json1': json.dumps([1, 2, 'abc']),
             'json2': json.dumps({'hello': 'world'}),
             'timestamp': '2017-01-01T11:35:22',
-            'datestamp': '2017-02-02T11:33:22'
+            'datestamp': '2017-02-02T11:33:22',
+            'array': '1,2,3',
+            'barray': 'true,true'
         }, {
             'string': 'hello',
             'upper': ' HELLO',
@@ -387,7 +418,9 @@ class ApiDescribeTestCase(base.TestCase):
             'json1': [1, 2, 'abc'],
             'json2': {'hello': 'world'},
             'timestamp': datetime.datetime(2017, 1, 1, 11, 35, 22),
-            'datestamp': datetime.date(2017, 2, 2)
+            'datestamp': datetime.date(2017, 2, 2),
+            'array': [1, 2, 3],
+            'barray': [True, True]
         })
 
         # Test request body

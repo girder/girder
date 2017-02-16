@@ -22,6 +22,7 @@ import dateutil.parser
 import os
 import six
 import cherrypy
+import functools
 
 from girder import constants
 from girder.api.rest import getCurrentUser, RestException, getBodyJson
@@ -130,7 +131,7 @@ class Description(object):
         self._responseClassArray = array
         return self
 
-    def _validateParamInfo(self, dataType, paramType, name):
+    def _validateParamInfo(self, dataType, paramType, name, itemType):
         """
         Helper to convert and validate the dataType and paramType.
         Prints warnings if invalid values were passed.
@@ -153,7 +154,7 @@ class Description(object):
         # If we are dealing with the body then the dataType might be defined
         # by a schema added using addModel(...), we don't know for sure as we
         # don't know the resource name here to look it up.
-        elif paramType != 'body':
+        elif paramType != 'body' and dataType != 'array':
             print(TerminalColor.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter names "%s"' %
                 (dataType, name)))
@@ -170,10 +171,20 @@ class Description(object):
         if paramType == 'form':
             paramType = 'formData'
 
-        return dataType, dataTypeFormat, paramType
+        if dataType == 'array':
+            if itemType is None:
+                print(TerminalColor.warning(
+                    'WARNING: paramType "array" requires additional definition of itemType.'
+                    ' Defaulting to type: string.'))
+                itemType = 'string'
+            if itemType in self._dataTypeMap:
+                itemType, dataTypeFormat = self._dataTypeMap[itemType]
+
+        return dataType, dataTypeFormat, paramType, itemType
 
     def param(self, name, description, paramType='query', dataType='string',
-              required=True, enum=None, default=None, strip=False, lower=False, upper=False):
+              required=True, enum=None, default=None, strip=False, lower=False, upper=False,
+              itemType=None):
         """
         This helper will build a parameter declaration for you. It has the most
         common options as defaults, so you won't have to repeat yourself as much
@@ -190,7 +201,7 @@ class Description(object):
         :param dataType: the data type expected in the parameter. This is one
                          of 'integer', 'long', 'float', 'double', 'string',
                          'byte', 'binary', 'boolean', 'date', 'dateTime',
-                         'password', or 'file'.
+                         'password', 'array' or 'file'.
         :param required: True if the request will fail if this parameter is not
                          present, False if the parameter is optional.
         :param enum: a fixed list of possible values for the field.
@@ -204,8 +215,11 @@ class Description(object):
         :param upper: For string types, set this to True if the string should be
             converted to uppercase.
         :type upper: bool
+        :param itemType: If dataType is 'array', it's a mandatory field describing
+            the type of items in the array as per Item Object spec.
         """
-        dataType, format, paramType = self._validateParamInfo(dataType, paramType, name)
+        dataType, dataFormat, paramType, itemType = \
+            self._validateParamInfo(dataType, paramType, name, itemType)
 
         param = {
             'name': name,
@@ -226,8 +240,22 @@ class Description(object):
         else:
             param['type'] = dataType
 
-        if format is not None:
-            param['format'] = format
+        if dataType == 'array':
+            if itemType not in (
+                    'string', 'number', 'integer', 'long', 'boolean', 'array',
+                    'file', 'float', 'double', 'date', 'dateTime'):
+                param['items'] = {'$ref': '#/definitions/{}'.format(itemType)}
+            else:
+                param['items'] = {'type': itemType}
+
+            if dataFormat is not None:
+                param['items']['format'] = dataFormat
+
+            if itemType == 'string':
+                param['items'].update(dict(_strip=strip, _lower=lower, _upper=upper))
+
+        if dataFormat is not None and dataType != 'array':
+            param['format'] = dataFormat
 
         if enum:
             param['enum'] = enum
@@ -646,6 +674,27 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         except ValueError:
             raise RestException('Invalid value for numeric parameter %s: %s.' % (name, value))
 
+    def _handleArray(self, name, descParam, value):
+        if 'items' not in descParam:
+            return value
+        itemType = descParam['items'].get('type', 'noType')
+        try:
+            if itemType == 'boolean':
+                return list(map(toBool, value.split(',')))
+            elif itemType == 'integer':
+                validateItem = functools.partial(self._handleInt, name, descParam['items'])
+                return list(map(validateItem, value.split(',')))
+            elif itemType == 'number':
+                validateItem = functools.partial(self._handleNumber, name, descParam['items'])
+                return list(map(validateItem, value.split(',')))
+            elif itemType == 'string':
+                validateItem = functools.partial(self._handleString, name, descParam['items'])
+                return list(map(validateItem, value.split(',')))
+        except ValueError:
+            raise RestException(
+                'Invalid value for %s array parameter %s: %s.' % (itemType, name, value))
+        return value
+
     def _validateParam(self, name, descParam, value):
         """
         Validates and transforms a single parameter that was passed. Raises
@@ -669,6 +718,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             value = self._handleInt(name, descParam, value)
         elif type == 'number':
             value = self._handleNumber(name, descParam, value)
+        elif type == 'array':
+            value = self._handleArray(name, descParam, value)
 
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
