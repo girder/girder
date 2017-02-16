@@ -29,6 +29,7 @@ class Job(Resource):
         self.resourceName = 'job'
 
         self.route('GET', (), self.listJobs)
+        self.route('GET', ('all',), self.listAllJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
         self.route('DELETE', (':id',), self.deleteJob)
@@ -54,6 +55,17 @@ class Job(Resource):
 
         return list(self.model('job', 'jobs').list(
             user=user, offset=offset, limit=limit, sort=sort, currentUser=currentUser))
+
+    @access.admin
+    @filtermodel(model='job', plugin='jobs')
+    @autoDescribeRoute(
+        Description('List all jobs.')
+        .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
+    )
+    def listAllJobs(self, limit, offset, sort, params):
+        currentUser = self.getCurrentUser()
+        return list(self.model('job', 'jobs').listAll(
+            offset=offset, limit=limit, sort=sort, currentUser=currentUser))
 
     @access.public
     @filtermodel(model='job', plugin='jobs')
