@@ -33,14 +33,18 @@ module.exports = function (grunt) {
 
     if (_.isString(plugins) && plugins) {
         plugins = plugins.split(',');
-    } else if (!buildAll) {
-        return;
+    } else {
+        plugins = [];
     }
 
     if (_.isString(configurePlugins) && configurePlugins) {
         configurePlugins = configurePlugins.split(',');
     } else {
         configurePlugins = [];
+    }
+
+    if (!buildAll && !plugins.length && !configurePlugins.length) {
+        return;
     }
 
     require('colors');
