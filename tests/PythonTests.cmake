@@ -75,14 +75,14 @@ function(add_python_style_test name input)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${FLAKE8_EXECUTABLE}" "--config=${flake8_config}" "${input}"
     )
-    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis girder_python)
+    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis)
   endif()
 endfunction()
 
 function(add_python_test case)
   set(name "server_${case}")
 
-  set(_options BIND_SERVER PY2_ONLY)
+  set(_options BIND_SERVER PY2_ONLY RUN_SERIAL)
   set(_args DBNAME PLUGIN SUBMODULE)
   set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
@@ -151,6 +151,9 @@ function(add_python_test case)
   if(fn_BIND_SERVER)
     math(EXPR next_server_port "${server_port} + 1")
     set(server_port ${next_server_port} PARENT_SCOPE)
+  endif()
+  if(fn_RUN_SERIAL)
+    set_property(TEST ${name} PROPERTY RUN_SERIAL ON)
   endif()
 
   if(PYTHON_COVERAGE)
