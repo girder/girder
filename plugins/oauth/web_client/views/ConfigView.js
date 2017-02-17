@@ -68,6 +68,16 @@ var ConfigView = View.extend({
                           'Select the "r_basicprofile" and "r_emailaddress" ' +
                           'Default Application Permissions, and use the ' +
                           'following as an OAuth 2.0 Authorized Redirect URL:'
+        }, {
+            id: 'box',
+            name: 'box',
+            icon: 'box',
+            hasAuthorizedOrigins: false,
+            instructions: 'Client IDs and secret keys are managed at the ' +
+                          'Applications page of the LinkedIn Developers site. ' +
+                          'Select the "r_basicprofile" and "r_emailaddress" ' +
+                          'Default Application Permissions, and use the ' +
+                          'following as an OAuth 2.0 Authorized Redirect URL:'
         }];
         this.providerIds = _.pluck(this.providers, 'id');
 
