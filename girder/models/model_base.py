@@ -1330,7 +1330,7 @@ class AccessControlledModel(Model):
             cursor, user=user, level=level, limit=limit, offset=offset)
 
     def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                     sort=None, fields=None, level=AccessType.READ):
+                     sort=None, fields=None, level=AccessType.READ, prefixSearchFields=None):
         """
         Custom override of Model.prefixSearch to also force permission-based
         filtering. The parameters are the same as Model.prefixSearch.
@@ -1353,13 +1353,16 @@ class AccessControlledModel(Model):
             document, or dict for an inclusion or exclusion projection.
         :param level: The access level to require.
         :type level: girder.constants.AccessType
+        :param prefixSearchFields: To override the model's prefixSearchFields
+            attribute for this invocation, pass an alternate iterable.
         :returns: A pymongo cursor. It is left to the caller to build the
             results from the cursor.
         """
         filters = filters or {}
 
         cursor = Model.prefixSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
+            self, query, filters=filters, sort=sort, fields=fields,
+            prefixSearchFields=prefixSearchFields)
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)
 
