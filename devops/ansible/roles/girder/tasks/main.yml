@@ -32,7 +32,19 @@
     state: latest
   become: yes
   become_user: root
-  when: girder_virtualenv is defined
+  when:
+    - girder_virtualenv is defined
+    - ansible_os_family == "Debian"
+
+- name: Install virtualenv
+  yum:
+    name: python-virtualenv
+    state: latest
+  become: yes
+  become_user: root
+  when:
+    - girder_virtualenv is defined
+    - ansible_os_family == "RedHat"
 
 - include: girder.yml
 

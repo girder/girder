@@ -14,6 +14,25 @@
     - libjpeg-dev
     - libssl-dev
     - zlib1g-dev
+  when: ansible_os_family == "Debian"
+
+- name: Install Girder system dependencies
+  yum:
+    name: "{{ item }}"
+  become: yes
+  become_user: root
+  with_items:
+    - curl
+    - gcc-c++
+    - git
+    - libffi-devel
+    - make
+    - openssl-devel
+    - libjpeg-turbo-devel
+    - zlib-devel
+    - python2-pip
+    - python-devel
+  when: ansible_os_family == "RedHat"
 
 - name: Download Girder
   git:
