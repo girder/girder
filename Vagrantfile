@@ -4,6 +4,7 @@ Vagrant.configure("2") do |config|
   if Vagrant.has_plugin?("vagrant-cachier")
     config.cache.scope = :box
     config.cache.enable :apt
+    config.cache.enable :yum
     config.cache.enable :npm
   end
 
