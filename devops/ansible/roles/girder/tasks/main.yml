@@ -16,8 +16,15 @@
   become: yes
   become_user: root
 
-- include: npm.yml
-  when: "{{ girder_web }}"
+- include: npm-RedHat.yml
+  when:
+    - girder_web
+    - ansible_os_family == "RedHat"
+
+- include: npm-Debian.yml
+  when:
+    - girder_web
+    - ansible_os_family == "Debian"
 
 - name: Install virtualenv
   apt:
