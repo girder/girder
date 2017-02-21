@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <!-- we don't want to expose it -->
+  <category>Developer Tools</category>
+  <title>PET phantom detector CLI</title>
+  <description>
+    Detects positions of PET/CT pocket phantoms in PET image.
+  </description>
+  <version>1.0</version>
+  <license>Apache 2.0</license>
+  <contributor>Dženan Zukić</contributor>
+  <acknowledgements>
+  </acknowledgements>
+  <parameters>
+    <label>Parameters</label>
+    <image type="scalar">
+      <longflag>InputImage</longflag>
+      <label>InputImage</label>
+      <channel>input</channel>
+      <description>Input image to be analysed.</description>
+    </image>
+    <integer-enumeration>
+      <longflag>SpheresPerPhantom</longflag>
+      <label>SpheresPerPhantom</label>
+      <channel>input</channel>
+      <element>2</element>
+      <element>3</element>
+      <default>3</default>
+      <description>What kind of phantom are we working with here?</description>
+    </integer-enumeration>
+    <double>
+      <longflag>MinimumSphereActivity</longflag>
+      <label>MinimumSphereActivity</label>
+      <channel>input</channel>
+      <default>5000.0</default>
+      <description>Used for thresholding in blob detection. Unit: becquerels per milliliter [Bq/ml]</description>
+    </double>
+    <double>
+      <longflag>MaximumLineStraightnessDeviation</longflag>
+      <label>MaximumLineStraightnessDeviation</label>
+      <channel>input</channel>
+      <default>1.0</default>
+      <description>Used for eliminating detections which are not in a straight line. Unit: multiples of geometric average of voxel spacing</description>
+    </double>
+    <double>
+      <longflag>MinimumRadius</longflag>
+      <label>MinimumRadius</label>
+      <channel>input</channel>
+      <default>3.0</default>
+      <description>Used for eliminating too small blobs. Unit: millimeter [mm]</description>
+    </double>
+    <double>
+      <longflag>MaximumRadius</longflag>
+      <label>MaximumRadius</label>
+      <channel>input</channel>
+      <default>20.0</default>
+      <description>Used for eliminating too big blobs. Unit: millimeter [mm]</description>
+    </double>
+    <double>
+      <longflag>MinimumSphereDistance</longflag>
+      <label>MinimumSphereDistance</label>
+      <channel>input</channel>
+      <default>30.0</default>
+      <description>Signifies minimum distance between adjacent sphere centers [mm]. Used to separate phantoms from tumors.</description>
+    </double>
+    <double>
+      <longflag>MaximumSphereDistance</longflag>
+      <label>MaximumSphereDistance</label>
+      <channel>input</channel>
+      <default>40.0</default>
+      <description>Signifies maximum distance between adjacent sphere centers [mm]. Used to separate phantoms from tumors.</description>
+    </double>
+    <boolean>
+      <longflag>StrictSorting</longflag>
+      <label>StrictSorting</label>
+      <channel>input</channel>
+      <default>false</default>
+      <description>Controls whether spheres within a phantom must have descending activities. If OFF, they can have approximately same activities (within 15%).</description>
+    </boolean>
+    <pointfile coordinateSystem="lps">
+      <longflag>DetectedPoints</longflag>
+      <label>DetectedPoints</label>
+      <channel>output</channel>
+      <description>Fiducual points, one for each detected sphere. Will be multiple of 3.</description>
+    </pointfile>
+  </parameters>
+</executable>

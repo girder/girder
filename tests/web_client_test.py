@@ -151,6 +151,11 @@ class WebClientTestCase(base.TestCase):
 
         testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
 
+        if 'SETUP_MODULES' in os.environ:
+            import imp
+            for i, script in enumerate(os.environ['SETUP_MODULES'].split(':')):
+                imp.load_source('girder.web_test_setup%d' % i, script)
+
     def testWebClientSpec(self):
         baseUrl = '/static/built/testing/testEnv.html'
         if os.environ.get('BASEURL', ''):

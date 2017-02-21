@@ -210,9 +210,9 @@ class File(Resource):
                     upload['received'], offset))
         try:
             if isinstance(chunk, cherrypy._cpreqbody.Part):
-                return self.model('upload').handleChunk(upload, chunk.file)
+                return self.model('upload').handleChunk(upload, chunk.file, filter=True, user=user)
             else:
-                return self.model('upload').handleChunk(upload, chunk)
+                return self.model('upload').handleChunk(upload, chunk, filter=True, user=user)
         except IOError as exc:
             if exc.errno == errno.EACCES:
                 raise Exception('Failed to store upload.')

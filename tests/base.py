@@ -447,7 +447,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         if additionalHeaders:
             headers.extend(additionalHeaders)
         if method in ['POST', 'PUT', 'PATCH'] or body:
-            if isinstance(body, six.string_types):
+            if isinstance(body, six.text_type):
                 body = body.encode('utf8')
             qs = urllib.parse.urlencode(params).encode('utf8')
             if type is None:

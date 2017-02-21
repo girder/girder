@@ -225,6 +225,10 @@ var App = View.extend({
              * normally against convention.
              */
             this.bodyView = new view(settings); // eslint-disable-line new-cap
+
+            if (opts.renderNow) {
+                this.bodyView.render();
+            }
         } else {
             console.error('Undefined page.');
         }

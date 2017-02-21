@@ -95,6 +95,8 @@ function(add_web_client_test case specFile)
   # BASEURL (url): The base url to load for the test.
   # TEST_MODULE (python module path): Run this module rather than the default
   #     "tests.web_client_test"
+  # SETUP_MODULES: colon-separated list of python scripts to import at test setup time
+  #     for side effects such as mocking, adding API routes, etc.
   # REQUIRED_FILES: A list of files required to run the test.
   if (NOT BUILD_JAVASCRIPT_TESTS)
     return()
@@ -103,7 +105,8 @@ function(add_web_client_test case specFile)
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
-  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES
+            SETUP_MODULES)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -174,6 +177,12 @@ function(add_web_client_test case specFile)
 
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${testname} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
+  endif()
+
+  if(fn_SETUP_MODULES)
+    set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
+        "SETUP_MODULES=${fn_SETUP_MODULES}"
+    )
   endif()
 
   if(fn_TIMEOUT)

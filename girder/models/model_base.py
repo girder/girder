@@ -49,6 +49,7 @@ class Model(ModelImporter):
     def __init__(self):
         self.name = None
         self._indices = []
+        self._connected = False
         self._textIndex = None
         self._textLanguage = None
         self.prefixSearchFields = ('lowerName', 'name')
@@ -73,10 +74,7 @@ class Model(ModelImporter):
         self.collection = MongoProxy(self.database[self.name])
 
         for index in self._indices:
-            if isinstance(index, (list, tuple)):
-                self.collection.create_index(index[0], **index[1])
-            else:
-                self.collection.create_index(index)
+            self._createIndex(index)
 
         if isinstance(self._textIndex, dict):
             textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
@@ -86,6 +84,8 @@ class Model(ModelImporter):
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
                 logprint.warning('WARNING: Text search not enabled.')
+
+        self._connected = True
 
     def exposeFields(self, level, fields):
         """
@@ -151,6 +151,12 @@ class Model(ModelImporter):
 
         return self.filterDocument(doc, allow=keys)
 
+    def _createIndex(self, index):
+        if isinstance(index, (list, tuple)):
+            self.collection.create_index(index[0], **index[1])
+        else:
+            self.collection.create_index(index)
+
     def ensureTextIndex(self, index, language='english'):
         """
         Call this during initialize() of the subclass if you want your
@@ -174,6 +180,9 @@ class Model(ModelImporter):
         that will be passed as kwargs to the pymongo create_index call.
         """
         self._indices.extend(indices)
+        if self._connected:
+            for index in indices:
+                self._createIndex(index)
 
     def ensureIndex(self, index):
         """
@@ -181,6 +190,8 @@ class Model(ModelImporter):
         of them.
         """
         self._indices.append(index)
+        if self._connected:
+            self._createIndex(index)
 
     def validate(self, doc):
         """
