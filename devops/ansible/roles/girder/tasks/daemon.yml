@@ -29,3 +29,11 @@
     state: restarted
   become: yes
   become_user: root
+  when: girder_start
+
+- name: Enable/Disable Girder service on boot
+  service:
+    name: girder
+    enabled: "{{ girder_enabled }}"
+  become: yes
+  become_user: root
