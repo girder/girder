@@ -135,14 +135,14 @@ def configureServer(test=False, plugins=None, curConfig=None):
     # Make the staticRoot relative to the api_root, if possible.  The api_root
     # could be relative or absolute, but it needs to be in an absolute form for
     # relpath to behave as expected.  We always expect the api_root to
-    # contain at least two ocmponents, but the reference from static needs to
+    # contain at least two components, but the reference from static needs to
     # be from only the first component.
-    api_root_base = os.path.split(os.path.join('/', curConfig['server']['api_root']))[0]
+    apiRootBase = os.path.split(os.path.join('/', curConfig['server']['api_root']))[0]
 
     root.api.v1.updateHtmlVars({
         'apiRoot': curConfig['server']['api_root'],
         'staticRoot': os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                      api_root_base)
+                                      apiRootBase)
     })
 
     root, appconf, _ = plugin_utilities.loadPlugins(
