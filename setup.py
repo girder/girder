@@ -63,6 +63,7 @@ install_reqs = [
     'bcrypt',
     'boto',
     'CherryPy<8',  # see https://github.com/girder/girder/issues/1615
+    'jsonschema',
     'Mako',
     'pymongo>=3',
     'PyYAML',
