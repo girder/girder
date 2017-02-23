@@ -13,9 +13,10 @@ def _onJobSave(event):
     If a job is finalized (i.e. success or failure status) and contains
     a temp token, we remove the token.
     """
-    job = event.info
+    params = event.info['params']
+    job = event.info['job']
 
-    if 'itemTaskTempToken' in job and job['status'] in (JobStatus.ERROR, JobStatus.SUCCESS):
+    if 'itemTaskTempToken' in job and params['status'] in (JobStatus.ERROR, JobStatus.SUCCESS):
         token = ModelImporter.model('token').load(
             job['itemTaskTempToken'], objectId=False, force=True)
         if token:
@@ -52,8 +53,9 @@ def _onUpload(event):
         file = event.info['file']
         item = ModelImporter.model('item').load(file['itemId'], force=True)
 
-        job['itemTaskBindings']['outputs'][ref['id']]['itemId'] = item['_id']
-        jobModel.save(job)
+        jobModel.updateJob(job, otherFields={
+            'itemTaskBindings.outputs.%s.itemId' % ref['id']: item['_id']
+        })
 
 
 def load(info):
@@ -68,7 +70,7 @@ def load(info):
     ModelImporter.model('job', 'jobs').exposeFields(level=AccessType.READ, fields={
         'itemTaskId', 'itemTaskBindings'})
 
-    events.bind('model.job.save.after', info['name'], _onJobSave)
+    events.bind('jobs.job.update', info['name'], _onJobSave)
     events.bind('data.process', info['name'], _onUpload)
 
     info['apiRoot'].item_task = ItemTask()
