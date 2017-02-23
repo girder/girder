@@ -4,6 +4,7 @@
   vars:
     girder_update: no
     girder_force: no
+    girder_always_build_assets: yes
   pre_tasks:
     - name: Update package cache
       apt:
