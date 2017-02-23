@@ -215,7 +215,7 @@ def setup(test=False, plugins=None, curConfig=None):
                                       str(routeTable[constants.GIRDER_ROUTE_ID]), appconf)
 
     # Mount static files
-    cherrypy.tree.mount(BaseWebroot(), routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+    cherrypy.tree.mount(None, routeTable[constants.GIRDER_STATIC_ROUTE_ID],
                         {'/':
                          {'tools.staticdir.on': True,
                           'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR,
@@ -234,10 +234,6 @@ def setup(test=False, plugins=None, curConfig=None):
         application.merge({'server': {'mode': 'testing'}})
 
     return application
-
-
-class BaseWebroot(object):
-    exposed = True
 
 
 class _StaticFileRoute(object):
