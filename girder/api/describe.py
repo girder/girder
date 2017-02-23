@@ -457,7 +457,7 @@ class Describe(Resource):
 
                 paths[route] = pathItem
 
-        apiUrl = getApiUrl()
+        apiUrl = getApiUrl(preferReferer=True)
         urlParts = getUrlParts(apiUrl)
         host = urlParts.netloc
         basePath = urlParts.path
