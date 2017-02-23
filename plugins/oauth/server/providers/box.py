@@ -27,8 +27,7 @@ from .. import constants
 class Box(ProviderBase):
     _AUTH_URL = 'https://account.box.com/api/oauth2/authorize'
     _TOKEN_URL = 'https://api.box.com/oauth2/token'
-    _API_USER_URL = 'https://api.box.com/2.0/users'
-    _API_EMAILS_URL = 'https://api.github.com/user/emails'
+    _API_USER_URL = 'https://api.box.com/2.0/users/me'
 
     def getClientIdSetting(self):
         return self.model('setting').get(
@@ -58,13 +57,12 @@ class Box(ProviderBase):
 
     def getToken(self, code):
         params = {
+            'grant_type': 'authorization_code',
             'code': code,
             'client_id': self.clientId,
             'client_secret': self.clientSecret,
-            'redirect_uri': self.redirectUri,
         }
-        # GitHub returns application/x-www-form-urlencoded unless
-        # otherwise specified with Accept
+        
         resp = self._getJson(method='POST', url=self._TOKEN_URL,
                              data=params,
                              headers={'Accept': 'application/json'})
@@ -76,32 +74,23 @@ class Box(ProviderBase):
 
     def getUser(self, token):
         headers = {
-            'Authorization': 'token %s' % token['access_token'],
+            'Authorization': 'Bearer %s' % token['access_token'],
             'Accept': 'application/json'
         }
 
         # Get user's email address
-        # In the unlikely case that a user has more than 30 email addresses,
-        # this HTTP request might have to be made multiple times with pagination
-        resp = self._getJson(method='GET', url=self._API_EMAILS_URL, headers=headers)
-        emails = [
-            email.get('email')
-            for email in resp
-            if email.get('primary') and email.get('verified')
-        ]
-        if not emails:
+        resp = self._getJson(method='GET', url=self._API_USER_URL, headers=headers)
+        email = resp.get('login')
+        if not email:
             raise RestException(
-                'This GitHub user has no registered email address.', code=502)
-        # There should never be more than one primary email
-        email = emails[0]
+                'Box did not return user information.', code=502)
 
         # Get user's OAuth2 ID, login, and name
-        resp = self._getJson(method='GET', url=self._API_USER_URL, headers=headers)
         oauthId = resp.get('id')
         if not oauthId:
-            raise RestException('GitHub did not return a user ID.', code=502)
+            raise RestException('Box did not return a user ID.', code=502)
 
-        login = resp.get('login', '')
+        login = resp.get('login')
         names = (resp.get('name') or login).split()
         firstName, lastName = names[0], names[-1]
 
