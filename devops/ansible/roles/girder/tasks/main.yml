@@ -36,3 +36,11 @@
   when: girder_virtualenv is defined
 
 - include: daemon.yml
+
+- name: Build Girder (web)
+  command: "{{ girder_install_executable|default('girder-install') }} web"
+  args:
+    chdir: "{{ girder_path }}"
+  # ensure that the install is one that uses web assets and
+  # the assets are always supposed to be rebuilt, or the files have changed (from git)
+  when: girder_web and (girder_always_build_assets or girder_files_updated)
