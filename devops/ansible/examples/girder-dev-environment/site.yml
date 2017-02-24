@@ -42,3 +42,13 @@
       args:
         chdir: "{{ girder_path }}"
       when: "{{ girder_web }}"
+
+    - name: Install development packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - cmake
+        - cmake-curses-gui
+      become: yes
+      become_user: root
