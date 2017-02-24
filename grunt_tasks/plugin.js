@@ -23,7 +23,6 @@ module.exports = function (grunt) {
     var path = require('path');
     var child_process = require('child_process'); // eslint-disable-line camelcase
 
-    var ExtractTextPlugin = require('extract-text-webpack-plugin');
     var webpack = require('webpack');
     var paths = require('./webpack.paths.js');
 
@@ -230,10 +229,6 @@ module.exports = function (grunt) {
                         new webpack.DllReferencePlugin({
                             context: '.',
                             manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
-                        }),
-                        new ExtractTextPlugin({
-                            filename: `${output}.min.css`,
-                            allChunks: true
                         })
                     ]
                 };

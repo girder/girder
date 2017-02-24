@@ -653,15 +653,11 @@ girderTest.addScripts = function (scripts) {
 };
 
 /**
- * Import a CSS file into the runtime context.
+ * Import a CSS file into the runtime context. Now that we
+ * no longer have CSS files per plugin, this is a no-op.
+ * @deprecated TODO remove in next major version
  */
-girderTest.importStylesheet = function (css) {
-    $('<link/>', {
-        rel: 'stylesheet',
-        type: 'text/css',
-        href: css
-    }).appendTo('head');
-};
+girderTest.importStylesheet = $.noop;
 
 /**
  * For the current folder, check if it is public or private and take an action.
