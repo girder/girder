@@ -319,7 +319,7 @@ class Description(object):
         :type requireObject: bool
         :param requireArray: Whether the value must be a JSON array / Python list.
         :type requireArray: bool
-        :param schema: A jsonschema that will be used to validate the parameter value. If
+        :param schema: A JSON schema that will be used to validate the parameter value. If
             this is passed, it overrides any ``requireObject`` or ``requireArray`` values
             that were passed.
         :type schema: dict
