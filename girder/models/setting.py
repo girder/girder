@@ -304,8 +304,9 @@ class Setting(Model):
     @setting_utilities.validator(SettingKey.ROUTE_TABLE)
     def validateCoreRouteTable(doc):
         nonEmptyRoutes = [route for route in doc['value'].values() if route]
-        if GIRDER_ROUTE_ID not in doc['value'] or not doc['value'][GIRDER_ROUTE_ID]:
-            raise ValidationException('Girder must be routeable.')
+        for key in [GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID]:
+            if key not in doc['value'] or not doc['value'][key]:
+                raise ValidationException('Girder and static root must be routeable.')
 
         if not all(route.startswith('/') for route in nonEmptyRoutes):
             raise ValidationException('Routes must begin with a forward slash.')
