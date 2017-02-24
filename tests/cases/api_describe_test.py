@@ -237,6 +237,7 @@ class ApiDescribeTestCase(base.TestCase):
                 self.route('POST', ('json_body_required',), self.jsonBodyRequired)
                 self.route('GET', ('model_param_flags',), self.hasModelParamFlags)
                 self.route('GET', ('model_param_query',), self.hasModelQueryParam)
+                self.route('GET', ('json_schema',), self.hasJsonSchema)
 
             @access.public
             @describe.autoDescribeRoute(
@@ -313,6 +314,17 @@ class ApiDescribeTestCase(base.TestCase):
             )
             def hasModelParamFlags(self, user, params):
                 return user
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('has_json_schema')
+                .jsonParam('obj', '', schema={
+                    'type': 'object',
+                    'required': ['foo', 'bar']
+                })
+            )
+            def hasJsonSchema(self, obj, params):
+                return obj
 
         server.root.api.v1.auto_describe = AutoDescribe()
 
@@ -480,3 +492,29 @@ class ApiDescribeTestCase(base.TestCase):
         })
         self.assertStatus(resp, 401)
         six.assertRegex(self, resp.json['message'], '^Access denied for user')
+
+        resp = self.request('/auto_describe/json_schema', params={
+            'obj': json.dumps([])
+        })
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            "Invalid JSON object for parameter obj: [] is not of type 'object'")
+
+        resp = self.request('/auto_describe/json_schema', params={
+            'obj': json.dumps({})
+        })
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            "Invalid JSON object for parameter obj: 'foo' is a required property")
+
+        obj = {
+            'foo': 1,
+            'bar': 2
+        }
+        resp = self.request('/auto_describe/json_schema', params={
+            'obj': json.dumps(obj)
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, obj)
