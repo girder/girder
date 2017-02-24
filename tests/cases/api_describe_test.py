@@ -169,6 +169,18 @@ class ApiDescribeTestCase(base.TestCase):
             'description',
             resp.json['paths']['/group']['get']['responses']['200'])
 
+    def testApiDescribeReferred(self):
+        resp = self.request(path='/describe', method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['basePath'], '/api/v1')
+        self.assertEqual(resp.json['host'], '127.0.0.1')
+        resp = self.request(
+            path='/describe', method='GET',
+            additionalHeaders=[('Referer', 'http://somewhere.com/alternate/api/v1')])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['basePath'], '/alternate/api/v1')
+        self.assertEqual(resp.json['host'], 'somewhere.com')
+
     def testRoutesExist(self):
         # Check that the resources and operations exist
         resp = self.request(path='/describe', method='GET')

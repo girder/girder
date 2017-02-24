@@ -59,26 +59,34 @@ def getUrlParts(url=None):
     return urllib.parse.urlparse(url)
 
 
-def getApiUrl(url=None):
+def getApiUrl(url=None, preferReferer=False):
     """
     In a request thread, call this to get the path to the root of the REST API.
     The returned path does *not* end in a forward slash.
 
     :param url: URL from which to extract the base URL. If not specified, uses
         the server root system setting. If that is not specified, uses `cherrypy.url()`
+    :param preferReferer: if no url is specified, this is true, and this is in
+        a cherrypy request that has a referer header that contains the api
+        string, use that referer as the url.
     """
+    apiStr = '/api/v1'
+
     if not url:
-        root = ModelImporter.model('setting').get(SettingKey.SERVER_ROOT)
-        if root:
-            return posixpath.join(root, config.getConfig()['server']['api_root'].lstrip('/'))
+        if preferReferer and apiStr in cherrypy.request.headers.get('referer', ''):
+            url = cherrypy.request.headers['referer']
+        else:
+            root = ModelImporter.model('setting').get(SettingKey.SERVER_ROOT)
+            if root:
+                return posixpath.join(root, config.getConfig()['server']['api_root'].lstrip('/'))
 
     url = url or cherrypy.url()
-    idx = url.find('/api/v1')
+    idx = url.find(apiStr)
 
     if idx < 0:
         raise GirderException('Could not determine API root in %s.' % url)
 
-    return url[:idx + 7]
+    return url[:idx + len(apiStr)]
 
 
 def iterBody(length=READ_BUFFER_LEN, strictLength=False):
