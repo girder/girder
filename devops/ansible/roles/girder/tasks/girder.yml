@@ -23,4 +23,6 @@
     update: "{{ girder_update|default(omit) }}"
     force: "{{ girder_force|default(omit) }}"
   register: vc
-  notify: Build Girder (web)
+
+- set_fact:
+    girder_files_updated: "{{ vc.changed }}"
