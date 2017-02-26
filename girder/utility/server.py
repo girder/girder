@@ -219,7 +219,10 @@ def setup(test=False, plugins=None, curConfig=None):
                         {'/':
                          {'tools.staticdir.on': True,
                           'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR,
-                                                              'clients/web/static')}})
+                                                              'clients/web/static'),
+                          'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
+                          'response.headers.server': 'Girder %s' % __version__,
+                          'error_page.default': _errorDefault}})
 
     # Mount API (special case)
     # The API is always mounted at /api AND at api relative to the Girder root
