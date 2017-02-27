@@ -96,3 +96,21 @@ class RouteTableTestCase(base.TestCase):
         resp = self.request('/', prefix='', isJson=False)
         self.assertStatusOk(resp)
         self.assertTrue('g-global-info-apiroot' in self.getBody(resp))
+
+        # Setting the static route to http should be allowed
+        resp = self.request('/system/setting', params={
+            'key': SettingKey.ROUTE_TABLE,
+            'value': json.dumps({GIRDER_ROUTE_ID: '/',
+                                 GIRDER_STATIC_ROUTE_ID: 'http://127.0.0.1/static'})
+        }, method='PUT', user=self.admin)
+        self.assertStatusOk(resp)
+        # but not to a relative path
+        resp = self.request('/system/setting', params={
+            'key': SettingKey.ROUTE_TABLE,
+            'value': json.dumps({GIRDER_ROUTE_ID: '/',
+                                 GIRDER_STATIC_ROUTE_ID: 'relative/static'})
+        }, method='PUT', user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            'Static root must begin with a forward slash or contain a URL scheme.')
