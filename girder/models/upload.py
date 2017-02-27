@@ -22,6 +22,7 @@ import six
 from bson.objectid import ObjectId
 
 from girder import events
+from girder.api import rest
 from girder.constants import SettingKey
 from girder.utility import assetstore_utilities
 from .model_base import Model, GirderException, ValidationException
@@ -231,7 +232,9 @@ class Upload(Model):
         # Add an async event for handlers that wish to process this file.
         eventParams = {
             'file': file,
-            'assetstore': assetstore
+            'assetstore': assetstore,
+            'currentToken': rest.getCurrentToken(),
+            'currentUser': rest.getCurrentUser()
         }
         if 'reference' in upload:
             eventParams['reference'] = upload['reference']

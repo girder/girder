@@ -6,3 +6,6 @@ girder_version: "master"
 girder_update: yes
 girder_force: yes
 girder_web: yes
+
+# the default is to only build assets when the git step results in new files
+girder_always_build_assets: no

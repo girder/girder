@@ -210,7 +210,7 @@ describe('Test group actions', function () {
         girderTest.waitForLoad();
     });
 
-    it('have the admin remove and then force add himself to the group', function () {
+    it('have the admin remove and then force add themself to the group', function () {
         runs(function () {
             $('.g-group-admin-remove').click();
         });
@@ -221,7 +221,7 @@ describe('Test group actions', function () {
             return $('#g-confirm-button').text() === 'Yes';
         }, 'the confirmation button to appear');
 
-        // Admin user removes himself from the group
+        // Admin user removes themself from the group
         runs(function () {
             $('#g-confirm-button').click();
         });

@@ -21,7 +21,7 @@ import json
 import os
 
 from .. import base
-from girder.constants import GIRDER_ROUTE_ID, SettingKey
+from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
 
 
 def setUpModule():
@@ -49,12 +49,21 @@ class RouteTableTestCase(base.TestCase):
             'value': json.dumps({})
         }, method='PUT', user=self.admin)
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'Girder must be routeable.')
+        self.assertEqual(resp.json['message'], 'Girder and static root must be routeable.')
+
+        # Test static not having a route
+        resp = self.request('/system/setting', params={
+            'key': SettingKey.ROUTE_TABLE,
+            'value': json.dumps({GIRDER_ROUTE_ID: '/'})
+        }, method='PUT', user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Girder and static root must be routeable.')
 
         # Test duplicate routes
         resp = self.request('/system/setting', params={
             'key': SettingKey.ROUTE_TABLE,
             'value': json.dumps({GIRDER_ROUTE_ID: '/some_route',
+                                 GIRDER_STATIC_ROUTE_ID: '/static',
                                  'other': '/some_route'})
         }, method='PUT', user=self.admin)
         self.assertStatus(resp, 400)
@@ -64,6 +73,7 @@ class RouteTableTestCase(base.TestCase):
         resp = self.request('/system/setting', params={
             'key': SettingKey.ROUTE_TABLE,
             'value': json.dumps({GIRDER_ROUTE_ID: '/',
+                                 GIRDER_STATIC_ROUTE_ID: '/static',
                                  'other': 'route_without_a_leading_slash'})
         }, method='PUT', user=self.admin)
         self.assertStatus(resp, 400)
@@ -73,6 +83,7 @@ class RouteTableTestCase(base.TestCase):
         resp = self.request('/system/setting', params={
             'key': SettingKey.ROUTE_TABLE,
             'value': json.dumps({GIRDER_ROUTE_ID: '/',
+                                 GIRDER_STATIC_ROUTE_ID: '/static',
                                  'has_webroot': '/has_webroot'})
         }, method='PUT', user=self.admin)
         self.assertStatusOk(resp)
@@ -85,3 +96,21 @@ class RouteTableTestCase(base.TestCase):
         resp = self.request('/', prefix='', isJson=False)
         self.assertStatusOk(resp)
         self.assertTrue('g-global-info-apiroot' in self.getBody(resp))
+
+        # Setting the static route to http should be allowed
+        resp = self.request('/system/setting', params={
+            'key': SettingKey.ROUTE_TABLE,
+            'value': json.dumps({GIRDER_ROUTE_ID: '/',
+                                 GIRDER_STATIC_ROUTE_ID: 'http://127.0.0.1/static'})
+        }, method='PUT', user=self.admin)
+        self.assertStatusOk(resp)
+        # but not to a relative path
+        resp = self.request('/system/setting', params={
+            'key': SettingKey.ROUTE_TABLE,
+            'value': json.dumps({GIRDER_ROUTE_ID: '/',
+                                 GIRDER_STATIC_ROUTE_ID: 'relative/static'})
+        }, method='PUT', user=self.admin)
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            'Static root must begin with a forward slash or contain a URL scheme.')

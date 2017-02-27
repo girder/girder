@@ -10,7 +10,7 @@ var JobStatus = {
             text = this._map[status].text;
         }
 
-        return text;
+        return '' + text;
     },
 
     icon: function (status) {

@@ -108,21 +108,17 @@ module.exports = {
             {
                 test: /\.styl$/,
                 include: loaderPaths,
-                loader: ExtractTextPlugin.extract({
+                loaders: ExtractTextPlugin.extract({
                     fallbackLoader: 'style-loader',
-                    loader: ['css-loader', {
-                        loader: 'stylus-loader',
-                        query: {
-                            'resolve url': true
-                        }
-                    }]
+                    // stylus loader query must be a string for now
+                    loader: ['css-loader', 'stylus-loader?resolve url=true']
                 })
             },
             // CSS
             {
                 test: /\.css$/,
                 include: loaderPathsNodeModules,
-                loader: ExtractTextPlugin.extract({
+                loaders: ExtractTextPlugin.extract({
                     fallbackLoader: 'style-loader',
                     loader: ['css-loader']})
             },
@@ -192,15 +188,6 @@ module.exports = {
                     fileLoader()
                 ]
             }
-        ],
-        noParse: [
-            // Avoid warning:
-            //   This seems to be a pre-built javascript file. Though this is
-            //   possible, it's not recommended. Try to require the original source
-            //   to get better results.
-            // This needs fixing later, as Webpack works better when provided with source.
-            // /node_modules\/pug/,
-            // /node_modules\/remarkable/
         ]
     },
     resolve: {
@@ -209,10 +196,9 @@ module.exports = {
         },
         extensions: ['.js'],
         modules: [
-            paths.clients_web,
-            paths.plugins,
             paths.node_modules
-        ]
+        ],
+        symlinks: false
     },
     node: {
         canvas: 'empty',

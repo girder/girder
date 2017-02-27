@@ -190,6 +190,38 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(publicJob['_id']))
 
+    def testListAllJobs(self):
+        self.model('job', 'jobs').createJob(
+            title='user 0 job', type='t', user=self.users[0], public=False)
+
+        self.model('job', 'jobs').createJob(
+            title='user 1 job', type='t', user=self.users[1], public=False)
+
+        self.model('job', 'jobs').createJob(
+            title='user 1 job', type='t', user=self.users[1], public=True)
+
+        self.model('job', 'jobs').createJob(
+            title='user 2 job', type='t', user=self.users[2])
+
+        self.model('job', 'jobs').createJob(
+            title='anonymous job', type='t')
+
+        self.model('job', 'jobs').createJob(
+            title='anonymous public job', type='t', public=True)
+
+        # User 0, as a site admin, should be able to see all jobs
+        resp = self.request('/job/all', user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 6)
+
+        # User 1, as non site admin, should encounter http 403 (Forbidden)
+        resp = self.request('/job/all', user=self.users[1])
+        self.assertStatus(resp, 403)
+
+        # Not authenticated user should encounter http 401 (unauthorized)
+        resp = self.request('/job/all')
+        self.assertStatus(resp, 401)
+
     def testFiltering(self):
         job = self.model('job', 'jobs').createJob(
             title='A job', type='t', user=self.users[1], public=True)

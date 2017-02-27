@@ -19,6 +19,7 @@
 
 import bson.json_util
 import dateutil.parser
+import jsonschema
 import os
 import six
 import cherrypy
@@ -310,7 +311,7 @@ class Description(object):
         return self
 
     def jsonParam(self, name, description, paramType='query', dataType='string', required=True,
-                  default=None, requireObject=False, requireArray=False):
+                  default=None, requireObject=False, requireArray=False, schema=None):
         """
         Specifies a parameter that should be processed as JSON.
 
@@ -318,14 +319,22 @@ class Description(object):
         :type requireObject: bool
         :param requireArray: Whether the value must be a JSON array / Python list.
         :type requireArray: bool
+        :param schema: A JSON schema that will be used to validate the parameter value. If
+            this is passed, it overrides any ``requireObject`` or ``requireArray`` values
+            that were passed.
+        :type schema: dict
         """
+        if default:
+            default = bson.json_util.dumps(default)
+
         self.param(
             name=name, description=description, paramType=paramType, dataType=dataType,
             required=required, default=default)
 
         self.jsonParams[name] = {
             'requireObject': requireObject,
-            'requireArray': requireArray
+            'requireArray': requireArray,
+            'schema': schema
         }
 
         return self
@@ -454,7 +463,7 @@ class Describe(Resource):
 
                 paths[route] = pathItem
 
-        apiUrl = getApiUrl()
+        apiUrl = getApiUrl(preferReferer=True)
         urlParts = getUrlParts(apiUrl)
         host = urlParts.netloc
         basePath = urlParts.path
@@ -572,9 +581,15 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         return wrapped
 
     def _validateJsonType(self, name, info, val):
-        if info['requireObject'] and not isinstance(val, dict):
+        if info.get('schema') is not None:
+            try:
+                jsonschema.validate(val, info['schema'])
+            except jsonschema.ValidationError as e:
+                raise RestException('Invalid JSON object for parameter %s: %s' % (
+                    name, e.message))
+        elif info['requireObject'] and not isinstance(val, dict):
             raise RestException('Parameter %s must be a JSON object.' % name)
-        if info['requireArray'] and not isinstance(val, list):
+        elif info['requireArray'] and not isinstance(val, list):
             raise RestException('Parameter %s must be a JSON array.' % name)
 
     def _loadJsonBody(self, name, info):

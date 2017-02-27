@@ -63,6 +63,7 @@ install_reqs = [
     'bcrypt',
     'boto',
     'CherryPy<8',  # see https://github.com/girder/girder/issues/1615
+    'jsonschema',
     'Mako',
     'pymongo>=3',
     'PyYAML',
@@ -75,7 +76,9 @@ install_reqs = [
 
 extras_reqs = {
     'celery_jobs': ['celery'],
+    'dicom_viewer': ['pydicom'],
     'geospatial': ['geojson'],
+    'item_tasks': ['ctk-cli'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
     'oauth': ['pyjwt', 'cryptography']

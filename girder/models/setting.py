@@ -304,11 +304,19 @@ class Setting(Model):
     @setting_utilities.validator(SettingKey.ROUTE_TABLE)
     def validateCoreRouteTable(doc):
         nonEmptyRoutes = [route for route in doc['value'].values() if route]
-        if GIRDER_ROUTE_ID not in doc['value'] or not doc['value'][GIRDER_ROUTE_ID]:
-            raise ValidationException('Girder must be routeable.')
+        for key in [GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID]:
+            if key not in doc['value'] or not doc['value'][key]:
+                raise ValidationException('Girder and static root must be routeable.')
 
-        if not all(route.startswith('/') for route in nonEmptyRoutes):
-            raise ValidationException('Routes must begin with a forward slash.')
+        for key in doc['value']:
+            if (key != GIRDER_STATIC_ROUTE_ID and doc['value'][key] and
+                    not doc['value'][key].startswith('/')):
+                raise ValidationException('Routes must begin with a forward slash.')
+        if doc['value'].get(GIRDER_STATIC_ROUTE_ID):
+            if (not doc['value'][GIRDER_STATIC_ROUTE_ID].startswith('/') and
+                    '://' not in doc['value'][GIRDER_STATIC_ROUTE_ID]):
+                raise ValidationException(
+                    'Static root must begin with a forward slash or contain a URL scheme.')
 
         if len(nonEmptyRoutes) > len(set(nonEmptyRoutes)):
             raise ValidationException('Routes must be unique.')
