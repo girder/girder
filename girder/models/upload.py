@@ -121,6 +121,11 @@ class Upload(Model):
         If this is the final chunk of the upload, this method will finalize
         the upload automatically.
 
+        This method will return EITHER an upload or a file document. If this
+        is the final chunk of the upload, the upload is finalized and the created
+        file document is returned. Otherwise, it returns the upload document
+        with the relevant fields modified.
+
         :param upload: The upload document to update.
         :type upload: dict
         :param chunk: The file object representing the chunk that was uploaded.
