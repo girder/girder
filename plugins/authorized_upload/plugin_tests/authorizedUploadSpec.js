@@ -6,10 +6,6 @@ girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/authorized_upload/plugin.min.js'
 ]);
 
-girderTest.importStylesheet(
-    '/static/built/plugins/authorized_upload/plugin.min.css'
-);
-
 girderTest.startApp();
 
 describe('Create an authorized upload.', function () {

@@ -6,11 +6,7 @@
     <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Droid+Sans:400,700">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/fontello.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/animation.css">
-    <link rel="stylesheet" href="${staticRoot}/built/girder_lib.min.css">
     <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">
-    % for plugin in pluginCss:
-    <link rel="stylesheet" href="${staticRoot}/built/plugins/${plugin}/plugin.min.css">
-    % endfor
   </head>
   <body>
     <div id="g-global-info-apiroot" class="hide">${apiRoot}</div>

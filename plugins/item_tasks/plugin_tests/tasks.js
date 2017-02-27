@@ -4,10 +4,6 @@ girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/item_tasks/plugin.min.js'
 ]);
 
-girderTest.importStylesheet('/static/built/plugins/jobs/plugin.min.css');
-girderTest.importStylesheet('/static/built/plugins/worker/plugin.min.css');
-girderTest.importStylesheet('/static/built/plugins/item_tasks/plugin.min.css');
-
 girderTest.startApp();
 
 describe('Create an item task', function () {

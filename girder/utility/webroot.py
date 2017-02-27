@@ -78,8 +78,7 @@ class Webroot(WebrootBase):
     """
     def __init__(self, templatePath=None):
         if not templatePath:
-            templatePath = os.path.join(constants.PACKAGE_DIR,
-                                        'utility', 'webroot.mako')
+            templatePath = os.path.join(constants.PACKAGE_DIR, 'utility', 'webroot.mako')
         super(Webroot, self).__init__(templatePath)
 
         self.vars = {
@@ -92,11 +91,9 @@ class Webroot(WebrootBase):
     def _renderHTML(self):
         self.vars['pluginCss'] = []
         self.vars['pluginJs'] = []
-        builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web',
-                                'static', 'built', 'plugins')
+        builtDir = os.path.join(
+            constants.STATIC_ROOT_DIR, 'clients', 'web', 'static', 'built', 'plugins')
         for plugin in self.vars['plugins']:
-            if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.css')):
-                self.vars['pluginCss'].append(plugin)
             if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.js')):
                 self.vars['pluginJs'].append(plugin)
 

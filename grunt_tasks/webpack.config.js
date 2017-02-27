@@ -21,9 +21,6 @@
  */
 var path = require('path');
 var webpack = require('webpack');
-
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-
 var paths = require('./webpack.paths.js');
 var es2015Preset = require.resolve('babel-preset-es2015');
 
@@ -108,23 +105,18 @@ module.exports = {
             {
                 test: /\.styl$/,
                 include: loaderPaths,
-                loaders: ExtractTextPlugin.extract({
-                    fallbackLoader: 'style-loader',
-                    loader: ['css-loader', {
-                        loader: 'stylus-loader',
-                        query: {
-                            'resolve url': true
-                        }
-                    }]
-                })
+                loaders: ['style-loader', 'css-loader', {
+                    loader: 'stylus-loader',
+                    query: {
+                        'resolve url': true
+                    }
+                }]
             },
             // CSS
             {
                 test: /\.css$/,
                 include: loaderPathsNodeModules,
-                loaders: ExtractTextPlugin.extract({
-                    fallbackLoader: 'style-loader',
-                    loader: ['css-loader']})
+                loaders: ['style-loader', 'css-loader']
             },
             // Pug
             {
