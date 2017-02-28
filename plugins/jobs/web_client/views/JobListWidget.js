@@ -85,19 +85,7 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        var jobs = this._filterJobs(this.collection.toArray()), types, states;
-
-        this.$el.html(JobListWidgetTemplate({
-            jobs: jobs,
-            showHeader: this.showHeader,
-            columns: this.columns,
-            columnEnum: this.columnEnum,
-            linkToJob: this.linkToJob,
-            triggerJobClick: this.triggerJobClick,
-            JobStatus: JobStatus,
-            formatDate: formatDate,
-            DATE_SECOND: DATE_SECOND
-        }));
+        var jobs, types, states;
 
         types = _.uniq(this.collection.toArray().map(function (job) {
             return job.attributes.type ? job.attributes.type : '';
@@ -111,6 +99,20 @@ var JobListWidget = View.extend({
         }));
         this._updateFilter(this.statusFilter, states);
         this.filterStatusMenuWidget.setValues(this.statusFilter);
+
+        jobs = this._filterJobs(this.collection.toArray());
+
+        this.$el.html(JobListWidgetTemplate({
+            jobs: jobs,
+            showHeader: this.showHeader,
+            columns: this.columns,
+            columnEnum: this.columnEnum,
+            linkToJob: this.linkToJob,
+            triggerJobClick: this.triggerJobClick,
+            JobStatus: JobStatus,
+            formatDate: formatDate,
+            DATE_SECOND: DATE_SECOND
+        }));
 
         this.filterTypeMenuWidget.setElement(this.$('.g-job-type-header')).render();
         this.filterStatusMenuWidget.setElement(this.$('.g-job-status-header')).render();
