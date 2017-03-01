@@ -24,6 +24,7 @@ from .globus import Globus
 from .github import GitHub
 from .linkedin import LinkedIn
 from .bitbucket import Bitbucket
+from .box import Box
 
 
 def addProvider(provider):
@@ -37,3 +38,4 @@ addProvider(Globus)
 addProvider(GitHub)
 addProvider(LinkedIn)
 addProvider(Bitbucket)
+addProvider(Box)
