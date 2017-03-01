@@ -99,6 +99,14 @@ describe('Test the settings page', function () {
     });
     it('Use search to update collection create policy', function () {
         runs(function () {
+            $('.g-collection-create-policy-container .g-plugin-switch').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container .g-grant-access-container').length > 0;
+        }, 'access widget to load');
+
+        runs(function () {
             $('.g-collection-create-policy-container .g-search-field').val('admin')
                 .trigger('input');
         });
@@ -112,8 +120,24 @@ describe('Test the settings page', function () {
         });
 
         waitsFor(function () {
-            return JSON.parse($('#g-core-collection-create-policy').val()).users.length === 1;
-        }, 'policy value to update');
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users').children().length === 1;
+        }, 'access list to populate');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users .g-user-access-entry .icon-cancel').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users').children().length === 0;
+        }, 'policy value to be cleared');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-plugin-switch').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container .g-grant-access-container').length === 0;
+        }, 'access widget unload');
     });
 
     it('logout and check for redirect to front page from settings page', function () {

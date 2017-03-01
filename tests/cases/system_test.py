@@ -665,3 +665,18 @@ class SystemTestCase(base.TestCase):
 
         settingModel.set(SettingKey.SERVER_ROOT, 'https://somedomain.org/foo')
         self.assertEqual(getApiUrl(), 'https://somedomain.org/foo/api/v1')
+
+    def testCollectionCreationPolicySettingAndItsAccessAPI(self):
+        resp = self.request(path='/system/setting', method='PUT', params={
+            'list': json.dumps([
+                {'key': SettingKey.COLLECTION_CREATE_POLICY, 'value': json.dumps({
+                    'open': True,
+                    'users': [str(self.users[0]['_id'])]
+                })}
+            ])
+        }, user=self.users[0])
+
+        resp = self.request(path='/system/setting/collection_creation_policy/access',
+                            method='GET', user=self.users[0])
+        self.assertEqual(resp.json['users'][0]['id'], str(self.users[0]['_id']))
+        self.assertEqual(resp.json['users'][0]['login'], str(self.users[0]['login']))

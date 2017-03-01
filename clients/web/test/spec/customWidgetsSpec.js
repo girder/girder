@@ -115,8 +115,8 @@
 
             waitsFor(function () {
                 return $('.g-hierarchy-widget').length > 0 &&
-                       $('.g-folder-list-link').length > 0 &&
-                       $('.g-item-list-link').length > 0;
+                    $('.g-folder-list-link').length > 0 &&
+                    $('.g-item-list-link').length > 0;
             }, 'the hierarchy widget to display');
 
             runs(function () {
@@ -603,6 +603,32 @@
                 expect(adminCheckbox.is(':disabled')).toBe(true);
                 expect(openCheckbox.is(':disabled')).toBe(false);
             });
+        });
+
+        it('test hide component options', function () {
+            runs(function () {
+                // create the widget will all hide options
+                widget.destroy();
+                widget = new girder.views.widgets.AccessWidget({
+                    el: 'body',
+                    modal: false,
+                    model: folder,
+                    modelType: 'folder',
+                    parentView: null,
+                    hideRecurseOption: true,
+                    hideSaveButton: true,
+                    hidePrivacyEditor: true,
+                    hideAccessType: true,
+                    noAccessFlag: true
+                });
+            });
+
+            waitsFor(function () {
+                return widget.$('#g-ac-list-users').children().length === 1 &&
+                    widget.$('.g-public-container').length === 0 &&
+                    widget.$('.g-recursive-container').length === 0 &&
+                    widget.$('.g-user-access-entry select').length === 0;
+            }, 'check if all component are hidden');
         });
     });
 
