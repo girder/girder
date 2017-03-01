@@ -62,7 +62,7 @@ class Box(ProviderBase):
             'client_id': self.clientId,
             'client_secret': self.clientSecret,
         }
-        
+
         resp = self._getJson(method='POST', url=self._TOKEN_URL,
                              data=params,
                              headers={'Accept': 'application/json'})
@@ -90,8 +90,6 @@ class Box(ProviderBase):
         if not oauthId:
             raise RestException('Box did not return a user ID.', code=502)
 
-        login = resp.get('login')
-        names = (resp.get('name') or login).split()
+        names = resp.get('name').split()
         firstName, lastName = names[0], names[-1]
-
-        return self._createOrReuseUser(oauthId, email, firstName, lastName, login)
+        return self._createOrReuseUser(oauthId, email, firstName, lastName)

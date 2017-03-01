@@ -1295,3 +1295,159 @@ class OauthTest(base.TestCase):
             self.mockOtherRequest
         ):
             self._testOauth(providerInfo)
+
+    def testBoxOauth(self):  # noqa
+        providerInfo = {
+            'id': 'box',
+            'name': 'Box',
+            'client_id': {
+                'key': PluginSettings.BOX_CLIENT_ID,
+                'value': 'box_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.BOX_CLIENT_SECRET,
+                'value': 'box_test_client_secret'
+            },
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/box/callback$',
+            'url_re': r'^https://account\.box\.com/api/oauth2/authorize',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'box_existing_auth_code',
+                    'access_token': 'box_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'box',
+                            'id': '2481632'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'box_new_auth_code',
+                    'access_token': 'box_new_test_token',
+                    'user': {
+                        # this login is not provided by Box, but will be
+                        # created internally by _deriveLogin
+                        'login': 'metaphor',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
+                        'oauth': {
+                            'provider': 'box',
+                            'id': '1985'
+                        }
+                    }
+                }
+            }
+        }
+
+        @httmock.urlmatch(scheme='https', netloc='^account.box.com$',
+                          path='^/api/oauth2/authorize$', method='GET')
+        def mockBoxRedirect(url, request):
+            redirectUri = None
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                # Check redirect_uri first, so other errors can still redirect
+                redirectUri = params['redirect_uri'][0]
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                six.assertRegex(self, redirectUri, providerInfo['allowed_callback_re'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+            except (KeyError, AssertionError) as e:
+                returnQuery = urllib.parse.urlencode({
+                    'error': repr(e),
+                })
+            else:
+                returnQuery = urllib.parse.urlencode({
+                    'state': state,
+                    'code': providerInfo['accounts'][self.accountType]['auth_code']
+                })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (redirectUri, returnQuery)
+                }
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^api.box.com$',
+                          path='^/oauth2/token$', method='POST')
+        def mockBoxToken(url, request):
+            try:
+                self.assertEqual(request.headers['Accept'], 'application/json')
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
+            except (KeyError, AssertionError) as e:
+                returnBody = json.dumps({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnBody = json.dumps({
+                    'token_type': 'bearer',
+                    'access_token': account['access_token'],
+                    'scope': 'user:email'
+                })
+            return {
+                'status_code': 200,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'content': returnBody
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^api.box.com$',
+                          path='^/2.0/users/me$', method='GET')
+        def mockBoxApiUser(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                'id': account['user']['oauth']['id'],
+                'login': account['user']['email'],
+                'name': '%s %s' % (account['user']['firstName'], account['user']['lastName'])
+            })
+
+        with httmock.HTTMock(
+            mockBoxRedirect,
+            mockBoxToken,
+            mockBoxApiUser,
+            # Must keep 'mockOtherRequest' last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)
