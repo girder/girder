@@ -70,7 +70,7 @@ var ConfigView = View.extend({
                           'following as an OAuth 2.0 Authorized Redirect URL:'
         }, {
             id: 'box',
-            name: 'box',
+            name: 'Box',
             icon: 'box',
             hasAuthorizedOrigins: false,
             instructions: 'Client IDs and secret keys are managed in the Box ' +
