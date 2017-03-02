@@ -39,6 +39,11 @@ describe('Create an admin and non-admin user', function () {
     it('No admin console when logging in as a normal user', function () {
         expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
+
+    it('go to groups page', girderTest.goToGroupsPage());
+
+    it('Create a public group',
+       girderTest.createGroup('pubGroup', 'public group', true));
 });
 
 describe('Test the settings page', function () {
@@ -113,7 +118,7 @@ describe('Test the settings page', function () {
 
         waitsFor(function () {
             return $('.g-collection-create-policy-container .g-search-result').length > 0;
-        }, 'search result to appear');
+        }, 'search result to appear for a user');
 
         runs(function () {
             $('.g-collection-create-policy-container .g-search-result>a').click();
@@ -121,7 +126,27 @@ describe('Test the settings page', function () {
 
         waitsFor(function () {
             return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users').children().length === 1;
-        }, 'access list to populate');
+        }, 'access list to populate with one user');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-search-field').val('pubGroup').trigger('input');
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .g-search-result .icon-users').length > 0;
+        }, 'search result to appear for a group');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-search-result>a').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-groups').children().length === 1;
+        }, 'access list to populate with one group');
+
+        runs(function () {
+            $('.g-submit-settings').click();
+        });
 
         runs(function () {
             $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users .g-user-access-entry .icon-cancel').click();

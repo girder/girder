@@ -9,11 +9,7 @@ var CollectionCreationPolicyModel = AccessControlledModel.extend({
             path: this.resourceName + '/access',
             type: 'GET'
         }).done(_.bind(function (resp) {
-            if (resp.access) {
-                this.set(resp);
-            } else {
-                this.set('access', resp);
-            }
+            this.set('access', resp);
             this.trigger('g:accessFetched');
             return resp;
         }, this)).error(_.bind(function (err) {

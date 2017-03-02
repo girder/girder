@@ -68,6 +68,8 @@ class SystemTestCase(base.TestCase):
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
+        self.group = self.model('group').createGroup('test group', creator=self.users[1])
+
     def tearDown(self):
         # Restore the state of the plugins configuration
         conf = config.getConfig()
@@ -671,7 +673,8 @@ class SystemTestCase(base.TestCase):
             'list': json.dumps([
                 {'key': SettingKey.COLLECTION_CREATE_POLICY, 'value': json.dumps({
                     'open': True,
-                    'users': [str(self.users[0]['_id'])]
+                    'users': [str(self.users[0]['_id'])],
+                    'groups': [str(self.group['_id'])]
                 })}
             ])
         }, user=self.users[0])
@@ -680,3 +683,4 @@ class SystemTestCase(base.TestCase):
                             method='GET', user=self.users[0])
         self.assertEqual(resp.json['users'][0]['id'], str(self.users[0]['_id']))
         self.assertEqual(resp.json['users'][0]['login'], str(self.users[0]['login']))
+        self.assertEqual(resp.json['groups'][0]['id'], str(self.group['_id']))
