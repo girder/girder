@@ -123,6 +123,11 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
+    DEFAULT_API_ROOT = 'api/v1'
+    DEFAULT_HOST = 'localhost'
+    DEFAULT_PORT = 443
+    DEFAULT_SCHEME = 'https'
+
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
                  cacheSettings=None):
         """
@@ -149,13 +154,14 @@ class GirderClient(object):
         """
         if apiUrl is None:
             if not apiRoot:
-                apiRoot = 'api/v1'
+                apiRoot = self.DEFAULT_API_ROOT
             # If needed, prepend '/'
             apiRoot = '/' + apiRoot if apiRoot[0] != '/' else apiRoot
 
-            self.scheme = scheme or 'https'
-            self.host = host or 'localhost'
-            self.port = port or (443 if self.scheme == 'https' else 80)
+            self.scheme = scheme or self.DEFAULT_SCHEME
+            self.host = host or self.DEFAULT_HOST
+            self.port = port or (
+                self.DEFAULT_PORT if self.scheme == 'https' else 80)
 
             self.urlBase = '%s://%s:%s%s' % (
                 self.scheme, self.host, str(self.port), apiRoot)
