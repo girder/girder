@@ -574,7 +574,10 @@ class PythonClientTestCase(base.TestCase):
         }
 
         def _patchJson(url, request):
-            patchRequest['valid'] = json.loads(request.body.decode('utf8')) == jsonBody
+            body = request.body
+            if isinstance(body, six.binary_type):
+                body = body.decode('utf8')
+            patchRequest['valid'] = json.loads(body) == jsonBody
 
             return httmock.response(200, {}, {}, request=request)
 
