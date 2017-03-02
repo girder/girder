@@ -148,8 +148,10 @@ class GirderClient(object):
             None to disable caching.
         """
         if apiUrl is None:
-            if apiRoot is None:
-                apiRoot = '/api/v1'
+            if not apiRoot:
+                apiRoot = 'api/v1'
+            # If needed, prepend '/'
+            apiRoot = '/' + apiRoot if apiRoot[0] != '/' else apiRoot
 
             self.scheme = scheme or 'https'
             self.host = host or 'localhost'
