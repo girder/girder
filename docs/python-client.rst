@@ -74,6 +74,18 @@ Or... ::
 
     girder-cli --host girder.example.com --scheme https --port 443 --api-root /api/v1 ...
 
+Specifying credentials
+^^^^^^^^^^^^^^^^^^^^^^
+
+The recommended way is to generate an :ref:`api key <api_keys>` and specify
+the ``api-key`` argument. ::
+
+    girder-cli --host girder.example.com  --api-key abcdefghijklmopqrstuvwxyz012345678901234 ...
+
+The client also supports ``username`` and ``password`` args. If only the
+``username`` is specified, the client will prompt the user to interactively
+input his/her password.
+
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

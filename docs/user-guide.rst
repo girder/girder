@@ -271,6 +271,8 @@ User
 ``Users`` have ``ADMIN`` access on themselves, and have ``READ`` access on other
 ``Users``.
 
+.. _api_keys:
+
 API keys
 --------
 
