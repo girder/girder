@@ -64,9 +64,39 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--api-root', default=GirderClient.DEFAULT_API_ROOT,
               help='relative path to the Girder REST API', show_default=True)
 @click.pass_context
-def main(ctx, username, password,
+def main(ctx, username, password,  # noqa: D301
          api_key, api_url, scheme, host, port, api_root):
-    """Perform common Girder CLI operations."""
+    """Perform common Girder CLI operations.
+
+    The CLI is particularly suited to upload (or download) large, nested
+    hierarchy of data to (or from) Girder from (or into) a local directory.
+
+    \b
+    Specifying the Girder Instance
+    ------------------------------
+
+    The easiest way to do so is to pass the host name using the ``host``
+    argument. For example:
+
+      girder-cli --host data.kitware.com <command> ...
+
+    In case, you are experimenting with an instance not serving content
+    using https, specifying the full URL to the REST API using the
+    ``api-url`` argument is the easiest. For example:
+
+      girder-cli --api-url http://localhost:8080/api/v1 <command> ...
+
+    \b
+    Specifying credentials
+    ----------------------
+
+    The recommended way is to generate an api key and specify the
+    ``api-key`` argument.
+
+    The client also supports ``username`` and ``password`` args. If only the
+    ``username`` is specified, the client will prompt the user to interactively
+    input his/her password.
+    """
     ctx.obj = GirderCli(
         username, password, host=host, port=port, apiRoot=api_root,
         scheme=scheme, apiUrl=api_url, apiKey=api_key)
