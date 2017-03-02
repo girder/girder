@@ -58,7 +58,9 @@ def invokeCli(argv, username='', password='', useApiUrl=False):
         apiUrl = 'http://localhost:%s/api/v1' % os.environ['GIRDER_PORT']
         argsList = ['girder-client', '--api-url', apiUrl]
     else:
-        argsList = ['girder-client', '--port', os.environ['GIRDER_PORT']]
+        argsList = ['girder-client',
+                    '--scheme', 'http',
+                    '--port', os.environ['GIRDER_PORT']]
 
     if username:
         argsList += ['--username', username]

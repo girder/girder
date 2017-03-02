@@ -151,9 +151,9 @@ class GirderClient(object):
             if apiRoot is None:
                 apiRoot = '/api/v1'
 
-            self.scheme = scheme or 'http'
+            self.scheme = scheme or 'https'
             self.host = host or 'localhost'
-            self.port = port or (443 if scheme == 'https' else 80)
+            self.port = port or (443 if self.scheme == 'https' else 80)
 
             self.urlBase = '%s://%s:%s%s' % (
                 self.scheme, self.host, str(self.port), apiRoot)

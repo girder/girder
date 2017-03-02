@@ -47,7 +47,8 @@ class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
 
         from girder_client import GirderClient
 
-        client = GirderClient('localhost', int(os.environ['GIRDER_PORT']))
+        client = GirderClient(
+            'localhost', int(os.environ['GIRDER_PORT']), scheme='http')
         client.authenticate(self.user['login'], self.password)
         extractor = ClientMetadataExtractor(client, self.path, self.item['_id'])
         extractor.extractMetadata()
