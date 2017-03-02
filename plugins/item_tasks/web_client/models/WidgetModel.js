@@ -138,7 +138,7 @@ var WidgetModel = Backbone.Model.extend({
         } else if (this.isInteger()) {
             out = this._validateInteger(value);
         }
-        if (this.isEnumeration() && !this.get('values').includes(this._normalizeValue(value))) {
+        if (this.isEnumeration() && !_.contains(this.get('values'), this._normalizeValue(value))) {
             out = 'Invalid value choice';
         }
         return out;
@@ -250,13 +250,13 @@ var WidgetModel = Backbone.Model.extend({
      * True if the value should be coerced as a number.
      */
     isNumeric: function () {
-        return [
+        return _.contains([
             'range',
             'number',
             'number-vector',
             'number-enumeration',
             'number-enumeration-multiple'
-        ].includes(this.get('type'));
+        ], this.get('type'));
     },
 
     /**
@@ -277,12 +277,12 @@ var WidgetModel = Backbone.Model.extend({
      * True if the value is a 3 component vector.
      */
     isVector: function () {
-        return [
+        return _.contains([
             'number-vector',
             'number-enumeration-multiple',
             'string-vector',
             'string-enumeration-multiple'
-        ].includes(this.get('type'));
+        ], this.get('type'));
     },
 
     /**
@@ -296,12 +296,12 @@ var WidgetModel = Backbone.Model.extend({
      * True if the value should be chosen from one of several "values".
      */
     isEnumeration: function () {
-        return [
+        return _.contains([
             'number-enumeration',
             'number-enumeration-multiple',
             'string-enumeration',
             'string-enumeration-multiple'
-        ].includes(this.get('type'));
+        ], this.get('type'));
     },
 
     /**
