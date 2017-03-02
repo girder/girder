@@ -45,15 +45,15 @@ pip, you can use the special ``girder-cli`` executable: ::
 
 Otherwise you can equivalently just invoke the module directly: ::
 
-    python -m girder_client <subcommand> <arguments>
+    python -m girder_client <command> <arguments>
 
-To see all available subcommands, run: ::
+To see all available commands, run: ::
 
     girder-cli --help
 
-For help with a specific subcommand, run: ::
+For help with a specific command, run: ::
 
-    girder-cli <subcommand> --help
+    girder-cli <command> --help
 
 Specifying the Girder Instance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -63,7 +63,7 @@ you wish to connect to. The easiest way to do so is to pass the full URL to the
 REST API of the Girder instance you wish to connect to using the ``api-url``
 argument to ``girder-cli``. For example: ::
 
-    girder-cli --api-url http://localhost:8080/api/v1 <subcommand> ...
+    girder-cli --api-url http://localhost:8080/api/v1 <command> ...
 
 You may also specify the URL in parts, using the ``host`` argument, and optional
 ``scheme``, ``port``, and ``api-root`` args. ::
