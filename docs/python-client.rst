@@ -20,6 +20,19 @@ directory of Girder, you can install the client via pip: ::
 
     pip install girder-client
 
+
+After installing the client via pip and if you are using ``bash``,
+auto-completion can easily be enabled executing:
+
+::
+
+    eval "$(_GIRDER_CLI_COMPLETE=source girder-cli)"
+
+For convenience, adding this line at the end of ``.bashrc`` will make sure
+auto-completion is always available.
+
+For more details, see http://click.pocoo.org/6/bashcomplete/
+
 The Command Line Interface
 --------------------------
 
