@@ -108,7 +108,9 @@ def _common_parameters(func):
                      help='type of Girder parent target',
                      type=click.Choice(['collection', 'folder', 'user'])),
         click.argument('parent_id'),
-        click.argument('local_folder'),
+        click.argument(
+            'local_folder',
+            type=click.Path(exists=False, dir_okay=True, writable=True, readable=True)),
     ]
     for decorator in reversed(decorators):
         func = decorator(func)
