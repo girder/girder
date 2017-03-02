@@ -82,6 +82,11 @@ the ``api-key`` argument. ::
 
     girder-cli --host girder.example.com  --api-key abcdefghijklmopqrstuvwxyz012345678901234 ...
 
+Setting the ``GIRDER_API_KEY`` environment variable is also supported: ::
+
+    export GIRDER_API_KEY=abcdefghijklmopqrstuvwxyz012345678901234
+    girder-cli --host girder.example.com ...
+
 The client also supports ``username`` and ``password`` args. If only the
 ``username`` is specified, the client will prompt the user to interactively
 input his/her password.

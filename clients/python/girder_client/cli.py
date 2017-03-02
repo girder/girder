@@ -53,7 +53,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.option('--api-key', default=None)
+@click.option('--api-key', envvar='GIRDER_API_KEY', default=None,
+              help='setting GIRDER_API_KEY env. variable is supported')
 @click.option('--host', default=GirderClient.DEFAULT_HOST, show_default=True)
 @click.option('--api-url', default=None,
               help='full URL to the RESTful API of a Girder server')
@@ -91,7 +92,7 @@ def main(ctx, username, password,  # noqa: D301
     ----------------------
 
     The recommended way is to generate an api key and specify the
-    ``api-key`` argument.
+    ``api-key`` argument or set the ``GIRDER_API_KEY`` environment variable.
 
     The client also supports ``username`` and ``password`` args. If only the
     ``username`` is specified, the client will prompt the user to interactively

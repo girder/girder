@@ -202,12 +202,20 @@ class PythonCliTestCase(base.TestCase):
             os.path.isfile(os.path.join(downloadDir, 'Public', 'testdata', 'hello.txt')))
         shutil.rmtree(downloadDir, ignore_errors=True)
 
+        def _check_upload(ret):
+            self.assertEqual(ret['exitVal'], 0)
+            six.assertRegex(
+                self, ret['stdout'],
+                'Creating Folder from .*tests/cases/py_client/testdata')
+            self.assertIn('Uploading Item from hello.txt', ret['stdout'])
+
         # Try uploading using API key
-        ret = invokeCli(['--api-key', self.apiKey['key']] + args)
-        self.assertEqual(ret['exitVal'], 0)
-        six.assertRegex(
-            self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
-        self.assertIn('Uploading Item from hello.txt', ret['stdout'])
+        _check_upload(invokeCli(['--api-key', self.apiKey['key']] + args))
+
+        # Try uploading using API key set with GIRDER_API_KEY env. variable
+        os.environ["GIRDER_API_KEY"] = self.apiKey['key']
+        _check_upload(invokeCli(args))
+        del os.environ["GIRDER_API_KEY"]
 
         # Test localsync, it shouldn't touch files on 2nd pass
         ret = invokeCli(('localsync', str(subfolder['_id']),
