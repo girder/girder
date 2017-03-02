@@ -472,7 +472,6 @@ class SystemTestCase(base.TestCase):
             }
         })
 
-        group = self.model('group').createGroup('test group', creator=self.users[1])
         self.users[1] = self.model('user').load(self.users[1]['_id'], force=True)
         user = self.users[1]
 
@@ -503,7 +502,7 @@ class SystemTestCase(base.TestCase):
                 'flags': ['my_key', 'not a registered flag']
             }],
             'groups': [{
-                'id': group['_id'],
+                'id': self.group['_id'],
                 'level': AccessType.ADMIN,
                 'flags': ['my_key']
             }]
@@ -543,7 +542,7 @@ class SystemTestCase(base.TestCase):
                 'flags': ['admin_flag']
             }],
             'groups': [{
-                'id': group['_id'],
+                'id': self.group['_id'],
                 'level': AccessType.ADMIN,
                 'flags': ['admin_flag']
             }]
@@ -560,7 +559,7 @@ class SystemTestCase(base.TestCase):
                 'flags': ['my_key', 'admin_flag']
             }],
             'groups': [{
-                'id': group['_id'],
+                'id': self.group['_id'],
                 'level': AccessType.ADMIN,
                 'flags': ['admin_flag']
             }]
@@ -638,7 +637,7 @@ class SystemTestCase(base.TestCase):
         self.assertFalse(folderModel.hasAccessFlags(folder, self.users[1], flags='my_key'))
 
         folder = folderModel.setGroupAccess(
-            folder, group, level=AccessType.READ, save=True, force=True, flags='my_key')
+            folder, self.group, level=AccessType.READ, save=True, force=True, flags='my_key')
         folderModel.requireAccessFlags(folder, user=self.users[1], flags='my_key')
 
         # Testing with flags=None should give sensible behavior
