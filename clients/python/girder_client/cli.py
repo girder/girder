@@ -53,13 +53,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.option('--username', default=None)
-@click.option('--password', default=None)
 @click.option('--api-key', default=None)
+@click.option('--host', default=GirderClient.DEFAULT_HOST, show_default=True)
 @click.option('--api-url', default=None,
               help='full URL to the RESTful API of a Girder server')
+@click.option('--username', default=None)
+@click.option('--password', default=None)
 @click.option('--scheme', default=GirderClient.DEFAULT_SCHEME, show_default=True)
-@click.option('--host', default=GirderClient.DEFAULT_HOST, show_default=True)
 @click.option('--port', default=GirderClient.DEFAULT_PORT, show_default=True)
 @click.option('--api-root', default=GirderClient.DEFAULT_API_ROOT,
               help='relative path to the Girder REST API', show_default=True)
