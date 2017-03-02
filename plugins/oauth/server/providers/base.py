@@ -122,7 +122,7 @@ class ProviderBase(model_importer.ModelImporter):
 
     @classmethod
     def _createOrReuseUser(cls, oauthId, email, firstName, lastName,
-                           userName=None):
+                           oauthHeaders, userName=None):
         providerName = cls.getProviderName()
 
         # Try finding by ID first, since a user can change their email address
@@ -144,7 +144,6 @@ class ProviderBase(model_importer.ModelImporter):
         if not user:
             user = cls.model('user').findOne({'email': email})
 
-        dirty = False
         # Create the user if it's still not found
         if not user:
             policy = cls.model('setting').get(SettingKey.REGISTRATION_POLICY)
@@ -161,27 +160,24 @@ class ProviderBase(model_importer.ModelImporter):
             # Migrate from a legacy format where only 1 provider was stored
             if isinstance(user.get('oauth'), dict):
                 user['oauth'] = [user['oauth']]
-                dirty = True
             # Update user data from provider
             if email != user['email']:
                 user['email'] = email
-                dirty = True
             # Don't set names to empty string
             if firstName != user['firstName'] and firstName:
                 user['firstName'] = firstName
-                dirty = True
             if lastName != user['lastName'] and lastName:
                 user['lastName'] = lastName
-                dirty = True
         if setId:
             user.setdefault('oauth', []).append(
                 {
                     'provider': providerName,
                     'id': oauthId
                 })
-            dirty = True
-        if dirty:
-            user = cls.model('user').save(user)
+
+        currentOAuth = next(_ for _ in user['oauth'] if _['id'] == oauthId)
+        currentOAuth['authHeaders'] = oauthHeaders
+        user = cls.model('user').save(user)
 
         return user
 

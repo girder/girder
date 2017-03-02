@@ -98,4 +98,5 @@ class Globus(ProviderBase):
         firstName = name[0]
         lastName = name[-1]
 
-        return self._createOrReuseUser(oauthId, email, firstName, lastName)
+        return self._createOrReuseUser(oauthId, email, firstName, lastName,
+                                       headers)

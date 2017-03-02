@@ -100,5 +100,6 @@ class LinkedIn(ProviderBase):
         firstName = resp.get('firstName', '')
         lastName = resp.get('lastName', '')
 
-        user = self._createOrReuseUser(oauthId, email, firstName, lastName)
+        user = self._createOrReuseUser(oauthId, email, firstName, lastName,
+                                       headers)
         return user

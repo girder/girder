@@ -92,4 +92,5 @@ class Box(ProviderBase):
 
         names = resp.get('name').split()
         firstName, lastName = names[0], names[-1]
-        return self._createOrReuseUser(oauthId, email, firstName, lastName)
+        return self._createOrReuseUser(oauthId, email, firstName, lastName,
+                                       headers)

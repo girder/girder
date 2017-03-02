@@ -352,7 +352,10 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'google',
-                            'id': '5326'
+                            'id': '5326',
+                            'authHeaders': {
+                                'Authorization': 'Bearer google_existing_test_token',
+                            }
                         }
                     }
                 },
@@ -368,7 +371,10 @@ class OauthTest(base.TestCase):
                         'lastName': 'Creed',
                         'oauth': {
                             'provider': 'google',
-                            'id': 'the1best'
+                            'id': 'the1best',
+                            'authHeaders': {
+                                'Authorization': 'Bearer google_new_test_token',
+                            }
                         }
                     }
                 }
@@ -530,7 +536,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'github',
-                            'id': '2399'
+                            'id': '2399',
+                            'authHeaders': {
+                                'Authorization': 'token github_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -547,7 +557,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Drago',
                         'oauth': {
                             'provider': 'github',
-                            'id': 1985
+                            'id': 1985,
+                            'authHeaders': {
+                                'Authorization': 'token github_new_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }
@@ -760,7 +774,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'globus',
-                            'id': '2399'
+                            'id': '2399',
+                            'authHeaders': {
+                                'Authorization': 'Bearer globus_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -775,7 +793,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Drago',
                         'oauth': {
                             'provider': 'globus',
-                            'id': 1985
+                            'id': 1985,
+                            'authHeaders': {
+                                'Authorization': 'Bearer globus_new_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }
@@ -937,7 +959,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'linkedin',
-                            'id': '42kD-5H'
+                            'id': '42kD-5H',
+                            'authHeaders': {
+                                'Authorization': 'Bearer linkedin_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -953,7 +979,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Lang',
                         'oauth': {
                             'provider': 'linkedin',
-                            'id': '634pity-fool4'
+                            'id': '634pity-fool4',
+                            'authHeaders': {
+                                'Authorization': 'Bearer linkedin_new_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }
@@ -1113,7 +1143,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'bitbucket',
-                            'id': '2399'
+                            'id': '2399',
+                            'authHeaders': {
+                                'Authorization': 'Bearer bitbucket_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -1130,7 +1164,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Drago',
                         'oauth': {
                             'provider': 'bitbucket',
-                            'id': 1983
+                            'id': 1983,
+                            'authHeaders': {
+                                'Authorization': 'Bearer bitbucket_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }
@@ -1310,7 +1348,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'box',
-                            'id': '2481632'
+                            'id': '2481632',
+                            'authHeaders': {
+                                'Authorization': 'Bearer box_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -1326,7 +1368,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Drago',
                         'oauth': {
                             'provider': 'box',
-                            'id': '1985'
+                            'id': '1985',
+                            'authHeaders': {
+                                'Authorization': 'Bearer box_new_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }

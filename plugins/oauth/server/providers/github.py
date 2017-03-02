@@ -106,4 +106,5 @@ class GitHub(ProviderBase):
         names = (resp.get('name') or login).split()
         firstName, lastName = names[0], names[-1]
 
-        return self._createOrReuseUser(oauthId, email, firstName, lastName, login)
+        return self._createOrReuseUser(oauthId, email, firstName, lastName,
+                                       headers, userName=login)

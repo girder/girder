@@ -116,5 +116,6 @@ class Google(ProviderBase):
         firstName = resp.get('name', {}).get('givenName', '')
         lastName = resp.get('name', {}).get('familyName', '')
 
-        user = self._createOrReuseUser(oauthId, email, firstName, lastName)
+        user = self._createOrReuseUser(oauthId, email, firstName, lastName,
+                                       headers)
         return user
