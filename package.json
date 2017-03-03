@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "babel-plugin-istanbul": "^2.0.1",
+    "esdoc": "^0.5.2",
     "eslint": "^3.3.1",
     "eslint-config-girder": "^2.0.0",
     "eslint-config-semistandard": "^6.0.2",
@@ -75,6 +76,7 @@
     "build": "grunt init && NODE_PATH=$PWD/node_modules grunt",
     "watch": "NODE_PATH=$PWD/node_modules grunt --watch",
     "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts clients/web/test && pug-lint clients/web/src/templates",
-    "docs": "grunt docs"
+    "docs": "grunt docs",
+    "esdoc": "esdoc"
   }
 }

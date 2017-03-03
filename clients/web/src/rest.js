@@ -13,7 +13,7 @@ var uploadChunkSize = 1024 * 1024 * 64; // 64MB
 /**
  * Set the root path to the API.
  *
- * @param path The full root path for the API.
+ * @param root The full root path for the API.
  */
 function setApiRoot(root) {
     apiRoot = root;
@@ -21,7 +21,7 @@ function setApiRoot(root) {
 
 /** Set the root path to the static content.
  *
- * @param path The full root path for the static content.
+ * @param root The full root path for the static content.
  */
 function setStaticRoot(root) {
     staticRoot = root;
