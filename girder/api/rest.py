@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import cgi
 import cherrypy
 import collections
 import datetime
@@ -485,8 +486,9 @@ def _createResponse(val):
         elif accept.value == 'text/html':  # pragma: no cover
             # Pretty-print and HTML-ify the response for the browser
             setResponseHeader('Content-Type', 'text/html')
-            resp = json.dumps(val, indent=4, sort_keys=True, allow_nan=False,
-                              separators=(',', ': '), cls=JsonEncoder)
+            resp = cgi.escape(json.dumps(
+                val, indent=4, sort_keys=True, allow_nan=False, separators=(',', ': '),
+                cls=JsonEncoder))
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
             return resp.encode('utf8')
