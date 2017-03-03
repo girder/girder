@@ -202,6 +202,17 @@ class PythonCliTestCase(base.TestCase):
             os.path.isfile(os.path.join(downloadDir, 'Public', 'testdata', 'hello.txt')))
         shutil.rmtree(downloadDir, ignore_errors=True)
 
+        # Test download of an item
+        items = list(self.model('folder').childItems(folder=subfolder))
+        item_id = items[0]['_id']
+        item_name = items[0]['name']
+        ret = invokeCli(('download', '--parent-type=item', '%s' % item_id,
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, item_name)))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
         def _check_upload(ret):
             self.assertEqual(ret['exitVal'], 0)
             six.assertRegex(

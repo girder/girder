@@ -164,6 +164,13 @@ with id `54f8ac238d777f69813604af` under the local folder `download_folder` ::
 
     girder-cli download --parent-type user 54b6d40b8926486c0cbca364 download_folder
 
+Item
+""""
+
+To download the file(s) associated with a Girder Item with if `58b8eb798d777f0aef5d0f78` under
+the local folder `download_folder`::
+
+    girder-cli download --parent-type item 8b8eb798d777f0aef5d0f78 download_folder
 
 Synchronize local folder with a Folder hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

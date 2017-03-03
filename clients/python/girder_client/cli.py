@@ -99,6 +99,7 @@ def _common_parameters(path_exists=False, path_writable=True,
                        additional_parent_types=['collection', 'user']):
     parent_types = ['folder'] + additional_parent_types
     parent_type_cls = click.Option if len(additional_parent_types) > 0 else _DeprecatedOption
+
     def wrap(func):
         decorators = [
             click.option('--parent-type', default='folder', show_default=True, cls=parent_type_cls,
@@ -122,10 +123,13 @@ _short_help = 'Download files from Girder'
 
 
 @main.command('download', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_common_parameters()
+@_common_parameters(additional_parent_types=['collection', 'user', 'item'])
 @click.pass_obj
 def _download(gc, parent_type, parent_id, local_folder):
-    gc.downloadResource(parent_id, local_folder, parent_type)
+    if parent_type == 'item':
+        gc.downloadItem(parent_id, local_folder)
+    else:
+        gc.downloadResource(parent_id, local_folder, parent_type)
 
 
 _short_help = 'Synchronize local folder with remote Girder folder'
