@@ -95,12 +95,14 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
         scheme=scheme, apiUrl=api_url, apiKey=api_key)
 
 
-def _common_parameters(path_exists=False, path_writable=True):
+def _common_parameters(path_exists=False, path_writable=True,
+                       additional_parent_types=['collection', 'user']):
+    parent_types = ['folder'] + additional_parent_types
+    parent_type_cls = click.Option if len(additional_parent_types) > 0 else _DeprecatedOption
     def wrap(func):
         decorators = [
-            click.option('--parent-type', default='folder', show_default=True,
-                         help='type of Girder parent target',
-                         type=click.Choice(['collection', 'folder', 'user'])),
+            click.option('--parent-type', default='folder', show_default=True, cls=parent_type_cls,
+                         help='type of Girder parent target', type=click.Choice(parent_types)),
             click.argument('parent_id'),
             click.argument(
                 'local_folder',
@@ -130,7 +132,7 @@ _short_help = 'Synchronize local folder with remote Girder folder'
 
 
 @main.command('localsync', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_common_parameters()
+@_common_parameters(additional_parent_types=[])
 @click.pass_obj
 def _localsync(gc, parent_type, parent_id, local_folder):
     if parent_type != 'folder':

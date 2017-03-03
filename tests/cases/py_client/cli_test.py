@@ -237,6 +237,16 @@ class PythonCliTestCase(base.TestCase):
             filename = os.path.join(downloadDir, fname)
             self.assertEqual(os.path.getmtime(filename), old_mtimes[fname])
 
+        # Check that localsync command do not show '--parent-type' option help
+        ret = invokeCli(('localsync', '--help'))
+        self.assertNotIn('--parent-type', ret['stdout'])
+        self.assertEqual(ret['exitVal'], 0)
+
+        # Check that localsync command still accepts '--parent-type' argument
+        ret = invokeCli(('localsync', '--parent-type', 'folder', str(subfolder['_id']),
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+
     def testLeafFoldersAsItems(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
         args = ['upload', str(self.publicFolder['_id']), localDir, '--leaf-folders-as-items']
