@@ -98,7 +98,7 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
 def _common_parameters(path_exists=False, path_writable=True):
     def wrap(func):
         decorators = [
-            click.option('--parent-type', default='folder',
+            click.option('--parent-type', default='folder', show_default=True,
                          help='type of Girder parent target',
                          type=click.Choice(['collection', 'folder', 'user'])),
             click.argument('parent_id'),
