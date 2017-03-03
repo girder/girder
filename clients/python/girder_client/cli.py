@@ -54,10 +54,10 @@ class _DeprecatedOption(click.Option):
         pass
 
 
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+_CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
-@click.group(context_settings=CONTEXT_SETTINGS)
+@click.group(context_settings=_CONTEXT_SETTINGS)
 @click.option('--api-url', default=None,
               help='RESTful API URL '
                    '(e.g https://girder.example.com:443/%s)' % GirderClient.DEFAULT_API_ROOT)
@@ -116,24 +116,20 @@ _common_help = 'PARENT_ID is the id of the Girder parent target and ' \
 _short_help = 'Download files from Girder'
 
 
-@main.command(
-    'download',
-    short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
+@main.command('download', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
 @_common_parameters
 @click.pass_obj
-def download(gc, parent_type, parent_id, local_folder):
+def _download(gc, parent_type, parent_id, local_folder):
     gc.downloadResource(parent_id, local_folder, parent_type)
 
 
 _short_help = 'Synchronize local folder with remote Girder folder'
 
 
-@main.command(
-    'localsync',
-    short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
+@main.command('localsync', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
 @_common_parameters
 @click.pass_obj
-def localsync(gc, parent_type, parent_id, local_folder):
+def _localsync(gc, parent_type, parent_id, local_folder):
     if parent_type != 'folder':
         raise Exception('localsync command only accepts parent-type of folder')
     gc.loadLocalMetadata(local_folder)
@@ -144,9 +140,7 @@ def localsync(gc, parent_type, parent_id, local_folder):
 _short_help = 'Upload files to Girder'
 
 
-@main.command(
-    'upload',
-    short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
+@main.command('upload', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
 @_common_parameters
 @click.option('--leaf-folders-as-items', is_flag=True,
               help='upload all files in leaf folders to a single Item named after the folder')
@@ -157,8 +151,8 @@ _short_help = 'Upload files to Girder'
 @click.option('--blacklist', default='',
               help='comma-separated list of filenames to ignore')
 @click.pass_obj
-def upload(gc, parent_type, parent_id, local_folder,
-           leaf_folders_as_items, reuse, blacklist, dry_run):
+def _upload(gc, parent_type, parent_id, local_folder,
+            leaf_folders_as_items, reuse, blacklist, dry_run):
     gc.upload(
         local_folder, parent_id, parent_type,
         leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,
