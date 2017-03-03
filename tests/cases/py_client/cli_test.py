@@ -194,8 +194,23 @@ class PythonCliTestCase(base.TestCase):
         self.assertTrue(os.path.isdir(os.path.join(downloadDir, 'my_folder')))
         shutil.rmtree(downloadDir, ignore_errors=True)
 
+        # Test download of the collection auto-detecting parent-type
+        ret = invokeCli(('download', '/collection/my_collection',
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(os.path.isdir(os.path.join(downloadDir, 'my_folder')))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
         # Test download of a user
         ret = invokeCli(('download', '--parent-type=user', '/user/mylogin',
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, 'Public', 'testdata', 'hello.txt')))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
+        # Test download of a user auto-detecting parent-type
+        ret = invokeCli(('download', '/user/mylogin',
                          downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         self.assertTrue(
@@ -207,6 +222,14 @@ class PythonCliTestCase(base.TestCase):
         item_id = items[0]['_id']
         item_name = items[0]['name']
         ret = invokeCli(('download', '--parent-type=item', '%s' % item_id,
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, item_name)))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
+        # Test download of an item auto-detecting parent-type
+        ret = invokeCli(('download', '%s' % item_id,
                          downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         self.assertTrue(

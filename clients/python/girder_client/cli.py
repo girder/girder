@@ -17,8 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
+import sys
+
 import click
-from girder_client import GirderClient
+from girder_client import GirderClient, HttpError
 
 
 class GirderCli(GirderClient):
@@ -95,14 +97,37 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
         scheme=scheme, apiUrl=api_url, apiKey=api_key)
 
 
+def _lookup_parent_type(client, object_id):
+
+    object_id = client._checkResourcePath(object_id)
+
+    for parent_type in ['folder', 'collection', 'user', 'item']:
+        try:
+            client.get('resource/%s/path' % object_id, parameters={'type': parent_type})
+            return parent_type
+        except HttpError as exc_info:
+            if exc_info.status == 400:
+                continue
+            if sys.version_info[0] >= 3:
+                raise exc_info.with_traceback(sys.exc_info()[2])
+            else:
+                raise (sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])  # noqa: E999
+
+
 def _common_parameters(path_exists=False, path_writable=True,
                        additional_parent_types=['collection', 'user']):
     parent_types = ['folder'] + additional_parent_types
-    parent_type_cls = click.Option if len(additional_parent_types) > 0 else _DeprecatedOption
+    parent_type_cls = _DeprecatedOption
+    parent_type_default = 'folder'
+    if len(additional_parent_types) > 0:
+        parent_types.append('auto')
+        parent_type_cls = click.Option
+        parent_type_default = 'auto'
 
     def wrap(func):
         decorators = [
-            click.option('--parent-type', default='folder', show_default=True, cls=parent_type_cls,
+            click.option('--parent-type', default=parent_type_default,
+                         show_default=True, cls=parent_type_cls,
                          help='type of Girder parent target', type=click.Choice(parent_types)),
             click.argument('parent_id'),
             click.argument(
@@ -126,6 +151,8 @@ _short_help = 'Download files from Girder'
 @_common_parameters(additional_parent_types=['collection', 'user', 'item'])
 @click.pass_obj
 def _download(gc, parent_type, parent_id, local_folder):
+    if parent_type == 'auto':
+        parent_type = _lookup_parent_type(gc, parent_id)
     if parent_type == 'item':
         gc.downloadItem(parent_id, local_folder)
     else:
@@ -162,6 +189,8 @@ _short_help = 'Upload files to Girder'
 @click.pass_obj
 def _upload(gc, parent_type, parent_id, local_folder,
             leaf_folders_as_items, reuse, blacklist, dry_run):
+    if parent_type == 'auto':
+        parent_type = _lookup_parent_type(gc, parent_id)
     gc.upload(
         local_folder, parent_id, parent_type,
         leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,

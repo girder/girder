@@ -172,6 +172,18 @@ the local folder `download_folder`::
 
     girder-cli download --parent-type item 8b8eb798d777f0aef5d0f78 download_folder
 
+Auto-detecting parent-type
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Both download and upload commands accept a `--parent-type` argument allowing to specify
+the type (folder, collection, user, or item) associated with the chosen object id.
+
+If the argument is omitted, the client will conveniently tries to autodetect the type
+by iteratively invoking the `resource/%id/path?type=%type` API end point and checking
+if a resource is found.
+
+Note that relying on auto-detection induces an extra time cost.
+
 Synchronize local folder with a Folder hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
