@@ -81,7 +81,6 @@ extras_reqs = {
     'item_tasks': ['ctk-cli'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery'],
-    'oauth': ['pyjwt', 'cryptography']
 }
 all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values())
 extras_reqs['plugins'] = list(set(all_extra_reqs))

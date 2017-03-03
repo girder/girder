@@ -17,13 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import struct
-import jwt
-from jwt.utils import base64url_decode
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
 from six.moves import urllib
-from six import string_types
 
 from girder.api.rest import getApiUrl, RestException
 from .base import ProviderBase
@@ -35,8 +29,7 @@ class Globus(ProviderBase):
     _AUTH_SCOPES = ('urn:globus:auth:scope:auth.globus.org:view_identities',
                     'openid', 'profile', 'email')
     _TOKEN_URL = 'https://auth.globus.org/v2/oauth2/token'
-    _JWK_KEY_URL = 'https://auth.globus.org/jwk.json'
-    jwk_keys = None
+    _API_USER_URL = 'https://auth.globus.org/v2/oauth2/userinfo'
 
     def getClientIdSetting(self):
         return self.model('setting').get(
@@ -84,65 +77,25 @@ class Globus(ProviderBase):
         return resp
 
     def getUser(self, token):
-        id_token = token.get('id_token')
+        headers = {
+            'Authorization': 'Bearer {}'.format(token['access_token'])
+        }
 
-        if self.jwk_keys is None:
-            # Get public keys required for decoding 'id_token'
-            self.jwk_keys = self._getJson(method='GET', url=self._JWK_KEY_URL)
+        resp = self._getJson(method='GET', url=self._API_USER_URL,
+                             headers=headers)
 
-        # There should be only one entry
-        keyobj = self.jwk_keys['keys'][0]
-
-        # Borrowed from 'cryptography' for py2 backward compat
-        def decode_value(val):
-            if hasattr(int, 'from_bytes'):
-                int_from_bytes = int.from_bytes
-            else:
-                def int_from_bytes(data, byteorder, signed=False):
-                    assert byteorder == 'big'
-                    assert not signed
-
-                    if len(data) % 4 != 0:
-                        data = (b'\x00' * (4 - (len(data) % 4))) + data
-
-                    result = 0
-
-                    while len(data) > 0:
-                        digit, = struct.unpack('>I', data[:4])
-                        result = (result << 32) + digit
-                        data = data[4:]
-                    return result
-
-            if isinstance(val, string_types):
-                val = val.encode('utf-8')
-            decoded = base64url_decode(val)
-            return int_from_bytes(decoded, 'big')
-
-        # Create RSA key from JSON spec
-        key = rsa.RSAPublicNumbers(
-            n=decode_value(keyobj['n']),
-            e=decode_value(keyobj['e'])
-        ).public_key(default_backend())
-
-        # Decode 'id_token'
-        # BEWARE: leeway should be 0, but upstream server seems to be desynch
-        identity = jwt.decode(
-            id_token, key, algorithm='RS512', leeway=100,
-            audience=self.clientId)
-
-        oauthId = identity.get('sub')
+        oauthId = resp.get('sub')
         if not oauthId:
             raise RestException(
                 'Globus identity did not return a valid ID.', code=502)
 
-        email = identity.get('email')
+        email = resp.get('email')
         if not email:
             raise RestException(
                 'Globus identity did not return a valid email.', code=502)
 
-        name = identity['name'].split()
+        name = resp['name'].split()
         firstName = name[0]
         lastName = name[-1]
 
-        user = self._createOrReuseUser(oauthId, email, firstName, lastName)
-        return user
+        return self._createOrReuseUser(oauthId, email, firstName, lastName)
