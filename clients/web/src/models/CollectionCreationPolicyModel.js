@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import AccessControlledModel from 'girder/models/AccessControlledModel';
 import { restRequest } from 'girder/rest';
 
@@ -8,13 +7,13 @@ var CollectionCreationPolicyModel = AccessControlledModel.extend({
         return restRequest({
             path: this.resourceName + '/access',
             type: 'GET'
-        }).done(_.bind(function (resp) {
+        }).done(resp => {
             this.set('access', resp);
             this.trigger('g:accessFetched');
             return resp;
-        }, this)).error(_.bind(function (err) {
+        }).error(err => {
             this.trigger('g:error', err);
-        }, this));
+        });
     }
 });
 

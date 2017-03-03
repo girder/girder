@@ -115,8 +115,8 @@
 
             waitsFor(function () {
                 return $('.g-hierarchy-widget').length > 0 &&
-                    $('.g-folder-list-link').length > 0 &&
-                    $('.g-item-list-link').length > 0;
+                       $('.g-folder-list-link').length > 0 &&
+                       $('.g-item-list-link').length > 0;
             }, 'the hierarchy widget to display');
 
             runs(function () {
