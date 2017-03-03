@@ -22,6 +22,7 @@ import six
 from bson.objectid import ObjectId
 
 from girder import events
+from girder.api import rest
 from girder.constants import SettingKey
 from girder.utility import assetstore_utilities
 from .model_base import Model, GirderException, ValidationException
@@ -115,16 +116,26 @@ class Upload(Model):
 
         return doc
 
-    def handleChunk(self, upload, chunk):
+    def handleChunk(self, upload, chunk, filter=False, user=None):
         """
         When a chunk is uploaded, this should be called to process the chunk.
         If this is the final chunk of the upload, this method will finalize
         the upload automatically.
 
+        This method will return EITHER an upload or a file document. If this
+        is the final chunk of the upload, the upload is finalized and the created
+        file document is returned. Otherwise, it returns the upload document
+        with the relevant fields modified.
+
         :param upload: The upload document to update.
         :type upload: dict
         :param chunk: The file object representing the chunk that was uploaded.
         :type chunk: file
+        :param filter: Whether the model should be filtered. Only affects
+            behavior when returning a file model, not the upload model.
+        :type filter: bool
+        :param user: The current user. Only affects behavior if filter=True.
+        :type user: dict or None
         """
         assetstore = self.model('assetstore').load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -133,7 +144,11 @@ class Upload(Model):
 
         # If upload is finished, we finalize it
         if upload['received'] == upload['size']:
-            return self.finalizeUpload(upload, assetstore)
+            file = self.finalizeUpload(upload, assetstore)
+            if filter:
+                return self.model('file').filter(file, user=user)
+            else:
+                return file
         else:
             return upload
 
@@ -217,7 +232,9 @@ class Upload(Model):
         # Add an async event for handlers that wish to process this file.
         eventParams = {
             'file': file,
-            'assetstore': assetstore
+            'assetstore': assetstore,
+            'currentToken': rest.getCurrentToken(),
+            'currentUser': rest.getCurrentUser()
         }
         if 'reference' in upload:
             eventParams['reference'] = upload['reference']

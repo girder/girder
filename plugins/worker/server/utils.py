@@ -97,7 +97,8 @@ def girderOutputSpec(parent, token, parentType='folder', name=None,
     :type dataFormat: str
     :param reference: Optional "reference" string to pass back to the server
         during the upload. This can be used to attach arbitrary data to this
-        for tracking purposes, e.g., referring back to related inputs.
+        for tracking purposes, e.g., referring back to related inputs. Bind to
+        the "data.process" event to hook into the upload and inspect references.
     :type reference: str
     """
     if isinstance(token, dict):

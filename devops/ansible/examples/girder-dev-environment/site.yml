@@ -5,6 +5,7 @@
     girder_update: no
     girder_force: no
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
+    girder_always_build_assets: yes
   pre_tasks:
     - name: Update package cache
       apt:
@@ -41,3 +42,13 @@
       args:
         chdir: "{{ girder_path }}"
       when: "{{ girder_web }}"
+
+    - name: Install development packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - cmake
+        - cmake-curses-gui
+      become: yes
+      become_user: root

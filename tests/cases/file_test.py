@@ -589,6 +589,13 @@ class FileTestCase(base.TestCase):
         self.assertEqual(resp.json['name'], 'newName.json')
         file['name'] = resp.json['name']
 
+        # Make sure internal details got filtered
+        self.assertNotIn('sha512', file)
+        self.assertNotIn('path', file)
+        self.assertEqual(file['_modelType'], 'file')
+
+        file = self.model('file').load(file['_id'], force=True)
+
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
         hash = sha512(chunkData).hexdigest()
@@ -664,7 +671,7 @@ class FileTestCase(base.TestCase):
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
-        file = resp.json
+        file = self.model('file').load(resp.json['_id'], force=True)
 
         # Old contents should now be destroyed, new contents should be present
         self.assertFalse(os.path.isfile(abspath))

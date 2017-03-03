@@ -49,6 +49,7 @@ class Model(ModelImporter):
     def __init__(self):
         self.name = None
         self._indices = []
+        self._connected = False
         self._textIndex = None
         self._textLanguage = None
         self.prefixSearchFields = ('lowerName', 'name')
@@ -73,10 +74,7 @@ class Model(ModelImporter):
         self.collection = MongoProxy(self.database[self.name])
 
         for index in self._indices:
-            if isinstance(index, (list, tuple)):
-                self.collection.create_index(index[0], **index[1])
-            else:
-                self.collection.create_index(index)
+            self._createIndex(index)
 
         if isinstance(self._textIndex, dict):
             textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
@@ -86,6 +84,8 @@ class Model(ModelImporter):
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
                 logprint.warning('WARNING: Text search not enabled.')
+
+        self._connected = True
 
     def exposeFields(self, level, fields):
         """
@@ -151,6 +151,12 @@ class Model(ModelImporter):
 
         return self.filterDocument(doc, allow=keys)
 
+    def _createIndex(self, index):
+        if isinstance(index, (list, tuple)):
+            self.collection.create_index(index[0], **index[1])
+        else:
+            self.collection.create_index(index)
+
     def ensureTextIndex(self, index, language='english'):
         """
         Call this during initialize() of the subclass if you want your
@@ -174,6 +180,9 @@ class Model(ModelImporter):
         that will be passed as kwargs to the pymongo create_index call.
         """
         self._indices.extend(indices)
+        if self._connected:
+            for index in indices:
+                self._createIndex(index)
 
     def ensureIndex(self, index):
         """
@@ -181,6 +190,8 @@ class Model(ModelImporter):
         of them.
         """
         self._indices.append(index)
+        if self._connected:
+            self._createIndex(index)
 
     def validate(self, doc):
         """
@@ -1330,7 +1341,7 @@ class AccessControlledModel(Model):
             cursor, user=user, level=level, limit=limit, offset=offset)
 
     def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                     sort=None, fields=None, level=AccessType.READ):
+                     sort=None, fields=None, level=AccessType.READ, prefixSearchFields=None):
         """
         Custom override of Model.prefixSearch to also force permission-based
         filtering. The parameters are the same as Model.prefixSearch.
@@ -1353,13 +1364,16 @@ class AccessControlledModel(Model):
             document, or dict for an inclusion or exclusion projection.
         :param level: The access level to require.
         :type level: girder.constants.AccessType
+        :param prefixSearchFields: To override the model's prefixSearchFields
+            attribute for this invocation, pass an alternate iterable.
         :returns: A pymongo cursor. It is left to the caller to build the
             results from the cursor.
         """
         filters = filters or {}
 
         cursor = Model.prefixSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
+            self, query, filters=filters, sort=sort, fields=fields,
+            prefixSearchFields=prefixSearchFields)
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)
 

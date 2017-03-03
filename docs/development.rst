@@ -42,10 +42,13 @@ A shortcut to going through the installation steps for development is to use
 `VirtualBox <https://www.virtualbox.org>`_ virtual machine. To setup this
 environment run ``vagrant up`` in the root of the repository. This will spin up
 and provision a virtual machine, provided you have Vagrant and VirtualBox
-installed. Once this process is complete, you can run ``vagrant ssh`` in order
-to start Girder. There is a helper script in the Vagrant home directory that
-will start Girder in a detached screen session. You may want to run a similar
-process to run one of the watch commands detailed above.
+installed. Vagrant uses `Ansible <https://ansible.com>`_ for provisioning Girder and its various
+dependencies.
+
+.. seealso::
+
+   For more information on provisioning Girder, see :doc:`provisioning`.
+
 
 Utilities
 ---------

@@ -1,0 +1,22 @@
+.g-item-task-inputs-container
+  h4 Inputs
+  ul
+    each input, id in (job.get('itemTaskBindings').inputs || {})
+      li
+        b.g-input-name #{id}:&nbsp;
+        if input.mode === 'inline'
+          span.g-input-value= JSON.stringify(input.data)
+        else if input.mode === 'girder'
+          a.g-input-value(href=`#${input.resource_type || 'file'}/${input.id}`) View #{input.resource_type}
+.g-item-task-outputs-container
+  h4 Outputs
+  ul
+    each output, id in (job.get('itemTaskBindings').outputs || {})
+      li
+        b.g-output-name #{id}:&nbsp;
+        if output.mode === 'girder'
+          if 'itemId' in output
+            a.g-output-value(href=`#item/${output.itemId}`) View output item
+          else
+            span Not created &mdash;&nbsp;
+            a(href=`#${output.parent_type || 'folder'}/${output.parent_id}`) view destination

@@ -110,12 +110,8 @@ module.exports = {
                 include: loaderPaths,
                 loaders: ExtractTextPlugin.extract({
                     fallbackLoader: 'style-loader',
-                    loader: ['css-loader', {
-                        loader: 'stylus-loader',
-                        query: {
-                            'resolve url': true
-                        }
-                    }]
+                    // stylus loader query must be a string for now
+                    loader: ['css-loader', 'stylus-loader?resolve url=true']
                 })
             },
             // CSS

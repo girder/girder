@@ -68,6 +68,14 @@ var ConfigView = View.extend({
                           'Select the "r_basicprofile" and "r_emailaddress" ' +
                           'Default Application Permissions, and use the ' +
                           'following as an OAuth 2.0 Authorized Redirect URL:'
+        }, {
+            id: 'box',
+            name: 'Box',
+            icon: 'box',
+            hasAuthorizedOrigins: false,
+            instructions: 'Client IDs and secret keys are managed in the Box ' +
+                          'Developer Services page. When creating your client ID ' +
+                          'there, use the following as the authorization callback URL:'
         }];
         this.providerIds = _.pluck(this.providers, 'id');
 

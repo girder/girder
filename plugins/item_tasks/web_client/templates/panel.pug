@@ -1,0 +1,17 @@
+.g-panel-title-container
+  span.g-panel-title
+    block title
+      = title
+  span.g-panel-controls
+    if collapsed
+      i.icon-down-open
+    else
+      i.icon-up-open
+    if removeButton
+      i.icon-cancel.g-remove-panel(data-target=`#${id}`)
+
+- var attrs = {}
+if !collapsed
+  - attrs.class = 'in'
+.g-panel-content.collapse&attributes(attrs)
+  block content
