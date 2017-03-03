@@ -29,11 +29,6 @@ import six
 from girder.constants import SettingKey
 from tests import base
 
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.backends import default_backend
-import jwt
-from jwt.utils import base64url_encode
-
 
 def setUpModule():
     base.enabledPlugins.append('oauth')
@@ -757,6 +752,7 @@ class OauthTest(base.TestCase):
                 'existing': {
                     'auth_code': 'globus_existing_auth_code',
                     'access_token': 'globus_existing_test_token',
+                    'id_token': 'globus_exisiting_id_token',
                     'user': {
                         'login': self.adminUser['login'],
                         'email': self.adminUser['email'],
@@ -771,6 +767,7 @@ class OauthTest(base.TestCase):
                 'new': {
                     'auth_code': 'globus_new_auth_code',
                     'access_token': 'globus_new_test_token',
+                    'id_token': 'globus_new_id_token',
                     'user': {
                         'login': 'metaphor',
                         'email': 'metaphor@labs.ussr.gov',
@@ -784,20 +781,6 @@ class OauthTest(base.TestCase):
                 }
             }
         }
-
-        rsa_test_key = rsa.generate_private_key(65537, key_size=2048, backend=default_backend())
-
-        for key in list(providerInfo['accounts'].keys()):
-            account = providerInfo['accounts'][key]
-            id_token_data = {
-                'sub': account['user']['oauth']['id'],
-                'aud': providerInfo['client_id']['value'],
-                'email': account['user']['email'],
-                'name': ' '.join((account['user']['firstName'],
-                                  account['user']['lastName'])),
-            }
-            providerInfo['accounts'][key]['id_token'] = \
-                jwt.encode(id_token_data, rsa_test_key, algorithm='RS512').decode('utf8')
 
         @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
                           path='^/v2/oauth2/authorize$', method='GET')
@@ -847,24 +830,29 @@ class OauthTest(base.TestCase):
             }
 
         @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
-                          path='^/jwk.json$', method='GET')
-        def mockGlobusRSAKey(url, request):
-            n = rsa_test_key.public_key().public_numbers().n
-            e = rsa_test_key.public_key().public_numbers().e
-            if hasattr(int, 'to_bytes'):
-                bytes_to_int = int.to_bytes
-            else:
-                def bytes_to_int(n, length, endianess='big'):
-                    h = '%x' % n
-                    s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
-                    return s if endianess == 'big' else s[::-1]
-
-            n = base64url_encode(bytes_to_int(n, 256, 'big')).decode('utf8')
-            e = base64url_encode(bytes_to_int(e, 3, 'big')).decode('utf8')
-            return {
-                'status_code': 200,
-                'content': json.dumps({'keys': [dict(n=n, e=e)]})
-            }
+                          path='^/v2/oauth2/userinfo$', method='GET')
+        def mockGlobusUserInfo(url, request):
+            try:
+                for account in six.viewvalues(providerInfo['accounts']):
+                    if 'Bearer %s' % account['access_token'] == \
+                            request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            user = account['user']
+            return json.dumps({
+                'email': user['email'],
+                'preferred_username': user['email'],
+                'sub': user['oauth']['id'],
+                'name': '{firstName} {lastName}'.format(**user),
+            })
 
         @httmock.urlmatch(scheme='https', netloc='^auth.globus.org$',
                           path='^/v2/oauth2/token$', method='POST')
@@ -916,7 +904,7 @@ class OauthTest(base.TestCase):
 
         with httmock.HTTMock(
             mockGlobusRedirect,
-            mockGlobusRSAKey,
+            mockGlobusUserInfo,
             mockGlobusToken,
             # Must keep 'mockOtherRequest' last
             self.mockOtherRequest
