@@ -68,6 +68,8 @@ class SystemTestCase(base.TestCase):
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
+        self.group = self.model('group').createGroup('test group', creator=self.users[1])
+
     def tearDown(self):
         # Restore the state of the plugins configuration
         conf = config.getConfig()
@@ -470,7 +472,6 @@ class SystemTestCase(base.TestCase):
             }
         })
 
-        group = self.model('group').createGroup('test group', creator=self.users[1])
         self.users[1] = self.model('user').load(self.users[1]['_id'], force=True)
         user = self.users[1]
 
@@ -501,7 +502,7 @@ class SystemTestCase(base.TestCase):
                 'flags': ['my_key', 'not a registered flag']
             }],
             'groups': [{
-                'id': group['_id'],
+                'id': self.group['_id'],
                 'level': AccessType.ADMIN,
                 'flags': ['my_key']
             }]
@@ -541,7 +542,7 @@ class SystemTestCase(base.TestCase):
                 'flags': ['admin_flag']
             }],
             'groups': [{
-                'id': group['_id'],
+                'id': self.group['_id'],
                 'level': AccessType.ADMIN,
                 'flags': ['admin_flag']
             }]
@@ -558,7 +559,7 @@ class SystemTestCase(base.TestCase):
                 'flags': ['my_key', 'admin_flag']
             }],
             'groups': [{
-                'id': group['_id'],
+                'id': self.group['_id'],
                 'level': AccessType.ADMIN,
                 'flags': ['admin_flag']
             }]
@@ -636,7 +637,7 @@ class SystemTestCase(base.TestCase):
         self.assertFalse(folderModel.hasAccessFlags(folder, self.users[1], flags='my_key'))
 
         folder = folderModel.setGroupAccess(
-            folder, group, level=AccessType.READ, save=True, force=True, flags='my_key')
+            folder, self.group, level=AccessType.READ, save=True, force=True, flags='my_key')
         folderModel.requireAccessFlags(folder, user=self.users[1], flags='my_key')
 
         # Testing with flags=None should give sensible behavior
@@ -665,3 +666,20 @@ class SystemTestCase(base.TestCase):
 
         settingModel.set(SettingKey.SERVER_ROOT, 'https://somedomain.org/foo')
         self.assertEqual(getApiUrl(), 'https://somedomain.org/foo/api/v1')
+
+    def testCollectionCreationPolicySettingAndItsAccessAPI(self):
+        resp = self.request(path='/system/setting', method='PUT', params={
+            'list': json.dumps([
+                {'key': SettingKey.COLLECTION_CREATE_POLICY, 'value': json.dumps({
+                    'open': True,
+                    'users': [str(self.users[0]['_id'])],
+                    'groups': [str(self.group['_id'])]
+                })}
+            ])
+        }, user=self.users[0])
+
+        resp = self.request(path='/system/setting/collection_creation_policy/access',
+                            method='GET', user=self.users[0])
+        self.assertEqual(resp.json['users'][0]['id'], str(self.users[0]['_id']))
+        self.assertEqual(resp.json['users'][0]['login'], str(self.users[0]['login']))
+        self.assertEqual(resp.json['groups'][0]['id'], str(self.group['_id']))
