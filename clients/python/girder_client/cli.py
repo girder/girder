@@ -49,50 +49,42 @@ class GirderCli(GirderClient):
             self.authenticate(username, password, interactive=interactive)
 
 
+class _DeprecatedOption(click.Option):
+    def get_help_record(self, ctx):
+        pass
+
+
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
-@click.option('--api-key', envvar='GIRDER_API_KEY', default=None,
-              help='setting GIRDER_API_KEY env. variable is supported')
-@click.option('--host', default=GirderClient.DEFAULT_HOST, show_default=True)
 @click.option('--api-url', default=None,
-              help='full URL to the RESTful API of a Girder server')
+              help='RESTful API URL '
+                   '(e.g https://girder.example.com:443/%s)' % GirderClient.DEFAULT_API_ROOT)
+@click.option('--api-key', envvar='GIRDER_API_KEY', default=None,
+              help='[default: GIRDER_API_KEY env. variable]')
 @click.option('--username', default=None)
 @click.option('--password', default=None)
-@click.option('--scheme', default=GirderClient.DEFAULT_SCHEME, show_default=True)
-@click.option('--port', default=GirderClient.DEFAULT_PORT, show_default=True)
+# Deprecated options
+@click.option('--host', default=GirderClient.DEFAULT_HOST, show_default=True,
+              cls=_DeprecatedOption)
+@click.option('--scheme', default=GirderClient.DEFAULT_SCHEME, show_default=True,
+              cls=_DeprecatedOption)
+@click.option('--port', default=GirderClient.DEFAULT_PORT, show_default=True,
+              cls=_DeprecatedOption)
 @click.option('--api-root', default=GirderClient.DEFAULT_API_ROOT,
-              help='relative path to the Girder REST API', show_default=True)
+              help='relative path to the Girder REST API', show_default=True,
+              cls=_DeprecatedOption)
 @click.pass_context
-def main(ctx, username, password,  # noqa: D301
-         api_key, api_url, scheme, host, port, api_root):
+def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
     hierarchy of data to (or from) Girder from (or into) a local directory.
 
-    \b
-    Specifying the Girder Instance
-    ------------------------------
-
-    The easiest way to do so is to pass the host name using the ``host``
-    argument. For example:
-
-      girder-cli --host data.kitware.com <command> ...
-
-    In case, you are experimenting with an instance not serving content
-    using https, specifying the full URL to the REST API using the
-    ``api-url`` argument is the easiest. For example:
-
-      girder-cli --api-url http://localhost:8080/api/v1 <command> ...
-
-    \b
-    Specifying credentials
-    ----------------------
-
-    The recommended way is to generate an api key and specify the
-    ``api-key`` argument or set the ``GIRDER_API_KEY`` environment variable.
+    The recommended way to use credentials is to first generate an api key
+    and then specify the ``api-key`` argument or set the ``GIRDER_API_KEY``
+    environment variable.
 
     The client also supports ``username`` and ``password`` args. If only the
     ``username`` is specified, the client will prompt the user to interactively

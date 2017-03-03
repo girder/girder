@@ -65,14 +65,8 @@ argument to ``girder-cli``. For example: ::
 
     girder-cli --api-url http://localhost:8080/api/v1 <command> ...
 
-You may also specify the URL in parts, using the ``host`` argument, and optional
-``scheme``, ``port``, and ``api-root`` args. ::
-
-    girder-cli --host girder.example.com ...
-
-Or... ::
-
-    girder-cli --host girder.example.com --scheme https --port 443 --api-root /api/v1 ...
+For backward compatibility, you may also specify the URL in parts, using the ``host`` argument,
+and optional ``scheme``, ``port``, and ``api-root`` args.
 
 Specifying credentials
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -80,12 +74,12 @@ Specifying credentials
 The recommended way is to generate an :ref:`api key <api_keys>` and specify
 the ``api-key`` argument. ::
 
-    girder-cli --host girder.example.com  --api-key abcdefghijklmopqrstuvwxyz012345678901234 ...
+    girder-cli --api-url https://girder.example.com:443/api/v1  --api-key abcdefghijklmopqrstuvwxyz012345678901234 ...
 
 Setting the ``GIRDER_API_KEY`` environment variable is also supported: ::
 
     export GIRDER_API_KEY=abcdefghijklmopqrstuvwxyz012345678901234
-    girder-cli --host girder.example.com ...
+    girder-cli --api-url https://girder.example.com:443/api/v1 ...
 
 The client also supports ``username`` and ``password`` args. If only the
 ``username`` is specified, the client will prompt the user to interactively
