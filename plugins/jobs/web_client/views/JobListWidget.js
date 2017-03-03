@@ -41,8 +41,6 @@ var JobListWidget = View.extend({
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
         this.collection.on('g:changed', function () {
-            this.typeFilter = {};
-            this.statusFilter = {};
             this.render();
         }, this)
         .fetch(!this.showAllJobs ? this.filter : undefined);
