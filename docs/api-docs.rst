@@ -205,6 +205,12 @@ Constants
 Clients
 -------
 
+Web client
+^^^^^^^^^^
+
+Documentation for Girder's web client library is built and hosted by esdoc and can be found
+`here <https://doc.esdoc.org/github.com/girder/girder>`_.
+
 jQuery Plugins
 ^^^^^^^^^^^^^^
 
