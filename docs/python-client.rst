@@ -136,15 +136,34 @@ separated list to the ``--blacklist`` arg ::
 .. note: The girder_client can upload to an S3 Assetstore when uploading to a Girder server
          that is version 1.3.0 or later.
 
-Download a Folder hierarchy into a local folder
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Download a hierarchy of data into a local folder
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Folder
+""""""
 
 To download a Girder Folder hierarchy rooted at Folder id
 `54b6d40b8926486c0cbca364` under the local folder `download_folder` ::
 
     girder-cli download 54b6d40b8926486c0cbca364 download_folder
 
-Downloading is only supported from a parent type of Folder.
+
+Collection
+""""""""""
+
+To download the Girder Folder hierarchies associated with a Girder Collection
+with id `57b5c9e58d777f126827f5a1` under the local folder `download_folder` ::
+
+    girder-cli download --parent-type collection 57b5c9e58d777f126827f5a1 download_folder
+
+User
+""""
+
+To download the Girder Folder hierarchies associated with a Girder User
+with id `54f8ac238d777f69813604af` under the local folder `download_folder` ::
+
+    girder-cli download --parent-type user 54b6d40b8926486c0cbca364 download_folder
+
 
 Synchronize local folder with a Folder hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
