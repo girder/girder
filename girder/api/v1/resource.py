@@ -59,7 +59,7 @@ class Resource(BaseResource):
                'prefix-based search.', enum=('text', 'prefix'), required=False,
                default='text')
         .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
-                   "'user', 'folder', 'item'.", requireArray=True)
+                   '["user", "folder", "item"].', requireArray=True)
         .param('level', 'Minimum required access level.', required=False,
                dataType='integer', default=AccessType.READ)
         .pagingParams(defaultSort=None, defaultLimit=10)
