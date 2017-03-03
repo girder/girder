@@ -95,19 +95,22 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
         scheme=scheme, apiUrl=api_url, apiKey=api_key)
 
 
-def _common_parameters(func):
-    decorators = [
-        click.option('--parent-type', default='folder',
-                     help='type of Girder parent target',
-                     type=click.Choice(['collection', 'folder', 'user'])),
-        click.argument('parent_id'),
-        click.argument(
-            'local_folder',
-            type=click.Path(exists=False, dir_okay=True, writable=True, readable=True)),
-    ]
-    for decorator in reversed(decorators):
-        func = decorator(func)
-    return func
+def _common_parameters(path_exists=False, path_writable=True):
+    def wrap(func):
+        decorators = [
+            click.option('--parent-type', default='folder',
+                         help='type of Girder parent target',
+                         type=click.Choice(['collection', 'folder', 'user'])),
+            click.argument('parent_id'),
+            click.argument(
+                'local_folder',
+                type=click.Path(exists=path_exists, dir_okay=True,
+                                writable=path_writable, readable=True)),
+        ]
+        for decorator in reversed(decorators):
+            func = decorator(func)
+        return func
+    return wrap
 
 _common_help = 'PARENT_ID is the id of the Girder parent target and ' \
                'LOCAL_FOLDER is the path to the local target folder.'
@@ -117,7 +120,7 @@ _short_help = 'Download files from Girder'
 
 
 @main.command('download', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_common_parameters
+@_common_parameters()
 @click.pass_obj
 def _download(gc, parent_type, parent_id, local_folder):
     gc.downloadResource(parent_id, local_folder, parent_type)
@@ -127,7 +130,7 @@ _short_help = 'Synchronize local folder with remote Girder folder'
 
 
 @main.command('localsync', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_common_parameters
+@_common_parameters()
 @click.pass_obj
 def _localsync(gc, parent_type, parent_id, local_folder):
     if parent_type != 'folder':
@@ -141,7 +144,7 @@ _short_help = 'Upload files to Girder'
 
 
 @main.command('upload', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_common_parameters
+@_common_parameters(path_exists=True, path_writable=False)
 @click.option('--leaf-folders-as-items', is_flag=True,
               help='upload all files in leaf folders to a single Item named after the folder')
 @click.option('--reuse', is_flag=True,
