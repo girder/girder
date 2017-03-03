@@ -24,21 +24,26 @@ var JobListWidget = View.extend({
 
     initialize: function (settings) {
         var currentUser = getCurrentUser();
+        this.showAllJobs = !!settings.allJobsMode;
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
         this.filter = settings.filter || {
-            userId: currentUser.id
+            userId: currentUser ? currentUser.id : null
         };
         this.typeFilter = {};
         this.statusFilter = {};
 
         this.collection = new JobCollection();
+        if (this.showAllJobs) {
+            this.collection.resourceName = 'job/all';
+        }
         this.collection.sortField = settings.sortField || 'created';
         this.collection.sortDir = settings.sortDir || SORT_DESC;
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
         this.collection.on('g:changed', function () {
             this.render();
-        }, this).fetch(this.filter);
+        }, this)
+        .fetch(!this.showAllJobs ? this.filter : undefined);
 
         this.showHeader = _.has(settings, 'showHeader') ? settings.showHeader : true;
         this.showPaging = _.has(settings, 'showPaging') ? settings.showPaging : true;
