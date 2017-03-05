@@ -684,15 +684,9 @@ class GirderClient(object):
                     'an object with an id. Got instead: ' + json.dumps(obj))
 
         for chunk, startbyte in self._fileChunker(filepath, filesize):
-            parameters = {
-                'offset': startbyte,
-                'uploadId': uploadId
-            }
-            filedata = {
-                'chunk': chunk
-            }
-            path = 'file/chunk'
-            obj = self.post(path, parameters=parameters, files=filedata)
+            obj = self.post(
+                'file/chunk?offset=%d&uploadId=%s' % (startbyte, uploadId),
+                data=six.BytesIO(chunk))
 
             if '_id' not in obj:
                 raise Exception(
@@ -725,14 +719,11 @@ class GirderClient(object):
             if not data:
                 break
 
-            params = {
-                'offset': offset,
-                'uploadId': uploadId
-            }
-            files = {
-                'chunk': data
-            }
-            uploadObj = self.post('file/chunk', parameters=params, files=files)
+            if isinstance(data, six.text_type):
+                data = data.encode('utf8')
+
+            uploadObj = self.post(
+                'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=six.BytesIO(data))
             offset += len(data)
 
             if '_id' not in uploadObj:

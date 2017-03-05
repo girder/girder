@@ -142,3 +142,17 @@ class JsonEncoder(json.JSONEncoder):
         elif isinstance(obj, datetime.datetime):
             return obj.replace(tzinfo=pytz.UTC).isoformat()
         return str(obj)
+
+
+class RequestBodyStream(object):
+    """
+    Wraps a cherrypy request body into a more abstract file-like object.
+    """
+    def __init__(self, stream):
+        self.stream = stream
+
+    def read(self, *args, **kwargs):
+        return self.stream.read(*args, **kwargs)
+
+    def close(self, *args, **kwargs):
+        pass
