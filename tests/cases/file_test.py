@@ -176,7 +176,7 @@ class FileTestCase(base.TestCase):
             'message': 'Chunk is smaller than the minimum size.'
         })
 
-        # Send the first chunk
+        # Send the first chunk (use multipart)
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
@@ -218,12 +218,12 @@ class FileTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['offset'], currentOffset)
 
-        files = [('chunk', name, chunk2)]
-
-        # Now upload the second chunk
-        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        # Now upload the second chunk (using query params + body)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                'offset': resp.json['offset'],
+                'uploadId': uploadId
+            }, type='text/plain')
         self.assertStatusOk(resp)
 
         file = resp.json
@@ -714,7 +714,7 @@ class FileTestCase(base.TestCase):
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
 
-    def atestGridFsAssetstore(self):
+    def testGridFsAssetstore(self):
         """
         Test usage of the GridFS assetstore type.
         """
@@ -734,6 +734,7 @@ class FileTestCase(base.TestCase):
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
         hash = sha512(chunkData).hexdigest()
+        file = self.model('file').load(file['_id'], force=True)
         self.assertEqual(hash, file['sha512'])
 
         # We should have two chunks in the database
@@ -757,7 +758,7 @@ class FileTestCase(base.TestCase):
         self._testCopyFile(copyTestFile)
 
     @moto.mock_s3bucket_path
-    def atestS3Assetstore(self):
+    def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
         mock_s3.createBucket(botoParams, 'b')
 
