@@ -26,7 +26,7 @@ import stat
 import sys
 import time
 
-from girder import logger
+from girder import logger, logprint
 from girder.models.model_base import AccessException, ValidationException
 from girder.utility.path import lookUpPath, NotFoundException
 from girder.utility.model_importer import ModelImporter
@@ -274,11 +274,12 @@ def _main():  # pragma: no cover
     try:
         hostKey = paramiko.RSAKey.from_private_key_file(keyFile)
     except paramiko.ssh_exception.PasswordRequiredException:
-        print('Error: encrypted key files are not supported (%s).' % keyFile, file=sys.stderr)
+        logprint.error(
+            'Error: encrypted key files are not supported (%s).' % keyFile, file=sys.stderr)
         sys.exit(1)
 
     server = SftpServer((args.host, args.port), hostKey)
-    print('Girder SFTP service listening on %s:%d.' % (args.host, args.port))
+    logprint.info('Girder SFTP service listening on %s:%d.' % (args.host, args.port))
 
     try:
         server.serve_forever()

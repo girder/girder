@@ -35,6 +35,9 @@ __version__ = '2.1.1'
 __license__ = 'Apache 2.0'
 
 
+Quiet = False
+
+
 class LogLevelFilter(object):
     """
     Filter log records based on whether they are between a min and max level.
@@ -51,7 +54,8 @@ class LogLevelFilter(object):
 class LogFormatter(logging.Formatter):
     """
     Custom formatter that adds useful information about the request to the logs
-    when an exception happens.
+    when an exception happens.  Cherrypy access logs are passed through without
+    change.
     """
     def formatException(self, exc):
         info = '\n'.join((
@@ -63,6 +67,12 @@ class LogFormatter(logging.Formatter):
         return ('%s\n'
                 'Additional info:\n'
                 '%s' % (logging.Formatter.formatException(self, exc), info))
+
+    def format(self, record, *args, **kwargs):
+        if hasattr(record, 'name') and hasattr(record, 'message'):
+            if record.name.startswith('cherrypy.access'):
+                return record.message
+        return super(LogFormatter, self).format(record, *args, **kwargs)
 
 
 def getLogPaths():
@@ -86,11 +96,18 @@ def _setupLogger():
     """
     Sets up the Girder logger.
     """
+    global Quiet
+
     logger = logging.getLogger('girder')
-    logger.setLevel(logging.DEBUG)
+    cfg = config.getConfig()
+    logCfg = cfg.get('logging', {})
+
+    # If we are asked to be quiet, set a global flag so that logprint doesn't
+    # have to get the configuration settings every time it is used.
+    if logCfg.get('log_quiet') is True:
+        Quiet = True
 
     logPaths = getLogPaths()
-
     # Ensure log paths are valid
     logDirs = [
         logPaths['root'],
@@ -100,14 +117,33 @@ def _setupLogger():
     for logDir in logDirs:
         mkdir(logDir)
 
+    # Set log level
+    level = logging.INFO
+    if logCfg.get('log_level') and isinstance(getattr(logging, logCfg['log_level'], None), int):
+        level = getattr(logging, logCfg['log_level'])
+    logger.setLevel(logging.DEBUG if level is None else level)
+
+    logSize = MAX_LOG_SIZE
+    if logCfg.get('log_max_size'):
+        sizeValue = logCfg['log_max_size']
+        sizeUnits = {'kb': 1024, 'Mb': 1024 ** 2, 'Gb': 1024 ** 3}
+        if sizeValue[-2:] in sizeUnits:
+            logSize = int(sizeValue[:-2].strip()) * sizeUnits[sizeValue[-2:]]
+        else:
+            logSize = int(sizeValue)
+    backupCount = int(logCfg.get('log_backup_count', LOG_BACKUP_COUNT))
+
+    # Create log handlers
     eh = logging.handlers.RotatingFileHandler(
-        logPaths['error'], maxBytes=MAX_LOG_SIZE, backupCount=LOG_BACKUP_COUNT)
-    eh.setLevel(logging.WARNING)
+        logPaths['error'], maxBytes=logSize, backupCount=backupCount)
+    eh.setLevel(level)
     eh.addFilter(LogLevelFilter(min=logging.WARNING, max=logging.CRITICAL))
+    eh._girderLogHandler = 'error'
     ih = logging.handlers.RotatingFileHandler(
-        logPaths['info'], maxBytes=MAX_LOG_SIZE, backupCount=LOG_BACKUP_COUNT)
-    ih.setLevel(logging.INFO)
+        logPaths['info'], maxBytes=logSize, backupCount=backupCount)
+    ih.setLevel(level)
     ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=logging.INFO))
+    ih._girderLogHandler = 'info'
 
     fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
     eh.setFormatter(fmt)
@@ -115,7 +151,18 @@ def _setupLogger():
 
     logger.addHandler(eh)
     logger.addHandler(ih)
+
+    # Log http accesses to the screen and/or the info log.
+    accessLog = logCfg.get('log_access', 'screen')
+    if not isinstance(accessLog, (tuple, list, set)):
+        accessLog = [accessLog]
+    if Quiet or ('screen' not in accessLog and 'stdout' not in accessLog):
+        cherrypy.config.update({'log.screen': False})
+    if 'info' in accessLog:
+        cherrypy.log.access_log.addHandler(ih)
+
     return logger
+
 
 logger = _setupLogger()
 
@@ -143,9 +190,11 @@ def logprint(*args, **kwargs):
         exc_info = sys.exc_info()
         data += '\n' + ''.join(traceback.format_exception(*exc_info)).rstrip()
     logger.log(level, data)
-    if color:
-        data = getattr(TerminalColor, color)(data)
-    six.print_(data, flush=True)
+    if not Quiet:
+        if color:
+            data = getattr(TerminalColor, color)(data)
+        six.print_(data, flush=True)
+
 
 # Expose common logging levels and colors as methods of logprint.
 logprint.info = functools.partial(logprint, level=logging.INFO, color='info')
