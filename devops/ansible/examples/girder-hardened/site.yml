@@ -28,6 +28,9 @@
                                               script-src 'self'
                                                          'sha256-MKRiXCHIn6830x4q3pvDhTPRHXpThPnEVF6dkhVBqm8='";
 
+          # Hide NGINX version from headers
+          server_tokens off;
+
           location / {
             proxy_set_header Host $proxy_host;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -42,6 +45,11 @@
             chunked_transfer_encoding off;
             proxy_read_timeout 600s;
             proxy_send_timeout 600s;
+          }
+
+          # Hide potentially sensitive files (dotfiles and autosave files)
+          location ~ /\. {
+            deny all;
           }
 
   pre_tasks:
