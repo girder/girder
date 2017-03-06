@@ -101,6 +101,8 @@ def _setupLogger():
     logger = logging.getLogger('girder')
     cfg = config.getConfig()
     logCfg = cfg.get('logging', {})
+    import sys  # ##DWM::
+    sys.stderr.write('logging %r\n' % logCfg)  # ##DWM::
 
     # If we are asked to be quiet, set a global flag so that logprint doesn't
     # have to get the configuration settings every time it is used.
@@ -133,23 +135,30 @@ def _setupLogger():
             logSize = int(sizeValue)
     backupCount = int(logCfg.get('log_backup_count', LOG_BACKUP_COUNT))
 
+    # Remove extant log handlers (this allows this function to called multiple
+    # times)
+    for handler in list(logger.handlers):
+        if hasattr(handler, '_girderLogHandler'):
+            logger.removeHandler(handler)
+            cherrypy.log.access_log.removeHandler(handler)
+
+    fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
     # Create log handlers
-    eh = logging.handlers.RotatingFileHandler(
-        logPaths['error'], maxBytes=logSize, backupCount=backupCount)
-    eh.setLevel(level)
-    eh.addFilter(LogLevelFilter(min=logging.WARNING, max=logging.CRITICAL))
-    eh._girderLogHandler = 'error'
+    if logPaths['error'] != logPaths['info']:
+        eh = logging.handlers.RotatingFileHandler(
+            logPaths['error'], maxBytes=logSize, backupCount=backupCount)
+        eh.setLevel(level)
+        eh.addFilter(LogLevelFilter(min=logging.WARNING, max=logging.CRITICAL))
+        eh._girderLogHandler = 'error'
+        eh.setFormatter(fmt)
+        logger.addHandler(eh)
+
     ih = logging.handlers.RotatingFileHandler(
         logPaths['info'], maxBytes=logSize, backupCount=backupCount)
     ih.setLevel(level)
     ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=logging.INFO))
     ih._girderLogHandler = 'info'
-
-    fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
-    eh.setFormatter(fmt)
     ih.setFormatter(fmt)
-
-    logger.addHandler(eh)
     logger.addHandler(ih)
 
     # Log http accesses to the screen and/or the info log.

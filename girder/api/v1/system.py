@@ -360,9 +360,6 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def getLog(self, bytes, log, params):
-        if log not in ('error', 'info'):
-            raise RestException('Log should be "error" or "info".')
-
         path = girder.getLogPaths()[log]
         filesize = os.path.getsize(path)
         length = int(bytes) or filesize
@@ -420,8 +417,6 @@ class System(Resource):
     )
     def setLogLevel(self, level, params):
         level = logging.getLevelName(level)
-        if not isinstance(level, int):
-            raise RestException('Level must be one of CRITICAL, ERROR, WARNING, INFO, or DEBUG.')
         for logger in (girder.logger, cherrypy.log.access_log, cherrypy.log.error_log):
             logger.setLevel(level)
             for handler in logger.handlers:
