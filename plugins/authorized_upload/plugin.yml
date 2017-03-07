@@ -1,2 +1,3 @@
 name: Authorized upload
 description: Allows registered users to authorize file uploads on their behalf via a secure one-use URL.
+url: http://girder.readthedocs.io/en/latest/plugins.html#authorized-uploads

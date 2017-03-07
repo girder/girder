@@ -1,3 +1,4 @@
 name: Gravatar portraits
 description: Adds Gravatar URLs for users.
+url: http://girder.readthedocs.io/en/latest/plugins.html#gravatar-portraits
 version: 1.0.0

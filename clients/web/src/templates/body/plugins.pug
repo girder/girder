@@ -22,7 +22,10 @@
           experimental=(experimental ? "true" : undefined),
           data-on-color=(experimental ? "warning" : "primary"))
       .g-plugin-name
-        span= plugin.value.name
+        if plugin.value.url
+          a(href=plugin.value.url, target='_blank')= plugin.value.name
+        else
+          span= plugin.value.name
         if plugin.value.version
           span.g-plugin-version Version #{plugin.value.version}
         if experimental
