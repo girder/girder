@@ -23,7 +23,7 @@ class ItemTask(Resource):
         self.route('POST', (':id', 'slicer_cli_description'), self.runSlicerCliDescription)
         self.route('PUT', (':id', 'slicer_cli_xml'), self.setSpecFromXml)
         self.route('POST', (':id', 'json_description'), self.runJsonTasksDescription)
-        self.route('PUT', (':id', 'add_json_specs'), self.addJsonSpecs)
+        self.route('POST', (':id', 'json_specs'), self.addJsonSpecs)
 
     @access.public
     @autoDescribeRoute(
@@ -296,7 +296,7 @@ class ItemTask(Resource):
         .modelParam('id', model='item', force=True)
         .param('xml', 'The Slicer CLI XML spec.', paramType='body')
         .param('setName', 'Whether item name should be changed to the title of the CLI.',
-               dataType='boolean', required=False, default=True)
+               dataType='boolean', required=True)
         .param('setDescription', 'Whether the item description should be changed to the '
                'description of the CLI.', dataType='boolean', required=False, default=True),
         hide=True
@@ -325,6 +325,7 @@ class ItemTask(Resource):
         })
 
     @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
+    @filtermodel(model='job', plugin='jobs')
     @autoDescribeRoute(
         Description('Create item task specs based on a docker image.')
         .notes('This operates on an existing folder, adding item tasks '
@@ -361,10 +362,10 @@ class ItemTask(Resource):
                 'outputs': {
                     '_stdout': {
                         'mode': 'http',
-                        'method': 'PUT',
+                        'method': 'POST',
                         'format': 'text',
                         'url': '/'.join((getApiUrl(), self.resourceName,
-                                         str(folder['_id']), 'add_json_specs')),
+                                         str(folder['_id']), 'json_specs')),
                         'headers': {'Girder-Token': token['_id']},
                         'params': {
                             'image': image,
@@ -388,7 +389,7 @@ class ItemTask(Resource):
     @autoDescribeRoute(
         Description('Create item tasks under a folder using a list of JSON specifications.')
         .modelParam('id', model='folder', force=True)
-        .jsonParam('json', 'The JSON specs.', paramType='body')
+        .jsonParam('json', 'The JSON specifications as a list or a single specification object.', paramType='body')
         .param('image', 'The docker image name.', required=True, strip=True)
         .param('pullImage', 'Whether the image should be pulled from a docker registry. ' +
                'Set to false to use local images only.',
@@ -399,10 +400,21 @@ class ItemTask(Resource):
         self.ensureTokenScopes('item_task.set_task_spec.%s' % folder['_id'])
         token = self.getCurrentToken()
         user = self.model('user').load(token['userId'], force=True)
-        for itemTaskSpec in json:
-            logger.info('Configuring item "%s"' % itemTaskSpec['name'])
+
+        if not isinstance(json, list):
+            json = [json]
+
+        for itemIndex, itemTaskSpec in enumerate(json):
+            name = itemTaskSpec.get('name')
+            if not name:
+                name = image
+                if len(json) > 1:
+                    name += ' ' + str(itemIndex)
+
+            logger.info('Configuring item "%s"' % name)
+
             item = self.model('item').createItem(
-                name=itemTaskSpec['name'],
+                name=name,
                 creator=user,
                 folder=folder,
                 description=itemTaskSpec.get('description', ''),
@@ -412,5 +424,6 @@ class ItemTask(Resource):
             itemTaskSpec['docker_image'] = image
             itemTaskSpec['pull_image'] = pullImage
             self.model('item').setMetadata(item, {
-                'itemTaskSpec': itemTaskSpec
+                'itemTaskSpec': itemTaskSpec,
+                'isItemTask': True
             })

@@ -2,6 +2,7 @@ import json
 import mock
 import os
 import time
+import urllib
 
 from girder.constants import AccessType
 from tests import base
@@ -26,6 +27,92 @@ class TasksTest(base.TestCase):
             login='user1', firstName='user', lastName='1', email='u@u.com', password='123456')
         folders = self.model('folder').childFolders(self.admin, parentType='user', user=self.admin)
         self.privateFolder, self.publicFolder = list(folders)
+
+
+    def testJsonSpec(self):
+        # Create a new folder that will contain the tasks
+        folder = self.model('folder').createFolder(
+            name='placeholder', creator=self.admin, parent=self.admin, parentType='user')
+
+        # Create task to introspect container
+        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+            resp = self.request(
+                '/item_task/%s/json_description' % folder['_id'], method='POST', params={
+                    'image': 'johndoe/foo:v5'
+                }, user=self.admin)
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['_modelType'], 'job')
+            self.assertEqual(len(scheduleMock.mock_calls), 1)
+            job = scheduleMock.mock_calls[0][1][0]
+            self.assertEqual(job['handler'], 'worker_handler')
+            self.assertEqual(job['itemTaskId'], folder['_id'])
+
+        # Task should not be registered until we get the callback
+        resp = self.request('/item_task', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+
+        # Simulate callback from introspection job
+        with open(os.path.join(os.path.dirname(__file__), 'specs.json')) as f:
+            specs = f.read()
+
+        parsedSpecs = json.loads(specs)
+
+        resp = self.request(
+            '/item_task/%s/json_specs' % (folder['_id']), method='POST', params={
+                'image': 'johndoe/foo:v5',
+                'pullImage': False
+            },
+            user=self.admin, body=specs, type='application/json')
+
+        self.assertStatusOk(resp)
+
+        items = list(self.model('folder').childItems(folder, user=self.admin))
+        self.assertEqual(len(items), 2)
+
+        # Image name and item task flag should be stored in the item metadata
+        for itemIndex, item in enumerate(items):
+            item = self.model('item').load(item['_id'], force=True)
+            self.assertEqual(item['name'], 'johndoe/foo:v5 %s' % (str(itemIndex)))
+            self.assertEqual(item['description'], parsedSpecs[itemIndex]['description'])
+            self.assertTrue(item['meta']['isItemTask'])
+            parsedSpecs[itemIndex]['pull_image'] = False
+            parsedSpecs[itemIndex]['docker_image'] = 'johndoe/foo:v5'
+            self.assertEqual(item['meta']['itemTaskSpec'], parsedSpecs[itemIndex])
+
+        # We should only be able to see tasks we have read access on
+        resp = self.request('/item_task')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+
+        resp = self.request('/item_task', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+
+        # Test adding single task spec
+        folder2 = self.model('folder').createFolder(
+            name='placeholder2', creator=self.admin, parent=self.admin, parentType='user')
+        with open(os.path.join(os.path.dirname(__file__), 'spec.json')) as f:
+            spec = f.read()
+        parsedSpec = json.loads(spec)
+        resp = self.request(
+            '/item_task/%s/json_specs' % (folder2['_id']), method='POST', params={
+                'image': 'johndoe/foo:v5',
+                'pullImage': False
+            },
+            user=self.admin, body=spec, type='application/json')
+        items = list(self.model('folder').childItems(folder2, user=self.admin))
+        self.assertEqual(len(items), 1)
+
+        # Check that the single item has the correct metadata
+        item = self.model('item').load(items[0]['_id'], force=True)
+        self.assertEqual(item['name'], 'johndoe/foo:v5')
+        self.assertEqual(item['description'], parsedSpec['description'])
+        self.assertTrue(item['meta']['isItemTask'])
+        parsedSpec['pull_image'] = False
+        parsedSpec['docker_image'] = 'johndoe/foo:v5'
+        self.assertEqual(item['meta']['itemTaskSpec'], parsedSpec)
+
 
     def testSlicerCli(self):
         # Create a new item that will become a task
@@ -86,6 +173,7 @@ class TasksTest(base.TestCase):
             u'**License**: Apache 2.0\n\n**Acknowledgements**: *none*\n\n'
             u'*This description was auto-generated from the Slicer CLI XML specification.*'
         )
+        self.assertTrue(item['meta']['isItemTask'])
         self.assertEqual(item['meta']['itemTaskSpec'], {
             'mode': 'docker',
             'docker_image': 'johndoe/foo:v5',
