@@ -1,5 +1,6 @@
 name: Item tasks
 description: Allows items in Girder to be used as specifications for tasks to be run on the worker.
+url: http://girder.readthedocs.io/en/latest/plugins.html#item-tasks
 dependencies:
   - worker
 npm:

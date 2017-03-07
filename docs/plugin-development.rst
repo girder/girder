@@ -30,7 +30,7 @@ our example, we'll just use JSON. ::
     touch cats/plugin.json
 
 The plugin config file should specify a human-readable name and description for your
-plugin, and can optionally contain a list of other plugins that your plugin
+plugin, and can optionally contains a URL to a documentation, a list of other plugins that your plugin
 depends on. If your plugin has dependencies, the other plugins will be
 enabled whenever your plugin is enabled. The contents of plugin.json for our
 example will be:
@@ -43,6 +43,7 @@ example will be:
     {
     "name": "My Cats Plugin",
     "description": "Allows users to manage their cats.",
+    "url": "http://girder.readthedocs.io/en/latest/plugin/mycat.html"
     "version": "1.0.0",
     "dependencies": ["other_plugin"]
     }
