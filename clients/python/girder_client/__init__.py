@@ -166,6 +166,7 @@ class GirderClient(object):
         self.token = ''
         self._folderUploadCallbacks = []
         self._itemUploadCallbacks = []
+        self._serverVersion = None
         self.incomingMetadata = {}
         self.localMetadata = {}
 
@@ -230,6 +231,22 @@ class GirderClient(object):
                 raise AuthenticationError()
 
             self.token = resp['authToken']['token']
+
+    def getServerVersion(self, useCached=True):
+        """
+        Fetch server API version. By default, caches the version on this class
+        such that future calls to this function do not make another request to
+        the server.
+
+        :param useCached: Whether to return the previously fetched value. Set
+            to False to force a re-fetch of the version from the server.
+        :type useCached: bool
+        :return: The API version as a list (e.g. ``['1', '0', '0']``)
+        """
+        if not self._serverVersion or not useCached:
+            self._serverVersion = self.get('system/version')['apiVersion'].split('.')
+
+        return self._serverVersion
 
     def sendRestRequest(self, method, path, parameters=None, data=None, files=None, json=None):
         """
@@ -684,14 +701,30 @@ class GirderClient(object):
                     'an object with an id. Got instead: ' + json.dumps(obj))
 
         for chunk, startbyte in self._fileChunker(filepath, filesize):
-            obj = self.post(
-                'file/chunk?offset=%d&uploadId=%s' % (startbyte, uploadId),
-                data=six.BytesIO(chunk))
+            obj = self._sendChunk(startbyte, uploadId, chunk)
 
-            if '_id' not in obj:
-                raise Exception(
-                    'After uploading a file chunk, did not receive object with _id. Got instead: ' +
-                    json.dumps(obj))
+        return obj
+
+    def _sendChunk(self, offset, uploadId, chunk):
+        if self.getServerVersion() < ['2', '2']:
+            # Prior to version 2.2 the server only supported multipart uploads
+            parameters = {
+                'offset': offset,
+                'uploadId': uploadId
+            }
+
+            obj = self.post('file/chunk', parameters=parameters, files={
+                'chunk': chunk
+            })
+        else:
+            obj = self.post(
+                'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=six.BytesIO(chunk))
+
+        if '_id' not in obj:
+            raise Exception(
+                'After uploading a file chunk, did not receive object with _id. Got instead: ' +
+                json.dumps(obj))
+
         return obj
 
     def _uploadContents(self, uploadObj, stream, size, progressCallback=None):
@@ -722,14 +755,8 @@ class GirderClient(object):
             if isinstance(data, six.text_type):
                 data = data.encode('utf8')
 
-            uploadObj = self.post(
-                'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=six.BytesIO(data))
+            uploadObj = self._sendChunk(offset, uploadId, data)
             offset += len(data)
-
-            if '_id' not in uploadObj:
-                raise Exception(
-                    'After uploading a file chunk, did not receive object with _id. Got instead: ' +
-                    json.dumps(uploadObj))
 
             if callable(progressCallback):
                 progressCallback({
