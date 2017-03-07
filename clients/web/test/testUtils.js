@@ -189,7 +189,7 @@ girderTest.createCollection = function (collName, collDesc, createFolderName) {
         if (createFolderName) {
             waitsFor(function () {
                 return $('.g-create-subfolder').length > 0;
-            }, 'hierarchy widget to laod');
+            }, 'hierarchy widget to load');
 
             runs(function () {
                 return $('.g-create-subfolder').click();

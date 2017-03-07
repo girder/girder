@@ -181,3 +181,69 @@ describe('Run the item task', function () {
         });
     });
 });
+
+describe('Auto-configure the JSON item task folder', function () {
+    it('go to collection page', function () {
+        $('ul.g-global-nav .g-nav-link[g-target="collections"]').click();
+    });
+
+    it('create collection and folder', girderTest.createCollection('json task test', '', 'tasks'));
+
+    it('navigate to the folder', function () {
+        runs(function () {
+            $('.g-folder-list-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-empty-parent-message:visible').length > 0;
+        }, 'folder empty list to appear');
+    });
+
+    it('run configuration job', function () {
+        $('.g-folder-actions-button').click();
+        $('.g-folder-actions-menu .g-create-docker-tasks').click();
+
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('.modal-dialog .g-configure-docker-image').val('me/my_image:latest');
+            $('.modal-dialog button.btn.btn-success[type="submit"]').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-job-info-key').length > 0;
+        }, 'navigation to the configuration job');
+
+        waitsFor(function () {
+            return $('.g-job-status-badge').attr('status') === 'success';
+        }, 'job success status', 10000);
+    });
+});
+
+
+describe('Navigate to the new JSON task', function () {
+    it('navigate to task', function () {
+        $('.g-nav-link[g-target="item_tasks"]').click();
+
+        waitsFor(function (){
+            return $('.g-execute-task-link').length > 0;
+        }, 'task list to be rendered');
+
+        runs(function () {
+            expect($('.g-execute-task-link').length).toBe(3);
+            expect($('.g-execute-task-link').eq(0).text()).toBe('me/my_image:latest 0');
+            expect($('.g-execute-task-link').eq(1).text()).toBe('me/my_image:latest 1');
+            window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
+        });
+
+        waitsFor(function () {
+            return $('.g-task-description-container').length > 0;
+        }, 'task run view to display');
+
+        runs(function () {
+            expect($('.g-task-description-container').text()).toContain(
+                'Task 1 description');
+            expect($('.g-inputs-container').length).toBe(0);
+        });
+    });
+});
