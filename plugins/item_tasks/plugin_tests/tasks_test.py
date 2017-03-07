@@ -2,7 +2,6 @@ import json
 import mock
 import os
 import time
-import urllib
 
 from girder.constants import AccessType
 from tests import base
@@ -27,7 +26,6 @@ class TasksTest(base.TestCase):
             login='user1', firstName='user', lastName='1', email='u@u.com', password='123456')
         folders = self.model('folder').childFolders(self.admin, parentType='user', user=self.admin)
         self.privateFolder, self.publicFolder = list(folders)
-
 
     def testJsonSpec(self):
         # Create a new folder that will contain the tasks
@@ -112,7 +110,6 @@ class TasksTest(base.TestCase):
         parsedSpec['pull_image'] = False
         parsedSpec['docker_image'] = 'johndoe/foo:v5'
         self.assertEqual(item['meta']['itemTaskSpec'], parsedSpec)
-
 
     def testSlicerCli(self):
         # Create a new item that will become a task

@@ -389,7 +389,8 @@ class ItemTask(Resource):
     @autoDescribeRoute(
         Description('Create item tasks under a folder using a list of JSON specifications.')
         .modelParam('id', model='folder', force=True)
-        .jsonParam('json', 'The JSON specifications as a list or a single specification object.', paramType='body')
+        .jsonParam('json', 'The JSON specifications as a list or a single object.',
+                   paramType='body')
         .param('image', 'The docker image name.', required=True, strip=True)
         .param('pullImage', 'Whether the image should be pulled from a docker registry. ' +
                'Set to false to use local images only.',
