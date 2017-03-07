@@ -42,7 +42,13 @@ def validateProvidersEnabled(doc):
     constants.PluginSettings.GITHUB_CLIENT_SECRET,
     constants.PluginSettings.LINKEDIN_CLIENT_SECRET,
     constants.PluginSettings.BITBUCKET_CLIENT_SECRET,
-    constants.PluginSettings.BOX_CLIENT_SECRET
+    constants.PluginSettings.BOX_CLIENT_SECRET,
+    constants.PluginSettings.GOOGLE_STORE_TOKEN,
+    constants.PluginSettings.GLOBUS_STORE_TOKEN,
+    constants.PluginSettings.GITHUB_STORE_TOKEN,
+    constants.PluginSettings.LINKEDIN_STORE_TOKEN,
+    constants.PluginSettings.BITBUCKET_STORE_TOKEN,
+    constants.PluginSettings.BOX_STORE_TOKEN
 })
 def validateOtherSettings(event):
     pass

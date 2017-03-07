@@ -274,10 +274,60 @@ class OauthTest(base.TestCase):
 
         # Try callback for the 'existing' account, which should succeed
         existing = doOauthLogin('existing')
-
         # Try callback for the 'new' account, with open registration
         self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'open')
         new = doOauthLogin('new')
+
+        # Enable storing access token
+        params = {
+            'list': json.dumps([
+                {
+                    'key': PluginSettings.PROVIDERS_ENABLED,
+                    'value': [providerInfo['id']]
+                }, {
+                    'key': providerInfo['client_id']['key'],
+                    'value': providerInfo['client_id']['value']
+                }, {
+                    'key': providerInfo['client_secret']['key'],
+                    'value': providerInfo['client_secret']['value']
+                }, {
+                    'key': providerInfo['store_token']['key'],
+                    'value': True
+                }
+            ])
+        }
+        resp = self.request('/system/setting', user=self.adminUser, method='PUT', params=params)
+        self.assertStatusOk(resp)
+        existing = doOauthLogin('existing')
+        existingUser = self.model('user').load(existing['_id'], force=True)
+        existingUserProvided = providerInfo['accounts']['existing']['user']
+        self.assertTrue('authHeaders' in existingUser['oauth'][0])
+        self.assertEqual(existingUser['oauth'][0]['authHeaders']['Authorization'],
+                         existingUserProvided['oauth']['authHeaders']['Authorization'])
+
+        # Verify that OAuth token is no longer present
+        params = {
+            'list': json.dumps([
+                {
+                    'key': PluginSettings.PROVIDERS_ENABLED,
+                    'value': [providerInfo['id']]
+                }, {
+                    'key': providerInfo['client_id']['key'],
+                    'value': providerInfo['client_id']['value']
+                }, {
+                    'key': providerInfo['client_secret']['key'],
+                    'value': providerInfo['client_secret']['value']
+                }, {
+                    'key': providerInfo['store_token']['key'],
+                    'value': False
+                }
+            ])
+        }
+        resp = self.request('/system/setting', user=self.adminUser, method='PUT', params=params)
+        self.assertStatusOk(resp)
+        existing = doOauthLogin('existing')
+        existingUser = self.model('user').load(existing['_id'], force=True)
+        self.assertTrue('authHeaders' not in existingUser['oauth'])
 
         # Password login for 'new' OAuth-only user should fail gracefully
         newUser = providerInfo['accounts']['new']['user']
@@ -338,6 +388,10 @@ class OauthTest(base.TestCase):
             'client_secret': {
                 'key': PluginSettings.GOOGLE_CLIENT_SECRET,
                 'value': 'google_test_client_secret'
+            },
+            'store_token': {
+                'key': PluginSettings.GOOGLE_STORE_TOKEN,
+                'value': False
             },
             'allowed_callback_re': r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/google/callback$',
             'url_re': r'^https://accounts\.google\.com/o/oauth2/auth',
@@ -521,6 +575,10 @@ class OauthTest(base.TestCase):
             'client_secret': {
                 'key': PluginSettings.GITHUB_CLIENT_SECRET,
                 'value': 'github_test_client_secret'
+            },
+            'store_token': {
+                'key': PluginSettings.GITHUB_STORE_TOKEN,
+                'value': False
             },
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/github/callback$',
@@ -758,6 +816,10 @@ class OauthTest(base.TestCase):
                 'key': PluginSettings.GLOBUS_CLIENT_SECRET,
                 'value': 'globus_test_client_secret'
             },
+            'store_token': {
+                'key': PluginSettings.GLOBUS_STORE_TOKEN,
+                'value': False
+            },
             'scope': 'urn:globus:auth:scope:auth.globus.org:view_identities openid profile email',
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/globus/callback$',
@@ -766,7 +828,7 @@ class OauthTest(base.TestCase):
                 'existing': {
                     'auth_code': 'globus_existing_auth_code',
                     'access_token': 'globus_existing_test_token',
-                    'id_token': 'globus_exisiting_id_token',
+                    'id_token': 'globus_existing_id_token',
                     'user': {
                         'login': self.adminUser['login'],
                         'email': self.adminUser['email'],
@@ -944,6 +1006,10 @@ class OauthTest(base.TestCase):
             'client_secret': {
                 'key': PluginSettings.LINKEDIN_CLIENT_SECRET,
                 'value': 'linkedin_test_client_secret'
+            },
+            'store_token': {
+                'key': PluginSettings.LINKEDIN_STORE_TOKEN,
+                'value': False
             },
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/linkedin/callback$',
@@ -1127,6 +1193,10 @@ class OauthTest(base.TestCase):
             'client_secret': {
                 'key': PluginSettings.BITBUCKET_CLIENT_SECRET,
                 'value': 'bitbucket_test_client_secret'
+            },
+            'store_token': {
+                'key': PluginSettings.BITBUCKET_STORE_TOKEN,
+                'value': False
             },
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?'
@@ -1333,6 +1403,10 @@ class OauthTest(base.TestCase):
             'client_secret': {
                 'key': PluginSettings.BOX_CLIENT_SECRET,
                 'value': 'box_test_client_secret'
+            },
+            'store_token': {
+                'key': PluginSettings.BOX_STORE_TOKEN,
+                'value': False
             },
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/box/callback$',

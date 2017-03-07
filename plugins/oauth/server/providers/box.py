@@ -37,6 +37,10 @@ class Box(ProviderBase):
         return self.model('setting').get(
             constants.PluginSettings.BOX_CLIENT_SECRET)
 
+    def getStoreTokenSetting(self):
+        return self.model('setting').get(
+            constants.PluginSettings.BOX_STORE_TOKEN)
+
     @classmethod
     def getUrl(cls, state):
         clientId = cls.model('setting').get(
@@ -92,5 +96,7 @@ class Box(ProviderBase):
 
         names = resp.get('name').split()
         firstName, lastName = names[0], names[-1]
+        if not self.storeToken:
+            headers = None
         return self._createOrReuseUser(oauthId, email, firstName, lastName,
                                        headers)

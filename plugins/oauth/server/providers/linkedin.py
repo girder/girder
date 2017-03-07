@@ -39,6 +39,10 @@ class LinkedIn(ProviderBase):
         return self.model('setting').get(
             constants.PluginSettings.LINKEDIN_CLIENT_SECRET)
 
+    def getStoreTokenSetting(self):
+        return self.model('setting').get(
+            constants.PluginSettings.LINKEDIN_STORE_TOKEN)
+
     @classmethod
     def getUrl(cls, state):
         clientId = cls.model('setting').get(
@@ -100,6 +104,7 @@ class LinkedIn(ProviderBase):
         firstName = resp.get('firstName', '')
         lastName = resp.get('lastName', '')
 
-        user = self._createOrReuseUser(oauthId, email, firstName, lastName,
+        if not self.storeToken:
+            headers = None
+        return self._createOrReuseUser(oauthId, email, firstName, lastName,
                                        headers)
-        return user

@@ -28,7 +28,8 @@ from girder.utility import config, model_importer
 
 
 class ProviderBase(model_importer.ModelImporter):
-    def __init__(self, redirectUri, clientId=None, clientSecret=None):
+    def __init__(self, redirectUri, clientId=None, clientSecret=None,
+                 storeToken=False):
         """
         Base class for OAuth2 providers. The purpose of these classes is to
         perform the user information lookup to their respective provider
@@ -41,9 +42,12 @@ class ProviderBase(model_importer.ModelImporter):
         :type clientSecret: str
         :param redirectUri: The redirect URI used in this OAuth2 flow.
         :type redirectUri: str
+        :param storeToken: Store the access token obtained in this OAuth2 flow.
+        :type storeToken: boolean
         """
         self.clientId = clientId or self.getClientIdSetting()
         self.clientSecret = clientSecret or self.getClientSecretSetting()
+        self.storeToken = storeToken or self.getStoreTokenSetting()
         self.redirectUri = redirectUri
 
     @classmethod
@@ -58,6 +62,9 @@ class ProviderBase(model_importer.ModelImporter):
         raise NotImplementedError()
 
     def getClientSecretSetting(self):
+        raise NotImplementedError()
+
+    def getStoreTokenSetting(self):
         raise NotImplementedError()
 
     @classmethod
@@ -144,6 +151,7 @@ class ProviderBase(model_importer.ModelImporter):
         if not user:
             user = cls.model('user').findOne({'email': email})
 
+        dirty = False
         # Create the user if it's still not found
         if not user:
             policy = cls.model('setting').get(SettingKey.REGISTRATION_POLICY)
@@ -160,24 +168,37 @@ class ProviderBase(model_importer.ModelImporter):
             # Migrate from a legacy format where only 1 provider was stored
             if isinstance(user.get('oauth'), dict):
                 user['oauth'] = [user['oauth']]
+                dirty = True
             # Update user data from provider
             if email != user['email']:
                 user['email'] = email
+                dirty = True
             # Don't set names to empty string
             if firstName != user['firstName'] and firstName:
                 user['firstName'] = firstName
+                dirty = True
             if lastName != user['lastName'] and lastName:
                 user['lastName'] = lastName
+                dirty = True
         if setId:
             user.setdefault('oauth', []).append(
                 {
                     'provider': providerName,
                     'id': oauthId
                 })
+            dirty = True
 
         currentOAuth = next(_ for _ in user['oauth'] if _['id'] == oauthId)
-        currentOAuth['authHeaders'] = oauthHeaders
-        user = cls.model('user').save(user)
+        if oauthHeaders:
+            currentOAuth['authHeaders'] = oauthHeaders
+            dirty = True
+        else:
+            if 'authHeaders' in currentOAuth:
+                currentOAuth.pop('authHeaders')
+                dirty = True
+
+        if dirty:
+            user = cls.model('user').save(user)
 
         return user
 
@@ -243,4 +264,5 @@ class ProviderBase(model_importer.ModelImporter):
 
         # See if this is already taken.
         user = cls.model('user').findOne({'login': login})
+
         return not user

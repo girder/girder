@@ -33,5 +33,9 @@ p Only fill in the information for the OAuth2 providers you wish to enable.
               label.control-label(for=`g-oauth-provider-${provider.id}-client-secret`) #{provider.name} client secret
               input.input-sm.form-control(id=`g-oauth-provider-${provider.id}-client-secret`,
                   type="text", placeholder="Client secret")
+            label.control-label.checkbox-inline(for=`g-oauth-provider-${provider.id}-store-token`)
+              input.checkbox(id=`g-oauth-provider-${provider.id}-store-token`,
+                  type="checkbox")
+              | Keep #{provider.name} access token
             p.g-validation-failed-message(id=`g-oauth-provider-${provider.id}-error-message`)
             input.btn.btn-sm.btn-primary(type="submit", value="Save", provider-id=provider.id)

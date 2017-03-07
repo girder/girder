@@ -39,6 +39,10 @@ class GitHub(ProviderBase):
         return self.model('setting').get(
             constants.PluginSettings.GITHUB_CLIENT_SECRET)
 
+    def getStoreTokenSetting(self):
+        return self.model('setting').get(
+            constants.PluginSettings.GITHUB_STORE_TOKEN)
+
     @classmethod
     def getUrl(cls, state):
         clientId = cls.model('setting').get(
@@ -106,5 +110,7 @@ class GitHub(ProviderBase):
         names = (resp.get('name') or login).split()
         firstName, lastName = names[0], names[-1]
 
+        if not self.storeToken:
+            headers = None
         return self._createOrReuseUser(oauthId, email, firstName, lastName,
                                        headers, userName=login)
