@@ -266,6 +266,7 @@ var UploadWidget = View.extend({
                 ? this.parent : new FileModel();
 
         this.currentFile.on('g:upload.complete', function () {
+            this.files[this.currentIndex].id = this.currentFile.id;
             this.currentIndex += 1;
             this.uploadNextFile();
         }, this).on('g:upload.chunkSent', function (info) {
