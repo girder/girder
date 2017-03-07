@@ -41,11 +41,11 @@ example will be:
 .. code-block:: json
 
     {
-    "name": "My Cats Plugin",
-    "description": "Allows users to manage their cats.",
-    "url": "http://girder.readthedocs.io/en/latest/plugin/mycat.html"
-    "version": "1.0.0",
-    "dependencies": ["other_plugin"]
+        "name": "My Cats Plugin",
+        "description": "Allows users to manage their cats.",
+        "url": "http://girder.readthedocs.io/en/latest/plugin/mycat.html",
+        "version": "1.0.0",
+        "dependencies": ["other_plugin"]
     }
 
 .. note:: Some plugins depend on other plugins, but only for building web client code, not
