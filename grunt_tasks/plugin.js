@@ -227,14 +227,14 @@ module.exports = function (grunt) {
                         filename: `${output}.min.js`
                     },
                     resolve: {
-                      modules: [
-                        path.resolve(dir, 'node_modules')
-                      ]
+                        modules: [
+                            path.resolve(dir, 'node_modules')
+                        ]
                     },
                     resolveLoader: {
-                      modules: [
-                        path.resolve(dir, 'node_modules')
-                      ]
+                        modules: [
+                            path.resolve(dir, 'node_modules')
+                        ]
                     },
                     plugins: [
                         new webpack.DllReferencePlugin({
