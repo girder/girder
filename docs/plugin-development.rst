@@ -29,11 +29,11 @@ our example, we'll just use JSON. ::
 
     touch cats/plugin.json
 
-The plugin config file should specify a human-readable name and description for your
-plugin, and can optionally contains a URL to a documentation, a list of other plugins that your plugin
-depends on. If your plugin has dependencies, the other plugins will be
-enabled whenever your plugin is enabled. The contents of plugin.json for our
-example will be:
+The plugin config file should specify a human-readable name and description for 
+your plugin. It can also optionally contain a URL to documentation and 
+a list of other plugins that your plugin depends on. If your plugin has 
+dependencies, the other plugins will be enabled whenever your plugin is enabled. 
+The contents of plugin.json for our example will be:
 
 .. note:: If you have both ``plugin.json`` and ``plugin.yml`` files in the directory, the
    ``plugin.json`` will take precedence.
