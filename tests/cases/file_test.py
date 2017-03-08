@@ -33,8 +33,7 @@ from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.models.model_base import AccessException
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
-from girder.utility.s3_assetstore_adapter import (makeBotoConnectParams,
-                                                  S3AssetstoreAdapter)
+from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
 from six.moves import urllib
 
 
@@ -238,6 +237,7 @@ class FileTestCase(base.TestCase):
     def _testDownloadFile(self, file, contents):
         """
         Downloads the previously uploaded file from the server.
+
         :param file: The file object to download.
         :type file: dict
         :param contents: The expected contents.
@@ -309,6 +309,18 @@ class FileTestCase(base.TestCase):
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
         self.assertEqual(contents, self.getBody(resp))
+
+        # Test reading via the model layer file-like API
+        with self.model('file').open(file) as handle:
+            self.assertEqual(handle.tell(), 0)
+            buf = b''
+            while True:
+                chunk = handle.read(32768)
+                buf += chunk
+                if not chunk:
+                    break
+
+            self.assertEqual(buf, contents.encode('utf8'))
 
     def _testDownloadFolder(self):
         """
@@ -714,7 +726,7 @@ class FileTestCase(base.TestCase):
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
 
-    def atestGridFsAssetstore(self):
+    def testGridFsAssetstore(self):
         """
         Test usage of the GridFS assetstore type.
         """
@@ -734,6 +746,7 @@ class FileTestCase(base.TestCase):
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
         hash = sha512(chunkData).hexdigest()
+        file = self.model('file').load(file['_id'], force=True)
         self.assertEqual(hash, file['sha512'])
 
         # We should have two chunks in the database
@@ -757,7 +770,7 @@ class FileTestCase(base.TestCase):
         self._testCopyFile(copyTestFile)
 
     @moto.mock_s3bucket_path
-    def atestS3Assetstore(self):
+    def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
         mock_s3.createBucket(botoParams, 'b')
 

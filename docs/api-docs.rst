@@ -179,6 +179,13 @@ Folder
 
 Utility
 -------
+
+.. automodule:: girder.utility.assetstore_utilities
+   :members:
+
+.. automodule:: girder.utility.abstract_assetstore_adapter
+   :members:
+
 .. automodule:: girder.utility.model_importer
    :members:
 

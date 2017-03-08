@@ -92,20 +92,23 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
         super(_FileHandle, self).__init__()
 
         self.file = file
+        self._handle = self.model('file').open(file)
 
     def read(self, offset, length):
         if length > MAX_BUF_LEN:
             raise IOError(
                 'Requested chunk length (%d) is larger than the maximum allowed.' % length)
 
-        stream = self.model('file').download(
-            self.file, headers=False, offset=offset, endByte=offset + length)
-        return b''.join(stream())
+        if offset != self._handle.tell() and offset < self.file['size']:
+            self._handle.seek(offset)
+
+        return self._handle.read(length)
 
     def stat(self):
         return _stat(self.file, 'file')
 
     def close(self):
+        self._handle.close()
         return paramiko.SFTP_OK
 
 
