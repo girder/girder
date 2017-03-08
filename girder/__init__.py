@@ -101,8 +101,6 @@ def _setupLogger():
     logger = logging.getLogger('girder')
     cfg = config.getConfig()
     logCfg = cfg.get('logging', {})
-    import sys  # ##DWM::
-    sys.stderr.write('logging %r\n' % logCfg)  # ##DWM::
 
     # If we are asked to be quiet, set a global flag so that logprint doesn't
     # have to get the configuration settings every time it is used.
