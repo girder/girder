@@ -93,11 +93,15 @@ class FileHandle(object):
     def tell(self):
         return self._pos
 
-    def seek(self, offset):
-        self._pos = offset
+    def seek(self, offset, whence=os.SEEK_SET):
+        if whence == os.SEEK_SET:
+            self._pos = offset
+        elif whence == os.SEEK_CUR:
+            self._pos += offset
+        elif whence == os.SEEK_END:
+            self._pos = self._file['size'] - offset
         self._prev = []
         self._stream = self._adapter.downloadFile(self._file, offset=self._pos, headers=False)()
-        return offset
 
     def close(self):
         pass

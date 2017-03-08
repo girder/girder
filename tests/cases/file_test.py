@@ -310,17 +310,26 @@ class FileTestCase(base.TestCase):
                              'text/plain;charset=utf-8')
         self.assertEqual(contents, self.getBody(resp))
 
-        # Test reading via the model layer file-like API
-        with self.model('file').open(file) as handle:
-            self.assertEqual(handle.tell(), 0)
+        def _readFile(handle):
             buf = b''
             while True:
                 chunk = handle.read(32768)
                 buf += chunk
                 if not chunk:
                     break
+            return buf
 
-            self.assertEqual(buf, contents.encode('utf8'))
+        # Test reading via the model layer file-like API
+        contents = contents.encode('utf8')
+        with self.model('file').open(file) as handle:
+            self.assertEqual(handle.tell(), 0)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents)
+
+            # Test seek
+            handle.seek(2)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[2:])
 
     def _testDownloadFolder(self):
         """
