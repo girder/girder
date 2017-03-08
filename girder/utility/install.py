@@ -135,7 +135,7 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     :type progress: ``girder.utility.progress.ProgressContext`` or None
     """
     if isinstance(plugins, six.string_types) and plugins:
-        plugins = [plugins]
+        plugins = plugins.split(',')
 
     if shutil.which(npm) is None:
         print(constants.TerminalColor.error(
