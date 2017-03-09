@@ -83,7 +83,7 @@ Setting the ``GIRDER_API_KEY`` environment variable is also supported: ::
 
 The client also supports ``username`` and ``password`` args. If only the
 ``username`` is specified, the client will prompt the user to interactively
-input his/her password.
+input their password.
 
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
