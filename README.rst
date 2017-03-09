@@ -1,5 +1,5 @@
-|logo| Girder |build-status| |docs-status| |license-badge| |gitter-badge|
-=========================================================================
+|logo| Girder |build-status| |docs-status| |license-badge| |gitter-badge| |codecov-badge|
+=========================================================================================
 
 **Data Management Platform**
 
@@ -38,3 +38,7 @@ We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
 .. |gitter-badge| image:: https://badges.gitter.im/Join Chat.svg
     :target: https://gitter.im/girder/girder?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
     :alt: Gitter Chat
+
+.. |codecov-badge| image:: https://img.shields.io/codecov/c/github/girder/girder.svg
+    :target: https://codecov.io/gh/girder/girder
+    :alt: Coverage Status
