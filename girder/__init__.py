@@ -35,7 +35,7 @@ __version__ = '2.1.1'
 __license__ = 'Apache 2.0'
 
 
-Quiet = False
+_quiet = False
 
 
 class LogLevelFilter(object):
@@ -96,7 +96,7 @@ def _setupLogger():
     """
     Sets up the Girder logger.
     """
-    global Quiet
+    global _quiet
 
     logger = logging.getLogger('girder')
     cfg = config.getConfig()
@@ -105,7 +105,7 @@ def _setupLogger():
     # If we are asked to be quiet, set a global flag so that logprint doesn't
     # have to get the configuration settings every time it is used.
     if logCfg.get('log_quiet') is True:
-        Quiet = True
+        _quiet = True
 
     logPaths = getLogPaths()
     # Ensure log paths are valid
@@ -163,7 +163,7 @@ def _setupLogger():
     accessLog = logCfg.get('log_access', 'screen')
     if not isinstance(accessLog, (tuple, list, set)):
         accessLog = [accessLog]
-    if Quiet or ('screen' not in accessLog and 'stdout' not in accessLog):
+    if _quiet or ('screen' not in accessLog and 'stdout' not in accessLog):
         cherrypy.config.update({'log.screen': False})
     if 'info' in accessLog:
         cherrypy.log.access_log.addHandler(ih)
@@ -197,7 +197,7 @@ def logprint(*args, **kwargs):
         exc_info = sys.exc_info()
         data += '\n' + ''.join(traceback.format_exception(*exc_info)).rstrip()
     logger.log(level, data)
-    if not Quiet:
+    if not _quiet:
         if color:
             data = getattr(TerminalColor, color)(data)
         six.print_(data, flush=True)
