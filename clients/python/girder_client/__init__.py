@@ -88,6 +88,21 @@ class HttpError(Exception):
         return super(HttpError, self).__str__() + '\nResponse text: ' + self.responseText
 
 
+class _NoopProgressReporter(object):
+    def __init__(self, label="", length=0):
+        self.label = label
+        self.length = length
+
+    def update(self, chunkSize):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        pass
+
+
 class GirderClient(object):
     """
     A class for interacting with the Girder RESTful API.
@@ -129,7 +144,7 @@ class GirderClient(object):
     DEFAULT_SCHEME = 'https'
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
-                 cacheSettings=None):
+                 cacheSettings=None, progressReporterCls=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
@@ -151,6 +166,8 @@ class GirderClient(object):
             to pass 443 for the port
         :param cacheSettings: Settings to use with the diskcache library, or
             None to disable caching.
+        :param progressReporterCls: the progress reported class to instantiate.
+            This defaults to :class:`_NoopProgressReporter`.
         """
         if apiUrl is None:
             if not apiRoot:
@@ -182,6 +199,11 @@ class GirderClient(object):
             self.cache = None
         else:
             self.cache = diskcache.Cache(**cacheSettings)
+
+        if progressReporterCls is None:
+            progressReporterCls = _NoopProgressReporter
+
+        self.progressReporterCls = progressReporterCls
 
     def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
         """
@@ -945,12 +967,19 @@ class GirderClient(object):
                 return
 
         # download to a tempfile
+        progressFileName = fileId
+        if isinstance(path, six.string_types):
+            progressFileName = os.path.basename(path)
         req = requests.get(
             '%sfile/%s/download' % (self.urlBase, fileId),
             stream=True, headers={'Girder-Token': self.token})
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
-                tmp.write(chunk)
+            with self.progressReporterCls(
+                    label=progressFileName,
+                    length=int(req.headers['content-length'])) as reporter:
+                for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
+                    reporter.update(len(chunk))
+                    tmp.write(chunk)
 
         # save file in cache
         if self.cache is not None:

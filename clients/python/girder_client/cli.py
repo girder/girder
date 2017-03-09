@@ -42,7 +42,8 @@ class GirderCli(GirderClient):
             this blank to be prompted.
         """
         super(GirderCli, self).__init__(
-            host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl)
+            host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl,
+            progressReporterCls=click.progressbar)
         interactive = password is None
 
         if apiKey:
