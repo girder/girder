@@ -115,8 +115,8 @@ def _lookup_parent_type(client, object_id):
                 raise (sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])  # noqa: E999
 
 
-def _common_parameters(path_exists=False, path_writable=True,
-                       additional_parent_types=['collection', 'user']):
+def _CommonParameters(path_exists=False, path_writable=True,
+                      additional_parent_types=['collection', 'user']):
     parent_types = ['folder'] + additional_parent_types
     parent_type_cls = _DeprecatedOption
     parent_type_default = 'folder'
@@ -149,7 +149,7 @@ _short_help = 'Download files from Girder'
 
 
 @main.command('download', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_common_parameters(additional_parent_types=['collection', 'user', 'item'])
+@_CommonParameters(additional_parent_types=['collection', 'user', 'item'])
 @click.pass_obj
 def _download(gc, parent_type, parent_id, local_folder):
     if parent_type == 'auto':
@@ -164,7 +164,7 @@ _short_help = 'Synchronize local folder with remote Girder folder'
 
 
 @main.command('localsync', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_common_parameters(additional_parent_types=[])
+@_CommonParameters(additional_parent_types=[])
 @click.pass_obj
 def _localsync(gc, parent_type, parent_id, local_folder):
     if parent_type != 'folder':
@@ -178,7 +178,7 @@ _short_help = 'Upload files to Girder'
 
 
 @main.command('upload', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_common_parameters(path_exists=True, path_writable=False)
+@_CommonParameters(path_exists=True, path_writable=False)
 @click.option('--leaf-folders-as-items', is_flag=True,
               help='upload all files in leaf folders to a single Item named after the folder')
 @click.option('--reuse', is_flag=True,

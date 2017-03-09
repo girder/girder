@@ -173,7 +173,8 @@ class GirderClient(object):
             if not apiRoot:
                 apiRoot = self.DEFAULT_API_ROOT
             # If needed, prepend '/'
-            apiRoot = '/' + apiRoot if apiRoot[0] != '/' else apiRoot
+            if not apiRoot.startswith('/'):
+                apiRoot = '/' + apiRoot
 
             self.scheme = scheme or self.DEFAULT_SCHEME
             self.host = host or self.DEFAULT_HOST
