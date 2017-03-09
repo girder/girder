@@ -32,6 +32,7 @@ from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.models.model_base import AccessException
+from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
 from six.moves import urllib
@@ -323,13 +324,23 @@ class FileTestCase(base.TestCase):
         contents = contents.encode('utf8')
         with self.model('file').open(file) as handle:
             self.assertEqual(handle.tell(), 0)
+            handle.seek(0)
             buf = _readFile(handle)
             self.assertEqual(buf, contents)
 
-            # Test seek
+            # Test seek modes
             handle.seek(2)
             buf = _readFile(handle)
             self.assertEqual(buf, contents[2:])
+
+            handle.seek(2)
+            handle.seek(2, os.SEEK_CUR)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[4:])
+
+            handle.seek(2, os.SEEK_END)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[-2:])
 
     def _testDownloadFolder(self):
         """
@@ -739,6 +750,9 @@ class FileTestCase(base.TestCase):
         """
         Test usage of the GridFS assetstore type.
         """
+        # Must also lower GridFS's internal chunk size to support our small chunks
+        gridfs_assetstore_adapter.CHUNK_SIZE, old = 6, gridfs_assetstore_adapter.CHUNK_SIZE
+
         # Clear any old DB data
         base.dropGridFSDatabase('girder_test_file_assetstore')
         # Clear the assetstore database
@@ -762,6 +776,10 @@ class FileTestCase(base.TestCase):
         self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 2)
 
         self._testDownloadFile(file, chunk1 + chunk2)
+
+        # Reset chunk size so the large file testing isn't horribly slow
+        gridfs_assetstore_adapter.CHUNK_SIZE = old
+
         self._testDownloadFolder()
         self._testDownloadCollection()
 

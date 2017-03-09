@@ -46,6 +46,8 @@ class FileHandle(object):
     def __init__(self, file, adapter):
         self._file = file
         self._adapter = adapter
+        self._pos = None
+
         self.seek(0)
 
     def __enter__(self):
@@ -78,7 +80,7 @@ class FileHandle(object):
                 self._prev = []
                 length += chunkLen
 
-                if length + chunkLen == size:
+                if length == size:
                     break
             else:
                 chunkLen = min(size - length, chunkLen)
@@ -94,14 +96,18 @@ class FileHandle(object):
         return self._pos
 
     def seek(self, offset, whence=os.SEEK_SET):
+        oldPos = self._pos
+
         if whence == os.SEEK_SET:
             self._pos = offset
         elif whence == os.SEEK_CUR:
             self._pos += offset
         elif whence == os.SEEK_END:
-            self._pos = self._file['size'] - offset
-        self._prev = []
-        self._stream = self._adapter.downloadFile(self._file, offset=self._pos, headers=False)()
+            self._pos = max(self._file['size'] - offset, 0)
+
+        if self._pos != oldPos:
+            self._prev = []
+            self._stream = self._adapter.downloadFile(self._file, offset=self._pos, headers=False)()
 
     def close(self):
         pass
