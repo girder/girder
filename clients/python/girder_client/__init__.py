@@ -590,24 +590,6 @@ class GirderClient(object):
         }
         return self.put(path, params)
 
-    def _fileChunker(self, filepath, filesize=None):
-        """
-        Generator returning chunks of a file in MAX_CHUNK_SIZE increments.
-
-        :param filepath: path to file on disk.
-        :param filesize: size of file on disk if known.
-        """
-        if filesize is None:
-            filesize = os.path.getsize(filepath)
-        startbyte = 0
-        nextChunkSize = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
-        with open(filepath, 'rb') as fd:
-            while nextChunkSize > 0:
-                chunk = fd.read(nextChunkSize)
-                yield (chunk, startbyte)
-                startbyte = startbyte + nextChunkSize
-                nextChunkSize = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
-
     def isFileCurrent(self, itemId, filename, filepath):
         """
         Tests whether the passed in filepath exists in the item with itemId,
@@ -632,7 +614,8 @@ class GirderClient(object):
         # to upload anyway in this case also.
         return (None, False)
 
-    def uploadFileToItem(self, itemId, filepath, reference=None, mimeType=None, filename=None):
+    def uploadFileToItem(self, itemId, filepath, reference=None, mimeType=None, filename=None,
+                         progressCallback=None):
         """
         Uploads a file to an item, in chunks.
         If ((the file already exists in the item with the same name and size)
@@ -645,6 +628,10 @@ class GirderClient(object):
         :param mimeType: MIME type for the file. Will be guessed if not passed.
         :type mimeType: str or None
         :param filename: path with filename used in Girder. Defaults to basename of filepath.
+        :param progressCallback: If passed, will be called after each chunk
+            with progress information. It passes a single positional argument
+            to the callable which is a dict of information about progress.
+        :type progressCallback: callable
         :returns: the file that was created.
         """
         if filename is None:
@@ -671,9 +658,7 @@ class GirderClient(object):
             if reference:
                 params['reference'] = reference
             obj = self.put(path, params)
-            if '_id' in obj:
-                uploadId = obj['_id']
-            else:
+            if '_id' not in obj:
                 raise Exception(
                     'After creating an upload token for replacing file '
                     'contents, expected an object with an id. Got instead: ' +
@@ -693,17 +678,13 @@ class GirderClient(object):
             if reference:
                 params['reference'] = reference
             obj = self.post('file', params)
-            if '_id' in obj:
-                uploadId = obj['_id']
-            else:
+            if '_id' not in obj:
                 raise Exception(
                     'After creating an upload token for a new file, expected '
                     'an object with an id. Got instead: ' + json.dumps(obj))
 
-        for chunk, startbyte in self._fileChunker(filepath, filesize):
-            obj = self._sendChunk(startbyte, uploadId, chunk)
-
-        return obj
+        with open(filepath, 'rb') as f:
+            return self._uploadContents(obj, f, filesize, progressCallback=progressCallback)
 
     def _sendChunk(self, offset, uploadId, chunk):
         if self.getServerVersion() < ['2', '2']:
