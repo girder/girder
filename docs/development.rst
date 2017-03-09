@@ -10,29 +10,21 @@ the tools used to develop Girder.
 Configuring Your Development Environment
 ----------------------------------------
 
-In order to develop Girder, you should first refer to the :doc:`prerequisites`
-and :doc:`installation` sections to setup a basic local environment.
+In order to develop Girder, you should first refer to :doc:`prerequisites <prerequisites>`, `virtual environment <installation.html#creating-a-virtual-environment>`__, `install from Git <installation.html#install-from-git-checkout>`__, and `run <installation.html#run>`__ sections to setup a basic local development environment.
 
-Next, you should install the Python development dependencies, to
+Next, you should install the Python development dependencies with pip, to
 provide helpful development tools and to allow the test suite to run: ::
 
     pip install -r requirements-dev.txt
 
-During development, once Girder is started via ``python -m girder``, the server
-will reload itself whenever a Python file is modified.
+Install front-end web client development dependencies. This will install npm modules eslint and pug-lint, which are needed to run unit tests. This will also build the web client code: ::
 
-If you are doing front-end development, it's much faster to use a *watch* process to perform
-automatic fast rebuilds of your code whenever you make changes to source files. If you are making
-changes to Girder's core web client, run the following watch command: ::
+    girder-install web --dev
 
-    girder-install web --watch
+For more options for building web client, run: ::
 
-If you are developing a plugin and want to rebuild when you change its source, run: ::
+    girder-install web --help
 
-    girder-install web --watch-plugin my_plugin_name
-
-When you want to end the watch process, press Ctrl+C (or however you would normally terminate a
-process in your terminal).
 
 Vagrant
 ^^^^^^^
@@ -48,6 +40,28 @@ dependencies.
 .. seealso::
 
    For more information on provisioning Girder, see :doc:`provisioning`.
+
+
+During Development
+------------------
+
+Once Girder is started via ``python -m girder``, the server
+will reload itself whenever a Python file is modified.
+
+If you are doing front-end development, it's much faster to use a *watch* process to perform
+automatic fast rebuilds of your code whenever you make changes to source files. 
+
+If you are making changes to Girder's core web client, run the following watch command: ::
+
+    girder-install web --watch
+
+If you are developing a web client of a plugin, run: ::
+
+    girder-install web --watch-plugin your_plugin_name
+
+With ``watch`` option, *sourcemap* will be generated, which helps debugging front-end code in browser.
+When you want to end the watch process, press Ctrl+C (or however you would normally terminate a
+process in your terminal).
 
 
 Utilities
@@ -155,9 +169,13 @@ tests, just: ::
     cd girder-build
     ctest
 
-There are many ways to filter tests when running CTest, or run the tests in
-parallel. More information about CTest can be found
-`here <http://www.cmake.org/cmake/help/v3.0/manual/ctest.1.html>`_.
+There are many ways to filter tests when running CTest or run the tests in
+parallel. For example, this command will run tests with name matches regex **server_user** with verbose output. 
+More information about CTest can be found
+`here <http://www.cmake.org/cmake/help/v3.0/manual/ctest.1.html>`_. ::
+
+    ctest -V -R server_user
+
 
 If you run into errors on any of the packaging tests, two possible fixes are
 
@@ -180,13 +198,16 @@ Client Side Testing
 -------------------
 
 Using the same setup as above for the Server Side Tests, your environment will be set up
-to run client side tests. Running ::
+to run client side tests. Running client side is the same as running server side test. Run ::
 
     cd girder-build
     ctest
 
 will run all of the tests, which include the client side tests.  Our client tests use the
 Jasmine JS testing framework.
+
+If you encounter errors regarding ESLINT or PUG_LINT, there is a chance you missed certain steps for setting up development dependencies.
+You could use ``ccmake`` to change ``CMake`` configuration. Or, it might be easier to recreate the environment from the beginning.
 
 When running client side tests, if you try to SIGINT (ctrl+c) the CTest process, CTest
 won't pass that signal down to the test processes for them to handle.  This can result
@@ -275,7 +296,7 @@ Code Review
 -----------
 
 Contributions to Girder are done via pull requests with a core developer
-accepting a PR by saying it "Looks good to me" or LGTM. At this point, the
+approving the PR with GitHub review system. At this point, the
 topic branch can be merged to master. This is meant to be a simple,
 low-friction process; however, code review is very important. It should be done
 carefully and not taken lightly. Thorough code review is a crucial part of

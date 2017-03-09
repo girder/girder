@@ -39,8 +39,14 @@ environments should consider using other packages that help manage them such as
 `pyenv-virtualenvwrapper <https://github.com/yyuu/pyenv-virtualenvwrapper>`_.
 
 
+Sources
+-------
+
+Girder can be installed from two sources, **pip** or **git repository**.
+Installing from pip gives you latest distributed version. Installing from git would be more suitable for development or to have a specific version.
+
 Install with pip
-----------------
+++++++++++++++++
 
 To install the Girder distribution from the python package index, simply run ::
 
@@ -65,7 +71,7 @@ Once this is done, you are ready to start using Girder as described in this
 section: :ref:`run-girder`.
 
 Installing extra dependencies with pip
---------------------------------------
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 Girder comes bundled with a number of :doc:`plugins` that require extra python
 dependencies in order to use.  By default, none of these dependencies will be
@@ -87,7 +93,7 @@ plugins supported in the current python environment called ``plugins``: ::
 .. _extras: https://packaging.python.org/en/latest/installing/#installing-setuptools-extras
 
 Install from Git Checkout
--------------------------
++++++++++++++++++++++++++
 
 Obtain the Girder source code by cloning the Git repository on
 `GitHub <https://github.com>`_: ::
@@ -138,17 +144,27 @@ Then open http://localhost:8080/ in your web browser, and you should see the app
 Initial Setup
 -------------
 
+Admin Console
++++++++++++++
+
 The first user to be created in the system is automatically given admin permission
 over the instance, so the first thing you should do after starting your instance for
 the first time is to register a user. After that succeeds, you should see a link
 appear in the navigation bar that says ``Admin console``.
 
+Enable Plugins
+++++++++++++++
+
 The next recommended action is to enable any plugins you want to run on your server.
 Click the ``Admin console`` navigation link, then click ``Plugins``. Here, you
 can turn plugins on or off. Whenever you change the set of plugins that are
-enabled, you must restart the `CherryPy <http://www.cherrypy.org>`_ server for
-the change to take effect. For information about specific plugins, see the
-:ref:`Plugins <plugins>` section.
+enabled, you need to press the **Rebuild and restart** button at the top of the 
+Plugins page to rebuild web client and restart the server to apply the change. 
+
+For information about specific plugins, see the :ref:`Plugins <plugins>` section.
+
+Create Assetstore
++++++++++++++++++
 
 After you have enabled any desired plugins and restarted the server, the next
 recommended action is to create an ``Assetstore`` for your system. No users
