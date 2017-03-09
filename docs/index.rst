@@ -7,7 +7,7 @@ Girder: a data management platform
     :target: https://circleci.com/gh/girder/girder
     :alt: Build Status
 
-.. |license-badge| image:: https://raw.githubusercontent.com/girder/girder/badges/docs/license.png
+.. |license-badge| image:: https://raw.githubusercontent.com/girder/girder/master/docs/license.png
     :target: https://pypi.python.org/pypi/girder
     :alt: License
 
