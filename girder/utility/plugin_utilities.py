@@ -314,6 +314,7 @@ def findAllPlugins():
         allPlugins[plugin] = {
             'name': data.get('name', plugin),
             'description': data.get('description', ''),
+            'url': data.get('url', ''),
             'version': data.get('version', ''),
             'dependencies': set(data.get('dependencies', [])),
             'staticWebDependencies': set(data.get('staticWebDependencies', []))

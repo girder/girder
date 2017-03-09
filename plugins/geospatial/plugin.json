@@ -1,5 +1,6 @@
 {
     "name": "Geospatial",
     "description": "Enables the storage and querying of GeoJSON formatted geospatial data",
+    "url": "http://girder.readthedocs.io/en/latest/plugins.html#geospatial",
     "version": "0.1.0"
 }

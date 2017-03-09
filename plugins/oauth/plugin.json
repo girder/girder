@@ -1,5 +1,6 @@
 {
     "name": "OAuth2 login",
     "description": "Allow users to login via supported OAuth2 providers.",
+    "url": "http://girder.readthedocs.io/en/latest/plugins.html#oauth-login",
     "version": "2.1.0"
 }
