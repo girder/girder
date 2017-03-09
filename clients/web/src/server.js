@@ -10,22 +10,28 @@ import { restRequest } from 'girder/rest';
  */
 function restartServer() {
     function waitForServer() {
-        restRequest({
-            type: 'GET',
-            path: 'system/version',
-            error: null
-        }).done(_.bind(function (resp) {
-            if (resp.serverStartDate !== restartServer._lastStartDate) {
-                restartServer._reloadWindow();
-            } else {
-                window.setTimeout(waitForServer, 1000);
+        return new Promise((resolve, reject) => {
+            function wait() {
+                restRequest({
+                    type: 'GET',
+                    path: 'system/version',
+                    error: null
+                }).done(_.bind(function (resp) {
+                    if (resp.serverStartDate !== restartServer._lastStartDate) {
+                        resolve();
+                        restartServer._reloadWindow();
+                    } else {
+                        window.setTimeout(wait, 1000);
+                    }
+                })).error(_.bind(function () {
+                    window.setTimeout(wait, 1000);
+                }));
             }
-        })).error(_.bind(function () {
-            window.setTimeout(waitForServer, 1000);
-        }));
+            wait();
+        });
     }
 
-    restRequest({
+    return Promise.resolve(restRequest({
         type: 'GET',
         path: 'system/version'
     }).done(_.bind(function (resp) {
@@ -37,8 +43,8 @@ function restartServer() {
             type: 'warning',
             timeout: 60000
         });
-        waitForServer();
-    }));
+        return waitForServer();
+    })));
 }
 
 function restartServerPrompt() {
@@ -50,6 +56,10 @@ function restartServerPrompt() {
     });
 }
 
+function rebuildWebClient() {
+    return restartServer._rebuildWebClient();
+}
+
 /* Having these as object properties facilitates testing */
 restartServer._callSystemRestart = function () {
     restRequest({type: 'PUT', path: 'system/restart'});
@@ -59,7 +69,12 @@ restartServer._reloadWindow = function () {
     window.location.reload();
 };
 
+restartServer._rebuildWebClient = function () {
+    return Promise.resolve(restRequest({ path: 'system/web_build', type: 'POST', data: { progress: true } }));
+};
+
 export {
     restartServer,
-    restartServerPrompt
+    restartServerPrompt,
+    rebuildWebClient
 };

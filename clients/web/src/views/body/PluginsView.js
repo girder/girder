@@ -4,8 +4,9 @@ import _ from 'underscore';
 import events from 'girder/events';
 import router from 'girder/router';
 import View from 'girder/views/View';
+import { confirm } from 'girder/dialog';
 import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
-import { restartServerPrompt } from 'girder/server';
+import { restartServer, rebuildWebClient } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
 import PluginsTemplate from 'girder/templates/body/plugins.pug';
@@ -24,25 +25,26 @@ var PluginsView = View.extend({
     events: {
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
-            router.navigate(route, {trigger: true});
+            router.navigate(route, { trigger: true });
         },
-        'click .g-plugin-restart-button': restartServerPrompt,
-        'click .g-rebuild-web-code': function (e) {
-            $(e.currentTarget).girderEnable(false);
-            restRequest({
-                path: 'system/web_build',
-                type: 'POST',
-                data: {
-                    progress: true
+        'click .g-rebuild-and-restart': function (e) {
+            confirm({
+                text: `Are you sure you want to rebuild web code and restart 
+                the server? This will interrupt all running tasks for all users.`,
+                yesText: 'Restart',
+                confirmCallback: function () {
+                    $(e.currentTarget).girderEnable(false);
+                    rebuildWebClient().then(() => {
+                        events.trigger('g:alert', {
+                            text: 'Web client code built successfully',
+                            type: 'success',
+                            duration: 3000
+                        });
+                        return restartServer();
+                    }).then(() => {
+                        $(e.currentTarget).girderEnable(true);
+                    });
                 }
-            }).done(() => {
-                events.trigger('g:alert', {
-                    text: 'Web client code built successfully',
-                    type: 'success',
-                    duration: 3000
-                });
-            }).complete(() => {
-                $(e.currentTarget).girderEnable(true);
             });
         }
     },
@@ -67,7 +69,6 @@ var PluginsView = View.extend({
     },
 
     render: function () {
-        var pluginsChanged = false;
         _.each(this.allPlugins, function (info, name) {
             info.unmetDependencies = this._unmetDependencies(info);
             if (!_.isEmpty(info.unmetDependencies)) {
@@ -98,24 +99,21 @@ var PluginsView = View.extend({
                       view.enabled.splice(idx, 1);
                   }
               }
-              pluginsChanged = true;
-              $('.g-plugin-restart').addClass('g-plugin-restart-show');
+              $('button.g-rebuild-and-restart').addClass('btn-danger');
+              $('.g-plugin-rebuild-restart-text').addClass('show');
               view._updatePlugins();
           });
         this.$('.g-plugin-config-link').tooltip({
             container: this.$el,
             animation: false,
             placement: 'bottom',
-            delay: {show: 100}
+            delay: { show: 100 }
         });
         this.$('.g-experimental-notice').tooltip({
             container: this.$el,
             animation: false,
-            delay: {show: 100}
+            delay: { show: 100 }
         });
-        if (pluginsChanged) {
-            $('.g-plugin-restart').addClass('g-plugin-restart-show');
-        }
 
         return this;
     },
@@ -143,7 +141,7 @@ var PluginsView = View.extend({
          *                 attribute used for sorting.
          * @returns sortedPlugins: the sorted list. */
         var sortedPlugins = _.map(plugins, function (value, key) {
-            return {key: key, value: value};
+            return { key: key, value: value };
         });
         sortedPlugins.sort(function (a, b) {
             return a.value.name.localeCompare(b.value.name);
