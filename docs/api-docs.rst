@@ -205,6 +205,11 @@ Constants
 Clients
 -------
 
+Python Client
+^^^^^^^^^^^^^
+
+See :ref:`python-client`
+
 Web client
 ^^^^^^^^^^
 

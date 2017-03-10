@@ -62,7 +62,7 @@ class Folder(AccessControlledModel):
         :param doc: the folder document to validate.
         :param allowRename: if True and a folder or item exists with the same
                             name, rename the folder so that it is unique.
-        :returns: the validated folder document.
+        :returns: `the validated folder document`
         """
         doc['name'] = doc['name'].strip()
         doc['lowerName'] = doc['name'].lower()
@@ -635,7 +635,7 @@ class Folder(AccessControlledModel):
         :type subpath: bool
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
-        :type mimeFilter: list or tuple
+        :type mimeFilter: `list or tuple`
         :param data: If True return raw content of each file as stored in the
             assetstore, otherwise return file document.
         :type data: bool
@@ -784,7 +784,7 @@ class Folder(AccessControlledModel):
         skipped.
 
         :param doc: The folder to set access settings on.
-        :type doc: folder
+        :type doc: girder.models.folder
         :param access: The access control list.
         :type access: dict
         :param save: Whether the changes should be saved to the database.

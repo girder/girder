@@ -405,7 +405,7 @@ class filtermodel(ModelImporter):  # noqa: class name
         :param addFields: Extra fields (key names) that should be included in
             the returned document(s), in addition to any in the model's normal
             whitelist. Only affects top level fields.
-        :type addFields: set, list, tuple, or None
+        :type addFields: `set, list, tuple, or None`
         """
         self.modelName = model
         self.plugin = plugin
@@ -610,7 +610,7 @@ def ensureTokenScopes(token, scope):
     :param token: The token object used in the request.
     :type token: dict
     :param scope: The required scope or set of scopes.
-    :type scope: str or list of str
+    :type scope: `str or list of str`
     """
     tokenModel = ModelImporter.model('token')
     if tokenModel.hasScope(token, TokenScope.USER_AUTH):
@@ -832,7 +832,7 @@ class Resource(ModelImporter):
         :param method: The HTTP method of the current request.
         :type method: str
         :param path: The path params of the request.
-        :type path: list
+        :type path: `list`
         """
         if not self._routes:
             raise Exception('No routes defined for resource')
@@ -906,9 +906,9 @@ class Resource(ModelImporter):
         wildcard tokens of the route.
 
         :param path: The requested path.
-        :type path: list
+        :type path: `list`
         :param route: The route specification to match against.
-        :type route: list
+        :type route: `list`
         """
         wildcards = {}
         for i in range(0, len(route)):
@@ -935,7 +935,7 @@ class Resource(ModelImporter):
 
         :param required: An iterable of required params, or if just one is
             required, you can simply pass it as a string.
-        :type required: list, tuple, or str
+        :type required: `list, tuple, or str`
         :param provided: The list of provided parameters.
         :type provided: dict
         """
@@ -1023,7 +1023,7 @@ class Resource(ModelImporter):
         designated scope or set of scopes. Raises an AccessException if not.
 
         :param scope: A scope or set of scopes that is required.
-        :type scope: str or list of str
+        :type scope: `str or list of str`
         """
         ensureTokenScopes(getCurrentToken(), scope)
 
