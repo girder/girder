@@ -729,6 +729,18 @@ Each type needs to be installed differently due to how node manages external pac
   isolated. By default, the ``localNodeModules`` is set to ``false`` and the
   dependencies will be installed to Girder's own ``node_modules`` directory.
 
+  The final alternative for Webpack-built plugins is to set the ``npm.install``
+  configuration property to ``true``; this will cause the build system to run
+  ``npm install`` in the plugin directory. This may have certain benefits for
+  plugin development, such as allowing plugin sources to import modules without
+  the alias prefix as described above (though, this alias would still be
+  available for use by other plugins that want to access your plugin's
+  dependencies). Additionally, if your plugin is installed without using
+  symlinks, then you will still have access to Girder's Node dependencies (see
+  this [GitHub conversation](https://github.com/nodejs/node/issues/3402) for a
+  discussion of why symlinked directories will not allow for the usual Node
+  import semantics).
+
   If instead you are using a custom Grunt build with a Gruntfile, the
   dependencies should be installed into your plugin's **node_modules** directory
   by providing a `package.json <https://docs.npmjs.com/files/package.json>`_
