@@ -788,16 +788,16 @@ class GirderClient(object):
         offset = 0
         uploadId = uploadObj['_id']
         while True:
-            data = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
+            chunk = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
 
-            if not data:
+            if not chunk:
                 break
 
-            if isinstance(data, six.text_type):
-                data = data.encode('utf8')
+            if isinstance(chunk, six.text_type):
+                chunk = chunk.encode('utf8')
 
-            uploadObj = self._sendChunk(offset, uploadId, data)
-            offset += len(data)
+            uploadObj = self._sendChunk(offset, uploadId, chunk)
+            offset += len(chunk)
 
             if callable(progressCallback):
                 progressCallback({
