@@ -137,7 +137,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param name: The local name for the file.
         :type name: str
         :param parent: The parent object for this file.
-        :type parent: folder or item
+        :type parent: girder.models.folder or girder.models.item
         :param parentType: The parent type (folder or item)
         :type parentType: str
         :param url: The URL that this file points to

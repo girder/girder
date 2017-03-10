@@ -194,7 +194,7 @@ class Description(object):
         :param required: True if the request will fail if this parameter is not
                          present, False if the parameter is optional.
         :param enum: a fixed list of possible values for the field.
-        :type enum: list
+        :type enum: `list`
         :param strip: For string types, set this to True if the string should be
             stripped of white space.
         :type strip: bool
@@ -380,7 +380,7 @@ class Description(object):
         their responses.
 
         :param reason: The reason or list of reasons why the error occurred.
-        :type reason: str, list, or tuple
+        :type reason: `str, list, or tuple`
         :param code: HTTP status code.
         :type code: int
         """

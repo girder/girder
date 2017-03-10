@@ -98,7 +98,7 @@ class Model(ModelImporter):
         :param level: The required access level for the field.
         :type level: AccessType
         :param fields: A field or list of fields to expose for that level.
-        :type fields: str, list, or tuple
+        :type fields: `str, list, or tuple`
         """
         if isinstance(fields, six.string_types):
             fields = (fields, )
@@ -115,7 +115,7 @@ class Model(ModelImporter):
         :param level: The access level to remove the fields from.
         :type level: AccessType
         :param fields: The field or fields to remove from the white list.
-        :type fields: str, list, or tuple
+        :type fields: `str, list, or tuple`
         """
         if isinstance(fields, six.string_types):
             fields = (fields, )
@@ -135,7 +135,7 @@ class Model(ModelImporter):
         :type user: dict or None
         :param additionalKeys: Any additional keys that should be included in
             the document for this call only.
-        :type additionalKeys: list, tuple, set, or None
+        :type additionalKeys: `list, tuple, set, or None`
         :returns: The filtered document (dict).
         """
         if doc is None:
@@ -230,8 +230,8 @@ class Model(ModelImporter):
         :type timeout: int
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param sort: The sort order.
         :type sort: List of (key, order) tuples.
         :returns: A pymongo database cursor.
@@ -257,8 +257,8 @@ class Model(ModelImporter):
         :type query: dict
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param sort: The sort order.
         :type sort: List of (key, order) tuples.
         :returns: the first object that was found, or None if none found.
@@ -282,8 +282,8 @@ class Model(ModelImporter):
         :type sort: List of (key, order) tuples.
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param filters: Any additional query operators to apply.
         :type filters: dict
         :returns: A pymongo cursor. It is left to the caller to build the
@@ -327,8 +327,8 @@ class Model(ModelImporter):
         :type sort: List of (key, order) tuples.
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param filters: Any additional query operators to apply.
         :type filters: dict
         :param prefixSearchFields: To override the model's prefixSearchFields
@@ -484,8 +484,8 @@ class Model(ModelImporter):
         :type objectId: bool
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param exc: Whether to raise a ValidationException if there is no
                     document with the given id.
         :type exc: bool
@@ -556,8 +556,8 @@ class Model(ModelImporter):
 
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         """
         if fields is None:
             return False
@@ -651,7 +651,7 @@ class AccessControlledModel(Model):
         :type user: dict or None
         :param additionalKeys: Any additional keys that should be included in
             the document for this call only.
-        :type additionalKeys: list, tuple, or None
+        :type additionalKeys: `list, tuple, or None`
         :returns: The filtered document (dict).
         """
         if doc is None:
@@ -682,9 +682,9 @@ class AccessControlledModel(Model):
         Helper to test whether a user has a specific access flag via membership in a group.
 
         :param perms: The group access list (stored under doc['access']['groups'])
-        :type perms: list
+        :type perms: `list`
         :param groupIds: The list of groups that the user belongs to.
-        :type groupIds: list
+        :type groupIds: `list`
         :param flag: The access flag identifier to test.
         :type flag: str
         """
@@ -699,7 +699,7 @@ class AccessControlledModel(Model):
         on a resource.
 
         :param perms: The user access list (stored under doc['access']['users'])
-        :type perms: list
+        :type perms: `list`
         :param userId: The user ID to test.
         :type userId: ObjectId
         :param flag: The access flag identifier to test.
@@ -1201,8 +1201,8 @@ class AccessControlledModel(Model):
         :type force: bool
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param exc: If not found, throw a ValidationException instead of
             returning None.
         :type exc: bool
@@ -1289,7 +1289,7 @@ class AccessControlledModel(Model):
         :type offset: int
         :param removeKeys: List of keys that should be removed from each
                            matching document.
-        :type removeKeys: list
+        :type removeKeys: `list`
         :param flags: A flag or set of flags to test.
         :type flags: flag identifier, or a list/set/tuple of them
         """
@@ -1328,8 +1328,8 @@ class AccessControlledModel(Model):
         :type sort: List of (key, order) tuples
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param level: The access level to require.
         :type level: girder.constants.AccessType
         """
@@ -1360,8 +1360,8 @@ class AccessControlledModel(Model):
         :type sort: List of (key, order) tuples.
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param level: The access level to require.
         :type level: girder.constants.AccessType
         :param prefixSearchFields: To override the model's prefixSearchFields
