@@ -782,41 +782,51 @@ class GirderClient(object):
         """
         offset = 0
         uploadId = uploadObj['_id']
-        while True:
-            chunk = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
 
-            if not chunk:
-                break
+        with self.progressReporterCls(label=uploadObj['name'], length=size) as reporter:
 
-            if isinstance(chunk, six.text_type):
-                chunk = chunk.encode('utf8')
+            class _ProgressBytesIO(six.BytesIO):
+                def read(self, _size):
+                    _chunk = super(_ProgressBytesIO, self).read(_size)
+                    reporter.update(len(_chunk))
+                    return _chunk
 
-            if self.getServerVersion() >= ['2', '2']:
-                uploadObj = self.post(
-                    'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=chunk)
-            else:
-                # Prior to version 2.2 the server only supported multipart uploads
-                parameters = {
-                    'offset': offset,
-                    'uploadId': uploadId
-                }
+            while True:
+                chunk = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
 
-                uploadObj = self.post('file/chunk', parameters=parameters, files={
-                    'chunk': chunk
-                })
+                if not chunk:
+                    break
 
-            if '_id' not in uploadObj:
-                raise Exception(
-                    'After uploading a file chunk, did not receive object with _id. Got instead: ' +
-                    json.dumps(uploadObj))
+                if isinstance(chunk, six.text_type):
+                    chunk = chunk.encode('utf8')
 
-            offset += len(chunk)
+                if self.getServerVersion() >= ['2', '2']:
+                    uploadObj = self.post(
+                        'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
+                        data=_ProgressBytesIO(chunk))
+                else:
+                    # Prior to version 2.2 the server only supported multipart uploads
+                    parameters = {
+                        'offset': offset,
+                        'uploadId': uploadId
+                    }
 
-            if callable(progressCallback):
-                progressCallback({
-                    'current': offset,
-                    'total': size
-                })
+                    uploadObj = self.post('file/chunk', parameters=parameters, files={
+                        'chunk': chunk
+                    })
+
+                if '_id' not in uploadObj:
+                    raise Exception(
+                        'After uploading a file chunk, did not receive object with _id. Got instead: ' +
+                        json.dumps(uploadObj))
+
+                offset += len(chunk)
+
+                if callable(progressCallback):
+                    progressCallback({
+                        'current': offset,
+                        'total': size
+                    })
 
         if offset != size:
             self.delete('file/upload/' + uploadId)
