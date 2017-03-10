@@ -39,9 +39,14 @@ class GirderCli(GirderClient):
         :param password: password to authenticate to Girder instance, leave
             this blank to be prompted.
         """
+        def _progressBar(*args, **kwargs):
+            bar = click.progressbar(*args, **kwargs)
+            bar.bar_template = "[%(bar)s]  %(info)s  %(label)s"
+            return bar
+
         super(GirderCli, self).__init__(
             host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl,
-            progressReporterCls=click.progressbar)
+            progressReporterCls=_progressBar)
         interactive = password is None
 
         if apiKey:
