@@ -16,16 +16,16 @@ function restartServer() {
                     type: 'GET',
                     path: 'system/version',
                     error: null
-                }).done(_.bind(function (resp) {
+                }).done(resp => {
                     if (resp.serverStartDate !== restartServer._lastStartDate) {
                         resolve();
                         restartServer._reloadWindow();
                     } else {
                         window.setTimeout(wait, 1000);
                     }
-                })).error(_.bind(function () {
+                }).error(() => {
                     window.setTimeout(wait, 1000);
-                }));
+                });
             }
             wait();
         });
@@ -34,7 +34,7 @@ function restartServer() {
     return Promise.resolve(restRequest({
         type: 'GET',
         path: 'system/version'
-    }).done(_.bind(function (resp) {
+    }).done(resp => {
         restartServer._lastStartDate = resp.serverStartDate;
         restartServer._callSystemRestart();
         events.trigger('g:alert', {
@@ -44,7 +44,7 @@ function restartServer() {
             timeout: 60000
         });
         return waitForServer();
-    })));
+    }));
 }
 
 function restartServerPrompt() {
