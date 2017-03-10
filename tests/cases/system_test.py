@@ -445,6 +445,15 @@ class SystemTestCase(base.TestCase):
             '=== Last 6 bytes of %s/error.log: ===\n\nworld\n' % logRoot)
 
         resp = self.request(path='/system/log', user=self.users[0], params={
+            'log': 'error',
+            'bytes': 18
+        }, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(
+            self.getBody(resp),
+            '=== Last 18 bytes of %s/error.log: ===\n\nmonde\nHello world\n' % logRoot)
+
+        resp = self.request(path='/system/log', user=self.users[0], params={
             'log': 'info',
             'bytes': 6
         }, isJson=False)
@@ -454,6 +463,60 @@ class SystemTestCase(base.TestCase):
             '=== Last 0 bytes of %s/info.log: ===\n\n' % logRoot)
 
         del config.getConfig()['logging']
+
+    def testLogLevel(self):
+        from girder import logger
+        for handler in logger.handlers:
+            if getattr(handler, '_girderLogHandler') == 'info':
+                infoEmit = handler.emit
+            elif getattr(handler, '_girderLogHandler') == 'error':
+                errorEmit = handler.emit
+        # We should be an info level
+        resp = self.request(path='/system/log/level', user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, 'INFO')
+        levels = [{
+            'level': 'INFO',
+            'debug': (0, 0),
+            'info': (1, 0),
+            'error': (0, 1),
+        }, {
+            'level': 'ERROR',
+            'debug': (0, 0),
+            'info': (0, 0),
+            'error': (0, 1),
+        }, {
+            'level': 'CRITICAL',
+            'debug': (0, 0),
+            'info': (0, 0),
+            'error': (0, 0),
+        }, {
+            'level': 'DEBUG',
+            'debug': (1, 0),
+            'info': (1, 0),
+            'error': (0, 1),
+        }]
+        for levelTest in levels:
+            resp = self.request(
+                method='PUT', path='/system/log/level', user=self.users[0],
+                params={'level': levelTest['level']})
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json, levelTest['level'])
+            resp = self.request(path='/system/log/level', user=self.users[0])
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json, levelTest['level'])
+            for level in ('debug', 'info', 'error'):
+                infoCount, errorCount = infoEmit.call_count, errorEmit.call_count
+                getattr(logger, level)('log entry %s %s' % (
+                    levelTest['level'], level))
+                self.assertEqual(infoEmit.call_count, infoCount + levelTest[level][0])
+                self.assertEqual(errorEmit.call_count, errorCount + levelTest[level][1])
+        # Try to set a bad log level
+        resp = self.request(
+            method='PUT', path='/system/log/level', user=self.users[0],
+            params={'level': 'NOSUCHLEVEL'})
+        self.assertStatus(resp, 400)
+        self.assertIn('Invalid value for level', resp.json['message'])
 
     def testAccessFlags(self):
         resp = self.request('/system/access_flag')

@@ -24,6 +24,7 @@ import girder
 import json
 import six
 import os
+import logging
 
 from girder.api import access
 from girder.constants import SettingKey, TokenScope, ACCESS_FLAGS, VERSION
@@ -57,6 +58,8 @@ class System(Resource):
         self.route('GET', ('check',), self.systemStatus)
         self.route('PUT', ('check',), self.systemConsistencyCheck)
         self.route('GET', ('log',), self.getLog)
+        self.route('GET', ('log', 'level'), self.getLogLevel)
+        self.route('PUT', ('log', 'level'), self.setLogLevel)
         self.route('POST', ('web_build',), self.buildWebCode)
         self.route('GET', ('setting', 'collection_creation_policy', 'access'),
                    self.getCollectionCreationPolicyAccess)
@@ -361,20 +364,66 @@ class System(Resource):
     def getLog(self, bytes, log, params):
         path = girder.getLogPaths()[log]
         filesize = os.path.getsize(path)
-        length = bytes or filesize
+        length = int(bytes) or filesize
+        filesize1 = 0
+        if length > filesize:
+            path1 = path + '.1'
+            if os.path.exists(path1):
+                filesize1 = os.path.getsize(path1)
 
         def stream():
-            yield '=== Last %d bytes of %s: ===\n\n' % (min(length, filesize), path)
+            yield '=== Last %d bytes of %s: ===\n\n' % (
+                min(length, filesize + filesize1), path
+            )
 
+            readlength = length
+            if readlength > filesize and filesize1:
+                readlength = length - filesize
+                with open(path1, 'rb') as f:
+                    if readlength < filesize1:
+                        f.seek(-readlength, os.SEEK_END)
+                    while True:
+                        data = f.read(LOG_BUF_SIZE)
+                        if not data:
+                            break
+                        yield data
+                readlength = filesize
             with open(path, 'rb') as f:
-                if length < filesize:
-                    f.seek(-length, os.SEEK_END)
+                if readlength < filesize:
+                    f.seek(-readlength, os.SEEK_END)
                 while True:
                     data = f.read(LOG_BUF_SIZE)
                     if not data:
                         break
                     yield data
         return stream
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get the current log level.')
+        .notes('Must be a system administrator to call this.')
+        .errorResponse('You are not a system administrator.', 403)
+    )
+    def getLogLevel(self, params):
+        level = girder.logger.getEffectiveLevel()
+        return logging.getLevelName(level)
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get the current log level.')
+        .notes('Must be a system administrator to call this.')
+        .param('level', 'The new level to set.',
+               enum=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
+               default='INFO')
+        .errorResponse('You are not a system administrator.', 403)
+    )
+    def setLogLevel(self, level, params):
+        level = logging.getLevelName(level)
+        for logger in (girder.logger, cherrypy.log.access_log, cherrypy.log.error_log):
+            logger.setLevel(level)
+            for handler in logger.handlers:
+                handler.setLevel(level)
+        return logging.getLevelName(level)
 
     @access.admin
     @autoDescribeRoute(

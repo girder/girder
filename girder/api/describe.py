@@ -24,9 +24,8 @@ import os
 import six
 import cherrypy
 
-from girder import constants
+from girder import constants, logprint
 from girder.api.rest import getCurrentUser, RestException, getBodyJson
-from girder.constants import TerminalColor
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
@@ -155,9 +154,9 @@ class Description(object):
         # by a schema added using addModel(...), we don't know for sure as we
         # don't know the resource name here to look it up.
         elif paramType != 'body':
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter names "%s"' %
-                (dataType, name)))
+                (dataType, name))
 
         # Parameter Object spec:
         # Since the parameter is not located at the request body, it is limited
@@ -165,8 +164,8 @@ class Description(object):
         if paramType != 'body' and dataType not in (
                 'string', 'number', 'integer', 'long', 'boolean', 'array', 'file', 'float',
                 'double', 'date', 'dateTime'):
-            print(TerminalColor.warning(
-                'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name)))
+            logprint.warning(
+                'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name))
 
         if paramType == 'form':
             paramType = 'formData'
