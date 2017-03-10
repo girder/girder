@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import girder
 import girder_client
 import json
 import mock
@@ -625,3 +626,27 @@ class PythonClientTestCase(base.TestCase):
         uploadedFile = self.client.uploadFileToItem(item['_id'], path, filename='g1')
 
         self.assertEqual(uploadedFile['name'], 'g1')
+
+    def testGetServerVersion(self):
+
+        # track system/version API calls
+        hits = []
+
+        @httmock.urlmatch(path=r'.*/system/version$')
+        def mock(url, request):
+            hits.append(url)
+
+        expected_version = girder.constants.VERSION['apiVersion']
+
+        with httmock.HTTMock(mock):
+            self.assertEqual(
+                ".".join(self.client.getServerVersion()), expected_version)
+            self.assertEqual(len(hits), 1)
+
+            self.assertEqual(
+                ".".join(self.client.getServerVersion()), expected_version)
+            self.assertEqual(len(hits), 1)
+
+            self.assertEqual(
+                ".".join(self.client.getServerVersion(useCached=False)), expected_version)
+            self.assertEqual(len(hits), 2)

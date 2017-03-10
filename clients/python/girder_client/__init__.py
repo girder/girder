@@ -234,7 +234,7 @@ class GirderClient(object):
 
     def getServerVersion(self, useCached=True):
         """
-        Fetch server API version. By default, caches the version on this class
+        Fetch server API version. By default, caches the version
         such that future calls to this function do not make another request to
         the server.
 
