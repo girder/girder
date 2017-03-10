@@ -159,7 +159,7 @@ The next recommended action is to enable any plugins you want to run on your ser
 Click the ``Admin console`` navigation link, then click ``Plugins``. Here, you
 can turn plugins on or off. Whenever you change the set of plugins that are
 enabled, you need to press the **Rebuild and restart** button at the top of the 
-Plugins page to rebuild web client and restart the server to apply the change. 
+Plugins page to rebuild the web client and restart the server to apply the change. 
 
 For information about specific plugins, see the :ref:`Plugins <plugins>` section.
 

@@ -60,9 +60,9 @@ are enabled or disabled, a server restart is required in order for the
 change to take effect. 
 
 If you are developing a plugin for girder, sometimes using the Rebuild and restart button 
-on Plugins page may be undesirable as it will rebuild core and all enabled plugins 
-in production mode, which will take some time and doesn't provide sourcemap.
-Rebuild specific plugin restart the server may be a better choice. See `During Development <development.html#during-development>`__ for detail.
+on the Plugins page may be undesirable as it will rebuild core and all enabled plugins 
+in production mode, which will take some time and doesn't provide sourcemaps.
+Rebuild specific plugin restart the server may be a better choice. See `During Development <development.html#during-development>`__ for details.
 
 
 

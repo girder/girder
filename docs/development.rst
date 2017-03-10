@@ -21,7 +21,7 @@ Install front-end web client development dependencies. This will install npm mod
 
     girder-install web --dev
 
-For more options for building web client, run: ::
+For more options for building the web client, run: ::
 
     girder-install web --help
 
@@ -45,7 +45,7 @@ dependencies.
 During Development
 ------------------
 
-Once Girder is started via ``python -m girder``, the server
+Once Girder is started via ``girder-server``, the server
 will reload itself whenever a Python file is modified.
 
 If you are doing front-end development, it's much faster to use a *watch* process to perform
@@ -59,7 +59,7 @@ If you are developing a web client of a plugin, run: ::
 
     girder-install web --watch-plugin your_plugin_name
 
-With ``watch`` option, *sourcemap* will be generated, which helps debugging front-end code in browser.
+With ``watch`` option, *sourcemaps* will be generated, which helps debugging front-end code in browser.
 When you want to end the watch process, press Ctrl+C (or however you would normally terminate a
 process in your terminal).
 
@@ -198,7 +198,7 @@ Client Side Testing
 -------------------
 
 Using the same setup as above for the Server Side Tests, your environment will be set up
-to run client side tests. Running client side is the same as running server side test. Run ::
+The client side tests and server side tests are both harnessed with CTest, so use the following commands to run both ::
 
     cd girder-build
     ctest
