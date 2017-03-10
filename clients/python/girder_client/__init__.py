@@ -746,28 +746,6 @@ class GirderClient(object):
         with open(filepath, 'rb') as f:
             return self._uploadContents(obj, f, filesize, progressCallback=progressCallback)
 
-    def _sendChunk(self, offset, uploadId, chunk):
-        if self._serverSupportsNonMultiPartUpload():
-            obj = self.post(
-                'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=six.BytesIO(chunk))
-        else:
-            # Prior to version 2.2 the server only supported multipart uploads
-            parameters = {
-                'offset': offset,
-                'uploadId': uploadId
-            }
-
-            obj = self.post('file/chunk', parameters=parameters, files={
-                'chunk': chunk
-            })
-
-        if '_id' not in obj:
-            raise Exception(
-                'After uploading a file chunk, did not receive object with _id. Got instead: ' +
-                json.dumps(obj))
-
-        return obj
-
     def _uploadContents(self, uploadObj, stream, size, progressCallback=None):
         """
         Uploads contents of a file.
@@ -796,7 +774,26 @@ class GirderClient(object):
             if isinstance(chunk, six.text_type):
                 chunk = chunk.encode('utf8')
 
-            uploadObj = self._sendChunk(offset, uploadId, chunk)
+            if self._serverSupportsNonMultiPartUpload():
+                uploadObj = self.post(
+                    'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
+                    data=six.BytesIO(chunk))
+            else:
+                # Prior to version 2.2 the server only supported multipart uploads
+                parameters = {
+                    'offset': offset,
+                    'uploadId': uploadId
+                }
+
+                uploadObj = self.post('file/chunk', parameters=parameters, files={
+                    'chunk': chunk
+                })
+
+            if '_id' not in uploadObj:
+                raise Exception(
+                    'After uploading a file chunk, did not receive object with _id. Got instead: ' +
+                    json.dumps(uploadObj))
+
             offset += len(chunk)
 
             if callable(progressCallback):
