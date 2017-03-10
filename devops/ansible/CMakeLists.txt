@@ -26,6 +26,7 @@ foreach (EXAMPLE_DIR ${examples})
     set_tests_properties("ansible_example_${VAGRANT_BOX}_${EXAMPLE_NAME}_vagrant_provision"
       PROPERTIES
       ENVIRONMENT "${VAGRANT_ENV_VARS}"
+      FAIL_REGULAR_EXPRESSION "VM not created."
       RUN_SERIAL ON
       DEPENDS "ansible_example_${VAGRANT_BOX}_${EXAMPLE_NAME}_vagrant_up"
       LABELS girder_ansible)
@@ -35,6 +36,7 @@ foreach (EXAMPLE_DIR ${examples})
       COMMAND ${VAGRANT_EXECUTABLE} destroy -f)
     set_tests_properties("ansible_example_${VAGRANT_BOX}_${EXAMPLE_NAME}_vagrant_destroy"
       PROPERTIES
+      FAIL_REGULAR_EXPRESSION "VM not created."
       RUN_SERIAL ON
       DEPENDS "ansible_example_${VAGRANT_BOX}_${EXAMPLE_NAME}_vagrant_up"
       LABELS girder_ansible)
