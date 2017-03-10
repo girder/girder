@@ -292,6 +292,22 @@ class GirderClient(object):
 
         return self._serverApiDescription
 
+    def _serverSupportsNonMultiPartUpload(self, useCached=True):
+        """
+        Returns whether it supports the more efficient non multipart upload.
+
+        It internally fetches the API server description and check if the
+        ``file/chunk`` endpoint
+
+        :param useCached: Whether to return the previously fetched value. Set
+            to False to force a re-fetch of the description from the server.
+        :type useCached: bool
+        :return: boolean indicating if the server supports the feature or not.
+        """
+        description = self.getServerAPIDescription(useCached)
+        params = description["paths"]["/file/chunk"]["post"]["parameters"]
+        return "chunk" not in [param["name"] for param in params]
+
     def sendRestRequest(self, method, path, parameters=None, data=None, files=None, json=None):
         """
         This method looks up the appropriate method, constructs a request URL
@@ -731,7 +747,10 @@ class GirderClient(object):
             return self._uploadContents(obj, f, filesize, progressCallback=progressCallback)
 
     def _sendChunk(self, offset, uploadId, chunk):
-        if self.getServerVersion() < ['2', '2']:
+        if self._serverSupportsNonMultiPartUpload():
+            obj = self.post(
+                'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=six.BytesIO(chunk))
+        else:
             # Prior to version 2.2 the server only supported multipart uploads
             parameters = {
                 'offset': offset,
@@ -741,9 +760,6 @@ class GirderClient(object):
             obj = self.post('file/chunk', parameters=parameters, files={
                 'chunk': chunk
             })
-        else:
-            obj = self.post(
-                'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=six.BytesIO(chunk))
 
         if '_id' not in obj:
             raise Exception(
