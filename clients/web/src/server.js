@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import { confirm } from 'girder/dialog';
 import events from 'girder/events';
 import { restRequest } from 'girder/rest';
