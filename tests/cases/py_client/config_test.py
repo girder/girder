@@ -91,7 +91,7 @@ class TestConfigScript(unittest.TestCase):
 
         tmpcfg_fd, tmpcfg_fname = tempfile.mkstemp()
         with open(tmpcfg_fname, 'w') as fh:
-            gcfg.GirderConfig().write_config(fh)
+            gcfg.GirderConfig().writeConfig(fh)
 
         info = self._runConfigScript(['-c', tmpcfg_fname, 'set',
                                       'girder_client', 'port', '90'])
