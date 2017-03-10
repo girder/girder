@@ -9,8 +9,11 @@ galaxy_info:
   platforms:
   - name: Ubuntu
     versions:
-    - trusty
-    - xenial
+      - trusty
+      - xenial
+  - name: RedHat
+    versions:
+      - 7
 
   galaxy_tags:
     - girder

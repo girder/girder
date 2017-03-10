@@ -10,7 +10,7 @@ Further documentation on provisioning can be found [here](https://girder.readthe
 Requirements
 ------------
 
-This is intended to be run on a clean Ubuntu 14.04 or 16.04 system.
+Ubuntu 14.04/16.04 or CentOS 7.
 
 Role Variables
 --------------

@@ -1,8 +1,10 @@
 ---
 
 - fail:
-    msg="ansible-role-girder only supports Ubuntu Trusty and Xenial."
-  when: '"{{ ansible_distribution_release }}" not in ["trusty", "xenial"]'
+    msg="ansible-role-girder only supports Ubuntu Trusty/Xenial and Redhat/CentOS 7."
+  when: (ansible_distribution_release != "trusty") and
+        (ansible_distribution_release != "xenial") and
+        (ansible_os_family == "RedHat" and ansible_distribution_major_version != "7")
 
 - name: Ensure girder base directory exists
   file:
@@ -14,8 +16,15 @@
   become: yes
   become_user: root
 
-- include: npm.yml
-  when: "{{ girder_web }}"
+- include: npm-RedHat.yml
+  when:
+    - girder_web
+    - ansible_os_family == "RedHat"
+
+- include: npm-Debian.yml
+  when:
+    - girder_web
+    - ansible_os_family == "Debian"
 
 - name: Install virtualenv
   apt:
@@ -23,7 +32,19 @@
     state: latest
   become: yes
   become_user: root
-  when: girder_virtualenv is defined
+  when:
+    - girder_virtualenv is defined
+    - ansible_os_family == "Debian"
+
+- name: Install virtualenv
+  yum:
+    name: python-virtualenv
+    state: latest
+  become: yes
+  become_user: root
+  when:
+    - girder_virtualenv is defined
+    - ansible_os_family == "RedHat"
 
 - include: girder.yml
 
