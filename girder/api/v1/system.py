@@ -58,6 +58,8 @@ class System(Resource):
         self.route('PUT', ('check',), self.systemConsistencyCheck)
         self.route('GET', ('log',), self.getLog)
         self.route('POST', ('web_build',), self.buildWebCode)
+        self.route('GET', ('setting', 'collection_creation_policy', 'access'),
+                   self.getCollectionCreationPolicyAccess)
 
     @access.admin
     @autoDescribeRoute(
@@ -387,6 +389,35 @@ class System(Resource):
 
         with ProgressContext(progress, user=user, title='Building web client code') as progress:
             install.runWebBuild(dev=dev, progress=progress)
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get access of content creation policy.')
+        .notes('Get result in the same structure as the access endpoints'
+               'of collection, file, and group')
+    )
+    def getCollectionCreationPolicyAccess(self, params):
+        cpp = self.model('setting').get('core.collection_create_policy')
+
+        acList = {
+            'users': [{'id': x} for x in cpp.get('users', [])],
+            'groups': [{'id': x} for x in cpp.get('groups', [])]
+        }
+
+        for user in acList['users'][:]:
+            userDoc = self.model('user').load(
+                user['id'], force=True,
+                fields=['firstName', 'lastName', 'login'])
+            user['login'] = userDoc['login']
+            user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
+
+        for grp in acList['groups'][:]:
+            grpDoc = self.model('group').load(
+                grp['id'], force=True, fields=['name', 'description'])
+            grp['name'] = grpDoc['name']
+            grp['description'] = grpDoc['description']
+
+        return acList
 
     def _fixBaseParents(self, progress):
         fixes = 0

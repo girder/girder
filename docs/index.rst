@@ -1,6 +1,28 @@
 Girder: a data management platform
 ==================================
 
+|build-status| |license-badge| |gitter-badge| |codecov-badge| |github-badge|
+
+.. |build-status| image:: https://circleci.com/gh/girder/girder.png?style=shield
+    :target: https://circleci.com/gh/girder/girder
+    :alt: Build Status
+
+.. |license-badge| image:: https://raw.githubusercontent.com/girder/girder/master/docs/license.png
+    :target: https://pypi.python.org/pypi/girder
+    :alt: License
+
+.. |gitter-badge| image:: https://badges.gitter.im/Join Chat.svg
+    :target: https://gitter.im/girder/girder?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+    :alt: Gitter Chat
+
+.. |codecov-badge| image:: https://img.shields.io/codecov/c/github/girder/girder.svg
+    :target: https://codecov.io/gh/girder/girder
+    :alt: Coverage Status
+
+.. |github-badge| image:: https://img.shields.io/github/stars/girder/girder.svg?style=social&label=GitHub
+    :target: https://github.com/girder/girder
+    :alt: GitHub
+
 What is Girder?
 ---------------
 

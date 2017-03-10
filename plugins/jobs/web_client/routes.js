@@ -22,3 +22,9 @@ router.route('jobs/user/:id', 'jobList', function (id) {
         filter: {userId: id}
     });
 });
+
+router.route('jobs', 'allJobList', function () {
+    events.trigger('g:navigateTo', JobListWidget, {
+        allJobsMode: true
+    });
+});

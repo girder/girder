@@ -285,8 +285,7 @@ class TasksTest(base.TestCase):
         self.assertIn('itemTaskTempToken', job)
 
         from girder.plugins.jobs.constants import JobStatus
-        job['status'] = JobStatus.SUCCESS
-        job = jobModel.save(job)
+        job = jobModel.updateJob(job, status=JobStatus.SUCCESS)
 
         self.assertNotIn('itemTaskTempToken', job)
         self.assertIn('itemTaskBindings', job)

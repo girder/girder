@@ -24,21 +24,26 @@ var JobListWidget = View.extend({
 
     initialize: function (settings) {
         var currentUser = getCurrentUser();
+        this.showAllJobs = !!settings.allJobsMode;
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
         this.filter = settings.filter || {
-            userId: currentUser.id
+            userId: currentUser ? currentUser.id : null
         };
         this.typeFilter = {};
         this.statusFilter = {};
 
         this.collection = new JobCollection();
+        if (this.showAllJobs) {
+            this.collection.resourceName = 'job/all';
+        }
         this.collection.sortField = settings.sortField || 'created';
         this.collection.sortDir = settings.sortDir || SORT_DESC;
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
         this.collection.on('g:changed', function () {
             this.render();
-        }, this).fetch(this.filter);
+        }, this)
+        .fetch(!this.showAllJobs ? this.filter : undefined);
 
         this.showHeader = _.has(settings, 'showHeader') ? settings.showHeader : true;
         this.showPaging = _.has(settings, 'showPaging') ? settings.showPaging : true;
@@ -85,19 +90,7 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        var jobs = this._filterJobs(this.collection.toArray()), types, states;
-
-        this.$el.html(JobListWidgetTemplate({
-            jobs: jobs,
-            showHeader: this.showHeader,
-            columns: this.columns,
-            columnEnum: this.columnEnum,
-            linkToJob: this.linkToJob,
-            triggerJobClick: this.triggerJobClick,
-            JobStatus: JobStatus,
-            formatDate: formatDate,
-            DATE_SECOND: DATE_SECOND
-        }));
+        var jobs, types, states;
 
         types = _.uniq(this.collection.toArray().map(function (job) {
             return job.attributes.type ? job.attributes.type : '';
@@ -111,6 +104,20 @@ var JobListWidget = View.extend({
         }));
         this._updateFilter(this.statusFilter, states);
         this.filterStatusMenuWidget.setValues(this.statusFilter);
+
+        jobs = this._filterJobs(this.collection.toArray());
+
+        this.$el.html(JobListWidgetTemplate({
+            jobs: jobs,
+            showHeader: this.showHeader,
+            columns: this.columns,
+            columnEnum: this.columnEnum,
+            linkToJob: this.linkToJob,
+            triggerJobClick: this.triggerJobClick,
+            JobStatus: JobStatus,
+            formatDate: formatDate,
+            DATE_SECOND: DATE_SECOND
+        }));
 
         this.filterTypeMenuWidget.setElement(this.$('.g-job-type-header')).render();
         this.filterStatusMenuWidget.setElement(this.$('.g-job-status-header')).render();

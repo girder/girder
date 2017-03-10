@@ -1,6 +1,7 @@
 {
     "name": "DICOM Viewer",
     "description": "View DICOM images in the browser",
+    "url": "http://girder.readthedocs.io/en/latest/plugins.html#dicom-viewer",
     "version": "0.1.0",
     "npm": {
         "dependencies": {

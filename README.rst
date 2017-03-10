@@ -1,7 +1,13 @@
-|logo| Girder |build-status| |docs-status| |license-badge| |gitter-badge|
-=========================================================================
+|logo| Girder |build-status| |docs-status| |license-badge| |gitter-badge| |codecov-badge|
+=========================================================================================
 
 **Data Management Platform**
+
+Girder is a free and open source web-based data management platform developed by
+`Kitware <https://kitware.com>`_ as part of the `Resonant <http://resonant.kitware.com>`_
+data and analytics ecosystem.
+
+|kitware-logo|
 
 Documentation of the Girder platform can be found at
 https://girder.readthedocs.io.
@@ -12,6 +18,10 @@ For questions, comments, or to get in touch with the maintainers, head to our `G
 We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
 
 .. |logo| image:: clients/web/static/img/Girder_Favicon.png
+
+.. |kitware-logo| image:: https://www.kitware.com/img/small_logo_over.png
+    :target: https://kitware.com
+    :alt: Kitware Logo
 
 .. |build-status| image:: https://circleci.com/gh/girder/girder.png?style=shield
     :target: https://circleci.com/gh/girder/girder
@@ -28,3 +38,7 @@ We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
 .. |gitter-badge| image:: https://badges.gitter.im/Join Chat.svg
     :target: https://gitter.im/girder/girder?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
     :alt: Gitter Chat
+
+.. |codecov-badge| image:: https://img.shields.io/codecov/c/github/girder/girder.svg
+    :target: https://codecov.io/gh/girder/girder
+    :alt: Coverage Status

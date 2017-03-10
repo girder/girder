@@ -39,6 +39,11 @@ describe('Create an admin and non-admin user', function () {
     it('No admin console when logging in as a normal user', function () {
         expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
+
+    it('go to groups page', girderTest.goToGroupsPage());
+
+    it('Create a public group',
+       girderTest.createGroup('pubGroup', 'public group', true));
 });
 
 describe('Test the settings page', function () {
@@ -99,21 +104,65 @@ describe('Test the settings page', function () {
     });
     it('Use search to update collection create policy', function () {
         runs(function () {
+            $('.g-collection-create-policy-container .g-plugin-switch').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container .g-grant-access-container').length > 0;
+        }, 'access widget to load');
+
+        runs(function () {
             $('.g-collection-create-policy-container .g-search-field').val('admin')
                 .trigger('input');
         });
 
         waitsFor(function () {
             return $('.g-collection-create-policy-container .g-search-result').length > 0;
-        }, 'search result to appear');
+        }, 'search result to appear for a user');
 
         runs(function () {
             $('.g-collection-create-policy-container .g-search-result>a').click();
         });
 
         waitsFor(function () {
-            return JSON.parse($('#g-core-collection-create-policy').val()).users.length === 1;
-        }, 'policy value to update');
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users').children().length === 1;
+        }, 'access list to populate with one user');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-search-field').val('pubGroup').trigger('input');
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .g-search-result .icon-users').length > 0;
+        }, 'search result to appear for a group');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-search-result>a').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-groups').children().length === 1;
+        }, 'access list to populate with one group');
+
+        runs(function () {
+            $('.g-submit-settings').click();
+        });
+
+        runs(function () {
+            $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users .g-user-access-entry .icon-cancel').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users').children().length === 0;
+        }, 'policy value to be cleared');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-plugin-switch').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container .g-grant-access-container').length === 0;
+        }, 'access widget unload');
     });
 
     it('logout and check for redirect to front page from settings page', function () {
