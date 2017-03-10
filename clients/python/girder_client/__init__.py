@@ -166,7 +166,7 @@ class GirderClient(object):
         self.token = ''
         self._folderUploadCallbacks = []
         self._itemUploadCallbacks = []
-        self._serverVersion = None
+        self._serverApiDescription = {}
         self.incomingMetadata = {}
         self.localMetadata = {}
 
@@ -243,10 +243,54 @@ class GirderClient(object):
         :type useCached: bool
         :return: The API version as a list (e.g. ``['1', '0', '0']``)
         """
-        if not self._serverVersion or not useCached:
-            self._serverVersion = self.get('system/version')['apiVersion'].split('.')
+        return self.getServerAPIDescription(useCached)["info"]["version"].split('.')
 
-        return self._serverVersion
+    def getServerAPIDescription(self, useCached=True):
+        """
+        Fetch server RESTful API description.
+
+        :param useCached: Whether to return the previously fetched value. Set
+            to False to force a re-fetch of the description from the server.
+        :type useCached: bool
+        :return: The API descriptions as a dict.
+
+        For example: ::
+
+            {
+                "basePath": "/api/v1",
+                "definitions": {},
+                "host": "girder.example.com",
+                "info": {
+                    "title": "Girder REST API",
+                    "version": "X.Y.Z"
+                },
+                "paths": {
+                    "/api_key": {
+                        "get": {
+                            "description": "Only site administrators [...]",
+                            "operationId": "api_key_listKeys",
+                            "parameters": [
+                                {
+                                    "description": "ID of the user whose keys to list.",
+                                    "in": "query",
+                                    "name": "userId",
+                                    "required": false,
+                                    "type": "string"
+                                },
+                                ...
+                            ]
+                        }.
+                        ...
+                    }
+                ...
+                }
+            }
+
+        """
+        if not self._serverApiDescription or not useCached:
+            self._serverApiDescription = self.get('describe')
+
+        return self._serverApiDescription
 
     def sendRestRequest(self, method, path, parameters=None, data=None, files=None, json=None):
         """

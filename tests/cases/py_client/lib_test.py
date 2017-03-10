@@ -629,10 +629,10 @@ class PythonClientTestCase(base.TestCase):
 
     def testGetServerVersion(self):
 
-        # track system/version API calls
+        # track describe API calls
         hits = []
 
-        @httmock.urlmatch(path=r'.*/system/version$')
+        @httmock.urlmatch(path=r'.*/describe$')
         def mock(url, request):
             hits.append(url)
 
@@ -649,4 +649,30 @@ class PythonClientTestCase(base.TestCase):
 
             self.assertEqual(
                 ".".join(self.client.getServerVersion(useCached=False)), expected_version)
+            self.assertEqual(len(hits), 2)
+
+    def testGetServerAPIDescription(self):
+
+        # track system/version APIi calls
+        hits = []
+
+        @httmock.urlmatch(path=r'.*/describe$')
+        def mock(url, request):
+            hits.append(url)
+
+        def checkDescription(description):
+            self.assertEqual(description["basePath"], "/api/v1")
+            self.assertEqual(description["definitions"], {})
+            self.assertEqual(description["info"]["title"], "Girder REST API")
+            self.assertEqual(description["info"]["version"], girder.constants.VERSION['apiVersion'])
+            self.assertGreater(len(description["paths"]), 0)
+
+        with httmock.HTTMock(mock):
+            checkDescription(self.client.getServerAPIDescription())
+            self.assertEqual(len(hits), 1)
+
+            checkDescription(self.client.getServerAPIDescription())
+            self.assertEqual(len(hits), 1)
+
+            checkDescription(self.client.getServerAPIDescription(useCached=False))
             self.assertEqual(len(hits), 2)
