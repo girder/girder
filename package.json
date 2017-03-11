@@ -44,7 +44,7 @@
     "json-loader": "^0.5.4",
     "jsoneditor": "4.1.2",
     "nib": "^1.1.0",
-    "remarkable": "1.6.2",
+    "remarkable": "1.7.1",
     "sprintf-js": "1.0.x",
     "style-loader": "^0.13.1",
     "stylus": "^0.54.5",
