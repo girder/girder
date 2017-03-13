@@ -89,6 +89,8 @@ class HttpError(Exception):
 
 
 class _NoopProgressReporter(object):
+    reportProgress = False
+
     def __init__(self, label='', length=0):
         self.label = label
         self.length = length
@@ -1301,7 +1303,8 @@ class GirderClient(object):
         :param reuseExisting: boolean indicating whether to accept an existing item
             of the same name in the same location, or create a new one instead
         """
-        print('Uploading Item from %s' % localFile)
+        if not self.progressReporterCls.reportProgress:
+            print('Uploading Item from %s' % localFile)
         if not dryRun:
             currentItem = self.loadOrCreateItem(
                 os.path.basename(localFile), parentFolderId, reuseExisting)
