@@ -42,11 +42,14 @@ environments should consider using other packages that help manage them such as
 Sources
 -------
 
-Girder can be installed from two sources, **pip** or **git repository**.
-Installing from pip gives you latest distributed version. Installing from git would be more suitable for development or to have a specific version.
+Girder can be installed either from the `Python Package Index (pypi) <https://pypi.python.org/pypi>`_
+or via a `Git <https://git-scm.com/>`_ repository.
+Installing from pypi gives you the latest distributed version. Installing from git would be
+more suitable for development or to have a specific commit, or to use the latest Girder
+features before they are released in official packages.
 
-Install with pip
-++++++++++++++++
+Install from pypi
++++++++++++++++++
 
 To install the Girder distribution from the python package index, simply run ::
 
@@ -92,8 +95,8 @@ plugins supported in the current python environment called ``plugins``: ::
 
 .. _extras: https://packaging.python.org/en/latest/installing/#installing-setuptools-extras
 
-Install from Git Checkout
-+++++++++++++++++++++++++
+Install from Git repository
++++++++++++++++++++++++++++
 
 Obtain the Girder source code by cloning the Git repository on
 `GitHub <https://github.com>`_: ::
@@ -158,8 +161,8 @@ Enable Plugins
 The next recommended action is to enable any plugins you want to run on your server.
 Click the ``Admin console`` navigation link, then click ``Plugins``. Here, you
 can turn plugins on or off. Whenever you change the set of plugins that are
-enabled, you need to press the **Rebuild and restart** button at the top of the 
-Plugins page to rebuild the web client and restart the server to apply the change. 
+enabled, you need to press the **Rebuild and restart** button at the top of the
+Plugins page to rebuild the web client and restart the server to apply the change.
 
 For information about specific plugins, see the :ref:`Plugins <plugins>` section.
 
