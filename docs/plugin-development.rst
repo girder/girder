@@ -57,7 +57,14 @@ The contents of plugin.json for our example will be:
 This information will appear in the web client administration console, and
 administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart is required in order for the
-change to take effect.
+change to take effect. 
+
+If you are developing a plugin for girder, sometimes using the Rebuild and restart button 
+on the Plugins page may be undesirable as it will rebuild core and all enabled plugins 
+in production mode, which will take some time and doesn't provide sourcemaps.
+Rebuild specific plugin restart the server may be a better choice. See `During Development <development.html#during-development>`__ for details.
+
+
 
 Extending the Server-Side Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
