@@ -890,10 +890,11 @@ class FileTestCase(base.TestCase):
         moto.s3.models.UPLOAD_PART_MIN_SIZE = 5
 
         # Send the second chunk
-        files = [('chunk', 'hello.txt', chunk2)]
-        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                'offset': resp.json['offset'],
+                'uploadId': uploadId
+            }, type='text/plain')
         self.assertStatusOk(resp)
 
         file = resp.json
