@@ -52,7 +52,6 @@ import hierarchyMenuModTemplate from './templates/hierarchyMenuMod.pug';
 wrap(HierarchyWidget, 'render', function (render) {
     render.call(this);
     this.$('.g-folder-actions-menu .dropdown-header').after(hierarchyMenuModTemplate({
-        _: _,
         parentType: this.parentModel.get('_modelType'),
         currentUser: getCurrentUser()
     }));
