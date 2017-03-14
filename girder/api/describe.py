@@ -534,14 +534,16 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         :type kwargs: dict
         :param val: The value of the argument to set
         """
-        if name in fun._fnArgs:
+        if name in fun._fnArgs or fun._fnKeywds is not None:
             kwargs[name] = val
             kwargs['params'].pop(name, None)
         else:
             kwargs['params'][name] = val
 
     def __call__(self, fun):
-        fun._fnArgs = set(inspect.getargspec(fun).args)
+        fnInfo = inspect.getargspec(fun)
+        fun._fnArgs = set(fnInfo.args)
+        fun._fnKeywds = fnInfo.keywords
 
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
@@ -593,8 +595,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                         self._passArg(fun, kwargs, name, None)
 
             if self.description.hasPagingParams and 'sort' in kwargs:
-                kwargs['sort'] = [(kwargs['sort'], kwargs['params']['sortdir'])]
-                del kwargs['params']['sortdir']
+                sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
+                kwargs['sort'] = [(kwargs['sort'], sortdir)]
 
             return fun(*args, **kwargs)
 
