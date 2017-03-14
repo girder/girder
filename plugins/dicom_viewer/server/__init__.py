@@ -9,8 +9,6 @@ from girder.utility.model_importer import ModelImporter
 import dicom
 import six
 
-MAX_FILE_SIZE = 1024 * 1024 * 5
-
 
 class DicomItem(Resource):
 
@@ -70,21 +68,20 @@ def coerce(x):
 def process_file(f):
     data = {}
     try:
-        if f['size'] <= MAX_FILE_SIZE:
-            # download file and try to parse dicom
-            with ModelImporter.model('file').open(f) as fp:
-                ds = dicom.read_file(fp, stop_before_pixels=True)
-                # human-readable keys
-                for key in ds.dir():
-                    value = coerce(ds.data_element(key).value)
-                    if value is not None:
-                        data[key] = value
-                # hex keys
-                for key, value in ds.items():
-                    key = 'x%04x%04x' % (key.group, key.element)
-                    value = coerce(value.value)
-                    if value is not None:
-                        data[key] = value
+        # download file and try to parse dicom
+        with ModelImporter.model('file').open(f) as fp:
+            ds = dicom.read_file(fp, stop_before_pixels=True)
+            # human-readable keys
+            for key in ds.dir():
+                value = coerce(ds.data_element(key).value)
+                if value is not None:
+                    data[key] = value
+            # hex keys
+            for key, value in ds.items():
+                key = 'x%04x%04x' % (key.group, key.element)
+                value = coerce(value.value)
+                if value is not None:
+                    data[key] = value
     except Exception:
         pass
     # store dicom data in file
