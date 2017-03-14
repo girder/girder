@@ -19,6 +19,7 @@
 
 import bson.json_util
 import dateutil.parser
+import inspect
 import jsonschema
 import os
 import six
@@ -519,7 +520,31 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         super(autoDescribeRoute, self).__init__(description=description)
         self.hide = hide
 
+    def _passArg(self, fun, kwargs, name, val):
+        """
+        This helper passes the arguments to the underlying function if the function
+        has an argument with the given name. Otherwise, it adds it into the "params"
+        argument, which is a dictionary containing other parameters.
+
+        :param fun: The wrapped route handler function
+        :type fun: callable
+        :param name: The name of the argument to set
+        :type name: str
+        :param kwargs: The arguments to be passed down to the function.
+        :type kwargs: dict
+        :param val: The value of the argument to set
+        """
+        if name in fun._fnArgs or fun._fnKeywds is not None:
+            kwargs[name] = val
+            kwargs['params'].pop(name, None)
+        else:
+            kwargs['params'][name] = val
+
     def __call__(self, fun):
+        fnInfo = inspect.getargspec(fun)
+        fun._fnArgs = set(fnInfo.args)
+        fun._fnKeywds = fnInfo.keywords
+
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
             """
@@ -531,7 +556,6 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             params.update(kwargs.get('params', {}))
 
             for descParam in self.description.params:
-
                 # We need either a type or a schema ( for message body )
                 if 'type' not in descParam and 'schema' not in descParam:
                     continue
@@ -539,23 +563,26 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 if name in params:
                     if name in self.description.jsonParams:
                         info = self.description.jsonParams[name]
-                        kwargs[name] = self._loadJson(name, info, params[name])
+                        val = self._loadJson(name, info, params[name])
+                        self._passArg(fun, kwargs, name, val)
                     elif name in self.description.modelParams:
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
-                        kwargs[info['destName']] = self._loadModel(name, info, params[name])
+                        val = self._loadModel(name, info, params[name])
+                        self._passArg(fun, kwargs, info['destName'], val)
                     else:
-                        kwargs[name] = self._validateParam(name, descParam, params[name])
-                    kwargs['params'].pop(name, None)  # Remove from form/query params
+                        val = self._validateParam(name, descParam, params[name])
+                        self._passArg(fun, kwargs, name, val)
                 elif descParam['in'] == 'body':
                     if name in self.description.jsonParams:
                         info = self.description.jsonParams[name].copy()
                         info['required'] = descParam['required']
-                        kwargs[name] = self._loadJsonBody(name, info)
+                        val = self._loadJsonBody(name, info)
+                        self._passArg(fun, kwargs, name, val)
                     else:
-                        kwargs[name] = cherrypy.request.body
+                        self._passArg(fun, kwargs, name, cherrypy.request.body)
                 elif 'default' in descParam:
-                    kwargs[name] = descParam['default']
+                    self._passArg(fun, kwargs, name, descParam['default'])
                 elif descParam['required']:
                     raise RestException('Parameter "%s" is required.' % name)
                 else:
@@ -563,13 +590,13 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     if name in self.description.modelParams:
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
-                        kwargs[info['destName']] = None
+                        self._passArg(fun, kwargs, info['destName'], None)
                     else:
-                        kwargs[name] = None
+                        self._passArg(fun, kwargs, name, None)
 
             if self.description.hasPagingParams and 'sort' in kwargs:
-                kwargs['sort'] = [(kwargs['sort'], kwargs['sortdir'])]
-                del kwargs['sortdir']
+                sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
+                kwargs['sort'] = [(kwargs['sort'], sortdir)]
 
             return fun(*args, **kwargs)
 

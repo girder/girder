@@ -238,6 +238,7 @@ class ApiDescribeTestCase(base.TestCase):
                 self.route('GET', ('model_param_flags',), self.hasModelParamFlags)
                 self.route('GET', ('model_param_query',), self.hasModelQueryParam)
                 self.route('GET', ('json_schema',), self.hasJsonSchema)
+                self.route('GET', ('missing_arg',), self.hasMissingArg)
 
             @access.public
             @describe.autoDescribeRoute(
@@ -325,6 +326,14 @@ class ApiDescribeTestCase(base.TestCase):
             )
             def hasJsonSchema(self, obj, params):
                 return obj
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('has_missing_arg')
+                .param('foo', '')
+            )
+            def hasMissingArg(self, params):
+                return params
 
         server.root.api.v1.auto_describe = AutoDescribe()
 
@@ -518,3 +527,10 @@ class ApiDescribeTestCase(base.TestCase):
         })
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, obj)
+
+        # Test missing arg in wrapped function, should fall through to params dict
+        resp = self.request('/auto_describe/missing_arg', params={
+            'foo': 'bar'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, {'foo': 'bar'})
