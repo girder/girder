@@ -72,20 +72,19 @@ def process_file(f):
     try:
         if f['size'] <= MAX_FILE_SIZE:
             # download file and try to parse dicom
-            stream = ModelImporter.model('file').download(f, headers=False)
-            fp = six.BytesIO(b''.join(stream()))
-            ds = dicom.read_file(fp, stop_before_pixels=True)
-            # human-readable keys
-            for key in ds.dir():
-                value = coerce(ds.data_element(key).value)
-                if value is not None:
-                    data[key] = value
-            # hex keys
-            for key, value in ds.items():
-                key = 'x%04x%04x' % (key.group, key.element)
-                value = coerce(value.value)
-                if value is not None:
-                    data[key] = value
+            with ModelImporter.model('file').open(f) as fp:
+                ds = dicom.read_file(fp, stop_before_pixels=True)
+                # human-readable keys
+                for key in ds.dir():
+                    value = coerce(ds.data_element(key).value)
+                    if value is not None:
+                        data[key] = value
+                # hex keys
+                for key, value in ds.items():
+                    key = 'x%04x%04x' % (key.group, key.element)
+                    value = coerce(value.value)
+                    if value is not None:
+                        data[key] = value
     except Exception:
         pass
     # store dicom data in file
