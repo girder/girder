@@ -9,8 +9,6 @@ from girder.utility.model_importer import ModelImporter
 import dicom
 import six
 
-MAX_FILE_SIZE = 1024 * 1024 * 5
-
 
 class DicomItem(Resource):
 
@@ -70,10 +68,8 @@ def coerce(x):
 def process_file(f):
     data = {}
     try:
-        if f['size'] <= MAX_FILE_SIZE:
-            # download file and try to parse dicom
-            stream = ModelImporter.model('file').download(f, headers=False)
-            fp = six.BytesIO(b''.join(stream()))
+        # download file and try to parse dicom
+        with ModelImporter.model('file').open(f) as fp:
             ds = dicom.read_file(fp, stop_before_pixels=True)
             # human-readable keys
             for key in ds.dir():
