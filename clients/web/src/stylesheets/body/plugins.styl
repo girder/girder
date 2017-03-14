@@ -4,10 +4,25 @@ $warnColor = #f0ad4e
 
 .g-rebuild-container
   display inline
-  button
+  button.g-rebuild-and-restart
     float right
+    transition all 0.35s ease-in-out
+    transition-property background-color border-color
   .g-clear
     clear both
+
+.g-plugin-rebuild-restart-text
+  padding-top 7px
+  font-size 14px
+  text-align right
+  overflow hidden
+  visibility hidden
+  max-height 0px
+  transition max-height 0.35s ease-in-out
+
+  &.show
+    visibility visible
+    max-height 45px
 
 .g-plugin-list-container
   border 1px solid #e2e2e2
@@ -55,26 +70,6 @@ $warnColor = #f0ad4e
       font-family fontello
     .bootstrap-switch-handle-on, .bootstrap-switch-handle-off
       word-wrap normal
-
-.g-plugin-restart
-  visibility hidden
-  max-height 0px
-  transition max-height 0.35s ease-in-out
-  overflow hidden
-  margin-top 9px
-
-  button.g-plugin-restart-button
-    float right
-  .g-plugin-restart-text
-    padding-top 7px
-    font-size 14px
-  .g-plugin-clear
-    clear right
-
-  &.g-plugin-restart-show
-    visibility visible
-    max-height 40px
-
 
 .g-plugin-config-breadcrumbs > ol.breadcrumb
   padding 6px 10px

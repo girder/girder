@@ -19,13 +19,13 @@
 
 import bson.json_util
 import dateutil.parser
+import jsonschema
 import os
 import six
 import cherrypy
 
-from girder import constants
+from girder import constants, logprint
 from girder.api.rest import getCurrentUser, RestException, getBodyJson
-from girder.constants import TerminalColor
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
@@ -154,9 +154,9 @@ class Description(object):
         # by a schema added using addModel(...), we don't know for sure as we
         # don't know the resource name here to look it up.
         elif paramType != 'body':
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter names "%s"' %
-                (dataType, name)))
+                (dataType, name))
 
         # Parameter Object spec:
         # Since the parameter is not located at the request body, it is limited
@@ -164,8 +164,8 @@ class Description(object):
         if paramType != 'body' and dataType not in (
                 'string', 'number', 'integer', 'long', 'boolean', 'array', 'file', 'float',
                 'double', 'date', 'dateTime'):
-            print(TerminalColor.warning(
-                'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name)))
+            logprint.warning(
+                'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name))
 
         if paramType == 'form':
             paramType = 'formData'
@@ -194,7 +194,7 @@ class Description(object):
         :param required: True if the request will fail if this parameter is not
                          present, False if the parameter is optional.
         :param enum: a fixed list of possible values for the field.
-        :type enum: list
+        :type enum: `list`
         :param strip: For string types, set this to True if the string should be
             stripped of white space.
         :type strip: bool
@@ -310,7 +310,7 @@ class Description(object):
         return self
 
     def jsonParam(self, name, description, paramType='query', dataType='string', required=True,
-                  default=None, requireObject=False, requireArray=False):
+                  default=None, requireObject=False, requireArray=False, schema=None):
         """
         Specifies a parameter that should be processed as JSON.
 
@@ -318,14 +318,22 @@ class Description(object):
         :type requireObject: bool
         :param requireArray: Whether the value must be a JSON array / Python list.
         :type requireArray: bool
+        :param schema: A JSON schema that will be used to validate the parameter value. If
+            this is passed, it overrides any ``requireObject`` or ``requireArray`` values
+            that were passed.
+        :type schema: dict
         """
+        if default:
+            default = bson.json_util.dumps(default)
+
         self.param(
             name=name, description=description, paramType=paramType, dataType=dataType,
             required=required, default=default)
 
         self.jsonParams[name] = {
             'requireObject': requireObject,
-            'requireArray': requireArray
+            'requireArray': requireArray,
+            'schema': schema
         }
 
         return self
@@ -372,7 +380,7 @@ class Description(object):
         their responses.
 
         :param reason: The reason or list of reasons why the error occurred.
-        :type reason: str, list, or tuple
+        :type reason: `str, list, or tuple`
         :param code: HTTP status code.
         :type code: int
         """
@@ -454,7 +462,7 @@ class Describe(Resource):
 
                 paths[route] = pathItem
 
-        apiUrl = getApiUrl()
+        apiUrl = getApiUrl(preferReferer=True)
         urlParts = getUrlParts(apiUrl)
         host = urlParts.netloc
         basePath = urlParts.path
@@ -572,9 +580,15 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         return wrapped
 
     def _validateJsonType(self, name, info, val):
-        if info['requireObject'] and not isinstance(val, dict):
+        if info.get('schema') is not None:
+            try:
+                jsonschema.validate(val, info['schema'])
+            except jsonschema.ValidationError as e:
+                raise RestException('Invalid JSON object for parameter %s: %s' % (
+                    name, e.message))
+        elif info['requireObject'] and not isinstance(val, dict):
             raise RestException('Parameter %s must be a JSON object.' % name)
-        if info['requireArray'] and not isinstance(val, list):
+        elif info['requireArray'] and not isinstance(val, list):
             raise RestException('Parameter %s must be a JSON array.' % name)
 
     def _loadJsonBody(self, name, info):

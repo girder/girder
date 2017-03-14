@@ -54,14 +54,15 @@ function handleOpen(name, options, nameId) {
 
 /**
  * Prompt the user to confirm an action.
- * @param [text] The text to prompt the user with.
- * @param [yesText] The text for the confirm button.
- * @param [yesClass] Class string to apply to the confirm button.
- * @param [noText] The text for the no/cancel button.
- * @param [escapedHtml] If you want to render the text as HTML rather than
+ * @param {Object} [params] Parameters controlling this function's behavior.
+ * @param {String} [params.text] The text to prompt the user with.
+ * @param {String} [params.yesText] The text for the confirm button.
+ * @param {String} [params.yesClass] Class string to apply to the confirm button.
+ * @param {String} [params.noText] The text for the no/cancel button.
+ * @param {Boolean} [params.escapedHtml] If you want to render the text as HTML rather than
  *        plain text, set this to true to acknowledge that you have escaped any
  *        user-created data within the text to prevent XSS exploits.
- * @param confirmCallback Callback function when the user confirms the action.
+ * @param {Function} [params.confirmCallback]Callback function when the user confirms the action.
  */
 function confirm(params) {
     params = _.extend({

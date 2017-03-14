@@ -114,6 +114,9 @@ $(function () {
         it('Show a job list widget.', function () {
             var jobs, rows;
 
+            girderTest.createUser(
+                'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
+
             runs(function () {
                 jobs = _.map([1, 2, 3], function (i) {
                     return new girder.plugins.jobs.models.JobModel({
@@ -454,5 +457,41 @@ $(function () {
               expect(fired).toBe(true);
           });
       });
+
+        it('job list widget in all jobs mode', function () {
+            var jobs, widget;
+
+            runs(function () {
+
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    parentView: app,
+                    filter: {},
+                    allJobsMode: true
+                });
+
+                expect(widget.collection.resourceName).toEqual('job/all');
+
+                girderTest.logout('logout from admin')();
+
+                girderTest.createUser(
+                'user1', 'user@email.com', 'Quota', 'User', 'testpassword')();
+            });
+
+            girderTest.waitForLoad();
+
+            runs(function () {
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    parentView: app,
+                    allJobsMode: true
+                });
+            });
+            girderTest.waitForLoad();
+
+            runs(function () {
+                expect(widget.$('.g-jobs-list-table').length).toEqual(0);
+            });
+        });
     });
 });

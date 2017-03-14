@@ -22,6 +22,26 @@ error and info will be set to error.log and info.log within `log_root`
 respectively. The `_log_file` variables will override that setting and are
 *absolute* paths.
 
+Log files are written to until they reach a specified size.  They are then
+rotated, keeping a number of files before the oldest file is deleted.  The size
+of the files can be set via the `log_max_size` setting.  This is either an
+integer value in bytes or a string with a integer value followed by a 'kb',
+'Mb', or 'Gb' suffix.  The number of files can be adjusted using the
+`log_backup_count` setting.
+
+By default, http accesses are logged just to stdout  The `log_access` setting
+is a list of where http accesses are logged that can include 'screen' and
+'info'.  An empty list will stop logging http accesses.
+
+Girder logs various errors and information a different log levels.  The default
+log level is 'INFO', and can be adjusted by the `log_level` setting.  Valid
+choices in increasing order of verbosity include 'CRITICAL', 'ERROR',
+'WARNING', 'INFO', and 'DEBUG'.
+
+Setting `log_quiet` to True will suppress all output to stdout (even http
+access logs if specified in `log_access`).  Information will still be sent to
+the log files.
+
 Server thread pool
 ------------------
 

@@ -63,6 +63,7 @@ install_reqs = [
     'bcrypt',
     'boto',
     'CherryPy<8',  # see https://github.com/girder/girder/issues/1615
+    'jsonschema',
     'Mako',
     'pymongo>=3',
     'PyYAML',
@@ -77,9 +78,9 @@ extras_reqs = {
     'celery_jobs': ['celery'],
     'dicom_viewer': ['pydicom'],
     'geospatial': ['geojson'],
+    'item_tasks': ['ctk-cli'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
-    'worker': ['celery'],
-    'oauth': ['pyjwt', 'cryptography']
+    'worker': ['celery']
 }
 all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values())
 extras_reqs['plugins'] = list(set(all_extra_reqs))

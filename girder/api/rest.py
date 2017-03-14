@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import cgi
 import cherrypy
 import collections
 import datetime
@@ -59,26 +60,34 @@ def getUrlParts(url=None):
     return urllib.parse.urlparse(url)
 
 
-def getApiUrl(url=None):
+def getApiUrl(url=None, preferReferer=False):
     """
     In a request thread, call this to get the path to the root of the REST API.
     The returned path does *not* end in a forward slash.
 
     :param url: URL from which to extract the base URL. If not specified, uses
         the server root system setting. If that is not specified, uses `cherrypy.url()`
+    :param preferReferer: if no url is specified, this is true, and this is in
+        a cherrypy request that has a referer header that contains the api
+        string, use that referer as the url.
     """
+    apiStr = '/api/v1'
+
     if not url:
-        root = ModelImporter.model('setting').get(SettingKey.SERVER_ROOT)
-        if root:
-            return posixpath.join(root, config.getConfig()['server']['api_root'].lstrip('/'))
+        if preferReferer and apiStr in cherrypy.request.headers.get('referer', ''):
+            url = cherrypy.request.headers['referer']
+        else:
+            root = ModelImporter.model('setting').get(SettingKey.SERVER_ROOT)
+            if root:
+                return posixpath.join(root, config.getConfig()['server']['api_root'].lstrip('/'))
 
     url = url or cherrypy.url()
-    idx = url.find('/api/v1')
+    idx = url.find(apiStr)
 
     if idx < 0:
         raise GirderException('Could not determine API root in %s.' % url)
 
-    return url[:idx + 7]
+    return url[:idx + len(apiStr)]
 
 
 def iterBody(length=READ_BUFFER_LEN, strictLength=False):
@@ -396,7 +405,7 @@ class filtermodel(ModelImporter):  # noqa: class name
         :param addFields: Extra fields (key names) that should be included in
             the returned document(s), in addition to any in the model's normal
             whitelist. Only affects top level fields.
-        :type addFields: set, list, tuple, or None
+        :type addFields: `set, list, tuple, or None`
         """
         self.modelName = model
         self.plugin = plugin
@@ -477,8 +486,9 @@ def _createResponse(val):
         elif accept.value == 'text/html':  # pragma: no cover
             # Pretty-print and HTML-ify the response for the browser
             setResponseHeader('Content-Type', 'text/html')
-            resp = json.dumps(val, indent=4, sort_keys=True, allow_nan=False,
-                              separators=(',', ': '), cls=JsonEncoder)
+            resp = cgi.escape(json.dumps(
+                val, indent=4, sort_keys=True, allow_nan=False, separators=(',', ': '),
+                cls=JsonEncoder))
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
             resp = '<div style="font-family:monospace;">%s</div>' % resp
             return resp.encode('utf8')
@@ -600,7 +610,7 @@ def ensureTokenScopes(token, scope):
     :param token: The token object used in the request.
     :type token: dict
     :param scope: The required scope or set of scopes.
-    :type scope: str or list of str
+    :type scope: `str or list of str`
     """
     tokenModel = ModelImporter.model('token')
     if tokenModel.hasScope(token, TokenScope.USER_AUTH):
@@ -822,7 +832,7 @@ class Resource(ModelImporter):
         :param method: The HTTP method of the current request.
         :type method: str
         :param path: The path params of the request.
-        :type path: list
+        :type path: `list`
         """
         if not self._routes:
             raise Exception('No routes defined for resource')
@@ -896,9 +906,9 @@ class Resource(ModelImporter):
         wildcard tokens of the route.
 
         :param path: The requested path.
-        :type path: list
+        :type path: `list`
         :param route: The route specification to match against.
-        :type route: list
+        :type route: `list`
         """
         wildcards = {}
         for i in range(0, len(route)):
@@ -925,7 +935,7 @@ class Resource(ModelImporter):
 
         :param required: An iterable of required params, or if just one is
             required, you can simply pass it as a string.
-        :type required: list, tuple, or str
+        :type required: `list, tuple, or str`
         :param provided: The list of provided parameters.
         :type provided: dict
         """
@@ -1013,7 +1023,7 @@ class Resource(ModelImporter):
         designated scope or set of scopes. Raises an AccessException if not.
 
         :param scope: A scope or set of scopes that is required.
-        :type scope: str or list of str
+        :type scope: `str or list of str`
         """
         ensureTokenScopes(getCurrentToken(), scope)
 

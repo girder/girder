@@ -36,3 +36,6 @@ class PluginSettings:
 
     BITBUCKET_CLIENT_ID = 'oauth.bitbucket_client_id'
     BITBUCKET_CLIENT_SECRET = 'oauth.bitbucket_client_secret'
+
+    BOX_CLIENT_ID = 'oauth.box_client_id'
+    BOX_CLIENT_SECRET = 'oauth.box_client_secret'

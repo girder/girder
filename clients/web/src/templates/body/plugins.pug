@@ -1,17 +1,13 @@
 .g-body-title Plugins
   .g-rebuild-container
-    button.g-rebuild-web-code.btn.btn-primary(title="Rebuild web code for all enabled plugins")
+    button.g-rebuild-and-restart.btn.btn-primary(title="Rebuild web code and restart the server")
       i.icon-arrows-cw
-      | Rebuild web code
+      | Rebuild and restart
     .g-clear
-.g-plugin-restart
-  button.g-plugin-restart-button.btn.btn-danger
-    i.icon-cw
-    | Restart Server
-  .g-plugin-restart-text.
-    The selected plugins have changed.  You must restart the server for the
-    changes to take effect.
-  .g-plugin-clear
+.g-plugin-rebuild-restart-text
+  | The selected plugins have changed.
+  br
+  | You must rebuild the code and restart the server for the changes to take effect.
 .g-plugin-list-container
   each plugin in allPlugins
     - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
@@ -22,7 +18,10 @@
           experimental=(experimental ? "true" : undefined),
           data-on-color=(experimental ? "warning" : "primary"))
       .g-plugin-name
-        span= plugin.value.name
+        if plugin.value.url
+          a(href=plugin.value.url, target='_blank')= plugin.value.name
+        else
+          span= plugin.value.name
         if plugin.value.version
           span.g-plugin-version Version #{plugin.value.version}
         if experimental

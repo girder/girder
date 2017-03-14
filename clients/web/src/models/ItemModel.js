@@ -26,10 +26,11 @@ var ItemModel = Model.extend({
             callback(this.get('_accessLevel'));
             return this.get('_accessLevel');
         } else {
-            this.parent = new FolderModel();
-            this.parent.set({
+            var parent = new FolderModel();
+            parent.set({
                 _id: this.get('folderId')
             }).once('g:fetched', function () {
+                this.parent = parent;
                 this.set('_accessLevel', this.parent.getAccessLevel());
                 callback(this.get('_accessLevel'));
             }, this).fetch();

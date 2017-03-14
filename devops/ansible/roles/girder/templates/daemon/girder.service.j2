@@ -1,6 +1,6 @@
 [Unit]
 Description=Girder
-After=network.target
+After=network.target {% if girder_use_systemd %}mongod.service{% endif %}
 
 [Service]
 User={{ ansible_user_id }}
@@ -10,7 +10,7 @@ Restart=always
 {% if girder_virtualenv is defined %}
 ExecStart={{ girder_virtualenv }}/bin/python -m girder
 {% else %}
-ExecStart=python -m girder
+ExecStart={{ ansible_python.executable }} -m girder
 {% endif %}
 
 [Install]

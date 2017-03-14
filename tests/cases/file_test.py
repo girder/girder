@@ -32,9 +32,9 @@ from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.models.model_base import AccessException
+from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
-from girder.utility.s3_assetstore_adapter import (makeBotoConnectParams,
-                                                  S3AssetstoreAdapter)
+from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
 from six.moves import urllib
 
 
@@ -238,6 +238,7 @@ class FileTestCase(base.TestCase):
     def _testDownloadFile(self, file, contents):
         """
         Downloads the previously uploaded file from the server.
+
         :param file: The file object to download.
         :type file: dict
         :param contents: The expected contents.
@@ -309,6 +310,37 @@ class FileTestCase(base.TestCase):
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
         self.assertEqual(contents, self.getBody(resp))
+
+        def _readFile(handle):
+            buf = b''
+            while True:
+                chunk = handle.read(32768)
+                buf += chunk
+                if not chunk:
+                    break
+            return buf
+
+        # Test reading via the model layer file-like API
+        contents = contents.encode('utf8')
+        with self.model('file').open(file) as handle:
+            self.assertEqual(handle.tell(), 0)
+            handle.seek(0)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents)
+
+            # Test seek modes
+            handle.seek(2)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[2:])
+
+            handle.seek(2)
+            handle.seek(2, os.SEEK_CUR)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[4:])
+
+            handle.seek(2, os.SEEK_END)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[-2:])
 
     def _testDownloadFolder(self):
         """
@@ -589,6 +621,13 @@ class FileTestCase(base.TestCase):
         self.assertEqual(resp.json['name'], 'newName.json')
         file['name'] = resp.json['name']
 
+        # Make sure internal details got filtered
+        self.assertNotIn('sha512', file)
+        self.assertNotIn('path', file)
+        self.assertEqual(file['_modelType'], 'file')
+
+        file = self.model('file').load(file['_id'], force=True)
+
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
         hash = sha512(chunkData).hexdigest()
@@ -664,7 +703,7 @@ class FileTestCase(base.TestCase):
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
-        file = resp.json
+        file = self.model('file').load(resp.json['_id'], force=True)
 
         # Old contents should now be destroyed, new contents should be present
         self.assertFalse(os.path.isfile(abspath))
@@ -707,10 +746,13 @@ class FileTestCase(base.TestCase):
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
 
-    def atestGridFsAssetstore(self):
+    def testGridFsAssetstore(self):
         """
         Test usage of the GridFS assetstore type.
         """
+        # Must also lower GridFS's internal chunk size to support our small chunks
+        gridfs_assetstore_adapter.CHUNK_SIZE, old = 6, gridfs_assetstore_adapter.CHUNK_SIZE
+
         # Clear any old DB data
         base.dropGridFSDatabase('girder_test_file_assetstore')
         # Clear the assetstore database
@@ -727,12 +769,17 @@ class FileTestCase(base.TestCase):
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
         hash = sha512(chunkData).hexdigest()
+        file = self.model('file').load(file['_id'], force=True)
         self.assertEqual(hash, file['sha512'])
 
         # We should have two chunks in the database
         self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 2)
 
         self._testDownloadFile(file, chunk1 + chunk2)
+
+        # Reset chunk size so the large file testing isn't horribly slow
+        gridfs_assetstore_adapter.CHUNK_SIZE = old
+
         self._testDownloadFolder()
         self._testDownloadCollection()
 
@@ -750,7 +797,7 @@ class FileTestCase(base.TestCase):
         self._testCopyFile(copyTestFile)
 
     @moto.mock_s3bucket_path
-    def atestS3Assetstore(self):
+    def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
         mock_s3.createBucket(botoParams, 'b')
 

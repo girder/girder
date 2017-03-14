@@ -20,9 +20,7 @@ if(RUN_CORE_TESTS)
   add_python_style_test(python_static_analysis_ansible_client_tests
     "${PROJECT_SOURCE_DIR}/devops/ansible/roles/girder/library")
 
-  # These are performed approximately in the order listed.  upload is slower, so
-  # start it first, so that if we have parallelism it doesn't hold things up much
-  add_python_test(upload RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
+  # These are performed approximately in the order listed.
   add_python_test(api_describe)
   add_python_test(api_key)
   add_python_test(access)
@@ -37,6 +35,7 @@ if(RUN_CORE_TESTS)
   add_python_test(hash_state)
   add_python_test(install)
   add_python_test(item)
+  add_python_test(logging_config)
   add_python_test(mail)
   add_python_test(model)
   add_python_test(routetable)
@@ -52,6 +51,8 @@ if(RUN_CORE_TESTS)
   add_python_test(stream BIND_SERVER TIMEOUT 90)
   add_python_test(system)
   add_python_test(token)
+  # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
+  add_python_test(upload RUN_SERIAL REQUIRED_FILES "${MONGOD_EXECUTABLE}")
   add_python_test(user)
   add_python_test(webroot)
   add_python_test(path_utilities)

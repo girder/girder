@@ -4,6 +4,8 @@
   vars:
     girder_update: no
     girder_force: no
+    girder_start: no
+    girder_always_build_assets: yes
     nginx_vhosts:
       - listen: "8080 default_server"
         extra_parameters: |
@@ -29,12 +31,29 @@
         update_cache: yes
       become: yes
       become_user: root
+      when: ansible_os_family == "Debian"
+
+    - name: Install EPEL
+      yum:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+        state: present
+      become: yes
+      become_user: root
+      when: ansible_os_family == "RedHat"
 
   roles:
     - role: Stouts.mongodb
       become: yes
       become_user: root
+      when: ansible_os_family == "Debian"
+
+    - role: redhat-mongodb
+      become: yes
+      become_user: root
+      when: ansible_os_family == "RedHat"
+
     - role: girder
+
     - role: geerlingguy.nginx
       become: yes
       become_user: root
@@ -52,6 +71,13 @@
         - { section: "global", option: "server.socket_port", value: "8888" }
         - { section: "global", option: "tools.proxy.on", value: "True" }
         - { section: "server", option: "mode", value: '"production"' }
+
+    # nginx and apache both use the httpd label in SELinux
+    - name: Allow nginx to connect to the local network via SELinux
+      command: "setsebool httpd_can_network_connect 1"
+      become: yes
+      become_user: root
+      when: ansible_os_family == "RedHat"
 
     - name: restart girder/nginx
       service:

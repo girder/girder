@@ -57,7 +57,7 @@ def split(path):
 
     :param str path: An encoded path string
     :return: A list of decoded tokens
-    :rtype: list
+    :rtype: `list`
     """
     # It would be better to split by the regex `(?<!\\)(?>\\\\)*/`,
     # but python does't support atomic grouping. :(
@@ -84,7 +84,7 @@ def split(path):
 def join(tokens):
     """Join a list of tokens into an encoded path string.
 
-    :param list tokens: A list of tokens
+    :param tokens: A list of tokens
     :return: The encoded path string
     :rtype: str
     """

@@ -1,5 +1,6 @@
 {
     "name": "Google Analytics",
     "description": "Allow the tracking of page views via Google Analytics.",
+    "url": "http://girder.readthedocs.io/en/latest/plugins.html#google-analytics",
     "version": "0.1.1"
 }

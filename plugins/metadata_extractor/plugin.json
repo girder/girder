@@ -1,6 +1,7 @@
 {
     "name": "Metadata extractor",
     "description": "Enables the extraction of metadata from uploaded files",
+    "url": "http://girder.readthedocs.io/en/latest/plugins.html#metadata-extractor",
     "version": "0.1.0",
     "python3": false
 }

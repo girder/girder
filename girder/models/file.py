@@ -137,7 +137,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param name: The local name for the file.
         :type name: str
         :param parent: The parent object for this file.
-        :type parent: folder or item
+        :type parent: girder.models.folder or girder.models.item
         :param parentType: The parent type (folder or item)
         :type parentType: str
         :param url: The URL that this file points to
@@ -357,3 +357,26 @@ class File(acl_mixin.AccessControlMixin, Model):
         """
         # TODO: check underlying assetstore for size?
         return file.get('size', 0), 0
+
+    def open(self, file):
+        """
+        Use this to expose a Girder file as a python file-like object. At the
+        moment, this is a read-only interface, the equivalent of opening a
+        system file with ``'rb'`` mode. This can also be used as a context
+        manager, e.g.:
+
+        >>> with self.model('file').open(file) as fh:
+        >>>    while True:
+        >>>        chunk = fh.read(CHUNK_LEN)
+        >>>        if not chunk:
+        >>>            break
+
+        Using it this way will automatically close the file handle for you when
+        the ``with`` block is left.
+
+        :param file: A Girder file document.
+        :type file: dict
+        :return: A file-like object containing the bytes of the file.
+        :rtype: girder.utility.abstract_assetstore_adapter.FileHandle
+        """
+        return self.getAssetstoreAdapter(file).open(file)

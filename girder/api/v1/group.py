@@ -324,7 +324,7 @@ class Group(Resource):
         .notes('If the specified user is not yet a member of the group, this '
                'will delete any outstanding invitation or membership request for '
                'the user. Passing no userId parameter will assume that the '
-               'current user is removing himself.')
+               'current user is removing themself.')
         .modelParam('id', model='group', level=AccessType.READ)
         .modelParam('userId', 'The ID of the user to remove. If not passed, will '
                     'remove yourself from the group.', required=False,
@@ -337,7 +337,7 @@ class Group(Resource):
         groupModel = self.model('group')
 
         if userToRemove is None:
-            # Assume user is removing himself from the group
+            # Assume user is removing themself from the group
             userToRemove = user
 
         # If removing someone else, you must have at least as high an

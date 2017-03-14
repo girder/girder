@@ -31,3 +31,10 @@ test:
   override:
     - ~/girder/cmake/run_circleci.sh:
         parallel: true
+
+deployment:
+  master:
+    branch: master
+    owner: girder
+    commands:
+      - curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"

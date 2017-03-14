@@ -1,0 +1,5 @@
+each task in tasks
+    .g-task-li-container
+      a.g-execute-task-link(href=`#item_task/${task.id}/run`)= task.name()
+
+.g-paginate-container

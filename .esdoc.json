@@ -1,0 +1,4 @@
+{
+  "source": "./clients/web/src",
+  "destination": "./docs/_build/esdoc"
+}

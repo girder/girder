@@ -4,17 +4,34 @@
   vars:
     girder_update: no
     girder_force: no
+    girder_always_build_assets: yes
   pre_tasks:
     - name: Update package cache
       apt:
         update_cache: yes
       become: yes
       become_user: root
+      when: ansible_os_family == "Debian"
+
+    - name: Install EPEL
+      yum:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+        state: present
+      become: yes
+      become_user: root
+      when: ansible_os_family == "RedHat"
 
   roles:
     - role: Stouts.mongodb
       become: yes
       become_user: root
+      when: ansible_os_family == "Debian"
+
+    - role: redhat-mongodb
+      become: yes
+      become_user: root
+      when: ansible_os_family == "RedHat"
+
     - role: girder
 
   post_tasks:
