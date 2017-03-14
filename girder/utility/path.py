@@ -207,8 +207,11 @@ def getResourceName(type, doc):
     Get the name of a resource that can be put in a path,
 
     :param type: the resource model type.
+    :type type: str
     :param doc: the resource document.
+    :type doc: dict
     :return: the name of the resource.
+    :rtype: str
     """
     if type == 'user':
         return doc['login']
@@ -223,10 +226,15 @@ def getResourcePath(type, doc, user=None, force=False):
     Get the path for a resource.
 
     :param type: the resource model type.
+    :type type: str
     :param doc: the resource document.
+    :type doc: dict
     :param user: user with correct privileges to access path
+    :type user: dict or None
     :param force: if True, don't validate the access.
-    :returns: the path to the resource.
+    :type force: bool
+    :return: the path to the resource.
+    :rtype: str
     """
     path = []
     while True:
