@@ -2,6 +2,7 @@ import json
 import six
 
 from girder import events
+from girder import logger
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import ensureTokenScopes, filtermodel, Resource, RestException, getApiUrl
@@ -21,6 +22,8 @@ class ItemTask(Resource):
         self.route('POST', (':id', 'execution'), self.executeTask)
         self.route('POST', (':id', 'slicer_cli_description'), self.runSlicerCliDescription)
         self.route('PUT', (':id', 'slicer_cli_xml'), self.setSpecFromXml)
+        self.route('POST', (':id', 'json_description'), self.runJsonTasksDescription)
+        self.route('POST', (':id', 'json_specs'), self.addJsonSpecs)
 
     @access.public
     @autoDescribeRoute(
@@ -293,7 +296,7 @@ class ItemTask(Resource):
         .modelParam('id', model='item', force=True)
         .param('xml', 'The Slicer CLI XML spec.', paramType='body')
         .param('setName', 'Whether item name should be changed to the title of the CLI.',
-               dataType='boolean', required=False, default=True)
+               dataType='boolean', required=True)
         .param('setDescription', 'Whether the item description should be changed to the '
                'description of the CLI.', dataType='boolean', required=False, default=True),
         hide=True
@@ -320,3 +323,108 @@ class ItemTask(Resource):
             'itemTaskSpec': itemTaskSpec,
             'isItemTask': True
         })
+
+    @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
+    @filtermodel(model='job', plugin='jobs')
+    @autoDescribeRoute(
+        Description('Create item task specs based on a docker image.')
+        .notes('This operates on an existing folder, adding item tasks '
+               'using introspection of a docker image.')
+        .modelParam('id', 'The ID of the folder that the task specs will be added to.',
+                    model='folder', level=AccessType.WRITE)
+        .param('image', 'The docker image name.', required=True, strip=True)
+        .param('pullImage', 'Whether the image should be pulled from a docker registry. ' +
+               'Set to false to use local images only.',
+               dataType='boolean', required=False, default=True)
+    )
+    def runJsonTasksDescription(self, folder, image, pullImage, params):
+        jobModel = self.model('job', 'jobs')
+        token = self.model('token').createToken(
+            days=3, scope='item_task.set_task_spec.%s' % folder['_id'],
+            user=self.getCurrentUser())
+        job = jobModel.createJob(
+            title='Read docker task specs: %s' % image, type='item_task.json_description',
+            handler='worker_handler', user=self.getCurrentUser())
+
+        jobOptions = {
+            'itemTaskId': folder['_id'],
+            'kwargs': {
+                'task': {
+                    'mode': 'docker',
+                    'docker_image': image,
+                    'container_args': [],
+                    'pull_image': pullImage,
+                    'outputs': [{
+                        'id': '_stdout',
+                        'format': 'text'
+                    }],
+                },
+                'outputs': {
+                    '_stdout': {
+                        'mode': 'http',
+                        'method': 'POST',
+                        'format': 'text',
+                        'url': '/'.join((getApiUrl(), self.resourceName,
+                                         str(folder['_id']), 'json_specs')),
+                        'headers': {'Girder-Token': token['_id']},
+                        'params': {
+                            'image': image,
+                            'pullImage': pullImage
+                        }
+                    }
+                },
+                'jobInfo': utils.jobInfoSpec(job),
+                'validate': False,
+                'auto_convert': False,
+                'cleanup': True
+            }
+        }
+        job.update(jobOptions)
+
+        job = jobModel.save(job)
+        jobModel.scheduleJob(job)
+        return job
+
+    @access.token
+    @autoDescribeRoute(
+        Description('Create item tasks under a folder using a list of JSON specifications.')
+        .modelParam('id', model='folder', force=True)
+        .jsonParam('json', 'The JSON specifications as a list or a single object.',
+                   paramType='body')
+        .param('image', 'The docker image name.', required=True, strip=True)
+        .param('pullImage', 'Whether the image should be pulled from a docker registry. ' +
+               'Set to false to use local images only.',
+               dataType='boolean', required=False, default=True),
+        hide=True
+    )
+    def addJsonSpecs(self, folder, json, image, pullImage, params):
+        self.ensureTokenScopes('item_task.set_task_spec.%s' % folder['_id'])
+        token = self.getCurrentToken()
+        user = self.model('user').load(token['userId'], force=True)
+
+        if not isinstance(json, list):
+            json = [json]
+
+        for itemIndex, itemTaskSpec in enumerate(json):
+            name = itemTaskSpec.get('name')
+            if not name:
+                name = image
+                if len(json) > 1:
+                    name += ' ' + str(itemIndex)
+
+            logger.info('Configuring item "%s"' % name)
+
+            item = self.model('item').createItem(
+                name=name,
+                creator=user,
+                folder=folder,
+                description=itemTaskSpec.get('description', ''),
+                reuseExisting=True)
+            logger.info(pullImage)
+            logger.info(params)
+            itemTaskSpec['docker_image'] = image
+            itemTaskSpec['pull_image'] = pullImage
+            self.model('item').setMetadata(item, {
+                'itemTaskSpec': itemTaskSpec,
+                'isItemTask': True
+            })

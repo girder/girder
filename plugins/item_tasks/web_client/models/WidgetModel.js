@@ -58,7 +58,7 @@ var WidgetModel = Backbone.Model.extend({
         // normalize enumerated values
         if (_.has(hash, 'values')) {
             try {
-                hash.values = _.map(hash.values, _.bind(this.normalize, this));
+                hash.values = _.map(hash.values, _.bind(this._normalizeValue, this));
             } catch (e) {
                 console.warn('Could not normalize value in "' + hash.values + '"'); // eslint-disable-line no-console
             }
@@ -138,7 +138,7 @@ var WidgetModel = Backbone.Model.extend({
         } else if (this.isInteger()) {
             out = this._validateInteger(value);
         }
-        if (this.isEnumeration() && !_.contains(this.get('values'), this.normalize(value))) {
+        if (this.isEnumeration() && !_.contains(this.get('values'), this._normalizeValue(value))) {
             out = 'Invalid value choice';
         }
         return out;
@@ -250,10 +250,13 @@ var WidgetModel = Backbone.Model.extend({
      * True if the value should be coerced as a number.
      */
     isNumeric: function () {
-        return _.contains(
-            ['range', 'number', 'number-vector', 'number-enumeration'],
-            this.get('type')
-        );
+        return _.contains([
+            'range',
+            'number',
+            'number-vector',
+            'number-enumeration',
+            'number-enumeration-multiple'
+        ], this.get('type'));
     },
 
     /**
@@ -274,10 +277,12 @@ var WidgetModel = Backbone.Model.extend({
      * True if the value is a 3 component vector.
      */
     isVector: function () {
-        return _.contains(
-            ['number-vector', 'string-vector'],
-            this.get('type')
-        );
+        return _.contains([
+            'number-vector',
+            'number-enumeration-multiple',
+            'string-vector',
+            'string-enumeration-multiple'
+        ], this.get('type'));
     },
 
     /**
@@ -291,10 +296,12 @@ var WidgetModel = Backbone.Model.extend({
      * True if the value should be chosen from one of several "values".
      */
     isEnumeration: function () {
-        return _.contains(
-            ['number-enumeration', 'string-enumeration'],
-            this.get('type')
-        );
+        return _.contains([
+            'number-enumeration',
+            'number-enumeration-multiple',
+            'string-enumeration',
+            'string-enumeration-multiple'
+        ], this.get('type'));
     },
 
     /**
@@ -335,7 +342,9 @@ var WidgetModel = Backbone.Model.extend({
         'number-vector',
         'string-vector',
         'number-enumeration',
+        'number-enumeration-multiple',
         'string-enumeration',
+        'string-enumeration-multiple',
         'file',
         'directory',
         'new-file',

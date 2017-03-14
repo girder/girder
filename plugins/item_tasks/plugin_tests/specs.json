@@ -1,0 +1,14 @@
+[
+  {
+    "description": "Task 1 description",
+    "mode": "docker",
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "description": "Task 2 description",
+    "mode": "docker",
+    "inputs": [],
+    "outputs": []
+  }
+]
