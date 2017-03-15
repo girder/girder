@@ -156,6 +156,8 @@ class Item(Resource):
         .modelParam('id', model='item', level=AccessType.WRITE)
         .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
                    paramType='body')
+        .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
+               dataType='boolean', default=False)
         .errorResponse(('ID was invalid.',
                         'Invalid JSON passed in request body.',
                         'Metadata key name was invalid.'))
@@ -173,7 +175,7 @@ class Item(Resource):
                 raise RestException(
                     'Invalid key %s: keys must not start with the "$" character.' % k)
 
-        return self.model('item').setMetadata(item, metadata)
+        return self.model('item').setMetadata(item, metadata, params['allowNull'])
 
     @autoDescribeRoute(
         Description('Delete metadata fields on an item.')

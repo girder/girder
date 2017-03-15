@@ -284,7 +284,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # Validate and save the item
         return self.save(item)
 
-    def setMetadata(self, item, metadata):
+    def setMetadata(self, item, metadata, allowNull):
         """
         Set metadata on an item.  A `ValidationException` is thrown in the
         cases where the metadata JSON object is badly formed, or if any of the
@@ -304,9 +304,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
         item['meta'].update(six.viewitems(metadata))
 
         # Remove metadata fields that were set to null (use items in py3)
-        toDelete = [k for k, v in six.viewitems(item['meta']) if v is None]
-        for key in toDelete:
-            del item['meta'][key]
+        if not allowNull:
+            toDelete = [k for k, v in six.viewitems(item['meta']) if v is None]
+            for key in toDelete:
+                del item['meta'][key]
 
         item['updated'] = datetime.datetime.utcnow()
 
