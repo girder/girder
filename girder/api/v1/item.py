@@ -39,6 +39,7 @@ class Item(Resource):
         self.route('PUT', (':id',), self.updateItem)
         self.route('POST', (':id', 'copy'), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
+        self.route('DELETE', (':id', 'metadata'), self.deleteMetadata)
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='item')
@@ -173,6 +174,31 @@ class Item(Resource):
                     'Invalid key %s: keys must not start with the "$" character.' % k)
 
         return self.model('item').setMetadata(item, metadata)
+
+    @autoDescribeRoute(
+        Description('Delete metadata fields on an item.')
+        .responseClass('Item')
+        .modelParam('id', model='item', level=AccessType.WRITE)
+        .jsonParam('fields', 'A JSON list containing the metadata fields to delete',
+                   paramType='body')
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
+        .errorResponse('Write acess was denied for the item.', 403)
+    )
+    def deleteMetadata(self, item, fields, params):
+        if not fields:
+            raise RestException('Key names must not be empty.')
+
+        for k in fields:
+            if '.' in k:
+                raise RestException(
+                    'Invalid key %s: keys must not contain the "." character.' % k)
+            if k[0] == '$':
+                raise RestException(
+                    'Invalid key %s: keys must not start with the "$" character.' % k)
+
+        return self.model('item').deleteMetadata(item, fields)
 
     def _downloadMultifileItem(self, item, user):
         setResponseHeader('Content-Type', 'application/zip')

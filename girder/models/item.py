@@ -313,6 +313,19 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # Validate and save the item
         return self.save(item)
 
+    def deleteMetadata(self, item, fields):
+        print fields
+        if 'meta' not in item:
+            item['meta'] = {}
+
+        for field in fields:
+            del item['meta'][field]
+
+        item['updated'] = datetime.datetime.utcnow()
+
+        # Validate and save the item
+        return self.save(item)
+
     def parentsToRoot(self, item, user=None, force=False):
         """
         Get the path to traverse to a root of the hierarchy.
