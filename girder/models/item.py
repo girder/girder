@@ -305,7 +305,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         # Remove metadata fields that were set to null (use items in py3)
         if not allowNull:
-            toDelete = [k for k, v in six.viewitems(item['meta']) if v is None]
+            toDelete = [k for k, v in six.viewitems(metadata) if v is None]
             for key in toDelete:
                 del item['meta'][key]
 

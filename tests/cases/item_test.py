@@ -395,13 +395,24 @@ class ItemTestCase(base.TestCase):
         item = resp.json
         self.assertEqual(item['meta']['nullVal'], None)
 
+        # Adding an unrelated key should not affect existing keys
+        del metadata['nullVal']
+        metadata['other'] = 'macguffin'
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+
+        item = resp.json
+        self.assertEqual(item['meta']['other'], metadata['other'])
+        self.assertEqual(item['meta']['nullVal'], None)
+
         # Test metadata deletion
         resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='DELETE', user=self.users[0],
-                            body=json.dumps(['nullVal']), type='application/json')
+                            body=json.dumps(['other']), type='application/json')
 
         item = resp.json
-        self.assertNotHasKeys(item['meta'], ['nullVal'])
+        self.assertNotHasKeys(item['meta'], ['other'])
 
         # Make sure metadata cannot be added with invalid JSON
         metadata = {
