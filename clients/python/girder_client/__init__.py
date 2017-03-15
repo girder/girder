@@ -312,7 +312,7 @@ class GirderClient(object):
             as the key/value pairs in the request parameters.
         :type parameters: dict
         :param data: A dictionary, bytes or file-like object to send in the body.
-        :param files: A dictonary of 'name' => file-like-objects for multipart encoding upload.
+        :param files: A dictionary of 'name' => file-like-objects for multipart encoding upload.
         :type files: dict
         :param json: A JSON object to send in the request body.
         :type json: dict
@@ -760,8 +760,7 @@ class GirderClient(object):
 
             if self.getServerVersion() >= ['2', '2']:
                 uploadObj = self.post(
-                    'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
-                    data=six.BytesIO(chunk))
+                    'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=chunk)
             else:
                 # Prior to version 2.2 the server only supported multipart uploads
                 parameters = {

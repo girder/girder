@@ -27,7 +27,7 @@ import six
 import uuid
 
 from girder import logger, events
-from girder.models.model_base import ValidationException
+from girder.models.model_base import GirderException, ValidationException
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
@@ -169,8 +169,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         :param assetstore: The assetstore to act on.
         """
         super(S3AssetstoreAdapter, self).__init__(assetstore)
-        if ('accessKeyId' in self.assetstore and 'secret' in self.assetstore and
-                'service' in self.assetstore):
+        if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):
             self.assetstore['botoConnect'] = makeBotoConnectParams(
                 self.assetstore['accessKeyId'], self.assetstore['secret'],
                 self.assetstore['service'])
@@ -298,18 +297,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     def _proxiedUploadChunk(self, upload, chunk):
         """
         Clients that do not support direct-to-S3 upload behavior will go through
-        this method by sending the chunk as a multipart-encoded file parameter
-        as they would with other assetstore types. Girder will send the data
-        to S3 on behalf of the client.
+        this method by sending the chunk data as they normally would for other
+        assetstore types. Girder will send the data to S3 on behalf of the client.
         """
         bucket = self._getBucket()
 
         if upload['s3']['chunked']:
-            if 'uploadId' in upload['s3']:
-                mp = boto.s3.multipart.MultiPartUpload(bucket)
-                mp.id = upload['s3']['uploadId']
-                mp.key_name = upload['s3']['keyName']
-            else:
+            if 'uploadId' not in upload['s3']:
+                # Initiate a new multipart upload
                 mp = bucket.initiate_multipart_upload(
                     upload['s3']['key'],
                     headers=self._getRequestHeaders(upload))
@@ -319,21 +314,37 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             upload['s3']['partNumber'] += 1
 
-            key = mp.upload_part_from_file(
-                chunk, upload['s3']['partNumber'],
-                headers={'Content-Type': upload.get('mimeType', '')})
-            upload['received'] += key.size
+            s3Info = upload['s3']
+            size = chunk.getSize()
+            queryParams = {
+                'partNumber': s3Info['partNumber'],
+                'uploadId': s3Info['uploadId']
+            }
+            headers = {
+                'Content-Length': str(size)
+            }
+
+            url = self._botoGenerateUrl(
+                method='PUT', key=s3Info['key'], queryParams=queryParams, headers=headers)
+
+            resp = requests.request(method='PUT', url=url, data=chunk, headers=headers)
+            if resp.status_code not in (200, 201):
+                logger.error('S3 multipart upload failure %d (uploadId=%s):\n%s' % (
+                    resp.status_code, upload['_id'], resp.text))
+                raise GirderException('Upload failed (bad gateway)')
+
+            upload['received'] += size
         else:
-            key = bucket.new_key(upload['s3']['key'])
-            key.set_contents_from_file(chunk,
-                                       headers=self._getRequestHeaders(upload))
+            reqInfo = upload['s3']['request']
+            resp = requests.request(
+                method=reqInfo['method'], url=reqInfo['url'], data=chunk,
+                headers=dict(reqInfo['headers'], **{'Content-Length': str(upload['size'])}))
+            if resp.status_code not in (200, 201):
+                logger.error('S3 upload failure %d (uploadId=%s):\n%s' % (
+                    resp.status_code, upload['_id'], resp.text))
+                raise GirderException('Upload failed (bad gateway)')
 
-            if key.size < upload['size']:
-                bucket.delete_key(key)
-                raise ValidationException('Uploads of this length must be sent '
-                                          'in a single chunk.')
-
-            upload['received'] = key.size
+            upload['received'] = upload['size']
 
         return upload
 
@@ -529,27 +540,23 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if key:
                 bucket.delete_key(key)
             # check if this is an abandoned multipart upload
-            if ('s3' in upload and 'uploadId' in upload['s3'] and
-                    'key' in upload['s3']):
+            if 's3' in upload and 'uploadId' in upload['s3'] and 'key' in upload['s3']:
                 getParams = {}
                 while True:
                     try:
-                        multipartUploads = bucket.get_all_multipart_uploads(
-                            **getParams)
+                        multipartUploads = bucket.get_all_multipart_uploads(**getParams)
                     except boto.exception.S3ResponseError:
                         break
                     if not len(multipartUploads):
                         break
                     for multipartUpload in multipartUploads:
                         if (multipartUpload.id == upload['s3']['uploadId'] and
-                                multipartUpload.key_name ==
-                                upload['s3']['key']):
+                                multipartUpload.key_name == upload['s3']['key']):
                             multipartUpload.cancel_upload()
                     if not multipartUploads.is_truncated:
                         break
                     getParams['key_marker'] = multipartUploads.next_key_marker
-                    getParams['upload_id_marker'] = \
-                        multipartUploads.next_upload_id_marker
+                    getParams['upload_id_marker'] = multipartUploads.next_upload_id_marker
 
     def untrackedUploads(self, knownUploads=None, delete=False):
         """
@@ -601,8 +608,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if not multipartUploads.is_truncated:
                 break
             getParams['key_marker'] = multipartUploads.next_key_marker
-            getParams['upload_id_marker'] = \
-                multipartUploads.next_upload_id_marker
+            getParams['upload_id_marker'] = multipartUploads.next_upload_id_marker
         return untrackedList
 
     def _uploadIsKnown(self, multipartUpload, knownUploads):
