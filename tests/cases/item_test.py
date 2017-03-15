@@ -385,6 +385,24 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertNotHasKeys(item['meta'], ['test'])
 
+        # Test insertion of null values
+        metadata['nullVal'] = None
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), params={'allowNull': True},
+                            type='application/json')
+
+        item = resp.json
+        self.assertEqual(item['meta']['nullVal'], None)
+
+        # Test metadata deletion
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='DELETE', user=self.users[0],
+                            body=json.dumps(['nullVal']), type='application/json')
+
+        item = resp.json
+        self.assertNotHasKeys(item['meta'], ['nullVal'])
+
         # Make sure metadata cannot be added with invalid JSON
         metadata = {
             'test': 'allowed'
