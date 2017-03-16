@@ -316,6 +316,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             s3Info = upload['s3']
             size = chunk.getSize()
+
             queryParams = {
                 'partNumber': s3Info['partNumber'],
                 'uploadId': s3Info['uploadId']
@@ -335,16 +336,20 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             upload['received'] += size
         else:
+            size = chunk.getSize()
+            if size < upload['size']:
+                raise ValidationException('Uploads of this length must be sent in a single chunk.')
+
             reqInfo = upload['s3']['request']
             resp = requests.request(
                 method=reqInfo['method'], url=reqInfo['url'], data=chunk,
-                headers=dict(reqInfo['headers'], **{'Content-Length': str(upload['size'])}))
+                headers=dict(reqInfo['headers'], **{'Content-Length': str(size)}))
             if resp.status_code not in (200, 201):
                 logger.error('S3 upload failure %d (uploadId=%s):\n%s' % (
                     resp.status_code, upload['_id'], resp.text))
                 raise GirderException('Upload failed (bad gateway)')
 
-            upload['received'] = upload['size']
+            upload['received'] = size
 
         return upload
 
