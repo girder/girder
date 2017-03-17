@@ -316,6 +316,44 @@ class PythonClientTestCase(base.TestCase):
                 size=size, parentType='folder')
             self.assertEqual(file['mimeType'], 'text/plain')
 
+    def testUploadNonMultipartVersionGreaterOrEqual22(self):
+        for version in ["2.2.0", "2.2.1", "2.3", "3.0", "3.1"]:
+            with mock.patch.object(
+                    self.client, 'getServerVersion', return_value=version.split(".")):
+                self._testUploadMethod(expected_non_multipart_hits=1, expected_multipart_hits=0)
+
+    def testUploadMultipartVersionLess22(self):
+        for version in ["1.4.1", "1.6.0", "2.1.0", "2.1.9"]:
+            with mock.patch.object(
+                    self.client, 'getServerVersion', return_value=version.split(".")):
+                self._testUploadMethod(expected_non_multipart_hits=0, expected_multipart_hits=1)
+
+    def _testUploadMethod(self, expected_non_multipart_hits=0, expected_multipart_hits=0):
+
+        # track API calls
+        non_multipart = []
+        multipart = []
+
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        size = os.path.getsize(path)
+
+        original_post = self.client.post
+
+        def mock_post(*args, **kwargs):
+            if 'data' in kwargs:
+                non_multipart.append(1)
+            elif 'parameters' in kwargs and 'files' in kwargs:
+                multipart.append(1)
+            return original_post(*args, **kwargs)
+
+        with mock.patch.object(self.client, 'post', new=mock_post):
+            with open(path) as fh:
+                self.client.uploadFile(
+                    self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder')
+
+        self.assertEqual(len(non_multipart), expected_non_multipart_hits)
+        self.assertEqual(len(multipart), expected_multipart_hits)
+
     def testUploadReferenceWithMultipart(self):
         with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
             self._testUploadReference()
