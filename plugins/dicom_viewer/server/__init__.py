@@ -18,15 +18,17 @@ class DicomItem(Resource):
         Description('Get DICOM metadata, if any, for all files in the item.')
         .param('id', 'The item ID', paramType='path')
         .param('filters', 'Filter returned DICOM tags (comma-separated).', required=False)
+        .param('force', 'Force re-parsing the DICOM files.', required=False, dataType='boolean')
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the item.', 403)
     )
     def getDicom(self, item, params):
         filters = set(filter(None, params.get('filters', '').split(',')))
+        force = params.get('force', False)
         files = list(ModelImporter.model('item').childFiles(item))
         # process files if they haven't been processed yet
         for i, f in enumerate(files):
-            if 'dicom' not in f:
+            if force or 'dicom' not in f:
                 files[i] = process_file(f)
         # filter out non-dicom files
         files = [x for x in files if x.get('dicom')]
