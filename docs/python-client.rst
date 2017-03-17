@@ -71,7 +71,7 @@ and optional ``scheme``, ``port``, and ``api-root`` args.
 Specifying credentials
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The recommended way is to generate an :ref:`api key <api_keys>` and specify
+The recommended way is to generate an :ref:`API key <api_keys>` and specify
 the ``api-key`` argument. ::
 
     girder-cli --api-url https://girder.example.com:443/api/v1  --api-key abcdefghijklmopqrstuvwxyz012345678901234 ...

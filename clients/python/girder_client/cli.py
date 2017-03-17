@@ -17,8 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import sys
-
 import click
 from girder_client import GirderClient, HttpError
 
@@ -85,7 +83,7 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
     The CLI is particularly suited to upload (or download) large, nested
     hierarchy of data to (or from) Girder from (or into) a local directory.
 
-    The recommended way to use credentials is to first generate an api key
+    The recommended way to use credentials is to first generate an API key
     and then specify the ``api-key`` argument or set the ``GIRDER_API_KEY``
     environment variable.
 
@@ -109,15 +107,12 @@ def _lookup_parent_type(client, object_id):
         except HttpError as exc_info:
             if exc_info.status == 400:
                 continue
-            if sys.version_info[0] >= 3:
-                raise exc_info.with_traceback(sys.exc_info()[2])
-            else:
-                raise (sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])  # noqa: E999
+            raise
 
 
 def _CommonParameters(path_exists=False, path_writable=True,
-                      additional_parent_types=['collection', 'user']):
-    parent_types = ['folder'] + additional_parent_types
+                      additional_parent_types=('collection', 'user')):
+    parent_types = ['folder'] + list(additional_parent_types)
     parent_type_cls = _DeprecatedOption
     parent_type_default = 'folder'
     if len(additional_parent_types) > 0:

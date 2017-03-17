@@ -89,7 +89,7 @@ class HttpError(Exception):
 
 
 class _NoopProgressReporter(object):
-    def __init__(self, label="", length=0):
+    def __init__(self, label='', length=0):
         self.label = label
         self.length = length
 
@@ -166,7 +166,7 @@ class GirderClient(object):
             to pass 443 for the port
         :param cacheSettings: Settings to use with the diskcache library, or
             None to disable caching.
-        :param progressReporterCls: the progress reported class to instantiate.
+        :param progressReporterCls: the progress reporter class to instantiate.
             This defaults to :class:`_NoopProgressReporter`.
         """
         if apiUrl is None:
