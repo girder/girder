@@ -3,7 +3,7 @@ from dicom.valuerep import PersonName3
 from girder import events
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
-from girder.api.rest import Resource, loadmodel
+from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
 from girder.utility.model_importer import ModelImporter
 import dicom
@@ -16,11 +16,11 @@ class DicomItem(Resource):
     @autoDescribeRoute(
         Description('Get DICOM metadata, if any, for all files in the item.')
         .modelParam('id', 'The item ID',
-            model='item', level=AccessType.READ, paramType='path')
+                    model='item', level=AccessType.READ, paramType='path')
         .param('filters', 'Filter returned DICOM tags (comma-separated).',
-            required=False, default='')
+               required=False, default='')
         .param('force', 'Force re-parsing the DICOM files. Write access required.',
-            required=False, dataType='boolean', default=False)
+               required=False, dataType='boolean', default=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the item.', 403)
     )
