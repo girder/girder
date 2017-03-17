@@ -317,15 +317,15 @@ class PythonClientTestCase(base.TestCase):
             self.assertEqual(file['mimeType'], 'text/plain')
 
     def testUploadNonMultipartVersionGreaterOrEqual22(self):
-        for version in ["2.2.0", "2.2.1", "2.3", "3.0", "3.1"]:
+        for version in ['2.2.0', '2.2.1', '2.3', '3.0', '3.1']:
             with mock.patch.object(
-                    self.client, 'getServerVersion', return_value=version.split(".")):
+                    self.client, 'getServerVersion', return_value=version.split('.')):
                 self._testUploadMethod(expected_non_multipart_hits=1, expected_multipart_hits=0)
 
     def testUploadMultipartVersionLess22(self):
-        for version in ["1.4.1", "1.6.0", "2.1.0", "2.1.9"]:
+        for version in ['1.4.1', '1.6.0', '2.1.0', '2.1.9']:
             with mock.patch.object(
-                    self.client, 'getServerVersion', return_value=version.split(".")):
+                    self.client, 'getServerVersion', return_value=version.split('.')):
                 self._testUploadMethod(expected_non_multipart_hits=0, expected_multipart_hits=1)
 
     def _testUploadMethod(self, expected_non_multipart_hits=0, expected_multipart_hits=0):
@@ -610,9 +610,9 @@ class PythonClientTestCase(base.TestCase):
         item = self.client.createItem(self.publicFolder['_id'],
                                       itemName)
 
-        testPath = "user/%s/%s/%s" % (self.user['login'],
+        testPath = 'user/%s/%s/%s' % (self.user['login'],
                                       self.publicFolder['name'], itemName)
-        testInvalidPath = "user/%s/%s/%s" % (self.user['login'],
+        testInvalidPath = 'user/%s/%s/%s' % (self.user['login'],
                                              self.publicFolder['name'],
                                              'RogueOne')
 
@@ -710,15 +710,15 @@ class PythonClientTestCase(base.TestCase):
 
         with httmock.HTTMock(mock):
             self.assertEqual(
-                ".".join(self.client.getServerVersion()), expected_version)
+                '.'.join(self.client.getServerVersion()), expected_version)
             self.assertEqual(len(hits), 1)
 
             self.assertEqual(
-                ".".join(self.client.getServerVersion()), expected_version)
+                '.'.join(self.client.getServerVersion()), expected_version)
             self.assertEqual(len(hits), 1)
 
             self.assertEqual(
-                ".".join(self.client.getServerVersion(useCached=False)), expected_version)
+                '.'.join(self.client.getServerVersion(useCached=False)), expected_version)
             self.assertEqual(len(hits), 2)
 
     def testGetServerAPIDescription(self):
@@ -731,11 +731,11 @@ class PythonClientTestCase(base.TestCase):
             hits.append(url)
 
         def checkDescription(description):
-            self.assertEqual(description["basePath"], "/api/v1")
-            self.assertEqual(description["definitions"], {})
-            self.assertEqual(description["info"]["title"], "Girder REST API")
-            self.assertEqual(description["info"]["version"], girder.constants.VERSION['apiVersion'])
-            self.assertGreater(len(description["paths"]), 0)
+            self.assertEqual(description['basePath'], '/api/v1')
+            self.assertEqual(description['definitions'], {})
+            self.assertEqual(description['info']['title'], 'Girder REST API')
+            self.assertEqual(description['info']['version'], girder.constants.VERSION['apiVersion'])
+            self.assertGreater(len(description['paths']), 0)
 
         with httmock.HTTMock(mock):
             checkDescription(self.client.getServerAPIDescription())
