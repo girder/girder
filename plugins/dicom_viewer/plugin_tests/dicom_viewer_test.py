@@ -42,6 +42,11 @@ class DicomViewerTest(base.TestCase):
             self.model('upload').uploadFromFile(
                 fp, 25640, 'test.dcm', 'item', item, admin)
 
+        path = os.path.join(os.path.split(__file__)[0], 'not-dicom.dcm')
+        with open(path, 'rb') as fp:
+            self.model('upload').uploadFromFile(
+                fp, 7590, 'not-dicom.dcm', 'item', item, admin)
+
         # test dicom endpoint
         start = time.time()
         while True:
@@ -76,3 +81,8 @@ class DicomViewerTest(base.TestCase):
         dicom = resp.json[0]['dicom']
         self.assertEqual(dicom['Rows'], 80)
         self.assertEqual(dicom.get('Columns'), None)
+
+        # test non-admin force
+        path = '/item/%s/dicom' % item.get('_id')
+        resp = self.request(path=path, user=user, params=dict(force=True))
+        self.assertStatus(resp, 403)
