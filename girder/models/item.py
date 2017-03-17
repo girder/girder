@@ -315,7 +315,6 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return self.save(item)
 
     def deleteMetadata(self, item, fields):
-        print fields
         if 'meta' not in item:
             item['meta'] = {}
 
