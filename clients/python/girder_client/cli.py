@@ -50,9 +50,13 @@ class GirderCli(GirderClient):
             self.authenticate(username, password, interactive=interactive)
 
 
-class _DeprecatedOption(click.Option):
+class _HiddenOption(click.Option):
     def get_help_record(self, ctx):
         pass
+
+
+class _DeprecatedOption(_HiddenOption):
+    pass
 
 
 _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -113,7 +117,7 @@ def _lookup_parent_type(client, object_id):
 def _CommonParameters(path_exists=False, path_writable=True,
                       additional_parent_types=('collection', 'user')):
     parent_types = ['folder'] + list(additional_parent_types)
-    parent_type_cls = _DeprecatedOption
+    parent_type_cls = _HiddenOption
     parent_type_default = 'folder'
     if len(additional_parent_types) > 0:
         parent_types.append('auto')
