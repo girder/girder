@@ -16,8 +16,7 @@ class DicomItem(Resource):
     @autoDescribeRoute(
         Description('Get DICOM metadata, if any, for all files in the item.')
         .modelParam('id', 'The item ID',
-            model='item', level=AccessType.READ, paramType='formData')
-        .param('id', 'The item ID', paramType='path')
+            model='item', level=AccessType.READ, paramType='path')
         .param('filters', 'Filter returned DICOM tags (comma-separated).',
             required=False, default='')
         .param('force', 'Force re-parsing the DICOM files. Write access required.',
