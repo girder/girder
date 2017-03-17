@@ -818,33 +818,8 @@ function _prepareTestUpload() {
     girderTest.getCallbackSuffix();
 
     (function (impl) {
-        FormData.prototype.append = function (name, value, filename) {
-            this.vals = this.vals || {};
-            if (filename) {
-                this.vals[name + '_filename'] = value;
-            }
-            this.vals[name] = value;
-            impl.call(this, name, value, filename);
-        };
-    }(FormData.prototype.append));
-
-    (function (impl) {
         XMLHttpRequest.prototype.send = function (data) {
-            if (data && data instanceof FormData) {
-                var newdata = new FormData();
-                newdata.append('offset', data.vals.offset);
-                newdata.append('uploadId', data.vals.uploadId);
-                var len = data.vals.chunk.size;
-                if (girderTest._uploadData.length &&
-                    girderTest._uploadData.length === len &&
-                    !girderTest._uploadDataExtra) {
-                    newdata.append('chunk', girderTest._uploadData);
-                } else {
-                    newdata.append('chunk', new Array(
-                        len + 1 + girderTest._uploadDataExtra).join('-'));
-                }
-                data = newdata;
-            } else if (data && data instanceof Blob) {
+            if (data && data instanceof Blob) {
                 if (girderTest._uploadDataExtra) {
                     /* Our mock S3 server will take extra data, so break it
                      * by adding a faulty copy header.  This will throw an

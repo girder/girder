@@ -230,16 +230,11 @@ var FileModel = Model.extend({
         var blob = file[sliceFn](this.startByte, endByte);
         var model = this;
 
-        var fd = new FormData();
-        fd.append('offset', this.startByte);
-        fd.append('uploadId', uploadId);
-        fd.append('chunk', blob);
-
         restRequest({
-            path: 'file/chunk',
+            path: `file/chunk?offset=${this.startByte}&uploadId=${uploadId}`,
             type: 'POST',
             dataType: 'json',
-            data: fd,
+            data: blob,
             contentType: false,
             processData: false,
             success: function (resp) {

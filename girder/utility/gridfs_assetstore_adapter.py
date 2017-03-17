@@ -185,7 +185,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             self.chunkColl.delete_many({
                 'uuid': upload['chunkUuid'],
                 'n': {'$gte': startingN}
-            }, multi=True)
+            })
             raise
 
         # Persist the internal state of the checksum

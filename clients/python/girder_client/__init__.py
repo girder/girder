@@ -166,6 +166,7 @@ class GirderClient(object):
         self.token = ''
         self._folderUploadCallbacks = []
         self._itemUploadCallbacks = []
+        self._serverApiDescription = {}
         self.incomingMetadata = {}
         self.localMetadata = {}
 
@@ -231,6 +232,66 @@ class GirderClient(object):
 
             self.token = resp['authToken']['token']
 
+    def getServerVersion(self, useCached=True):
+        """
+        Fetch server API version. By default, caches the version
+        such that future calls to this function do not make another request to
+        the server.
+
+        :param useCached: Whether to return the previously fetched value. Set
+            to False to force a re-fetch of the version from the server.
+        :type useCached: bool
+        :return: The API version as a list (e.g. ``['1', '0', '0']``)
+        """
+        return self.getServerAPIDescription(useCached)["info"]["version"].split('.')
+
+    def getServerAPIDescription(self, useCached=True):
+        """
+        Fetch server RESTful API description.
+
+        :param useCached: Whether to return the previously fetched value. Set
+            to False to force a re-fetch of the description from the server.
+        :type useCached: bool
+        :return: The API descriptions as a dict.
+
+        For example: ::
+
+            {
+                "basePath": "/api/v1",
+                "definitions": {},
+                "host": "girder.example.com",
+                "info": {
+                    "title": "Girder REST API",
+                    "version": "X.Y.Z"
+                },
+                "paths": {
+                    "/api_key": {
+                        "get": {
+                            "description": "Only site administrators [...]",
+                            "operationId": "api_key_listKeys",
+                            "parameters": [
+                                {
+                                    "description": "ID of the user whose keys to list.",
+                                    "in": "query",
+                                    "name": "userId",
+                                    "required": false,
+                                    "type": "string"
+                                },
+                                ...
+                            ]
+                        }.
+                        ...
+                    }
+                ...
+                }
+            }
+
+        """
+        if not self._serverApiDescription or not useCached:
+            self._serverApiDescription = self.get('describe')
+
+        return self._serverApiDescription
+
     def sendRestRequest(self, method, path, parameters=None, data=None, files=None, json=None):
         """
         This method looks up the appropriate method, constructs a request URL
@@ -251,7 +312,7 @@ class GirderClient(object):
             as the key/value pairs in the request parameters.
         :type parameters: dict
         :param data: A dictionary, bytes or file-like object to send in the body.
-        :param files: A dictonary of 'name' => file-like-objects for multipart encoding upload.
+        :param files: A dictionary of 'name' => file-like-objects for multipart encoding upload.
         :type files: dict
         :param json: A JSON object to send in the request body.
         :type json: dict
@@ -573,24 +634,6 @@ class GirderClient(object):
         }
         return self.put(path, params)
 
-    def _fileChunker(self, filepath, filesize=None):
-        """
-        Generator returning chunks of a file in MAX_CHUNK_SIZE increments.
-
-        :param filepath: path to file on disk.
-        :param filesize: size of file on disk if known.
-        """
-        if filesize is None:
-            filesize = os.path.getsize(filepath)
-        startbyte = 0
-        nextChunkSize = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
-        with open(filepath, 'rb') as fd:
-            while nextChunkSize > 0:
-                chunk = fd.read(nextChunkSize)
-                yield (chunk, startbyte)
-                startbyte = startbyte + nextChunkSize
-                nextChunkSize = min(self.MAX_CHUNK_SIZE, filesize - startbyte)
-
     def isFileCurrent(self, itemId, filename, filepath):
         """
         Tests whether the passed in filepath exists in the item with itemId,
@@ -615,7 +658,8 @@ class GirderClient(object):
         # to upload anyway in this case also.
         return (None, False)
 
-    def uploadFileToItem(self, itemId, filepath, reference=None, mimeType=None, filename=None):
+    def uploadFileToItem(self, itemId, filepath, reference=None, mimeType=None, filename=None,
+                         progressCallback=None):
         """
         Uploads a file to an item, in chunks.
         If ((the file already exists in the item with the same name and size)
@@ -628,6 +672,10 @@ class GirderClient(object):
         :param mimeType: MIME type for the file. Will be guessed if not passed.
         :type mimeType: str or None
         :param filename: path with filename used in Girder. Defaults to basename of filepath.
+        :param progressCallback: If passed, will be called after each chunk
+            with progress information. It passes a single positional argument
+            to the callable which is a dict of information about progress.
+        :type progressCallback: callable
         :returns: the file that was created.
         """
         if filename is None:
@@ -654,9 +702,7 @@ class GirderClient(object):
             if reference:
                 params['reference'] = reference
             obj = self.put(path, params)
-            if '_id' in obj:
-                uploadId = obj['_id']
-            else:
+            if '_id' not in obj:
                 raise Exception(
                     'After creating an upload token for replacing file '
                     'contents, expected an object with an id. Got instead: ' +
@@ -676,29 +722,13 @@ class GirderClient(object):
             if reference:
                 params['reference'] = reference
             obj = self.post('file', params)
-            if '_id' in obj:
-                uploadId = obj['_id']
-            else:
+            if '_id' not in obj:
                 raise Exception(
                     'After creating an upload token for a new file, expected '
                     'an object with an id. Got instead: ' + json.dumps(obj))
 
-        for chunk, startbyte in self._fileChunker(filepath, filesize):
-            parameters = {
-                'offset': startbyte,
-                'uploadId': uploadId
-            }
-            filedata = {
-                'chunk': chunk
-            }
-            path = 'file/chunk'
-            obj = self.post(path, parameters=parameters, files=filedata)
-
-            if '_id' not in obj:
-                raise Exception(
-                    'After uploading a file chunk, did not receive object with _id. Got instead: ' +
-                    json.dumps(obj))
-        return obj
+        with open(filepath, 'rb') as f:
+            return self._uploadContents(obj, f, filesize, progressCallback=progressCallback)
 
     def _uploadContents(self, uploadObj, stream, size, progressCallback=None):
         """
@@ -720,25 +750,34 @@ class GirderClient(object):
         offset = 0
         uploadId = uploadObj['_id']
         while True:
-            data = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
+            chunk = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
 
-            if not data:
+            if not chunk:
                 break
 
-            params = {
-                'offset': offset,
-                'uploadId': uploadId
-            }
-            files = {
-                'chunk': data
-            }
-            uploadObj = self.post('file/chunk', parameters=params, files=files)
-            offset += len(data)
+            if isinstance(chunk, six.text_type):
+                chunk = chunk.encode('utf8')
+
+            if self.getServerVersion() >= ['2', '2']:
+                uploadObj = self.post(
+                    'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=chunk)
+            else:
+                # Prior to version 2.2 the server only supported multipart uploads
+                parameters = {
+                    'offset': offset,
+                    'uploadId': uploadId
+                }
+
+                uploadObj = self.post('file/chunk', parameters=parameters, files={
+                    'chunk': chunk
+                })
 
             if '_id' not in uploadObj:
                 raise Exception(
                     'After uploading a file chunk, did not receive object with _id. Got instead: ' +
                     json.dumps(uploadObj))
+
+            offset += len(chunk)
 
             if callable(progressCallback):
                 progressCallback({

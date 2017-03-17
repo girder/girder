@@ -19,6 +19,7 @@
 
 import cherrypy
 import errno
+import os
 import six
 
 from ..describe import Description, autoDescribeRoute, describeRoute
@@ -26,6 +27,7 @@ from ..rest import Resource, RestException, filtermodel
 from ...constants import AccessType, TokenScope
 from girder.models.model_base import AccessException, GirderException
 from girder.api import access
+from girder.utility import RequestBodyStream
 from girder.utility.progress import ProgressContext
 
 
@@ -176,21 +178,17 @@ class File(Resource):
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
-        Description('Upload a chunk of a file with multipart/form-data.')
-        .consumes('multipart/form-data')
+        Description('Upload a chunk of a file.')
         .modelParam('uploadId', paramType='formData')
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
                paramType='formData')
-        .param('chunk', 'The actual bytes of the chunk. For external upload '
-               'behaviors, this may be set to an opaque string that will be '
-               'handled by the assetstore adapter.', dataType='file')
         .errorResponse(('ID was invalid.',
                         'Received too many bytes.',
                         'Chunk is smaller than the minimum size.'))
         .errorResponse('You are not the user who initiated the upload.', 403)
         .errorResponse('Failed to store upload.', 500)
     )
-    def readChunk(self, upload, offset, chunk, params):
+    def readChunk(self, upload, offset, params):
         """
         After the temporary upload record has been created (see initUpload),
         the bytes themselves should be passed up in ordered chunks. The user
@@ -198,7 +196,24 @@ class File(Resource):
         the writer of the chunk is the same as the person who initiated the
         upload. The passed offset is a verification mechanism for ensuring the
         server and client agree on the number of bytes sent/received.
+
+        This method accepts both the legacy multipart content encoding, as
+        well as passing offset and uploadId as query parameters and passing
+        the chunk as the body, which is the recommended method.
+
+        Multipart uploads are @deprecated as of v2.2.0.
         """
+        if 'chunk' in params:
+            chunk = params['chunk']
+            if isinstance(chunk, cherrypy._cpreqbody.Part):
+                # Seek is the only obvious way to get the length of the part
+                chunk.file.seek(0, os.SEEK_END)
+                size = chunk.file.tell()
+                chunk.file.seek(0, os.SEEK_SET)
+                chunk = RequestBodyStream(chunk.file, size=size)
+        else:
+            chunk = RequestBodyStream(cherrypy.request.body)
+
         user = self.getCurrentUser()
 
         if upload['userId'] != user['_id']:
@@ -209,10 +224,7 @@ class File(Resource):
                 'Server has received %s bytes, but client sent offset %s.' % (
                     upload['received'], offset))
         try:
-            if isinstance(chunk, cherrypy._cpreqbody.Part):
-                return self.model('upload').handleChunk(upload, chunk.file, filter=True, user=user)
-            else:
-                return self.model('upload').handleChunk(upload, chunk, filter=True, user=user)
+            return self.model('upload').handleChunk(upload, chunk, filter=True, user=user)
         except IOError as exc:
             if exc.errno == errno.EACCES:
                 raise Exception('Failed to store upload.')

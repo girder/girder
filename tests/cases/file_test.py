@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import boto
+import httmock
 import io
 import json
 import mock
@@ -176,7 +178,7 @@ class FileTestCase(base.TestCase):
             'message': 'Chunk is smaller than the minimum size.'
         })
 
-        # Send the first chunk
+        # Send the first chunk (use multipart)
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
@@ -218,12 +220,12 @@ class FileTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['offset'], currentOffset)
 
-        files = [('chunk', name, chunk2)]
-
-        # Now upload the second chunk
-        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        # Now upload the second chunk (using query params + body)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                'offset': resp.json['offset'],
+                'uploadId': uploadId
+            }, type='text/plain')
         self.assertStatusOk(resp)
 
         file = resp.json
@@ -799,7 +801,7 @@ class FileTestCase(base.TestCase):
     @moto.mock_s3bucket_path
     def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
-        mock_s3.createBucket(botoParams, 'b')
+        bucket = mock_s3.createBucket(botoParams, 'b')
 
         self.model('assetstore').remove(self.model('assetstore').getCurrent())
         assetstore = self.model('assetstore').createS3Assetstore(
@@ -828,8 +830,7 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
         self.assertEqual(
-            resp.json['message'],
-            'Uploads of this length must be sent in a single chunk.')
+            resp.json['message'], 'Uploads of this length must be sent in a single chunk.')
 
         # Attempting to send second chunk with incorrect offset should fail
         fields = [('offset', 100), ('uploadId', uploadId)]
@@ -838,20 +839,41 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
         self.assertEqual(
-            resp.json['message'],
-            'Server has received 0 bytes, but client sent offset 100.')
+            resp.json['message'], 'Server has received 0 bytes, but client sent offset 100.')
 
         # Request offset from server (simulate a resume event)
-        resp = self.request(path='/file/offset', method='GET', user=self.user,
-                            params={'uploadId': uploadId})
+        resp = self.request(
+            path='/file/offset', method='GET', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
+
+        @httmock.all_requests
+        def mockChunkUpload(url, request):
+            """
+            We used to be able to use moto to mock the sending of chunks to
+            S3, however we now no longer use the boto API to do so internally,
+            and must mock this out at the level of requests.
+            """
+            if url.netloc != 's3.amazonaws.com':
+                raise Exception('Unexpected request to host ' + url.netloc)
+
+            body = request.body.read(65536)  # sufficient for now, we have short bodies
+
+            # Actually set the key in moto
+            self.assertEqual(url.path[:3], '/b/')
+            key = boto.s3.key.Key(bucket=bucket, name=url.path[3:])
+            key.set_contents_from_string(body)
+
+            return {
+                'status_code': 200
+            }
 
         # Trying to send too many bytes should fail
         currentOffset = resp.json['offset']
         fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
         files = [('chunk', 'hello.txt', "extra_"+chunk2+"_bytes")]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json, {
             'type': 'validation',
@@ -859,16 +881,17 @@ class FileTestCase(base.TestCase):
         })
 
         # The offset should not have changed
-        resp = self.request(path='/file/offset', method='GET', user=self.user,
-                            params={'uploadId': uploadId})
+        resp = self.request(
+            path='/file/offset', method='GET', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['offset'], currentOffset)
 
         # Send all in one chunk
         files = [('chunk', 'hello.txt', chunk1 + chunk2)]
         fields = [('offset', 0), ('uploadId', uploadId)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
         file = self.model('file').load(resp.json['_id'], force=True)
@@ -881,7 +904,7 @@ class FileTestCase(base.TestCase):
         # Make sure metadata is updated in S3 when file info changes
         # (moto API doesn't cover this at all, so we manually mock.)
         with mock.patch('boto.s3.key.Key.set_remote_metadata') as m:
-            resp = self.request(
+            self.request(
                 '/file/%s' % str(file['_id']), method='PUT', params={
                     'mimeType': 'application/csv',
                     'name': 'new name'
@@ -915,8 +938,9 @@ class FileTestCase(base.TestCase):
         files = [('chunk', 'hello.txt', chunk1)]
 
         # Send the first chunk, should now work
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
         resp = self.request(path='/file/offset', user=self.user, params={
@@ -929,10 +953,12 @@ class FileTestCase(base.TestCase):
         moto.s3.models.UPLOAD_PART_MIN_SIZE = 5
 
         # Send the second chunk
-        files = [('chunk', 'hello.txt', chunk2)]
-        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                    'offset': resp.json['offset'],
+                    'uploadId': uploadId
+                }, type='text/plain')
         self.assertStatusOk(resp)
 
         file = resp.json

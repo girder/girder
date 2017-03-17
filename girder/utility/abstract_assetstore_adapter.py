@@ -22,7 +22,7 @@ import six
 from girder.api.rest import setResponseHeader
 from girder.constants import SettingKey
 from girder.models.model_base import ValidationException
-from girder.utility import progress
+from girder.utility import progress, RequestBodyStream
 from .model_importer import ModelImporter
 
 
@@ -306,7 +306,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type chunk: a file-like object or a string
         :returns: the length of the chunk if known, or None.
         """
-        if isinstance(chunk, six.BytesIO):
+        if isinstance(chunk, (six.BytesIO, RequestBodyStream)):
             return
         elif hasattr(chunk, "fileno"):
             return os.fstat(chunk.fileno()).st_size
