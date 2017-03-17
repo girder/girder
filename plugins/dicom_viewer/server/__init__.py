@@ -65,12 +65,22 @@ def coerce(x):
         return None
 
 
-def process_file(f):
+def parse_file(f):
     data = {}
     try:
         # download file and try to parse dicom
         with ModelImporter.model('file').open(f) as fp:
-            ds = dicom.read_file(fp, stop_before_pixels=True)
+            ds = dicom.read_file(
+                fp,
+                # some dicom files don't have a valid header
+                force=True,
+                # don't read huge fields, esp. if this isn't even really dicom
+                defer_size=1024,
+                # don't read image data, just metadata
+                stop_before_pixels=True)
+            # does this look like a dicom file?
+            if (len(ds.dir()), len(ds.items())) == (0, 1):
+                return data
             # human-readable keys
             for key in ds.dir():
                 value = coerce(ds.data_element(key).value)
@@ -83,9 +93,12 @@ def process_file(f):
                 if value is not None:
                     data[key] = value
     except Exception:
-        pass
-    # store dicom data in file
-    f['dicom'] = data
+        pass # if an error occurs, probably not a dicom file
+    return data
+
+
+def process_file(f):
+    f['dicom'] = parse_file(f)
     return ModelImporter.model('file').save(f)
 
 
