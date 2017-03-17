@@ -65,8 +65,10 @@ argument to ``girder-cli``. For example: ::
 
     girder-cli --api-url http://localhost:8080/api/v1 <command> ...
 
-For backward compatibility, you may also specify the URL in parts, using the ``host`` argument,
-and optional ``scheme``, ``port``, and ``api-root`` args.
+.. deprecated:: 2.2
+
+  Instead of using ``api-url`` argument, you may also specify the URL in parts, using the
+  ``host`` argument, and optional ``scheme``, ``port``, and ``api-root`` args.
 
 Specifying credentials
 ^^^^^^^^^^^^^^^^^^^^^^
