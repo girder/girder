@@ -76,3 +76,8 @@ class DicomViewerTest(base.TestCase):
         dicom = resp.json[0]['dicom']
         self.assertEqual(dicom['Rows'], 80)
         self.assertEqual(dicom.get('Columns'), None)
+
+        # test non-admin force
+        path = '/item/%s/dicom' % item.get('_id')
+        resp = self.request(path=path, user=user, params=dict(force=True))
+        self.assertStatus(resp, 403)
