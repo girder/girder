@@ -284,7 +284,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # Validate and save the item
         return self.save(item)
 
-    def setMetadata(self, item, metadata, allowNull):
+    def setMetadata(self, item, metadata, allowNull=False):
         """
         Set metadata on an item.  A `ValidationException` is thrown in the
         cases where the metadata JSON object is badly formed, or if any of the
