@@ -316,7 +316,15 @@ class PythonClientTestCase(base.TestCase):
                 size=size, parentType='folder')
             self.assertEqual(file['mimeType'], 'text/plain')
 
-    def testUploadReference(self):
+    def testUploadReferenceWithMultipart(self):
+        with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
+            self._testUploadReference()
+
+    def testUploadReferenceWithNonMultipart(self):
+        with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '2', '0']):
+            self._testUploadReference()
+
+    def _testUploadReference(self):
         eventList = []
 
         def processEvent(event):
@@ -378,7 +386,15 @@ class PythonClientTestCase(base.TestCase):
         file = self.client.uploadFileToItem(item['_id'], testPath)
         self.assertEqual(file['mimeType'], 'text/plain')
 
-    def testUploadContent(self):
+    def testUploadContentWithMultipart(self):
+        with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
+            self._testUploadContent()
+
+    def testUploadContentWithoutMultipart(self):
+        with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '2', '0']):
+            self._testUploadContent()
+
+    def _testUploadContent(self):
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
         with open(path) as fh:
@@ -602,7 +618,15 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(resp['type'], 'validation')
         self.assertEqual(resp['message'], 'Path not found: %s' % (testInvalidPath))
 
-    def testUploadWithPath(self):
+    def testUploadWithPathWithMultipart(self):
+        with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
+            self._testUploadWithPath()
+
+    def testUploadWithPathWithoutMultipart(self):
+        with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '2', '0']):
+            self._testUploadWithPath()
+
+    def _testUploadWithPath(self):
         testUser = self.model('user').createUser(
             firstName='Jeffrey', lastName='Abrams', login='jjabrams',
             password='password', email='jjabrams@email.com')
@@ -617,7 +641,15 @@ class PythonClientTestCase(base.TestCase):
             parentType='folder', parent=parent,
             user=testUser, limit=0)], ['sub0', 'sub1', 'sub2'])
 
-    def testUploadFileWithDifferentName(self):
+    def testUploadFileWithDifferentNameWithMultipart(self):
+        with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
+            self._testUploadFileWithDifferentName()
+
+    def testUploadFileWithDifferentNameWithoutMultipart(self):
+        with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '2', '0']):
+            self._testUploadFileWithDifferentName()
+
+    def _testUploadFileWithDifferentName(self):
         itemName = 'MyStash'
         item = self.client.createItem(self.publicFolder['_id'],
                                       itemName)
