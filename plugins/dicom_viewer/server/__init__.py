@@ -93,7 +93,7 @@ def parse_file(f):
                 if value is not None:
                     data[key] = value
     except Exception:
-        pass # if an error occurs, probably not a dicom file
+        pass  # if an error occurs, probably not a dicom file
     return data
 
 
