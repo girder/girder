@@ -319,7 +319,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
             item['meta'] = {}
 
         for field in fields:
-            del item['meta'][field]
+            if field in item['meta']:
+                del item['meta'][field]
 
         item['updated'] = datetime.datetime.utcnow()
 
