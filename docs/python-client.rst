@@ -257,4 +257,5 @@ Further Examples and Function Level Documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: girder_client
+    :special-members: __init__
     :members:

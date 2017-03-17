@@ -166,7 +166,9 @@ class GirderClient(object):
             to pass 443 for the port
         :param cacheSettings: Settings to use with the diskcache library, or
             None to disable caching.
-        :param progressReporterCls: the progress reporter class to instantiate.
+        :param progressReporterCls: the progress reporter class to instantiate. This class
+            is expected to be a context manager with a constructor accepting `label` and
+            `length` keyword arguments and an `update` method accepting a `chunkSize` argument.
             This defaults to :class:`_NoopProgressReporter`.
         """
         if apiUrl is None:
