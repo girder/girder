@@ -491,3 +491,77 @@ users should now be able to run the task represented by the docker image.
 .. note:: The same item task can be auto-configured via docker multiple times without
    causing problems. Different image ids may be used each time if desired.
 
+
+Hashsum Download
+----------------
+
+The hashum_download plugin allows a file to be downloaded from Girder given a hash value and hash
+algorithm. Use this plugin when you have large data that you don’t want to keep in a software
+repository, but want to access that data from the repository, e.g. during a build or test of that
+software project. This plugin is written to satisfy the needs of CMake ExternalData. These docs
+describe how to use this plugin along with ExternalData, but the plugin could be used outside of
+that context. For more detailed documentation on how to use this in a software repository see the
+`ITKExamples <https://itk.org/ITKExamples/Documentation/Contribute/UploadBinaryData.html>`_. This
+example project uses the Girder instance https://data.kitware.com.
+
+.. note:: The use of the hashsum_download plugin with CMake ExternalData is only supported with a
+   filesystem assetstore and SHA512 as the hash algorithm.
+
+As every local Git repository contains a copy of the entire project history, it is important to
+avoid adding large binary files directly to the repository. Large binary files added and removed
+throughout a project’s history will cause the repository to become bloated and take up too much
+disk space, requiring excessive time and bandwidth to download, etc.
+
+A solution to this problem, when using the CMake build system, is to store binary files in a
+separate location outside the Git repository, then download the files at build time with CMake.
+
+A "content link" file contains an identifying SHA512 hash. The content link is calculated based on
+the original data file, but it should be stored in the Git repository at the path where the file
+would exist, with a ".sha512" extension appended to the file name. CMake will find these content
+link files at build time, download them from a list of server resources, and create symlinks or
+copies of the original files in the build tree.  The data file is stored in Girder, with the SHA512
+for the data added as metadata. Given a content link file containing a SHA512 hash, the data file
+that generated that hash can be retrieved from Girder by its hash.
+
+CMake ExternalData provides tooling to connect with a Girder instance, download the actual data
+file pointed to by the content link file, and provide a file path so tests can access the data
+file contents.
+
+Usage by a software project maintainer
+**************************************
+
+Again, for more background, using the example Girder instance https://data.kitware.com, see the
+`ITKExamples <https://itk.org/ITKExamples/Documentation/Contribute/UploadBinaryData.html>`_. Also
+see the CMake External Data documentation for CMake project configuration
+`help <https://cmake.org/cmake/help/latest/module/ExternalData.html>`_.
+
+In your project, you must set ExternalData_URL_TEMPLATES to a girder url, e.g.
+"https://data.kitware.com:443/api/v1/file/hashsum/%(algo)/%(hash)/download".
+
+See the ITK configuration for an `example <https://github.com/InsightSoftwareConsortium/ITKExamples/blob/master/CMake/ITKExamplesExternalData.cmake>`_
+application of ExternalData_URL_TEMPLATES.
+
+Project contributors will add data files to a Girder instance in arbitrary folders. At a project
+release and on a regular basis, perhaps nightly, the data should be archived in a new Girder folder
+to ensure its persistence.  A `script <https://github.com/InsightSoftwareConsortium/ITK/blob/ef14cce1c26d5dce7eb2e10d36c7dc81aaa9c9e8/Utilities/Maintenance/ArchiveTestingDataOnGirder.py>`_ that provides this functionality is available, as is an
+`example folder <https://data.kitware.com/#collection/57b5c9e58d777f126827f5a1/folder/57b672b48d777f10f269651a>`_
+produced by the script for a release.
+
+Usage by a software project contributor
+***************************************
+
+Upload a file to a Girder instance, which will create a Girder Item to house the file. Navigate to
+the Item, then click on the i (information) icon next to the file, which will show the id, and
+since the hashsum_download plugin is enabled, the sha512 field will also be displayed. Click on the
+key icon to download a hashfile, which will be the full sha512 of the file, with the same name as
+the file, and an extension of .sha512, and you can use this for your CMake content link. E.g.,
+upload my_datafile.txt and download the my_data.txt.sha512 file, then check the my_data.txt.sha512
+file into your source repository.
+
+You can use the Girder API to get the hash of the file given the file id, with the endpoint
+api/v1/file/<file id>/hashsum_file/sha512, where the file id comes from the specific file in Girder.
+
+You can also use the API to download the file based on the hash returned by the previous endpoint,
+with an endpoint /api/v1/file/hashsum/sha512/<file sha512 hash>/download, where the sha512 hash
+comes from the specific file in Girder.
+
