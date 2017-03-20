@@ -163,7 +163,7 @@ class Item(Resource):
                         'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the item.', 403)
     )
-    def setMetadata(self, item, metadata, params):
+    def setMetadata(self, item, metadata, allowNull, params):
         # Make sure we let user know if we can't accept a metadata key
         for k in metadata:
             if not k:
@@ -175,7 +175,7 @@ class Item(Resource):
                 raise RestException(
                     'Invalid key %s: keys must not start with the "$" character.' % k)
 
-        return self.model('item').setMetadata(item, metadata, params['allowNull'])
+        return self.model('item').setMetadata(item, metadata, allowNull)
 
     @autoDescribeRoute(
         Description('Delete metadata fields on an item.')
