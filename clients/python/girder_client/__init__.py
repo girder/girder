@@ -30,6 +30,8 @@ import shutil
 import six
 import tempfile
 
+from requests_toolbelt import MultipartEncoder
+
 __version__ = '2.0.0'
 __license__ = 'Apache 2.0'
 
@@ -327,7 +329,8 @@ class GirderClient(object):
 
         return self._serverApiDescription
 
-    def sendRestRequest(self, method, path, parameters=None, data=None, files=None, json=None):
+    def sendRestRequest(self, method, path, parameters=None,
+                        data=None, files=None, json=None, headers=None):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -351,6 +354,8 @@ class GirderClient(object):
         :type files: dict
         :param json: A JSON object to send in the request body.
         :type json: dict
+        :param headers: If present, a dictionary of headers to encode in the request.
+        :type headers: dict
         """
         if not parameters:
             parameters = {}
@@ -362,9 +367,13 @@ class GirderClient(object):
         url = self.urlBase + path
 
         # Make the request, passing parameters and authentication info
+        _headers = {'Girder-Token': self.token}
+        if isinstance(headers, dict):
+            _headers.update(headers)
+
         result = f(
             url, params=parameters, data=data, files=files, json=json,
-            headers={'Girder-Token': self.token})
+            headers=_headers)
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in (200, 201):
@@ -380,12 +389,12 @@ class GirderClient(object):
         """
         return self.sendRestRequest('GET', path, parameters)
 
-    def post(self, path, parameters=None, files=None, data=None, json=None):
+    def post(self, path, parameters=None, files=None, data=None, json=None, headers=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'POST' HTTP method.
         """
         return self.sendRestRequest('POST', path, parameters, files=files,
-                                    data=data, json=json)
+                                    data=data, json=json, headers=headers)
 
     def put(self, path, parameters=None, data=None, json=None):
         """
@@ -787,9 +796,17 @@ class GirderClient(object):
 
         with self.progressReporterCls(label=uploadObj['name'], length=size) as reporter:
 
+            # Used for fast non-multipart upload
             class _ProgressBytesIO(six.BytesIO):
                 def read(self, _size):
                     _chunk = super(_ProgressBytesIO, self).read(_size)
+                    reporter.update(len(_chunk))
+                    return _chunk
+
+            # Used for deprecated multipart upload
+            class _ProgressMultiPartEncoder(MultipartEncoder):
+                def read(self, _size):
+                    _chunk = super(_ProgressMultiPartEncoder, self).read(_size)
                     reporter.update(len(_chunk))
                     return _chunk
 
@@ -813,14 +830,17 @@ class GirderClient(object):
                         'uploadId': uploadId
                     }
 
-                    uploadObj = self.post('file/chunk', parameters=parameters, files={
-                        'chunk': chunk
-                    })
+                    m = _ProgressMultiPartEncoder(
+                        fields={'chunk': ('chunk', chunk, 'application/octet-stream')},
+                    )
+
+                    uploadObj = self.post('file/chunk', parameters=parameters,
+                                          data=m, headers={'Content-Type': m.content_type})
 
                 if '_id' not in uploadObj:
                     raise Exception(
-                        'After uploading a file chunk, did not receive object with _id. Got instead: ' +
-                        json.dumps(uploadObj))
+                        'After uploading a file chunk, did not receive object with _id. '
+                        'Got instead: ' + json.dumps(uploadObj))
 
                 offset += len(chunk)
 

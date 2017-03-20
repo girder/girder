@@ -342,9 +342,10 @@ class PythonClientTestCase(base.TestCase):
 
         def mock_post(*args, **kwargs):
             if 'data' in kwargs:
-                non_multipart.append(1)
-            elif 'parameters' in kwargs and 'files' in kwargs:
-                multipart.append(1)
+                if 'parameters' in kwargs:
+                    multipart.append(1)
+                else:
+                    non_multipart.append(1)
             return original_post(*args, **kwargs)
 
         with mock.patch.object(self.client, 'post', new=mock_post):

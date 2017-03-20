@@ -24,6 +24,7 @@ from setuptools import setup, find_packages
 install_reqs = [
     'diskcache',
     'requests>=2.4.2',
+    'requests_toolbelt',
     'six'
 ]
 with open('README.rst') as f:
