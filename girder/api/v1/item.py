@@ -182,7 +182,7 @@ class Item(Resource):
         .responseClass('Item')
         .modelParam('id', model='item', level=AccessType.WRITE)
         .jsonParam('fields', 'A JSON list containing the metadata fields to delete',
-                   paramType='body')
+                   paramType='body', requireArray=True)
         .errorResponse(('ID was invalid.',
                         'Invalid JSON passed in request body.',
                         'Metadata key name was invalid.'))
