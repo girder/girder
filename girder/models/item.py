@@ -295,6 +295,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param metadata: A dictionary containing key-value pairs to add to
                      the items meta field
         :type metadata: dict
+        :param allowNull: Whether to allow `null` values to be set in the item's
+                     metadata. If set to `False` or omitted, a `null` value will cause that
+                     metadata field to be deleted.
         :returns: the item document
         """
         if 'meta' not in item:
@@ -315,6 +318,18 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return self.save(item)
 
     def deleteMetadata(self, item, fields):
+        """
+        Delete metadata on an item. A `ValidationException` is thrown if the
+        metadata field names contain a period ('.') or begin with a dollar sign
+        ('$').
+
+        :param item: The item to delete metadata from.
+        :type item: dict
+        :param fields: An array containing the field names to deleete from the
+                   item's meta field
+        :type field: list
+        :returns: the item document
+        """
         if 'meta' not in item:
             item['meta'] = {}
 
