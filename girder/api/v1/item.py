@@ -24,6 +24,13 @@ from girder.constants import AccessType, TokenScope
 from girder.api import access
 
 
+def validate_field(f):
+    if '.' in f:
+        raise RestException('Invalid key %s: keys must not contain the "." character.' % f)
+    if f[0] == '$':
+        raise RestException('Invalid key %s: keys must not start with the "$" character.' % f)
+
+
 class Item(Resource):
 
     def __init__(self):
@@ -168,12 +175,8 @@ class Item(Resource):
         for k in metadata:
             if not k:
                 raise RestException('Key names must not be empty.')
-            if '.' in k:
-                raise RestException(
-                    'Invalid key %s: keys must not contain the "." character.' % k)
-            if k[0] == '$':
-                raise RestException(
-                    'Invalid key %s: keys must not start with the "$" character.' % k)
+
+            validate_field(k)
 
         return self.model('item').setMetadata(item, metadata, allowNull)
 
@@ -193,12 +196,7 @@ class Item(Resource):
             raise RestException('Key names must not be empty.')
 
         for k in fields:
-            if '.' in k:
-                raise RestException(
-                    'Invalid key %s: keys must not contain the "." character.' % k)
-            if k[0] == '$':
-                raise RestException(
-                    'Invalid key %s: keys must not start with the "$" character.' % k)
+            validate_field(k)
 
         return self.model('item').deleteMetadata(item, fields)
 
