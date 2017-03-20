@@ -24,11 +24,14 @@ from girder.constants import AccessType, TokenScope
 from girder.api import access
 
 
-def validate_field(f):
-    if '.' in f:
-        raise RestException('Invalid key %s: keys must not contain the "." character.' % f)
-    if f[0] == '$':
-        raise RestException('Invalid key %s: keys must not start with the "$" character.' % f)
+def _validateFields(fields):
+    for f in fields:
+        if not f:
+            raise RestException('Key names must not be empty.')
+        if '.' in f:
+            raise RestException('Invalid key %s: keys must not contain the "." character.' % f)
+        if f[0] == '$':
+            raise RestException('Invalid key %s: keys must not start with the "$" character.' % f)
 
 
 class Item(Resource):
@@ -172,11 +175,7 @@ class Item(Resource):
     )
     def setMetadata(self, item, metadata, allowNull, params):
         # Make sure we let user know if we can't accept a metadata key
-        for k in metadata:
-            if not k:
-                raise RestException('Key names must not be empty.')
-
-            validate_field(k)
+        _validateFields(metadata)
 
         return self.model('item').setMetadata(item, metadata, allowNull)
 
@@ -192,11 +191,7 @@ class Item(Resource):
         .errorResponse('Write acess was denied for the item.', 403)
     )
     def deleteMetadata(self, item, fields, params):
-        if not fields:
-            raise RestException('Key names must not be empty.')
-
-        for k in fields:
-            validate_field(k)
+        _validateFields(fields)
 
         return self.model('item').deleteMetadata(item, fields)
 

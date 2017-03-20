@@ -423,14 +423,6 @@ class ItemTestCase(base.TestCase):
         item = resp.json
         self.assertNotHasKeys(item['meta'], ['other'])
 
-        # Error when deletion field names are missing.
-        resp = self.request(path='/item/%s/metadata' % item['_id'],
-                            method='DELETE', user=self.users[0],
-                            body=json.dumps([]), type='application/json')
-        self.assertStatus(resp, 400)
-        self.assertEqual(
-            resp.json['message'], 'Key names must not be empty.')
-
         # Error when deletion field names contain a period.
         resp = self.request(path='/item/%s/metadata' % item['_id'],
                             method='DELETE', user=self.users[0],
