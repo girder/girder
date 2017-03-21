@@ -51,7 +51,8 @@ class GirderCli(GirderClient):
                 if length == 0:
                     return '%.2f' % length
                 unit = ''
-                units = ['K', 'M', 'G', 'P']
+                # See https://en.wikipedia.org/wiki/Binary_prefix
+                units = ['k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
                 while True:
                     if length <= 1024 or len(units) == 0:
                         break
