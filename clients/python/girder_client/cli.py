@@ -19,6 +19,7 @@
 
 import argparse
 from girder_client import GirderClient
+from .configure import GirderConfig
 
 
 class GirderCli(GirderClient):
@@ -28,7 +29,7 @@ class GirderCli(GirderClient):
     """
 
     def __init__(self, username, password, host=None, port=None, apiRoot=None,
-                 scheme=None, apiUrl=None, apiKey=None):
+                 scheme=None, apiUrl=None, apiKey=None, config=None):
         """
         Initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance. Aside from username, password,
@@ -39,14 +40,27 @@ class GirderCli(GirderClient):
         :param password: password to authenticate to Girder instance, leave
             this blank to be prompted.
         """
+        if not any((apiUrl, apiRoot, host, port, scheme)) and config:
+            apiUrl = config.get('girder_client', 'apiUrl')
         super(GirderCli, self).__init__(
             host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl)
-        interactive = password is None
+        interactive = password is None and \
+            (config is None or config.get("girder_client", "password") is None)
 
         if apiKey:
             self.authenticate(apiKey=apiKey)
         elif username:
             self.authenticate(username, password, interactive=interactive)
+        elif config:
+            configApiKey = config.get('girder_client', 'apiKey')
+            if configApiKey:
+                self.authenticate(apiKey=configApiKey)
+            elif config.get('girder_client', 'username'):
+                self.authenticate(config.get('girder_client', 'username'),
+                                  config.get('girder_client', 'password'),
+                                  interactive=False)
+        else:
+            print('Unable to authenticate. Insufficient options')
 
 
 parser = argparse.ArgumentParser(
@@ -61,6 +75,10 @@ parser.add_argument('--host', required=False, default=None)
 parser.add_argument('--port', required=False, default=None)
 parser.add_argument('--api-root', required=False, default=None,
                     help='relative path to the Girder REST API')
+parser.add_argument('--config', required=False, default=None,
+                    help='full path to the config file')
+parser.add_argument('--ignore-config', required=False, action='store_true',
+                    help='prevent reading any config files')
 
 subparsers = parser.add_subparsers(
     title='subcommands', dest='subcommand', description='Valid subcommands')
@@ -103,9 +121,14 @@ for name, kwargs in _commonArgs:
 def main():
     args = parser.parse_args()
 
+    if args.ignore_config:
+        config = None
+    else:
+        config = GirderConfig(args.config)
+
     gc = GirderCli(
         args.username, args.password, host=args.host, port=args.port, apiRoot=args.api_root,
-        scheme=args.scheme, apiUrl=args.api_url, apiKey=args.api_key)
+        scheme=args.scheme, apiUrl=args.api_url, apiKey=args.api_key, config=config.config)
 
     if args.subcommand == 'upload':
         gc.upload(

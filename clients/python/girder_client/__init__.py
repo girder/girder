@@ -124,7 +124,7 @@ class GirderClient(object):
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
-                 cacheSettings=None):
+                 cacheSettings=None, config=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
@@ -146,17 +146,32 @@ class GirderClient(object):
             to pass 443 for the port
         :param cacheSettings: Settings to use with the diskcache library, or
             None to disable caching.
+        :param config: ConfigParser instance.
         """
+        if config:
+            configScheme = config.get('girder_client', 'scheme')
+            configHost = config.get('girder_client', 'host')
+            configApiRoot = config.get('girder_client', 'apiRoot')
+            configApiUrl = config.get('girder_client', 'apiUrl')
+            try:
+                configPort = config.getint('girder_client', 'port')
+            except TypeError:
+                configPort = None
+        else:
+            configScheme = configHost = configApiRoot = configPort = configApiUrl = None
+
         if apiUrl is None:
-            if apiRoot is None:
-                apiRoot = '/api/v1'
+            if not any((apiRoot, host, scheme, port)) and configApiUrl:
+                self.urlBase = configApiUrl
+            else:
+                apiRoot = apiRoot or configApiRoot or '/api/v1'
+                self.host = host or configHost or 'localhost'
+                self.scheme = scheme or configScheme or 'http'
+                self.port = port or configPort or \
+                    (443 if self.scheme == 'https' else 80)
 
-            self.scheme = scheme or 'http'
-            self.host = host or 'localhost'
-            self.port = port or (443 if scheme == 'https' else 80)
-
-            self.urlBase = '%s://%s:%s%s' % (
-                self.scheme, self.host, str(self.port), apiRoot)
+                self.urlBase = '%s://%s:%s%s' % (
+                    self.scheme, self.host, str(self.port), apiRoot)
         else:
             self.urlBase = apiUrl
 
