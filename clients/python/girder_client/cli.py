@@ -19,6 +19,7 @@
 
 import click
 from click._compat import _default_text_stdout, isatty
+import types
 from girder_client import GirderClient, HttpError
 
 
@@ -43,6 +44,28 @@ class GirderCli(GirderClient):
         def _progressBar(*args, **kwargs):
             bar = click.progressbar(*args, **kwargs)
             bar.bar_template = "[%(bar)s]  %(info)s  %(label)s"
+            bar.show_percent = True
+            bar.show_pos = True
+
+            def formatSize(length):
+                if length == 0:
+                    return '%.2f' % length
+                unit = ''
+                units = ['K', 'M', 'G', 'P']
+                while True:
+                    if int(length / 1024) == 0 or len(units) == 0:
+                        break
+                    unit = units.pop(0)
+                    length /= 1024
+                return '%.2f%s' % (length, unit)
+
+            def formatPos(_self):
+                pos = formatSize(_self.pos)
+                if _self.length_known:
+                    pos += '/%s' % formatSize(_self.length)
+                return pos
+
+            bar.format_pos = types.MethodType(formatPos, bar)
             return bar
 
         _progressBar.reportProgress = isatty(_default_text_stdout())
