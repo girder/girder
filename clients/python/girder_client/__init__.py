@@ -196,7 +196,9 @@ class GirderClient(object):
             None to disable caching.
         :param progressReporterCls: the progress reporter class to instantiate. This class
             is expected to be a context manager with a constructor accepting `label` and
-            `length` keyword arguments and an `update` method accepting a `chunkSize` argument.
+            `length` keyword arguments, an `update` method accepting a `chunkSize` argument and
+            a class attribute `reportProgress` set to True (It can conveniently be
+            initialized using `sys.stdout.isatty()`).
             This defaults to :class:`_NoopProgressReporter`.
         """
         if apiUrl is None:

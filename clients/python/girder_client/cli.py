@@ -18,7 +18,7 @@
 ###############################################################################
 
 import click
-from click._compat import _default_text_stdout, isatty
+import sys
 import types
 from girder_client import GirderClient, HttpError
 
@@ -68,7 +68,7 @@ class GirderCli(GirderClient):
             bar.format_pos = types.MethodType(formatPos, bar)
             return bar
 
-        _progressBar.reportProgress = isatty(_default_text_stdout())
+        _progressBar.reportProgress = sys.stdout.isatty()
 
         super(GirderCli, self).__init__(
             host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl,
