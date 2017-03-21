@@ -30,6 +30,8 @@ import shutil
 import six
 import tempfile
 
+from requests_toolbelt import MultipartEncoder
+
 __version__ = '2.0.0'
 __license__ = 'Apache 2.0'
 
@@ -88,6 +90,47 @@ class HttpError(Exception):
         return super(HttpError, self).__str__() + '\nResponse text: ' + self.responseText
 
 
+class _NoopProgressReporter(object):
+    reportProgress = False
+
+    def __init__(self, label='', length=0):
+        self.label = label
+        self.length = length
+
+    def update(self, chunkSize):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        pass
+
+
+# Used for fast non-multipart upload
+class _ProgressBytesIO(six.BytesIO):
+    def __init__(self, *args, **kwargs):
+        self.reporter = kwargs.pop('reporter')
+        six.BytesIO.__init__(self, *args, **kwargs)
+
+    def read(self, _size):
+        _chunk = six.BytesIO.read(self, _size)
+        self.reporter.update(len(_chunk))
+        return _chunk
+
+
+# Used for deprecated multipart upload
+class _ProgressMultiPartEncoder(MultipartEncoder):
+    def __init__(self, *args, **kwargs):
+        self.reporter = kwargs.pop('reporter')
+        MultipartEncoder.__init__(self, *args, **kwargs)
+
+    def read(self, _size):
+        _chunk = MultipartEncoder.read(self, _size)
+        self.reporter.update(len(_chunk))
+        return _chunk
+
+
 class GirderClient(object):
     """
     A class for interacting with the Girder RESTful API.
@@ -123,8 +166,13 @@ class GirderClient(object):
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
+    DEFAULT_API_ROOT = 'api/v1'
+    DEFAULT_HOST = 'localhost'
+    DEFAULT_PORT = 443
+    DEFAULT_SCHEME = 'https'
+
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
-                 cacheSettings=None):
+                 cacheSettings=None, progressReporterCls=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
@@ -146,14 +194,24 @@ class GirderClient(object):
             to pass 443 for the port
         :param cacheSettings: Settings to use with the diskcache library, or
             None to disable caching.
+        :param progressReporterCls: the progress reporter class to instantiate. This class
+            is expected to be a context manager with a constructor accepting `label` and
+            `length` keyword arguments, an `update` method accepting a `chunkSize` argument and
+            a class attribute `reportProgress` set to True (It can conveniently be
+            initialized using `sys.stdout.isatty()`).
+            This defaults to :class:`_NoopProgressReporter`.
         """
         if apiUrl is None:
-            if apiRoot is None:
-                apiRoot = '/api/v1'
+            if not apiRoot:
+                apiRoot = self.DEFAULT_API_ROOT
+            # If needed, prepend '/'
+            if not apiRoot.startswith('/'):
+                apiRoot = '/' + apiRoot
 
-            self.scheme = scheme or 'http'
-            self.host = host or 'localhost'
-            self.port = port or (443 if scheme == 'https' else 80)
+            self.scheme = scheme or self.DEFAULT_SCHEME
+            self.host = host or self.DEFAULT_HOST
+            self.port = port or (
+                self.DEFAULT_PORT if self.scheme == 'https' else 80)
 
             self.urlBase = '%s://%s:%s%s' % (
                 self.scheme, self.host, str(self.port), apiRoot)
@@ -174,6 +232,11 @@ class GirderClient(object):
             self.cache = None
         else:
             self.cache = diskcache.Cache(**cacheSettings)
+
+        if progressReporterCls is None:
+            progressReporterCls = _NoopProgressReporter
+
+        self.progressReporterCls = progressReporterCls
 
     def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
         """
@@ -292,7 +355,8 @@ class GirderClient(object):
 
         return self._serverApiDescription
 
-    def sendRestRequest(self, method, path, parameters=None, data=None, files=None, json=None):
+    def sendRestRequest(self, method, path, parameters=None,
+                        data=None, files=None, json=None, headers=None):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -316,6 +380,8 @@ class GirderClient(object):
         :type files: dict
         :param json: A JSON object to send in the request body.
         :type json: dict
+        :param headers: If present, a dictionary of headers to encode in the request.
+        :type headers: dict
         """
         if not parameters:
             parameters = {}
@@ -327,9 +393,13 @@ class GirderClient(object):
         url = self.urlBase + path
 
         # Make the request, passing parameters and authentication info
+        _headers = {'Girder-Token': self.token}
+        if isinstance(headers, dict):
+            _headers.update(headers)
+
         result = f(
             url, params=parameters, data=data, files=files, json=json,
-            headers={'Girder-Token': self.token})
+            headers=_headers)
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in (200, 201):
@@ -345,12 +415,12 @@ class GirderClient(object):
         """
         return self.sendRestRequest('GET', path, parameters)
 
-    def post(self, path, parameters=None, files=None, data=None, json=None):
+    def post(self, path, parameters=None, files=None, data=None, json=None, headers=None):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'POST' HTTP method.
         """
         return self.sendRestRequest('POST', path, parameters, files=files,
-                                    data=data, json=json)
+                                    data=data, json=json, headers=headers)
 
     def put(self, path, parameters=None, data=None, json=None):
         """
@@ -749,41 +819,49 @@ class GirderClient(object):
         """
         offset = 0
         uploadId = uploadObj['_id']
-        while True:
-            chunk = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
 
-            if not chunk:
-                break
+        with self.progressReporterCls(label=uploadObj['name'], length=size) as reporter:
 
-            if isinstance(chunk, six.text_type):
-                chunk = chunk.encode('utf8')
+            while True:
+                chunk = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
 
-            if self.getServerVersion() >= ['2', '2']:
-                uploadObj = self.post(
-                    'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId), data=chunk)
-            else:
-                # Prior to version 2.2 the server only supported multipart uploads
-                parameters = {
-                    'offset': offset,
-                    'uploadId': uploadId
-                }
+                if not chunk:
+                    break
 
-                uploadObj = self.post('file/chunk', parameters=parameters, files={
-                    'chunk': chunk
-                })
+                if isinstance(chunk, six.text_type):
+                    chunk = chunk.encode('utf8')
 
-            if '_id' not in uploadObj:
-                raise Exception(
-                    'After uploading a file chunk, did not receive object with _id. Got instead: ' +
-                    json.dumps(uploadObj))
+                if self.getServerVersion() >= ['2', '2']:
+                    uploadObj = self.post(
+                        'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
+                        data=_ProgressBytesIO(chunk, reporter=reporter))
+                else:
+                    # Prior to version 2.2 the server only supported multipart uploads
+                    parameters = {
+                        'offset': offset,
+                        'uploadId': uploadId
+                    }
 
-            offset += len(chunk)
+                    m = _ProgressMultiPartEncoder(
+                        reporter=reporter,
+                        fields={'chunk': ('chunk', chunk, 'application/octet-stream')},
+                    )
 
-            if callable(progressCallback):
-                progressCallback({
-                    'current': offset,
-                    'total': size
-                })
+                    uploadObj = self.post('file/chunk', parameters=parameters,
+                                          data=m, headers={'Content-Type': m.content_type})
+
+                if '_id' not in uploadObj:
+                    raise Exception(
+                        'After uploading a file chunk, did not receive object with _id. '
+                        'Got instead: ' + json.dumps(uploadObj))
+
+                offset += len(chunk)
+
+                if callable(progressCallback):
+                    progressCallback({
+                        'current': offset,
+                        'total': size
+                    })
 
         if offset != size:
             self.delete('file/upload/' + uploadId)
@@ -937,12 +1015,19 @@ class GirderClient(object):
                 return
 
         # download to a tempfile
+        progressFileName = fileId
+        if isinstance(path, six.string_types):
+            progressFileName = os.path.basename(path)
         req = requests.get(
             '%sfile/%s/download' % (self.urlBase, fileId),
             stream=True, headers={'Girder-Token': self.token})
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
-                tmp.write(chunk)
+            with self.progressReporterCls(
+                    label=progressFileName,
+                    length=int(req.headers['content-length'])) as reporter:
+                for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
+                    reporter.update(len(chunk))
+                    tmp.write(chunk)
 
         # save file in cache
         if self.cache is not None:
@@ -1251,7 +1336,8 @@ class GirderClient(object):
         :param reuseExisting: boolean indicating whether to accept an existing item
             of the same name in the same location, or create a new one instead
         """
-        print('Uploading Item from %s' % localFile)
+        if not self.progressReporterCls.reportProgress:
+            print('Uploading Item from %s' % localFile)
         if not dryRun:
             currentItem = self.loadOrCreateItem(
                 os.path.basename(localFile), parentFolderId, reuseExisting)

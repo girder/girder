@@ -72,7 +72,8 @@ class PythonClientTestCase(base.TestCase):
             os.mkdir(subDirName)
             writeFile(subDirName)
 
-        self.client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
+        self.client = girder_client.GirderClient(
+            port=os.environ['GIRDER_PORT'], scheme='http')
 
         # Register a user
         self.password = 'password'
@@ -341,9 +342,10 @@ class PythonClientTestCase(base.TestCase):
 
         def mock_post(*args, **kwargs):
             if 'data' in kwargs:
-                non_multipart.append(1)
-            elif 'parameters' in kwargs and 'files' in kwargs:
-                multipart.append(1)
+                if 'parameters' in kwargs:
+                    multipart.append(1)
+                else:
+                    non_multipart.append(1)
             return original_post(*args, **kwargs)
 
         with mock.patch.object(self.client, 'post', new=mock_post):
@@ -504,7 +506,9 @@ class PythonClientTestCase(base.TestCase):
         # create another client with caching enabled
         cacheSettings = {'directory': os.path.join(self.libTestDir, 'cache')}
         client = girder_client.GirderClient(
-            port=os.environ['GIRDER_PORT'], cacheSettings=cacheSettings)
+            port=os.environ['GIRDER_PORT'],
+            scheme="http",
+            cacheSettings=cacheSettings)
         client.authenticate(self.user['login'], self.password)
         self.assertNotEqual(client.cache, None)
 
@@ -571,7 +575,10 @@ class PythonClientTestCase(base.TestCase):
         }
 
         def _patchJson(url, request):
-            patchRequest['valid'] = json.loads(request.body.decode('utf8')) == jsonBody
+            body = request.body
+            if isinstance(body, six.binary_type):
+                body = body.decode('utf8')
+            patchRequest['valid'] = json.loads(body) == jsonBody
 
             return httmock.response(200, {}, {}, request=request)
 

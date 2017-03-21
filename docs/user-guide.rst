@@ -271,6 +271,8 @@ User
 ``Users`` have ``ADMIN`` access on themselves, and have ``READ`` access on other
 ``Users``.
 
+.. _api_keys:
+
 API keys
 --------
 
@@ -302,3 +304,9 @@ key, it will immediately delete all active tokens created with that key, and als
 stop that key from being able to create new tokens until you activate it once again.
 Alternatively, you can delete the key altogether, which will make the key and any
 tokens created with it never work again.
+
+
+Using Girder CLI to Upload and Download data
+============================================
+
+See :ref:`python-client`
