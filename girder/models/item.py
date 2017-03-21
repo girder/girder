@@ -312,6 +312,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
             for key in toDelete:
                 del item['meta'][key]
 
+        self.validateKeys(item['meta'])
+
         item['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the item
@@ -325,11 +327,13 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         :param item: The item to delete metadata from.
         :type item: dict
-        :param fields: An array containing the field names to deleete from the
-                   item's meta field
+        :param fields: An array containing the field names to delete from the
+            item's meta field
         :type field: list
         :returns: the item document
         """
+        self.validateKeys(fields)
+
         if 'meta' not in item:
             item['meta'] = {}
 
@@ -338,7 +342,6 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         item['updated'] = datetime.datetime.utcnow()
 
-        # Validate and save the item
         return self.save(item)
 
     def parentsToRoot(self, item, user=None, force=False):

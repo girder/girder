@@ -296,9 +296,8 @@ class FolderTestCase(base.TestCase):
                             method='PUT', user=self.admin,
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'],
-                         'The key name foo.bar must not contain a period' +
-                         ' or begin with a dollar sign.')
+        self.assertEqual(
+            resp.json['message'], 'Invalid key foo.bar: keys must not contain the "." character.')
 
         # Make sure metadata cannot be added if the key begins with a
         # dollar sign
@@ -309,9 +308,9 @@ class FolderTestCase(base.TestCase):
                             method='PUT', user=self.admin,
                             body=json.dumps(metadata), type='application/json')
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'],
-                         'The key name $foobar must not contain a period' +
-                         ' or begin with a dollar sign.')
+        self.assertEqual(
+            resp.json['message'],
+            'Invalid key $foobar: keys must not start with the "$" character.')
 
     def testDeleteFolder(self):
         cbInfo = {}

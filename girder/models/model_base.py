@@ -206,6 +206,26 @@ class Model(ModelImporter):
         raise Exception('Must override validate() in %s model.'
                         % self.__class__.__name__)  # pragma: no cover
 
+    def validateKeys(self, keys):
+        """
+        Validate a set of keys to make sure they are able to be used in the
+        database. This enforces MongoDB rules about key names.
+        @TODO Add recurse=True argument if ``keys`` is a dict.
+
+        :param keys: An iterable of keys to validate.
+        :type keys: iterable
+        :raises: ValidationException
+        """
+        for k in keys:
+            if not k:
+                raise ValidationException('Key names must not be empty.')
+            if '.' in k:
+                raise ValidationException(
+                    'Invalid key %s: keys must not contain the "." character.' % k)
+            if k[0] == '$':
+                raise ValidationException(
+                    'Invalid key %s: keys must not start with the "$" character.' % k)
+
     def initialize(self):
         """
         Subclasses should override this and set the name of the collection as

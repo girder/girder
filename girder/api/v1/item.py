@@ -24,16 +24,6 @@ from girder.constants import AccessType, TokenScope
 from girder.api import access
 
 
-def _validateFields(fields):
-    for f in fields:
-        if not f:
-            raise RestException('Key names must not be empty.')
-        if '.' in f:
-            raise RestException('Invalid key %s: keys must not contain the "." character.' % f)
-        if f[0] == '$':
-            raise RestException('Invalid key %s: keys must not start with the "$" character.' % f)
-
-
 class Item(Resource):
 
     def __init__(self):
@@ -165,7 +155,7 @@ class Item(Resource):
         .notes('Set metadata fields to null in order to delete them.')
         .modelParam('id', model='item', level=AccessType.WRITE)
         .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
-                   paramType='body')
+                   paramType='body', requireObject=True)
         .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
                dataType='boolean', default=False)
         .errorResponse(('ID was invalid.',
@@ -174,25 +164,29 @@ class Item(Resource):
         .errorResponse('Write access was denied for the item.', 403)
     )
     def setMetadata(self, item, metadata, allowNull, params):
-        # Make sure we let user know if we can't accept a metadata key
-        _validateFields(metadata)
+        return self.model('item').setMetadata(item, metadata, allowNull=allowNull)
 
-        return self.model('item').setMetadata(item, metadata, allowNull)
-
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @filtermodel('item')
     @autoDescribeRoute(
         Description('Delete metadata fields on an item.')
         .responseClass('Item')
         .modelParam('id', model='item', level=AccessType.WRITE)
-        .jsonParam('fields', 'A JSON list containing the metadata fields to delete',
-                   paramType='body', requireArray=True)
+        .jsonParam(
+            'fields', 'A JSON list containing the metadata fields to delete',
+             paramType='body', schema={
+                'type': 'array',
+                'items': {
+                    'type': 'string'
+                }
+            }
+        )
         .errorResponse(('ID was invalid.',
                         'Invalid JSON passed in request body.',
                         'Metadata key name was invalid.'))
-        .errorResponse('Write acess was denied for the item.', 403)
+        .errorResponse('Write access was denied for the item.', 403)
     )
     def deleteMetadata(self, item, fields, params):
-        _validateFields(fields)
-
         return self.model('item').deleteMetadata(item, fields)
 
     def _downloadMultifileItem(self, item, user):
