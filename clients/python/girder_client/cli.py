@@ -51,12 +51,13 @@ class GirderCli(GirderClient):
                 if length == 0:
                     return '%.2f' % length
                 unit = ''
-                units = ['K', 'M', 'G', 'P']
+                # See https://en.wikipedia.org/wiki/Binary_prefix
+                units = ['k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
                 while True:
-                    if int(length / 1024) == 0 or len(units) == 0:
+                    if length <= 1024 or len(units) == 0:
                         break
                     unit = units.pop(0)
-                    length /= 1024
+                    length /= 1024.
                 return '%.2f%s' % (length, unit)
 
             def formatPos(_self):
