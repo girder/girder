@@ -1,0 +1,45 @@
+.g-config-breadcrumb-container
+
+.g-ldap-server-list-title LDAP servers
+form.g-ldap-server-form(role="form", id=`g-ldap-server-form`)
+  .panel-group#g-ldap-server-accordion
+    each server, index in servers
+      .panel.panel-default(id=`g-ldap-server-${index}`)
+        .panel-heading(data-toggle="collapse",
+            data-parent="#g-ldap-server-accordion",
+            data-target=`#g-ldap-server-${index}-settings`)
+          .panel-title.pull-left
+            a
+              span=server.uri
+          .panel-title.pull-right
+            a(title="Remove this server")
+              i.icon-cancel(id=`g-ldap-server-${index}-remove`)
+          .clearfix
+        .panel-collapse.collapse(id=`g-ldap-server-${index}-settings`,
+            class=server.collapsedClass)
+          .panel-body
+            .form-group
+              label.control-label(for=`g-ldap-server-${index}-uri`) URI
+              input.input-sm.form-control(id=`g-ldap-server-${index}-uri`,
+                  type="text", value=server.uri, placeholder="URI")
+            .form-group
+              label.control-label(for=`g-ldap-server-${index}-bindName`) bindName
+              input.input-sm.form-control(id=`g-ldap-server-${index}-bindName`,
+                  type="text", value=server.bindName, placeholder="bindName")
+            .form-group
+              label.control-label(for=`g-ldap-server-${index}-baseDn`) baseDn
+              input.input-sm.form-control(id=`g-ldap-server-${index}-baseDn`,
+                  type="text", value=server.baseDn, placeholder="baseDn")
+            .form-group
+              label.control-label(for=`g-ldap-server-${index}-password`) password
+              input.input-sm.form-control(id=`g-ldap-server-${index}-password`,
+                  type="password", value=server.password, placeholder="password (optional)")
+            .form-group
+              label.control-label(for=`g-ldap-server-${index}-searchField`) searchField
+              input.input-sm.form-control(id=`g-ldap-server-${index}-searchField`,
+                  type="text", value=server.searchField, placeholder="searchField (optional)")
+  .btn-toolbar
+    input.btn.btn-sm.btn-primary(type="button", id=`g-ldap-add-server`,
+        value="New Server")
+    input.btn.btn-sm.btn-primary(type="submit", value="Save")
+  p.g-validation-failed-message(id=`g-ldap-servers-error-message`)
