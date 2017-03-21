@@ -107,6 +107,30 @@ class _NoopProgressReporter(object):
         pass
 
 
+# Used for fast non-multipart upload
+class _ProgressBytesIO(six.BytesIO):
+    def __init__(self, *args, **kwargs):
+        self.reporter = kwargs.pop('reporter')
+        six.BytesIO.__init__(self, *args, **kwargs)
+
+    def read(self, _size):
+        _chunk = six.BytesIO.read(self, _size)
+        self.reporter.update(len(_chunk))
+        return _chunk
+
+
+# Used for deprecated multipart upload
+class _ProgressMultiPartEncoder(MultipartEncoder):
+    def __init__(self, *args, **kwargs):
+        self.reporter = kwargs.pop('reporter')
+        MultipartEncoder.__init__(self, *args, **kwargs)
+
+    def read(self, _size):
+        _chunk = MultipartEncoder.read(self, _size)
+        self.reporter.update(len(_chunk))
+        return _chunk
+
+
 class GirderClient(object):
     """
     A class for interacting with the Girder RESTful API.
@@ -796,20 +820,6 @@ class GirderClient(object):
 
         with self.progressReporterCls(label=uploadObj['name'], length=size) as reporter:
 
-            # Used for fast non-multipart upload
-            class _ProgressBytesIO(six.BytesIO):
-                def read(self, _size):
-                    _chunk = six.BytesIO.read(self, _size)
-                    reporter.update(len(_chunk))
-                    return _chunk
-
-            # Used for deprecated multipart upload
-            class _ProgressMultiPartEncoder(MultipartEncoder):
-                def read(self, _size):
-                    _chunk = MultipartEncoder.read(self, _size)
-                    reporter.update(len(_chunk))
-                    return _chunk
-
             while True:
                 chunk = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
 
@@ -822,7 +832,7 @@ class GirderClient(object):
                 if self.getServerVersion() >= ['2', '2']:
                     uploadObj = self.post(
                         'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
-                        data=_ProgressBytesIO(chunk))
+                        data=_ProgressBytesIO(chunk, reporter=reporter))
                 else:
                     # Prior to version 2.2 the server only supported multipart uploads
                     parameters = {
@@ -831,6 +841,7 @@ class GirderClient(object):
                     }
 
                     m = _ProgressMultiPartEncoder(
+                        reporter=reporter,
                         fields={'chunk': ('chunk', chunk, 'application/octet-stream')},
                     )
 
