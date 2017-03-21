@@ -146,7 +146,7 @@ def _lookup_parent_type(client, object_id):
 
 
 def _CommonParameters(path_exists=False, path_writable=True,
-                      additional_parent_types=('collection', 'user')):
+                      additional_parent_types=('collection', 'user'), path_default=None):
     parent_types = ['folder'] + list(additional_parent_types)
     parent_type_cls = _HiddenOption
     parent_type_default = 'folder'
@@ -164,7 +164,9 @@ def _CommonParameters(path_exists=False, path_writable=True,
             click.argument(
                 'local_folder',
                 type=click.Path(exists=path_exists, dir_okay=True,
-                                writable=path_writable, readable=True)),
+                                writable=path_writable, readable=True),
+                default=path_default
+            ),
         ]
         for decorator in reversed(decorators):
             func = decorator(func)
@@ -178,8 +180,9 @@ _common_help = 'PARENT_ID is the id of the Girder parent target and ' \
 _short_help = 'Download files from Girder'
 
 
-@main.command('download', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_CommonParameters(additional_parent_types=['collection', 'user', 'item'])
+@main.command('download', short_help=_short_help, help='%s\n\n%s' % (
+    _short_help, _common_help.replace('LOCAL_FOLDER', 'LOCAL_FOLDER (default: ".")')))
+@_CommonParameters(additional_parent_types=['collection', 'user', 'item'], path_default='.')
 @click.pass_obj
 def _download(gc, parent_type, parent_id, local_folder):
     if parent_type == 'auto':
