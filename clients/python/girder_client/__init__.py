@@ -799,14 +799,14 @@ class GirderClient(object):
             # Used for fast non-multipart upload
             class _ProgressBytesIO(six.BytesIO):
                 def read(self, _size):
-                    _chunk = super(_ProgressBytesIO, self).read(_size)
+                    _chunk = six.BytesIO.read(self, _size)
                     reporter.update(len(_chunk))
                     return _chunk
 
             # Used for deprecated multipart upload
             class _ProgressMultiPartEncoder(MultipartEncoder):
                 def read(self, _size):
-                    _chunk = super(_ProgressMultiPartEncoder, self).read(_size)
+                    _chunk = MultipartEncoder.read(self, _size)
                     reporter.update(len(_chunk))
                     return _chunk
 
