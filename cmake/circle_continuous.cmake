@@ -25,15 +25,10 @@ if(test_group STREQUAL python)
     PARALLEL_LEVEL 4 RETURN_VALUE res
     INCLUDE_LABEL girder_python
   )
-elseif(test_group STREQUAL static)
-  ctest_test(
-    PARALLEL_LEVEL 4 RETURN_VALUE res
-    INCLUDE_LABEL girder_static_analysis
-  )
 elseif(test_group STREQUAL browser)
   ctest_test(
     PARALLEL_LEVEL 4 RETURN_VALUE res
-    EXCLUDE_LABEL "girder_python|girder_static_analysis"
+    EXCLUDE_LABEL girder_python
   )
   file(RENAME "${CTEST_BINARY_DIRECTORY}/coverage/js_coverage.xml" "${CTEST_BINARY_DIRECTORY}/coverage.xml")
 endif()
