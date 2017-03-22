@@ -70,8 +70,11 @@ class Upload(Model):
         :param size: The total size of
         :param name: The name of the file to create.
         :type name: str
-        :param parentType: The type of the parent: "folder" or "item".
-        :type parentType: str
+        :param parentType: The type of the parent being uploaded into. If attachParent is False,
+                           this should be 'folder' or 'item'. If attachParent is True, this may be
+                           a string with the lowercase name of any model, or a list of the form
+                           ['model_name', 'plugin_name'].
+        :type parentType: str or list
         :param parent: The parent (item or folder) to upload into.
         :type parent: dict
         :param user: The user who is creating the file.
@@ -332,8 +335,11 @@ class Upload(Model):
         :type user: dict
         :param name: The name of the file being uploaded.
         :type name: str
-        :param parentType: The type of the parent being uploaded into.
-        :type parentType: str ('folder' or 'item')
+        :param parentType: The type of the parent being uploaded into. If attachParent is False,
+                           this should be 'folder' or 'item'. If attachParent is True, this may be
+                           a string with the lowercase name of any model, or a list of the form
+                           ['model_name', 'plugin_name'].
+        :type parentType: str or list
         :param parent: The document representing the parent.
         :type parent: dict.
         :param size: Total size in bytes of the whole file.
@@ -377,7 +383,7 @@ class Upload(Model):
             upload['reference'] = reference
 
         if parentType and parent:
-            upload['parentType'] = parentType.lower()
+            upload['parentType'] = parentType
             upload['parentId'] = parent['_id']
         else:
             upload['parentType'] = None
