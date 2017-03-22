@@ -174,7 +174,7 @@ class Item(Resource):
         .modelParam('id', model='item', level=AccessType.WRITE)
         .jsonParam(
             'fields', 'A JSON list containing the metadata fields to delete',
-             paramType='body', schema={
+            paramType='body', schema={
                 'type': 'array',
                 'items': {
                     'type': 'string'

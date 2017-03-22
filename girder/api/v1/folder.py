@@ -281,7 +281,7 @@ class Folder(Resource):
         .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
                    paramType='body', requireObject=True)
         .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
-               dataType='boolean', default = False)
+               dataType='boolean', default=False)
         .errorResponse(('ID was invalid.',
                         'Invalid JSON passed in request body.',
                         'Metadata key name was invalid.'))
