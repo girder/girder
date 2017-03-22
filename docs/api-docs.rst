@@ -204,6 +204,9 @@ Utility
 .. automodule:: girder.utility.path
    :members:
 
+.. automodule:: girder.utility.setting_utilities
+   :members:
+
 Constants
 ---------
 .. automodule:: girder.constants
