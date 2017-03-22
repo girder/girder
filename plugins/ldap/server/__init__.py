@@ -79,9 +79,6 @@ def _getLdapUser(attrs):
             'email': {'$eq': email.lower()}
         })
         if existing:
-            if existing['salt']:
-                # This user has a password stored in girder, we fall back to core auth
-                return None
             return existing
 
     return _registerLdapUser(attrs, email)
@@ -113,9 +110,13 @@ def _ldapAuth(event):
             entry, attrs = results[0]
             try:
                 conn.bind_s(attrs['distinguishedName'][0], password, ldap.AUTH_SIMPLE)
-            except ldap.LDAPError:
+            except ldap.INVALID_CREDENTIALS:
+                # Core authentication could still succeed if this user has
+                # a password stored in girder.
+                pass
+            except ldap.LDAPError as e:
                 conn.unbind_s()
-                raise AccessException('Login failed.')
+                raise AccessException('Login failed: %s' % e[0]['desc'])
 
             user = _getLdapUser(attrs)
             conn.unbind_s()
