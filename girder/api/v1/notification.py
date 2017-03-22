@@ -20,6 +20,7 @@
 import cherrypy
 import json
 import time
+from datetime import datetime
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, setResponseHeader
@@ -38,6 +39,10 @@ def sseMessage(event):
     """
     Serializes an event into the server-sent events protocol.
     """
+    # Inject the current time on the server into the event so that
+    # the client doesn't need to worry about clock synchronization
+    # issues when restarting the event stream.
+    event['_girderTime'] = int(time.time())
     return 'data: %s\n\n' % json.dumps(event, sort_keys=True, allow_nan=False, cls=JsonEncoder)
 
 
@@ -60,6 +65,8 @@ class Notification(Resource):
                '<p>This connection can stay open indefinitely long.')
         .param('timeout', 'The duration without a notification before the stream is closed.',
                dataType='integer', required=False, default=DEFAULT_STREAM_TIMEOUT)
+        .param('since', 'Filter out events before this time stamp.',
+               dataType='integer', required=False)
         .errorResponse()
         .errorResponse('You are not logged in.', 403)
     )
@@ -68,9 +75,12 @@ class Notification(Resource):
 
         setResponseHeader('Content-Type', 'text/event-stream')
         setResponseHeader('Cache-Control', 'no-cache')
+        since = params.get('since')
+        if since is not None:
+            since = datetime.utcfromtimestamp(since)
 
         def streamGen():
-            lastUpdate = None
+            lastUpdate = since
             start = time.time()
             wait = MIN_POLL_INTERVAL
             while cherrypy.engine.state == cherrypy.engine.states.STARTED:
