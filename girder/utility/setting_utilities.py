@@ -85,6 +85,10 @@ class validator(object):  # noqa: class name
 
     :param key: The key(s) that this function validates.
     :type key: str or iterable of str
+    :param replace: If a validator already exists for this key, set this to True to replace the
+        existing validator. The default is to add the new validator in addition to running the
+        old validation function.
+    :type replace: bool
     """
 
     def __init__(self, key, replace=False):
