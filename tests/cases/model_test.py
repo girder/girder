@@ -17,10 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
 from .. import base
-from girder.models.model_base import AccessControlledModel, Model, AccessType
+from girder.models.model_base import AccessControlledModel, AccessException, AccessType, Model
 from girder.models.group import Group
 from girder.models.user import User
+from girder.utility.acl_mixin import AccessControlMixin
 
 
 class FakeAcModel(AccessControlledModel):
@@ -47,8 +50,32 @@ class FakeModel(Model):
         return doc
 
 
+class FakeAcMixinModel(AccessControlMixin, Model):
+    def initialize(self):
+        self.name = 'fake_ac_mixin'
+        self.resourceColl = 'fake_ac'
+        self.resourceParent = 'fakeParentId'
+
+    def validate(self, doc):
+        return doc
+
+
+class FakeAttachedModel(AccessControlMixin, Model):
+    def initialize(self):
+        self.name = 'fake_attached'
+
+    def validate(self, doc):
+        return doc
+
+
 def setUpModule():
+    base.mockPluginDir(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
+    base.enabledPlugins.append('has_model')
+
     base.startServer()
+
+    global FakeAcPluginModel
+    from girder.plugins.has_model.models.fake_ac_plugin_model import FakeAcPluginModel
 
 
 def tearDownModule():
@@ -302,3 +329,65 @@ class ModelTestCase(base.TestCase):
         self.assertEqual(len(doc1['access']['users']), 1)
         self.assertEqual(len(doc1['access']['groups']), 0)
         self.assertIsNone(doc1.get('creatorId'))
+
+    def _assertWriteAccess(self, instanceId, user, modelType):
+        self.assertRaises(AccessException, modelType().load, instanceId)
+        self.assertRaises(
+            AccessException, modelType().load,
+            instanceId, level=AccessType.READ)
+        self.assertIsNotNone(modelType().load(instanceId, force=True))
+        self.assertIsNotNone(modelType().load(
+            instanceId, user=user, level=AccessType.READ))
+        self.assertRaises(
+            AccessException, modelType().load,
+            instanceId, user=user, level=AccessType.ADMIN)
+
+    def testAccessControlMixin(self):
+        users = ({
+            'email': 'good@email.com',
+            'login': 'goodlogin',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'goodpassword'
+        }, {
+            'email': 'regularuser@email.com',
+            'login': 'regularuser',
+            'firstName': 'First',
+            'lastName': 'Last',
+            'password': 'goodpassword'
+        })
+        adminUser, regUser = [User().createUser(**user) for user in users]
+
+        # Set up a parent model, and check access
+        parentInstance = FakeAcModel().save({})
+        self.assertHasKeys(parentInstance, ['_id'])
+        parentInstance = FakeAcModel().setUserAccess(
+            parentInstance, regUser, level=AccessType.WRITE, save=True)
+        self._assertWriteAccess(parentInstance['_id'], regUser, FakeAcModel)
+
+        # Set up an access control mixin model, and check access
+        dependentInstance = FakeAcMixinModel().save({
+            'fakeParentId': parentInstance['_id']})
+        self.assertHasKeys(dependentInstance, ['_id', 'fakeParentId'])
+        self._assertWriteAccess(dependentInstance['_id'], regUser, FakeAcMixinModel)
+
+        # Set up an attached model, and check access
+        attachedInstance1 = FakeAttachedModel().save({
+            'attachedToId': parentInstance['_id'],
+            'attachedToType': 'fake_ac'})
+        self.assertHasKeys(attachedInstance1, ['_id', 'attachedToId', 'attachedToType'])
+        self._assertWriteAccess(attachedInstance1['_id'], regUser, FakeAttachedModel)
+
+        # Set up a parent model from a plugin, and check access
+        parentPluginInstance = FakeAcPluginModel().save({})
+        self.assertHasKeys(parentPluginInstance, ['_id'])
+        parentPluginInstance = FakeAcPluginModel().setUserAccess(
+            parentPluginInstance, regUser, level=AccessType.WRITE, save=True)
+        self._assertWriteAccess(parentPluginInstance['_id'], regUser, FakeAcPluginModel)
+
+        # Set up an attached model, resourcing a plugin model, and check access
+        attachedInstance2 = FakeAttachedModel().save({
+            'attachedToId': parentPluginInstance['_id'],
+            'attachedToType': ['fake_ac_plugin_model', 'has_model']})
+        self.assertHasKeys(attachedInstance2, ['_id', 'attachedToId', 'attachedToType'])
+        self._assertWriteAccess(attachedInstance2['_id'], regUser, FakeAttachedModel)
