@@ -299,8 +299,7 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(
             resp.json['message'], 'Invalid key foo.bar: keys must not contain the "." character.')
 
-        # Make sure metadata cannot be added if the key begins with a
-        # dollar sign
+        # Make sure metadata cannot be added if the key begins with a $
         metadata = {
             '$foobar': 'alsonotallowed'
         }
@@ -311,6 +310,23 @@ class FolderTestCase(base.TestCase):
         self.assertEqual(
             resp.json['message'],
             'Invalid key $foobar: keys must not start with the "$" character.')
+
+        # Test allowNull
+        metadata = {
+            'foo': None
+        }
+        resp = self.request(
+            path='/folder/%s/metadata' % folder['_id'], params={'allowNull': True},
+            user=self.admin, method='PUT', body=json.dumps(metadata), type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['meta'], metadata)
+
+        # Test delete metadata endpoint
+        resp = self.request(
+            path='/folder/%s/metadata' % folder['_id'], user=self.admin, method='DELETE',
+            body=json.dumps(['foo']), type='application/json')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['meta'], {})
 
     def testDeleteFolder(self):
         cbInfo = {}
