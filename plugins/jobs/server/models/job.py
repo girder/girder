@@ -34,7 +34,7 @@ class Job(AccessControlledModel):
             ('userId', SortDir.ASCENDING),
             ('created', SortDir.DESCENDING)
         )
-        self.ensureIndices([(compoundSearchIndex, {})])
+        self.ensureIndices([(compoundSearchIndex, {}), 'created'])
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
