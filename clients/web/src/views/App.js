@@ -29,6 +29,7 @@ import 'girder/stylesheets/layout/layout.styl';
 import 'girder/utilities/jquery/girderModal';
 
 import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/js/alert';
 
 var App = View.extend({
     /**
