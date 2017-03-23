@@ -56,7 +56,7 @@ prototype.open = function () {
 
         // Set the "since" argument to filter out notifications
         // that have already been sent to this client.
-        var since = parseInt(localStorage.getItem('sseTimestamp'));
+        var since = parseInt(window.localStorage.getItem('sseTimestamp'));
         if (since >= 0) {
             params.since = since;
         }
@@ -73,7 +73,7 @@ prototype.open = function () {
                 stream.trigger('g:error', e);
                 return;
             }
-            localStorage.setItem('sseTimestamp', obj._girderTime);
+            window.localStorage.setItem('sseTimestamp', obj._girderTime);
             stream.trigger('g:event.' + obj.type, obj);
         };
         this._stopHeartbeat = false;
