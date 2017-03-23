@@ -27,7 +27,7 @@ from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
 from .constants import PluginSettings
-from .utils import jobInfoSpec
+from .utils import getWorkerApiUrl, jobInfoSpec
 
 _celeryapp = None
 
@@ -81,7 +81,8 @@ def schedule(event):
         # Send the task to celery
         asyncResult = getCeleryApp().send_task(
             task, job['args'], job['kwargs'], queue=job.get('celeryQueue'), headers={
-                'jobInfoSpec': jobInfoSpec(job, job.get('token', None))
+                'jobInfoSpec': jobInfoSpec(job, job.get('token', None)),
+                'apiUrl': getWorkerApiUrl()
             })
 
         # Set the job status to queued and record the task ID from celery.
