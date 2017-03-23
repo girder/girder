@@ -3,6 +3,8 @@ import Backbone from 'backbone';
 
 import { apiRoot } from 'girder/rest';
 
+var timestamp = null;
+
 /**
  * The EventStream type wraps window.EventSource to listen to the unified
  * per-user event channel endpoint using the SSE protocol. When events are
@@ -56,9 +58,16 @@ prototype.open = function () {
 
         // Set the "since" argument to filter out notifications
         // that have already been sent to this client.
-        var since = parseInt(window.localStorage.getItem('sseTimestamp'));
+        var since;
+        try {
+            since = parseInt(window.localStorage.getItem('sseTimestamp'), 10);
+        } catch (e) {
+            // Ignore any errors raised by localStorage
+        }
         if (since >= 0) {
             params.since = since;
+        } else if (_.isNumber(timestamp)) {
+            params.since = timestamp;
         }
 
         url += '?' + $.param(params);
@@ -73,7 +82,12 @@ prototype.open = function () {
                 stream.trigger('g:error', e);
                 return;
             }
-            window.localStorage.setItem('sseTimestamp', obj._girderTime);
+            timestamp = obj._girderTime;
+            try {
+                window.localStorage.setItem('sseTimestamp', timestamp);
+            } catch (e) {
+                // Ignore any errors raised by localStorage
+            }
             stream.trigger('g:event.' + obj.type, obj);
         };
         this._stopHeartbeat = false;
