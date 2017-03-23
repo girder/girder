@@ -100,6 +100,18 @@ class NotificationTestCase(base.TestCase):
             progress.interval = 1000
             progress.update(current=3)
 
+            # The message should contain a timestamp
+            self.assertIn('_girderTime', messages[0])
+            self.assertIsInstance(messages[0]['_girderTime'], int)
+
+            # Test that the "since" parameter correctly filters out messages
+            since = messages[0]['_girderTime'] + 1
+            resp = self.request(path='/notification/stream', method='GET',
+                                user=user, token=token, isJson=False,
+                                params={'timeout': 0, 'since': since})
+            messages = self.getSseMessages(resp)
+            self.assertEqual(len(messages), 0)
+
         # Exiting the context manager should flush the most recent update.
         resp = self.request(path='/notification/stream', method='GET',
                             user=user, token=token, isJson=False,

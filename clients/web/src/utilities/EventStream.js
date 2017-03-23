@@ -3,6 +3,8 @@ import Backbone from 'backbone';
 
 import { apiRoot } from 'girder/rest';
 
+var timestamp = null;
+
 /**
  * The EventStream type wraps window.EventSource to listen to the unified
  * per-user event channel endpoint using the SSE protocol. When events are
@@ -47,12 +49,28 @@ prototype._heartbeat = function () {
 prototype.open = function () {
     if (window.EventSource) {
         var stream = this,
-            url = apiRoot + this.settings.streamPath;
+            url = apiRoot + this.settings.streamPath,
+            params = {};
 
         if (this.settings.timeout) {
-            url += '?timeout=' + this.settings.timeout;
+            params.timeout = this.settings.timeout;
         }
 
+        // Set the "since" argument to filter out notifications
+        // that have already been sent to this client.
+        var since;
+        try {
+            since = parseInt(window.localStorage.getItem('sseTimestamp'), 10);
+        } catch (e) {
+            // Ignore any errors raised by localStorage
+        }
+        if (since >= 0) {
+            params.since = since;
+        } else if (_.isNumber(timestamp)) {
+            params.since = timestamp;
+        }
+
+        url += '?' + $.param(params);
         this._eventSource = new window.EventSource(url);
 
         this._eventSource.onmessage = function (e) {
@@ -63,6 +81,12 @@ prototype.open = function () {
                 console.error('Invalid JSON from SSE stream: ' + e.data + ',' + err);
                 stream.trigger('g:error', e);
                 return;
+            }
+            timestamp = obj._girderTime;
+            try {
+                window.localStorage.setItem('sseTimestamp', timestamp);
+            } catch (e) {
+                // Ignore any errors raised by localStorage
             }
             stream.trigger('g:event.' + obj.type, obj);
         };
