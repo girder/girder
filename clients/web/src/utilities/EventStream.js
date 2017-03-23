@@ -47,12 +47,21 @@ prototype._heartbeat = function () {
 prototype.open = function () {
     if (window.EventSource) {
         var stream = this,
-            url = apiRoot + this.settings.streamPath;
+            url = apiRoot + this.settings.streamPath,
+            params = {};
 
         if (this.settings.timeout) {
-            url += '?timeout=' + this.settings.timeout;
+            params.timeout = this.settings.timeout;
         }
 
+        // Set the "since" argument to filter out notifications
+        // that have already been sent to this client.
+        var since = parseInt(localStorage.getItem('sseTimestamp'));
+        if (since >= 0) {
+            params.since = since;
+        }
+
+        url += '?' + $.param(params);
         this._eventSource = new window.EventSource(url);
 
         this._eventSource.onmessage = function (e) {
@@ -64,6 +73,7 @@ prototype.open = function () {
                 stream.trigger('g:error', e);
                 return;
             }
+            localStorage.setItem('sseTimestamp', obj._girderTime);
             stream.trigger('g:event.' + obj.type, obj);
         };
         this._stopHeartbeat = false;
