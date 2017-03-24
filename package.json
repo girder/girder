@@ -33,7 +33,7 @@
     "grunt-gitinfo": "~0.1.0",
     "grunt-file-creator": "~0.1.0",
     "grunt-npm-install": "~0.2.0",
-    "remarkable": "1.6.2",
+    "remarkable": "1.7.1",
     "jade": "1.11.0",
     "jquery": "2.1.1",
     "sprintf-js": "1.0.2",
