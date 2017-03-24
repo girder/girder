@@ -22,6 +22,7 @@ import mako
 import os
 
 from girder import constants
+from girder.utility import config
 
 
 class WebrootBase(object):
@@ -41,6 +42,7 @@ class WebrootBase(object):
         self.indexHtml = None
 
         self.vars = {}
+        self.config = config.getConfig()
 
     def updateHtmlVars(self, vars):
         """
@@ -54,7 +56,7 @@ class WebrootBase(object):
         return mako.template.Template(self.template).render(**self.vars)
 
     def GET(self, **params):
-        if self.indexHtml is None:
+        if self.indexHtml is None or self.config['server']['mode'] == 'development':
             self.indexHtml = self._renderHTML()
 
         return self.indexHtml
