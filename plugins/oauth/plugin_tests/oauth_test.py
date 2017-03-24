@@ -274,10 +274,60 @@ class OauthTest(base.TestCase):
 
         # Try callback for the 'existing' account, which should succeed
         existing = doOauthLogin('existing')
-
         # Try callback for the 'new' account, with open registration
         self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'open')
         new = doOauthLogin('new')
+
+        # Enable storing access token
+        params = {
+            'list': json.dumps([
+                {
+                    'key': PluginSettings.PROVIDERS_ENABLED,
+                    'value': [providerInfo['id']]
+                }, {
+                    'key': providerInfo['client_id']['key'],
+                    'value': providerInfo['client_id']['value']
+                }, {
+                    'key': providerInfo['client_secret']['key'],
+                    'value': providerInfo['client_secret']['value']
+                }, {
+                    'key': providerInfo['store_token']['key'],
+                    'value': True
+                }
+            ])
+        }
+        resp = self.request('/system/setting', user=self.adminUser, method='PUT', params=params)
+        self.assertStatusOk(resp)
+        existing = doOauthLogin('existing')
+        existingUser = self.model('user').load(existing['_id'], force=True)
+        existingUserProvided = providerInfo['accounts']['existing']['user']
+        self.assertTrue('authHeaders' in existingUser['oauth'][0])
+        self.assertEqual(existingUser['oauth'][0]['authHeaders']['Authorization'],
+                         existingUserProvided['oauth']['authHeaders']['Authorization'])
+
+        # Verify that OAuth token is no longer present
+        params = {
+            'list': json.dumps([
+                {
+                    'key': PluginSettings.PROVIDERS_ENABLED,
+                    'value': [providerInfo['id']]
+                }, {
+                    'key': providerInfo['client_id']['key'],
+                    'value': providerInfo['client_id']['value']
+                }, {
+                    'key': providerInfo['client_secret']['key'],
+                    'value': providerInfo['client_secret']['value']
+                }, {
+                    'key': providerInfo['store_token']['key'],
+                    'value': False
+                }
+            ])
+        }
+        resp = self.request('/system/setting', user=self.adminUser, method='PUT', params=params)
+        self.assertStatusOk(resp)
+        existing = doOauthLogin('existing')
+        existingUser = self.model('user').load(existing['_id'], force=True)
+        self.assertTrue('authHeaders' not in existingUser['oauth'])
 
         # Password login for 'new' OAuth-only user should fail gracefully
         newUser = providerInfo['accounts']['new']['user']
@@ -339,6 +389,10 @@ class OauthTest(base.TestCase):
                 'key': PluginSettings.GOOGLE_CLIENT_SECRET,
                 'value': 'google_test_client_secret'
             },
+            'store_token': {
+                'key': PluginSettings.GOOGLE_STORE_TOKEN,
+                'value': False
+            },
             'allowed_callback_re': r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/google/callback$',
             'url_re': r'^https://accounts\.google\.com/o/oauth2/auth',
             'accounts': {
@@ -352,7 +406,10 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'google',
-                            'id': '5326'
+                            'id': '5326',
+                            'authHeaders': {
+                                'Authorization': 'Bearer google_existing_test_token',
+                            }
                         }
                     }
                 },
@@ -368,7 +425,10 @@ class OauthTest(base.TestCase):
                         'lastName': 'Creed',
                         'oauth': {
                             'provider': 'google',
-                            'id': 'the1best'
+                            'id': 'the1best',
+                            'authHeaders': {
+                                'Authorization': 'Bearer google_new_test_token',
+                            }
                         }
                     }
                 }
@@ -516,6 +576,10 @@ class OauthTest(base.TestCase):
                 'key': PluginSettings.GITHUB_CLIENT_SECRET,
                 'value': 'github_test_client_secret'
             },
+            'store_token': {
+                'key': PluginSettings.GITHUB_STORE_TOKEN,
+                'value': False
+            },
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/github/callback$',
             'url_re': r'^https://github\.com/login/oauth/authorize',
@@ -530,7 +594,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'github',
-                            'id': '2399'
+                            'id': '2399',
+                            'authHeaders': {
+                                'Authorization': 'token github_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -547,7 +615,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Drago',
                         'oauth': {
                             'provider': 'github',
-                            'id': 1985
+                            'id': 1985,
+                            'authHeaders': {
+                                'Authorization': 'token github_new_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }
@@ -744,6 +816,10 @@ class OauthTest(base.TestCase):
                 'key': PluginSettings.GLOBUS_CLIENT_SECRET,
                 'value': 'globus_test_client_secret'
             },
+            'store_token': {
+                'key': PluginSettings.GLOBUS_STORE_TOKEN,
+                'value': False
+            },
             'scope': 'urn:globus:auth:scope:auth.globus.org:view_identities openid profile email',
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/globus/callback$',
@@ -752,7 +828,7 @@ class OauthTest(base.TestCase):
                 'existing': {
                     'auth_code': 'globus_existing_auth_code',
                     'access_token': 'globus_existing_test_token',
-                    'id_token': 'globus_exisiting_id_token',
+                    'id_token': 'globus_existing_id_token',
                     'user': {
                         'login': self.adminUser['login'],
                         'email': self.adminUser['email'],
@@ -760,7 +836,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'globus',
-                            'id': '2399'
+                            'id': '2399',
+                            'authHeaders': {
+                                'Authorization': 'Bearer globus_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -775,7 +855,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Drago',
                         'oauth': {
                             'provider': 'globus',
-                            'id': 1985
+                            'id': 1985,
+                            'authHeaders': {
+                                'Authorization': 'Bearer globus_new_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }
@@ -923,6 +1007,10 @@ class OauthTest(base.TestCase):
                 'key': PluginSettings.LINKEDIN_CLIENT_SECRET,
                 'value': 'linkedin_test_client_secret'
             },
+            'store_token': {
+                'key': PluginSettings.LINKEDIN_STORE_TOKEN,
+                'value': False
+            },
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/linkedin/callback$',
             'url_re': r'^https://www\.linkedin\.com/uas/oauth2/authorization',
@@ -937,7 +1025,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'linkedin',
-                            'id': '42kD-5H'
+                            'id': '42kD-5H',
+                            'authHeaders': {
+                                'Authorization': 'Bearer linkedin_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -953,7 +1045,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Lang',
                         'oauth': {
                             'provider': 'linkedin',
-                            'id': '634pity-fool4'
+                            'id': '634pity-fool4',
+                            'authHeaders': {
+                                'Authorization': 'Bearer linkedin_new_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }
@@ -1098,6 +1194,10 @@ class OauthTest(base.TestCase):
                 'key': PluginSettings.BITBUCKET_CLIENT_SECRET,
                 'value': 'bitbucket_test_client_secret'
             },
+            'store_token': {
+                'key': PluginSettings.BITBUCKET_STORE_TOKEN,
+                'value': False
+            },
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?'
                 r'/api/v1/oauth/bitbucket/callback$',
@@ -1113,7 +1213,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'bitbucket',
-                            'id': '2399'
+                            'id': '2399',
+                            'authHeaders': {
+                                'Authorization': 'Bearer bitbucket_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -1130,7 +1234,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Drago',
                         'oauth': {
                             'provider': 'bitbucket',
-                            'id': 1983
+                            'id': 1983,
+                            'authHeaders': {
+                                'Authorization': 'Bearer bitbucket_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }
@@ -1296,6 +1404,10 @@ class OauthTest(base.TestCase):
                 'key': PluginSettings.BOX_CLIENT_SECRET,
                 'value': 'box_test_client_secret'
             },
+            'store_token': {
+                'key': PluginSettings.BOX_STORE_TOKEN,
+                'value': False
+            },
             'allowed_callback_re':
                 r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/box/callback$',
             'url_re': r'^https://account\.box\.com/api/oauth2/authorize',
@@ -1310,7 +1422,11 @@ class OauthTest(base.TestCase):
                         'lastName': self.adminUser['lastName'],
                         'oauth': {
                             'provider': 'box',
-                            'id': '2481632'
+                            'id': '2481632',
+                            'authHeaders': {
+                                'Authorization': 'Bearer box_existing_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 },
@@ -1326,7 +1442,11 @@ class OauthTest(base.TestCase):
                         'lastName': 'Drago',
                         'oauth': {
                             'provider': 'box',
-                            'id': '1985'
+                            'id': '1985',
+                            'authHeaders': {
+                                'Authorization': 'Bearer box_new_test_token',
+                                'Accept': 'application/json'
+                            }
                         }
                     }
                 }

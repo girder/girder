@@ -39,6 +39,10 @@ class Globus(ProviderBase):
         return self.model('setting').get(
             constants.PluginSettings.GLOBUS_CLIENT_SECRET)
 
+    def getStoreTokenSetting(self):
+        return self.model('setting').get(
+            constants.PluginSettings.GLOBUS_STORE_TOKEN)
+
     @classmethod
     def getUrl(cls, state):
         clientId = cls.model('setting').get(
@@ -97,5 +101,7 @@ class Globus(ProviderBase):
         name = resp['name'].split()
         firstName = name[0]
         lastName = name[-1]
-
-        return self._createOrReuseUser(oauthId, email, firstName, lastName)
+        if not self.storeToken:
+            headers = None
+        return self._createOrReuseUser(oauthId, email, firstName, lastName,
+                                       headers)

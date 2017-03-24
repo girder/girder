@@ -28,7 +28,8 @@ from girder.utility import config, model_importer
 
 
 class ProviderBase(model_importer.ModelImporter):
-    def __init__(self, redirectUri, clientId=None, clientSecret=None):
+    def __init__(self, redirectUri, clientId=None, clientSecret=None,
+                 storeToken=False):
         """
         Base class for OAuth2 providers. The purpose of these classes is to
         perform the user information lookup to their respective provider
@@ -41,9 +42,12 @@ class ProviderBase(model_importer.ModelImporter):
         :type clientSecret: str
         :param redirectUri: The redirect URI used in this OAuth2 flow.
         :type redirectUri: str
+        :param storeToken: Store the access token obtained in this OAuth2 flow.
+        :type storeToken: boolean
         """
         self.clientId = clientId or self.getClientIdSetting()
         self.clientSecret = clientSecret or self.getClientSecretSetting()
+        self.storeToken = storeToken or self.getStoreTokenSetting()
         self.redirectUri = redirectUri
 
     @classmethod
@@ -58,6 +62,9 @@ class ProviderBase(model_importer.ModelImporter):
         raise NotImplementedError()
 
     def getClientSecretSetting(self):
+        raise NotImplementedError()
+
+    def getStoreTokenSetting(self):
         raise NotImplementedError()
 
     @classmethod
@@ -122,7 +129,7 @@ class ProviderBase(model_importer.ModelImporter):
 
     @classmethod
     def _createOrReuseUser(cls, oauthId, email, firstName, lastName,
-                           userName=None):
+                           oauthHeaders, userName=None):
         providerName = cls.getProviderName()
 
         # Try finding by ID first, since a user can change their email address
@@ -180,6 +187,16 @@ class ProviderBase(model_importer.ModelImporter):
                     'id': oauthId
                 })
             dirty = True
+
+        currentOAuth = next(_ for _ in user['oauth'] if _['id'] == oauthId)
+        if oauthHeaders:
+            currentOAuth['authHeaders'] = oauthHeaders
+            dirty = True
+        else:
+            if 'authHeaders' in currentOAuth:
+                currentOAuth.pop('authHeaders')
+                dirty = True
+
         if dirty:
             user = cls.model('user').save(user)
 
@@ -247,4 +264,5 @@ class ProviderBase(model_importer.ModelImporter):
 
         # See if this is already taken.
         user = cls.model('user').findOne({'login': login})
+
         return not user

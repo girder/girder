@@ -39,6 +39,10 @@ class Google(ProviderBase):
         return self.model('setting').get(
             constants.PluginSettings.GOOGLE_CLIENT_SECRET)
 
+    def getStoreTokenSetting(self):
+        return self.model('setting').get(
+            constants.PluginSettings.GOOGLE_STORE_TOKEN)
+
     @classmethod
     def getUrl(cls, state):
         clientId = cls.model('setting').get(
@@ -116,5 +120,7 @@ class Google(ProviderBase):
         firstName = resp.get('name', {}).get('givenName', '')
         lastName = resp.get('name', {}).get('familyName', '')
 
-        user = self._createOrReuseUser(oauthId, email, firstName, lastName)
-        return user
+        if not self.storeToken:
+            headers = None
+        return self._createOrReuseUser(oauthId, email, firstName, lastName,
+                                       headers)

@@ -21,6 +21,9 @@ var ConfigView = View.extend({
             }, {
                 key: 'oauth.' + providerId + '_client_secret',
                 value: this.$('#g-oauth-provider-' + providerId + '-client-secret').val().trim()
+            }, {
+                key: 'oauth.' + providerId + '_store_token',
+                value: this.$('#g-oauth-provider-' + providerId + '-store-token').prop('checked')
             }]);
         }
     },
@@ -83,6 +86,7 @@ var ConfigView = View.extend({
         _.each(this.providerIds, function (id) {
             settingKeys.push('oauth.' + id + '_client_id');
             settingKeys.push('oauth.' + id + '_client_secret');
+            settingKeys.push('oauth.' + id + '_store_token');
         }, this);
 
         restRequest({
@@ -125,6 +129,8 @@ var ConfigView = View.extend({
                     this.settingVals['oauth.' + id + '_client_id']);
                 this.$('#g-oauth-provider-' + id + '-client-secret').val(
                     this.settingVals['oauth.' + id + '_client_secret']);
+                this.$('#g-oauth-provider-' + id + '-store-token').prop(
+                    'checked', this.settingVals['oauth.' + id + '_store_token']);
             }, this);
         }
 
