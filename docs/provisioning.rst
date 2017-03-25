@@ -26,7 +26,7 @@ proxy at http://localhost:9080.
 
 Additionally, our examples support running on a CentOS 7 virtual machine. The above example can be executed on such a machine by running the following command: ::
 
-  GIRDER_EXAMPLE=girder-nginx VAGRANT_BOX=centos/7
+  GIRDER_EXAMPLE=girder-nginx VAGRANT_BOX=centos/7 vagrant up
 
 .. note:: The `centos/7` box requires guest additions in order to work with shared folders. This means you may need the `vagrant-vbguest` plugin.
 
