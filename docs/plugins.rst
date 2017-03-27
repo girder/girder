@@ -222,6 +222,13 @@ This plugin allows users to log in using OAuth against a set of supported provid
 rather than storing their credentials in the Girder instance. Specific instructions
 for each provider can be found below.
 
+By using OAuth, Girder users can avoid registering a new user in Girder, leaving it
+up to the OAuth provider to store their password and provide details of their
+identity. The fact that a Girder user has logged in via an OAuth provider is stored
+in their user document instead of a password. OAuth users who need to authenticate
+with programmatic clients such as the girder-client python library should use
+:ref:`API keys <api_keys>` to do so.
+
 Google
 ******
 
@@ -255,7 +262,8 @@ to authorize during the OAuth login process.
 
 Then, you can hook into the event of a user logging in via OAuth. You can
 hook in either before the Girder user login has occurred, or afterward. In
-our case, we want to do it after the Girder user has been established:
+our case, we want to do it after the Girder user has been fetched (or created,
+if this is the first time logging in with these OAuth credentials).
 
 .. code-block:: python
 
