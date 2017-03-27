@@ -21,6 +21,7 @@ import cherrypy
 import datetime
 import six
 
+from girder import events
 from girder.constants import AccessType
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, RestException
@@ -130,7 +131,19 @@ class OAuth(Resource):
 
         providerObj = provider(cherrypy.url())
         token = providerObj.getToken(code)
+
+        events.trigger('oauth.auth_callback.before', {
+            'provider': provider,
+            'token': token
+        })
+
         user = providerObj.getUser(token)
+
+        events.trigger('oauth.auth_callback.after', {
+            'provider': provider,
+            'token': token,
+            'user': user
+        })
 
         self.sendAuthTokenCookie(user)
 

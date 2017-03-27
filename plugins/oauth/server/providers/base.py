@@ -28,6 +28,8 @@ from girder.utility import config, model_importer
 
 
 class ProviderBase(model_importer.ModelImporter):
+    _AUTH_SCOPES = []
+
     def __init__(self, redirectUri, clientId=None, clientSecret=None):
         """
         Base class for OAuth2 providers. The purpose of these classes is to
@@ -93,6 +95,19 @@ class ProviderBase(model_importer.ModelImporter):
         :returns: The user document corresponding to this user.
         """
         raise NotImplementedError()
+
+    @classmethod
+    def addScopes(cls, scopes):
+        """
+        Plugins wishing to use additional provider features that require other auth
+        scopes should use this method to add additional required scopes to the list.
+
+        :param scopes: List of additional required scopes.
+        :type scopes: list
+        :returns: The new list of auth scopes.
+        """
+        cls._AUTH_SCOPES.extend(scopes)
+        return cls._AUTH_SCOPES
 
     @staticmethod
     def _getJson(**kwargs):

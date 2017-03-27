@@ -375,6 +375,10 @@ class OauthTest(base.TestCase):
             }
         }
 
+        # Test inclusion of custom scope
+        from girder.plugins.oauth.providers.google import Google
+        Google.addScopes(['custom_scope', 'foo'])
+
         @httmock.urlmatch(scheme='https', netloc='^accounts.google.com$',
                           path='^/o/oauth2/auth$', method='GET')
         def mockGoogleRedirect(url, request):
@@ -382,7 +386,7 @@ class OauthTest(base.TestCase):
                 params = urllib.parse.parse_qs(url.query)
                 self.assertEqual(params['response_type'], ['code'])
                 self.assertEqual(params['access_type'], ['online'])
-                self.assertEqual(params['scope'], ['profile email'])
+                self.assertEqual(params['scope'], ['profile email custom_scope foo'])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 400,

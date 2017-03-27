@@ -26,8 +26,8 @@ from .. import constants
 
 class Globus(ProviderBase):
     _AUTH_URL = 'https://auth.globus.org/v2/oauth2/authorize'
-    _AUTH_SCOPES = ('urn:globus:auth:scope:auth.globus.org:view_identities',
-                    'openid', 'profile', 'email')
+    _AUTH_SCOPES = ['urn:globus:auth:scope:auth.globus.org:view_identities',
+                    'openid', 'profile', 'email']
     _TOKEN_URL = 'https://auth.globus.org/v2/oauth2/token'
     _API_USER_URL = 'https://auth.globus.org/v2/oauth2/userinfo'
 
