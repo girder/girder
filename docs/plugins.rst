@@ -20,9 +20,9 @@ folder, even if that third party does not have a registered user in Girder.
 To authorize an upload on behalf of your user:
 
 1. Navigate into any folder to which you have write access. From the **Folder actions** dropdown
-   menu on the right, choose **Authorize upload here**. You will be taken to a page that allows generation 
+   menu on the right, choose **Authorize upload here**. You will be taken to a page that allows generation
    of a secure, single-use URL. You can optionally specify a number of days until the URL expires; if none
-   is specified, the user session lifetime is used, which defaults to 180 days. 
+   is specified, the user session lifetime is used, which defaults to 180 days.
 2. Click **Generate URL**, and your secure URL will appear below.
 3. Copy that URL and send it to the third party, and they will be taken to a simple page allowing them
    to upload the file without having to see any details of the normal Girder application.
@@ -239,6 +239,35 @@ After successfully creating the Client ID, copy and paste the client ID and clie
 secret values into the plugin's configuration page, and hit **Save**. Users should
 then be able to log in with their Google account when they click the log in page
 and select the option to log in with Google.
+
+Extension
+*********
+
+This plugin can also be extended to do more than just login behavior using the
+OAuth providers. For instance, if you wanted some sort of integration with a
+user's Google+ circles, you would add a custom scope that the user would have
+to authorize during the OAuth login process.
+
+.. code-block:: python
+
+    from girder.plugins.oauth.providers.google import Google
+    Google.addScopes(['https://www.googleapis.com/auth/plus.circles.read'])
+
+Then, you can hook into the event of a user logging in via OAuth. You can
+hook in either before the Girder user login has occurred, or afterward. In
+our case, we want to do it after the Girder user has been established:
+
+.. code-block:: python
+
+    def readCircles(event):
+        # Read user's circles, do something with them
+        if event.info['provider'] == 'google':
+            token = event.info['token']
+            user = event.info['user']
+            ...
+
+    from girder import events
+    events.bind('oauth.auth_callback.after', 'my_plugin', readCircles)
 
 
 Curation
