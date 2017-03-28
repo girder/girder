@@ -66,3 +66,12 @@
         - cmake-curses-gui
       become: yes
       become_user: root
+      when: ansible_os_family == "Debian"
+
+    - name: Install development packages
+      yum:
+        name: "cmake"
+        state: present
+      become: yes
+      become_user: root
+      when: ansible_os_family == "RedHat"
