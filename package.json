@@ -21,7 +21,7 @@
     "bootstrap-switch": "3.3.2",
     "colors": "1.1.2",
     "css-loader": "^0.26.1",
-    "eonasdan-bootstrap-datetimepicker": "~4.15",
+    "eonasdan-bootstrap-datetimepicker": "~4.17",
     "event-source": "0.1.1",
     "extract-text-webpack-plugin": "^2.0.0-rc.0",
     "file-loader": "^0.10.0",
