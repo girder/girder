@@ -43,15 +43,17 @@
           class="swagger-ui-wrap docs-swagger-container">
       </div>
     </div>
+    <script src="${staticRoot}/built/swagger/lib/object-assign-pollyfill.js"></script>
     <script src="${staticRoot}/built/swagger/lib/jquery-1.8.0.min.js"></script>
     <script src="${staticRoot}/built/swagger/lib/jquery.slideto.min.js"></script>
     <script src="${staticRoot}/built/swagger/lib/jquery.wiggle.min.js"></script>
     <script src="${staticRoot}/built/swagger/lib/jquery.ba-bbq.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/handlebars-2.0.0.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/underscore-min.js"></script>
+    <script src="${staticRoot}/built/swagger/lib/handlebars-4.0.5.js"></script>
+    <script src="${staticRoot}/built/swagger/lib/lodash.min.js"></script>
     <script src="${staticRoot}/built/swagger/lib/backbone-min.js"></script>
     <script src="${staticRoot}/built/swagger/swagger-ui.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/highlight.7.3.pack.js"></script>
+    <script src="${staticRoot}/built/swagger/lib/highlight.9.1.0.pack.js"></script>
+    <script src="${staticRoot}/built/swagger/lib/highlight.9.1.0.pack_extended.js"></script>
     <script src='${staticRoot}/built/swagger/lib/jsoneditor.min.js'></script>
     <script src='${staticRoot}/built/swagger/lib/marked.js'></script>
     <script src="${staticRoot}/girder-swagger.js"></script>
