@@ -764,6 +764,8 @@ class AccessControlledModel(Model):
         doc['access'][entity] = [perm for perm in doc['access'][entity]
                                  if perm['id'] != id]
 
+        key = 'access.' + entity
+        update = {}
         # Add in the new level for this entity unless we are removing access.
         if level is not None:
             entry = {
@@ -773,9 +775,13 @@ class AccessControlledModel(Model):
             }
             entry['flags'] = self._validateFlags(doc, user, entity, entry, force)
             doc['access'][entity].append(entry)
+            update['$push'] = {key: entry}
+        # remove
+        else:
+            update['$pull'] = {key: {'id': id}}
 
         if save:
-            doc = self.save(doc)
+            self.update({'_id': ObjectId(doc['_id'])}, update)
 
         return doc
 
