@@ -1,0 +1,27 @@
+.page-size-container
+  span(style="margin-right:10px") Page size
+  select.g-page-size
+    each val in pageSizes
+      option(selected=val==pageSize)= val
+
+.filter-container.clearfix
+  .type
+  .status
+
+ul.jobs.nav.nav-tabs
+  li(class=(currentView=='list'?'active':''))
+    a(data-toggle="tab", name="list")
+      i.icon-th-list
+      |  List
+  li(class=(currentView=='phase'?'active':''))
+    a(data-toggle="tab", name="phase")
+      i.icon-chart-bar
+      |  Phase chart
+  li(class=(currentView=='time'?'active':''))
+    a(data-toggle="tab", name="time")
+      i.icon-chart-line
+      |  Time series
+
+.g-main-content
+
+.g-job-pagination

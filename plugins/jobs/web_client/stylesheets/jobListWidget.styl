@@ -5,21 +5,6 @@
 
   th
     border-bottom 1px solid #d7d7d7
-    .dropdown
-      ul.dropdown-menu
-        input[type="checkbox"]
-          margin-top 0px
-          margin-left 5px
-          margin-right 5px
-          vertical-align middle
-        span
-          vertical-align middle
-    a.g-job-checkbox-menu-link
-      display inline-block
-      overflow hidden
-      text-overflow ellipsis
-      white-space nowrap
-      color: #333
   tbody>tr
     transition background 0.4s linear
 
@@ -49,3 +34,42 @@
 
 #g-job-checkbox-menu
   display inline
+
+a.g-job-checkbox-menu-link
+  display inline-block
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+  color: #333
+
+.dropdown
+  .dropdown-menu
+    ul
+      list-style-type none
+      padding 0
+      margin 0
+  .checkbox
+    margin 8px 8px
+  hr
+    margin 0 8px
+
+.graph-filter-container,.filter-container
+  margin-top 7px
+  > div
+    float left
+    margin-right 10px
+
+.page-size-container
+  float right
+  margin-top 7px
+
+
+
+ul.jobs.nav.nav-tabs
+  margin 10px 0 10px 0
+
+.g-jobs-graph
+  /*scroll position fix when paging*/
+  height 9999px
+  overflow-y hidden
+  overflow-x auto

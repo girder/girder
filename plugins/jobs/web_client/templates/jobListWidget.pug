@@ -9,9 +9,9 @@ table.g-jobs-list-table
         if columns & columnEnum.COLUMN_UPDATED
           th Last update
         if columns & columnEnum.COLUMN_TYPE
-          th.g-job-type-header
+          th Type
         if columns & columnEnum.COLUMN_STATUS
-          th.g-job-status-header
+          th Status
 
   tbody
     each job in jobs
@@ -34,5 +34,3 @@ table.g-jobs-list-table
           td= job.get('type')
         if columns & columnEnum.COLUMN_STATUS
           td.g-job-status-cell= JobStatus.text(job.get('status'))
-
-.g-job-pagination

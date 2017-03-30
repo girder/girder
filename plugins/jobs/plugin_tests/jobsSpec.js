@@ -50,7 +50,7 @@ $(function () {
                     this.trigger('g:fetched');
                 };
 
-                girder.router.navigate('job/foo', {trigger: true});
+                girder.router.navigate('job/foo', { trigger: true });
                 girder.plugins.jobs.models.JobModel.prototype.fetch = oldFetch;
 
                 expect($('.g-monospace-viewer[property="kwargs"]').length).toBe(0);
@@ -112,12 +112,25 @@ $(function () {
 
     describe('Unit test the job list widget.', function () {
         it('Show a job list widget.', function () {
-            var jobs, rows;
+            var jobs, rows, widget;
 
             girderTest.createUser(
                 'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
 
             runs(function () {
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    filter: {},
+                    parentView: app
+                }).render();
+
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+            });
+
+            girderTest.waitForLoad();
+
+            runs(function(){
+                // Add the jobs to the collection
                 jobs = _.map([1, 2, 3], function (i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
@@ -129,16 +142,8 @@ $(function () {
                     });
                 });
 
-                var widget = new girder.plugins.jobs.views.JobListWidget({
-                    el: $('#g-app-body-container'),
-                    filter: {},
-                    parentView: app
-                }).render();
-
-                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
-
-                // Add the jobs to the collection
                 widget.collection.add(jobs);
+                widget.collection.trigger('g:changed');
             });
 
             waitsFor(function () {
@@ -168,295 +173,110 @@ $(function () {
                 return $('td.g-job-status-cell', rows[2]).text() === 'Error';
             });
         });
-        it('Job list widget filter by status.', function () {
-          var jobs, rows, widget, evt = {};
 
-          runs(function () {
-              jobs = _.map([1, 2, 3], function (i) {
-                  return new girder.plugins.jobs.models.JobModel({
-                      _id: 'foo' + i,
-                      title: 'My batch job ' + i,
-                      status: i,
-                      updated: '2015-01-12T12:00:0' + i,
-                      created: '2015-01-12T12:00:0' + i,
-                      when: '2015-01-12T12:00:0' + i
-                  });
-              });
+        it('Job list widget filter by status & type.', function () {
+            var jobs, rows, widget;
+            runs(function () {
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    filter: {},
+                    parentView: app
+                }).render();
 
-              widget = new girder.plugins.jobs.views.JobListWidget({
-                  el: $('#g-app-body-container'),
-                  filter: {},
-                  parentView: app
-              }).render();
 
-              expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
-              // Add the jobs to the collection
-              widget.collection.add(jobs);
-          });
-
-          waitsFor(function () {
-              return $('.g-jobs-list-table>tbody>tr').length === 3;
-          }, 'job list to auto-reload when collection is updated')
-
-          runs(function () {
-              // Make sure we are in reverse chronological order
-              rows = $('.g-jobs-list-table>tbody>tr');
-              expect($(rows[0]).text()).toContain('My batch job 3');
-              expect($(rows[0]).text()).toContain('Success');
-              expect($(rows[1]).text()).toContain('My batch job 2');
-              expect($(rows[1]).text()).toContain('Running');
-              expect($(rows[2]).text()).toContain('My batch job 1');
-              expect($(rows[2]).text()).toContain('Queued');
-
-              // Trigger event to filter out jobs in state 1 and 2
-              evt[girder.plugins.jobs.JobStatus.text(1)] = false
-              evt[girder.plugins.jobs.JobStatus.text(2)] = false
-              evt[girder.plugins.jobs.JobStatus.text(3)] = true
-              widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', evt);
-          });
-
-          // Table should now only contain jobs in state 3
-          waitsFor(function () {
-              return $('.g-jobs-list-table>tbody>tr').length === 1;
-          }, 'job list to be filtered');
-
-          runs(function () {
-            // Make sure we only get the successful jobs ( state 3 )
-            rows = $('.g-jobs-list-table>tbody>tr');
-            expect($(rows[0]).text()).toContain('My batch job 3');
-            expect($(rows[0]).text()).toContain('Success');
-
-            // Trigger event to include jobs in state 1 and 2
-            evt[girder.plugins.jobs.JobStatus.text(1)] = true
-            evt[girder.plugins.jobs.JobStatus.text(2)] = true
-            widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', evt);
-          });
-
-          // Table should now have all the jobs again
-          waitsFor(function () {
-              return $('.g-jobs-list-table>tbody>tr').length === 3;
-          }, 'job list to be filtered');
-
-          runs(function () {
-            rows = $('.g-jobs-list-table>tbody>tr');
-            expect($(rows[0]).text()).toContain('My batch job 3');
-            expect($(rows[0]).text()).toContain('Success');
-            expect($(rows[1]).text()).toContain('My batch job 2');
-            expect($(rows[1]).text()).toContain('Running');
-            expect($(rows[2]).text()).toContain('My batch job 1');
-            expect($(rows[2]).text()).toContain('Queued');
-          });
-      });
-      it('Job list widget filter by type.', function () {
-        var jobs, rows, widget, evt;
-
-        runs(function () {
-            jobs = _.map(['one', 'two', 'three'], function (t, i) {
-                return new girder.plugins.jobs.models.JobModel({
-                    _id: 'foo' + i,
-                    title: 'My batch job ' + i,
-                    status: i,
-                    type: t,
-                    updated: '2015-01-12T12:00:0' + i,
-                    created: '2015-01-12T12:00:0' + i,
-                    when: '2015-01-12T12:00:0' + i
+                //programmatically set value
+                widget.typeFilterWidget.setValues({
+                    'type A': true,
+                    'type B': true,
+                    'type C': false
                 });
+
+                //one item should be unchecked
+                expect(
+                    widget.$('.filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
+                        return total + ($(input).is(':checked') ? 1 : 0);
+                    }, 0)
+                ).toBe(2);
+
+                widget.$('.filter-container .type .dropdown ul li input').first().click();
+
+                expect(
+                    widget.$('.filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
+                        return total + ($(input).is(':checked') ? 1 : 0);
+                    }, 0)
+                ).toBe(1);
+
+                widget.$('.filter-container .type .dropdown input.g-job-filter-checkall').click();
+
+                //all should be checked after clicking Check all
+                expect(
+                    widget.$('.filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
+                        return total + ($(input).is(':checked') ? 1 : 0);
+                    }, 0)
+                ).toBe(3);
+                expect($('.filter-container .type .dropdown input.g-job-filter-checkall').is(':checked')).toBe(true);
+
+                widget.$('.filter-container .status .dropdown input.g-job-filter-checkall').click();
+
+                expect(
+                    widget.$('.filter-container .status .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
+                        return total + ($(input).is(':checked') ? 1 : 0);
+                    }, 0)
+                ).toBe(0);
+
+                widget.$('.g-page-size').val(50).trigger("change");
+                expect(widget.pageSize).toBe(50);
+            });
+        });
+
+        it('Trigger click event.', function () {
+            var jobs, widget;
+
+            runs(function () {
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    parentView: app,
+                    filter: {},
+                    triggerJobClick: true
+                }).render();
+
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
             });
 
-            widget = new girder.plugins.jobs.views.JobListWidget({
-                el: $('#g-app-body-container'),
-                filter: {},
-                parentView: app
-            }).render();
+            girderTest.waitForLoad();
 
-            expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
-
-            // Add the jobs to the collection
-            widget.collection.add(jobs);
-        });
-
-        waitsFor(function () {
-            return $('.g-jobs-list-table>tbody>tr').length === 3;
-        }, 'job list to auto-reload when collection is updated')
-
-        runs(function () {
-            rows = $('.g-jobs-list-table>tbody>tr');
-            expect($(rows[0]).text()).toContain('My batch job 2');
-            expect($(rows[0]).text()).toContain('three');
-            expect($(rows[1]).text()).toContain('My batch job 1');
-            expect($(rows[1]).text()).toContain('two');
-            expect($(rows[2]).text()).toContain('My batch job 0');
-            expect($(rows[2]).text()).toContain('one');
-
-            // Trigger event to filter out jobs of type 'two' and 'three'
-            evt = {
-                one: true,
-                two: false,
-                three: false
-            };
-            widget.filterTypeMenuWidget.trigger('g:triggerCheckBoxMenuChanged', evt);
-        });
-
-        // Table should now only contain jobs of type 'one'
-        waitsFor(function () {
-            return $('.g-jobs-list-table>tbody>tr').length === 1;
-        }, 'job list to be filtered');
-
-        runs(function () {
-          // Make sure we only get the jobs of type 'one'
-          rows = $('.g-jobs-list-table>tbody>tr');
-          expect($(rows[0]).text()).toContain('My batch job 0');
-          expect($(rows[0]).text()).toContain('one');
-
-          // Trigger event to include jobs of type 'two' and 'three'
-          evt['two'] = true
-          evt['three'] = true
-          widget.filterTypeMenuWidget.trigger('g:triggerCheckBoxMenuChanged', evt);
-        });
-
-        // Table should now have all the jobs again
-        waitsFor(function () {
-            return $('.g-jobs-list-table>tbody>tr').length === 3;
-        }, 'job list to be filtered');
-
-        runs(function () {
-          rows = $('.g-jobs-list-table>tbody>tr');
-          expect($(rows[0]).text()).toContain('My batch job 2');
-          expect($(rows[0]).text()).toContain('three');
-          expect($(rows[1]).text()).toContain('My batch job 1');
-          expect($(rows[1]).text()).toContain('two');
-          expect($(rows[2]).text()).toContain('My batch job 0');
-          expect($(rows[2]).text()).toContain('one');
-        });
-      });
-
-      it('Job list widget filter by status & type.', function () {
-        var jobs, rows, widget, statusEvt = {}, typeEvt = {};
-        runs(function () {
-            jobs = _.map(['one', 'two', 'three'], function (t, i) {
-                return new girder.plugins.jobs.models.JobModel({
-                    _id: 'foo' + i,
-                    title: 'My batch job ' + i,
-                    status: i+1,
-                    type: t,
-                    updated: '2015-01-12T12:00:0' + i,
-                    created: '2015-01-12T12:00:0' + i,
-                    when: '2015-01-12T12:00:0' + i
+            runs(function(){
+                // Add the jobs to the collection
+                jobs = _.map([1, 2, 3], function (i) {
+                    return new girder.plugins.jobs.models.JobModel({
+                        _id: 'foo' + i,
+                        title: 'My batch job ' + i,
+                        status: i,
+                        updated: '2015-01-12T12:00:0' + i,
+                        created: '2015-01-12T12:00:0' + i,
+                        when: '2015-01-12T12:00:0' + i
+                    });
                 });
+
+                widget.collection.add(jobs);
+                widget.collection.trigger('g:changed');
             });
 
-            widget = new girder.plugins.jobs.views.JobListWidget({
-                el: $('#g-app-body-container'),
-                filter: {},
-                parentView: app
-            }).render();
+            waitsFor(function () {
+                return $('.g-jobs-list-table>tbody>tr').length === 3;
+            }, 'job list to auto-reload when collection is updated');
 
-
-            expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
-
-            // Add the jobs to the collection
-            widget.collection.add(jobs);
+            runs(function () {
+                var fired = false;
+                widget.on('g:jobClicked', function () {
+                    fired = true;
+                });
+                widget.$('.g-job-trigger-link').click();
+                expect(fired).toBe(true);
+            });
         });
-
-        waitsFor(function () {
-            return $('.g-jobs-list-table>tbody>tr').length === 3;
-        }, 'job list to auto-reload when collection is updated')
-
-        runs(function () {
-            rows = $('.g-jobs-list-table>tbody>tr');
-            expect($(rows[0]).text()).toContain('My batch job 2');
-            expect($(rows[0]).text()).toContain('three');
-            expect($(rows[1]).text()).toContain('My batch job 1');
-            expect($(rows[1]).text()).toContain('two');
-            expect($(rows[2]).text()).toContain('My batch job 0');
-            expect($(rows[2]).text()).toContain('one');
-
-            // Trigger event to filter out jobs of type 'two' and 'three'
-            typeEvt = {
-                one: true,
-                two: false,
-                three: false
-            };
-            widget.filterTypeMenuWidget.trigger('g:triggerCheckBoxMenuChanged', typeEvt);
-
-            // Trigger event to filter out jobs in state 1 and 3
-            statusEvt[girder.plugins.jobs.JobStatus.text(1)] = false
-            statusEvt[girder.plugins.jobs.JobStatus.text(2)] = true
-            statusEvt[girder.plugins.jobs.JobStatus.text(3)] = false
-            widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', statusEvt);
-        });
-
-        // Table should be empty
-        waitsFor(function () {
-            return $('.g-jobs-list-table>tbody>tr').length === 0;
-        }, 'job list to be filtered');
-
-        runs(function () {
-
-          // Trigger event to include jobs of type 'one'
-          typeEvt['one'] = true
-          widget.filterTypeMenuWidget.trigger('g:triggerCheckBoxMenuChanged', typeEvt);
-
-          // Trigger event to include jobs in state 1
-          statusEvt[girder.plugins.jobs.JobStatus.text(1)] = true
-          widget.filterStatusMenuWidget.trigger('g:triggerCheckBoxMenuChanged', statusEvt);
-        });
-
-        // Table should have one job
-        waitsFor(function () {
-            return $('.g-jobs-list-table>tbody>tr').length === 1;
-        }, 'job list to be filtered');
-
-        runs(function () {
-          rows = $('.g-jobs-list-table>tbody>tr');
-          expect($(rows[0]).text()).toContain('My batch job 0');
-          expect($(rows[0]).text()).toContain('one');
-          expect($(rows[0]).text()).toContain('1');
-        });
-      });
-
-      it('Trigger click event.', function () {
-          var jobs, widget;
-
-          runs(function () {
-              jobs = _.map([1, 2, 3], function (i) {
-                  return new girder.plugins.jobs.models.JobModel({
-                      _id: 'foo' + i,
-                      title: 'My batch job ' + i,
-                      status: i,
-                      updated: '2015-01-12T12:00:0' + i,
-                      created: '2015-01-12T12:00:0' + i,
-                      when: '2015-01-12T12:00:0' + i
-                  });
-              });
-
-              widget = new girder.plugins.jobs.views.JobListWidget({
-                  el: $('#g-app-body-container'),
-                  parentView: app,
-                  filter: {},
-                  triggerJobClick: true
-              }).render();
-
-              expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
-
-              // Add the jobs to the collection
-              widget.collection.add(jobs);
-          });
-
-          waitsFor(function () {
-              return $('.g-jobs-list-table>tbody>tr').length === 3;
-          }, 'job list to auto-reload when collection is updated');
-
-          runs(function () {
-              var fired = false;
-              widget.on('g:jobClicked', function () {
-                  fired = true;
-              });
-              widget.$('.g-job-trigger-link').click();
-              expect(fired).toBe(true);
-          });
-      });
 
         it('job list widget in all jobs mode', function () {
             var jobs, widget;
@@ -475,7 +295,7 @@ $(function () {
                 girderTest.logout('logout from admin')();
 
                 girderTest.createUser(
-                'user1', 'user@email.com', 'Quota', 'User', 'testpassword')();
+                    'user1', 'user@email.com', 'Quota', 'User', 'testpassword')();
             });
 
             girderTest.waitForLoad();
@@ -492,6 +312,72 @@ $(function () {
             runs(function () {
                 expect(widget.$('.g-jobs-list-table').length).toEqual(0);
             });
+        });
+
+        it('phase and time chart', function () {
+            var jobs, rows, widget;
+            runs(function () {
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    filter: {},
+                    parentView: app
+                }).render();
+            });
+
+            girderTest.waitForLoad();
+
+            runs(function () {
+                jobs = _.map(['one', 'two', 'three'], function (t, i) {
+                    return new girder.plugins.jobs.models.JobModel({
+                        _id: 'foo' + i,
+                        title: 'My batch job ' + i,
+                        status: 4,
+                        type: t,
+                        timestamps: [
+                            {
+                                "status": 1,
+                                "time": "2017-03-10T18:31:59.008Z"
+                            },
+                            {
+                                "status": 2,
+                                "time": "2017-03-10T18:32:06.190Z"
+                            },
+                            {
+                                "status": 4,
+                                "time": "2017-03-10T18:32:34.760Z"
+                            }
+                        ],
+                        updated: '2017-03-10T18:32:34.760Z',
+                        created: '2017-03-10T18:31:59.008Z',
+                        when: '2017-03-10T18:31:59.008Z'
+                    });
+                });
+
+                widget.collection.add(jobs);
+                widget.collection.trigger('g:changed');
+
+                $('.jobs.nav.nav-tabs li a[name="phase"]').tab('show');
+            });
+
+            waitsFor(function () {
+                return widget.$('.g-jobs-graph svg .mark-rect.phase rect').length;
+            }, "phase graph to render");
+
+            runs(function () {
+                $('.jobs.nav.nav-tabs li a[name="time"]').tab('show');
+            })
+
+            waitsFor(function () {
+                return widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
+            }, "time graph to render");
+
+            runs(function () {
+                $('.graph-filter-container .phase .dropdown input.g-job-filter-checkall').click();
+            });
+
+            waitsFor(function () {
+                return !widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
+            }, "graph to clear");
         });
     });
 });

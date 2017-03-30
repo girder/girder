@@ -23,6 +23,7 @@ from tests import base
 from girder import events
 from girder.constants import AccessType
 from girder.models.model_base import ValidationException
+import json
 
 
 JobStatus = None
@@ -207,12 +208,27 @@ class JobsTestCase(base.TestCase):
             title='anonymous job', type='t')
 
         self.model('job', 'jobs').createJob(
-            title='anonymous public job', type='t', public=True)
+            title='anonymous public job', type='t2', public=True)
 
         # User 0, as a site admin, should be able to see all jobs
         resp = self.request('/job/all', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 6)
+
+        # get with filter
+        resp = self.request('/job/all', user=self.users[0], params={
+            'typesArray': json.dumps(['t']),
+            'statusesArray': json.dumps([0])
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 5)
+
+        # get with unmet filter conditions
+        resp = self.request('/job/all', user=self.users[0], params={
+            'typesArray': json.dumps(['nonexisttype'])
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 0)
 
         # User 1, as non site admin, should encounter http 403 (Forbidden)
         resp = self.request('/job/all', user=self.users[1])
@@ -436,3 +452,38 @@ class JobsTestCase(base.TestCase):
         job = jobModel.load(id=job['_id'], force=True, includeLog=True)
         self.assertEqual(job['status'], JobStatus.CANCELED)
         self.assertEqual(len(job.get('log', [])), 1)
+
+    def testJobsMeta(self):
+        self.model('job', 'jobs').createJob(
+            title='user 0 job', type='t1', user=self.users[0], public=False)
+
+        self.model('job', 'jobs').createJob(
+            title='user 1 job', type='t2', user=self.users[1], public=False)
+
+        self.model('job', 'jobs').createJob(
+            title='user 1 job', type='t3', user=self.users[1], public=True)
+
+        self.model('job', 'jobs').createJob(
+            title='user 2 job', type='t4', user=self.users[2])
+
+        self.model('job', 'jobs').createJob(
+            title='anonymous job', type='t5')
+
+        self.model('job', 'jobs').createJob(
+            title='anonymous public job', type='t6', public=True)
+
+        # User 1, as non site admin, should encounter http 403 (Forbidden)
+        resp = self.request('/job/meta/all', user=self.users[1])
+        self.assertStatus(resp, 403)
+
+        # Admin user gets all meta
+        resp = self.request('/job/meta/all', user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['types']), 6)
+        self.assertEqual(len(resp.json['statuses']), 1)
+
+        # standard user gets its own meta
+        resp = self.request('/job/meta', user=self.users[1])
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['types']), 2)
+        self.assertEqual(len(resp.json['statuses']), 1)
