@@ -49,7 +49,7 @@
     "style-loader": "^0.13.1",
     "stylus": "^0.54.5",
     "stylus-loader": "^2.1.1",
-    "swagger-ui": "2.1.4",
+    "swagger-ui": "2.2.10",
     "toposort": "^1.0.0",
     "underscore": "~1.8.3",
     "url-loader": "^0.5.7",
