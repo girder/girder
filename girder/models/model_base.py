@@ -781,7 +781,10 @@ class AccessControlledModel(Model):
             update['$pull'] = {key: {'id': id}}
 
         if save:
-            self.update({'_id': ObjectId(doc['_id'])}, update)
+            if ('_id' not in doc):
+                doc = self.save(doc)
+            else:
+                self.update({'_id': ObjectId(doc['_id'])}, update, multi=False)
 
         return doc
 
