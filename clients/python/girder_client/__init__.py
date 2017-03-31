@@ -153,16 +153,6 @@ class GirderClient(object):
             {'q': 'aggregated','types': '["folder", "item"]'})
     """
 
-    # A convenience dictionary mapping HTTP method names to functions in the
-    # requests module
-    METHODS = {
-        'GET': requests.get,
-        'POST': requests.post,
-        'PUT': requests.put,
-        'DELETE': requests.delete,
-        'PATCH': requests.patch
-    }
-
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
@@ -263,6 +253,7 @@ class GirderClient(object):
             progressReporterCls = _NoopProgressReporter
 
         self.progressReporterCls = progressReporterCls
+        self.session = requests.Session()
 
     def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
         """
@@ -310,7 +301,7 @@ class GirderClient(object):
                 raise Exception('A user name and password are required')
 
             url = self.urlBase + 'user/authentication'
-            authResponse = requests.get(url, auth=(username, password))
+            authResponse = self.session.get(url, auth=(username, password))
 
             if authResponse.status_code == 404:
                 raise HttpError(404, authResponse.text, url, 'GET')
@@ -415,7 +406,7 @@ class GirderClient(object):
             parameters = {}
 
         # Look up the HTTP method we need
-        f = self.METHODS[method]
+        f = getattr(self.session, method.lower())
 
         # Construct the url
         url = self.urlBase + path
@@ -1046,7 +1037,7 @@ class GirderClient(object):
         progressFileName = fileId
         if isinstance(path, six.string_types):
             progressFileName = os.path.basename(path)
-        req = requests.get(
+        req = self.session.get(
             '%sfile/%s/download' % (self.urlBase, fileId),
             stream=True, headers={'Girder-Token': self.token})
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
