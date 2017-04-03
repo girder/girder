@@ -429,6 +429,7 @@ describe('Test the hierarchy browser modal', function () {
                 el: testEl,
                 helpText: 'This is helpful',
                 titleText: 'This is a title',
+                root: girder.auth.getCurrentUser(),
                 input: {
                     label: 'label',
                     default: 'default',

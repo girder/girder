@@ -18,6 +18,8 @@ import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
 import 'bootstrap-slider/dist/bootstrap-slider';
 import 'bootstrap-slider/dist/css/bootstrap-slider.css';
 
+var lastParent = null;
+
 var ControlWidget = View.extend({
     events: {
         'change input,select': '_input',
@@ -197,7 +199,7 @@ var ControlWidget = View.extend({
             parentView: this,
             showItems: showItems,
             selectItem: showItems,
-            root: getCurrentUser(),
+            root: lastParent || getCurrentUser(),
             titleText: title,
             helpText: help,
             input: input,
@@ -205,6 +207,7 @@ var ControlWidget = View.extend({
             validate: validate
         });
         modal.once('g:saved', (model, inputValue) => {
+            lastParent = modal.root;
             modal.$el.modal('hide');
             this.model.set({
                 value: model,

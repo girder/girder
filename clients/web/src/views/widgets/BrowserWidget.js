@@ -161,6 +161,7 @@ var BrowserWidget = View.extend({
             this.$('.g-selected-model').addClass('has-error');
             this.$('.g-validation-failed-message').removeClass('hidden').text(message);
         } else {
+            this.root = this._hierarchyView.parentModel;
             this.$el.modal('hide');
             this.trigger('g:saved', model, this.$('#g-input-element').val());
         }

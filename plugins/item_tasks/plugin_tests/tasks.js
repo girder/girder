@@ -146,6 +146,22 @@ describe('Run the item task', function () {
         girderTest.waitForDialog();
 
         waitsFor(function () {
+            return $('.modal-dialog .g-hierarchy-widget').length > 0;
+        }, 'hierarchy widget to appear');
+
+        runs(function () {
+            // we should be in the parent folder selected before
+            expect($('.modal-dialog a.g-breadcrumb-link').length).toBe(1);
+
+            // go back to the user's main path
+            $('.modal-dialog a.g-breadcrumb-link:first').click();
+
+            // Select our user from the root selector
+            var id = $('.modal-dialog #g-root-selector option:not([disabled]):first').attr('value');
+            $('.modal-dialog #g-root-selector').val(id).trigger('change');
+        });
+
+        waitsFor(function () {
             return $('.modal-dialog .g-folder-list-link').length === 2;
         }, 'user public and private folder to appear in the list');
 
