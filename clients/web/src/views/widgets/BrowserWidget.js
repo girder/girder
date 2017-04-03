@@ -34,6 +34,15 @@ var BrowserWidget = View.extend({
      *   than folders. This will add a handler to the hierarchy widget responding to
      *   clicks on items to select a target rather than inferring it from the browsed
      *   location.
+     * @param {object} [input=false] Settings passed to an optional text input box
+     *   The input box is primarily meant to be for a user to enter a file name
+     *   as in a "Save As" dialog.  The default (false) hides this element.
+     * @param {string} [input.label="Name"] A label for the input element.
+     * @param {string} [input.default] The default value
+     * @param {function} [input.validate] A validation function.  This function
+     *   accepts the user input as an argument and should return "undefined"
+     *   for a valid value or a string to pass to the user for an invalid value.
+     * @param {string} [input.placeholder] A placeholder string for the input element.
      */
     initialize: function (settings) {
         // store options
@@ -45,6 +54,7 @@ var BrowserWidget = View.extend({
         this.showPreview = _.isUndefined(settings.showPreview) ? true : !!settings.showPreview;
         this.submitText = settings.submitText || 'Save';
         this.root = settings.root;
+        this.input = settings.input;
         this.selectItem = !!settings.selectItem;
         this._selected = null;
 
@@ -64,7 +74,8 @@ var BrowserWidget = View.extend({
                 title: this.titleText,
                 help: this.helpText,
                 preview: this.showPreview,
-                submit: this.submitText
+                submit: this.submitText,
+                input: this.input
             })
         ).girderModal(this);
         this._renderRootSelection();
@@ -111,6 +122,7 @@ var BrowserWidget = View.extend({
         this._selected = model;
         this.$('.g-validation-failed-message').addClass('hidden');
         this.$('.g-selected-model').removeClass('has-error');
+        this.$('.g-input-element').removeClass('has-error');
         this.$('#g-selected-model').val('');
         if (this._selected) {
             this.$('#g-selected-model').val(this._selected.id);
@@ -134,12 +146,23 @@ var BrowserWidget = View.extend({
     _submitButton: function () {
         var model = this.selectedModel();
         var message = this.validate(model);
-        if (message) {
+        var inputMessage;
+
+        if (this.input && this.input.validate) {
+            inputMessage = this.input.validate(this.$('#g-input-element').val());
+        }
+
+        if (inputMessage) {
+            this.$('.g-input-element').addClass('has-error');
+            this.$('.g-validation-failed-message').removeClass('hidden').html(
+                _.escape(inputMessage) + '<br>' + _.escape(message)
+            );
+        } else if (message) {
             this.$('.g-selected-model').addClass('has-error');
             this.$('.g-validation-failed-message').removeClass('hidden').text(message);
         } else {
             this.$el.modal('hide');
-            this.trigger('g:saved', model);
+            this.trigger('g:saved', model, this.$('#g-input-element').val());
         }
     }
 });

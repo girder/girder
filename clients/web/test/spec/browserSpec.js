@@ -412,5 +412,66 @@ describe('Test the hierarchy browser modal', function () {
                 expect(view.selectedModel().id).toBe('1');
             });
         });
+
+        it('input element', function () {
+            var validateCalledWith, validateReturn, submitCalled = false;
+
+            girder.auth.setCurrentUser(new girder.models.UserModel({
+                _id: '0',
+                login: 'johndoe',
+                firstName: 'John',
+                lastName: 'Doe'
+            }));
+
+            returnVal = [];
+            view = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                input: {
+                    label: 'label',
+                    default: 'default',
+                    placeholder: 'placeholder',
+                    validate: function (val) {
+                        validateCalledWith = val;
+                        return validateReturn;
+                    }
+                }
+            }).render();
+
+            waitsFor(function () {
+                return $(view.$el).is(':visible');
+            });
+            runs(function () {
+                validateReturn = 'invalid';
+
+                // test form elements
+                expect(view.$('#g-input-element').attr('placeholder')).toBe('placeholder');
+                expect(view.$('#g-input-element').val()).toBe('default');
+                expect(view.$('.g-input-element > label').text()).toBe('label');
+
+                // test an invalid input
+                view.$('#g-input-element').val('input value');
+                view.$('.g-submit-button').click();
+
+                expect(validateCalledWith).toBe('input value');
+                expect(view.$('.g-validation-failed-message').text()).toBe('invalid');
+                expect(view.$('.g-validation-failed-message').hasClass('hidden')).toBe(false);
+
+                // test a valid input
+                view.on('g:saved', function (model, input) {
+                    expect(input).toBe('input value');
+                    submitCalled = true;
+                });
+                validateReturn = undefined;
+                view.$('#g-input-element').val('input value');
+                view.$('.g-submit-button').click();
+            });
+
+            waitsFor(function () {
+                return submitCalled;
+            });
+        });
     });
 });
