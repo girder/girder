@@ -150,6 +150,9 @@ describe('Run the item task', function () {
         }, 'user public and private folder to appear in the list');
 
         runs(function () {
+            // check invalid parent
+            $('.modal-dialog .g-submit-button').click();
+            expect($('.g-validation-failed-message').text()).toMatch(/Invalid parent type/);
             $('.modal-dialog .g-folder-list-link:first').click();
         });
 
@@ -158,6 +161,10 @@ describe('Run the item task', function () {
         }, 'folder nav in output selection widget');
 
         runs(function () {
+            // check no name provided
+            $('.modal-dialog .g-submit-button').click();
+            expect($('.g-validation-failed-message').text()).toMatch(/Please provide an item name/);
+
             $('#g-input-element').val('out.txt');
             $('.modal-dialog .g-submit-button').click();
         });
