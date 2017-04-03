@@ -40,9 +40,7 @@ var JobListWidget = View.extend({
         var currentUser = getCurrentUser();
         this.showAllJobs = !!settings.allJobsMode;
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
-        this.filter = settings.filter || {
-            userId: currentUser ? currentUser.id : null
-        };
+        this.userId = (settings.filter && !settings.allJobsMode) ? (settings.filter.userId ? settings.filter.userId : currentUser.id) : null;
         this.typeFilter = null;
         this.statusFilter = null;
         this.phasesFilter = JobStatus.getAllStatus().reduce((obj, status) => {
@@ -166,7 +164,11 @@ var JobListWidget = View.extend({
 
         this.$('a[data-toggle="tab"]').on('shown.bs.tab', e => {
             this.currentView = $(e.target).attr('name');
-            router.navigate(`jobs/${this.currentView}`);
+            if (this.userId) {
+                router.navigate(`jobs/user/${this.userId}/${this.currentView}`);
+            } else {
+                router.navigate(`jobs/${this.currentView}`);
+            }
             this.render();
         });
 
@@ -363,11 +365,14 @@ var JobListWidget = View.extend({
 
     _fetchWithFilter() {
         var filter = {};
+        if (this.userId) {
+            filter.userId = this.userId;
+        }
         if (this.typeFilter) {
-            filter.typesArray = JSON.stringify(this.typeFilter);
+            filter.types = JSON.stringify(this.typeFilter);
         }
         if (this.statusFilter) {
-            filter.statusesArray = JSON.stringify(this.statusFilter);
+            filter.statuses = JSON.stringify(this.statusFilter);
         }
         this.collection.params = filter;
         this.collection.fetch({}, true);

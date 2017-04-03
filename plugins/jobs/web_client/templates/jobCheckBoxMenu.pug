@@ -3,15 +3,14 @@ a.g-job-checkbox-menu-link(data-toggle="dropdown", data-target=`#g-job-checkbox-
   i.icon-filter
 .dropdown(id=`g-job-checkbox-menu-${title}`)
   .dropdown-menu(role="menu")
-    .checkbox
+    .checkbox.g-job-checkall
       label
-        input.g-job-filter-checkall(type="checkbox", data-toggle="tooltip", checked=checkAllChecked)
+        input(type="checkbox", data-toggle="tooltip", checked=checkAllChecked)
         | Check all
-    hr
     ul
       each checked, name in values
         li(role="presentation")
           .checkbox
             label
               input.g-job-filter-checkbox(type="checkbox", data-toggle="tooltip", id=name, title=name, checked=checked)
-              | #{name}
+              = name

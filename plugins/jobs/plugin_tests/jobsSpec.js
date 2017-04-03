@@ -208,7 +208,7 @@ $(function () {
                     }, 0)
                 ).toBe(1);
 
-                widget.$('.filter-container .type .dropdown input.g-job-filter-checkall').click();
+                widget.$('.filter-container .type .dropdown .g-job-checkall input').click();
 
                 //all should be checked after clicking Check all
                 expect(
@@ -216,9 +216,9 @@ $(function () {
                         return total + ($(input).is(':checked') ? 1 : 0);
                     }, 0)
                 ).toBe(3);
-                expect($('.filter-container .type .dropdown input.g-job-filter-checkall').is(':checked')).toBe(true);
+                expect($('.filter-container .type .dropdown .g-job-checkall input').is(':checked')).toBe(true);
 
-                widget.$('.filter-container .status .dropdown input.g-job-filter-checkall').click();
+                widget.$('.filter-container .status .dropdown .g-job-checkall input').click();
 
                 expect(
                     widget.$('.filter-container .status .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
@@ -356,7 +356,7 @@ $(function () {
                 widget.collection.add(jobs);
                 widget.collection.trigger('g:changed');
 
-                $('.jobs.nav.nav-tabs li a[name="phase"]').tab('show');
+                $('.g-jobs.nav.nav-tabs li a[name="phase"]').tab('show');
             });
 
             waitsFor(function () {
@@ -364,7 +364,7 @@ $(function () {
             }, "phase graph to render");
 
             runs(function () {
-                $('.jobs.nav.nav-tabs li a[name="time"]').tab('show');
+                $('.g-jobs.nav.nav-tabs li a[name="time"]').tab('show');
             })
 
             waitsFor(function () {
@@ -372,7 +372,7 @@ $(function () {
             }, "time graph to render");
 
             runs(function () {
-                $('.graph-filter-container .phase .dropdown input.g-job-filter-checkall').click();
+                $('.graph-filter-container .phase .dropdown .g-job-checkall input').click();
             });
 
             waitsFor(function () {

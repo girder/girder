@@ -1,5 +1,5 @@
 .page-size-container
-  span(style="margin-right:10px") Page size
+  span Page size
   select.g-page-size
     each val in pageSizes
       option(selected=val==pageSize)= val
@@ -8,7 +8,7 @@
   .type
   .status
 
-ul.jobs.nav.nav-tabs
+ul.g-jobs.nav.nav-tabs
   li(class=(currentView=='list'?'active':''))
     a(data-toggle="tab", name="list")
       i.icon-th-list

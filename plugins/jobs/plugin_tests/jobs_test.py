@@ -217,15 +217,15 @@ class JobsTestCase(base.TestCase):
 
         # get with filter
         resp = self.request('/job/all', user=self.users[0], params={
-            'typesArray': json.dumps(['t']),
-            'statusesArray': json.dumps([0])
+            'types': json.dumps(['t']),
+            'statuses': json.dumps([0])
         })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 5)
 
         # get with unmet filter conditions
         resp = self.request('/job/all', user=self.users[0], params={
-            'typesArray': json.dumps(['nonexisttype'])
+            'types': json.dumps(['nonexisttype'])
         })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 0)

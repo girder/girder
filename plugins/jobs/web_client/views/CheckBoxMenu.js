@@ -14,7 +14,7 @@ var CheckBoxMenu = View.extend({
             this.render();
             this.trigger('g:triggerCheckBoxMenuChanged', this.values);
         },
-        'click input.g-job-filter-checkall': function (e) {
+        'click .g-job-checkall input': function (e) {
             var checked = !this.allItemChecked();
             this.checkAllChecked = checked;
             _.keys(this.values).forEach(key => {

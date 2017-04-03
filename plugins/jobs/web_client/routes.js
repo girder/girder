@@ -17,9 +17,10 @@ router.route('job/:id', 'jobView', function (id) {
     job.fetch();
 });
 
-router.route('jobs/user/:id', 'jobList', function (id) {
+router.route('jobs/user/:id(/:view)', 'jobList', function (id, view) {
     events.trigger('g:navigateTo', JobListWidget, {
-        filter: { userId: id }
+        filter: { userId: id },
+        view: view
     });
 });
 
