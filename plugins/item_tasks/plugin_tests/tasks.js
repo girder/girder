@@ -158,14 +158,11 @@ describe('Run the item task', function () {
         }, 'folder nav in output selection widget');
 
         runs(function () {
+            $('#g-input-element').val('out.txt');
             $('.modal-dialog .g-submit-button').click();
         });
 
         girderTest.waitForLoad();
-
-        runs(function () {
-            $('.g-outputs-container input[name="DetectedPoints"]').val('out.txt').trigger('change');
-        });
     });
 
     it('run the task', function () {
