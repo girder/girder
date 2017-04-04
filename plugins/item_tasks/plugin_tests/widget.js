@@ -653,5 +653,117 @@ girderTest.promise.then(function () {
             expect(message).toBe('Invalid widget type "invalid"');
             console.warn = _warn;
         });
+
+        describe('events', function () {
+            it('g:itemTaskWidgetSet', function () {
+                var w = new itemTasks.views.ControlWidget({
+                    parentView: parentView,
+                    el: $el.get(0),
+                    model: new itemTasks.models.WidgetModel({
+                        type: 'number',
+                        title: 'Title',
+                        id: 'number-widget',
+                        value: 0
+                    })
+                });
+                w.render();
+
+                girder.events.trigger('g:itemTaskWidgetSet:' + w.model.id, 1);
+                expect(w.$('input').val()).toBe('1');
+            });
+
+            it('g:itemTaskWidgetChanged', function () {
+                var e1, e2;
+
+                var w = new itemTasks.views.ControlWidget({
+                    parentView: parentView,
+                    el: $el.get(0),
+                    model: new itemTasks.models.WidgetModel({
+                        type: 'number',
+                        title: 'Title',
+                        id: 'number-widget',
+                        value: 0
+                    })
+                });
+                w.render();
+
+                girder.events.once('g:itemTaskWidgetChanged', function (model) {
+                    e1 = true;
+                    expect(model).toBe(w.model);
+                });
+
+                girder.events.once('g:itemTaskWidgetChanged:number', function (model) {
+                    e2 = true;
+                    expect(model).toBe(w.model);
+                });
+
+                // this should trigger both change events
+                w.$('input').val(1).trigger('change');
+                expect(e1).toBe(true);
+                expect(e2).toBe(true);
+            });
+
+            it('g:itemTaskWidgetRemoved', function () {
+                var e1, e2;
+
+                var w = new itemTasks.views.ControlWidget({
+                    parentView: parentView,
+                    el: $el.get(0),
+                    model: new itemTasks.models.WidgetModel({
+                        type: 'number',
+                        title: 'Title',
+                        id: 'number-widget',
+                        value: 0
+                    })
+                });
+                w.render();
+
+                girder.events.once('g:itemTaskWidgetRemoved', function (model) {
+                    e1 = true;
+                    expect(model).toBe(w.model);
+                });
+
+                girder.events.once('g:itemTaskWidgetRemoved:number', function (model) {
+                    e2 = true;
+                    expect(model).toBe(w.model);
+                });
+
+                // this should trigger both change events
+                w.model.trigger('destroy', w.model);
+                expect(e1).toBe(true);
+                expect(e2).toBe(true);
+            });
+
+            it('g:itemTaskWidgetInvalid', function () {
+                var e1, e2;
+
+                var w = new itemTasks.views.ControlWidget({
+                    parentView: parentView,
+                    el: $el.get(0),
+                    model: new itemTasks.models.WidgetModel({
+                        type: 'number',
+                        title: 'Title',
+                        id: 'number-widget',
+                        value: 0
+                    })
+                });
+                w.render();
+
+                girder.events.once('g:itemTaskWidgetInvalid', function (model) {
+                    e1 = true;
+                    expect(model).toBe(w.model);
+                });
+
+                girder.events.once('g:itemTaskWidgetInvalid:number', function (model) {
+                    e2 = true;
+                    expect(model).toBe(w.model);
+                });
+
+                // this should trigger both change events
+                w.$('input').val('not a number').trigger('change');
+                expect(e1).toBe(true);
+                expect(e2).toBe(true);
+            });
+        });
     });
 });

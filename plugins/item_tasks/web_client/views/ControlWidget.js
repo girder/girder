@@ -1,6 +1,7 @@
 import _ from 'underscore';
 
 import View from 'girder/views/View';
+import events from 'girder/events';
 import BrowserWidget from 'girder/views/widgets/BrowserWidget';
 import { getCurrentUser } from 'girder/auth';
 
@@ -28,9 +29,12 @@ var ControlWidget = View.extend({
     },
 
     initialize: function () {
-        this.listenTo(this.model, 'change', this.render);
+        this.listenTo(this.model, 'change', this.change);
         this.listenTo(this.model, 'destroy', this.remove);
         this.listenTo(this.model, 'invalid', this.invalid);
+        this.listenTo(events, 'g:itemTaskWidgetSet:' + this.model.id, (value) => {
+            this.model.set('value', value);
+        });
     },
 
     render: function (_, options) {
@@ -45,10 +49,18 @@ var ControlWidget = View.extend({
         return this;
     },
 
+    change: function () {
+        this.render.apply(this, arguments);
+        events.trigger('g:itemTaskWidgetChanged:' + this.model.get('type'), this.model);
+        events.trigger('g:itemTaskWidgetChanged', this.model);
+    },
+
     remove: function () {
         this.$('.g-control-item[data-type="color"] .input-group').colorpicker('destroy');
         this.$('.g-control-item[data-type="range"] input').slider('destroy');
         this.$el.empty();
+        events.trigger('g:itemTaskWidgetRemoved:' + this.model.get('type'), this.model);
+        events.trigger('g:itemTaskWidgetRemoved', this.model);
     },
 
     /**
@@ -57,6 +69,8 @@ var ControlWidget = View.extend({
      */
     invalid: function () {
         this.$('.form-group').addClass('has-error');
+        events.trigger('g:itemTaskWidgetInvalid:' + this.model.get('type'), this.model);
+        events.trigger('g:itemTaskWidgetInvalid', this.model);
     },
 
     /**
