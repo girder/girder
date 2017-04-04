@@ -20,6 +20,9 @@ var ControlsPanel = Panel.extend({
             id: this.$el.attr('id')
         }));
         this.addAll();
+
+        // initialize collapseable elements
+        this.$('.g-panel-content').collapse({toggle: false});
     },
 
     addOne: function (model) {
