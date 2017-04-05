@@ -220,7 +220,8 @@ export default {
                     'y': { 'scale': 'y', 'field': 'layout_start' },
                     'y2': { 'scale': 'y', 'field': 'layout_end' },
                     'fill': { 'scale': 'color', 'field': 'status' },
-                    'itemName': { 'value': 'bar' }
+                    'itemName': { 'value': 'bar' },
+                    'cursor': { 'value': 'pointer' }
                 },
                 'update': { 'fillOpacity': { 'value': 1 } },
                 'hover': {

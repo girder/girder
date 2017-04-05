@@ -193,8 +193,16 @@ var JobListWidget = View.extend({
 
         var changeScaleType = view => {
             return (event, item) => {
-                if (item && item.itemName && item.itemName === 'ylabel') {
+                if (item && item.itemName === 'ylabel') {
                     view.destroy(); this.yScale = this.yScale === 'sqrt' ? 'linear' : 'sqrt'; this.render();
+                }
+            };
+        };
+
+        var openDetailView = view => {
+            return (event, item) => {
+                if (item && (item.itemName === 'bar' || item.itemName === 'circle')) {
+                    window.open(`#/job/${item.datum.id}`, '_blank');
                 }
             };
         };
@@ -224,6 +232,7 @@ var JobListWidget = View.extend({
                 }).update();
 
                 view.on('click', changeScaleType(view));
+                view.on('click', openDetailView(view));
             });
 
             this.phaseFilterWidget.setValues(this.phasesFilter);
@@ -267,6 +276,7 @@ var JobListWidget = View.extend({
                 }).update();
 
                 view.on('click', changeScaleType(view));
+                view.on('click', openDetailView(view));
             });
 
             let positivePhases = _.clone(this.phasesFilter);

@@ -207,10 +207,11 @@ export default {
                         'field': 'sum_y'
                     },
                     'itemName': {
-                        'value': 'line'
+                        'value': 'circle'
                     },
                     'strokeWidth': { 'value': 1 },
-                    'fill': { 'value': '#1F77B4' }
+                    'fill': { 'value': '#1F77B4' },
+                    'cursor': { 'value': 'pointer' }
                 },
                 'update': {
                     'fillOpacity': {
