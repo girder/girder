@@ -60,7 +60,7 @@ var JobListWidget = View.extend({
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
         this.collection.on('g:changed', function () {
-            this.render();
+            this._renderData();
         }, this);
         this._fetchWithFilter();
 
@@ -141,8 +141,10 @@ var JobListWidget = View.extend({
 
         this.phaseFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
             this.phasesFilter = _.extend(this.phasesFilter, e);
-            this.render();
+            this._renderData();
         }, this);
+
+        this.render();
     },
 
     columnEnum: defineFlags([
@@ -155,8 +157,6 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        var jobs = this.collection.toArray();
-
         this.$el.html(JobListTemplate(this));
 
         this.typeFilterWidget.setElement(this.$('.filter-container .type')).render();
@@ -172,9 +172,27 @@ var JobListWidget = View.extend({
             this.render();
         });
 
+        if (this.currentView === 'phase' || this.currentView === 'time') {
+            this.$('.g-main-content').html(JobsGraphWidgetTemplate());
+            this.phaseFilterWidget.setValues(this.phasesFilter);
+            this.phaseFilterWidget.setElement(this.$('.graph-filter-container .phase')).render();
+        }
+
+        this._renderData();
+
+        return this;
+    },
+
+    _renderData: function () {
+        var jobs = this.collection.toArray();
+
         if (!jobs.length) {
-            this.$('.g-main-content').text('no record found');
-            return this;
+            this.$('.g-main-content,.g-job-pagination').hide();
+            this.$('.g-no-record').show();
+            return;
+        } else {
+            this.$('.g-main-content,.g-job-pagination').show();
+            this.$('.g-no-record').hide();
         }
 
         if (this.currentView === 'list') {
@@ -208,8 +226,6 @@ var JobListWidget = View.extend({
         };
 
         if (this.currentView === 'phase') {
-            this.$('.g-main-content').html(JobsGraphWidgetTemplate());
-
             new JobStatusSegmentizer().segmentize(jobs);
             let vegaData = this._prepareDataForChart(jobs);
 
@@ -235,13 +251,11 @@ var JobListWidget = View.extend({
                 view.on('click', openDetailView(view));
             });
 
-            this.phaseFilterWidget.setValues(this.phasesFilter);
-            this.phaseFilterWidget.setElement(this.$('.graph-filter-container .phase')).render();
+            let positivePhases = _.clone(this.phasesFilter);
+            this.phaseFilterWidget.setValues(positivePhases);
         }
 
         if (this.currentView === 'time') {
-            this.$('.g-main-content').html(JobsGraphWidgetTemplate());
-
             new JobStatusSegmentizer().segmentize(jobs);
             let vegaData = this._prepareDataForChart(jobs);
             let config = jQuery.extend(true, {}, timeChartConfig);
@@ -283,14 +297,11 @@ var JobListWidget = View.extend({
             delete positivePhases['Inactive'];
             delete positivePhases['Queued'];
             this.phaseFilterWidget.setValues(positivePhases);
-            this.phaseFilterWidget.setElement(this.$('.graph-filter-container').children().eq(0)).render();
         }
 
         if (this.showPaging) {
             this.paginateWidget.setElement(this.$('.g-job-pagination')).render();
         }
-
-        return this;
     },
 
     _statusChange: function (event) {
