@@ -81,7 +81,9 @@ module.exports = {
             jQuery: 'jquery',
             $: 'jquery',
             'window.jQuery': 'jquery'
-        })
+        }),
+        // Disable writing the output file if a build error occurs
+        new webpack.NoEmitOnErrorsPlugin()
     ],
     module: {
         loaders: [
