@@ -87,14 +87,36 @@ class _HiddenOption(click.Option):
         pass
 
 
-class _DeprecatedOption(_HiddenOption):
+class _AdvancedOption(click.Option):
     pass
+
+
+class _Group(click.Group):
+    def format_options(self, ctx, formatter):
+        opts = []
+        advanced_opts = []
+        for param in self.get_params(ctx):
+            rv = param.get_help_record(ctx)
+            if rv is None:
+                continue
+            if isinstance(param, _AdvancedOption):
+                advanced_opts.append(rv)
+            else:
+                opts.append(rv)
+
+        if opts:
+            with formatter.section('Options'):
+                formatter.write_dl(opts)
+        if advanced_opts:
+            with formatter.section('Advanced Options'):
+                formatter.write_dl(advanced_opts)
+        self.format_commands(ctx, formatter)
 
 
 _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
-@click.group(context_settings=_CONTEXT_SETTINGS)
+@click.group(context_settings=_CONTEXT_SETTINGS, cls=_Group)
 @click.option('--api-url', default=None,
               help='RESTful API URL '
                    '(e.g https://girder.example.com:443/%s)' % GirderClient.DEFAULT_API_ROOT)
@@ -102,16 +124,28 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               help='[default: GIRDER_API_KEY env. variable]')
 @click.option('--username', default=None)
 @click.option('--password', default=None)
-# Deprecated options
-@click.option('--host', default=GirderClient.DEFAULT_HOST, show_default=True,
-              cls=_DeprecatedOption)
-@click.option('--scheme', default=GirderClient.DEFAULT_SCHEME, show_default=True,
-              cls=_DeprecatedOption)
-@click.option('--port', default=GirderClient.DEFAULT_PORT, show_default=True,
-              cls=_DeprecatedOption)
-@click.option('--api-root', default=GirderClient.DEFAULT_API_ROOT,
-              help='relative path to the Girder REST API', show_default=True,
-              cls=_DeprecatedOption)
+# Advanced options
+@click.option('--host', default=None,
+              cls=_AdvancedOption,
+              help="[default: %s]" % GirderClient.DEFAULT_HOST)
+@click.option('--scheme', default=None,
+              cls=_AdvancedOption,
+              help="[default: %s if %s else %s]" % (
+                  GirderClient.getDefaultScheme(GirderClient.DEFAULT_HOST),
+                  GirderClient.DEFAULT_HOST,
+                  GirderClient.getDefaultScheme("girder.example.com")))
+@click.option('--port', default=None,
+              cls=_AdvancedOption,
+              help="[default: %s if %s; %s if %s else %s]" % (
+                  GirderClient.DEFAULT_HTTPS_PORT, "https",
+                  GirderClient.DEFAULT_LOCALHOST_PORT, "localhost",
+                  GirderClient.DEFAULT_HTTP_PORT,
+                  ))
+@click.option('--api-root', default=None,
+              help='relative path to the Girder REST API '
+                   '[default: %s]' % GirderClient.DEFAULT_API_ROOT,
+              show_default=True,
+              cls=_AdvancedOption)
 @click.pass_context
 def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root):
     """Perform common Girder CLI operations.
@@ -127,6 +161,16 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
     ``username`` is specified, the client will prompt the user to interactively
     input his/her password.
     """
+    # --api-url and URL by part arguments are mutually exclusive
+    url_part_options = ['host', 'scheme', 'port', 'api_root']
+    has_api_url = ctx.params.get('api_url', None)
+    for name in url_part_options:
+        has_url_part = ctx.params.get(name, None)
+        if has_api_url and has_url_part:
+            raise click.BadArgumentUsage(
+                'Option "--api-url" and option "--%s" are mutually exclusive.' %
+                name.replace("_", "-"))
+
     ctx.obj = GirderCli(
         username, password, host=host, port=port, apiRoot=api_root,
         scheme=scheme, apiUrl=api_url, apiKey=api_key)
@@ -173,6 +217,7 @@ def _CommonParameters(path_exists=False, path_writable=True,
             func = decorator(func)
         return func
     return wrap
+
 
 _common_help = 'PARENT_ID is the id of the Girder parent target and ' \
                'LOCAL_FOLDER is the path to the local target folder.'
