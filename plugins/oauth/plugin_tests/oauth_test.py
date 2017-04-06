@@ -134,6 +134,48 @@ class OauthTest(base.TestCase):
         # No need to re-fetch and test all of these settings values; they will
         # be implicitly tested later
 
+    def _testOauthTokenAsParam(self, providerInfo):
+        self.accountType = 'existing'
+
+        def _getCallbackParams(providerInfo, redirect):
+            resp = self.request('/oauth/provider', params={
+                'redirect': redirect,
+                'list': True
+            })
+            self.assertStatusOk(resp)
+            providerResp = resp.json[0]
+            resp = requests.get(providerResp['url'], allow_redirects=False)
+            self.assertEqual(resp.status_code, 302)
+            callbackLoc = urllib.parse.urlparse(resp.headers['location'])
+            self.assertEqual(
+                callbackLoc.path, r'/api/v1/oauth/%s/callback' % providerInfo['id'])
+            callbackLocQuery = urllib.parse.parse_qs(callbackLoc.query)
+            self.assertNotHasKeys(callbackLocQuery, ('error',))
+            callbackParams = {
+                key: val[0] for key, val in six.viewitems(callbackLocQuery)
+            }
+            return callbackParams
+
+        redirect = 'http://localhost/#foo/bar?token={girderToken}'
+        params = _getCallbackParams(providerInfo, redirect)
+
+        resp = self.request(
+            '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
+        self.assertStatus(resp, 303)
+        self.assertTrue('girderToken' in resp.cookie)
+        self.assertEqual(
+            resp.headers['Location'],
+            redirect.format(girderToken=resp.cookie['girderToken'].value))
+
+        redirect = 'http://localhost/#foo/bar?token={foobar}'
+        params = _getCallbackParams(providerInfo, redirect)
+
+        resp = self.request(
+            '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
+        self.assertStatus(resp, 303)
+        self.assertTrue('girderToken' in resp.cookie)
+        self.assertEqual(resp.headers['Location'], redirect)
+
     def _testOauth(self, providerInfo):
         # Close registration to start off, and simulate a new user
         self._testSettings(providerInfo)
@@ -914,6 +956,7 @@ class OauthTest(base.TestCase):
             self.mockOtherRequest
         ):
             self._testOauth(providerInfo)
+            self._testOauthTokenAsParam(providerInfo)
 
     def testLinkedinOauth(self):  # noqa
         providerInfo = {
