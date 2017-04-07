@@ -168,8 +168,32 @@ class GirderClient(object):
 
     DEFAULT_API_ROOT = 'api/v1'
     DEFAULT_HOST = 'localhost'
-    DEFAULT_PORT = 443
-    DEFAULT_SCHEME = 'https'
+    DEFAULT_LOCALHOST_PORT = 8080
+    DEFAULT_HTTP_PORT = 80
+    DEFAULT_HTTPS_PORT = 443
+
+    @staticmethod
+    def getDefaultPort(hostname, scheme):
+        """Get default port based on the hostname.
+        Returns `GirderClient.DEFAULT_HTTPS_PORT` if scheme is `https`, otherwise
+        returns `GirderClient.DEFAULT_LOCALHOST_PORT` if `hostname` is `localhost`,
+        and finally returns `GirderClient.DEFAULT_HTTP_PORT`.
+        """
+        if scheme == "https":
+            return GirderClient.DEFAULT_HTTPS_PORT
+        if hostname == "localhost":
+            return GirderClient.DEFAULT_LOCALHOST_PORT
+        return GirderClient.DEFAULT_HTTP_PORT
+
+    @staticmethod
+    def getDefaultScheme(hostname):
+        """Get default scheme based on the hostname.
+        Returns `http` if `hostname` is `localhost` otherwise returns `https`.
+        """
+        if hostname == "localhost":
+            return "http"
+        else:
+            return "https"
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
                  cacheSettings=None, progressReporterCls=None):
@@ -201,6 +225,9 @@ class GirderClient(object):
             initialized using `sys.stdout.isatty()`).
             This defaults to :class:`_NoopProgressReporter`.
         """
+        self.host = None
+        self.scheme = None
+        self.port = None
         if apiUrl is None:
             if not apiRoot:
                 apiRoot = self.DEFAULT_API_ROOT
@@ -208,10 +235,9 @@ class GirderClient(object):
             if not apiRoot.startswith('/'):
                 apiRoot = '/' + apiRoot
 
-            self.scheme = scheme or self.DEFAULT_SCHEME
             self.host = host or self.DEFAULT_HOST
-            self.port = port or (
-                self.DEFAULT_PORT if self.scheme == 'https' else 80)
+            self.scheme = scheme or GirderClient.getDefaultScheme(self.host)
+            self.port = port or GirderClient.getDefaultPort(self.host, self.scheme)
 
             self.urlBase = '%s://%s:%s%s' % (
                 self.scheme, self.host, str(self.port), apiRoot)
