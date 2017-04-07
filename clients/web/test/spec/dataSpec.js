@@ -746,6 +746,87 @@ describe('Create a data hierarchy', function () {
         girderTest.testUploadDrop(10, 2);
     });
 
+    it('attempt to upload a directory by dropping', function () {
+        waitsFor(function () {
+            return $('.g-upload-here-button').length > 0;
+        }, 'the upload here button to appear');
+
+        runs(function () {
+            $('.g-upload-here-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-drop-zone:visible').length > 0 &&
+                $('.modal-dialog:visible').length > 0;
+        }, 'the upload dialog to appear');
+
+        var files = [
+            {
+                name: 'file1',
+                size: 1024
+            },
+            {
+                name: 'file2',
+                size: 1024
+            },
+            {
+                name: 'dir',
+                size: 4096
+            }
+        ];
+
+        var items = [
+            // Mock DataTransferItem that doesn't support the webkitGetAsEntry
+            // method
+            {
+            },
+            // Mock DataTransferItem that represents a file
+            {
+                webkitGetAsEntry: function () {
+                    return { isFile: true };
+                }
+            },
+            // Mock DataTransferItem that represents a directory
+            {
+                webkitGetAsEntry: function () {
+                    return { isFile: false };
+                }
+            }
+        ];
+
+        var selector = '.g-drop-zone';
+        var dropActiveSelector = '.g-dropzone-show:visible';
+
+        runs(function () {
+            $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+        });
+
+        waitsFor(function () {
+            return $(dropActiveSelector).length > 0;
+        }, 'the drop bullseye to appear');
+
+        runs(function () {
+            $(selector).trigger($.Event('drop', {originalEvent: {
+                dataTransfer: {
+                    files: files,
+                    items: items
+                }}}));
+        });
+
+        waitsFor(function () {
+            return $(dropActiveSelector).length === 0;
+        }, 'the drop bullseye to disappear');
+
+        waitsFor(function () {
+            return $('.g-upload-error-message').text().length > 0;
+        }, 'the error message to be displayed');
+
+        runs(function () {
+            expect($('.g-upload-error-message').text().indexOf(
+                'Only files may be uploaded') >= 0).toBe(true);
+        });
+    });
+
     it('logout from second user', girderTest.logout('logout from second user'));
 });
 
