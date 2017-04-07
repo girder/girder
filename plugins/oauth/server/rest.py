@@ -145,6 +145,10 @@ class OAuth(Resource):
             'user': user
         })
 
-        self.sendAuthTokenCookie(user)
+        girderToken = self.sendAuthTokenCookie(user)
+        try:
+            redirect = redirect.format(girderToken=str(girderToken['_id']))
+        except KeyError:
+            pass  # in case there's another {} that's not handled by format
 
         raise cherrypy.HTTPRedirect(redirect)
