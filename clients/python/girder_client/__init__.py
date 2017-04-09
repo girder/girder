@@ -253,7 +253,7 @@ class GirderClient(object):
             progressReporterCls = _NoopProgressReporter
 
         self.progressReporterCls = progressReporterCls
-        self.session = requests.Session()
+        self._session = None
 
     def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
         """
@@ -301,7 +301,7 @@ class GirderClient(object):
                 raise Exception('A user name and password are required')
 
             url = self.urlBase + 'user/authentication'
-            authResponse = self.session.get(url, auth=(username, password))
+            authResponse = self._requestFunc('get')(url, auth=(username, password))
 
             if authResponse.status_code == 404:
                 raise HttpError(404, authResponse.text, url, 'GET')
@@ -374,6 +374,12 @@ class GirderClient(object):
 
         return self._serverApiDescription
 
+    def _requestFunc(self, method):
+        if self._session is not None:
+            return getattr(self._session, method.lower())
+        else:
+            return getattr(requests, method.lower())
+
     def sendRestRequest(self, method, path, parameters=None,
                         data=None, files=None, json=None, headers=None):
         """
@@ -406,7 +412,7 @@ class GirderClient(object):
             parameters = {}
 
         # Look up the HTTP method we need
-        f = getattr(self.session, method.lower())
+        f = self._requestFunc(method)
 
         # Construct the url
         url = self.urlBase + path
@@ -1037,7 +1043,7 @@ class GirderClient(object):
         progressFileName = fileId
         if isinstance(path, six.string_types):
             progressFileName = os.path.basename(path)
-        req = self.session.get(
+        req = self._requestFunc('get')(
             '%sfile/%s/download' % (self.urlBase, fileId),
             stream=True, headers={'Girder-Token': self.token})
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
