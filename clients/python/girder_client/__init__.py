@@ -30,6 +30,7 @@ import shutil
 import six
 import tempfile
 
+from contextlib import contextmanager
 from requests_toolbelt import MultipartEncoder
 
 __version__ = '2.2.0'
@@ -253,6 +254,38 @@ class GirderClient(object):
             progressReporterCls = _NoopProgressReporter
 
         self.progressReporterCls = progressReporterCls
+        self._session = None
+
+    @contextmanager
+    def session(self, session=None):
+        """
+        Use a :class:`requests.Session` object for all outgoing requests from
+        :class:`GirderClient`. If `session` isn't passed into the context manager
+        then one will be created and yielded. Session objects are useful for enabling
+        persistent HTTP connections as well as partially applying arguments to many
+        requests, such as headers.
+
+        Note: `session` is closed when the context manager exits, regardless of who
+        created it.
+
+        .. code-block:: python
+
+            with gc.session() as session:
+                session.headers.update({'User-Agent': 'myapp 1.0'})
+
+                for itemId in itemIds:
+                    gc.downloadItem(itemId, fh)
+
+        In the above example, each request will be executed with the User-Agent header
+        while reusing the same TCP connection.
+
+        :param session: An existing :class:`requests.Session` object, or None.
+        """
+        self._session = session if session else requests.Session()
+
+        yield self._session
+
+        self._session.close()
         self._session = None
 
     def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
