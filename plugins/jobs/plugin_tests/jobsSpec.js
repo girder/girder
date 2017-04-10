@@ -118,7 +118,7 @@ $(function () {
                 'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
 
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobListWidget({
+                widget = new girder.plugins.jobs.views.JobList({
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app
@@ -177,7 +177,7 @@ $(function () {
         it('Job list widget filter by status & type.', function () {
             var jobs, rows, widget;
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobListWidget({
+                widget = new girder.plugins.jobs.views.JobList({
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app
@@ -187,7 +187,7 @@ $(function () {
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
                 //programmatically set value
-                widget.typeFilterWidget.setValues({
+                widget.typeFilterWidget.setItems({
                     'type A': true,
                     'type B': true,
                     'type C': false
@@ -227,7 +227,7 @@ $(function () {
                 ).toBe(0);
 
                 widget.$('.g-page-size').val(50).trigger("change");
-                expect(widget.pageSize).toBe(50);
+                expect(widget.collection.pageLimit).toBe(50);
             });
         });
 
@@ -235,7 +235,7 @@ $(function () {
             var jobs, widget;
 
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobListWidget({
+                widget = new girder.plugins.jobs.views.JobList({
                     el: $('#g-app-body-container'),
                     parentView: app,
                     filter: {},
@@ -283,7 +283,7 @@ $(function () {
 
             runs(function () {
 
-                widget = new girder.plugins.jobs.views.JobListWidget({
+                widget = new girder.plugins.jobs.views.JobList({
                     el: $('#g-app-body-container'),
                     parentView: app,
                     filter: {},
@@ -301,7 +301,7 @@ $(function () {
             girderTest.waitForLoad();
 
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobListWidget({
+                widget = new girder.plugins.jobs.views.JobList({
                     el: $('#g-app-body-container'),
                     parentView: app,
                     allJobsMode: true
@@ -314,10 +314,10 @@ $(function () {
             });
         });
 
-        it('phase and time chart', function () {
+        it('timing history and time chart', function () {
             var jobs, rows, widget;
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobListWidget({
+                widget = new girder.plugins.jobs.views.JobList({
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app
@@ -356,12 +356,12 @@ $(function () {
                 widget.collection.add(jobs);
                 widget.collection.trigger('g:changed');
 
-                $('.g-jobs.nav.nav-tabs li a[name="phase"]').tab('show');
+                $('.g-jobs.nav.nav-tabs li a[name="timing-history"]').tab('show');
             });
 
             waitsFor(function () {
-                return widget.$('.g-jobs-graph svg .mark-rect.phase rect').length;
-            }, "phase graph to render");
+                return widget.$('.g-jobs-graph svg .mark-rect.timing rect').length;
+            }, "timing history graph to render");
 
             runs(function () {
                 $('.g-jobs.nav.nav-tabs li a[name="time"]').tab('show');
@@ -372,7 +372,7 @@ $(function () {
             }, "time graph to render");
 
             runs(function () {
-                $('.graph-filter-container .phase .dropdown .g-job-checkall input').click();
+                $('.graph-filter-container .timing .dropdown .g-job-checkall input').click();
             });
 
             waitsFor(function () {

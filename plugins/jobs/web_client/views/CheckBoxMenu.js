@@ -1,63 +1,58 @@
 import _ from 'underscore';
 import View from 'girder/views/View';
 import JobCheckBoxMenuTemplate from '../templates/jobCheckBoxMenu.pug';
-import jobCheckBoxContentTemplate from '../templates/jobCheckBoxContent.pug';
+import JobCheckBoxContentTemplate from '../templates/jobCheckBoxContent.pug';
 
 var CheckBoxMenu = View.extend({
     events: {
         'click input.g-job-filter-checkbox': function (e) {
             e.stopPropagation();
-            _.keys(this.values).forEach(key => {
-                if (e.target.id === key) {
-                    this.values[key] = e.target.checked;
-                }
-            });
-            this.checkAllChecked = this.allItemChecked();
+            this.items[e.target.id] = e.target.checked;
             this._renderContent();
-            this.trigger('g:triggerCheckBoxMenuChanged', this.values);
+            this.trigger('g:triggerCheckBoxMenuChanged', this.items);
         },
-        // When a label wrap a input and the label is clicked, there will be two event being triggered, stop the first one from bubbling up to prevent unexpected behavior
+        // When a label wraps an input and the label is clicked,
+        // there will be two events being triggered,
+        // stop the first one from bubbling up to prevent unexpected behavior
         'click label': function (e) {
             e.stopPropagation();
         },
-        'click .dropdown-menu': e => {
+        'click .dropdown-menu': function (e) {
             e.stopPropagation();
         },
         'click .g-job-checkall input': function (e) {
             e.stopPropagation();
             var checked = !this.allItemChecked();
-            this.checkAllChecked = checked;
-            _.keys(this.values).forEach(key => {
-                this.values[key] = checked;
+            _.keys(this.items).forEach(key => {
+                this.items[key] = checked;
             });
             this._renderContent();
-            this.trigger('g:triggerCheckBoxMenuChanged', this.values);
+            this.trigger('g:triggerCheckBoxMenuChanged', this.items);
         }
     },
     initialize: function (params) {
         this.params = params;
-        this.checkAllChecked = true;
-        this.values = this.params.values;
+        this.items = this.params.items;
     },
 
     render: function () {
         this.$el.html(JobCheckBoxMenuTemplate({
-            title: this.params.title,
-            values: this.values,
-            checkAllChecked: this.checkAllChecked
+            title: this.params.title
         }));
         this._renderContent();
     },
-    setValues: function (values) {
-        this.values = values;
-        this.checkAllChecked = this.allItemChecked();
+    setItems: function (items) {
+        this.items = items;
         this._renderContent();
     },
     allItemChecked: function () {
-        return _.find(_.keys(this.values), key => !this.values[key]) === undefined;
+        return _.every(_.values(this.items), checked => checked);
     },
     _renderContent: function () {
-        this.$('.dropdown-menu').html(jobCheckBoxContentTemplate(this));
+        this.$('.dropdown-menu').html(JobCheckBoxContentTemplate({
+            items: this.items,
+            checkAllChecked: this.allItemChecked()
+        }));
     }
 });
 

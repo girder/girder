@@ -110,6 +110,8 @@ export default {
             'type': 'x',
             'scale': 'x',
             'orient': 'bottom',
+            'ticks': 0,
+            'subdivide': 4,
             'properties': {
                 'labels': {
                     'text': { 'scale': 'xlabels' },
@@ -128,8 +130,7 @@ export default {
             'title': 'seconds',
             'properties': {
                 'labels': {
-                    'itemName': { 'value': 'ylabel' },
-                    'cursor': { 'value': 'pointer' }
+                    'itemName': { 'value': 'ylabel' }
                 }
             }
         }
@@ -157,7 +158,7 @@ export default {
         {
             'name': 'tt1',
             'init': {},
-            'expr': '{ elapsed:!tt0.elapsed?"":timeFormat(tt0.elapsed>3600000? "%Hh:%Mm:%S.%Ls":(tt0.elapsed>60000?"%Mm:%S.%Ls":"%S.%Ls"), datetime(0,0,0,0,0,0,tt0.elapsed)) }'
+            'expr': '{ elapsed:!tt0.elapsed?"":timeFormat(tt0.elapsed>3600000? "%H:%M:%S.%Ls":(tt0.elapsed>60000?"%M:%S.%Ls":"%S.%Ls"), datetime(0,0,0,0,0,0,tt0.elapsed)) }'
         },
         {
             'name': 'tt2',
@@ -202,7 +203,7 @@ export default {
     'marks': [
         {
             'type': 'rect',
-            'name': 'phase',
+            'name': 'timing',
             'from': {
                 'data': 'positive',
                 'transform': [
@@ -231,7 +232,7 @@ export default {
         },
         {
             'type': 'rect',
-            'name': 'phase',
+            'name': 'timing',
             'from': {
                 'data': 'negative',
                 'transform': [
@@ -279,7 +280,7 @@ export default {
             }
         },
         {
-            'name': 'phaseTooltip',
+            'name': 'timingTooltip',
             'type': 'group',
             'properties': {
                 'update': {
@@ -381,7 +382,7 @@ export default {
     'legends': [
         {
             'fill': 'color',
-            'title': 'Phases',
+            'title': 'timings',
             'offset': -3,
             'properties': {
                 'title': {

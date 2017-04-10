@@ -62,7 +62,7 @@ export default {
             'range': []
         },
         {
-            'name': 'phase',
+            'name': 'timing',
             'type': 'ordinal',
             'domain': [],
             'range': []
@@ -87,6 +87,7 @@ export default {
             'type': 'x',
             'scale': 'x',
             'orient': 'bottom',
+            'subdivide': 3,
             'properties': {
                 'labels': {
                     'text': { 'scale': 'xlabels' },
@@ -105,9 +106,6 @@ export default {
                 'labels': {
                     'itemName': {
                         'value': 'ylabel'
-                    },
-                    'cursor': {
-                        'value': 'pointer'
                     },
                     'text': { 'template': '{{datum.label|slice:0,-1}}' }
                 }
@@ -140,7 +138,7 @@ export default {
         {
             'name': 'tt1',
             'init': {},
-            'expr': '{ sum_y:!tt0.sum_y?"":timeFormat(tt0.sum_y>3600000? "%Hh:%Mm:%S.%Ls":(tt0.sum_y>60000?"%Mm:%S.%Ls":"%S.%Ls"), datetime(0,0,0,0,0,0,tt0.sum_y)) }'
+            'expr': '{ sum_y:!tt0.sum_y?"":timeFormat(tt0.sum_y>3600000? "%H:%M:%S.%Ls":(tt0.sum_y>60000?"%M:%S.%Ls":"%S.%Ls"), datetime(0,0,0,0,0,0,tt0.sum_y)) }'
         },
         {
             'name': 'tt2',
@@ -271,8 +269,8 @@ export default {
     ],
     'legends': [
         {
-            'fill': 'phase',
-            'title': 'Phases',
+            'fill': 'timing',
+            'title': 'Timings',
             'offset': -3,
             'properties': {
                 'title': {

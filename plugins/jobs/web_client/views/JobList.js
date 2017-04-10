@@ -18,12 +18,12 @@ import JobsGraphWidgetTemplate from '../templates/JobsGraphWidget.pug';
 import JobStatus from '../JobStatus';
 import JobStatusSegmentizer from './JobStatusSegmentizer';
 import CheckBoxMenu from './CheckBoxMenu';
-import phaseChartConfig from './phaseChartConfig';
+import timingHistoryChartConfig from './timingHistoryChartConfig';
 import timeChartConfig from './timeChartConfig';
 
-import '../stylesheets/jobListWidget.styl';
+import '../stylesheets/jobList.styl';
 
-var JobListWidget = View.extend({
+var JobList = View.extend({
     events: {
         'click .g-job-trigger-link': function (e) {
             var cid = $(e.target).attr('cid');
@@ -31,8 +31,11 @@ var JobListWidget = View.extend({
         },
         'change select.g-page-size': function (e) {
             this.collection.pageLimit = parseInt($(e.target).val());
-            this.pageSize = this.collection.pageLimit;
             this.collection.fetch({}, true);
+        },
+        'change input.linear-scale': function (e) {
+            this.yScale = $(e.target).is(':checked') ? 'linear' : 'sqrt';
+            this.render();
         }
     },
 
@@ -43,13 +46,12 @@ var JobListWidget = View.extend({
         this.userId = (settings.filter && !settings.allJobsMode) ? (settings.filter.userId ? settings.filter.userId : currentUser.id) : null;
         this.typeFilter = null;
         this.statusFilter = null;
-        this.phasesFilter = JobStatus.getAllStatus().reduce((obj, status) => {
+        this.timingFilter = JobStatus.getAll().reduce((obj, status) => {
             obj[status.text] = true;
             return obj;
         }, {});
 
         this.pageSizes = [25, 50, 100, 250, 500, 1000];
-        this.pageSize = 25;
 
         this.collection = new JobCollection();
         if (this.showAllJobs) {
@@ -81,7 +83,7 @@ var JobListWidget = View.extend({
 
         this.typeFilterWidget = new CheckBoxMenu({
             title: 'Type',
-            values: [],
+            items: {},
             parentView: this
         });
 
@@ -97,7 +99,7 @@ var JobListWidget = View.extend({
 
         this.statusFilterWidget = new CheckBoxMenu({
             title: 'Status',
-            values: [],
+            items: {},
             parentView: this
         });
 
@@ -120,7 +122,7 @@ var JobListWidget = View.extend({
                 obj[type] = true;
                 return obj;
             }, {});
-            this.typeFilterWidget.setValues(typesFilter);
+            this.typeFilterWidget.setItems(typesFilter);
 
             var statusFilter = result.statuses.map(status => {
                 let statusText = JobStatus.text(status);
@@ -130,17 +132,17 @@ var JobListWidget = View.extend({
                 obj[statusText] = true;
                 return obj;
             }, {});
-            this.statusFilterWidget.setValues(statusFilter);
+            this.statusFilterWidget.setItems(statusFilter);
         });
 
-        this.phaseFilterWidget = new CheckBoxMenu({
-            title: 'Phases',
-            values: [],
+        this.timingFilterWidget = new CheckBoxMenu({
+            title: 'Timings',
+            items: {},
             parentView: this
         });
 
-        this.phaseFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
-            this.phasesFilter = _.extend(this.phasesFilter, e);
+        this.timingFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
+            this.timingFilter = _.extend(this.timingFilter, e);
             this._renderData();
         }, this);
 
@@ -157,7 +159,9 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(JobListTemplate(this));
+        this.$el.html(JobListTemplate($.extend({}, this, {
+            pageSize: this.collection.pageLimit
+        })));
 
         this.typeFilterWidget.setElement(this.$('.filter-container .type')).render();
         this.statusFilterWidget.setElement(this.$('.filter-container .status')).render();
@@ -172,10 +176,10 @@ var JobListWidget = View.extend({
             this.render();
         });
 
-        if (this.currentView === 'phase' || this.currentView === 'time') {
-            this.$('.g-main-content').html(JobsGraphWidgetTemplate());
-            this.phaseFilterWidget.setValues(this.phasesFilter);
-            this.phaseFilterWidget.setElement(this.$('.graph-filter-container .phase')).render();
+        if (this.currentView === 'timing-history' || this.currentView === 'time') {
+            this.$('.g-main-content').html(JobsGraphWidgetTemplate(this));
+            this.timingFilterWidget.setItems(this.timingFilter);
+            this.timingFilterWidget.setElement(this.$('.graph-filter-container .timing')).render();
         }
 
         this._renderData();
@@ -209,14 +213,6 @@ var JobListWidget = View.extend({
             }));
         }
 
-        var changeScaleType = view => {
-            return (event, item) => {
-                if (item && item.itemName === 'ylabel') {
-                    view.destroy(); this.yScale = this.yScale === 'sqrt' ? 'linear' : 'sqrt'; this.render();
-                }
-            };
-        };
-
         var openDetailView = view => {
             return (event, item) => {
                 if (item && (item.itemName === 'bar' || item.itemName === 'circle')) {
@@ -225,17 +221,25 @@ var JobListWidget = View.extend({
             };
         };
 
-        if (this.currentView === 'phase') {
+        if (this.currentView === 'timing-history') {
             new JobStatusSegmentizer().segmentize(jobs);
-            let vegaData = this._prepareDataForChart(jobs);
-
-            let config = jQuery.extend(true, {}, phaseChartConfig);
-            config.width = Math.min(Math.max(this.$el.width() - 50, jobs.length * 16 + 100), jobs.length * 30 + 400);
-            config.height = $(window).height() - 180;
-            this.$('.g-jobs-graph').height($(window).height() - 160);
+            let config = jQuery.extend(true, {}, timingHistoryChartConfig);
+            // limit the width to the size of the container. When there are fewer records,
+            // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
+            let width = Math.min(this.$el.width(), jobs.length * 30 + 400);
+            // the minimum width needed for each job is 10px
+            let numberOfJobs = Math.min(jobs.length, Math.floor(width / 10));
+            let vegaData = this._prepareDataForChart(jobs, numberOfJobs);
+            let withForEachJob = width / numberOfJobs;
+            // if the width for each job is less than 20px, remove axe labels
+            if (withForEachJob < 20) {
+                config.axes[0].properties.labels.opacity = { value: 0 };
+            }
+            config.width = width;
+            config.height = this.$('.g-jobs-graph').height();
             config.data[0].values = vegaData;
             config.scales[1].type = this.yScale;
-            let allStatus = JobStatus.getAllStatus().filter(status => this.phasesFilter ? this.phasesFilter[status.text] : true);
+            let allStatus = JobStatus.getAll().filter(status => this.timingFilter ? this.timingFilter[status.text] : true);
             config.scales[2].domain = allStatus.map(status => status.text);
             config.scales[2].range = allStatus.map(status => status.color);
             config.scales[3].domain = jobs.map(job => job.get('_id'));
@@ -246,22 +250,30 @@ var JobListWidget = View.extend({
                     el: this.$('.g-jobs-graph').get(0),
                     renderer: 'svg'
                 }).update();
-
-                view.on('click', changeScaleType(view));
                 view.on('click', openDetailView(view));
             });
 
-            let positivePhases = _.clone(this.phasesFilter);
-            this.phaseFilterWidget.setValues(positivePhases);
+            let positiveTimings = _.clone(this.timingFilter);
+            this.timingFilterWidget.setItems(positiveTimings);
         }
 
         if (this.currentView === 'time') {
             new JobStatusSegmentizer().segmentize(jobs);
-            let vegaData = this._prepareDataForChart(jobs);
             let config = jQuery.extend(true, {}, timeChartConfig);
-            config.width = Math.min(Math.max(this.$el.width() - 50, jobs.length * 16 + 100), jobs.length * 30 + 400);
-            config.height = $(window).height() - 180;
-            this.$('.g-jobs-graph').height($(window).height() - 160);
+            // limit the width to the size of the container. When there are fewer records,
+            // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
+            let width = Math.min(this.$el.width(), jobs.length * 30 + 400);
+            // the minimum width needed for each job is 6px
+            let numberOfJobs = Math.min(jobs.length, Math.floor(width / 6));
+            let vegaData = this._prepareDataForChart(jobs, numberOfJobs);
+            let withForEachJob = width / numberOfJobs;
+            // if the width for each job is less than 20px, remove date axe and axe labels
+            if (withForEachJob < 20) {
+                config.axes.splice(0, 1);
+                config.axes[0].properties.labels.opacity = { value: 0 };
+            }
+            config.width = width;
+            config.height = this.$('.g-jobs-graph').height();
             config.data[0].values = vegaData;
             config.scales[1].type = this.yScale;
             config.scales[2].domain = jobs.map(job => job.get('_id'));
@@ -271,10 +283,10 @@ var JobListWidget = View.extend({
             });
             config.scales[3].domain = jobs.map(job => job.get('_id'));
             config.scales[3].range = jobs.map(job => job.get('title'));
-            let allStatus = JobStatus.getAllStatus().filter(status => {
+            let allStatus = JobStatus.getAll().filter(status => {
                 if (status.text !== 'Inactive' && status.text !== 'Queued') {
-                    if (this.phasesFilter) {
-                        return this.phasesFilter[status.text];
+                    if (this.timingFilter) {
+                        return this.timingFilter[status.text];
                     }
                     return false;
                 }
@@ -288,15 +300,13 @@ var JobListWidget = View.extend({
                     el: this.$('.g-jobs-graph').get(0),
                     renderer: 'svg'
                 }).update();
-
-                view.on('click', changeScaleType(view));
                 view.on('click', openDetailView(view));
             });
 
-            let positivePhases = _.clone(this.phasesFilter);
-            delete positivePhases['Inactive'];
-            delete positivePhases['Queued'];
-            this.phaseFilterWidget.setValues(positivePhases);
+            let positiveTimings = _.clone(this.timingFilter);
+            delete positiveTimings['Inactive'];
+            delete positiveTimings['Queued'];
+            this.timingFilterWidget.setItems(positiveTimings);
         }
 
         if (this.showPaging) {
@@ -339,9 +349,11 @@ var JobListWidget = View.extend({
         }
     },
 
-    _prepareDataForChart(jobs) {
+    _prepareDataForChart(jobs, numberOfJobs) {
         let allRecords = [];
-        jobs.forEach(job => {
+        jobs.reverse();
+        for (var i = 0; i < numberOfJobs; i++) {
+            let job = jobs[i];
             let id = job.get('_id');
             let title = job.get('title');
             let currentStatus = JobStatus.text(job.get('status'));
@@ -369,18 +381,18 @@ var JobListWidget = View.extend({
                         elapsed: elapsed
                     };
                 })
-                .filter(record => this.phasesFilter[record.status]);
+                .filter(record => this.timingFilter[record.status]);
             if (records.length) {
-                allRecords = allRecords.concat(records);
+                allRecords = records.concat(allRecords);
             } else {
-                allRecords.push({
+                allRecords.unshift({
                     id: id,
                     title: title,
                     updated: updated,
                     currentStatus: currentStatus
                 });
             }
-        });
+        }
         return allRecords;
     },
 
@@ -400,4 +412,4 @@ var JobListWidget = View.extend({
     }
 });
 
-export default JobListWidget;
+export default JobList;

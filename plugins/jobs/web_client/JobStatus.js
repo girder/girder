@@ -51,10 +51,8 @@ var JobStatus = {
         }, this);
     },
 
-    getAllStatus: function () {
-        return _.keys(this._map).map(key => {
-            return this._map[key];
-        });
+    getAll: function () {
+        return _.values(this._map);
     }
 };
 

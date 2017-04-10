@@ -62,15 +62,21 @@ class Job(AccessControlledModel):
         List a page of jobs for a given user.
 
         :param user: The user who owns the job.
-        :type user: dict or None
+        :type user: dict, 'all', or 'none'.
         :param limit: The page limit.
         :param offset: The page offset
         :param sort: The sort field.
         :param currentUser: User for access filtering.
         """
         query = {}
-        if user != 'all':
-            query['userId'] = user['_id'] if user else None
+        # When user is 'all', no filtering, list all jobs.
+        # When user is 'none', list anonymous user jobs.
+        if user == 'all':
+            pass
+        elif user == 'none':
+            query['userId'] = None
+        else:
+            query['userId'] = user['_id']
         if types is not None:
             query['type'] = {'$in': types}
         if statuses is not None:
@@ -466,8 +472,10 @@ class Job(AccessControlledModel):
 
     def getAllTypesAndStatuses(self, user=None):
         query = {}
-        if user != 'all':
-            query['userId'] = user['_id'] if user else None
+        if user == 'all':
+            pass
+        else:
+            query['userId'] = user['_id']
         types = self.collection.distinct('type', query)
         statuses = self.collection.distinct('status', query)
         return {'types': types, 'statuses': statuses}

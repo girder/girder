@@ -54,7 +54,7 @@ class Job(Resource):
         if not userId:
             user = currentUser
         elif userId.lower() == 'none':
-            user = None
+            user = 'none'
         else:
             user = self.model('user').load(
                 userId, user=currentUser, level=AccessType.READ)
@@ -144,7 +144,7 @@ class Job(Resource):
 
     @access.admin
     @autoDescribeRoute(
-        Description('Get meta data of all jobs')
+        Description('Get metadata of all jobs')
         .errorResponse('Admin access was denied for the job.', 403)
     )
     def allJobsMeta(self, params):
@@ -152,7 +152,7 @@ class Job(Resource):
 
     @access.user
     @autoDescribeRoute(
-        Description('Get meta data of jobs of current user')
+        Description('Get metadata of jobs of current user')
     )
     def jobsMeta(self, params):
         currentUser = self.getCurrentUser()

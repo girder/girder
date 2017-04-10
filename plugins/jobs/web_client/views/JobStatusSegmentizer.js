@@ -1,6 +1,11 @@
 import _ from 'underscore';
 import JobStatus from '../JobStatus';
 
+/**
+ * This class takes a job model and based on the timestamps fields of the job to
+ * calculate how long did each status take. Basically, elapsed of status n
+ * equals n+1.time - n.time
+ */
 export default class JobStatusSegmentizer {
     segmentize(jobs) {
         for (let job of jobs) {
