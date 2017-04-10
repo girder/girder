@@ -40,10 +40,8 @@ var JobListWidget = View.extend({
         this.collection.sortDir = settings.sortDir || SORT_DESC;
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
-        this.collection.on('g:changed', function () {
-            this.render();
-        }, this)
-        .fetch(!this.showAllJobs ? this.filter : undefined);
+        this.collection.on('g:changed', this.render, this)
+                       .on('add', this.render, this).fetch(!this.showAllJobs ? this.filter : undefined);
 
         this.showHeader = _.has(settings, 'showHeader') ? settings.showHeader : true;
         this.showPaging = _.has(settings, 'showPaging') ? settings.showPaging : true;
@@ -56,6 +54,9 @@ var JobListWidget = View.extend({
         });
 
         eventStream.on('g:event.job_status', this._statusChange, this);
+        eventStream.on('g:event.job_created', function (e) {
+            this.collection.add(e.data);
+        }, this);
 
         this.filterTypeMenuWidget = new CheckBoxMenu({
             title: 'Type',
