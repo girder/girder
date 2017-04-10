@@ -288,12 +288,12 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(
             resp.json['timestamps'][0]['status'], JobStatus.RUNNING)
 
-        # We passed notify=false, so we should not have any notifications
+        # We passed notify=false, so we should only have the job creation notification
         resp = self.request(path='/notification/stream', method='GET',
                             user=self.users[1], isJson=False,
                             params={'timeout': 0})
         messages = self.getSseMessages(resp)
-        self.assertEqual(len(messages), 0)
+        self.assertEqual(len(messages), 1)
 
         # Update progress with notify=true (the default)
         resp = self.request(path, method='PUT', user=self.users[1], params={
@@ -304,16 +304,19 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertNotEqual(resp.json['progress']['notificationId'], None)
 
-        # We should now see two notifications (job status + progress)
+        # We should now see three notifications (job created + job status + progress)
         resp = self.request(path='/notification/stream', method='GET',
                             user=self.users[1], isJson=False,
                             params={'timeout': 0})
         messages = self.getSseMessages(resp)
         job = self.model('job', 'jobs').load(job['_id'], force=True)
-        self.assertEqual(len(messages), 2)
-        statusNotify = messages[0]
-        progressNotify = messages[1]
+        self.assertEqual(len(messages), 3)
+        creationNotify = messages[0]
+        statusNotify = messages[1]
+        progressNotify = messages[2]
 
+        self.assertEqual(creationNotify['type'], 'job_created')
+        self.assertEqual(creationNotify['data']['_id'], str(job['_id']))
         self.assertEqual(statusNotify['type'], 'job_status')
         self.assertEqual(statusNotify['data']['_id'], str(job['_id']))
         self.assertEqual(int(statusNotify['data']['status']), JobStatus.ERROR)
