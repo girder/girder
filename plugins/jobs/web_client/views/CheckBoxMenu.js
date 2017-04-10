@@ -46,7 +46,7 @@ var CheckBoxMenu = View.extend({
         this._renderContent();
     },
     allItemChecked: function () {
-        return _.every(_.values(this.items), checked => checked);
+        return _.every(_.values(this.items));
     },
     _renderContent: function () {
         this.$('.dropdown-menu').html(JobCheckBoxContentTemplate({

@@ -16,7 +16,6 @@ import JobListWidgetTemplate from '../templates/jobListWidget.pug';
 import JobListTemplate from '../templates/JobList.pug';
 import JobsGraphWidgetTemplate from '../templates/JobsGraphWidget.pug';
 import JobStatus from '../JobStatus';
-import JobStatusSegmentizer from './JobStatusSegmentizer';
 import CheckBoxMenu from './CheckBoxMenu';
 import timingHistoryChartConfig from './timingHistoryChartConfig';
 import timeChartConfig from './timeChartConfig';
@@ -222,7 +221,7 @@ var JobList = View.extend({
         };
 
         if (this.currentView === 'timing-history') {
-            new JobStatusSegmentizer().segmentize(jobs);
+            jobs.forEach(job => job.calculateSegmentation());
             let config = jQuery.extend(true, {}, timingHistoryChartConfig);
             // limit the width to the size of the container. When there are fewer records,
             // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
@@ -258,7 +257,7 @@ var JobList = View.extend({
         }
 
         if (this.currentView === 'time') {
-            new JobStatusSegmentizer().segmentize(jobs);
+            jobs.forEach(job => job.calculateSegmentation());
             let config = jQuery.extend(true, {}, timeChartConfig);
             // limit the width to the size of the container. When there are fewer records,
             // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
