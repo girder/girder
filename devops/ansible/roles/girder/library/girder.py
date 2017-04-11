@@ -1636,7 +1636,7 @@ class GirderClientModule(GirderClient):
 
     assetstore_types = {
         "filesystem": 0,
-        "girdfs": 1,
+        "gridfs": 1,
         "s3": 2,
         "hdfs": "hdfs",
         "database": "database"
