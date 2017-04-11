@@ -180,7 +180,7 @@ var UploadWidget = View.extend({
         var dataTransfer = e.originalEvent.dataTransfer;
 
         // Require all dropped items to be files
-        if (!_.every(dataTransfer.items, _.bind(this._isFile, this))) {
+        if (!_.every(dataTransfer.items, (item) => this._isFile(item))) {
             this.$('.g-upload-error-message').html('Only files may be uploaded.');
             return;
         }
