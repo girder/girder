@@ -150,14 +150,33 @@ $(function () {
             }, 'job list to auto-reload when collection is updated');
 
             runs(function () {
+                girder.utilities.eventStream.trigger('g:event.job_created', {
+                    data: {
+                        _id: 'foo' + 4,
+                        title: 'My batch job ' + 4,
+                        status: 4,
+                        updated: '2015-01-12T12:00:0' + 4,
+                        created: '2015-01-12T12:00:0' + 4,
+                        when: '2015-01-12T12:00:0' + 4
+                    }
+                });
+            });
+
+            waitsFor(function () {
+                return $('.g-jobs-list-table>tbody>tr').length === 4;
+            }, 'job list to auto-reload when job_created is triggered');
+
+            runs(function () {
                 // Make sure we are in reverse chronological order
                 rows = $('.g-jobs-list-table>tbody>tr');
-                expect($(rows[0]).text()).toContain('My batch job 3');
-                expect($(rows[0]).text()).toContain('Success');
-                expect($(rows[1]).text()).toContain('My batch job 2');
-                expect($(rows[1]).text()).toContain('Running');
-                expect($(rows[2]).text()).toContain('My batch job 1');
-                expect($(rows[2]).text()).toContain('Queued');
+                expect($(rows[0]).text()).toContain('My batch job 4');
+                expect($(rows[0]).text()).toContain('Error');
+                expect($(rows[1]).text()).toContain('My batch job 3');
+                expect($(rows[1]).text()).toContain('Success');
+                expect($(rows[2]).text()).toContain('My batch job 2');
+                expect($(rows[2]).text()).toContain('Running');
+                expect($(rows[3]).text()).toContain('My batch job 1');
+                expect($(rows[3]).text()).toContain('Queued');
 
                 // Simulate an SSE notification that changes a job status
                 girder.utilities.eventStream.trigger('g:event.job_status', {
@@ -169,7 +188,7 @@ $(function () {
 
             // Table row should update automatically
             waitsFor(function () {
-                return $('td.g-job-status-cell', rows[2]).text() === 'Error';
+                return $('td.g-job-status-cell', rows[3]).text() === 'Error';
             });
         });
         it('Job list widget filter by status.', function () {
