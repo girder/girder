@@ -1,15 +1,17 @@
+import _ from 'underscore';
+
 import AccessControlledModel from 'girder/models/AccessControlledModel';
 import JobStatus from '../JobStatus';
 
 var JobModel = AccessControlledModel.extend({
     resourceName: 'job',
-    
+
     /**
     * Based on the timestamps fields of the job to
     * calculate how long did each status take. Basically, elapsed of status n
     * equals n+1.time - n.time
     */
-    calculateSegmentation:function(){
+    calculateSegmentation: function () {
         var segments = [];
 
         let timestamps = this.get('timestamps');
@@ -35,7 +37,7 @@ var JobModel = AccessControlledModel.extend({
 
         this.set('segments', segments);
     },
-    _calculateElapsed:function(start, end) {
+    _calculateElapsed: function (start, end) {
         return new Date(end) - new Date(start);
     }
 });

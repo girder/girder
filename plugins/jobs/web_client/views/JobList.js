@@ -1,6 +1,4 @@
 import _ from 'underscore';
-import vg from 'vega';
-import moment from 'moment';
 
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import View from 'girder/views/View';
@@ -14,11 +12,9 @@ import { SORT_DESC } from 'girder/constants';
 import JobCollection from '../collections/JobCollection';
 import JobListWidgetTemplate from '../templates/jobListWidget.pug';
 import JobListTemplate from '../templates/JobList.pug';
-import JobsGraphWidgetTemplate from '../templates/JobsGraphWidget.pug';
 import JobStatus from '../JobStatus';
 import CheckBoxMenu from './CheckBoxMenu';
-import timingHistoryChartConfig from './timingHistoryChartConfig';
-import timeChartConfig from './timeChartConfig';
+import JobGraphWidget from './JobGraphWidget';
 
 import '../stylesheets/jobList.styl';
 
@@ -31,10 +27,6 @@ var JobList = View.extend({
         'change select.g-page-size': function (e) {
             this.collection.pageLimit = parseInt($(e.target).val());
             this.collection.fetch({}, true);
-        },
-        'change input.linear-scale': function (e) {
-            this.yScale = $(e.target).is(':checked') ? 'linear' : 'sqrt';
-            this.render();
         }
     },
 
@@ -49,6 +41,8 @@ var JobList = View.extend({
             obj[status.text] = true;
             return obj;
         }, {});
+
+        this.jobGraphWidget = null;
 
         this.pageSizes = [25, 50, 100, 250, 500, 1000];
 
@@ -66,7 +60,6 @@ var JobList = View.extend({
         this._fetchWithFilter();
 
         this.currentView = settings.view ? settings.view : 'list';
-        this.yScale = 'sqrt';
 
         this.showHeader = _.has(settings, 'showHeader') ? settings.showHeader : true;
         this.showPaging = _.has(settings, 'showPaging') ? settings.showPaging : true;
@@ -79,6 +72,12 @@ var JobList = View.extend({
         });
 
         eventStream.on('g:event.job_status', this._statusChange, this);
+
+        this.timingFilterWidget = new CheckBoxMenu({
+            title: 'Phases',
+            items: {},
+            parentView: this
+        });
 
         this.typeFilterWidget = new CheckBoxMenu({
             title: 'Type',
@@ -134,17 +133,6 @@ var JobList = View.extend({
             this.statusFilterWidget.setItems(statusFilter);
         });
 
-        this.timingFilterWidget = new CheckBoxMenu({
-            title: 'Timings',
-            items: {},
-            parentView: this
-        });
-
-        this.timingFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
-            this.timingFilter = _.extend(this.timingFilter, e);
-            this._renderData();
-        }, this);
-
         this.render();
     },
 
@@ -176,9 +164,18 @@ var JobList = View.extend({
         });
 
         if (this.currentView === 'timing-history' || this.currentView === 'time') {
-            this.$('.g-main-content').html(JobsGraphWidgetTemplate(this));
-            this.timingFilterWidget.setItems(this.timingFilter);
-            this.timingFilterWidget.setElement(this.$('.graph-filter-container .timing')).render();
+            if (this.jobGraphWidget) {
+                this.jobGraphWidget.remove();
+            }
+            this.jobGraphWidget = new JobGraphWidget({
+                parentView: this,
+                el: this.$('.g-main-content'),
+                collection: this.collection,
+                view: this.currentView,
+                timingFilter: this.timingFilter,
+                timingFilterWidget: this.timingFilterWidget
+            });
+            this.jobGraphWidget.render();
         }
 
         this._renderData();
@@ -212,100 +209,8 @@ var JobList = View.extend({
             }));
         }
 
-        var openDetailView = view => {
-            return (event, item) => {
-                if (item && (item.itemName === 'bar' || item.itemName === 'circle')) {
-                    window.open(`#/job/${item.datum.id}`, '_blank');
-                }
-            };
-        };
-
-        if (this.currentView === 'timing-history') {
-            jobs.forEach(job => job.calculateSegmentation());
-            let config = jQuery.extend(true, {}, timingHistoryChartConfig);
-            // limit the width to the size of the container. When there are fewer records,
-            // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
-            let width = Math.min(this.$el.width(), jobs.length * 30 + 400);
-            // the minimum width needed for each job is 10px
-            let numberOfJobs = Math.min(jobs.length, Math.floor(width / 10));
-            let vegaData = this._prepareDataForChart(jobs, numberOfJobs);
-            let withForEachJob = width / numberOfJobs;
-            // if the width for each job is less than 20px, remove axe labels
-            if (withForEachJob < 20) {
-                config.axes[0].properties.labels.opacity = { value: 0 };
-            }
-            config.width = width;
-            config.height = this.$('.g-jobs-graph').height();
-            config.data[0].values = vegaData;
-            config.scales[1].type = this.yScale;
-            let allStatus = JobStatus.getAll().filter(status => this.timingFilter ? this.timingFilter[status.text] : true);
-            config.scales[2].domain = allStatus.map(status => status.text);
-            config.scales[2].range = allStatus.map(status => status.color);
-            config.scales[3].domain = jobs.map(job => job.get('_id'));
-            config.scales[3].range = jobs.map(job => job.get('title'));
-
-            vg.parse.spec(config, chart => {
-                var view = chart({
-                    el: this.$('.g-jobs-graph').get(0),
-                    renderer: 'svg'
-                }).update();
-                view.on('click', openDetailView(view));
-            });
-
-            let positiveTimings = _.clone(this.timingFilter);
-            this.timingFilterWidget.setItems(positiveTimings);
-        }
-
-        if (this.currentView === 'time') {
-            jobs.forEach(job => job.calculateSegmentation());
-            let config = jQuery.extend(true, {}, timeChartConfig);
-            // limit the width to the size of the container. When there are fewer records,
-            // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
-            let width = Math.min(this.$el.width(), jobs.length * 30 + 400);
-            // the minimum width needed for each job is 6px
-            let numberOfJobs = Math.min(jobs.length, Math.floor(width / 6));
-            let vegaData = this._prepareDataForChart(jobs, numberOfJobs);
-            let withForEachJob = width / numberOfJobs;
-            // if the width for each job is less than 20px, remove date axe and axe labels
-            if (withForEachJob < 20) {
-                config.axes.splice(0, 1);
-                config.axes[0].properties.labels.opacity = { value: 0 };
-            }
-            config.width = width;
-            config.height = this.$('.g-jobs-graph').height();
-            config.data[0].values = vegaData;
-            config.scales[1].type = this.yScale;
-            config.scales[2].domain = jobs.map(job => job.get('_id'));
-            config.scales[2].range = jobs.map(job => {
-                let datetime = moment(job.get('updated')).format('MM/DD');
-                return datetime;
-            });
-            config.scales[3].domain = jobs.map(job => job.get('_id'));
-            config.scales[3].range = jobs.map(job => job.get('title'));
-            let allStatus = JobStatus.getAll().filter(status => {
-                if (status.text !== 'Inactive' && status.text !== 'Queued') {
-                    if (this.timingFilter) {
-                        return this.timingFilter[status.text];
-                    }
-                    return false;
-                }
-                return false;
-            });
-            config.scales[4].domain = allStatus.map(status => status.text);
-            config.scales[4].range = allStatus.map(status => status.color);
-
-            vg.parse.spec(config, chart => {
-                var view = chart({
-                    el: this.$('.g-jobs-graph').get(0),
-                    renderer: 'svg'
-                }).update();
-                view.on('click', openDetailView(view));
-            });
-
-            let positiveTimings = _.clone(this.timingFilter);
-            delete positiveTimings['Inactive'];
-            delete positiveTimings['Queued'];
-            this.timingFilterWidget.setItems(positiveTimings);
+        if (this.currentView === 'timing-history' || this.currentView === 'time') {
+            this.jobGraphWidget.update(jobs);
         }
 
         if (this.showPaging) {
@@ -346,53 +251,6 @@ var JobList = View.extend({
         } else {
             this.render();
         }
-    },
-
-    _prepareDataForChart(jobs, numberOfJobs) {
-        let allRecords = [];
-        jobs.reverse();
-        for (var i = 0; i < numberOfJobs; i++) {
-            let job = jobs[i];
-            let id = job.get('_id');
-            let title = job.get('title');
-            let currentStatus = JobStatus.text(job.get('status'));
-            let updated = moment(job.get('updated')).format('L LT');
-            let records = job.get('segments')
-                .map(segment => {
-                    let status = segment.status;
-                    let elapsed = '';
-                    switch (status) {
-                        case 'Inactive':
-                            elapsed = -segment.elapsed;
-                            break;
-                        case 'Queued':
-                            elapsed = -segment.elapsed;
-                            break;
-                        default:
-                            elapsed = segment.elapsed;
-                    }
-                    return {
-                        id: id,
-                        title: title,
-                        updated: updated,
-                        status: status,
-                        currentStatus: currentStatus,
-                        elapsed: elapsed
-                    };
-                })
-                .filter(record => this.timingFilter[record.status]);
-            if (records.length) {
-                allRecords = records.concat(allRecords);
-            } else {
-                allRecords.unshift({
-                    id: id,
-                    title: title,
-                    updated: updated,
-                    currentStatus: currentStatus
-                });
-            }
-        }
-        return allRecords;
     },
 
     _fetchWithFilter() {
