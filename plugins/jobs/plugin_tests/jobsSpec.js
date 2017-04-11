@@ -112,10 +112,22 @@ $(function () {
 
     describe('Unit test the job list widget.', function () {
         it('Show a job list widget.', function () {
-            var jobs, rows;
+            var jobs, rows, widget;
 
             girderTest.createUser(
                 'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
+
+            runs(function () {
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    filter: {},
+                    parentView: app
+                }).render();
+
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+            });
+
+            girderTest.waitForLoad();
 
             runs(function () {
                 jobs = _.map([1, 2, 3], function (i) {
@@ -128,14 +140,6 @@ $(function () {
                         when: '2015-01-12T12:00:0' + i
                     });
                 });
-
-                var widget = new girder.plugins.jobs.views.JobListWidget({
-                    el: $('#g-app-body-container'),
-                    filter: {},
-                    parentView: app
-                }).render();
-
-                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
                 // Add the jobs to the collection
                 widget.collection.add(jobs);
