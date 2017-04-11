@@ -62,7 +62,7 @@ with open('README.rst') as f:
 install_reqs = [
     'bcrypt',
     'boto',
-    'CherryPy<8',  # see https://github.com/girder/girder/issues/1615
+    'CherryPy',
     'jsonschema',
     'Mako',
     'pymongo>=3',
