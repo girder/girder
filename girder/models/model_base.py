@@ -774,13 +774,18 @@ class AccessControlledModel(Model):
             for index, perm in enumerate(doc['access'][entity]):
                 if perm['id'] == id:
                     # if the id already exists we want to update with a $set
+                    doc['access'][entity][index] = entry
                     update['$set'] = {'%s.%s' % (key, index): entry}
                     break
             else:
+                doc['access'][entity].append(entry)
                 update['$push'] = {key: entry}
         # set remove query
         else:
             update['$pull'] = {key: {'id': id}}
+            for perm in doc['access'][entity]:
+                if perm['id'] == id:
+                    doc['access'][entity].remove(perm)
 
         if save:
             if '_id' not in doc:
