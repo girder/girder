@@ -760,10 +760,6 @@ class AccessControlledModel(Model):
         if entity not in doc['access']:
             doc['access'][entity] = []
 
-        # First remove any existing permission level for this entity.
-        doc['access'][entity] = [perm for perm in doc['access'][entity]
-                                 if perm['id'] != id]
-
         key = 'access.' + entity
         update = {}
         # Add in the new level for this entity unless we are removing access.
@@ -774,17 +770,25 @@ class AccessControlledModel(Model):
                 'flags': flags
             }
             entry['flags'] = self._validateFlags(doc, user, entity, entry, force)
-            doc['access'][entity].append(entry)
-            update['$push'] = {key: entry}
-        # remove
+            # becuase we're iterating this operation is not necesarily atomic
+            for index, perm in enumerate(doc['access'][entity]):
+                if perm['id'] == id:
+                    # if the id already exists we want to update with a $set
+                    update['$set'] = {'%s.%s' % (key, index): entry}
+                    break
+            else:
+                update['$push'] = {key: entry}
+        # set remove query
         else:
             update['$pull'] = {key: {'id': id}}
 
         if save:
-            if ('_id' not in doc):
+            if '_id' not in doc:
                 doc = self.save(doc)
             else:
-                self.update({'_id': ObjectId(doc['_id'])}, update, multi=False)
+                doc = self.collection.find_one_and_update(
+                    {'_id': ObjectId(doc['_id'])}, update,
+                    return_document=pymongo.ReturnDocument.AFTER)
 
         return doc
 
