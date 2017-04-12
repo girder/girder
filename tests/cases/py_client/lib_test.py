@@ -72,8 +72,7 @@ class PythonClientTestCase(base.TestCase):
             os.mkdir(subDirName)
             writeFile(subDirName)
 
-        self.client = girder_client.GirderClient(
-            port=os.environ['GIRDER_PORT'], scheme='http')
+        self.client = girder_client.GirderClient(port=os.environ['GIRDER_PORT'])
 
         # Register a user
         self.password = 'password'
@@ -506,9 +505,7 @@ class PythonClientTestCase(base.TestCase):
         # create another client with caching enabled
         cacheSettings = {'directory': os.path.join(self.libTestDir, 'cache')}
         client = girder_client.GirderClient(
-            port=os.environ['GIRDER_PORT'],
-            scheme="http",
-            cacheSettings=cacheSettings)
+            port=os.environ['GIRDER_PORT'], cacheSettings=cacheSettings)
         client.authenticate(self.user['login'], self.password)
         self.assertNotEqual(client.cache, None)
 

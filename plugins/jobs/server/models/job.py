@@ -206,6 +206,16 @@ class Job(AccessControlledModel):
         if save:
             job = self.save(job)
 
+        if user:
+            deserialized_kwargs = job['kwargs']
+            job['kwargs'] = json_util.dumps(job['kwargs'])
+
+            self.model('notification').createNotification(
+                type='job_created', data=job, user=user,
+                expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=30))
+
+            job['kwargs'] = deserialized_kwargs
+
         return job
 
     def save(self, job, *args, **kwargs):

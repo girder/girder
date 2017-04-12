@@ -20,6 +20,7 @@ Role Variables
 | girder_path                | no       | $HOME/girder | Path to download and build Girder in.                                                   |
 | girder_version             | no       | master       | Git commit-ish for fetching Girder.                                                     |
 | girder_virtualenv          | no       | none         | Path to a Python virtual environment to install Girder in.                              |
+| girder_clone               | no       | yes          | Whether provisioning should clone Girder into `girder_path`.                            |
 | girder_update              | no       | yes          | Whether provisioning should fetch new versions via git.                                 |
 | girder_force               | no       | yes          | Whether provisioning should discard modified files in the working directory.            |
 | girder_web                 | no       | yes          | Whether to build the Girder web client.                                                 |

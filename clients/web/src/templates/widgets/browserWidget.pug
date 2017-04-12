@@ -5,15 +5,24 @@
       h4.modal-title
         = title
 
-    .modal-body
+    .modal-body.g-browser-widget
       .g-hierarchy-root-container.form-group
       .g-hierarchy-widget-container.g-wait-for-root.form-group.hidden
+
+      if input
+        .g-input-element.form-group
+          label.control-label(for='g-input-element') #{input.label}
+          input#g-input-element.form-control(
+            type='text', placeholder=input.placeholder, value=input.default)
+
       .help-block.g-wait-for-root.hidden
         = help
+
       if preview
         .g-selected-model.g-wait-for-root.form-group.hidden
           label.control-label(for='g-selected-model') Selected id
           input#g-selected-model.form-control(type='text', readonly)
+
       .g-validation-failed-message.hidden
 
     .modal-footer

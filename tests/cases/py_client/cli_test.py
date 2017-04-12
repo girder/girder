@@ -58,9 +58,7 @@ def invokeCli(argv, username='', password='', useApiUrl=False):
         apiUrl = 'http://localhost:%s/api/v1' % os.environ['GIRDER_PORT']
         argsList = ['girder-client', '--api-url', apiUrl]
     else:
-        argsList = ['girder-client',
-                    '--scheme', 'http',
-                    '--port', os.environ['GIRDER_PORT']]
+        argsList = ['girder-client', '--port', os.environ['GIRDER_PORT']]
 
     if username:
         argsList += ['--username', username]
@@ -116,6 +114,89 @@ class PythonCliTestCase(base.TestCase):
         shutil.rmtree(self.downloadDir, ignore_errors=True)
 
         base.TestCase.tearDown(self)
+
+    def testUrlByPart(self):
+        # This test does NOT connect to the test server. It only checks that the
+        # client object has the expected attributes.
+
+        username = None
+        password = None
+
+        for case in [
+            # Check that apiUrl is preferred
+            {
+                'input': {'apiUrl': 'https://girder.example.com:74/api/v74',
+                          'host': 'foo', 'scheme': 'bar', 'port': 42, 'apiRoot': 'bar'},
+                'expected': {
+                    'urlBase': 'https://girder.example.com:74/api/v74/',
+                    'host': None, 'scheme': None, 'port': None}
+            },
+            # Check different configuration of URL by part
+            {
+                'input': {},
+                'expected': {
+                    'urlBase': 'http://localhost:8080/api/v1/',
+                    'host': 'localhost', 'scheme': 'http', 'port': 8080}
+            },
+            {
+                'input': {'host': 'localhost'},
+                'expected': {
+                    'urlBase': 'http://localhost:8080/api/v1/',
+                    'host': 'localhost', 'scheme': 'http', 'port': 8080}
+            },
+            {
+                'input': {'port': 42},
+                'expected': {
+                    'urlBase': 'http://localhost:42/api/v1/',
+                    'host': 'localhost', 'scheme': 'http', 'port': 42}
+            },
+            {
+                'input': {'scheme': 'https'},
+                'expected': {
+                    'urlBase': 'https://localhost:443/api/v1/',
+                    'host': 'localhost', 'scheme': 'https', 'port': 443}
+            },
+            {
+                'input': {'host': 'girder.example.com'},
+                'expected': {
+                    'urlBase': 'https://girder.example.com:443/api/v1/',
+                    'host': 'girder.example.com', 'scheme': 'https', 'port': 443}
+            },
+            {
+                'input': {'host': 'girder.example.com', 'scheme': 'http'},
+                'expected': {
+                    'urlBase': 'http://girder.example.com:80/api/v1/',
+                    'host': 'girder.example.com', 'scheme': 'http', 'port': 80}
+            },
+            {
+                'input': {'host': 'localhost', 'port': 42},
+                'expected': {
+                    'urlBase': 'http://localhost:42/api/v1/',
+                    'host': 'localhost', 'scheme': 'http', 'port': 42}
+            },
+            {
+                'input': {'host': 'girder.example.com', 'port': 42},
+                'expected': {
+                    'urlBase': 'https://girder.example.com:42/api/v1/',
+                    'host': 'girder.example.com', 'scheme': 'https', 'port': 42}
+            },
+            {
+                'input': {'host': 'localhost', 'scheme': 'https'},
+                'expected': {
+                    'urlBase': 'https://localhost:443/api/v1/',
+                    'host': 'localhost', 'scheme': 'https', 'port': 443}
+            },
+            {
+                'input': {'host': 'girder.example.com', 'scheme': 'https'},
+                'expected': {
+                    'urlBase': 'https://girder.example.com:443/api/v1/',
+                    'host': 'girder.example.com', 'scheme': 'https', 'port': 443}
+            },
+
+        ]:
+            client = girder_client.cli.GirderCli(username, password, **case['input'])
+            for attribute, value in case['expected'].items():
+                self.assertEqual(getattr(client, attribute), value)
 
     def testCliHelp(self):
         ret = invokeCli(())

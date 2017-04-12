@@ -5,6 +5,7 @@ girder_path: "{{ ansible_user_dir }}/girder"
 girder_version: "master"
 girder_update: yes
 girder_force: yes
+girder_clone: yes
 girder_web: yes
 girder_start: yes
 girder_enabled: yes

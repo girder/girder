@@ -41,6 +41,7 @@
     version: "{{ girder_version }}"
     update: "{{ girder_update|default(omit) }}"
     force: "{{ girder_force|default(omit) }}"
+    clone: "{{ girder_clone|default(omit) }}"
   register: vc
 
 - set_fact:
