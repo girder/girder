@@ -36,7 +36,12 @@ is a list of where http accesses are logged that can include 'screen' and
 Girder logs various errors and information a different log levels.  The default
 log level is 'INFO', and can be adjusted by the `log_level` setting.  Valid
 choices in increasing order of verbosity include 'CRITICAL', 'ERROR',
-'WARNING', 'INFO', and 'DEBUG'.
+'WARNING', 'INFO', and 'DEBUG'.  By default, when logs that are WARNING, ERROR,
+or CRITICAL are sent to the error log file, and logs that are INFO or DEBUG are
+sent to the info log file.  The `log_max_info_level` setting can be adjusted
+to send more log messages to the info log (in addition to the error log).  For
+instance, if `log_max_info_level` is set to 'CRITICAL', all messages are sent
+to the info log, while the error log will just contain warnings and errors.
 
 Setting `log_quiet` to True will suppress all output to stdout (even http
 access logs if specified in `log_access`).  Information will still be sent to

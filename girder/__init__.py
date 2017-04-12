@@ -35,6 +35,8 @@ __license__ = 'Apache 2.0'
 
 VERSION['apiVersion'] = __version__
 _quiet = False
+_originalStdOut = sys.stdout
+_originalStdErr = sys.stderr
 
 
 class LogLevelFilter(object):
@@ -72,6 +74,28 @@ class LogFormatter(logging.Formatter):
             if record.name.startswith('cherrypy.access'):
                 return record.message
         return super(LogFormatter, self).format(record, *args, **kwargs)
+
+
+class StreamToLogger:
+    """
+    Redirect a file-like stream to a logger.
+    """
+    def __init__(self, stream, logger, level):
+        self.stream = stream
+        self.logger = logger
+        self.level = level
+        self.logger._girderLogHandlerOutput = False
+        for key in dir(stream):
+            if key != 'write' and not key.startswith('_') and callable(getattr(stream, key)):
+                setattr(self, key, getattr(stream, key))
+
+    def write(self, buf):
+        if not self.logger._girderLogHandlerOutput:
+            self.logger._girderLogHandlerOutput = True
+            _originalStdOut.write(buf)
+            for line in buf.rstrip().splitlines():
+                self.logger.log(self.level, line.rstrip())
+            self.logger._girderLogHandlerOutput = False
 
 
 def getLogPaths():
@@ -140,6 +164,7 @@ def _setupLogger():
             cherrypy.log.access_log.removeHandler(handler)
 
     fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
+    infoMaxLevel = logging.INFO
     # Create log handlers
     if logPaths['error'] != logPaths['info']:
         eh = logging.handlers.RotatingFileHandler(
@@ -149,14 +174,21 @@ def _setupLogger():
         eh._girderLogHandler = 'error'
         eh.setFormatter(fmt)
         logger.addHandler(eh)
+    else:
+        infoMaxLevel = logging.CRITICAL
 
+    if isinstance(getattr(logging, logCfg.get('log_max_info_level', ''), None), int):
+        infoMaxLevel = getattr(logging, logCfg['log_max_info_level'])
     ih = logging.handlers.RotatingFileHandler(
         logPaths['info'], maxBytes=logSize, backupCount=backupCount)
     ih.setLevel(level)
-    ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=logging.INFO))
+    ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=infoMaxLevel))
     ih._girderLogHandler = 'info'
     ih.setFormatter(fmt)
     logger.addHandler(ih)
+
+    sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
+    sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
 
     # Log http accesses to the screen and/or the info log.
     accessLog = logCfg.get('log_access', 'screen')
@@ -199,7 +231,8 @@ def logprint(*args, **kwargs):
     if not _quiet:
         if color:
             data = getattr(TerminalColor, color)(data)
-        six.print_(data, flush=True)
+        _originalStdOut.write('%s\n' % data)
+        _originalStdOut.flush()
 
 
 # Expose common logging levels and colors as methods of logprint.
