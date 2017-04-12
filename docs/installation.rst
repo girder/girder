@@ -27,7 +27,7 @@ Enter the virtual environment:
 
 .. code-block:: none
 
-   source ~/girder_env/bin/activate
+   . ~/girder_env/bin/activate
    
 The ``(girder_env)`` prepended to your prompt indicates you have *entered* 
 the virtual environment. Inside the virtual environment you can use ``pip``,
