@@ -56,7 +56,7 @@ class Job(AccessControlledModel):
             raise ValidationException(
                 'Invalid job status %s.' % status, field='status')
 
-    def list(self, user=None, types=None, statuses=None,
+    def list(self, user, types=None, statuses=None,
              limit=0, offset=0, sort=None, currentUser=None):
         """
         List a page of jobs for a given user.
@@ -480,7 +480,12 @@ class Job(AccessControlledModel):
             fields = {'log': False}
         return fields
 
-    def getAllTypesAndStatuses(self, user=None):
+    def getAllTypesAndStatuses(self, user):
+        """
+        Get a list of types and statuses of all jobs or jobs owned by a particular user.
+        :param user: The user who owns the jobs.
+        :type user: dict, or 'all'.
+        """
         query = {}
         if user == 'all':
             pass
