@@ -88,6 +88,16 @@ describe('Test widgets that are not covered elsewhere', function () {
         });
 
         runs(function () {
+            /* Create a progress notification related to a specific resource */
+            _setProgress('success', 0, 'some_folder_id', 'folder');
+        });
+
+        waitsFor(function () {
+            /* Make sure the progress notification links to that resource */
+            return $('.g-task-progress-title:last a').attr('href') === '#folder/some_folder_id';
+        }, 'progress for a folder to be shown');
+
+        runs(function () {
             /* Ask for a long test, so that on slow machines we can still
              * detect a partial progress. */
             _setProgress('success', 100, null, null);
@@ -110,7 +120,7 @@ describe('Test widgets that are not covered elsewhere', function () {
          * less than a second left to wait for the two previous success
          * messages to vanish (but the error message might still be around). */
         waitsFor(function () {
-            return $('.g-progress-widget-container').length < 4;
+            return $('.g-progress-widget-container').length < 5;
         }, 'at least the first progress to be hidden');
 
         runs(function () {
