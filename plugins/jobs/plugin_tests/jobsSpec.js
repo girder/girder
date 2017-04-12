@@ -129,7 +129,7 @@ $(function () {
 
             girderTest.waitForLoad();
 
-            runs(function(){
+            runs(function () {
                 // Add the jobs to the collection
                 jobs = _.map([1, 2, 3], function (i) {
                     return new girder.plugins.jobs.models.JobModel({
@@ -170,8 +170,26 @@ $(function () {
 
             // Table row should update automatically
             waitsFor(function () {
-                return $('td.g-job-status-cell', rows[2]).text() === 'Error';
+                return $($('.g-jobs-list-table>tbody>tr').get(2)).find('td.g-job-status-cell').text() === 'Error';
+            }, 'Third row status change to Error');
+
+            runs(function () {
+                console.log('trigger job created');
+                girder.utilities.eventStream.trigger('g:event.job_created', {
+                    data: {
+                        _id: 'foo' + 4,
+                        title: 'My batch job ' + 4,
+                        status: 4,
+                        updated: '2015-01-12T12:00:0' + 4,
+                        created: '2015-01-12T12:00:0' + 4,
+                        when: '2015-01-12T12:00:0' + 4
+                    }
+                });
             });
+
+            waitsFor(function () {
+                return $('.g-jobs-list-table>tbody>tr').length === 0;
+            }, 'job list to auto-reload when job_created is triggered');
         });
 
         it('Job list widget filter by status & type.', function () {
@@ -247,7 +265,7 @@ $(function () {
 
             girderTest.waitForLoad();
 
-            runs(function(){
+            runs(function () {
                 // Add the jobs to the collection
                 jobs = _.map([1, 2, 3], function (i) {
                     return new girder.plugins.jobs.models.JobModel({
@@ -309,9 +327,9 @@ $(function () {
             });
             girderTest.waitForLoad();
 
-            runs(function () {
-                expect(widget.$('.g-jobs-list-table').length).toEqual(0);
-            });
+            waitsFor(function () {
+                return widget.$('.g-jobs-list-table tr').length === 0;
+            }, 'no record show be shown');
         });
 
         it('timing history and time chart', function () {

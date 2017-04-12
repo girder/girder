@@ -54,9 +54,10 @@ var JobList = View.extend({
         this.collection.sortDir = settings.sortDir || SORT_DESC;
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
-        this.collection.on('g:changed', function () {
-            this._renderData();
-        }, this);
+        this.collection
+            .on('g:changed', this._renderData, this)
+            .on('add', this._renderData, this);
+
         this._fetchWithFilter();
 
         this.currentView = settings.view ? settings.view : 'list';
@@ -72,6 +73,7 @@ var JobList = View.extend({
         });
 
         eventStream.on('g:event.job_status', this._statusChange, this);
+        eventStream.on('g:event.job_created', this._jobCreated, this);
 
         this.timingFilterWidget = new CheckBoxMenu({
             title: 'Phases',
@@ -187,6 +189,7 @@ var JobList = View.extend({
         var jobs = this.collection.toArray();
 
         if (!jobs.length) {
+            this.$('.g-main-content').empty();
             this.$('.g-main-content,.g-job-pagination').hide();
             this.$('.g-no-record').show();
             return;
@@ -219,53 +222,49 @@ var JobList = View.extend({
     },
 
     _statusChange: function (event) {
-        let jobModel = _.find(this.collection.toArray(), job => job.get('_id') === event.data._id);
-        if (jobModel) {
-            jobModel.set(event.data);
+        let job = _.find(this.collection.toArray(), job => job.get('_id') === event.data._id);
+        if (!job) {
+            return;
         }
+        job.set(event.data);
+        this._renderData();
+        this._highlightRecordIfOnList(event.data._id);
+    },
+
+    _jobCreated: function (event) {
+        this._fetchWithFilter()
+            .then(() => {
+                this._highlightRecordIfOnList(event.data._id);
+            });
+    },
+
+    _highlightRecordIfOnList: function (jobId) {
         if (this.currentView === 'list') {
-            var job = event.data,
-                tr = this.$('tr[g-job-id=' + job._id + ']');
-
-            if (!tr.length) {
-                return;
-            }
-
-            if (this.columns & this.columnEnum.COLUMN_STATUS_ICON) {
-                tr.find('td.g-status-icon-container').attr('status', job.status)
-                    .find('i').removeClass().addClass(JobStatus.icon(job.status));
-            }
-            if (this.columns & this.columnEnum.COLUMN_STATUS) {
-                tr.find('td.g-job-status-cell').text(JobStatus.text(job.status));
-            }
-            if (this.columns & this.columnEnum.COLUMN_UPDATED) {
-                tr.find('td.g-job-updated-cell').text(
-                    formatDate(job.updated, DATE_SECOND));
-            }
-
-            tr.addClass('g-highlight');
-
-            window.setTimeout(function () {
-                tr.removeClass('g-highlight');
-            }, 1000);
-        } else {
-            this.render();
+            var tr = this.$('tr[g-job-id=' + jobId + ']').addClass('g-highlight');
+            setTimeout(() => tr.removeClass('g-highlight'), 1000);
         }
     },
 
     _fetchWithFilter() {
-        var filter = {};
-        if (this.userId) {
-            filter.userId = this.userId;
-        }
-        if (this.typeFilter) {
-            filter.types = JSON.stringify(this.typeFilter);
-        }
-        if (this.statusFilter) {
-            filter.statuses = JSON.stringify(this.statusFilter);
-        }
-        this.collection.params = filter;
-        this.collection.fetch({}, true);
+        return new Promise((resolve, reject) => {
+            var filter = {};
+            if (this.userId) {
+                filter.userId = this.userId;
+            }
+            if (this.typeFilter) {
+                filter.types = JSON.stringify(this.typeFilter);
+            }
+            if (this.statusFilter) {
+                filter.statuses = JSON.stringify(this.statusFilter);
+            }
+            this.collection.params = filter;
+            this.collection.fetch({}, true);
+            var callback = () => {
+                this.collection.off('g:changed', callback);
+                resolve();
+            };
+            this.collection.on('g:changed', callback);
+        });
     }
 });
 
