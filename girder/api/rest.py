@@ -477,6 +477,12 @@ def _createResponse(val):
     thread, this will simply return the response raw.
     """
     if getattr(cherrypy.request, 'girderRawResponse', False) is True:
+        if isinstance(val, six.text_type):
+            # If we were given a non-encoded text response, we have
+            # to encode it, so we use UTF-8.
+            ctype = cherrypy.response.headers['Content-Type'].split(';', 1)
+            setResponseHeader('Content-Type', ctype[0] + ';charset=utf-8')
+            return val.encode('utf8')
         return val
 
     accepts = cherrypy.request.headers.elements('Accept')
