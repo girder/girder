@@ -7,7 +7,7 @@
         .progress-left
           = timeLeftText
   .g-task-progress-title(title=progress.data.title)
-    if progress.data.resource && progress.data.resourceName
+    if progress.data.resource && progress.data.resource._id && progress.data.resourceName
       a(title=progress.data.title, href='#' + progress.data.resourceName + '/' + progress.data.resource._id)
         = progress.data.title
     else
