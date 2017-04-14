@@ -22,6 +22,24 @@ var ConfigView = View.extend({
                 key: 'oauth.' + providerId + '_client_secret',
                 value: this.$('#g-oauth-provider-' + providerId + '-client-secret').val().trim()
             }]);
+        },
+
+        'change .g-ignore-registration-policy': function (event) {
+            restRequest({
+                type: 'PUT',
+                path: 'system/setting',
+                data: {
+                    key: 'oauth.ignore_registration_policy',
+                    value: $(event.target).is(':checked')
+                }
+            }).done(() => {
+                events.trigger('g:alert', {
+                    icon: 'ok',
+                    text: 'Setting saved.',
+                    type: 'success',
+                    timeout: 3000
+                });
+            });
         }
     },
 
@@ -79,7 +97,7 @@ var ConfigView = View.extend({
         }];
         this.providerIds = _.pluck(this.providers, 'id');
 
-        var settingKeys = [];
+        var settingKeys = ['oauth.ignore_registration_policy'];
         _.each(this.providerIds, function (id) {
             settingKeys.push('oauth.' + id + '_client_id');
             settingKeys.push('oauth.' + id + '_client_secret');
@@ -126,6 +144,9 @@ var ConfigView = View.extend({
                 this.$('#g-oauth-provider-' + id + '-client-secret').val(
                     this.settingVals['oauth.' + id + '_client_secret']);
             }, this);
+
+            var checked = this.settingVals['oauth.ignore_registration_policy'];
+            this.$('.g-ignore-registration-policy').attr('checked', checked ? 'checked' : null);
         }
 
         return this;

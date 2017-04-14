@@ -25,6 +25,7 @@ import six
 from girder.api.rest import RestException
 from girder.constants import SettingKey
 from girder.utility import config, model_importer
+from ..constants import PluginSettings
 
 
 class ProviderBase(model_importer.ModelImporter):
@@ -164,9 +165,11 @@ class ProviderBase(model_importer.ModelImporter):
         if not user:
             policy = cls.model('setting').get(SettingKey.REGISTRATION_POLICY)
             if policy == 'closed':
-                raise RestException(
-                    'Registration on this instance is closed. Contact an '
-                    'administrator to create an account for you.')
+                ignore = cls.model('setting').get(PluginSettings.IGNORE_REGISTRATION_POLICY)
+                if not ignore:
+                    raise RestException(
+                        'Registration on this instance is closed. Contact an '
+                        'administrator to create an account for you.')
             login = cls._deriveLogin(email, firstName, lastName, userName)
 
             user = cls.model('user').createUser(
