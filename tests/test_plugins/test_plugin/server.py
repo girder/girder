@@ -20,7 +20,7 @@ import os
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import boundHandler, rawResponse, Resource
+from girder.api.rest import boundHandler, rawResponse, Resource, setResponseHeader
 from girder.api.v1.collection import Collection
 from girder.utility.server import staticFile
 
@@ -68,6 +68,7 @@ class Other(Resource):
 
         self.route('GET', (), self.getResource)
         self.route('GET', ('rawWithDecorator',), self.rawWithDecorator)
+        self.route('GET', ('rawReturningText',), self.rawReturningText)
         self.route('GET', ('rawInternal',), self.rawInternal)
 
     @access.public
@@ -75,6 +76,13 @@ class Other(Resource):
     @describeRoute(None)
     def rawWithDecorator(self, params):
         return b'this is a raw response'
+
+    @access.public
+    @rawResponse
+    @describeRoute(None)
+    def rawReturningText(self, params):
+        setResponseHeader('Content-Type', 'text/plain')
+        return u'this is not encoded \U0001F44D'
 
     @access.public
     @describeRoute(None)

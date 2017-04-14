@@ -19,16 +19,20 @@
 
 import json
 import os
+import requests
 
 from .. import base
+from girder import config
 from girder.api.rest import endpoint
 
 
 def setUpModule():
+    os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
+    config.loadConfig()
     base.mockPluginDir(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
     base.enabledPlugins = ['test_plugin']
 
-    base.startServer()
+    base.startServer(mock=False)
 
 
 def tearDownModule():
@@ -94,3 +98,13 @@ class TestEndpointDecoratorException(base.TestCase):
         resp = self.request('/other/rawInternal', isJson=False)
         self.assertStatusOk(resp)
         self.assertEqual(self.getBody(resp), 'this is also a raw response')
+
+        # We must make an actual request in order to test response encoding
+        # at the WSGI server layer.
+        resp = requests.get(
+            'http://127.0.0.1:%s/api/v1/other/rawReturningText' % os.environ['GIRDER_TEST_PORT'])
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.headers['Content-Type'], 'text/plain;charset=utf-8')
+        self.assertEqual(resp.content, b'this is not encoded \xf0\x9f\x91\x8d')
+        self.assertEqual(resp.text, u'this is not encoded \U0001F44D')
