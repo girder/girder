@@ -770,7 +770,7 @@ class AccessControlledModel(Model):
                 'flags': flags
             }
             entry['flags'] = self._validateFlags(doc, user, entity, entry, force)
-            # becuase we're iterating this operation is not necesarily atomic
+            # because we're iterating this operation is not necessarily atomic
             for index, perm in enumerate(doc['access'][entity]):
                 if perm['id'] == id:
                     # if the id already exists we want to update with a $set
@@ -791,6 +791,15 @@ class AccessControlledModel(Model):
             if '_id' not in doc:
                 doc = self.save(doc)
             else:
+                updateType = update.keys()[0]
+                # copy all other (potentially updated) fields to the update list
+                if updateType != '$set':
+                    update['$set'] = {prop: doc[prop] for prop in doc
+                                      if prop != 'access'}
+                else:
+                    for propKey in doc:
+                        if propKey != 'access':
+                            update[updateType][propKey] = doc[propKey]
                 doc = self.collection.find_one_and_update(
                     {'_id': ObjectId(doc['_id'])}, update,
                     return_document=pymongo.ReturnDocument.AFTER)
