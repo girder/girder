@@ -89,6 +89,19 @@ class Job(AccessControlledModel):
                                                 limit=limit, offset=offset):
             yield r
 
+    def listAll(self, limit=0, offset=0, sort=None, currentUser=None):
+        """
+        List all jobs.
+
+        :param limit: The page limit.
+        :param offset: The page offset
+        :param sort: The sort field.
+        :param currentUser: User for access filtering.
+        :deprecated: use list method instead
+        """
+        return self.list(user='all', types=None, statuses=None, limit=limit,
+                         offset=offset, sort=sort, currentUser=currentUser)
+
     def cancelJob(self, job):
         """
         Revoke/cancel a job. This simply triggers the jobs.cancel event and
