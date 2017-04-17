@@ -47,12 +47,6 @@ var CandelaWidget = View.extend({
             }));
             this.parametersView.setElement($('.g-item-candela-parameters'));
             d3.csv('/api/v1/item/' + this.item.get('_id') + '/download', (error, data) => {
-                data.forEach(row => {
-                    if ('' in row) {
-                        row['ID'] = row[''];
-                        delete row[''];
-                    }
-                });
                 datalib.read(data, {parse: 'auto'});
                 let columns = [];
                 for (let key in data.__types__) {

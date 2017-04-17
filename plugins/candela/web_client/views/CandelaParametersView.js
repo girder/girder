@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 import WidgetModel from 'girder_plugins/item_tasks/models/WidgetModel';
 import WidgetCollection from 'girder_plugins/item_tasks/collections/WidgetCollection';
 import ControlsPanel from 'girder_plugins/item_tasks/views/ControlsPanel';
@@ -45,21 +47,63 @@ const CandelaParametersView = View.extend({
 
         this._inputWidgets.reset();
 
+        this._inputWidgets.add(new WidgetModel({
+            type: 'integer',
+            title: 'Width',
+            description: 'The visualization width in pixels.',
+            id: 'width',
+            min: 0,
+            value: 800
+        }));
+        this._inputWidgets.add(new WidgetModel({
+            type: 'integer',
+            title: 'Height',
+            description: 'The visualization height in pixels.',
+            id: 'height',
+            min: 0,
+            value: 800
+        }));
+
         // Build all the widget models from the vis spec
         this._component.options.forEach((input) => {
-            if (['string', 'string_list'].includes(input.type)) {
+            if (input.type === 'number') {
+                this._inputWidgets.add(new WidgetModel({
+                    type: 'number',
+                    title: input.name || input.id,
+                    id: input.id || input.name,
+                    description: input.description || '',
+                    value: input.default === undefined ? 0 : input.default
+                }));
+            } else if (input.type === 'boolean') {
+                this._inputWidgets.add(new WidgetModel({
+                    type: 'boolean',
+                    title: input.name || input.id,
+                    id: input.id || input.name,
+                    description: input.description || '',
+                    value: input.default === undefined ? false : input.default
+                }));
+            } else if (['string', 'string_list'].includes(input.type)) {
+                let type = input.type === 'string' ? 'string-enumeration' : 'string-enumeration-multiple';
                 let values = null;
-                let type = null;
                 let value = null;
-                let numeric = !input.domain.fieldTypes.includes('string');
-                if (input.type === 'string') {
-                    values = numeric ? this._numericColumns : this._columns;
-                    type = 'string-enumeration';
-                    value = '(none)';
-                } else if (input.type === 'string_list') {
-                    values = numeric ? this._multiNumericColumns : this._multiColumns;
-                    type = 'string-enumeration-multiple';
-                    value = [];
+                if (input.domain) {
+                    if (_.isArray(input.domain)) {
+                        values = input.domain;
+                        if (input.type === 'string') {
+                            value = input.domain[0];
+                        } else {
+                            value = [];
+                        }
+                    } else {
+                        let numeric = !input.domain.fieldTypes.includes('string');
+                        if (input.type === 'string') {
+                            values = numeric ? this._numericColumns : this._columns;
+                            value = '(none)';
+                        } else {
+                            values = numeric ? this._multiNumericColumns : this._multiColumns;
+                            value = [];
+                        }
+                    }
                 }
                 this._inputWidgets.add(new WidgetModel({
                     type: type,
@@ -115,6 +159,8 @@ const CandelaParametersView = View.extend({
         });
         inputs.data = this._data;
 
+        this.$('.g-candela-vis')[0].style.width = inputs.width + 'px';
+        this.$('.g-candela-vis')[0].style.height = inputs.height + 'px';
         let vis = new this._component(this.$('.g-candela-vis')[0], inputs);
         vis.render();
     }
