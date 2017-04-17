@@ -201,7 +201,7 @@ class File(Resource):
         well as passing offset and uploadId as query parameters and passing
         the chunk as the body, which is the recommended method.
 
-        .. deprecated :: v2.2.0
+        .. deprecated :: 2.2.0
         """
         if 'chunk' in params:
             chunk = params['chunk']
