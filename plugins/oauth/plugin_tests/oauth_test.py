@@ -317,8 +317,8 @@ class OauthTest(base.TestCase):
         # Try callback for the 'existing' account, which should succeed
         existing = doOauthLogin('existing')
 
-        # Try callback for the 'new' account, with open registration
-        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'open')
+        # Try callback for the 'new' account, with registration policy ignored
+        self.model('setting').set(PluginSettings.IGNORE_REGISTRATION_POLICY, True)
         new = doOauthLogin('new')
 
         # Password login for 'new' OAuth-only user should fail gracefully
