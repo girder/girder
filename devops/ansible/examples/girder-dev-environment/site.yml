@@ -43,7 +43,7 @@
         - grunt-cli
       become: yes
       become_user: root
-      when: "{{ girder_web }}"
+      when: girder_web
 
     - name: Install Girder Python development requirements
       pip:
@@ -55,7 +55,7 @@
       command: "npm install"
       args:
         chdir: "{{ girder_path }}"
-      when: "{{ girder_web }}"
+      when: girder_web
 
     - name: Install development packages
       apt:
