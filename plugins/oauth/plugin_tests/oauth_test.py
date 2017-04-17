@@ -27,6 +27,7 @@ import requests
 import six
 
 from girder.constants import SettingKey
+from girder.models.model_base import ValidationException
 from tests import base
 
 
@@ -316,6 +317,10 @@ class OauthTest(base.TestCase):
 
         # Try callback for the 'existing' account, which should succeed
         existing = doOauthLogin('existing')
+
+        # Hit validation exception on ignore registration policy setting
+        with self.assertRaises(ValidationException):
+            self.model('setting').set(PluginSettings.IGNORE_REGISTRATION_POLICY, 'foo')
 
         # Try callback for the 'new' account, with registration policy ignored
         self.model('setting').set(PluginSettings.IGNORE_REGISTRATION_POLICY, True)
