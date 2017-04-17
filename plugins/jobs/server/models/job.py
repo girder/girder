@@ -97,7 +97,8 @@ class Job(AccessControlledModel):
         :param offset: The page offset
         :param sort: The sort field.
         :param currentUser: User for access filtering.
-        :deprecated: use list method instead
+        .. deprecated :: v2.3.0
+           Use :func:`list` instead
         """
         return self.list(user='all', types=None, statuses=None, limit=limit,
                          offset=offset, sort=sort, currentUser=currentUser)
