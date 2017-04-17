@@ -8,7 +8,7 @@ export PYTHON_EXECUTABLE=`pyenv which python`
 
 case $CIRCLE_NODE_INDEX in
 	0|1)
-		export TEST_GROUP=python
+		export TEST_GROUP=browser
 		;;
 	2)
 		export TEST_GROUP=browser
