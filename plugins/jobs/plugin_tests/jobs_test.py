@@ -461,7 +461,7 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(job['status'], JobStatus.CANCELED)
         self.assertEqual(len(job.get('log', [])), 1)
 
-    def testJobsMeta(self):
+    def testJobsTypesAndStatuses(self):
         self.model('job', 'jobs').createJob(
             title='user 0 job', type='t1', user=self.users[0], public=False)
 
@@ -481,17 +481,17 @@ class JobsTestCase(base.TestCase):
             title='anonymous public job', type='t6', public=True)
 
         # User 1, as non site admin, should encounter http 403 (Forbidden)
-        resp = self.request('/job/meta/all', user=self.users[1])
+        resp = self.request('/job/typeandstatus/all', user=self.users[1])
         self.assertStatus(resp, 403)
 
-        # Admin user gets all meta
-        resp = self.request('/job/meta/all', user=self.users[0])
+        # Admin user gets all types and statuses
+        resp = self.request('/job/typeandstatus/all', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['types']), 6)
         self.assertEqual(len(resp.json['statuses']), 1)
 
-        # standard user gets its own meta
-        resp = self.request('/job/meta', user=self.users[1])
+        # standard user gets types and statuses of its own jobs
+        resp = self.request('/job/typeandstatus', user=self.users[1])
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['types']), 2)
         self.assertEqual(len(resp.json['statuses']), 1)

@@ -34,8 +34,8 @@ class Job(Resource):
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
         self.route('DELETE', (':id',), self.deleteJob)
-        self.route('GET', ('meta', 'all',), self.allJobsMeta)
-        self.route('GET', ('meta',), self.jobsMeta)
+        self.route('GET', ('typeandstatus', 'all',), self.allJobsTypesAndStatuses)
+        self.route('GET', ('typeandstatus',), self.jobsTypesAndStatuses)
 
     @access.public
     @filtermodel(model='job', plugin='jobs')
@@ -144,16 +144,16 @@ class Job(Resource):
 
     @access.admin
     @autoDescribeRoute(
-        Description('Get metadata of all jobs')
+        Description('Get types and statuses of all jobs')
         .errorResponse('Admin access was denied for the job.', 403)
     )
-    def allJobsMeta(self, params):
+    def allJobsTypesAndStatuses(self, params):
         return self.model('job', 'jobs').getAllTypesAndStatuses(user='all')
 
     @access.user
     @autoDescribeRoute(
-        Description('Get metadata of jobs of current user')
+        Description('Get types and statuses of jobs of current user')
     )
-    def jobsMeta(self, params):
+    def jobsTypesAndStatuses(self, params):
         currentUser = self.getCurrentUser()
         return self.model('job', 'jobs').getAllTypesAndStatuses(user=currentUser)

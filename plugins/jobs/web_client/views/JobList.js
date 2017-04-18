@@ -115,7 +115,7 @@ var JobList = View.extend({
         }, this);
 
         restRequest({
-            path: this.showAllJobs ? 'job/meta/all' : 'job/meta',
+            path: this.showAllJobs ? 'job/typeandstatus/all' : 'job/typeandstatus',
             method: 'GET'
         }).done(result => {
             var typesFilter = result.types.reduce((obj, type) => {

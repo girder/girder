@@ -43,8 +43,7 @@ class Job(AccessControlledModel):
             'title', 'type', 'created', 'interval', 'when', 'status',
             'progress', 'log', 'meta', '_id', 'public', 'async', 'updated', 'timestamps'})
 
-        self.exposeFields(level=AccessType.SITE_ADMIN,
-                          fields={'args', 'kwargs'})
+        self.exposeFields(level=AccessType.SITE_ADMIN, fields={'args', 'kwargs'})
 
     def validate(self, job):
         self._validateStatus(job['status'])
@@ -56,25 +55,31 @@ class Job(AccessControlledModel):
             raise ValidationException(
                 'Invalid job status %s.' % status, field='status')
 
-    def list(self, user, types=None, statuses=None,
+    def list(self, user=None, types=None, statuses=None,
              limit=0, offset=0, sort=None, currentUser=None):
         """
         List a page of jobs for a given user.
 
         :param user: The user who owns the job.
-        :type user: dict, 'all', or 'none'.
+        :type user: dict, 'all', 'none', or None.
+        :param types: job type filter.
+        :type types: array of type string, or None.
+        :param statuses: job status filter.
+        :type statuses: array of status integer, or None.
         :param limit: The page limit.
-        :param offset: The page offset
+        :param limit: The page limit.
+        :param offset: The page offset.
         :param sort: The sort field.
         :param currentUser: User for access filtering.
         """
         query = {}
-        # When user is 'all', no filtering, list all jobs.
-        # When user is 'none', list anonymous user jobs.
+        # When user is 'all', no filtering by user, list jobs of all users.
         if user == 'all':
             pass
-        elif user == 'none':
+        # When user is 'none' or None, list anonymous user jobs.
+        elif user == 'none' or user is None:
             query['userId'] = None
+        # Otherwise, filter by user id
         else:
             query['userId'] = user['_id']
         if types is not None:
@@ -98,7 +103,7 @@ class Job(AccessControlledModel):
         :param sort: The sort field.
         :param currentUser: User for access filtering.
         .. deprecated :: 2.3.0
-           Use :func:`list` instead
+           Use :func:`job.list` instead
         """
         return self.list(user='all', types=None, statuses=None, limit=limit,
                          offset=offset, sort=sort, currentUser=currentUser)
