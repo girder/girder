@@ -760,10 +760,8 @@ class AccessControlledModel(Model):
         if entity not in doc['access']:
             doc['access'][entity] = []
 
-        # First remove any existing permission level for this entity.
-        doc['access'][entity] = [perm for perm in doc['access'][entity]
-                                 if perm['id'] != id]
-
+        key = 'access.' + entity
+        update = {}
         # Add in the new level for this entity unless we are removing access.
         if level is not None:
             entry = {
@@ -772,10 +770,39 @@ class AccessControlledModel(Model):
                 'flags': flags
             }
             entry['flags'] = self._validateFlags(doc, user, entity, entry, force)
-            doc['access'][entity].append(entry)
+            # because we're iterating this operation is not necessarily atomic
+            for index, perm in enumerate(doc['access'][entity]):
+                if perm['id'] == id:
+                    # if the id already exists we want to update with a $set
+                    doc['access'][entity][index] = entry
+                    update['$set'] = {'%s.%s' % (key, index): entry}
+                    break
+            else:
+                doc['access'][entity].append(entry)
+                update['$push'] = {key: entry}
+        # set remove query
+        else:
+            update['$pull'] = {key: {'id': id}}
+            for perm in doc['access'][entity]:
+                if perm['id'] == id:
+                    doc['access'][entity].remove(perm)
 
         if save:
-            doc = self.save(doc)
+            if '_id' not in doc:
+                doc = self.save(doc)
+            else:
+                updateType = update.keys()[0]
+                # copy all other (potentially updated) fields to the update list
+                if updateType == '$set':
+                    for propKey in doc:
+                        if propKey != 'access':
+                            update[updateType][propKey] = doc[propKey]
+                else:
+                    update['$set'] = {k: v for k, v in six.viewitems(doc)
+                                      if k != 'access'}
+                doc = self.collection.find_one_and_update(
+                    {'_id': ObjectId(doc['_id'])}, update,
+                    return_document=pymongo.ReturnDocument.AFTER)
 
         return doc
 
