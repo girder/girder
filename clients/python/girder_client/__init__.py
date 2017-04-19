@@ -332,7 +332,9 @@ class GirderClient(object):
         :type useCached: bool
         :return: The API version as a list (e.g. ``['1', '0', '0']``)
         """
-        return self.getServerAPIDescription(useCached)["info"]["version"].split('.')
+        description = self.getServerAPIDescription(useCached)
+        version = description.get('info', {}).get('version')
+        return version.split('.') if version else None
 
     def getServerAPIDescription(self, useCached=True):
         """
