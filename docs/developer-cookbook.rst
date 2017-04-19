@@ -442,6 +442,31 @@ by the environment variable ``GIRDER_TEST_DATA_PREFIX`` as follows
     with open(test_file, 'r') as f:
         content = f.read() # The content of the downloaded test file
 
+.. _python-coverage-paths:
+
+Setting python code coverage paths
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, python tests added via the ``add_python_test`` cmake function
+will only report coverage for python files within certain paths.  For
+core tests, the following paths are used:
+
+- ``girder``
+- ``clients/python/girder_client``
+
+For tests created within a plugin, the plugin's ``server`` directory is
+added to this list.  If you wish to report coverage on files residing outside
+of one of these directories, you can add a ``COVERAGE_PATHS`` argument
+to the ``add_python_test`` call.  For example, to add coverage reporting only
+to python files in a plugin's ``utils`` directory for a given test:
+
+.. code-block:: cmake
+
+    add_python_test(cat
+        PLUGIN cats
+        COVERAGE_PATHS "${PROJECT_SOURCE_DIRECTORY}/plugins/cats/utils"
+    )
+
 Mounting a custom application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

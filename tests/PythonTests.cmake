@@ -84,7 +84,7 @@ function(add_python_test case)
 
   set(_options BIND_SERVER PY2_ONLY RUN_SERIAL)
   set(_args DBNAME PLUGIN SUBMODULE)
-  set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES)
+  set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES COVERAGE_PATHS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PY2_ONLY AND PYTHON_VERSION MATCHES "^3")
@@ -103,6 +103,12 @@ function(add_python_test case)
     set(other_covg "")
   endif()
 
+  if(fn_COVERAGE_PATHS)
+    set(coverage_source_paths "${fn_COVERAGE_PATHS}")
+  else()
+    set(coverage_source_paths "girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}")
+  endif()
+
   if(fn_SUBMODULE)
     set(module ${module}.${fn_SUBMODULE})
     set(name ${name}.${fn_SUBMODULE})
@@ -113,7 +119,7 @@ function(add_python_test case)
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --parallel-mode "--rcfile=${PYTHON_COVERAGE_CONFIG}"
-              "--source=girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
+              "--source=${coverage_source_paths}"
               -m unittest -v ${module}
     )
   else()
