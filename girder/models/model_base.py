@@ -793,13 +793,13 @@ class AccessControlledModel(Model):
             else:
                 updateType = update.keys()[0]
                 # copy all other (potentially updated) fields to the update list
-                if updateType != '$set':
-                    update['$set'] = {prop: doc[prop] for prop in doc
-                                      if prop != 'access'}
-                else:
+                if updateType == '$set':
                     for propKey in doc:
                         if propKey != 'access':
                             update[updateType][propKey] = doc[propKey]
+                else:
+                    update['$set'] = {k: v for k, v in six.viewitems(doc)
+                                      if k != 'access'}
                 doc = self.collection.find_one_and_update(
                     {'_id': ObjectId(doc['_id'])}, update,
                     return_document=pymongo.ReturnDocument.AFTER)
