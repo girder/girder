@@ -225,7 +225,7 @@ var ControlWidget = View.extend({
             modal.$el.modal('hide');
             this.model.set({
                 value: model,
-                fileName: inputValue
+                fileName: inputValue || model.name()
             });
         }).render();
     }

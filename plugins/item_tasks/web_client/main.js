@@ -89,6 +89,7 @@ wrap(girder.plugins.jobs.views.JobDetailsWidget, 'render', function (render) {
 
     if (this.job.has('itemTaskId')) {
         this.$('.g-job-info-value[property="title"]').html(taskItemLinkTemplate({
+            jobId: this.job.id,
             itemId: this.job.get('itemTaskId'),
             title: this.job.get('title')
         }));

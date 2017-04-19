@@ -2,6 +2,8 @@ import WidgetModel from '../models/WidgetModel';
 import WidgetCollection from '../collections/WidgetCollection';
 import ControlsPanel from './ControlsPanel';
 import View from 'girder/views/View';
+import FolderModel from 'girder/models/FolderModel';
+import ItemModel from 'girder/models/ItemModel';
 import router  from 'girder/router';
 import { restRequest } from 'girder/rest';
 import { renderMarkdown } from 'girder/misc';
@@ -14,12 +16,16 @@ const TaskRunView = View.extend({
         'click .g-run-task': 'execute'
     },
 
-    initialize: function () {
+    initialize: function (settings) {
         this._taskSpec = this.model.get('meta').itemTaskSpec || {};
         this._inputs = this._taskSpec.inputs || [];
         this._outputs = this._taskSpec.outputs || [];
         this._inputWidgets = new WidgetCollection();
         this._outputWidgets = new WidgetCollection();
+        this._initialValues = settings.initialValues || null;
+
+        const inputs = this._initialValues && this._initialValues.inputs || {};
+        const outputs = this._initialValues && this._initialValues.outputs || {};
 
         // Build all the widget models from the task IO spec
         this._inputWidgets.add(this._inputs.map((input) => {
@@ -29,16 +35,19 @@ const TaskRunView = View.extend({
                 id: input.id || input.name,
                 description: input.description || '',
                 values: input.values,
-                value: input.default && input.default.data
+                value: this._getInputValue(input, inputs)
             });
         }));
 
         this._outputWidgets.add(this._outputs.map((output) => {
+            const info = this._getOutputInfo(output, outputs);
             return new WidgetModel({
                 type: output.type,
                 title: output.name || output.id,
                 id: output.id || output.name,
-                description: output.description || ''
+                description: output.description || '',
+                value: info && info.value,
+                fileName: info && info.fileName
             });
         }));
 
@@ -53,6 +62,36 @@ const TaskRunView = View.extend({
             collection: this._outputWidgets,
             parentView: this
         });
+    },
+
+    _getInputValue: function (input, inputs) {
+        const match = inputs[input.id || input.name];
+        if (match) {
+            if (match.data) {
+                return match.data;
+            } else if (match.mode === 'girder' && match.id) {
+                if (match.resource_type === 'item') {
+                    return new ItemModel({
+                        _id: match.id,
+                        _modelType: 'item',
+                        name: match.fileName || match.id
+                    });
+                }
+            }
+        }
+        return input.default && input.default.data;
+    },
+
+    _getOutputInfo: function (output, outputs) {
+        const match = outputs[output.id || output.name];
+        if (match) {
+            if (match.mode === 'girder' && match.parent_type === 'folder') {
+                return {
+                    value: new FolderModel({_id: match.parent_id, _modelType: 'folder'}),
+                    fileName: match.name
+                };
+            }
+        }
     },
 
     render: function () {
@@ -119,13 +158,15 @@ const TaskRunView = View.extend({
                     return {
                         mode: 'girder',
                         resource_type: 'file',
-                        id: val.id
+                        id: val.id,
+                        fileName: model.get('fileName') || null
                     };
                 case 'file': // This is an input
                     return {
                         mode: 'girder',
                         resource_type: 'item',
-                        id: val.id
+                        id: val.id,
+                        fileName: model.get('fileName') || null
                     };
                 case 'new-file': // This is an output
                     return {
