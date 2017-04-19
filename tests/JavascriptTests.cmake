@@ -145,6 +145,11 @@ function(add_web_client_test case specFile)
     set(test_module "tests.web_client_test")
   endif()
 
+  set(VIRTUAL_ENV $ENV{VIRTUAL_ENV})
+  if(VIRTUAL_ENV)
+    set(PYTHON_EXECUTABLE ${VIRTUAL_ENV}/bin/python)
+  endif()
+
   add_test(
       NAME ${testname}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
