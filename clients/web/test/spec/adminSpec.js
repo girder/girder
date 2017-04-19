@@ -610,6 +610,17 @@ describe('Test the plugins page', function () {
         }, 'plugins page to load');
         girderTest.waitForLoad();
     });
+    it('Check that an error indicator is displayed for an enabled plugin that failed to load', function () {
+        var target = $('.g-plugin-list-item:contains(bad_server)');
+        expect(target.length).toBe(1);
+        expect(target.find('input[type=checkbox]:checked').length).toBe(1);
+        expect(target.hasClass('g-plugin-list-item-failed')).toBe(true);
+        expect(target.find('.g-plugin-list-item-failed-notice').length).toBe(1);
+
+        var content = target.find('.g-plugin-list-item-failed-notice').data('content');
+        expect(content).toContain('Traceback');
+        expect(content).toContain('Exception: Bad server');
+    });
     it('Enable a plugin with non-existent dependencies', function () {
         runs(function () {
             var target = $('.g-plugin-list-item:contains(has_nonexistent_deps)');
@@ -626,7 +637,7 @@ describe('Test the plugins page', function () {
         runs(function () {
             expect($('.g-plugin-list-item .bootstrap-switch').length > 0).toBe(true);
             expect($('.g-plugin-rebuild-restart-text').css('visibility')).toBe('hidden');
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
             $('.g-plugin-list-item:contains(test_plugin) .g-plugin-switch').click();
         });
         waitsFor(function () {
@@ -634,7 +645,7 @@ describe('Test the plugins page', function () {
                 $('.g-rebuild-and-restart').hasClass('btn-danger');
         }, 'rebuild and restart change color and restart messsage to be shown');
         runs(function () {
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(2);
             $('.g-rebuild-and-restart').click();
         });
         waitsFor(function () {
@@ -671,7 +682,7 @@ describe('Test the plugins page', function () {
             $('.g-plugin-list-item:contains(test_plugin) .g-plugin-switch').click();
         });
         runs(function () {
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
@@ -680,7 +691,7 @@ describe('Test the plugins page', function () {
                 async: false
             });
             return (resp && resp.responseJSON && resp.responseJSON.enabled &&
-                resp.responseJSON.enabled.length === 0);
+                resp.responseJSON.enabled.length === 1);
         });
     });
     /* Logout to make sure we don't see the plugins any more */

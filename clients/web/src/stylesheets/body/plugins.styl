@@ -1,6 +1,8 @@
 @import '~nib/index.styl'
 
 $warnColor = #f0ad4e
+$failColor = red
+$failBackgroundColor = #f2dede
 
 .g-rebuild-container
   display inline
@@ -62,6 +64,27 @@ $warnColor = #f0ad4e
     &:last-child
       border-bottom none
 
+  .g-plugin-list-item-failed
+    background-color $failBackgroundColor
+
+    &:hover
+      background-color saturate($failBackgroundColor, 60%)
+
+  .g-plugin-list-item-notice
+    font-size 13px
+    text-transform uppercase
+    color white
+    border-radius 3px
+    padding 2px 5px
+    margin-left 8px
+    cursor default
+
+    &.g-plugin-list-item-experimental-notice
+      background-color $warnColor
+
+    &.g-plugin-list-item-failed-notice
+      background-color $failColor
+
   .bootstrap-switch
     float right
 
@@ -81,12 +104,10 @@ $warnColor = #f0ad4e
   > li.active
     color #555
 
-.g-experimental-notice
-  font-size 13px
-  text-transform uppercase
-  background-color $warnColor
-  color white
-  border-radius 3px
-  padding 2px 5px
-  margin-left 8px
-  cursor default
+.popover
+  &.g-plugin-list-item-failed-notice-popover
+    max-width none
+
+  .g-plugin-list-item-failed-notice-popover-content
+    font-family monospace
+    white-space pre

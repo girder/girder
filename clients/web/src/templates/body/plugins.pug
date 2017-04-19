@@ -11,7 +11,8 @@
 .g-plugin-list-container
   each plugin in allPlugins
     - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
-    .g-plugin-list-item
+    - var failed = plugin.value.failed
+    .g-plugin-list-item(class=failed ? 'g-plugin-list-item-failed' : undefined)
       input.g-plugin-switch(type="checkbox", key=plugin.key,
           disabled=plugin.value.unmetDependencies.length > 0,
           checked=(plugin.value.enabled ? "checked" : undefined),
@@ -25,9 +26,13 @@
         if plugin.value.version
           span.g-plugin-version Version #{plugin.value.version}
         if experimental
-          span.g-experimental-notice(
+          span.g-plugin-list-item-notice.g-plugin-list-item-experimental-notice(
             title="WARNING: this plugin is an alpha version and is subject " +
                   "to breaking changes; use at your own risk.") Experimental
+        if failed
+          span.g-plugin-list-item-notice.g-plugin-list-item-failed-notice(
+              data-title='Failed to load plugin "' + plugin.value.name + '"',
+              data-content=failed.traceback) Error
         if plugin.value.configRoute
           a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
             i.icon-cog
