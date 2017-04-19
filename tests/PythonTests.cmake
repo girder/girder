@@ -104,9 +104,7 @@ function(add_python_test case)
   endif()
 
   if(fn_COVERAGE_PATHS)
-    set(coverage_source_paths "${fn_COVERAGE_PATHS}")
-  else()
-    set(coverage_source_paths "girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}")
+    set(other_covg "${other_covg},${fn_COVERAGE_PATHS}")
   endif()
 
   if(fn_SUBMODULE)
@@ -119,7 +117,7 @@ function(add_python_test case)
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --parallel-mode "--rcfile=${PYTHON_COVERAGE_CONFIG}"
-              "--source=${coverage_source_paths}"
+              "--source=girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
               -m unittest -v ${module}
     )
   else()

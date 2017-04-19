@@ -457,7 +457,8 @@ core tests, the following paths are used:
 For tests created within a plugin, the plugin's ``server`` directory is
 added to this list.  If you wish to report coverage on files residing outside
 of one of these directories, you can add a ``COVERAGE_PATHS`` argument
-to the ``add_python_test`` call.  For example, to add coverage reporting only
+to the ``add_python_test`` call.  This argument accepts one or more
+comma-separated paths.  For example, to add coverage reporting to
 to python files in a plugin's ``utils`` directory for a given test:
 
 .. code-block:: cmake
@@ -466,6 +467,7 @@ to python files in a plugin's ``utils`` directory for a given test:
         PLUGIN cats
         COVERAGE_PATHS "${PROJECT_SOURCE_DIRECTORY}/plugins/cats/utils"
     )
+
 
 Mounting a custom application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
