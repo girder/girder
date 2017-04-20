@@ -791,12 +791,11 @@ class AccessControlledModel(Model):
             if '_id' not in doc:
                 doc = self.save(doc)
             else:
-                updateType = update.keys()[0]
                 # copy all other (potentially updated) fields to the update list
-                if updateType == '$set':
+                if '$set' in update:
                     for propKey in doc:
                         if propKey != 'access':
-                            update[updateType][propKey] = doc[propKey]
+                            update['$set'][propKey] = doc[propKey]
                 else:
                     update['$set'] = {k: v for k, v in six.viewitems(doc)
                                       if k != 'access'}
