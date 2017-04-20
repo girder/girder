@@ -395,5 +395,23 @@ $(function () {
                 return !widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
             }, 'graph to clear');
         });
+
+        it('job list widget without graphs', function () {
+            var widget;
+
+            runs(function () {
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    parentView: app,
+                    filter: {}
+                });
+            });
+
+            girderTest.waitForLoad();
+
+            runs(function () {
+                expect(widget.$('.g-jobs.nav.nav-tabs').length).toBe(0);
+            });
+        });
     });
 });
