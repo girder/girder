@@ -176,7 +176,15 @@ var UploadWidget = View.extend({
         this.$('.g-drop-zone')
             .removeClass('g-dropzone-show')
             .html(`<i class="icon-docs"/> ${this._browseText}`);
-        this.files = e.originalEvent.dataTransfer.files;
+
+        var dataTransfer = e.originalEvent.dataTransfer;
+
+        // Require all dropped items to be files
+        if (!_.every(dataTransfer.items, (item) => this._isFile(item))) {
+            this.$('.g-upload-error-message').html('Only files may be uploaded.');
+            return;
+        }
+        this.files = dataTransfer.files;
 
         if (!this.multiFile && this.files.length > 1) {
             // If in single-file mode and the user drops multiple files,
@@ -307,6 +315,27 @@ var UploadWidget = View.extend({
             }
             this.currentFile.upload(this.parent, this.files[this.currentIndex], null, otherParams);
         }
+    },
+
+    /**
+     * Check whether a DataTransferItem from a drag and drop operation
+     * represents a file, as opposed to a directory, URI, string, or other
+     * entity.
+     * @param {DataTransferItem} item - The item from a drag and drop operation.
+     * @returns {boolean} True if item represents a file.
+     */
+    _isFile: function (item) {
+        var getAsEntry = item.getAsEntry;
+        if (!_.isFunction(getAsEntry)) {
+            getAsEntry = item.webkitGetAsEntry;
+        }
+        if (!_.isFunction(getAsEntry)) {
+            // Unsupported; assume item is file
+            return true;
+        }
+
+        var entry = getAsEntry.call(item);
+        return entry && entry.isFile;
     }
 });
 

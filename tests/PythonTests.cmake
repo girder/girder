@@ -84,7 +84,7 @@ function(add_python_test case)
 
   set(_options BIND_SERVER PY2_ONLY RUN_SERIAL)
   set(_args DBNAME PLUGIN SUBMODULE)
-  set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES)
+  set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES COVERAGE_PATHS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PY2_ONLY AND PYTHON_VERSION MATCHES "^3")
@@ -101,6 +101,10 @@ function(add_python_test case)
     set(module tests.cases.${case}_test)
     set(pythonpath "")
     set(other_covg "")
+  endif()
+
+  if(fn_COVERAGE_PATHS)
+    set(other_covg "${other_covg},${fn_COVERAGE_PATHS}")
   endif()
 
   if(fn_SUBMODULE)

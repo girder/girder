@@ -475,7 +475,7 @@ class Job(AccessControlledModel):
         # right now we'll just go through the user.
         return self.model('notification').initProgress(
             user, job['title'], total, state=state, current=current,
-            message=message, estimateTime=False)
+            message=message, estimateTime=False, resource=job, resourceName=self.name)
 
     def filter(self, doc, user=None, additionalKeys=None):
         """

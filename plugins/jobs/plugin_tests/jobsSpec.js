@@ -1,4 +1,4 @@
-/* globals girderTest, describe, expect, it, runs, waitsFor  */
+/* globals girderTest, describe, expect, it, runs, waitsFor, girder, _ */
 
 girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/jobs/plugin.min.js'
@@ -131,7 +131,6 @@ $(function () {
             girderTest.waitForLoad();
 
             runs(function () {
-                // Add the jobs to the collection
                 jobs = _.map([1, 2, 3], function (i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
@@ -144,7 +143,6 @@ $(function () {
                 });
 
                 widget.collection.add(jobs);
-                widget.collection.trigger('g:changed');
             });
 
             waitsFor(function () {
@@ -193,7 +191,7 @@ $(function () {
         });
 
         it('Job list widget filter by status & type.', function () {
-            var jobs, rows, widget;
+            var widget;
             runs(function () {
                 widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
@@ -202,17 +200,16 @@ $(function () {
                     showGraphs: true
                 }).render();
 
-
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
-                //programmatically set value
+                // programmatically set value
                 widget.typeFilterWidget.setItems({
                     'type A': true,
                     'type B': true,
                     'type C': false
                 });
 
-                //one item should be unchecked
+                // one item should be unchecked
                 expect(
                     widget.$('.filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
                         return total + ($(input).is(':checked') ? 1 : 0);
@@ -229,7 +226,7 @@ $(function () {
 
                 widget.$('.filter-container .type .dropdown .g-job-checkall input').click();
 
-                //all should be checked after clicking Check all
+                // all should be checked after clicking Check all
                 expect(
                     widget.$('.filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
                         return total + ($(input).is(':checked') ? 1 : 0);
@@ -245,7 +242,7 @@ $(function () {
                     }, 0)
                 ).toBe(0);
 
-                widget.$('.g-page-size').val(50).trigger("change");
+                widget.$('.g-page-size').val(50).trigger('change');
                 expect(widget.collection.pageLimit).toBe(50);
             });
         });
@@ -268,7 +265,6 @@ $(function () {
             girderTest.waitForLoad();
 
             runs(function () {
-                // Add the jobs to the collection
                 jobs = _.map([1, 2, 3], function (i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
@@ -281,7 +277,6 @@ $(function () {
                 });
 
                 widget.collection.add(jobs);
-                widget.collection.trigger('g:changed');
             });
 
             waitsFor(function () {
@@ -299,10 +294,9 @@ $(function () {
         });
 
         it('job list widget in all jobs mode', function () {
-            var jobs, widget;
+            var widget;
 
             runs(function () {
-
                 widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     parentView: app,
@@ -337,7 +331,7 @@ $(function () {
         });
 
         it('timing history and time chart', function () {
-            var jobs, rows, widget;
+            var jobs, widget;
             runs(function () {
                 widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
@@ -358,16 +352,16 @@ $(function () {
                         type: t,
                         timestamps: [
                             {
-                                "status": 1,
-                                "time": "2017-03-10T18:31:59.008Z"
+                                'status': 1,
+                                'time': '2017-03-10T18:31:59.008Z'
                             },
                             {
-                                "status": 2,
-                                "time": "2017-03-10T18:32:06.190Z"
+                                'status': 2,
+                                'time': '2017-03-10T18:32:06.190Z'
                             },
                             {
-                                "status": 4,
-                                "time": "2017-03-10T18:32:34.760Z"
+                                'status': 4,
+                                'time': '2017-03-10T18:32:34.760Z'
                             }
                         ],
                         updated: '2017-03-10T18:32:34.760Z',
@@ -377,22 +371,21 @@ $(function () {
                 });
 
                 widget.collection.add(jobs);
-                widget.collection.trigger('g:changed');
 
                 $('.g-jobs.nav.nav-tabs li a[name="timing-history"]').tab('show');
             });
 
             waitsFor(function () {
                 return widget.$('.g-jobs-graph svg .mark-rect.timing rect').length;
-            }, "timing history graph to render");
+            }, 'timing history graph to render');
 
             runs(function () {
                 $('.g-jobs.nav.nav-tabs li a[name="time"]').tab('show');
-            })
+            });
 
             waitsFor(function () {
                 return widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
-            }, "time graph to render");
+            }, 'time graph to render');
 
             runs(function () {
                 $('.graph-filter-container .timing .dropdown .g-job-checkall input').click();
@@ -400,7 +393,7 @@ $(function () {
 
             waitsFor(function () {
                 return !widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
-            }, "graph to clear");
+            }, 'graph to clear');
         });
     });
 });

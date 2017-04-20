@@ -8,7 +8,9 @@ girder_force: yes
 girder_clone: yes
 girder_web: yes
 girder_start: yes
+girder_daemonize: yes
 girder_enabled: yes
+girder_web_extra_args: ""
 
 # the default is to only build assets when the git step results in new files
 girder_always_build_assets: no

@@ -5,7 +5,7 @@ from girder import events
 from girder import logger
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
-from girder.api.rest import ensureTokenScopes, filtermodel, Resource, RestException, getApiUrl
+from girder.api.rest import ensureTokenScopes, filtermodel, Resource, RestException
 from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
 from girder.plugins.worker import utils
@@ -259,7 +259,7 @@ class ItemTask(Resource):
                         'mode': 'http',
                         'method': 'PUT',
                         'format': 'text',
-                        'url': '/'.join((getApiUrl(), self.resourceName,
+                        'url': '/'.join((utils.getWorkerApiUrl(), self.resourceName,
                                          str(item['_id']), 'slicer_cli_xml')),
                         'params': {
                             'setName': setName,
@@ -364,7 +364,7 @@ class ItemTask(Resource):
                         'mode': 'http',
                         'method': 'POST',
                         'format': 'text',
-                        'url': '/'.join((getApiUrl(), self.resourceName,
+                        'url': '/'.join((utils.getWorkerApiUrl(), self.resourceName,
                                          str(folder['_id']), 'json_specs')),
                         'headers': {'Girder-Token': token['_id']},
                         'params': {
