@@ -157,6 +157,7 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def enablePlugins(self, plugins, params):
+        # Determine what plugins have been disabled and remove their associated routes.
         setting = self.model('setting')
         routeTable = setting.get(SettingKey.ROUTE_TABLE)
         oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
@@ -174,7 +175,8 @@ class System(Resource):
         if routeTableChanged:
             setting.set(SettingKey.ROUTE_TABLE, routeTable)
 
-        return self.model('setting').set(SettingKey.PLUGINS_ENABLED, plugins)
+        # Route cleanup is done; update list of enabled plugins.
+        return setting.set(SettingKey.PLUGINS_ENABLED, plugins)
 
 
     @access.admin
