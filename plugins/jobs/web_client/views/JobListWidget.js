@@ -35,6 +35,7 @@ var JobListWidget = View.extend({
         this.showAllJobs = !!settings.allJobsMode;
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
         this.userId = (settings.filter && !settings.allJobsMode) ? (settings.filter.userId ? settings.filter.userId : currentUser.id) : null;
+        this.showGraphs = settings.showGraphs;
         this.typeFilter = null;
         this.statusFilter = null;
         this.timingFilter = JobStatus.getAll().reduce((obj, status) => {

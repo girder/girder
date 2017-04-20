@@ -8,19 +8,20 @@
   .type
   .status
 
-ul.g-jobs.nav.nav-tabs
-  li(class=(currentView=='list'?'active':''))
-    a(data-toggle="tab", name="list")
-      i.icon-th-list
-      |  List
-  li(class=(currentView=='timing-history'?'active':''))
-    a(data-toggle="tab", name="timing-history")
-      i.icon-chart-bar
-      |  Timing history
-  li(class=(currentView=='time'?'active':''))
-    a(data-toggle="tab", name="time")
-      i.icon-chart-line
-      |  Time series
+if showGraphs
+  ul.g-jobs.nav.nav-tabs
+    li(class=(currentView=='list'?'active':''))
+      a(data-toggle="tab", name="list")
+        i.icon-th-list
+        |  List
+    li(class=(currentView=='timing-history'?'active':''))
+      a(data-toggle="tab", name="timing-history")
+        i.icon-chart-bar
+        |  Timing history
+    li(class=(currentView=='time'?'active':''))
+      a(data-toggle="tab", name="time")
+        i.icon-chart-line
+        |  Time series
 
 .g-main-content
 

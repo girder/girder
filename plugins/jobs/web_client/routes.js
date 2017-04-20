@@ -20,13 +20,15 @@ router.route('job/:id', 'jobView', function (id) {
 router.route('jobs/user/:id(/:view)', 'jobList', function (id, view) {
     events.trigger('g:navigateTo', JobListWidget, {
         filter: { userId: id },
-        view: view
+        view: view,
+        showGraphs: true
     });
 });
 
 router.route('jobs(/:view)', 'allJobList', function (view) {
     events.trigger('g:navigateTo', JobListWidget, {
         allJobsMode: true,
-        view: view
+        view: view,
+        showGraphs: true
     });
 });

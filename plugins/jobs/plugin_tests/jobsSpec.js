@@ -121,7 +121,8 @@ $(function () {
                 widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     filter: {},
-                    parentView: app
+                    parentView: app,
+                    showGraphs: true
                 }).render();
 
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
@@ -197,7 +198,8 @@ $(function () {
                 widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     filter: {},
-                    parentView: app
+                    parentView: app,
+                    showGraphs: true
                 }).render();
 
 
@@ -256,7 +258,8 @@ $(function () {
                     el: $('#g-app-body-container'),
                     parentView: app,
                     filter: {},
-                    triggerJobClick: true
+                    triggerJobClick: true,
+                    showGraphs: true
                 }).render();
 
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
@@ -304,7 +307,8 @@ $(function () {
                     el: $('#g-app-body-container'),
                     parentView: app,
                     filter: {},
-                    allJobsMode: true
+                    allJobsMode: true,
+                    showGraphs: true
                 });
 
                 expect(widget.collection.resourceName).toEqual('job/all');
@@ -321,7 +325,8 @@ $(function () {
                 widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     parentView: app,
-                    allJobsMode: true
+                    allJobsMode: true,
+                    showGraphs: true
                 });
             });
             girderTest.waitForLoad();
@@ -337,7 +342,8 @@ $(function () {
                 widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     filter: {},
-                    parentView: app
+                    parentView: app,
+                    showGraphs: true
                 }).render();
             });
 
