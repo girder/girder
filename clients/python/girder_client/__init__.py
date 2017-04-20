@@ -30,6 +30,7 @@ import shutil
 import six
 import tempfile
 
+from contextlib import contextmanager
 from requests_toolbelt import MultipartEncoder
 
 __version__ = '2.2.0'
@@ -153,16 +154,6 @@ class GirderClient(object):
             {'q': 'aggregated','types': '["folder", "item"]'})
     """
 
-    # A convenience dictionary mapping HTTP method names to functions in the
-    # requests module
-    METHODS = {
-        'GET': requests.get,
-        'POST': requests.post,
-        'PUT': requests.put,
-        'DELETE': requests.delete,
-        'PATCH': requests.patch
-    }
-
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
@@ -263,6 +254,39 @@ class GirderClient(object):
             progressReporterCls = _NoopProgressReporter
 
         self.progressReporterCls = progressReporterCls
+        self._session = None
+
+    @contextmanager
+    def session(self, session=None):
+        """
+        Use a :class:`requests.Session` object for all outgoing requests from
+        :class:`GirderClient`. If `session` isn't passed into the context manager
+        then one will be created and yielded. Session objects are useful for enabling
+        persistent HTTP connections as well as partially applying arguments to many
+        requests, such as headers.
+
+        Note: `session` is closed when the context manager exits, regardless of who
+        created it.
+
+        .. code-block:: python
+
+            with gc.session() as session:
+                session.headers.update({'User-Agent': 'myapp 1.0'})
+
+                for itemId in itemIds:
+                    gc.downloadItem(itemId, fh)
+
+        In the above example, each request will be executed with the User-Agent header
+        while reusing the same TCP connection.
+
+        :param session: An existing :class:`requests.Session` object, or None.
+        """
+        self._session = session if session else requests.Session()
+
+        yield self._session
+
+        self._session.close()
+        self._session = None
 
     def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
         """
@@ -310,7 +334,7 @@ class GirderClient(object):
                 raise Exception('A user name and password are required')
 
             url = self.urlBase + 'user/authentication'
-            authResponse = requests.get(url, auth=(username, password))
+            authResponse = self._requestFunc('get')(url, auth=(username, password))
 
             if authResponse.status_code == 404:
                 raise HttpError(404, authResponse.text, url, 'GET')
@@ -383,6 +407,12 @@ class GirderClient(object):
 
         return self._serverApiDescription
 
+    def _requestFunc(self, method):
+        if self._session is not None:
+            return getattr(self._session, method.lower())
+        else:
+            return getattr(requests, method.lower())
+
     def sendRestRequest(self, method, path, parameters=None,
                         data=None, files=None, json=None, headers=None):
         """
@@ -415,7 +445,7 @@ class GirderClient(object):
             parameters = {}
 
         # Look up the HTTP method we need
-        f = self.METHODS[method]
+        f = self._requestFunc(method)
 
         # Construct the url
         url = self.urlBase + path
@@ -1046,7 +1076,7 @@ class GirderClient(object):
         progressFileName = fileId
         if isinstance(path, six.string_types):
             progressFileName = os.path.basename(path)
-        req = requests.get(
+        req = self._requestFunc('get')(
             '%sfile/%s/download' % (self.urlBase, fileId),
             stream=True, headers={'Girder-Token': self.token})
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
