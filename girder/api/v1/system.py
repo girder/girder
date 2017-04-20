@@ -177,14 +177,6 @@ class System(Resource):
 
         return self.model('setting').set(SettingKey.PLUGINS_ENABLED, plugins)
 
-    def reconcileRouteTable(routeTable):
-        hasChanged = False
-
-        # GIRDER_ROUTE_ID is a special route, which can't be removed
-        ## for name in routeTable.keys():
-        ##     if name not in reservedRoutes and name not in pluginWebroots:
-        ##         del routeTable[name]
-        ##         hasChanged = True
 
     @access.admin
     @autoDescribeRoute(

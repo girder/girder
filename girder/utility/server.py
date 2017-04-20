@@ -173,12 +173,6 @@ def loadRouteTable(reconcileRoutes=False):
     def reconcileRouteTable(routeTable):
         hasChanged = False
 
-        # GIRDER_ROUTE_ID is a special route, which can't be removed
-        ## for name in routeTable.keys():
-        ##     if name not in reservedRoutes and name not in pluginWebroots:
-        ##         del routeTable[name]
-        ##         hasChanged = True
-
         for name in pluginWebroots.keys():
             if name not in routeTable:
                 routeTable[name] = os.path.join('/', name)
