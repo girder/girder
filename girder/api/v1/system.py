@@ -178,7 +178,6 @@ class System(Resource):
         # Route cleanup is done; update list of enabled plugins.
         return setting.set(SettingKey.PLUGINS_ENABLED, plugins)
 
-
     @access.admin
     @autoDescribeRoute(
         Description('Unset the value for a system setting.')
