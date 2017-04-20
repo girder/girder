@@ -213,17 +213,15 @@ $(function () {
               }).render();
 
               expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
-
-              // Add the jobs to the collection
-              widget.collection.add(jobs);
           });
 
-          waitsFor(function () {
-              return $('.g-jobs-list-table>tbody>tr').length === 3;
-          }, 'job list to auto-reload when collection is updated')
+          girderTest.waitForLoad();
 
           runs(function () {
               // Make sure we are in reverse chronological order
+              widget.collection.add(jobs);
+              expect($('.g-jobs-list-table>tbody>tr').length).toBe(3);
+
               rows = $('.g-jobs-list-table>tbody>tr');
               expect($(rows[0]).text()).toContain('My batch job 3');
               expect($(rows[0]).text()).toContain('Success');
@@ -294,16 +292,14 @@ $(function () {
             }).render();
 
             expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
-
-            // Add the jobs to the collection
-            widget.collection.add(jobs);
         });
 
-        waitsFor(function () {
-            return $('.g-jobs-list-table>tbody>tr').length === 3;
-        }, 'job list to auto-reload when collection is updated')
+        girderTest.waitForLoad();
 
         runs(function () {
+            // Add the jobs to the collection
+            widget.collection.add(jobs);
+            expect($('.g-jobs-list-table>tbody>tr').length).toBe(3);
             rows = $('.g-jobs-list-table>tbody>tr');
             expect($(rows[0]).text()).toContain('My batch job 2');
             expect($(rows[0]).text()).toContain('three');
