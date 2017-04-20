@@ -1,29 +1,36 @@
-.page-size-container
-  span Page size
-  select.g-page-size
-    each val in pageSizes
-      option(selected=val==pageSize)= val
+table.g-jobs-list-table
+  if showHeader
+    thead
+      tr
+        if columns & columnEnum.COLUMN_STATUS_ICON
+          th
+        if columns & columnEnum.COLUMN_TITLE
+          th Title
+        if columns & columnEnum.COLUMN_UPDATED
+          th Last update
+        if columns & columnEnum.COLUMN_TYPE
+          th Type
+        if columns & columnEnum.COLUMN_STATUS
+          th Status
 
-.filter-container.clearfix
-  .type
-  .status
-
-ul.g-jobs.nav.nav-tabs
-  li(class=(currentView=='list'?'active':''))
-    a(data-toggle="tab", name="list")
-      i.icon-th-list
-      |  List
-  li(class=(currentView=='timing-history'?'active':''))
-    a(data-toggle="tab", name="timing-history")
-      i.icon-chart-bar
-      |  Timing history
-  li(class=(currentView=='time'?'active':''))
-    a(data-toggle="tab", name="time")
-      i.icon-chart-line
-      |  Time series
-
-.g-main-content
-
-.g-job-pagination
-
-.g-no-record No records found
+  tbody
+    each job in jobs
+      tr(g-job-id=job.id)
+        if columns & columnEnum.COLUMN_STATUS_ICON
+          td.g-status-icon-container(status=job.get('status'))
+            i(class=JobStatus.icon(job.get('status')))
+        if columns & columnEnum.COLUMN_TITLE
+          if triggerJobClick
+            td
+              a.g-job-trigger-link(cid=job.cid)= job.get('title')
+          else if linkToJob
+            td
+              a(href=`#job/${job.id}`)= job.get('title')
+          else
+            td= job.get('title')
+        if columns & columnEnum.COLUMN_UPDATED
+          td.g-job-updated-cell= formatDate(job.get('updated'), DATE_SECOND)
+        if columns & columnEnum.COLUMN_TYPE
+          td= job.get('type')
+        if columns & columnEnum.COLUMN_STATUS
+          td.g-job-status-cell= JobStatus.text(job.get('status'))

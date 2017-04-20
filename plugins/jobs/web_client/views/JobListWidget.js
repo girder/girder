@@ -10,15 +10,15 @@ import { getCurrentUser } from 'girder/auth';
 import { SORT_DESC } from 'girder/constants';
 
 import JobCollection from '../collections/JobCollection';
-import JobListWidgetTemplate from '../templates/jobListWidget.pug';
+import JobListWidgetTemplate from '../templates/JobListWidget.pug';
 import JobListTemplate from '../templates/JobList.pug';
 import JobStatus from '../JobStatus';
 import CheckBoxMenu from './CheckBoxMenu';
 import JobGraphWidget from './JobGraphWidget';
 
-import '../stylesheets/jobList.styl';
+import '../stylesheets/jobListWidget.styl';
 
-var JobList = View.extend({
+var JobListWidget = View.extend({
     events: {
         'click .g-job-trigger-link': function (e) {
             var cid = $(e.target).attr('cid');
@@ -148,7 +148,7 @@ var JobList = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(JobListTemplate($.extend({}, this, {
+        this.$el.html(JobListWidgetTemplate($.extend({}, this, {
             pageSize: this.collection.pageLimit
         })));
 
@@ -199,7 +199,7 @@ var JobList = View.extend({
         }
 
         if (this.currentView === 'list') {
-            this.$('.g-main-content').html(JobListWidgetTemplate({
+            this.$('.g-main-content').html(JobListTemplate({
                 jobs: jobs,
                 showHeader: this.showHeader,
                 columns: this.columns,
@@ -268,4 +268,4 @@ var JobList = View.extend({
     }
 });
 
-export default JobList;
+export default JobListWidget;

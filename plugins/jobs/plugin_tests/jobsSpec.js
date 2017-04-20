@@ -118,7 +118,7 @@ $(function () {
                 'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
 
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobList({
+                widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app
@@ -174,7 +174,6 @@ $(function () {
             }, 'Third row status change to Error');
 
             runs(function () {
-                console.log('trigger job created');
                 girder.utilities.eventStream.trigger('g:event.job_created', {
                     data: {
                         _id: 'foo' + 4,
@@ -195,7 +194,7 @@ $(function () {
         it('Job list widget filter by status & type.', function () {
             var jobs, rows, widget;
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobList({
+                widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app
@@ -253,7 +252,7 @@ $(function () {
             var jobs, widget;
 
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobList({
+                widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     parentView: app,
                     filter: {},
@@ -301,7 +300,7 @@ $(function () {
 
             runs(function () {
 
-                widget = new girder.plugins.jobs.views.JobList({
+                widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     parentView: app,
                     filter: {},
@@ -319,7 +318,7 @@ $(function () {
             girderTest.waitForLoad();
 
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobList({
+                widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     parentView: app,
                     allJobsMode: true
@@ -335,7 +334,7 @@ $(function () {
         it('timing history and time chart', function () {
             var jobs, rows, widget;
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobList({
+                widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app
