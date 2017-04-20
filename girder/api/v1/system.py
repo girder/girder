@@ -28,7 +28,7 @@ import logging
 
 from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
-                             SettingKey, TokenScope, ACCESS_FLAGS, VERSION
+    SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.models.model_base import GirderException
 from girder.utility import install, plugin_utilities, system
 from girder.utility.progress import ProgressContext
@@ -157,15 +157,14 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def enablePlugins(self, plugins, params):
-        pluginWebroots = plugin_utilities.getPluginWebroots()
         setting = self.model('setting')
         routeTable = setting.get(SettingKey.ROUTE_TABLE)
         oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
-        reservedRoutes = (GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID)
+        reservedRoutes = {GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID}
 
         routeTableChanged = False
         removedRoutes = (
-                set(oldPlugins) - set(plugins) - set(reservedRoutes))
+            set(oldPlugins) - set(plugins) - reservedRoutes)
 
         for route in removedRoutes:
             if route in routeTable:
