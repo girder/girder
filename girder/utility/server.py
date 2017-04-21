@@ -99,12 +99,12 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
     if test:
         # Force some config params in testing mode
-        curConfig.update({'server': {
+        curConfig['server'].update({
             'mode': 'testing',
             'api_root': 'api/v1',
             'static_root': 'static',
             'api_static_root': '../static'
-        }})
+        })
 
     mode = curConfig['server']['mode'].lower()
     logprint.info('Running in mode: ' + mode)
@@ -119,6 +119,14 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
+
+    if curConfig['server'].get('heartbeat', -1) > 0:
+        def _heartbeat():
+            girder.events.trigger('heartbeat')
+        heartbeat = cherrypy.process.plugins.Monitor(
+            cherrypy.engine, _heartbeat, frequency=curConfig['server']['heartbeat'],
+            name="Heartbeat")
+        heartbeat.subscribe()
 
     if plugins is None:
         settings = model_importer.ModelImporter().model('setting')
