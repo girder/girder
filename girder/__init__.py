@@ -26,15 +26,14 @@ import six
 import sys
 import traceback
 
-
-from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, \
-    TerminalColor
+from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor, VERSION
 from girder.utility import config, mkdir
 
 __version__ = '2.2.0'
 __license__ = 'Apache 2.0'
 
 
+VERSION['apiVersion'] = __version__
 _quiet = False
 
 

@@ -24,6 +24,7 @@ be restarted for these changes to take effect.
 
 import os
 import pip
+import re
 import select
 import shutil
 import six
@@ -104,6 +105,8 @@ def _pipeOutputToProgress(proc, progress):
                 buf = os.read(pipe.fileno(), 1024)
                 if buf:
                     buf = buf.decode('utf8', errors='ignore')
+                    # Remove ANSI escape sequences
+                    buf = re.sub('(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]', '', buf)
                     # Filter out non-printable characters
                     msg = ''.join(c for c in buf if c in string.printable)
                     if msg:
@@ -337,6 +340,7 @@ def main():
 
     parsed = parser.parse_args()
     parsed.func(parsed)
+
 
 if __name__ == '__main__':
     main()  # pragma: no cover

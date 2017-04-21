@@ -21,6 +21,7 @@
 # Constants representing the setting keys for this plugin
 class PluginSettings:
     PROVIDERS_ENABLED = 'oauth.providers_enabled'
+    IGNORE_REGISTRATION_POLICY = 'oauth.ignore_registration_policy'
 
     GOOGLE_CLIENT_ID = 'oauth.google_client_id'
     GOOGLE_CLIENT_SECRET = 'oauth.google_client_secret'

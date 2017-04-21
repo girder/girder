@@ -531,6 +531,9 @@ files, they must be prefixed by your plugin name as follows
 Then inside your unittest, the file will be available under the main data path
 as ``os.environ['GIRDER_TEST_DATA_PREFIX'] + '/plugins/cats/test_file.txt'``.
 
+.. note:: When enabling coverage in a plugin, only files residing under the plugin's
+          ``server`` directory will be included.  See :ref:`python-coverage-paths`
+          to change the paths used to generate python coverage reports.
 
 .. _client-side-plugins:
 
