@@ -1,10 +1,10 @@
-.page-size-container
+.g-page-size-container
   span Page size
   select.g-page-size
     each val in pageSizes
       option(selected=val==pageSize)= val
 
-.filter-container.clearfix
+.g-job-filter-container.clearfix
   .type
   .status
 
@@ -27,4 +27,4 @@ if showGraphs
 
 .g-job-pagination
 
-.g-no-record No records found
+.g-no-job-record No records found

@@ -12,7 +12,7 @@ export default View.extend({
     events: {
         'change input.linear-scale': function (e) {
             this.yScale = $(e.target).is(':checked') ? 'linear' : 'sqrt';
-            this.render();
+            this.update();
         }
     },
 
@@ -34,8 +34,7 @@ export default View.extend({
         this.$el.empty();
         this.$el.html(JobsGraphWidgetTemplate(this));
         this.timingFilterWidget.setItems(this.timingFilter);
-        this.timingFilterWidget.setElement(this.$('.graph-filter-container .timing')).render();
-        this.update();
+        this.timingFilterWidget.setElement(this.$('.g-job-filter-container .timing')).render();
     },
 
     remove: function () {

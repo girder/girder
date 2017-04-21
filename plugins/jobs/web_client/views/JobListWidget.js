@@ -153,8 +153,8 @@ var JobListWidget = View.extend({
             pageSize: this.collection.pageLimit
         })));
 
-        this.typeFilterWidget.setElement(this.$('.filter-container .type')).render();
-        this.statusFilterWidget.setElement(this.$('.filter-container .status')).render();
+        this.typeFilterWidget.setElement(this.$('.g-job-filter-container .type')).render();
+        this.statusFilterWidget.setElement(this.$('.g-job-filter-container .status')).render();
 
         this.$('a[data-toggle="tab"]').on('shown.bs.tab', e => {
             this.currentView = $(e.target).attr('name');
@@ -190,13 +190,12 @@ var JobListWidget = View.extend({
         var jobs = this.collection.toArray();
 
         if (!jobs.length) {
-            this.$('.g-main-content').empty();
             this.$('.g-main-content,.g-job-pagination').hide();
-            this.$('.g-no-record').show();
+            this.$('.g-no-job-record').show();
             return;
         } else {
             this.$('.g-main-content,.g-job-pagination').show();
-            this.$('.g-no-record').hide();
+            this.$('.g-no-job-record').hide();
         }
 
         if (this.currentView === 'list') {

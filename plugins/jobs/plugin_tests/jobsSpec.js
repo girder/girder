@@ -186,7 +186,7 @@ $(function () {
             });
 
             waitsFor(function () {
-                return $('.g-jobs-list-table>tbody>tr').length === 0;
+                return !$('.g-no-job-record').is(':visible');
             }, 'job list to auto-reload when job_created is triggered');
         });
 
@@ -211,33 +211,33 @@ $(function () {
 
                 // one item should be unchecked
                 expect(
-                    widget.$('.filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
+                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
                         return total + ($(input).is(':checked') ? 1 : 0);
                     }, 0)
                 ).toBe(2);
 
-                widget.$('.filter-container .type .dropdown ul li input').first().click();
+                widget.$('.g-job-filter-container .type .dropdown ul li input').first().click();
 
                 expect(
-                    widget.$('.filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
+                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
                         return total + ($(input).is(':checked') ? 1 : 0);
                     }, 0)
                 ).toBe(1);
 
-                widget.$('.filter-container .type .dropdown .g-job-checkall input').click();
+                widget.$('.g-job-filter-container .type .dropdown .g-job-checkall input').click();
 
                 // all should be checked after clicking Check all
                 expect(
-                    widget.$('.filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
+                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
                         return total + ($(input).is(':checked') ? 1 : 0);
                     }, 0)
                 ).toBe(3);
-                expect($('.filter-container .type .dropdown .g-job-checkall input').is(':checked')).toBe(true);
+                expect($('.g-job-filter-container .type .dropdown .g-job-checkall input').is(':checked')).toBe(true);
 
-                widget.$('.filter-container .status .dropdown .g-job-checkall input').click();
+                widget.$('.g-job-filter-container .status .dropdown .g-job-checkall input').click();
 
                 expect(
-                    widget.$('.filter-container .status .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
+                    widget.$('.g-job-filter-container .status .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
                         return total + ($(input).is(':checked') ? 1 : 0);
                     }, 0)
                 ).toBe(0);
@@ -388,7 +388,7 @@ $(function () {
             }, 'time graph to render');
 
             runs(function () {
-                $('.graph-filter-container .timing .dropdown .g-job-checkall input').click();
+                $('.g-job-filter-container .timing .dropdown .g-job-checkall input').click();
             });
 
             waitsFor(function () {
