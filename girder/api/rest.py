@@ -26,6 +26,7 @@ import posixpath
 import six
 import sys
 import traceback
+import jsonschema
 
 from . import docs
 from girder import events, logger, logprint
@@ -267,7 +268,7 @@ def requireAdmin(user, message=None):
         raise AccessException(message or 'Administrator access required.')
 
 
-def getBodyJson(allowConstants=False):
+def getBodyJson(allowConstants=False, schema=None):
     """
     For requests that are expected to contain a JSON body, this returns the
     parsed value, or raises a :class:`girder.api.rest.RestException` for
@@ -277,6 +278,9 @@ def getBodyJson(allowConstants=False):
         should be allowed. These keywords are valid JavaScript and will parse
         to the correct float values, but are not valid in strict JSON.
     :type allowConstants: bool
+    :param schema: Optional JSON schema to use to validate the request body.
+    :type schema: dict
+
     """
     if allowConstants:
         _parseConstants = None
@@ -284,11 +288,25 @@ def getBodyJson(allowConstants=False):
         def _parseConstants(val):
             raise RestException('Error: "%s" is not valid JSON.' % val)
 
+    if schema:
+        try:
+            validator = jsonschema.validators.validator_for(schema)
+            validator.check_schema(schema)
+        except jsonschema.exceptions.SchemaError as se:
+            raise Exception('Invalid JSON schema: %s' % se.message)
+
     text = cherrypy.request.body.read().decode('utf8')
     try:
-        return json.loads(text, parse_constant=_parseConstants)
+        jsonBody = json.loads(text, parse_constant=_parseConstants)
+
+        if schema:
+            jsonschema.validate(jsonBody, schema)
+
+        return jsonBody
     except ValueError:
         raise RestException('Invalid JSON passed in request body.')
+    except jsonschema.ValidationError as ve:
+        raise ValidationException(ve.message)
 
 
 def getParamJson(name, params, default=None):

@@ -23,6 +23,7 @@ import itertools
 import pymongo
 import re
 import six
+import jsonschema
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
@@ -48,6 +49,7 @@ class Model(ModelImporter):
 
     def __init__(self):
         self.name = None
+        self.schema = None
         self._indices = []
         self._connected = False
         self._textIndex = None
@@ -62,7 +64,19 @@ class Model(ModelImporter):
         }
 
         self.initialize()
+        self._validateSchema()
         self.reconnect()
+
+    def _validateSchema(self):
+        """
+        Validate schema if one has been provided.
+        """
+        if self.schema:
+            try:
+                validator = jsonschema.validators.validator_for(self.schema)
+                validator.check_schema(self.schema)
+            except jsonschema.exceptions.SchemaError as se:
+                raise Exception('Invalid JSON schema for %s model: %s' % (self.name, se.message))
 
     def reconnect(self):
         """
@@ -203,8 +217,13 @@ class Model(ModelImporter):
         :param doc: The document to validate before saving to the collection.
         :type doc: dict
         """
-        raise Exception('Must override validate() in %s model.'
-                        % self.__class__.__name__)  # pragma: no cover
+        if self.schema:
+            try:
+                jsonschema.validate(doc, self.schema)
+            except jsonschema.ValidationError as ve:
+                raise ValidationException(ve.message)
+
+        return doc
 
     def validateKeys(self, keys):
         """

@@ -23,13 +23,15 @@ import json
 import os
 import six
 import zipfile
+import mock
 
 from .. import base
 
 import girder.utility.ziputil
 from girder.models.notification import ProgressState
 from six.moves import range, urllib
-
+from girder.api.rest import getBodyJson
+from girder.models.model_base import ValidationException
 
 def setUpModule():
     base.startServer()
@@ -809,3 +811,21 @@ class ResourceTestCase(base.TestCase):
         c = self.model('collection').load(self.collection['_id'], force=True)
         self.assertEqual(c['created'], created)
         self.assertEqual(c['updated'], updated)
+
+    @mock.patch('girder.api.rest.cherrypy')
+    def testBodyJsonValidate(self, cherrypy):
+        cherrypy.request.body.read.return_value = '{"foo": "notanumber"}'
+
+        schema = {
+            'type' : 'object',
+            'properties' : {
+                'foo' : {'type' : 'number'},
+            },
+        }
+
+        with self.assertRaises(ValidationException):
+            getBodyJson(schema=schema)
+
+        cherrypy.request.body.read.return_value = '{"foo": 1}'
+
+        getBodyJson(schema=schema)

@@ -14,6 +14,7 @@ pytz==2016.4
 requests==2.10.0
 shutilwhich==1.1.0 ; python_version < '3.3'
 six==1.10.0
+jsonschema==2.5.1
 
 # celery_jobs
 celery==3.1.23

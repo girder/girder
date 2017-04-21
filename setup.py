@@ -71,7 +71,8 @@ install_reqs = [
     'psutil',
     'python-dateutil',
     'pytz',
-    'six>=1.9'
+    'six>=1.9',
+    'jsonschema'
 ]
 
 extras_reqs = {
