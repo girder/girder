@@ -414,7 +414,7 @@ class GirderClient(object):
             return getattr(requests, method.lower())
 
     def sendRestRequest(self, method, path, parameters=None,
-                        data=None, files=None, json=None, headers=None):
+                        data=None, files=None, json=None, headers=None, jsonResp=True):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -440,6 +440,9 @@ class GirderClient(object):
         :type json: dict
         :param headers: If present, a dictionary of headers to encode in the request.
         :type headers: dict
+        :param jsonResp: Whether the response should be parsed as JSON. If False, the raw
+            response is returned.
+        :type jsonResp: bool
         """
         if not parameters:
             parameters = {}
@@ -456,50 +459,53 @@ class GirderClient(object):
             _headers.update(headers)
 
         result = f(
-            url, params=parameters, data=data, files=files, json=json,
-            headers=_headers)
+            url, params=parameters, data=data, files=files, json=json, headers=_headers)
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in (200, 201):
-            return result.json()
+            if jsonResp:
+                return result.json()
+            else:
+                return result.content
         # TODO handle 300-level status (follow redirect?)
         else:
             raise HttpError(
                 status=result.status_code, url=result.url, method=method, text=result.text)
 
-    def get(self, path, parameters=None):
+    def get(self, path, parameters=None, jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'GET' HTTP method.
         """
-        return self.sendRestRequest('GET', path, parameters)
+        return self.sendRestRequest('GET', path, parameters, jsonResp=jsonResp)
 
-    def post(self, path, parameters=None, files=None, data=None, json=None, headers=None):
+    def post(self, path, parameters=None, files=None, data=None, json=None, headers=None,
+             jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'POST' HTTP method.
         """
         return self.sendRestRequest('POST', path, parameters, files=files,
-                                    data=data, json=json, headers=headers)
+                                    data=data, json=json, headers=headers, jsonResp=jsonResp)
 
-    def put(self, path, parameters=None, data=None, json=None):
+    def put(self, path, parameters=None, data=None, json=None, jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PUT'
         HTTP method.
         """
         return self.sendRestRequest('PUT', path, parameters, data=data,
-                                    json=json)
+                                    json=json, jsonResp=jsonResp)
 
-    def delete(self, path, parameters=None):
+    def delete(self, path, parameters=None, jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'DELETE' HTTP method.
         """
-        return self.sendRestRequest('DELETE', path, parameters)
+        return self.sendRestRequest('DELETE', path, parameters, jsonResp=jsonResp)
 
-    def patch(self, path, parameters=None, data=None, json=None):
+    def patch(self, path, parameters=None, data=None, json=None, jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PATCH' HTTP method.
         """
         return self.sendRestRequest('PATCH', path, parameters, data=data,
-                                    json=json)
+                                    json=json, jsonResp=jsonResp)
 
     def createResource(self, path, params):
         """

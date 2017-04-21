@@ -763,3 +763,7 @@ class PythonClientTestCase(base.TestCase):
 
             checkDescription(self.client.getServerAPIDescription(useCached=False))
             self.assertEqual(len(hits), 2)
+
+    def testNonJsonResponse(self):
+        resp = self.client.get('user', jsonResp=False)
+        self.assertIsInstance(resp, six.binary_type)
