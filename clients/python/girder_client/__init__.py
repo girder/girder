@@ -441,7 +441,15 @@ class GirderClient(object):
         :param headers: If present, a dictionary of headers to encode in the request.
         :type headers: dict
         :param jsonResp: Whether the response should be parsed as JSON. If False, the raw
-            response object is returned.
+            response object is returned. To get the raw binary content of the response,
+            use the ``content`` attribute of the return value, e.g.
+
+            .. code-block:: python
+
+                resp = client.get('my/endpoint', jsonResp=False)
+                print(resp.content)  # Raw binary content
+                print(resp.headers)  # Dict of headers
+
         :type jsonResp: bool
         """
         if not parameters:
