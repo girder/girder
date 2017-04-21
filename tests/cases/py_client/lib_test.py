@@ -766,4 +766,4 @@ class PythonClientTestCase(base.TestCase):
 
     def testNonJsonResponse(self):
         resp = self.client.get('user', jsonResp=False)
-        self.assertIsInstance(resp, six.binary_type)
+        self.assertIsInstance(resp.content, six.binary_type)

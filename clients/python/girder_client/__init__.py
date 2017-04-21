@@ -441,7 +441,7 @@ class GirderClient(object):
         :param headers: If present, a dictionary of headers to encode in the request.
         :type headers: dict
         :param jsonResp: Whether the response should be parsed as JSON. If False, the raw
-            response is returned.
+            response object is returned.
         :type jsonResp: bool
         """
         if not parameters:
@@ -466,7 +466,7 @@ class GirderClient(object):
             if jsonResp:
                 return result.json()
             else:
-                return result.content
+                return result
         # TODO handle 300-level status (follow redirect?)
         else:
             raise HttpError(
