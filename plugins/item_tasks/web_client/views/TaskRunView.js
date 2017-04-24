@@ -29,13 +29,15 @@ const TaskRunView = View.extend({
 
         // Build all the widget models from the task IO spec
         this._inputWidgets.add(this._inputs.map((input) => {
+            const info = this._getInputInfo(input, inputs);
             return new WidgetModel({
                 type: input.type,
                 title: input.name || input.id,
                 id: input.id || input.name,
                 description: input.description || '',
                 values: input.values,
-                value: this._getInputValue(input, inputs)
+                value: info.value,
+                fileName: info.fileName
             });
         }));
 
@@ -64,22 +66,29 @@ const TaskRunView = View.extend({
         });
     },
 
-    _getInputValue: function (input, inputs) {
+    _getInputInfo: function (input, inputs) {
         const match = inputs[input.id || input.name];
         if (match) {
             if (match.data) {
-                return match.data;
+                return {
+                    value: match.data
+                };
             } else if (match.mode === 'girder' && match.id) {
                 if (match.resource_type === 'item') {
-                    return new ItemModel({
-                        _id: match.id,
-                        _modelType: 'item',
-                        name: match.fileName || match.id
-                    });
+                    return {
+                        value: new ItemModel({
+                            _id: match.id,
+                            _modelType: 'item',
+                            name: match.fileName || match.id
+                        }),
+                        fileName: match.fileName || match.id
+                    };
                 }
             }
         }
-        return input.default && input.default.data;
+        return {
+            value: input.default && input.default.data
+        };
     },
 
     _getOutputInfo: function (output, outputs) {
