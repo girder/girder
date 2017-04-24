@@ -7,21 +7,25 @@ girder.plugins.jobs.JobStatus.registerStatus({
     WORKER_FETCHING_INPUT: {
         value: 820,
         text: 'Fetching input',
-        icon: 'icon-download'
+        icon: 'icon-download',
+        color: '#89d2e2'
     },
     WORKER_CONVERTING_INPUT: {
         value: 821,
         text: 'Converting input',
-        icon: 'icon-shuffle'
+        icon: 'icon-shuffle',
+        color: '#92f5b5'
     },
     WORKER_CONVERTING_OUTPUT: {
         value: 822,
         text: 'Converting output',
-        icon: 'icon-shuffle'
+        icon: 'icon-shuffle',
+        color: '#92f5b5'
     },
     WORKER_PUSHING_OUTPUT: {
         value: 823,
         text: 'Pushing output',
-        icon: 'icon-upload'
+        icon: 'icon-upload',
+        color: '#89d2e2'
     }
 });
