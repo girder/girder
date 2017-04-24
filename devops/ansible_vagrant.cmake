@@ -12,7 +12,9 @@ function(add_ansible_test case)
   add_test(
     NAME ${name}
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${ANSIBLE_PLAYBOOK_EXECUTABLE}" -i ${ANSIBLE_INVENTORY} --private-key=${ANSIBLE_PRIVATE_KEY} -u ${ANSIBLE_USER} "${PROJECT_SOURCE_DIR}/devops/ansible/roles/girder/library/test/test_${case}.yml" -v
+    COMMAND "${ANSIBLE_PLAYBOOK_EXECUTABLE}" -i ${ANSIBLE_INVENTORY} --module-path "${PROJECT_SOURCE_DIR}/devops/ansible/roles/girder/library"
+                                             --private-key=${ANSIBLE_PRIVATE_KEY} -u ${ANSIBLE_USER}
+                                             "${PROJECT_SOURCE_DIR}/devops/ansible/roles/girder/library/test/test_${case}.yml" -v
     )
 
   set_tests_properties("${name}" PROPERTIES
