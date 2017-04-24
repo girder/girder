@@ -10,8 +10,8 @@ import { getCurrentUser } from 'girder/auth';
 import { SORT_DESC } from 'girder/constants';
 
 import JobCollection from '../collections/JobCollection';
-import JobListWidgetTemplate from '../templates/JobListWidget.pug';
-import JobListTemplate from '../templates/JobList.pug';
+import JobListWidgetTemplate from '../templates/jobListWidget.pug';
+import JobListTemplate from '../templates/jobList.pug';
 import JobStatus from '../JobStatus';
 import CheckBoxMenu from './CheckBoxMenu';
 import JobGraphWidget from './JobGraphWidget';
@@ -36,6 +36,8 @@ var JobListWidget = View.extend({
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
         this.userId = (settings.filter && !settings.allJobsMode) ? (settings.filter.userId ? settings.filter.userId : currentUser.id) : null;
         this.showGraphs = settings.showGraphs;
+        this.showPageSizeSelector = settings.showPageSizeSelector;
+        this.showFilters = settings.showFilters;
         this.typeFilter = null;
         this.statusFilter = null;
         this.timingFilter = JobStatus.getAll().reduce((obj, status) => {

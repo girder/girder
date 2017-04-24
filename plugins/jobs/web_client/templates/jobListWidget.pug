@@ -1,12 +1,14 @@
-.g-page-size-container
-  span Page size
-  select.g-page-size
-    each val in pageSizes
-      option(selected=val==pageSize)= val
+if showFilters
+  .g-page-size-container
+    span Page size
+    select.g-page-size
+      each val in pageSizes
+        option(selected=val==pageSize)= val
 
-.g-job-filter-container.clearfix
-  .type
-  .status
+if showPageSizeSelector
+  .g-job-filter-container.clearfix
+    .type
+    .status
 
 if showGraphs
   ul.g-jobs.nav.nav-tabs

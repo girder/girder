@@ -4,7 +4,7 @@ import moment from 'moment';
 
 import View from 'girder/views/View';
 import JobStatus from '../JobStatus';
-import JobsGraphWidgetTemplate from '../templates/JobsGraphWidget.pug';
+import JobsGraphWidgetTemplate from '../templates/jobsGraphWidget.pug';
 import timingHistoryChartConfig from './timingHistoryChartConfig';
 import timeChartConfig from './timeChartConfig';
 

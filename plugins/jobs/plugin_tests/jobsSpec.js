@@ -122,7 +122,9 @@ $(function () {
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app,
-                    showGraphs: true
+                    showGraphs: true,
+                    showFilters: true,
+                    showPageSizeSelector: true
                 }).render();
 
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
@@ -186,7 +188,7 @@ $(function () {
             });
 
             waitsFor(function () {
-                return !$('.g-no-job-record').is(':visible');
+                return $('.g-no-job-record').is(':visible');
             }, 'job list to auto-reload when job_created is triggered');
         });
 
@@ -197,7 +199,9 @@ $(function () {
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app,
-                    showGraphs: true
+                    showGraphs: true,
+                    showFilters: true,
+                    showPageSizeSelector: true
                 }).render();
 
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
@@ -256,7 +260,9 @@ $(function () {
                     parentView: app,
                     filter: {},
                     triggerJobClick: true,
-                    showGraphs: true
+                    showGraphs: true,
+                    showFilters: true,
+                    showPageSizeSelector: true
                 }).render();
 
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
@@ -302,7 +308,9 @@ $(function () {
                     parentView: app,
                     filter: {},
                     allJobsMode: true,
-                    showGraphs: true
+                    showGraphs: true,
+                    showFilters: true,
+                    showPageSizeSelector: true
                 });
 
                 expect(widget.collection.resourceName).toEqual('job/all');
@@ -320,7 +328,9 @@ $(function () {
                     el: $('#g-app-body-container'),
                     parentView: app,
                     allJobsMode: true,
-                    showGraphs: true
+                    showGraphs: true,
+                    showFilters: true,
+                    showPageSizeSelector: true
                 });
             });
             girderTest.waitForLoad();
@@ -337,7 +347,9 @@ $(function () {
                     el: $('#g-app-body-container'),
                     filter: {},
                     parentView: app,
-                    showGraphs: true
+                    showGraphs: true,
+                    showFilters: true,
+                    showPageSizeSelector: true
                 }).render();
             });
 
@@ -396,7 +408,7 @@ $(function () {
             }, 'graph to clear');
         });
 
-        it('job list widget without graphs', function () {
+        it('job list widget without graphs, filter, and page size selector', function () {
             var widget;
 
             runs(function () {
@@ -411,6 +423,8 @@ $(function () {
 
             runs(function () {
                 expect(widget.$('.g-jobs.nav.nav-tabs').length).toBe(0);
+                expect(widget.$('.g-job-filter-container').length).toBe(0);
+                expect(widget.$('.g-page-size-container').length).toBe(0);
             });
         });
     });
