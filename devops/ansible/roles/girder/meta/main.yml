@@ -11,7 +11,7 @@ galaxy_info:
     versions:
       - trusty
       - xenial
-  - name: RedHat
+  - name: EL
     versions:
       - 7
 
