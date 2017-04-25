@@ -20,7 +20,7 @@
 import click
 import sys
 import types
-from girder_client import GirderClient, HttpError
+from girder_client import GirderClient, HttpError, __version__
 
 
 class GirderCli(GirderClient):
@@ -146,6 +146,7 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
                    '[default: %s]' % GirderClient.DEFAULT_API_ROOT,
               show_default=True,
               cls=_AdvancedOption)
+@click.version_option(version=__version__, prog_name='Girder command line interface')
 @click.pass_context
 def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root):
     """Perform common Girder CLI operations.
