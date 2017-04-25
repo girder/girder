@@ -5,9 +5,10 @@
       li
         b.g-input-name #{id}:&nbsp;
         if input.mode === 'inline'
-          span.g-input-value= JSON.stringify(input.data)
+          span.g-input-value(input-id=id)= JSON.stringify(input.data)
         else if input.mode === 'girder'
-          a.g-input-value(href=`#${input.resource_type || 'file'}/${input.id}`) View #{input.resource_type}
+          a.g-input-value(input-id=id, href=`#${input.resource_type || 'file'}/${input.id}`)
+            | View #{input.resource_type}
 .g-item-task-outputs-container
   .g-job-info-key(property="outputs") Outputs:
   ul
