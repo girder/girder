@@ -1,15 +1,16 @@
 .g-item-task-inputs-container
-  h4 Inputs
+  .g-job-info-key(property="inputs") Inputs:
   ul
     each input, id in (job.get('itemTaskBindings').inputs || {})
       li
         b.g-input-name #{id}:&nbsp;
         if input.mode === 'inline'
-          span.g-input-value= JSON.stringify(input.data)
+          span.g-input-value(input-id=id)= JSON.stringify(input.data)
         else if input.mode === 'girder'
-          a.g-input-value(href=`#${input.resource_type || 'file'}/${input.id}`) View #{input.resource_type}
+          a.g-input-value(input-id=id, href=`#${input.resource_type || 'file'}/${input.id}`)
+            | View #{input.resource_type}
 .g-item-task-outputs-container
-  h4 Outputs
+  .g-job-info-key(property="outputs") Outputs:
   ul
     each output, id in (job.get('itemTaskBindings').outputs || {})
       li
@@ -20,3 +21,7 @@
           else
             span Not created &mdash;&nbsp;
             a(href=`#${output.parent_type || 'folder'}/${output.parent_id}`) view destination
+.g-item-task-setup-again
+  a(href=`#item_task/${job.get('itemTaskId')}/run?fromJob=${job.id}`)
+    i.icon-play
+    |  Configure and run task again from these parameters

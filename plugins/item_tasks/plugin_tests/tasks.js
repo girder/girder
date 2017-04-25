@@ -106,6 +106,10 @@ describe('Run the item task', function () {
     });
 
     it('configure task inputs', function () {
+        expect($('input[name="MaximumRadius"]').val()).toBe('20');
+
+        $('input[name="MaximumRadius"]').val('12').trigger('change');
+
         $('.g-inputs-container .g-select-file-button').click();
         girderTest.waitForDialog();
 
@@ -198,6 +202,20 @@ describe('Run the item task', function () {
         runs(function () {
             expect($('.g-item-task-inputs-container ul>li').length).toBe(9);
             expect($('.g-item-task-outputs-container ul>li').length).toBe(1);
+            expect($('.g-input-value[input-id="--MaximumRadius"]').text()).toBe('12');
+        });
+    });
+
+    it('Reconfigure task from previous execution details', function () {
+        window.location.assign($('.g-item-task-setup-again a').attr('href'));
+
+        waitsFor(function () {
+            return $('input[name="MaximumRadius"]').val() === '12';
+        }, 'task run view to display with same parameters');
+
+        runs(function () {
+            // Make sure item name displays properly
+            expect($('input[name="InputImage"]').val()).toBe('PET phantom detector CLI');
         });
     });
 });
