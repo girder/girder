@@ -9,6 +9,7 @@ import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
 import { restartServer, rebuildWebClient } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
+import PluginFailedNoticeTemplate from 'girder/templates/widgets/pluginFailedNotice.pug';
 import PluginsTemplate from 'girder/templates/body/plugins.pug';
 
 import 'girder/utilities/jquery/girderEnable';
@@ -128,10 +129,7 @@ var PluginsView = View.extend({
         });
         this.$('.g-plugin-list-item-failed-notice').popover({
             container: this.$el,
-            template: '<div class="popover g-plugin-list-item-failed-notice-popover" role="tooltip">' +
-                      '<div class="arrow"></div><h3 class="popover-title"></h3>' +
-                      '<div class="popover-content g-plugin-list-item-failed-notice-popover-content"></div>' +
-                      '</div>'
+            template: PluginFailedNoticeTemplate()
         });
 
         return this;
