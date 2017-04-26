@@ -132,10 +132,14 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def getPlugins(self, params):
-        return {
+        plugins = {
             'all': plugin_utilities.findAllPlugins(),
             'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED)
         }
+        failureInfo = plugin_utilities.getPluginFailureInfo()
+        if failureInfo:
+            plugins['failed'] = failureInfo
+        return plugins
 
     @access.public
     @autoDescribeRoute(

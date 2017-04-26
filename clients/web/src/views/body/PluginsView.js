@@ -9,6 +9,7 @@ import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
 import { restartServer, rebuildWebClient } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
+import PluginFailedNoticeTemplate from 'girder/templates/widgets/pluginFailedNotice.pug';
 import PluginsTemplate from 'girder/templates/body/plugins.pug';
 
 import 'girder/utilities/jquery/girderEnable';
@@ -54,6 +55,7 @@ var PluginsView = View.extend({
         if (settings.all && settings.enabled) {
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
+            this.failed = _.has(settings, 'failed') ? settings.failed : null;
             this.render();
         } else {
             // Fetch the plugin list
@@ -63,6 +65,7 @@ var PluginsView = View.extend({
             }).done(_.bind(function (resp) {
                 this.enabled = resp.enabled;
                 this.allPlugins = resp.all;
+                this.failed = _.has(resp, 'failed') ? resp.failed : null;
                 this.render();
             }, this));
         }
@@ -79,6 +82,10 @@ var PluginsView = View.extend({
             if (_.contains(this.enabled, name)) {
                 info.enabled = true;
                 info.configRoute = getPluginConfigRoute(name);
+            }
+
+            if (this.failed && _.has(this.failed, name)) {
+                info.failed = this.failed[name];
             }
         }, this);
 
@@ -109,10 +116,20 @@ var PluginsView = View.extend({
             placement: 'bottom',
             delay: { show: 100 }
         });
-        this.$('.g-experimental-notice').tooltip({
+        this.$('.g-plugin-list-item-experimental-notice').tooltip({
             container: this.$el,
             animation: false,
             delay: { show: 100 }
+        });
+        this.$('.g-plugin-list-item-failed-notice').tooltip({
+            title: 'Click to see traceback',
+            container: this.$el,
+            animation: false,
+            delay: { show: 100 }
+        });
+        this.$('.g-plugin-list-item-failed-notice').popover({
+            container: this.$el,
+            template: PluginFailedNoticeTemplate()
         });
 
         return this;

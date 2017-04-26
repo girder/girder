@@ -36,6 +36,7 @@ import six
 import sys
 import yaml
 import importlib
+import traceback
 
 import pkg_resources
 from pkg_resources import iter_entry_points
@@ -47,6 +48,21 @@ from girder.models.model_base import ValidationException
 from girder.utility import mail_utils, model_importer
 
 _pluginWebroots = {}
+_pluginFailureInfo = {}
+
+
+def _recordPluginFailureInfo(plugin, traceback):
+    """
+    Record information when a plugin fails to load.
+
+    :param plugin: The name of the plugin that failed to load.
+    :type plugin: str
+    :param traceback: The traceback of the failure.
+    :type trackback: str
+    """
+    _pluginFailureInfo[plugin] = {
+        'traceback': traceback
+    }
 
 
 def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
@@ -87,6 +103,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
             root, appconf, apiRoot = loadPlugin(plugin, root, appconf, apiRoot)
             logprint.success('Loaded plugin "%s"' % plugin)
         except Exception:
+            _recordPluginFailureInfo(plugin=plugin, traceback=traceback.format_exc())
             logprint.exception('ERROR: Failed to load plugin "%s":' % plugin)
 
     return root, appconf, apiRoot
@@ -255,6 +272,9 @@ def findEntryPointPlugins(allPlugins):
                     try:
                         data = json.load(codecs.getreader('utf8')(conf))
                     except ValueError:
+                        _recordPluginFailureInfo(
+                            plugin=entry_point.name,
+                            traceback=traceback.format_exc())
                         logprint.exception(
                             'ERROR: Plugin "%s": plugin.json is not valid '
                             'JSON.' % entry_point.name)
@@ -264,6 +284,9 @@ def findEntryPointPlugins(allPlugins):
                     try:
                         data = yaml.safe_load(conf)
                     except yaml.YAMLError:
+                        _recordPluginFailureInfo(
+                            plugin=entry_point.name,
+                            traceback=traceback.format_exc())
                         logprint.exception(
                             'ERROR: Plugin "%s": plugin.yml is not valid '
                             'YAML.' % entry_point.name)
@@ -299,6 +322,7 @@ def findAllPlugins():
                 try:
                     data = json.load(conf)
                 except ValueError:
+                    _recordPluginFailureInfo(plugin=plugin, traceback=traceback.format_exc())
                     logprint.exception(
                         'ERROR: Plugin "%s": plugin.json is not valid '
                         'JSON.' % plugin)
@@ -307,6 +331,7 @@ def findAllPlugins():
                 try:
                     data = yaml.safe_load(conf)
                 except yaml.YAMLError:
+                    _recordPluginFailureInfo(plugin=plugin, traceback=traceback.format_exc())
                     logprint.exception(
                         'ERROR: Plugin "%s": plugin.yml is not valid '
                         'YAML.' % plugin)
@@ -395,6 +420,10 @@ def registerPluginWebroot(webroot, name):
     global _pluginWebroots
 
     _pluginWebroots[name] = webroot
+
+
+def getPluginFailureInfo():
+    return _pluginFailureInfo
 
 
 class config(object):  # noqa: class name
