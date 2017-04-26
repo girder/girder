@@ -388,6 +388,14 @@ recommended process for generating a new release is described here.
 
         python setup.py sdist upload
 
+10. Ensure that a built Docker image is tagged on
+    `Girder's Docker Hub page <https://hub.docker.com/r/girder/girder/tags/>`_.
+    Such a build can be added by following the instructions for
+    `adding and running a new build <https://docs.docker.com/docker-hub/builds/#add-and-run-a-new-build>`_.
+
+    The tag name should be the version number only, for example Girder ``v2.2.0`` is tagged on Docker Hub
+    as ``2.2.0``.
+
 Releasing the python client package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
