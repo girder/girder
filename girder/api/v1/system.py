@@ -27,7 +27,8 @@ import os
 import logging
 
 from girder.api import access
-from girder.constants import SettingKey, TokenScope, ACCESS_FLAGS, VERSION
+from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
+    SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.models.model_base import GirderException
 from girder.utility import install, plugin_utilities, system
 from girder.utility.progress import ProgressContext
@@ -156,7 +157,26 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def enablePlugins(self, plugins, params):
-        return self.model('setting').set(SettingKey.PLUGINS_ENABLED, plugins)
+        # Determine what plugins have been disabled and remove their associated routes.
+        setting = self.model('setting')
+        routeTable = setting.get(SettingKey.ROUTE_TABLE)
+        oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
+        reservedRoutes = {GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID}
+
+        routeTableChanged = False
+        removedRoutes = (
+            set(oldPlugins) - set(plugins) - reservedRoutes)
+
+        for route in removedRoutes:
+            if route in routeTable:
+                del routeTable[route]
+                routeTableChanged = True
+
+        if routeTableChanged:
+            setting.set(SettingKey.ROUTE_TABLE, routeTable)
+
+        # Route cleanup is done; update list of enabled plugins.
+        return setting.set(SettingKey.PLUGINS_ENABLED, plugins)
 
     @access.admin
     @autoDescribeRoute(

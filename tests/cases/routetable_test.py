@@ -97,6 +97,40 @@ class RouteTableTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertTrue('g-global-info-apiroot' in self.getBody(resp))
 
+        # has_webroot is mounted on /has_weboort
+        resp = self.request('/system/setting', params={
+            'key': SettingKey.ROUTE_TABLE
+        }, user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertTrue('has_webroot' in resp.json)
+        self.assertEqual(resp.json['has_webroot'], '/has_webroot')
+
+        # has_webroot is set to be mounted on /has_webroot even after removing it from the list of
+        # enabled plugins.
+        base.enabledPlugins.remove('has_webroot')
+        resp = self.request('/system/setting', params={
+            'key': SettingKey.ROUTE_TABLE
+        }, user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertTrue('has_webroot' in resp.json)
+        self.assertEqual(resp.json['has_webroot'], '/has_webroot')
+        base.enabledPlugins.append('has_webroot')
+
+        # Only when has_webroot has been explicitly removed by the user is its route table entry
+        # cleared.
+        resp = self.request('/system/plugins', params={
+            'plugins': json.dumps([
+                plugin for plugin in base.enabledPlugins if plugin != 'has_webroot'])
+        }, method='PUT', user=self.admin)
+        self.assertStatusOk(resp)
+
+        # now, confirm that the plugin's route table entry has actually been removed
+        resp = self.request('/system/setting', params={
+            'key': SettingKey.ROUTE_TABLE
+        }, user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertTrue('has_webroot' not in resp.json)
+
         # Setting the static route to http should be allowed
         resp = self.request('/system/setting', params={
             'key': SettingKey.ROUTE_TABLE,
