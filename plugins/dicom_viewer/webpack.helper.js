@@ -16,6 +16,9 @@ module.exports = function (config) {
             loader: 'string-replace-loader',
             query: {
                 multiple: [
+                    {search: /vtkDebugMacro/g, replace: 'console.debug'},
+                    {search: /vtkErrorMacro/g, replace: 'console.error'},
+                    {search: /vtkWarningMacro/g, replace: 'console.warn'},
                     {search: /test\.onlyIfWebGL/g, replace: 'test'}
                 ]
             }
