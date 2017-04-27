@@ -14,12 +14,12 @@ of data from Girder to a local directory.
 Versioning
 ----------
 
-The Girder python client is semanticly versioned separately from the Girder
-server, but not fully independently because the client and server are coupled.
-The design intent is that every version of the client should work with every
-version of the server, modulo bugfixes, though this is not an explicit
-guarantee.  Generally you should use the latest version of the Girder python
-client that is installable from pip.
+The Girder python client is :ref:`versioned <releasepythonclientpackage>`
+separately from the Girder server, but not fully independently because the
+client and server are coupled. The design intent is that every version of the
+client should work with every version of the server, though this is not an
+explicit guarantee.  Generally you should use the latest version of the Girder
+python client that is installable from pip.
 
 Installation
 ------------
