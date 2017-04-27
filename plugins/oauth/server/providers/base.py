@@ -25,9 +25,12 @@ import six
 from girder.api.rest import RestException
 from girder.constants import SettingKey
 from girder.utility import config, model_importer
+from ..constants import PluginSettings
 
 
 class ProviderBase(model_importer.ModelImporter):
+    _AUTH_SCOPES = []
+
     def __init__(self, redirectUri, clientId=None, clientSecret=None):
         """
         Base class for OAuth2 providers. The purpose of these classes is to
@@ -94,6 +97,19 @@ class ProviderBase(model_importer.ModelImporter):
         """
         raise NotImplementedError()
 
+    @classmethod
+    def addScopes(cls, scopes):
+        """
+        Plugins wishing to use additional provider features that require other auth
+        scopes should use this method to add additional required scopes to the list.
+
+        :param scopes: List of additional required scopes.
+        :type scopes: list
+        :returns: The new list of auth scopes.
+        """
+        cls._AUTH_SCOPES.extend(scopes)
+        return cls._AUTH_SCOPES
+
     @staticmethod
     def _getJson(**kwargs):
         """
@@ -149,9 +165,11 @@ class ProviderBase(model_importer.ModelImporter):
         if not user:
             policy = cls.model('setting').get(SettingKey.REGISTRATION_POLICY)
             if policy == 'closed':
-                raise RestException(
-                    'Registration on this instance is closed. Contact an '
-                    'administrator to create an account for you.')
+                ignore = cls.model('setting').get(PluginSettings.IGNORE_REGISTRATION_POLICY)
+                if not ignore:
+                    raise RestException(
+                        'Registration on this instance is closed. Contact an '
+                        'administrator to create an account for you.')
             login = cls._deriveLogin(email, firstName, lastName, userName)
 
             user = cls.model('user').createUser(

@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import boto
+import httmock
 import io
 import json
 import mock
@@ -32,9 +34,9 @@ from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.models.model_base import AccessException
+from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
-from girder.utility.s3_assetstore_adapter import (makeBotoConnectParams,
-                                                  S3AssetstoreAdapter)
+from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
 from six.moves import urllib
 
 
@@ -44,6 +46,7 @@ def setUpModule():
 
 def tearDownModule():
     base.stopServer()
+
 
 chunk1, chunk2 = ('hello ', 'world')
 chunkData = chunk1.encode('utf8') + chunk2.encode('utf8')
@@ -176,7 +179,7 @@ class FileTestCase(base.TestCase):
             'message': 'Chunk is smaller than the minimum size.'
         })
 
-        # Send the first chunk
+        # Send the first chunk (use multipart)
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
@@ -218,12 +221,12 @@ class FileTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['offset'], currentOffset)
 
-        files = [('chunk', name, chunk2)]
-
-        # Now upload the second chunk
-        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        # Now upload the second chunk (using query params + body)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                'offset': resp.json['offset'],
+                'uploadId': uploadId
+            }, type='text/plain')
         self.assertStatusOk(resp)
 
         file = resp.json
@@ -238,6 +241,7 @@ class FileTestCase(base.TestCase):
     def _testDownloadFile(self, file, contents):
         """
         Downloads the previously uploaded file from the server.
+
         :param file: The file object to download.
         :type file: dict
         :param contents: The expected contents.
@@ -309,6 +313,37 @@ class FileTestCase(base.TestCase):
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
         self.assertEqual(contents, self.getBody(resp))
+
+        def _readFile(handle):
+            buf = b''
+            while True:
+                chunk = handle.read(32768)
+                buf += chunk
+                if not chunk:
+                    break
+            return buf
+
+        # Test reading via the model layer file-like API
+        contents = contents.encode('utf8')
+        with self.model('file').open(file) as handle:
+            self.assertEqual(handle.tell(), 0)
+            handle.seek(0)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents)
+
+            # Test seek modes
+            handle.seek(2)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[2:])
+
+            handle.seek(2)
+            handle.seek(2, os.SEEK_CUR)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[4:])
+
+            handle.seek(2, os.SEEK_END)
+            buf = _readFile(handle)
+            self.assertEqual(buf, contents[-2:])
 
     def _testDownloadFolder(self):
         """
@@ -589,6 +624,13 @@ class FileTestCase(base.TestCase):
         self.assertEqual(resp.json['name'], 'newName.json')
         file['name'] = resp.json['name']
 
+        # Make sure internal details got filtered
+        self.assertNotIn('sha512', file)
+        self.assertNotIn('path', file)
+        self.assertEqual(file['_modelType'], 'file')
+
+        file = self.model('file').load(file['_id'], force=True)
+
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
         hash = sha512(chunkData).hexdigest()
@@ -664,7 +706,7 @@ class FileTestCase(base.TestCase):
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
-        file = resp.json
+        file = self.model('file').load(resp.json['_id'], force=True)
 
         # Old contents should now be destroyed, new contents should be present
         self.assertFalse(os.path.isfile(abspath))
@@ -707,10 +749,13 @@ class FileTestCase(base.TestCase):
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
 
-    def atestGridFsAssetstore(self):
+    def testGridFsAssetstore(self):
         """
         Test usage of the GridFS assetstore type.
         """
+        # Must also lower GridFS's internal chunk size to support our small chunks
+        gridfs_assetstore_adapter.CHUNK_SIZE, old = 6, gridfs_assetstore_adapter.CHUNK_SIZE
+
         # Clear any old DB data
         base.dropGridFSDatabase('girder_test_file_assetstore')
         # Clear the assetstore database
@@ -727,12 +772,17 @@ class FileTestCase(base.TestCase):
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
         hash = sha512(chunkData).hexdigest()
+        file = self.model('file').load(file['_id'], force=True)
         self.assertEqual(hash, file['sha512'])
 
         # We should have two chunks in the database
         self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 2)
 
         self._testDownloadFile(file, chunk1 + chunk2)
+
+        # Reset chunk size so the large file testing isn't horribly slow
+        gridfs_assetstore_adapter.CHUNK_SIZE = old
+
         self._testDownloadFolder()
         self._testDownloadCollection()
 
@@ -750,9 +800,9 @@ class FileTestCase(base.TestCase):
         self._testCopyFile(copyTestFile)
 
     @moto.mock_s3bucket_path
-    def atestS3Assetstore(self):
+    def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
-        mock_s3.createBucket(botoParams, 'b')
+        bucket = mock_s3.createBucket(botoParams, 'b')
 
         self.model('assetstore').remove(self.model('assetstore').getCurrent())
         assetstore = self.model('assetstore').createS3Assetstore(
@@ -781,8 +831,7 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
         self.assertEqual(
-            resp.json['message'],
-            'Uploads of this length must be sent in a single chunk.')
+            resp.json['message'], 'Uploads of this length must be sent in a single chunk.')
 
         # Attempting to send second chunk with incorrect offset should fail
         fields = [('offset', 100), ('uploadId', uploadId)]
@@ -791,20 +840,41 @@ class FileTestCase(base.TestCase):
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
         self.assertEqual(
-            resp.json['message'],
-            'Server has received 0 bytes, but client sent offset 100.')
+            resp.json['message'], 'Server has received 0 bytes, but client sent offset 100.')
 
         # Request offset from server (simulate a resume event)
-        resp = self.request(path='/file/offset', method='GET', user=self.user,
-                            params={'uploadId': uploadId})
+        resp = self.request(
+            path='/file/offset', method='GET', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
+
+        @httmock.all_requests
+        def mockChunkUpload(url, request):
+            """
+            We used to be able to use moto to mock the sending of chunks to
+            S3, however we now no longer use the boto API to do so internally,
+            and must mock this out at the level of requests.
+            """
+            if url.netloc != 's3.amazonaws.com':
+                raise Exception('Unexpected request to host ' + url.netloc)
+
+            body = request.body.read(65536)  # sufficient for now, we have short bodies
+
+            # Actually set the key in moto
+            self.assertEqual(url.path[:3], '/b/')
+            key = boto.s3.key.Key(bucket=bucket, name=url.path[3:])
+            key.set_contents_from_string(body)
+
+            return {
+                'status_code': 200
+            }
 
         # Trying to send too many bytes should fail
         currentOffset = resp.json['offset']
         fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
         files = [('chunk', 'hello.txt', "extra_"+chunk2+"_bytes")]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json, {
             'type': 'validation',
@@ -812,16 +882,17 @@ class FileTestCase(base.TestCase):
         })
 
         # The offset should not have changed
-        resp = self.request(path='/file/offset', method='GET', user=self.user,
-                            params={'uploadId': uploadId})
+        resp = self.request(
+            path='/file/offset', method='GET', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['offset'], currentOffset)
 
         # Send all in one chunk
         files = [('chunk', 'hello.txt', chunk1 + chunk2)]
         fields = [('offset', 0), ('uploadId', uploadId)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
         file = self.model('file').load(resp.json['_id'], force=True)
@@ -834,7 +905,7 @@ class FileTestCase(base.TestCase):
         # Make sure metadata is updated in S3 when file info changes
         # (moto API doesn't cover this at all, so we manually mock.)
         with mock.patch('boto.s3.key.Key.set_remote_metadata') as m:
-            resp = self.request(
+            self.request(
                 '/file/%s' % str(file['_id']), method='PUT', params={
                     'mimeType': 'application/csv',
                     'name': 'new name'
@@ -868,8 +939,9 @@ class FileTestCase(base.TestCase):
         files = [('chunk', 'hello.txt', chunk1)]
 
         # Send the first chunk, should now work
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
         resp = self.request(path='/file/offset', user=self.user, params={
@@ -882,10 +954,12 @@ class FileTestCase(base.TestCase):
         moto.s3.models.UPLOAD_PART_MIN_SIZE = 5
 
         # Send the second chunk
-        files = [('chunk', 'hello.txt', chunk2)]
-        fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.user, fields=fields, files=files)
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                    'offset': resp.json['offset'],
+                    'uploadId': uploadId
+                }, type='text/plain')
         self.assertStatusOk(resp)
 
         file = resp.json

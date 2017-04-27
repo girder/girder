@@ -169,6 +169,18 @@ class ApiDescribeTestCase(base.TestCase):
             'description',
             resp.json['paths']['/group']['get']['responses']['200'])
 
+    def testApiDescribeReferred(self):
+        resp = self.request(path='/describe', method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['basePath'], '/api/v1')
+        self.assertEqual(resp.json['host'], '127.0.0.1')
+        resp = self.request(
+            path='/describe', method='GET',
+            additionalHeaders=[('Referer', 'http://somewhere.com/alternate/api/v1')])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['basePath'], '/alternate/api/v1')
+        self.assertEqual(resp.json['host'], 'somewhere.com')
+
     def testRoutesExist(self):
         # Check that the resources and operations exist
         resp = self.request(path='/describe', method='GET')
@@ -225,6 +237,8 @@ class ApiDescribeTestCase(base.TestCase):
                 self.route('POST', ('json_body_required',), self.jsonBodyRequired)
                 self.route('GET', ('model_param_flags',), self.hasModelParamFlags)
                 self.route('GET', ('model_param_query',), self.hasModelQueryParam)
+                self.route('GET', ('json_schema',), self.hasJsonSchema)
+                self.route('GET', ('missing_arg',), self.hasMissingArg)
 
             @access.public
             @describe.autoDescribeRoute(
@@ -301,6 +315,25 @@ class ApiDescribeTestCase(base.TestCase):
             )
             def hasModelParamFlags(self, user, params):
                 return user
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('has_json_schema')
+                .jsonParam('obj', '', schema={
+                    'type': 'object',
+                    'required': ['foo', 'bar']
+                })
+            )
+            def hasJsonSchema(self, obj, params):
+                return obj
+
+            @access.public
+            @describe.autoDescribeRoute(
+                describe.Description('has_missing_arg')
+                .param('foo', '')
+            )
+            def hasMissingArg(self, params):
+                return params
 
         server.root.api.v1.auto_describe = AutoDescribe()
 
@@ -468,3 +501,36 @@ class ApiDescribeTestCase(base.TestCase):
         })
         self.assertStatus(resp, 401)
         six.assertRegex(self, resp.json['message'], '^Access denied for user')
+
+        resp = self.request('/auto_describe/json_schema', params={
+            'obj': json.dumps([])
+        })
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            "Invalid JSON object for parameter obj: [] is not of type 'object'")
+
+        resp = self.request('/auto_describe/json_schema', params={
+            'obj': json.dumps({})
+        })
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            "Invalid JSON object for parameter obj: 'foo' is a required property")
+
+        obj = {
+            'foo': 1,
+            'bar': 2
+        }
+        resp = self.request('/auto_describe/json_schema', params={
+            'obj': json.dumps(obj)
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, obj)
+
+        # Test missing arg in wrapped function, should fall through to params dict
+        resp = self.request('/auto_describe/missing_arg', params={
+            'foo': 'bar'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, {'foo': 'bar'})

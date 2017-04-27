@@ -26,7 +26,7 @@ from .. import constants
 
 class LinkedIn(ProviderBase):
     _AUTH_URL = 'https://www.linkedin.com/uas/oauth2/authorization'
-    _AUTH_SCOPES = ('r_basicprofile', 'r_emailaddress')
+    _AUTH_SCOPES = ['r_basicprofile', 'r_emailaddress']
     _TOKEN_URL = 'https://www.linkedin.com/uas/oauth2/accessToken'
     _API_USER_URL = 'https://api.linkedin.com/v1/people/~'
     _API_USER_FIELDS = ('id', 'emailAddress', 'firstName', 'lastName')

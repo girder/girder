@@ -79,6 +79,10 @@ var OAuthLoginView = View.extend({
         linkedin: {
             icon: 'linkedin',
             class: 'g-oauth-button-linkedin'
+        },
+        box: {
+            icon: 'box',
+            class: 'g-oauth-button-box'
         }
     }
 });

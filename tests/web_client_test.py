@@ -74,14 +74,21 @@ class WebClientTestEndpoints(Resource):
                '"failure".', required=False)
         .param('duration', 'Duration of the test in seconds', required=False,
                dataType='int')
+        .param('resourceId', 'Resource ID associated with the progress notification.',
+               required=False)
+        .param('resourceName', 'Type of resource associated with the progress '
+               'notification.', required=False)
     )
     def testProgress(self, params):
         test = params.get('test', 'success')
         duration = int(params.get('duration', 10))
+        resourceId = params.get('resourceId', None)
+        resourceName = params.get('resourceName', None)
         startTime = time.time()
         with ProgressContext(True, user=self.getCurrentUser(),
                              title='Progress Test', message='Progress Message',
-                             total=duration) as ctx:
+                             total=duration, resource={'_id': resourceId},
+                             resourceName=resourceName) as ctx:
             for current in range(duration):
                 if self.stop:
                     break
@@ -150,6 +157,11 @@ class WebClientTestCase(base.TestCase):
         base.dropGridFSDatabase('girder_webclient_gridfs')
 
         testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
+
+        if 'SETUP_MODULES' in os.environ:
+            import imp
+            for i, script in enumerate(os.environ['SETUP_MODULES'].split(':')):
+                imp.load_source('girder.web_test_setup%d' % i, script)
 
     def testWebClientSpec(self):
         baseUrl = '/static/built/testing/testEnv.html'

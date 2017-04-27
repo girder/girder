@@ -85,7 +85,7 @@ and start it with: ::
 
 Enable the Node.js APT repository: ::
 
-    curl -sL https://deb.nodesource.com/setup_4.x | sudo bash -
+    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
 
 Install Node.js and NPM using APT: ::
 
@@ -130,7 +130,7 @@ Install MongoDB server using YUM: ::
 
 Enable the Node.js YUM repository: ::
 
-    curl -sL https://rpm.nodesource.com/setup_4.x | sudo bash -
+    curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
 
 Install Node.js and NPM using YUM: ::
 

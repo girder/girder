@@ -1,0 +1,4 @@
+name: Hashsum download
+description: Allows download of a file by its hashsum.
+url: http://girder.readthedocs.io/en/latest/plugins.html#hashsum-download
+version: 0.1.0

@@ -26,7 +26,7 @@ from .. import constants
 
 class Google(ProviderBase):
     _AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
-    _AUTH_SCOPES = ('profile', 'email')
+    _AUTH_SCOPES = ['profile', 'email']
     _TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'
     _API_USER_URL = 'https://www.googleapis.com/plus/v1/people/me'
     _API_USER_FIELDS = ('id', 'emails', 'name')

@@ -166,7 +166,7 @@ class Collection(AccessControlledModel):
         :param subpath: if True, add the collection's name to the path.
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
-        :type mimeFilter: list or tuple
+        :type mimeFilter: `list or tuple`
         :param data: If True return raw content of each file as stored in the
             assetstore, otherwise return file document.
         :type data: bool

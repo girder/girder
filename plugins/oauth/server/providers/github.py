@@ -26,7 +26,7 @@ from .. import constants
 
 class GitHub(ProviderBase):
     _AUTH_URL = 'https://github.com/login/oauth/authorize'
-    _AUTH_SCOPES = ('user:email',)
+    _AUTH_SCOPES = ['user:email']
     _TOKEN_URL = 'https://github.com/login/oauth/access_token'
     _API_USER_URL = 'https://api.github.com/user'
     _API_EMAILS_URL = 'https://api.github.com/user/emails'

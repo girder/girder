@@ -1,6 +1,6 @@
 {
   "name": "girder",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "High-performance data management platform",
   "homepage": "https://girder.readthedocs.org",
   "bugs": {
@@ -21,7 +21,7 @@
     "bootstrap-switch": "3.3.2",
     "colors": "1.1.2",
     "css-loader": "^0.26.1",
-    "eonasdan-bootstrap-datetimepicker": "~4.15",
+    "eonasdan-bootstrap-datetimepicker": "~4.17",
     "event-source": "0.1.1",
     "extract-text-webpack-plugin": "^2.0.0-rc.0",
     "file-loader": "^0.10.0",
@@ -45,12 +45,12 @@
     "json-loader": "^0.5.4",
     "jsoneditor": "4.1.2",
     "nib": "^1.1.0",
-    "remarkable": "1.6.2",
+    "remarkable": "1.7.1",
     "sprintf-js": "1.0.x",
     "style-loader": "^0.13.1",
     "stylus": "^0.54.5",
     "stylus-loader": "^2.1.1",
-    "swagger-ui": "2.1.4",
+    "swagger-ui": "2.2.10",
     "toposort": "^1.0.0",
     "underscore": "~1.8.3",
     "url-loader": "^0.5.7",
@@ -58,6 +58,7 @@
   },
   "devDependencies": {
     "babel-plugin-istanbul": "^2.0.1",
+    "esdoc": "^0.5.2",
     "eslint": "^3.3.1",
     "eslint-config-girder": "^2.0.0",
     "eslint-config-semistandard": "^6.0.2",
@@ -76,6 +77,7 @@
     "build": "grunt init && NODE_PATH=$PWD/node_modules grunt",
     "watch": "NODE_PATH=$PWD/node_modules grunt --watch",
     "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts clients/web/test && pug-lint clients/web/src/templates",
-    "docs": "grunt docs"
+    "docs": "grunt docs",
+    "esdoc": "esdoc"
   }
 }

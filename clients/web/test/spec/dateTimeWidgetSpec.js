@@ -149,12 +149,12 @@ describe('Test DateTimeWidget', function () {
 
         it('get date as string when set in UTC', function () {
             widget.setDate('2015-02-01T12:00Z');
-            expect(widget.dateString()).toBe('2015-02-01T12:00:00+00:00');
+            expect(widget.dateString()).toBe('2015-02-01T12:00:00Z');
         });
 
         it('get date as string when set with UTC offset', function () {
             widget.setDate('2015-02-01T12:00-05:00');
-            expect(widget.dateString()).toBe('2015-02-01T17:00:00+00:00');
+            expect(widget.dateString()).toBe('2015-02-01T17:00:00Z');
         });
 
         it('get date as string when not set', function () {
@@ -394,18 +394,18 @@ describe('Test DateTimeRangeWidget', function () {
 
         it('get dates as string when set in UTC', function () {
             widget.setFromDate('2015-02-01T12:00Z');
-            expect(widget.fromDateString()).toBe('2015-02-01T12:00:00+00:00');
+            expect(widget.fromDateString()).toBe('2015-02-01T12:00:00Z');
 
             widget.setToDate('2015-03-01T12:00Z');
-            expect(widget.toDateString()).toBe('2015-03-01T12:00:00+00:00');
+            expect(widget.toDateString()).toBe('2015-03-01T12:00:00Z');
         });
 
         it('get dates as string when set with UTC offset', function () {
             widget.setFromDate('2015-02-01T12:00-05:00');
-            expect(widget.fromDateString()).toBe('2015-02-01T17:00:00+00:00');
+            expect(widget.fromDateString()).toBe('2015-02-01T17:00:00Z');
 
             widget.setToDate('2015-03-01T12:00-05:00');
-            expect(widget.toDateString()).toBe('2015-03-01T17:00:00+00:00');
+            expect(widget.toDateString()).toBe('2015-03-01T17:00:00Z');
         });
 
         it('get dates as string when not set', function () {

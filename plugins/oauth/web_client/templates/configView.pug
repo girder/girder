@@ -1,5 +1,16 @@
 .g-config-breadcrumb-container
 
+.g-reg-policy-config-container
+  p.
+    Normally, if the core registration policy is set to closed, OAuth
+    users are also not allowed to be created. If you want to override this
+    policy and allow OAuth users to register even if the core registration
+    policy is closed, check the box below.
+  .checkbox
+    label
+      input.g-ignore-registration-policy(type="checkbox")
+      | Ignore closed registration policy
+
 .g-oauth-provider-list-title Configure supported providers below
 p Only fill in the information for the OAuth2 providers you wish to enable.
 
@@ -22,7 +33,7 @@ p Only fill in the information for the OAuth2 providers you wish to enable.
               span.g-oauth-value= origin
           .g-oauth-value-container
             b Authorized redirect URI:
-            span.g-oauth-value= origin + apiRoot + '/oauth/' + provider.id + '/callback'
+            span.g-oauth-value= `${origin}${apiRoot}/oauth/${provider.id}/callback`
           form.g-oauth-provider-form(role="form",
               id=`g-oauth-provider-${provider.id}-form`, provider-id=provider.id)
             .form-group

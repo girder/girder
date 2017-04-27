@@ -2,33 +2,37 @@ from dicom.sequence import Sequence
 from dicom.valuerep import PersonName3
 from girder import events
 from girder.api import access
-from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, loadmodel
+from girder.api.describe import Description, autoDescribeRoute
+from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
 from girder.utility.model_importer import ModelImporter
 import dicom
 import six
 
-MAX_FILE_SIZE = 1024 * 1024 * 5
-
 
 class DicomItem(Resource):
 
     @access.user(scope=TokenScope.DATA_READ)
-    @loadmodel(model='item', level=AccessType.READ)
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Get DICOM metadata, if any, for all files in the item.')
-        .param('id', 'The item ID', paramType='path')
-        .param('filters', 'Filter returned DICOM tags (comma-separated).', required=False)
+        .modelParam('id', 'The item ID',
+                    model='item', level=AccessType.READ, paramType='path')
+        .param('filters', 'Filter returned DICOM tags (comma-separated).',
+               required=False, default='')
+        .param('force', 'Force re-parsing the DICOM files. Write access required.',
+               required=False, dataType='boolean', default=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the item.', 403)
     )
-    def getDicom(self, item, params):
-        filters = set(filter(None, params.get('filters', '').split(',')))
+    def getDicom(self, item, filters, force, params):
+        if force:
+            self.model('item').requireAccess(
+                item, user=self.getCurrentUser(), level=AccessType.WRITE)
+        filters = set(filter(None, filters.split(',')))
         files = list(ModelImporter.model('item').childFiles(item))
         # process files if they haven't been processed yet
         for i, f in enumerate(files):
-            if 'dicom' not in f:
+            if force or 'dicom' not in f:
                 files[i] = process_file(f)
         # filter out non-dicom files
         files = [x for x in files if x.get('dicom')]
@@ -67,14 +71,22 @@ def coerce(x):
         return None
 
 
-def process_file(f):
+def parse_file(f):
     data = {}
     try:
-        if f['size'] <= MAX_FILE_SIZE:
-            # download file and try to parse dicom
-            stream = ModelImporter.model('file').download(f, headers=False)
-            fp = six.BytesIO(b''.join(stream()))
-            ds = dicom.read_file(fp, stop_before_pixels=True)
+        # download file and try to parse dicom
+        with ModelImporter.model('file').open(f) as fp:
+            ds = dicom.read_file(
+                fp,
+                # some dicom files don't have a valid header
+                force=True,
+                # don't read huge fields, esp. if this isn't even really dicom
+                defer_size=1024,
+                # don't read image data, just metadata
+                stop_before_pixels=True)
+            # does this look like a dicom file?
+            if (len(ds.dir()), len(ds.items())) == (0, 1):
+                return data
             # human-readable keys
             for key in ds.dir():
                 value = coerce(ds.data_element(key).value)
@@ -87,9 +99,12 @@ def process_file(f):
                 if value is not None:
                     data[key] = value
     except Exception:
-        pass
-    # store dicom data in file
-    f['dicom'] = data
+        pass  # if an error occurs, probably not a dicom file
+    return data
+
+
+def process_file(f):
+    f['dicom'] = parse_file(f)
     return ModelImporter.model('file').save(f)
 
 

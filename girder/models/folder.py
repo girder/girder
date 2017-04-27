@@ -62,7 +62,7 @@ class Folder(AccessControlledModel):
         :param doc: the folder document to validate.
         :param allowRename: if True and a folder or item exists with the same
                             name, rename the folder so that it is unique.
-        :returns: the validated folder document.
+        :returns: `the validated folder document`
         """
         doc['name'] = doc['name'].strip()
         doc['lowerName'] = doc['name'].lower()
@@ -156,7 +156,7 @@ class Folder(AccessControlledModel):
 
         return size
 
-    def setMetadata(self, folder, metadata):
+    def setMetadata(self, folder, metadata, allowNull=False):
         """
         Set metadata on a folder.  A `ValidationException` is thrown in the
         cases where the metadata JSON object is badly formed, or if any of the
@@ -167,6 +167,9 @@ class Folder(AccessControlledModel):
         :param metadata: A dictionary containing key-value pairs to add to
                      the folder's meta field
         :type metadata: dict
+        :param allowNull: Whether to allow `null` values to be set in the item's
+            metadata. If set to `False` or omitted, a `null` value will cause that
+            metadata field to be deleted.
         :returns: the folder document
         """
         if 'meta' not in folder:
@@ -176,13 +179,41 @@ class Folder(AccessControlledModel):
         folder['meta'].update(six.viewitems(metadata))
 
         # Remove metadata fields that were set to null (use items in py3)
-        folder['meta'] = {k: v
-                          for k, v in six.viewitems(folder['meta'])
-                          if v is not None}
+        if not allowNull:
+            toDelete = [k for k, v in six.viewitems(metadata) if v is None]
+            for key in toDelete:
+                del folder['meta'][key]
 
         folder['updated'] = datetime.datetime.utcnow()
 
+        self.validateKeys(folder['meta'])
+
         # Validate and save the item
+        return self.save(folder)
+
+    def deleteMetadata(self, folder, fields):
+        """
+        Delete metadata on a folder. A `ValidationException` is thrown if the
+        metadata field names contain a period ('.') or begin with a dollar sign
+        ('$').
+
+        :param folder: The folder to delete metadata from.
+        :type folder: dict
+        :param fields: An array containing the field names to delete from the
+            folder's meta field
+        :type field: list
+        :returns: the folder document
+        """
+        self.validateKeys(fields)
+
+        if 'meta' not in folder:
+            folder['meta'] = {}
+
+        for field in fields:
+            folder['meta'].pop(field, None)
+
+        folder['updated'] = datetime.datetime.utcnow()
+
         return self.save(folder)
 
     def _updateDescendants(self, folderId, updateQuery):
@@ -635,7 +666,7 @@ class Folder(AccessControlledModel):
         :type subpath: bool
         :param mimeFilter: Optional list of MIME types to filter by. Set to
             None to include all files.
-        :type mimeFilter: list or tuple
+        :type mimeFilter: `list or tuple`
         :param data: If True return raw content of each file as stored in the
             assetstore, otherwise return file document.
         :type data: bool
@@ -784,7 +815,7 @@ class Folder(AccessControlledModel):
         skipped.
 
         :param doc: The folder to set access settings on.
-        :type doc: folder
+        :type doc: girder.models.folder
         :param access: The access control list.
         :type access: dict
         :param save: Whether the changes should be saved to the database.

@@ -49,6 +49,7 @@ class Model(ModelImporter):
     def __init__(self):
         self.name = None
         self._indices = []
+        self._connected = False
         self._textIndex = None
         self._textLanguage = None
         self.prefixSearchFields = ('lowerName', 'name')
@@ -73,10 +74,7 @@ class Model(ModelImporter):
         self.collection = MongoProxy(self.database[self.name])
 
         for index in self._indices:
-            if isinstance(index, (list, tuple)):
-                self.collection.create_index(index[0], **index[1])
-            else:
-                self.collection.create_index(index)
+            self._createIndex(index)
 
         if isinstance(self._textIndex, dict):
             textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
@@ -86,6 +84,8 @@ class Model(ModelImporter):
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
                 logprint.warning('WARNING: Text search not enabled.')
+
+        self._connected = True
 
     def exposeFields(self, level, fields):
         """
@@ -98,7 +98,7 @@ class Model(ModelImporter):
         :param level: The required access level for the field.
         :type level: AccessType
         :param fields: A field or list of fields to expose for that level.
-        :type fields: str, list, or tuple
+        :type fields: `str, list, or tuple`
         """
         if isinstance(fields, six.string_types):
             fields = (fields, )
@@ -115,7 +115,7 @@ class Model(ModelImporter):
         :param level: The access level to remove the fields from.
         :type level: AccessType
         :param fields: The field or fields to remove from the white list.
-        :type fields: str, list, or tuple
+        :type fields: `str, list, or tuple`
         """
         if isinstance(fields, six.string_types):
             fields = (fields, )
@@ -135,7 +135,7 @@ class Model(ModelImporter):
         :type user: dict or None
         :param additionalKeys: Any additional keys that should be included in
             the document for this call only.
-        :type additionalKeys: list, tuple, set, or None
+        :type additionalKeys: `list, tuple, set, or None`
         :returns: The filtered document (dict).
         """
         if doc is None:
@@ -150,6 +150,12 @@ class Model(ModelImporter):
             keys.update(additionalKeys)
 
         return self.filterDocument(doc, allow=keys)
+
+    def _createIndex(self, index):
+        if isinstance(index, (list, tuple)):
+            self.collection.create_index(index[0], **index[1])
+        else:
+            self.collection.create_index(index)
 
     def ensureTextIndex(self, index, language='english'):
         """
@@ -174,6 +180,9 @@ class Model(ModelImporter):
         that will be passed as kwargs to the pymongo create_index call.
         """
         self._indices.extend(indices)
+        if self._connected:
+            for index in indices:
+                self._createIndex(index)
 
     def ensureIndex(self, index):
         """
@@ -181,6 +190,8 @@ class Model(ModelImporter):
         of them.
         """
         self._indices.append(index)
+        if self._connected:
+            self._createIndex(index)
 
     def validate(self, doc):
         """
@@ -194,6 +205,26 @@ class Model(ModelImporter):
         """
         raise Exception('Must override validate() in %s model.'
                         % self.__class__.__name__)  # pragma: no cover
+
+    def validateKeys(self, keys):
+        """
+        Validate a set of keys to make sure they are able to be used in the
+        database. This enforces MongoDB rules about key names.
+        @TODO Add recurse=True argument if ``keys`` is a dict.
+
+        :param keys: An iterable of keys to validate.
+        :type keys: iterable
+        :raises: ValidationException
+        """
+        for k in keys:
+            if not k:
+                raise ValidationException('Key names must not be empty.')
+            if '.' in k:
+                raise ValidationException(
+                    'Invalid key %s: keys must not contain the "." character.' % k)
+            if k[0] == '$':
+                raise ValidationException(
+                    'Invalid key %s: keys must not start with the "$" character.' % k)
 
     def initialize(self):
         """
@@ -219,8 +250,8 @@ class Model(ModelImporter):
         :type timeout: int
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param sort: The sort order.
         :type sort: List of (key, order) tuples.
         :returns: A pymongo database cursor.
@@ -246,8 +277,8 @@ class Model(ModelImporter):
         :type query: dict
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param sort: The sort order.
         :type sort: List of (key, order) tuples.
         :returns: the first object that was found, or None if none found.
@@ -271,8 +302,8 @@ class Model(ModelImporter):
         :type sort: List of (key, order) tuples.
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param filters: Any additional query operators to apply.
         :type filters: dict
         :returns: A pymongo cursor. It is left to the caller to build the
@@ -316,8 +347,8 @@ class Model(ModelImporter):
         :type sort: List of (key, order) tuples.
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param filters: Any additional query operators to apply.
         :type filters: dict
         :param prefixSearchFields: To override the model's prefixSearchFields
@@ -473,8 +504,8 @@ class Model(ModelImporter):
         :type objectId: bool
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param exc: Whether to raise a ValidationException if there is no
                     document with the given id.
         :type exc: bool
@@ -545,8 +576,8 @@ class Model(ModelImporter):
 
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         """
         if fields is None:
             return False
@@ -640,7 +671,7 @@ class AccessControlledModel(Model):
         :type user: dict or None
         :param additionalKeys: Any additional keys that should be included in
             the document for this call only.
-        :type additionalKeys: list, tuple, or None
+        :type additionalKeys: `list, tuple, or None`
         :returns: The filtered document (dict).
         """
         if doc is None:
@@ -671,9 +702,9 @@ class AccessControlledModel(Model):
         Helper to test whether a user has a specific access flag via membership in a group.
 
         :param perms: The group access list (stored under doc['access']['groups'])
-        :type perms: list
+        :type perms: `list`
         :param groupIds: The list of groups that the user belongs to.
-        :type groupIds: list
+        :type groupIds: `list`
         :param flag: The access flag identifier to test.
         :type flag: str
         """
@@ -688,7 +719,7 @@ class AccessControlledModel(Model):
         on a resource.
 
         :param perms: The user access list (stored under doc['access']['users'])
-        :type perms: list
+        :type perms: `list`
         :param userId: The user ID to test.
         :type userId: ObjectId
         :param flag: The access flag identifier to test.
@@ -729,10 +760,8 @@ class AccessControlledModel(Model):
         if entity not in doc['access']:
             doc['access'][entity] = []
 
-        # First remove any existing permission level for this entity.
-        doc['access'][entity] = [perm for perm in doc['access'][entity]
-                                 if perm['id'] != id]
-
+        key = 'access.' + entity
+        update = {}
         # Add in the new level for this entity unless we are removing access.
         if level is not None:
             entry = {
@@ -741,10 +770,38 @@ class AccessControlledModel(Model):
                 'flags': flags
             }
             entry['flags'] = self._validateFlags(doc, user, entity, entry, force)
-            doc['access'][entity].append(entry)
+            # because we're iterating this operation is not necessarily atomic
+            for index, perm in enumerate(doc['access'][entity]):
+                if perm['id'] == id:
+                    # if the id already exists we want to update with a $set
+                    doc['access'][entity][index] = entry
+                    update['$set'] = {'%s.%s' % (key, index): entry}
+                    break
+            else:
+                doc['access'][entity].append(entry)
+                update['$push'] = {key: entry}
+        # set remove query
+        else:
+            update['$pull'] = {key: {'id': id}}
+            for perm in doc['access'][entity]:
+                if perm['id'] == id:
+                    doc['access'][entity].remove(perm)
 
         if save:
-            doc = self.save(doc)
+            if '_id' not in doc:
+                doc = self.save(doc)
+            else:
+                # copy all other (potentially updated) fields to the update list
+                if '$set' in update:
+                    for propKey in doc:
+                        if propKey != 'access':
+                            update['$set'][propKey] = doc[propKey]
+                else:
+                    update['$set'] = {k: v for k, v in six.viewitems(doc)
+                                      if k != 'access'}
+                doc = self.collection.find_one_and_update(
+                    {'_id': ObjectId(doc['_id'])}, update,
+                    return_document=pymongo.ReturnDocument.AFTER)
 
         return doc
 
@@ -1190,8 +1247,8 @@ class AccessControlledModel(Model):
         :type force: bool
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param exc: If not found, throw a ValidationException instead of
             returning None.
         :type exc: bool
@@ -1278,7 +1335,7 @@ class AccessControlledModel(Model):
         :type offset: int
         :param removeKeys: List of keys that should be removed from each
                            matching document.
-        :type removeKeys: list
+        :type removeKeys: `list`
         :param flags: A flag or set of flags to test.
         :type flags: flag identifier, or a list/set/tuple of them
         """
@@ -1317,8 +1374,8 @@ class AccessControlledModel(Model):
         :type sort: List of (key, order) tuples
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param level: The access level to require.
         :type level: girder.constants.AccessType
         """
@@ -1330,7 +1387,7 @@ class AccessControlledModel(Model):
             cursor, user=user, level=level, limit=limit, offset=offset)
 
     def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                     sort=None, fields=None, level=AccessType.READ):
+                     sort=None, fields=None, level=AccessType.READ, prefixSearchFields=None):
         """
         Custom override of Model.prefixSearch to also force permission-based
         filtering. The parameters are the same as Model.prefixSearch.
@@ -1349,17 +1406,20 @@ class AccessControlledModel(Model):
         :type sort: List of (key, order) tuples.
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
         :param level: The access level to require.
         :type level: girder.constants.AccessType
+        :param prefixSearchFields: To override the model's prefixSearchFields
+            attribute for this invocation, pass an alternate iterable.
         :returns: A pymongo cursor. It is left to the caller to build the
             results from the cursor.
         """
         filters = filters or {}
 
         cursor = Model.prefixSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
+            self, query, filters=filters, sort=sort, fields=fields,
+            prefixSearchFields=prefixSearchFields)
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)
 

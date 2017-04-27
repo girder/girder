@@ -29,7 +29,7 @@ add_test(
 )
 
 set_property(TEST packaging_generate
-  PROPERTY LABELS girder_python
+  PROPERTY LABELS girder_package
 )
 
 add_test(
@@ -39,7 +39,7 @@ add_test(
 )
 
 set_property(TEST packaging_verify_contents
-  PROPERTY LABELS girder_python
+  PROPERTY LABELS girder_package
 )
 set_property(TEST packaging_verify_contents
   PROPERTY DEPENDS packaging_generate
@@ -58,7 +58,7 @@ add_test(
 )
 
 set_property(TEST packaging_install
-  PROPERTY LABELS girder_python
+  PROPERTY LABELS girder_package
 )
 set_property(TEST packaging_install
   PROPERTY DEPENDS "packaging_generate"
@@ -77,7 +77,7 @@ add_test(
 )
 
 set_property(TEST packaging_plugin_install
-  PROPERTY LABELS girder_python
+  PROPERTY LABELS girder_package
 )
 set_property(TEST packaging_plugin_install
   PROPERTY DEPENDS "packaging_install"

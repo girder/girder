@@ -28,13 +28,16 @@ from girder.plugins.jobs.constants import JobStatus, JOB_HANDLER_LOCAL
 
 
 class Job(AccessControlledModel):
+
     def initialize(self):
         self.name = 'job'
         compoundSearchIndex = (
             ('userId', SortDir.ASCENDING),
-            ('created', SortDir.DESCENDING)
+            ('created', SortDir.DESCENDING),
+            ('type', SortDir.ASCENDING),
+            ('status', SortDir.ASCENDING)
         )
-        self.ensureIndices([(compoundSearchIndex, {})])
+        self.ensureIndices([(compoundSearchIndex, {}), 'created'])
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
@@ -52,24 +55,58 @@ class Job(AccessControlledModel):
             raise ValidationException(
                 'Invalid job status %s.' % status, field='status')
 
-    def list(self, user=None, limit=0, offset=0, sort=None, currentUser=None):
+    def list(self, user=None, types=None, statuses=None,
+             limit=0, offset=0, sort=None, currentUser=None):
         """
         List a page of jobs for a given user.
 
         :param user: The user who owns the job.
-        :type user: dict or None
+        :type user: dict, 'all', 'none', or None.
+        :param types: job type filter.
+        :type types: array of type string, or None.
+        :param statuses: job status filter.
+        :type statuses: array of status integer, or None.
         :param limit: The page limit.
-        :param offset: The page offset
+        :param limit: The page limit.
+        :param offset: The page offset.
         :param sort: The sort field.
         :param currentUser: User for access filtering.
         """
-        userId = user['_id'] if user else None
-        cursor = self.find({'userId': userId}, sort=sort)
+        query = {}
+        # When user is 'all', no filtering by user, list jobs of all users.
+        if user == 'all':
+            pass
+        # When user is 'none' or None, list anonymous user jobs.
+        elif user == 'none' or user is None:
+            query['userId'] = None
+        # Otherwise, filter by user id
+        else:
+            query['userId'] = user['_id']
+        if types is not None:
+            query['type'] = {'$in': types}
+        if statuses is not None:
+            query['status'] = {'$in': statuses}
+
+        cursor = self.find(query, sort=sort)
 
         for r in self.filterResultsByPermission(cursor=cursor, user=currentUser,
                                                 level=AccessType.READ,
                                                 limit=limit, offset=offset):
             yield r
+
+    def listAll(self, limit=0, offset=0, sort=None, currentUser=None):
+        """
+        List all jobs.
+
+        :param limit: The page limit.
+        :param offset: The page offset
+        :param sort: The sort field.
+        :param currentUser: User for access filtering.
+        .. deprecated :: 2.3.0
+           Use :func:`job.list` instead
+        """
+        return self.list(user='all', types=None, statuses=None, limit=limit,
+                         offset=offset, sort=sort, currentUser=currentUser)
 
     def cancelJob(self, job):
         """
@@ -187,6 +224,16 @@ class Job(AccessControlledModel):
 
         if save:
             job = self.save(job)
+
+        if user:
+            deserialized_kwargs = job['kwargs']
+            job['kwargs'] = json_util.dumps(job['kwargs'])
+
+            self.model('notification').createNotification(
+                type='job_created', data=job, user=user,
+                expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=30))
+
+            job['kwargs'] = deserialized_kwargs
 
         return job
 
@@ -428,7 +475,7 @@ class Job(AccessControlledModel):
         # right now we'll just go through the user.
         return self.model('notification').initProgress(
             user, job['title'], total, state=state, current=current,
-            message=message, estimateTime=False)
+            message=message, estimateTime=False, resource=job, resourceName=self.name)
 
     def filter(self, doc, user=None, additionalKeys=None):
         """
@@ -451,3 +498,18 @@ class Job(AccessControlledModel):
         if fields is None and not kwargs.pop('includeLog', includeLogDefault):
             fields = {'log': False}
         return fields
+
+    def getAllTypesAndStatuses(self, user):
+        """
+        Get a list of types and statuses of all jobs or jobs owned by a particular user.
+        :param user: The user who owns the jobs.
+        :type user: dict, or 'all'.
+        """
+        query = {}
+        if user == 'all':
+            pass
+        else:
+            query['userId'] = user['_id']
+        types = self.collection.distinct('type', query)
+        statuses = self.collection.distinct('status', query)
+        return {'types': types, 'statuses': statuses}

@@ -26,7 +26,7 @@ from .. import constants
 
 class Bitbucket(ProviderBase):
     _AUTH_URL = 'https://bitbucket.org/site/oauth2/authorize'
-    _AUTH_SCOPES = ('account',)
+    _AUTH_SCOPES = ['account']
     _TOKEN_URL = 'https://bitbucket.org/site/oauth2/access_token'
     _API_USER_URL = 'https://api.bitbucket.org/2.0/user'
     _API_EMAILS_URL = 'https://api.bitbucket.org/2.0/user/emails'

@@ -20,7 +20,8 @@
 """This module contains utility methods for parsing girder path strings."""
 
 import re
-from girder.models.model_base import AccessException, ValidationException
+from ..constants import AccessType
+from ..models.model_base import AccessException, GirderException, ValidationException
 from .model_importer import ModelImporter
 
 
@@ -57,7 +58,7 @@ def split(path):
 
     :param str path: An encoded path string
     :return: A list of decoded tokens
-    :rtype: list
+    :rtype: `list`
     """
     # It would be better to split by the regex `(?<!\\)(?>\\\\)*/`,
     # but python does't support atomic grouping. :(
@@ -84,7 +85,7 @@ def split(path):
 def join(tokens):
     """Join a list of tokens into an encoded path string.
 
-    :param list tokens: A list of tokens
+    :param tokens: A list of tokens
     :return: The encoded path string
     :rtype: str
     """
@@ -124,7 +125,7 @@ def lookUpToken(token, parentType, parent):
         parentType, parent.get('name', parent.get('_id')), token))
 
 
-def lookUpPath(path, user=None, test=False, filter=True):
+def lookUpPath(path, user=None, test=False, filter=True, force=False):
     """
     Look up a resource in the data hierarchy by path.
 
@@ -136,6 +137,8 @@ def lookUpPath(path, user=None, test=False, filter=True):
     :type test: bool
     :param filter: Whether the returned model should be filtered.
     :type filter: bool
+    :param force: if True, don't validate the access.
+    :type force: bool
     """
     path = path.lstrip('/')
     pathArray = split(path)
@@ -172,9 +175,11 @@ def lookUpPath(path, user=None, test=False, filter=True):
 
     try:
         document = parent
-        ModelImporter.model(model).requireAccess(document, user)
+        if not force:
+            ModelImporter.model(model).requireAccess(document, user)
         for token in pathArray[2:]:
             document, model = lookUpToken(token, model, document)
+        if not force:
             ModelImporter.model(model).requireAccess(document, user)
     except (ValidationException, AccessException):
         # We should not distinguish the response between access and validation errors so that
@@ -195,3 +200,58 @@ def lookUpPath(path, user=None, test=False, filter=True):
         'model': model,
         'document': document
     }
+
+
+def getResourceName(type, doc):
+    """
+    Get the name of a resource that can be put in a path,
+
+    :param type: the resource model type.
+    :type type: str
+    :param doc: the resource document.
+    :type doc: dict
+    :return: the name of the resource.
+    :rtype: str
+    """
+    if type == 'user':
+        return doc['login']
+    elif type in ('file', 'item', 'folder', 'user', 'collection'):
+        return doc['name']
+    else:
+        raise GirderException('Invalid resource type.')
+
+
+def getResourcePath(type, doc, user=None, force=False):
+    """
+    Get the path for a resource.
+
+    :param type: the resource model type.
+    :type type: str
+    :param doc: the resource document.
+    :type doc: dict
+    :param user: user with correct privileges to access path
+    :type user: dict or None
+    :param force: if True, don't validate the access.
+    :type force: bool
+    :return: the path to the resource.
+    :rtype: str
+    """
+    path = []
+    while True:
+        path.insert(0, getResourceName(type, doc))
+        if type == 'file':
+            parentModel = 'item'
+            parentId = doc['itemId']
+        elif type == 'item':
+            parentModel = 'folder'
+            parentId = doc['folderId']
+        elif type == 'folder':
+            parentModel = doc['parentCollection']
+            parentId = doc['parentId']
+        else:
+            break
+        doc = ModelImporter.model(parentModel).load(
+            id=parentId, user=user, level=AccessType.READ, force=force)
+        type = parentModel
+    path.insert(0, type)
+    return '/' + join(path)

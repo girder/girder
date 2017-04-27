@@ -1,0 +1,23 @@
+---
+
+- name: NodeJS | Download repo setup script
+  # Due to issues with this potentially running on python < 2.7.9, validating
+  # certs via Python (ansible) can be an issue.
+  # We could use curl and bypass this, but instead we'll just disable cert validation
+  # and require the output match the known good checksum.
+  get_url:
+    url: https://rpm.nodesource.com/setup_4.x
+    dest: "/tmp/setup_4.x"
+    validate_certs: no
+    checksum: sha256:3359378636868f9fd9f0565a28191ed7e831e91b703b581ab9ff737a4574e5f4
+
+- name: NodeJS | Install repo
+  shell: "bash /tmp/setup_4.x"
+  become: yes
+  become_user: root
+
+- name: NodeJS | Install package
+  yum:
+    name: nodejs
+  become: yes
+  become_user: root

@@ -10,7 +10,7 @@ var JobStatus = {
             text = this._map[status].text;
         }
 
-        return text;
+        return '' + text;
     },
 
     icon: function (status) {
@@ -20,6 +20,10 @@ var JobStatus = {
         }
 
         return icon;
+    },
+
+    color: function (status) {
+        return this._map[status].color;
     },
 
     /**
@@ -41,9 +45,14 @@ var JobStatus = {
             this[name] = info.value;
             this._map[info.value] = {
                 text: info.text,
-                icon: info.icon
+                icon: info.icon,
+                color: info.color
             };
         }, this);
+    },
+
+    getAll: function () {
+        return _.values(this._map);
     }
 };
 
@@ -51,32 +60,38 @@ JobStatus.registerStatus({
     INACTIVE: {
         value: 0,
         text: 'Inactive',
-        icon: 'icon-pause'
+        icon: 'icon-pause',
+        color: '#ccc'
     },
     QUEUED: {
         value: 1,
         text: 'Queued',
-        icon: 'icon-ellipsis'
+        icon: 'icon-ellipsis',
+        color: '#dbc345'
     },
     RUNNING: {
         value: 2,
         text: 'Running',
-        icon: 'icon-spin3 animate-spin'
+        icon: 'icon-spin3 animate-spin',
+        color: '#6666d5'
     },
     SUCCESS: {
         value: 3,
         text: 'Success',
-        icon: 'icon-ok'
+        icon: 'icon-ok',
+        color: '#53b653'
     },
     ERROR: {
         value: 4,
         text: 'Error',
-        icon: 'icon-cancel'
+        icon: 'icon-cancel',
+        color: '#d44'
     },
     CANCELED: {
         value: 5,
         text: 'Canceled',
-        icon: 'icon-cancel'
+        icon: 'icon-cancel',
+        color: '#545'
     }
 });
 

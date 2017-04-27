@@ -20,9 +20,9 @@ folder, even if that third party does not have a registered user in Girder.
 To authorize an upload on behalf of your user:
 
 1. Navigate into any folder to which you have write access. From the **Folder actions** dropdown
-   menu on the right, choose **Authorize upload here**. You will be taken to a page that allows generation 
+   menu on the right, choose **Authorize upload here**. You will be taken to a page that allows generation
    of a secure, single-use URL. You can optionally specify a number of days until the URL expires; if none
-   is specified, the user session lifetime is used, which defaults to 180 days. 
+   is specified, the user session lifetime is used, which defaults to 180 days.
 2. Click **Generate URL**, and your secure URL will appear below.
 3. Copy that URL and send it to the third party, and they will be taken to a simple page allowing them
    to upload the file without having to see any details of the normal Girder application.
@@ -139,7 +139,7 @@ Homepage
 --------
 
 The Homepage plugin allows the default Girder front page to be replaced by
-content written in [Markdown](https://daringfireball.net/projects/markdown/)
+content written in `Markdown <https://daringfireball.net/projects/markdown/>`_
 format. After enabling this plugin, visit the plugin configuration page
 to edit and preview the Markdown.
 
@@ -172,6 +172,9 @@ This plugin parses the DICOM tags when files are uploaded and stores them in
 the MongoDB database for quick retrieval. This is mostly used to sort multiple
 images by series and instance.
 
+.. figure:: images/dicom-viewer.png
+
+    DICOM imagery from: https://wiki.cancerimagingarchive.net/display/Public/RIDER+NEURO+MRI
 
 Metadata Extractor
 ------------------
@@ -219,6 +222,13 @@ This plugin allows users to log in using OAuth against a set of supported provid
 rather than storing their credentials in the Girder instance. Specific instructions
 for each provider can be found below.
 
+By using OAuth, Girder users can avoid registering a new user in Girder, leaving it
+up to the OAuth provider to store their password and provide details of their
+identity. The fact that a Girder user has logged in via an OAuth provider is stored
+in their user document instead of a password. OAuth users who need to authenticate
+with programmatic clients such as the girder-client python library should use
+:ref:`API keys <api_keys>` to do so.
+
 Google
 ******
 
@@ -236,6 +246,36 @@ After successfully creating the Client ID, copy and paste the client ID and clie
 secret values into the plugin's configuration page, and hit **Save**. Users should
 then be able to log in with their Google account when they click the log in page
 and select the option to log in with Google.
+
+Extension
+*********
+
+This plugin can also be extended to do more than just login behavior using the
+OAuth providers. For instance, if you wanted some sort of integration with a
+user's Google+ circles, you would add a custom scope that the user would have
+to authorize during the OAuth login process.
+
+.. code-block:: python
+
+    from girder.plugins.oauth.providers.google import Google
+    Google.addScopes(['https://www.googleapis.com/auth/plus.circles.read'])
+
+Then, you can hook into the event of a user logging in via OAuth. You can
+hook in either before the Girder user login has occurred, or afterward. In
+our case, we want to do it after the Girder user has been fetched (or created,
+if this is the first time logging in with these OAuth credentials).
+
+.. code-block:: python
+
+    def readCircles(event):
+        # Read user's circles, do something with them
+        if event.info['provider'] == 'google':
+            token = event.info['token']
+            user = event.info['user']
+            ...
+
+    from girder import events
+    events.bind('oauth.auth_callback.after', 'my_plugin', readCircles)
 
 
 Curation
@@ -429,3 +469,141 @@ and builds in some useful Girder integrations on top of celery. Namely,
   UI in real time. If the script prints any logging information, it is automatically
   collected in the job log on the server, and if the script raises an exception,
   the job status is automatically set to an error state.
+
+
+Item Tasks
+----------
+
+This plugin integrates with the Girder worker and allows items in Girder's data
+hierarchy to act as task specifications for the worker. In order to be used as
+a task specification, an item must expose two special metadata fields:
+
+* ``isItemTask`` must be set to indicate that this is an item task. The key must
+  exist, but the value does not matter.
+* ``itemTaskSpec`` must be set to a JSON object representing the worker task
+  specification. Documentation of valid worker task specifications can be found in the
+  `Girder worker documentation <http://girder-worker.readthedocs.io/en/latest/api-docs.html#the-task-specification>`_.
+
+In order for users to *run* this task, they must be granted a special access
+flag granted on the containing folder, namely the **Execute analyses** flag exposed
+by this plugin. This special access flag can only be enabled by site administrators
+since the capabilities of items as tasks essentially enable arbitrary code execution
+on the worker nodes. Because of this power, administrators should be very careful of
+who has write access on folders where this permission flag is granted. It is strongly
+recommended for security reasons to isolate item tasks in folders separate from normal data,
+with minimal access granted to non-administrator users.
+
+Once a user has this special access flag on item tasks, they will see the tasks appear
+in the list of available tasks when navigating to the **Tasks** view via the nav bar.
+They can also navigate to the item itself and use the **Run this task** option from the
+Actions menu. When they do so, they are prompted with an automatically-generated
+user interface allowing them to enter inputs to the task and output destinations, and
+then execute the task on the worker. The progress, status, and log output of the task
+is tracked in real-time via the jobs plugin. The input and output data for each execution
+of a task will also appear in that job details view, including links to any Girder data
+that was used as inputs or outputs.
+
+Automatic configuration of item tasks via docker
+************************************************
+
+.. note:: For security reasons, the capabilities in this section are only available
+   to site administrators.
+
+Many item tasks represent algorithms contained in docker images. Such docker images that
+implement self-describing behavior can be used to automatically populate an item task's
+metadata fields. To auto-populate the task spec, navigate to an existing item that will
+be the item task, open the Actions menu, and select **Configure task**. A dialog will
+appear prompting the administrator to enter the docker image identifier and also specify any
+additional arguments needed to get the description output.
+
+.. note:: Specifying the ``--xml`` argument is not necessary for Slicer Execution Model
+   docker task auto-configuration. If not included in the list, it is appended automatically.
+
+Clicking **Run** will start a job on the worker to read the image's description. The
+container is expected to write the description to standard output as a
+`Slicer Execution Model XML <https://www.slicer.org/wiki/Documentation/Nightly/Developers/SlicerExecutionModel>`_
+document. When the job is finished, the task item specification should be set, and
+users should now be able to run the task represented by the docker image.
+
+.. note:: The same item task can be auto-configured via docker multiple times without
+   causing problems. Different image ids may be used each time if desired.
+
+
+Hashsum Download
+----------------
+
+The hashum_download plugin allows a file to be downloaded from Girder given a hash value and hash
+algorithm. Use this plugin when you have large data that you don’t want to keep in a software
+repository, but want to access that data from the repository, e.g. during a build or test of that
+software project. This plugin is written to satisfy the needs of CMake ExternalData. These docs
+describe how to use this plugin along with ExternalData, but the plugin could be used outside of
+that context. For more detailed documentation on how to use this in a software repository see the
+`ITKExamples <https://itk.org/ITKExamples/Documentation/Contribute/UploadBinaryData.html>`_. This
+example project uses the Girder instance https://data.kitware.com.
+
+.. note:: The use of the hashsum_download plugin with CMake ExternalData is only supported with a
+   filesystem assetstore and SHA512 as the hash algorithm.
+
+As every local Git repository contains a copy of the entire project history, it is important to
+avoid adding large binary files directly to the repository. Large binary files added and removed
+throughout a project’s history will cause the repository to become bloated and take up too much
+disk space, requiring excessive time and bandwidth to download.
+
+A solution to this problem, when using the CMake build system, is to store binary files in a
+separate location outside the Git repository, then download the files at build time with CMake.
+
+CMake uses the notion of a content link file, which contains an identifying hash calculated from
+the original data file. The content link file has the same name as the data file, with a ".sha512"
+extension appended to the file name, and should be stored in the Git repository. CMake will find
+these content link files at build time, download the corresponding data files from a list of server
+resources, and create symlinks or copies of the original files in the build tree, which is why the
+files are called "content links".
+
+What CMake calls a content link file, Girder calls a key file, as the notion of content link
+doesn't apply in the context of Girder, and the hash value is a key into the original data file.
+When using the hashsum_download plugin, the data file is stored in Girder, with the SHA512 for the
+data added as metadata and provided as the key file, which can be downloaded from Girder and added
+to a project repository. The hashsum_plugin allows the data file to be downloaded based on the hash
+of the data. CMake ExternalData provides tooling to connect with a Girder instance, download the
+actual data file pointed to by the content link (key) file by passing the hash to Girder, and
+provide a local file path to access the data file contents.
+
+Usage by a software project maintainer
+**************************************
+
+Again, for more background, using the example Girder instance https://data.kitware.com, see the
+`ITKExamples <https://itk.org/ITKExamples/Documentation/Contribute/UploadBinaryData.html>`_. Also
+see the CMake External Data documentation for CMake project configuration
+`help <https://cmake.org/cmake/help/latest/module/ExternalData.html>`_.
+
+In your project, you must set ExternalData_URL_TEMPLATES to a girder url, e.g.
+"https://data.kitware.com/api/v1/file/hashsum/%(algo)/%(hash)/download".
+
+See the ITK configuration for an `example <https://github.com/InsightSoftwareConsortium/ITKExamples/blob/master/CMake/ITKExamplesExternalData.cmake>`_
+application of ExternalData_URL_TEMPLATES.
+
+Project contributors will add data files to a Girder instance in arbitrary folders. At a project
+release and on a regular basis, perhaps nightly, the data should be archived in a new Girder folder
+to ensure its persistence.  A `script <https://github.com/InsightSoftwareConsortium/ITK/blob/ef14cce1c26d5dce7eb2e10d36c7dc81aaa9c9e8/Utilities/Maintenance/ArchiveTestingDataOnGirder.py>`_ that provides this functionality is available, as is an
+`example folder <https://data.kitware.com/#collection/57b5c9e58d777f126827f5a1/folder/57b672b48d777f10f269651a>`_
+produced by the script for a release.
+
+Usage by a software project contributor
+***************************************
+
+Upload a file to a Girder instance, which will create a Girder Item to house the file. Navigate to
+the Item, then click on the **i** (information) icon next to the file, which will show the id, and
+since the hashsum_download plugin is enabled, the sha512 field will also be displayed. Click on the
+key icon to download a hashfile, which will be the full sha512 of the file, with the same name as
+the file, and an extension of .sha512, and you can use this key file as your CMake content link.
+E.g., upload my_datafile.txt and download the my_data.txt.sha512 file, then check the
+my_data.txt.sha512 file into your source repository.
+
+You can use the Girder API to get the hash of the file given the file id, with the endpoint
+``api/v1/file/<file id>/hashsum_file/sha512``, where the file id comes from the specific file in
+Girder.
+
+You can also use the API to download the file based on the hash returned by the previous endpoint,
+with an endpoint ``/api/v1/file/hashsum/sha512/<file sha512 hash>/download``, where the sha512 hash
+comes from the specific file in Girder.
+

@@ -30,17 +30,25 @@ def validateProvidersEnabled(doc):
         raise ValidationException('The enabled providers must be a list.', 'value')
 
 
+@setting_utilities.validator(constants.PluginSettings.IGNORE_REGISTRATION_POLICY)
+def validateIgnoreRegistrationPolicy(doc):
+    if not isinstance(doc['value'], bool):
+        raise ValidationException('Ignore registration policy setting must be boolean.', 'value')
+
+
 @setting_utilities.validator({
     constants.PluginSettings.GOOGLE_CLIENT_ID,
     constants.PluginSettings.GLOBUS_CLIENT_ID,
     constants.PluginSettings.GITHUB_CLIENT_ID,
     constants.PluginSettings.LINKEDIN_CLIENT_ID,
     constants.PluginSettings.BITBUCKET_CLIENT_ID,
+    constants.PluginSettings.BOX_CLIENT_ID,
     constants.PluginSettings.GOOGLE_CLIENT_SECRET,
     constants.PluginSettings.GLOBUS_CLIENT_SECRET,
     constants.PluginSettings.GITHUB_CLIENT_SECRET,
     constants.PluginSettings.LINKEDIN_CLIENT_SECRET,
-    constants.PluginSettings.BITBUCKET_CLIENT_SECRET
+    constants.PluginSettings.BITBUCKET_CLIENT_SECRET,
+    constants.PluginSettings.BOX_CLIENT_SECRET
 })
 def validateOtherSettings(event):
     pass

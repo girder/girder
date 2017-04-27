@@ -5,5 +5,8 @@
 
 #g-app-progress-container
 
-#g-dialog-container.modal.fade
+//- Set tabindex on modal element to allow closing modal by pressing Escape. See:
+//- - http://getbootstrap.com/javascript/#modals-examples
+//- - http://stackoverflow.com/questions/12630156/
+#g-dialog-container.modal.fade(tabindex="-1")
 #g-alerts-container

@@ -185,7 +185,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             self.chunkColl.delete_many({
                 'uuid': upload['chunkUuid'],
                 'n': {'$gte': startingN}
-            }, multi=True)
+            })
             raise
 
         # Persist the internal state of the checksum
@@ -262,7 +262,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             for chunk in cursor:
                 chunkLen = len(chunk['data'])
 
-                if position + chunkLen > endByte:
+                if position + chunkLen - co > endByte:
                     chunkLen = endByte - position + co
                     shouldBreak = True
 

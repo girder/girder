@@ -115,12 +115,95 @@ class PythonCliTestCase(base.TestCase):
 
         base.TestCase.tearDown(self)
 
+    def testUrlByPart(self):
+        # This test does NOT connect to the test server. It only checks that the
+        # client object has the expected attributes.
+
+        username = None
+        password = None
+
+        for case in [
+            # Check that apiUrl is preferred
+            {
+                'input': {'apiUrl': 'https://girder.example.com:74/api/v74',
+                          'host': 'foo', 'scheme': 'bar', 'port': 42, 'apiRoot': 'bar'},
+                'expected': {
+                    'urlBase': 'https://girder.example.com:74/api/v74/',
+                    'host': None, 'scheme': None, 'port': None}
+            },
+            # Check different configuration of URL by part
+            {
+                'input': {},
+                'expected': {
+                    'urlBase': 'http://localhost:8080/api/v1/',
+                    'host': 'localhost', 'scheme': 'http', 'port': 8080}
+            },
+            {
+                'input': {'host': 'localhost'},
+                'expected': {
+                    'urlBase': 'http://localhost:8080/api/v1/',
+                    'host': 'localhost', 'scheme': 'http', 'port': 8080}
+            },
+            {
+                'input': {'port': 42},
+                'expected': {
+                    'urlBase': 'http://localhost:42/api/v1/',
+                    'host': 'localhost', 'scheme': 'http', 'port': 42}
+            },
+            {
+                'input': {'scheme': 'https'},
+                'expected': {
+                    'urlBase': 'https://localhost:443/api/v1/',
+                    'host': 'localhost', 'scheme': 'https', 'port': 443}
+            },
+            {
+                'input': {'host': 'girder.example.com'},
+                'expected': {
+                    'urlBase': 'https://girder.example.com:443/api/v1/',
+                    'host': 'girder.example.com', 'scheme': 'https', 'port': 443}
+            },
+            {
+                'input': {'host': 'girder.example.com', 'scheme': 'http'},
+                'expected': {
+                    'urlBase': 'http://girder.example.com:80/api/v1/',
+                    'host': 'girder.example.com', 'scheme': 'http', 'port': 80}
+            },
+            {
+                'input': {'host': 'localhost', 'port': 42},
+                'expected': {
+                    'urlBase': 'http://localhost:42/api/v1/',
+                    'host': 'localhost', 'scheme': 'http', 'port': 42}
+            },
+            {
+                'input': {'host': 'girder.example.com', 'port': 42},
+                'expected': {
+                    'urlBase': 'https://girder.example.com:42/api/v1/',
+                    'host': 'girder.example.com', 'scheme': 'https', 'port': 42}
+            },
+            {
+                'input': {'host': 'localhost', 'scheme': 'https'},
+                'expected': {
+                    'urlBase': 'https://localhost:443/api/v1/',
+                    'host': 'localhost', 'scheme': 'https', 'port': 443}
+            },
+            {
+                'input': {'host': 'girder.example.com', 'scheme': 'https'},
+                'expected': {
+                    'urlBase': 'https://girder.example.com:443/api/v1/',
+                    'host': 'girder.example.com', 'scheme': 'https', 'port': 443}
+            },
+
+        ]:
+            client = girder_client.cli.GirderCli(username, password, **case['input'])
+            for attribute, value in case['expected'].items():
+                self.assertEqual(getattr(client, attribute), value)
+
     def testCliHelp(self):
         ret = invokeCli(())
         self.assertNotEqual(ret['exitVal'], 0)
 
         ret = invokeCli(('-h',))
-        self.assertIn('usage: girder-cli', ret['stdout'])
+        self.assertIn('Usage: girder-cli', ret['stdout'])
         self.assertEqual(ret['exitVal'], 0)
 
     def testUploadDownload(self):
@@ -192,6 +275,13 @@ class PythonCliTestCase(base.TestCase):
         self.assertTrue(os.path.isdir(os.path.join(downloadDir, 'my_folder')))
         shutil.rmtree(downloadDir, ignore_errors=True)
 
+        # Test download of the collection auto-detecting parent-type
+        ret = invokeCli(('download', '/collection/my_collection',
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(os.path.isdir(os.path.join(downloadDir, 'my_folder')))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
         # Test download of a user
         ret = invokeCli(('download', '--parent-type=user', '/user/mylogin',
                          downloadDir), username='mylogin', password='password')
@@ -200,12 +290,47 @@ class PythonCliTestCase(base.TestCase):
             os.path.isfile(os.path.join(downloadDir, 'Public', 'testdata', 'hello.txt')))
         shutil.rmtree(downloadDir, ignore_errors=True)
 
-        # Try uploading using API key
-        ret = invokeCli(['--api-key', self.apiKey['key']] + args)
+        # Test download of a user auto-detecting parent-type
+        ret = invokeCli(('download', '/user/mylogin',
+                         downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        six.assertRegex(
-            self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
-        self.assertIn('Uploading Item from hello.txt', ret['stdout'])
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, 'Public', 'testdata', 'hello.txt')))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
+        # Test download of an item
+        items = list(self.model('folder').childItems(folder=subfolder))
+        item_id = items[0]['_id']
+        item_name = items[0]['name']
+        ret = invokeCli(('download', '--parent-type=item', '%s' % item_id,
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, item_name)))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
+        # Test download of an item auto-detecting parent-type
+        ret = invokeCli(('download', '%s' % item_id,
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, item_name)))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
+        def _check_upload(ret):
+            self.assertEqual(ret['exitVal'], 0)
+            six.assertRegex(
+                self, ret['stdout'],
+                'Creating Folder from .*tests/cases/py_client/testdata')
+            self.assertIn('Uploading Item from hello.txt', ret['stdout'])
+
+        # Try uploading using API key
+        _check_upload(invokeCli(['--api-key', self.apiKey['key']] + args))
+
+        # Try uploading using API key set with GIRDER_API_KEY env. variable
+        os.environ["GIRDER_API_KEY"] = self.apiKey['key']
+        _check_upload(invokeCli(args))
+        del os.environ["GIRDER_API_KEY"]
 
         # Test localsync, it shouldn't touch files on 2nd pass
         ret = invokeCli(('localsync', str(subfolder['_id']),
@@ -226,6 +351,16 @@ class PythonCliTestCase(base.TestCase):
                 continue
             filename = os.path.join(downloadDir, fname)
             self.assertEqual(os.path.getmtime(filename), old_mtimes[fname])
+
+        # Check that localsync command do not show '--parent-type' option help
+        ret = invokeCli(('localsync', '--help'))
+        self.assertNotIn('--parent-type', ret['stdout'])
+        self.assertEqual(ret['exitVal'], 0)
+
+        # Check that localsync command still accepts '--parent-type' argument
+        ret = invokeCli(('localsync', '--parent-type', 'folder', str(subfolder['_id']),
+                         downloadDir), username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
 
     def testLeafFoldersAsItems(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')

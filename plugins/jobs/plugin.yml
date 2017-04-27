@@ -1,3 +1,7 @@
 name: Jobs
 description: A general purpose plugin for managing offline jobs.
+url: http://girder.readthedocs.io/en/latest/plugins.html#jobs
 version: 2.0.0
+npm:
+  dependencies:
+    vega: ^2.6.0

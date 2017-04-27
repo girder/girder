@@ -57,6 +57,7 @@ var SearchFieldWidget = View.extend({
                     list.eq(pos).addClass('g-search-selected');
                 }
             } else if (code === 13) { /* enter */
+                e.preventDefault();
                 var link = this.$('.g-search-result.g-search-selected>a');
                 if (link.length) {
                     this._resultClicked(link);

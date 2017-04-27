@@ -24,6 +24,7 @@ be restarted for these changes to take effect.
 
 import os
 import pip
+import re
 import select
 import shutil
 import six
@@ -104,6 +105,8 @@ def _pipeOutputToProgress(proc, progress):
                 buf = os.read(pipe.fileno(), 1024)
                 if buf:
                     buf = buf.decode('utf8', errors='ignore')
+                    # Remove ANSI escape sequences
+                    buf = re.sub('(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]', '', buf)
                     # Filter out non-printable characters
                     msg = ''.join(c for c in buf if c in string.printable)
                     if msg:
@@ -135,7 +138,7 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     :type progress: ``girder.utility.progress.ProgressContext`` or None
     """
     if isinstance(plugins, six.string_types) and plugins:
-        plugins = [plugins]
+        plugins = plugins.split(',')
 
     if shutil.which(npm) is None:
         print(constants.TerminalColor.error(
@@ -189,10 +192,15 @@ def install_web(opts=None):
     elif opts.watch:
         _runWatchCmd('npm', 'run', 'watch')
     elif opts.watch_plugin:
+        staticPlugins = plugin_utilities.getToposortedPlugins(
+            [opts.watch_plugin], ignoreMissing=True,
+            keys=('dependencies', 'staticWebDependencies'))
+        staticPlugins = [p for p in staticPlugins if p != opts.watch_plugin]
+
         _runWatchCmd(
-            'npm', 'run', 'watch', '--', '--all-plugins', 'webpack:%s_%s' % (
-                opts.plugin_prefix, opts.watch_plugin)
-        )
+            'npm', 'run', 'watch', '--', '--plugins=%s' % opts.watch_plugin,
+            '--configure-plugins=%s' % ','.join(staticPlugins),
+            'webpack:%s_%s' % (opts.plugin_prefix, opts.watch_plugin))
     else:
         runWebBuild(
             dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
@@ -332,6 +340,7 @@ def main():
 
     parsed = parser.parse_args()
     parsed.func(parsed)
+
 
 if __name__ == '__main__':
     main()  # pragma: no cover

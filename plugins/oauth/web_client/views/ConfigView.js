@@ -22,6 +22,24 @@ var ConfigView = View.extend({
                 key: 'oauth.' + providerId + '_client_secret',
                 value: this.$('#g-oauth-provider-' + providerId + '-client-secret').val().trim()
             }]);
+        },
+
+        'change .g-ignore-registration-policy': function (event) {
+            restRequest({
+                type: 'PUT',
+                path: 'system/setting',
+                data: {
+                    key: 'oauth.ignore_registration_policy',
+                    value: $(event.target).is(':checked')
+                }
+            }).done(() => {
+                events.trigger('g:alert', {
+                    icon: 'ok',
+                    text: 'Setting saved.',
+                    type: 'success',
+                    timeout: 3000
+                });
+            });
         }
     },
 
@@ -68,10 +86,18 @@ var ConfigView = View.extend({
                           'Select the "r_basicprofile" and "r_emailaddress" ' +
                           'Default Application Permissions, and use the ' +
                           'following as an OAuth 2.0 Authorized Redirect URL:'
+        }, {
+            id: 'box',
+            name: 'Box',
+            icon: 'box',
+            hasAuthorizedOrigins: false,
+            instructions: 'Client IDs and secret keys are managed in the Box ' +
+                          'Developer Services page. When creating your client ID ' +
+                          'there, use the following as the authorization callback URL:'
         }];
         this.providerIds = _.pluck(this.providers, 'id');
 
-        var settingKeys = [];
+        var settingKeys = ['oauth.ignore_registration_policy'];
         _.each(this.providerIds, function (id) {
             settingKeys.push('oauth.' + id + '_client_id');
             settingKeys.push('oauth.' + id + '_client_secret');
@@ -118,6 +144,9 @@ var ConfigView = View.extend({
                 this.$('#g-oauth-provider-' + id + '-client-secret').val(
                     this.settingVals['oauth.' + id + '_client_secret']);
             }, this);
+
+            var checked = this.settingVals['oauth.ignore_registration_policy'];
+            this.$('.g-ignore-registration-policy').attr('checked', checked ? 'checked' : null);
         }
 
         return this;

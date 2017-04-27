@@ -19,13 +19,14 @@
 
 import bson.json_util
 import dateutil.parser
+import inspect
+import jsonschema
 import os
 import six
 import cherrypy
 
-from girder import constants
+from girder import constants, logprint
 from girder.api.rest import getCurrentUser, RestException, getBodyJson
-from girder.constants import TerminalColor
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
@@ -154,9 +155,9 @@ class Description(object):
         # by a schema added using addModel(...), we don't know for sure as we
         # don't know the resource name here to look it up.
         elif paramType != 'body':
-            print(TerminalColor.warning(
+            logprint.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter names "%s"' %
-                (dataType, name)))
+                (dataType, name))
 
         # Parameter Object spec:
         # Since the parameter is not located at the request body, it is limited
@@ -164,8 +165,8 @@ class Description(object):
         if paramType != 'body' and dataType not in (
                 'string', 'number', 'integer', 'long', 'boolean', 'array', 'file', 'float',
                 'double', 'date', 'dateTime'):
-            print(TerminalColor.warning(
-                'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name)))
+            logprint.warning(
+                'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name))
 
         if paramType == 'form':
             paramType = 'formData'
@@ -194,7 +195,7 @@ class Description(object):
         :param required: True if the request will fail if this parameter is not
                          present, False if the parameter is optional.
         :param enum: a fixed list of possible values for the field.
-        :type enum: list
+        :type enum: `list`
         :param strip: For string types, set this to True if the string should be
             stripped of white space.
         :type strip: bool
@@ -310,7 +311,7 @@ class Description(object):
         return self
 
     def jsonParam(self, name, description, paramType='query', dataType='string', required=True,
-                  default=None, requireObject=False, requireArray=False):
+                  default=None, requireObject=False, requireArray=False, schema=None):
         """
         Specifies a parameter that should be processed as JSON.
 
@@ -318,14 +319,22 @@ class Description(object):
         :type requireObject: bool
         :param requireArray: Whether the value must be a JSON array / Python list.
         :type requireArray: bool
+        :param schema: A JSON schema that will be used to validate the parameter value. If
+            this is passed, it overrides any ``requireObject`` or ``requireArray`` values
+            that were passed.
+        :type schema: dict
         """
+        if default:
+            default = bson.json_util.dumps(default)
+
         self.param(
             name=name, description=description, paramType=paramType, dataType=dataType,
             required=required, default=default)
 
         self.jsonParams[name] = {
             'requireObject': requireObject,
-            'requireArray': requireArray
+            'requireArray': requireArray,
+            'schema': schema
         }
 
         return self
@@ -372,7 +381,7 @@ class Description(object):
         their responses.
 
         :param reason: The reason or list of reasons why the error occurred.
-        :type reason: str, list, or tuple
+        :type reason: `str, list, or tuple`
         :param code: HTTP status code.
         :type code: int
         """
@@ -454,7 +463,7 @@ class Describe(Resource):
 
                 paths[route] = pathItem
 
-        apiUrl = getApiUrl()
+        apiUrl = getApiUrl(preferReferer=True)
         urlParts = getUrlParts(apiUrl)
         host = urlParts.netloc
         basePath = urlParts.path
@@ -511,7 +520,31 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         super(autoDescribeRoute, self).__init__(description=description)
         self.hide = hide
 
+    def _passArg(self, fun, kwargs, name, val):
+        """
+        This helper passes the arguments to the underlying function if the function
+        has an argument with the given name. Otherwise, it adds it into the "params"
+        argument, which is a dictionary containing other parameters.
+
+        :param fun: The wrapped route handler function
+        :type fun: callable
+        :param name: The name of the argument to set
+        :type name: str
+        :param kwargs: The arguments to be passed down to the function.
+        :type kwargs: dict
+        :param val: The value of the argument to set
+        """
+        if name in fun._fnArgs or fun._fnKeywds is not None:
+            kwargs[name] = val
+            kwargs['params'].pop(name, None)
+        else:
+            kwargs['params'][name] = val
+
     def __call__(self, fun):
+        fnInfo = inspect.getargspec(fun)
+        fun._fnArgs = set(fnInfo.args)
+        fun._fnKeywds = fnInfo.keywords
+
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
             """
@@ -523,7 +556,6 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             params.update(kwargs.get('params', {}))
 
             for descParam in self.description.params:
-
                 # We need either a type or a schema ( for message body )
                 if 'type' not in descParam and 'schema' not in descParam:
                     continue
@@ -531,23 +563,26 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 if name in params:
                     if name in self.description.jsonParams:
                         info = self.description.jsonParams[name]
-                        kwargs[name] = self._loadJson(name, info, params[name])
+                        val = self._loadJson(name, info, params[name])
+                        self._passArg(fun, kwargs, name, val)
                     elif name in self.description.modelParams:
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
-                        kwargs[info['destName']] = self._loadModel(name, info, params[name])
+                        val = self._loadModel(name, info, params[name])
+                        self._passArg(fun, kwargs, info['destName'], val)
                     else:
-                        kwargs[name] = self._validateParam(name, descParam, params[name])
-                    kwargs['params'].pop(name, None)  # Remove from form/query params
+                        val = self._validateParam(name, descParam, params[name])
+                        self._passArg(fun, kwargs, name, val)
                 elif descParam['in'] == 'body':
                     if name in self.description.jsonParams:
                         info = self.description.jsonParams[name].copy()
                         info['required'] = descParam['required']
-                        kwargs[name] = self._loadJsonBody(name, info)
+                        val = self._loadJsonBody(name, info)
+                        self._passArg(fun, kwargs, name, val)
                     else:
-                        kwargs[name] = cherrypy.request.body
+                        self._passArg(fun, kwargs, name, cherrypy.request.body)
                 elif 'default' in descParam:
-                    kwargs[name] = descParam['default']
+                    self._passArg(fun, kwargs, name, descParam['default'])
                 elif descParam['required']:
                     raise RestException('Parameter "%s" is required.' % name)
                 else:
@@ -555,13 +590,13 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     if name in self.description.modelParams:
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
-                        kwargs[info['destName']] = None
+                        self._passArg(fun, kwargs, info['destName'], None)
                     else:
-                        kwargs[name] = None
+                        self._passArg(fun, kwargs, name, None)
 
             if self.description.hasPagingParams and 'sort' in kwargs:
-                kwargs['sort'] = [(kwargs['sort'], kwargs['sortdir'])]
-                del kwargs['sortdir']
+                sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
+                kwargs['sort'] = [(kwargs['sort'], sortdir)]
 
             return fun(*args, **kwargs)
 
@@ -572,9 +607,15 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         return wrapped
 
     def _validateJsonType(self, name, info, val):
-        if info['requireObject'] and not isinstance(val, dict):
+        if info.get('schema') is not None:
+            try:
+                jsonschema.validate(val, info['schema'])
+            except jsonschema.ValidationError as e:
+                raise RestException('Invalid JSON object for parameter %s: %s' % (
+                    name, e.message))
+        elif info['requireObject'] and not isinstance(val, dict):
             raise RestException('Parameter %s must be a JSON object.' % name)
-        if info['requireArray'] and not isinstance(val, list):
+        elif info['requireArray'] and not isinstance(val, list):
             raise RestException('Parameter %s must be a JSON array.' % name)
 
     def _loadJsonBody(self, name, info):

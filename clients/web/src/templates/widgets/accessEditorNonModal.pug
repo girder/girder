@@ -1,6 +1,7 @@
 include accessEditorMixins
 
-+privacyEditor(modelType)
+if !hidePrivacyEditor
+  +privacyEditor(modelType)
 +permissionsEditor
 
 if !hideRecurseOption

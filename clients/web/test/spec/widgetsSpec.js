@@ -5,15 +5,25 @@
  */
 girderTest.startApp();
 
-function _setProgress(test, duration) {
+function _setProgress(test, duration, resourceId, resourceName) {
     /* Set or update a current progress notification.
      *
      * :param test: test parameter to send to the webclienttest/progress
      *     endpoint
      * :param duration: duration to send to the endpoint
+     * :param resourceId: optional resource ID that the progress notification
+     *     is associated with.
+     * : param resourceName: optional resource type that the progress notification
+     *     is associated with.
      */
     girder.rest.restRequest({path: 'webclienttest/progress', type: 'GET',
-        data: {test: test, duration: duration}});
+        data: {
+            test: test,
+            duration: duration,
+            resourceId: resourceId,
+            resourceName: resourceName
+        }
+    });
 }
 
 describe('Test widgets that are not covered elsewhere', function () {
@@ -29,7 +39,7 @@ describe('Test widgets that are not covered elsewhere', function () {
 
         runs(function () {
             expect($('#g-app-progress-container:visible').length).toBe(0);
-            _setProgress('success', 0);
+            _setProgress('success', 0, null, null);
         });
         waitsFor(function () {
             return $('.g-task-progress-title').text() === 'Progress Test';
@@ -39,7 +49,7 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'progress to be complete');
 
         runs(function () {
-            _setProgress('error', 0);
+            _setProgress('error', 0, null, null);
         });
         waitsFor(function () {
             return $('.g-task-progress-title:last').text() === 'Progress Test';
@@ -62,13 +72,13 @@ describe('Test widgets that are not covered elsewhere', function () {
             stream.on('g:event.progress', function () {
                 throw new Error('intentional error');
             });
-            _setProgress('success', 0);
+            _setProgress('success', 0, null, null);
         });
         waitsFor(function () {
             return onMessageError === 1;
         }, 'bad progress callback to be tried');
         runs(function () {
-            _setProgress('error', 0);
+            _setProgress('error', 0, null, null);
         });
         waitsFor(function () {
             return onMessageError === 2;
@@ -78,9 +88,19 @@ describe('Test widgets that are not covered elsewhere', function () {
         });
 
         runs(function () {
+            /* Create a progress notification related to a specific resource */
+            _setProgress('success', 0, 'some_folder_id', 'folder');
+        });
+
+        waitsFor(function () {
+            /* Make sure the progress notification links to that resource */
+            return $('.g-task-progress-title:last a').attr('href') === '#folder/some_folder_id';
+        }, 'progress for a folder to be shown');
+
+        runs(function () {
             /* Ask for a long test, so that on slow machines we can still
              * detect a partial progress. */
-            _setProgress('success', 100);
+            _setProgress('success', 100, null, null);
         });
         waitsFor(function () {
             return $('.g-task-progress-message:last').text() === 'Progress Message';
@@ -100,7 +120,7 @@ describe('Test widgets that are not covered elsewhere', function () {
          * less than a second left to wait for the two previous success
          * messages to vanish (but the error message might still be around). */
         waitsFor(function () {
-            return $('.g-progress-widget-container').length < 4;
+            return $('.g-progress-widget-container').length < 5;
         }, 'at least the first progress to be hidden');
 
         runs(function () {

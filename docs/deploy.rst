@@ -82,7 +82,7 @@ And under the containing ``server`` block, make sure to add the following rule:
 
     server {
         client_max_body_size 500M;
-        ...
+        # ... elided configuration
     }
 
 Girder Settings
@@ -96,13 +96,13 @@ example, we have the following:
 .. code-block:: ini
 
     [global]
-    server.socket_host: "0.0.0.0"
-    server.socket_port: 9000
-    tools.proxy.on: True
+    server.socket_host = "0.0.0.0"
+    server.socket_port = 9000
+    tools.proxy.on = True
 
     [server]
-    api_root: "/girder/api/v1"
-    static_root: "/girder/static"
+    api_root = "/girder/api/v1"
+    static_root = "/girder/static"
 
 .. note:: If your chosen proxy server does not add the appropriate
    ``X-Forwarded-Host`` header (containing the host used in http requests,
@@ -112,8 +112,8 @@ example, we have the following:
 
    .. code-block:: ini
 
-       tools.proxy.base: "http://www.example.com/girder"
-       tools.proxy.local: ""
+       tools.proxy.base = "http://www.example.com/girder"
+       tools.proxy.local = ""
 
 After modifying the configuration, always remember to rebuild Girder by
 changing to the Girder directory and issuing the following command: ::

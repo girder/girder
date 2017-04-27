@@ -7,7 +7,7 @@ var MetadataMixin = {
         opts = opts || {};
         restRequest({
             path: opts.path ||
-                ((this.altUrl || this.resourceName) + '/' + this.get('_id') + '/metadata'),
+                ((this.altUrl || this.resourceName) + `/${this.id}/metadata?allowNull=true`),
             contentType: 'application/json',
             data: JSON.stringify(metadata),
             type: 'PUT',
@@ -40,9 +40,27 @@ var MetadataMixin = {
     },
 
     removeMetadata: function (key, successCallback, errorCallback, opts) {
-        var datum = {};
-        datum[key] = null;
-        this._sendMetadata(datum, successCallback, errorCallback, opts);
+        if (!_.isArray(key)) {
+            key = [key];
+        }
+        restRequest({
+            path: opts.path ||
+                ((this.altUrl || this.resourceName) + `/${this.id}/metadata`),
+            contentType: 'application/json',
+            data: JSON.stringify(key),
+            type: 'DELETE',
+            error: null
+        }).done(resp => {
+            this.set(opts.field || 'meta', resp.meta);
+            if (_.isFunction(successCallback)) {
+                successCallback();
+            }
+        }).error(err => {
+            err.message = err.responseJSON.message;
+            if (_.isFunction(errorCallback)) {
+                errorCallback(err);
+            }
+        });
     },
 
     editMetadata: function (newKey, oldKey, value, successCallback, errorCallback, opts) {

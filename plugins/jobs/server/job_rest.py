@@ -24,14 +24,18 @@ from girder.constants import AccessType, SortDir
 
 
 class Job(Resource):
+
     def __init__(self):
         super(Job, self).__init__()
         self.resourceName = 'job'
 
         self.route('GET', (), self.listJobs)
+        self.route('GET', ('all',), self.listAllJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
         self.route('DELETE', (':id',), self.deleteJob)
+        self.route('GET', ('typeandstatus', 'all',), self.allJobsTypesAndStatuses)
+        self.route('GET', ('typeandstatus',), self.jobsTypesAndStatuses)
 
     @access.public
     @filtermodel(model='job', plugin='jobs')
@@ -41,19 +45,37 @@ class Job(Resource):
                'not passed or empty, will use the currently logged in user. If '
                'set to "None", will list all jobs that do not have an owning '
                'user.', required=False)
+        .jsonParam('types', 'Filter for type', requireArray=True, required=False)
+        .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
         .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
     )
-    def listJobs(self, userId, limit, offset, sort, params):
+    def listJobs(self, userId, types, statuses, limit, offset, sort, params):
         currentUser = self.getCurrentUser()
         if not userId:
             user = currentUser
         elif userId.lower() == 'none':
-            user = None
+            user = 'none'
         else:
-            user = self.model('user').load(userId, user=currentUser, level=AccessType.READ)
+            user = self.model('user').load(
+                userId, user=currentUser, level=AccessType.READ)
 
         return list(self.model('job', 'jobs').list(
-            user=user, offset=offset, limit=limit, sort=sort, currentUser=currentUser))
+            user=user, offset=offset, limit=limit, types=types,
+            statuses=statuses, sort=sort, currentUser=currentUser))
+
+    @access.admin
+    @filtermodel(model='job', plugin='jobs')
+    @autoDescribeRoute(
+        Description('List all jobs.')
+        .jsonParam('types', 'Filter for type', requireArray=True, required=False)
+        .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
+        .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
+    )
+    def listAllJobs(self, types, statuses, limit, offset, sort, params):
+        currentUser = self.getCurrentUser()
+        return list(self.model('job', 'jobs').list(
+            user='all', offset=offset, limit=limit, types=types,
+            statuses=statuses, sort=sort, currentUser=currentUser))
 
     @access.public
     @filtermodel(model='job', plugin='jobs')
@@ -100,7 +122,8 @@ class Job(Resource):
                   progressMessage, params):
         user = self.getCurrentUser()
         if user:
-            self.model('job', 'jobs').requireAccess(job, user, level=AccessType.WRITE)
+            self.model('job', 'jobs').requireAccess(
+                job, user, level=AccessType.WRITE)
         else:
             self.ensureTokenScopes('jobs.job_' + str(job['_id']))
 
@@ -118,3 +141,19 @@ class Job(Resource):
     )
     def deleteJob(self, job, params):
         self.model('job', 'jobs').remove(job)
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get types and statuses of all jobs')
+        .errorResponse('Admin access was denied for the job.', 403)
+    )
+    def allJobsTypesAndStatuses(self, params):
+        return self.model('job', 'jobs').getAllTypesAndStatuses(user='all')
+
+    @access.user
+    @autoDescribeRoute(
+        Description('Get types and statuses of jobs of current user')
+    )
+    def jobsTypesAndStatuses(self, params):
+        currentUser = self.getCurrentUser()
+        return self.model('job', 'jobs').getAllTypesAndStatuses(user=currentUser)

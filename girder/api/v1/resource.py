@@ -59,7 +59,7 @@ class Resource(BaseResource):
                'prefix-based search.', enum=('text', 'prefix'), required=False,
                default='text')
         .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
-                   "'user', 'folder', 'item'.", requireArray=True)
+                   '["user", "folder", "item"].', requireArray=True)
         .param('level', 'Minimum required access level.', required=False,
                dataType='integer', default=AccessType.READ)
         .pagingParams(defaultSort=None, defaultLimit=10)
@@ -145,26 +145,6 @@ class Resource(BaseResource):
     def lookup(self, path, test, params):
         return path_util.lookUpPath(path, self.getCurrentUser(), test)['document']
 
-    def _getResourceName(self, type, doc):
-        if type == 'user':
-            return doc['login']
-        elif type in ('file', 'item', 'folder', 'user', 'collection'):
-            return doc['name']
-        else:
-            raise RestException('Invalid resource type.')
-
-    def _getResourceParent(self, type, doc):
-        if type == 'file':
-            return doc['itemId'], 'item'
-        elif type == 'item':
-            return doc['folderId'], 'folder'
-        elif type == 'folder':
-            return doc['parentId'], doc['parentCollection']
-        else:
-            raise RestException(
-                'Invalid resource type.'
-            )
-
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get path of a resource.')
@@ -175,21 +155,11 @@ class Resource(BaseResource):
         .errorResponse('Read access was denied for the resource.', 403)
     )
     def path(self, id, type, params):
-        path = []
-        while True:
-            doc = self._getResource(id, type)
-            if doc is None:
-                raise RestException('Invalid resource id.')
-            name = self._getResourceName(type, doc)
-            path.insert(0, name)
-
-            if type in ('file', 'item', 'folder'):
-                id, type = self._getResourceParent(type, doc)
-            else:
-                break
-
-        path.insert(0, type)
-        return '/' + path_util.join(path)
+        user = self.getCurrentUser()
+        doc = self._getResource(id, type)
+        if doc is None:
+            raise RestException('Invalid resource id.')
+        return path_util.getResourcePath(type, doc, user=user)
 
     @access.cookie(force=True)
     @access.public(scope=TokenScope.DATA_READ)

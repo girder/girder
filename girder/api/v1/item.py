@@ -39,6 +39,7 @@ class Item(Resource):
         self.route('PUT', (':id',), self.updateItem)
         self.route('POST', (':id', 'copy'), self.copyItem)
         self.route('PUT', (':id', 'metadata'), self.setMetadata)
+        self.route('DELETE', (':id', 'metadata'), self.deleteMetadata)
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='item')
@@ -154,25 +155,39 @@ class Item(Resource):
         .notes('Set metadata fields to null in order to delete them.')
         .modelParam('id', model='item', level=AccessType.WRITE)
         .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
-                   paramType='body')
+                   paramType='body', requireObject=True)
+        .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
+               dataType='boolean', default=False)
         .errorResponse(('ID was invalid.',
                         'Invalid JSON passed in request body.',
                         'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the item.', 403)
     )
-    def setMetadata(self, item, metadata, params):
-        # Make sure we let user know if we can't accept a metadata key
-        for k in metadata:
-            if not k:
-                raise RestException('Key names must not be empty.')
-            if '.' in k:
-                raise RestException(
-                    'Invalid key %s: keys must not contain the "." character.' % k)
-            if k[0] == '$':
-                raise RestException(
-                    'Invalid key %s: keys must not start with the "$" character.' % k)
+    def setMetadata(self, item, metadata, allowNull, params):
+        return self.model('item').setMetadata(item, metadata, allowNull=allowNull)
 
-        return self.model('item').setMetadata(item, metadata)
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @filtermodel('item')
+    @autoDescribeRoute(
+        Description('Delete metadata fields on an item.')
+        .responseClass('Item')
+        .modelParam('id', model='item', level=AccessType.WRITE)
+        .jsonParam(
+            'fields', 'A JSON list containing the metadata fields to delete',
+            paramType='body', schema={
+                'type': 'array',
+                'items': {
+                    'type': 'string'
+                }
+            }
+        )
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
+        .errorResponse('Write access was denied for the item.', 403)
+    )
+    def deleteMetadata(self, item, fields, params):
+        return self.model('item').deleteMetadata(item, fields)
 
     def _downloadMultifileItem(self, item, user):
         setResponseHeader('Content-Type', 'application/zip')

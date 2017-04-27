@@ -21,6 +21,7 @@ import cherrypy
 import datetime
 import six
 
+from girder import events
 from girder.constants import AccessType
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, RestException
@@ -130,8 +131,24 @@ class OAuth(Resource):
 
         providerObj = provider(cherrypy.url())
         token = providerObj.getToken(code)
+
+        events.trigger('oauth.auth_callback.before', {
+            'provider': provider,
+            'token': token
+        })
+
         user = providerObj.getUser(token)
 
-        self.sendAuthTokenCookie(user)
+        events.trigger('oauth.auth_callback.after', {
+            'provider': provider,
+            'token': token,
+            'user': user
+        })
+
+        girderToken = self.sendAuthTokenCookie(user)
+        try:
+            redirect = redirect.format(girderToken=str(girderToken['_id']))
+        except KeyError:
+            pass  # in case there's another {} that's not handled by format
 
         raise cherrypy.HTTPRedirect(redirect)

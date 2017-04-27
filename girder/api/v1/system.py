@@ -24,9 +24,11 @@ import girder
 import json
 import six
 import os
+import logging
 
 from girder.api import access
-from girder.constants import SettingKey, TokenScope, ACCESS_FLAGS, VERSION
+from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
+    SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.models.model_base import GirderException
 from girder.utility import install, plugin_utilities, system
 from girder.utility.progress import ProgressContext
@@ -57,7 +59,11 @@ class System(Resource):
         self.route('GET', ('check',), self.systemStatus)
         self.route('PUT', ('check',), self.systemConsistencyCheck)
         self.route('GET', ('log',), self.getLog)
+        self.route('GET', ('log', 'level'), self.getLogLevel)
+        self.route('PUT', ('log', 'level'), self.setLogLevel)
         self.route('POST', ('web_build',), self.buildWebCode)
+        self.route('GET', ('setting', 'collection_creation_policy', 'access'),
+                   self.getCollectionCreationPolicyAccess)
 
     @access.admin
     @autoDescribeRoute(
@@ -126,10 +132,14 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def getPlugins(self, params):
-        return {
+        plugins = {
             'all': plugin_utilities.findAllPlugins(),
             'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED)
         }
+        failureInfo = plugin_utilities.getPluginFailureInfo()
+        if failureInfo:
+            plugins['failed'] = failureInfo
+        return plugins
 
     @access.public
     @autoDescribeRoute(
@@ -151,7 +161,26 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def enablePlugins(self, plugins, params):
-        return self.model('setting').set(SettingKey.PLUGINS_ENABLED, plugins)
+        # Determine what plugins have been disabled and remove their associated routes.
+        setting = self.model('setting')
+        routeTable = setting.get(SettingKey.ROUTE_TABLE)
+        oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
+        reservedRoutes = {GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID}
+
+        routeTableChanged = False
+        removedRoutes = (
+            set(oldPlugins) - set(plugins) - reservedRoutes)
+
+        for route in removedRoutes:
+            if route in routeTable:
+                del routeTable[route]
+                routeTableChanged = True
+
+        if routeTableChanged:
+            setting.set(SettingKey.ROUTE_TABLE, routeTable)
+
+        # Route cleanup is done; update list of enabled plugins.
+        return setting.set(SettingKey.PLUGINS_ENABLED, plugins)
 
     @access.admin
     @autoDescribeRoute(
@@ -359,20 +388,66 @@ class System(Resource):
     def getLog(self, bytes, log, params):
         path = girder.getLogPaths()[log]
         filesize = os.path.getsize(path)
-        length = bytes or filesize
+        length = int(bytes) or filesize
+        filesize1 = 0
+        if length > filesize:
+            path1 = path + '.1'
+            if os.path.exists(path1):
+                filesize1 = os.path.getsize(path1)
 
         def stream():
-            yield '=== Last %d bytes of %s: ===\n\n' % (min(length, filesize), path)
+            yield '=== Last %d bytes of %s: ===\n\n' % (
+                min(length, filesize + filesize1), path
+            )
 
+            readlength = length
+            if readlength > filesize and filesize1:
+                readlength = length - filesize
+                with open(path1, 'rb') as f:
+                    if readlength < filesize1:
+                        f.seek(-readlength, os.SEEK_END)
+                    while True:
+                        data = f.read(LOG_BUF_SIZE)
+                        if not data:
+                            break
+                        yield data
+                readlength = filesize
             with open(path, 'rb') as f:
-                if length < filesize:
-                    f.seek(-length, os.SEEK_END)
+                if readlength < filesize:
+                    f.seek(-readlength, os.SEEK_END)
                 while True:
                     data = f.read(LOG_BUF_SIZE)
                     if not data:
                         break
                     yield data
         return stream
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get the current log level.')
+        .notes('Must be a system administrator to call this.')
+        .errorResponse('You are not a system administrator.', 403)
+    )
+    def getLogLevel(self, params):
+        level = girder.logger.getEffectiveLevel()
+        return logging.getLevelName(level)
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get the current log level.')
+        .notes('Must be a system administrator to call this.')
+        .param('level', 'The new level to set.',
+               enum=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
+               default='INFO')
+        .errorResponse('You are not a system administrator.', 403)
+    )
+    def setLogLevel(self, level, params):
+        level = logging.getLevelName(level)
+        for logger in (girder.logger, cherrypy.log.access_log, cherrypy.log.error_log):
+            logger.setLevel(level)
+            for handler in logger.handlers:
+                handler.setLevel(level)
+        return logging.getLevelName(level)
 
     @access.admin
     @autoDescribeRoute(
@@ -387,6 +462,35 @@ class System(Resource):
 
         with ProgressContext(progress, user=user, title='Building web client code') as progress:
             install.runWebBuild(dev=dev, progress=progress)
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get access of content creation policy.')
+        .notes('Get result in the same structure as the access endpoints'
+               'of collection, file, and group')
+    )
+    def getCollectionCreationPolicyAccess(self, params):
+        cpp = self.model('setting').get('core.collection_create_policy')
+
+        acList = {
+            'users': [{'id': x} for x in cpp.get('users', [])],
+            'groups': [{'id': x} for x in cpp.get('groups', [])]
+        }
+
+        for user in acList['users'][:]:
+            userDoc = self.model('user').load(
+                user['id'], force=True,
+                fields=['firstName', 'lastName', 'login'])
+            user['login'] = userDoc['login']
+            user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
+
+        for grp in acList['groups'][:]:
+            grpDoc = self.model('group').load(
+                grp['id'], force=True, fields=['name', 'description'])
+            grp['name'] = grpDoc['name']
+            grp['description'] = grpDoc['description']
+
+        return acList
 
     def _fixBaseParents(self, progress):
         fixes = 0

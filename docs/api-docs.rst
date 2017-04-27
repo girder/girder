@@ -179,6 +179,13 @@ Folder
 
 Utility
 -------
+
+.. automodule:: girder.utility.assetstore_utilities
+   :members:
+
+.. automodule:: girder.utility.abstract_assetstore_adapter
+   :members:
+
 .. automodule:: girder.utility.model_importer
    :members:
 
@@ -197,6 +204,9 @@ Utility
 .. automodule:: girder.utility.path
    :members:
 
+.. automodule:: girder.utility.setting_utilities
+   :members:
+
 Constants
 ---------
 .. automodule:: girder.constants
@@ -204,6 +214,17 @@ Constants
 
 Clients
 -------
+
+Python Client
+^^^^^^^^^^^^^
+
+See :ref:`python-client`
+
+Web client
+^^^^^^^^^^
+
+Documentation for Girder's web client library is built and hosted by esdoc and can be found
+`here <https://doc.esdoc.org/github.com/girder/girder>`_.
 
 jQuery Plugins
 ^^^^^^^^^^^^^^

@@ -20,6 +20,19 @@ directory of Girder, you can install the client via pip: ::
 
     pip install girder-client
 
+
+After installing the client via pip and if you are using ``bash``,
+auto-completion can easily be enabled executing:
+
+::
+
+    eval "$(_GIRDER_CLI_COMPLETE=source girder-cli)"
+
+For convenience, adding this line at the end of ``.bashrc`` will make sure
+auto-completion is always available.
+
+For more details, see http://click.pocoo.org/6/bashcomplete/
+
 The Command Line Interface
 --------------------------
 
@@ -32,15 +45,15 @@ pip, you can use the special ``girder-cli`` executable: ::
 
 Otherwise you can equivalently just invoke the module directly: ::
 
-    python -m girder_client <subcommand> <arguments>
+    python -m girder_client <command> <arguments>
 
-To see all available subcommands, run: ::
+To see all available commands, run: ::
 
     girder-cli --help
 
-For help with a specific subcommand, run: ::
+For help with a specific command, run: ::
 
-    girder-cli <subcommand> --help
+    girder-cli <command> --help
 
 Specifying the Girder Instance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -50,16 +63,28 @@ you wish to connect to. The easiest way to do so is to pass the full URL to the
 REST API of the Girder instance you wish to connect to using the ``api-url``
 argument to ``girder-cli``. For example: ::
 
-    girder-cli --api-url http://localhost:8080/api/v1 <subcommand> ...
+    girder-cli --api-url http://localhost:8080/api/v1 <command> ...
 
-You may also specify the URL in parts, using the ``host`` argument, and optional
-``scheme``, ``port``, and ``api-root`` args. ::
 
-    girder-cli --host girder.example.com ...
+Instead of using ``api-url`` argument, you may also specify the URL in parts, using the
+``host`` argument, and optional ``scheme``, ``port``, and ``api-root`` args.
 
-Or... ::
+Specifying credentials
+^^^^^^^^^^^^^^^^^^^^^^
 
-    girder-cli --host girder.example.com --scheme https --port 443 --api-root /api/v1 ...
+The recommended way is to generate an :ref:`API key <api_keys>` and specify
+the ``api-key`` argument. ::
+
+    girder-cli --api-url https://girder.example.com:443/api/v1  --api-key abcdefghijklmopqrstuvwxyz012345678901234 ...
+
+Setting the ``GIRDER_API_KEY`` environment variable is also supported: ::
+
+    export GIRDER_API_KEY=abcdefghijklmopqrstuvwxyz012345678901234
+    girder-cli --api-url https://girder.example.com:443/api/v1 ...
+
+The client also supports ``username`` and ``password`` args. If only the
+``username`` is specified, the client will prompt the user to interactively
+input their password.
 
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -112,15 +137,55 @@ separated list to the ``--blacklist`` arg ::
 .. note: The girder_client can upload to an S3 Assetstore when uploading to a Girder server
          that is version 1.3.0 or later.
 
-Download a Folder hierarchy into a local folder
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Download a hierarchy of data into a local folder
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Folder
+""""""
 
 To download a Girder Folder hierarchy rooted at Folder id
 `54b6d40b8926486c0cbca364` under the local folder `download_folder` ::
 
     girder-cli download 54b6d40b8926486c0cbca364 download_folder
 
-Downloading is only supported from a parent type of Folder.
+
+Collection
+""""""""""
+
+To download the Girder Folder hierarchies associated with a Girder Collection
+with id `57b5c9e58d777f126827f5a1` under the local folder `download_folder` ::
+
+    girder-cli download --parent-type collection 57b5c9e58d777f126827f5a1 download_folder
+
+User
+""""
+
+To download the Girder Folder hierarchies associated with a Girder User
+with id `54f8ac238d777f69813604af` under the local folder `download_folder` ::
+
+    girder-cli download --parent-type user 54b6d40b8926486c0cbca364 download_folder
+
+Item
+""""
+
+To download the file(s) associated with a Girder Item with if `58b8eb798d777f0aef5d0f78` under
+the local folder `download_folder`::
+
+    girder-cli download --parent-type item 8b8eb798d777f0aef5d0f78 download_folder
+
+Auto-detecting parent-type
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Both download and upload commands accept a `--parent-type` argument allowing the users
+to specify the type (folder, collection, user, or item) associated with the chosen
+object id.
+
+If the argument is omitted, the client will conveniently try to autodetect the type
+by iteratively invoking the `resource/%id/path?type=%type` API end point and checking
+if a resource is found.
+
+Note that relying on auto-detection incurs extra network requests, which will slow down
+the script, so it should be avoided for time-sensitive operations.
 
 Synchronize local folder with a Folder hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -193,4 +258,5 @@ Further Examples and Function Level Documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: girder_client
+    :special-members: __init__
     :members:

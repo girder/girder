@@ -4,10 +4,12 @@ import _ from 'underscore';
 import events from 'girder/events';
 import router from 'girder/router';
 import View from 'girder/views/View';
+import { confirm } from 'girder/dialog';
 import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
-import { restartServerPrompt } from 'girder/server';
+import { restartServer, rebuildWebClient } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
+import PluginFailedNoticeTemplate from 'girder/templates/widgets/pluginFailedNotice.pug';
 import PluginsTemplate from 'girder/templates/body/plugins.pug';
 
 import 'girder/utilities/jquery/girderEnable';
@@ -24,25 +26,26 @@ var PluginsView = View.extend({
     events: {
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
-            router.navigate(route, {trigger: true});
+            router.navigate(route, { trigger: true });
         },
-        'click .g-plugin-restart-button': restartServerPrompt,
-        'click .g-rebuild-web-code': function (e) {
-            $(e.currentTarget).girderEnable(false);
-            restRequest({
-                path: 'system/web_build',
-                type: 'POST',
-                data: {
-                    progress: true
+        'click .g-rebuild-and-restart': function (e) {
+            confirm({
+                text: `Are you sure you want to rebuild web code and restart 
+                the server? This will interrupt all running tasks for all users.`,
+                yesText: 'Restart',
+                confirmCallback: function () {
+                    $(e.currentTarget).girderEnable(false);
+                    rebuildWebClient().then(() => {
+                        events.trigger('g:alert', {
+                            text: 'Web client code built successfully',
+                            type: 'success',
+                            duration: 3000
+                        });
+                        return restartServer();
+                    }).then(() => {
+                        $(e.currentTarget).girderEnable(true);
+                    });
                 }
-            }).done(() => {
-                events.trigger('g:alert', {
-                    text: 'Web client code built successfully',
-                    type: 'success',
-                    duration: 3000
-                });
-            }).complete(() => {
-                $(e.currentTarget).girderEnable(true);
             });
         }
     },
@@ -52,6 +55,7 @@ var PluginsView = View.extend({
         if (settings.all && settings.enabled) {
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
+            this.failed = _.has(settings, 'failed') ? settings.failed : null;
             this.render();
         } else {
             // Fetch the plugin list
@@ -61,13 +65,13 @@ var PluginsView = View.extend({
             }).done(_.bind(function (resp) {
                 this.enabled = resp.enabled;
                 this.allPlugins = resp.all;
+                this.failed = _.has(resp, 'failed') ? resp.failed : null;
                 this.render();
             }, this));
         }
     },
 
     render: function () {
-        var pluginsChanged = false;
         _.each(this.allPlugins, function (info, name) {
             info.unmetDependencies = this._unmetDependencies(info);
             if (!_.isEmpty(info.unmetDependencies)) {
@@ -78,6 +82,10 @@ var PluginsView = View.extend({
             if (_.contains(this.enabled, name)) {
                 info.enabled = true;
                 info.configRoute = getPluginConfigRoute(name);
+            }
+
+            if (this.failed && _.has(this.failed, name)) {
+                info.failed = this.failed[name];
             }
         }, this);
 
@@ -98,24 +106,31 @@ var PluginsView = View.extend({
                       view.enabled.splice(idx, 1);
                   }
               }
-              pluginsChanged = true;
-              $('.g-plugin-restart').addClass('g-plugin-restart-show');
+              $('button.g-rebuild-and-restart').addClass('btn-danger');
+              $('.g-plugin-rebuild-restart-text').addClass('show');
               view._updatePlugins();
           });
         this.$('.g-plugin-config-link').tooltip({
             container: this.$el,
             animation: false,
             placement: 'bottom',
-            delay: {show: 100}
+            delay: { show: 100 }
         });
-        this.$('.g-experimental-notice').tooltip({
+        this.$('.g-plugin-list-item-experimental-notice').tooltip({
             container: this.$el,
             animation: false,
-            delay: {show: 100}
+            delay: { show: 100 }
         });
-        if (pluginsChanged) {
-            $('.g-plugin-restart').addClass('g-plugin-restart-show');
-        }
+        this.$('.g-plugin-list-item-failed-notice').tooltip({
+            title: 'Click to see traceback',
+            container: this.$el,
+            animation: false,
+            delay: { show: 100 }
+        });
+        this.$('.g-plugin-list-item-failed-notice').popover({
+            container: this.$el,
+            template: PluginFailedNoticeTemplate()
+        });
 
         return this;
     },
@@ -143,7 +158,7 @@ var PluginsView = View.extend({
          *                 attribute used for sorting.
          * @returns sortedPlugins: the sorted list. */
         var sortedPlugins = _.map(plugins, function (value, key) {
-            return {key: key, value: value};
+            return { key: key, value: value };
         });
         sortedPlugins.sort(function (a, b) {
             return a.value.name.localeCompare(b.value.name);

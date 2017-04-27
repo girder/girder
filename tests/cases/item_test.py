@@ -352,6 +352,15 @@ class ItemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         item = resp.json
 
+        # Try to delete metadata from an item that doesn't have any set on it
+        # yet.
+        resp = self.request(path='/item/%s/metadata' % (item['_id']),
+                            method='DELETE', user=self.users[0],
+                            body=json.dumps(['foobar']), type='application/json')
+        item = resp.json
+        self.assertStatusOk(resp)
+        self.assertEqual(item['meta'], {})
+
         # Add some metadata
         metadata = {
             'foo': 'bar',
@@ -384,6 +393,51 @@ class ItemTestCase(base.TestCase):
         item = resp.json
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertNotHasKeys(item['meta'], ['test'])
+
+        # Test insertion of null values
+        metadata['nullVal'] = None
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), params={'allowNull': True},
+                            type='application/json')
+
+        item = resp.json
+        self.assertEqual(item['meta']['nullVal'], None)
+
+        # Adding an unrelated key should not affect existing keys
+        del metadata['nullVal']
+        metadata['other'] = 'macguffin'
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='PUT', user=self.users[0],
+                            body=json.dumps(metadata), type='application/json')
+
+        item = resp.json
+        self.assertEqual(item['meta']['other'], metadata['other'])
+        self.assertEqual(item['meta']['nullVal'], None)
+
+        # Test metadata deletion
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='DELETE', user=self.users[0],
+                            body=json.dumps(['other']), type='application/json')
+
+        item = resp.json
+        self.assertNotHasKeys(item['meta'], ['other'])
+
+        # Error when deletion field names contain a period.
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='DELETE', user=self.users[0],
+                            body=json.dumps(['foo', 'foo.bar']), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'], 'Invalid key foo.bar: keys must not contain the "." character.')
+
+        # Error when deletion field names begin with a dollar-sign.
+        resp = self.request(path='/item/%s/metadata' % item['_id'],
+                            method='DELETE', user=self.users[0],
+                            body=json.dumps(['foo', '$bar']), type='application/json')
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'], 'Invalid key $bar: keys must not start with the "$" character.')
 
         # Make sure metadata cannot be added with invalid JSON
         metadata = {

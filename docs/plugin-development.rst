@@ -29,11 +29,11 @@ our example, we'll just use JSON. ::
 
     touch cats/plugin.json
 
-The plugin config file should specify a human-readable name and description for your
-plugin, and can optionally contain a list of other plugins that your plugin
-depends on. If your plugin has dependencies, the other plugins will be
-enabled whenever your plugin is enabled. The contents of plugin.json for our
-example will be:
+The plugin config file should specify a human-readable name and description for 
+your plugin. It can also optionally contain a URL to documentation and 
+a list of other plugins that your plugin depends on. If your plugin has 
+dependencies, the other plugins will be enabled whenever your plugin is enabled. 
+The contents of plugin.json for our example will be:
 
 .. note:: If you have both ``plugin.json`` and ``plugin.yml`` files in the directory, the
    ``plugin.json`` will take precedence.
@@ -41,10 +41,11 @@ example will be:
 .. code-block:: json
 
     {
-    "name": "My Cats Plugin",
-    "description": "Allows users to manage their cats.",
-    "version": "1.0.0",
-    "dependencies": ["other_plugin"]
+        "name": "My Cats Plugin",
+        "description": "Allows users to manage their cats.",
+        "url": "http://girder.readthedocs.io/en/latest/plugin/mycat.html",
+        "version": "1.0.0",
+        "dependencies": ["other_plugin"]
     }
 
 .. note:: Some plugins depend on other plugins, but only for building web client code, not
@@ -56,7 +57,14 @@ example will be:
 This information will appear in the web client administration console, and
 administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart is required in order for the
-change to take effect.
+change to take effect. 
+
+If you are developing a plugin for girder, sometimes using the Rebuild and restart button 
+on the Plugins page may be undesirable as it will rebuild core and all enabled plugins 
+in production mode, which will take some time and doesn't provide sourcemaps.
+Rebuild specific plugin restart the server may be a better choice. See `During Development <development.html#during-development>`__ for details.
+
+
 
 Extending the Server-Side Application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -523,6 +531,9 @@ files, they must be prefixed by your plugin name as follows
 Then inside your unittest, the file will be available under the main data path
 as ``os.environ['GIRDER_TEST_DATA_PREFIX'] + '/plugins/cats/test_file.txt'``.
 
+.. note:: When enabling coverage in a plugin, only files residing under the plugin's
+          ``server`` directory will be included.  See :ref:`python-coverage-paths`
+          to change the paths used to generate python coverage reports.
 
 .. _client-side-plugins:
 
@@ -727,6 +738,18 @@ Each type needs to be installed differently due to how node manages external pac
   core, or if for any other reason you prefer to keep your plugin dependencies
   isolated. By default, the ``localNodeModules`` is set to ``false`` and the
   dependencies will be installed to Girder's own ``node_modules`` directory.
+
+  The final alternative for Webpack-built plugins is to set the ``npm.install``
+  configuration property to ``true``; this will cause the build system to run
+  ``npm install`` in the plugin directory. This may have certain benefits for
+  plugin development, such as allowing plugin sources to import modules without
+  the alias prefix as described above (though, this alias would still be
+  available for use by other plugins that want to access your plugin's
+  dependencies). Additionally, if your plugin is installed without using
+  symlinks, then you will still have access to Girder's Node dependencies (see
+  this [GitHub conversation](https://github.com/nodejs/node/issues/3402) for a
+  discussion of why symlinked directories will not allow for the usual Node
+  import semantics).
 
   If instead you are using a custom Grunt build with a Gruntfile, the
   dependencies should be installed into your plugin's **node_modules** directory

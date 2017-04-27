@@ -53,7 +53,7 @@ function(add_eslint_test name input)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${ESLINT_EXECUTABLE}" --ignore-path "${ignore_file}" --config "${config_file}" "${input}"
   )
-  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
+  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_static_analysis)
 endfunction()
 
 function(add_puglint_test name path)
@@ -70,7 +70,7 @@ function(add_puglint_test name path)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
   )
-  set_property(TEST "puglint_${name}" PROPERTY LABELS girder_browser girder_static_analysis)
+  set_property(TEST "puglint_${name}" PROPERTY LABELS girder_static_analysis)
 endfunction()
 
 function(add_web_client_test case specFile)
@@ -95,7 +95,10 @@ function(add_web_client_test case specFile)
   # BASEURL (url): The base url to load for the test.
   # TEST_MODULE (python module path): Run this module rather than the default
   #     "tests.web_client_test"
+  # SETUP_MODULES: colon-separated list of python scripts to import at test setup time
+  #     for side effects such as mocking, adding API routes, etc.
   # REQUIRED_FILES: A list of files required to run the test.
+  # ENVIRONMENT: A list of key=value pairs to add to the test's runtime environment
   if (NOT BUILD_JAVASCRIPT_TESTS)
     return()
   endif()
@@ -103,7 +106,8 @@ function(add_web_client_test case specFile)
   set(testname "web_client_${case}")
 
   set(_options NOCOVERAGE)
-  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES)
+  set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES
+            SETUP_MODULES ENVIRONMENT EXTERNAL_DATA)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -142,6 +146,15 @@ function(add_web_client_test case specFile)
     set(test_module "tests.web_client_test")
   endif()
 
+  if(fn_EXTERNAL_DATA)
+    set(_data_files "")
+    foreach(_data_file ${fn_EXTERNAL_DATA})
+      list(APPEND _data_files "DATA{${GIRDER_EXTERNAL_DATA_BUILD_PATH}/${_data_file}}")
+    endforeach()
+    girder_ExternalData_expand_arguments("${testname}_data" _tmp ${_data_files})
+    girder_ExternalData_add_target("${testname}_data")
+  endif()
+
   add_test(
       NAME ${testname}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
@@ -167,6 +180,8 @@ function(add_web_client_test case specFile)
     "GIRDER_TEST_ASSETSTORE=${testname}"
     "GIRDER_PORT=${web_client_port}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
+    "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
+    "${fn_ENVIRONMENT}"
   )
   math(EXPR next_web_client_port "${web_client_port} + 1")
   set(web_client_port ${next_web_client_port} PARENT_SCOPE)
@@ -174,6 +189,12 @@ function(add_web_client_test case specFile)
 
   if(fn_RESOURCE_LOCKS)
     set_property(TEST ${testname} PROPERTY RESOURCE_LOCK ${fn_RESOURCE_LOCKS})
+  endif()
+
+  if(fn_SETUP_MODULES)
+    set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
+        "SETUP_MODULES=${fn_SETUP_MODULES}"
+    )
   endif()
 
   if(fn_TIMEOUT)

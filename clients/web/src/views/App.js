@@ -29,6 +29,7 @@ import 'girder/stylesheets/layout/layout.styl';
 import 'girder/utilities/jquery/girderModal';
 
 import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/js/alert';
 
 var App = View.extend({
     /**
@@ -225,6 +226,10 @@ var App = View.extend({
              * normally against convention.
              */
             this.bodyView = new view(settings); // eslint-disable-line new-cap
+
+            if (opts.renderNow) {
+                this.bodyView.render();
+            }
         } else {
             console.error('Undefined page.');
         }

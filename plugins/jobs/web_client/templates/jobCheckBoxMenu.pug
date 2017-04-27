@@ -2,10 +2,4 @@ a.g-job-checkbox-menu-link(data-toggle="dropdown", data-target=`#g-job-checkbox-
   | #{title}
   i.icon-filter
 .dropdown(id=`g-job-checkbox-menu-${title}`)
-  ul.dropdown-menu(role="menu")
-    each checked, name in values
-      li(role="presentation")
-        label
-          input.g-job-filter-checkbox(type="checkbox", data-toggle="tooltip",
-              id=name, title=name, checked=checked)
-          span #{name}
+  .dropdown-menu(role="menu")

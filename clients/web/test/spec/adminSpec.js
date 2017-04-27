@@ -39,6 +39,11 @@ describe('Create an admin and non-admin user', function () {
     it('No admin console when logging in as a normal user', function () {
         expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
     });
+
+    it('go to groups page', girderTest.goToGroupsPage());
+
+    it('Create a public group',
+       girderTest.createGroup('pubGroup', 'public group', true));
 });
 
 describe('Test the settings page', function () {
@@ -99,21 +104,65 @@ describe('Test the settings page', function () {
     });
     it('Use search to update collection create policy', function () {
         runs(function () {
+            $('.g-collection-create-policy-container .g-plugin-switch').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container .g-grant-access-container').length > 0;
+        }, 'access widget to load');
+
+        runs(function () {
             $('.g-collection-create-policy-container .g-search-field').val('admin')
                 .trigger('input');
         });
 
         waitsFor(function () {
             return $('.g-collection-create-policy-container .g-search-result').length > 0;
-        }, 'search result to appear');
+        }, 'search result to appear for a user');
 
         runs(function () {
             $('.g-collection-create-policy-container .g-search-result>a').click();
         });
 
         waitsFor(function () {
-            return JSON.parse($('#g-core-collection-create-policy').val()).users.length === 1;
-        }, 'policy value to update');
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users').children().length === 1;
+        }, 'access list to populate with one user');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-search-field').val('pubGroup').trigger('input');
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .g-search-result .icon-users').length > 0;
+        }, 'search result to appear for a group');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-search-result>a').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-groups').children().length === 1;
+        }, 'access list to populate with one group');
+
+        runs(function () {
+            $('.g-submit-settings').click();
+        });
+
+        runs(function () {
+            $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users .g-user-access-entry .icon-cancel').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container #g-ac-list-users').children().length === 0;
+        }, 'policy value to be cleared');
+
+        runs(function () {
+            $('.g-collection-create-policy-container .g-plugin-switch').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-create-policy-container .access-widget-container .g-grant-access-container').length === 0;
+        }, 'access widget unload');
     });
 
     it('logout and check for redirect to front page from settings page', function () {
@@ -531,6 +580,10 @@ describe('Test the plugins page', function () {
                 girder.server.restartServer._lastStartDate = 0;
             }, 100);
         });
+        // We don't want to really rebuild the web code, so replace the original one with a resolved Promise
+        spyOn(girder.server.restartServer, '_rebuildWebClient').andCallFake(function () {
+            return Promise.resolve();
+        });
         spyOn(girder.server.restartServer, '_reloadWindow');
     });
 
@@ -557,6 +610,17 @@ describe('Test the plugins page', function () {
         }, 'plugins page to load');
         girderTest.waitForLoad();
     });
+    it('Check that an error indicator is displayed for an enabled plugin that failed to load', function () {
+        var target = $('.g-plugin-list-item:contains(bad_server)');
+        expect(target.length).toBe(1);
+        expect(target.find('input[type=checkbox]:checked').length).toBe(1);
+        expect(target.hasClass('g-plugin-list-item-failed')).toBe(true);
+        expect(target.find('.g-plugin-list-item-failed-notice').length).toBe(1);
+
+        var content = target.find('.g-plugin-list-item-failed-notice').data('content');
+        expect(content).toContain('Traceback');
+        expect(content).toContain('Exception: Bad server');
+    });
     it('Enable a plugin with non-existent dependencies', function () {
         runs(function () {
             var target = $('.g-plugin-list-item:contains(has_nonexistent_deps)');
@@ -566,22 +630,23 @@ describe('Test the plugins page', function () {
 
             target.find('.g-plugin-switch').click();
 
-            expect($('.g-plugin-restart').css('visibility')).toBe('hidden');
+            expect($('.g-plugin-rebuild-restart-text').css('visibility')).toBe('hidden');
         });
     });
     it('Enable a plugin', function () {
         runs(function () {
             expect($('.g-plugin-list-item .bootstrap-switch').length > 0).toBe(true);
-            expect($('.g-plugin-restart').css('visibility')).toBe('hidden');
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
+            expect($('.g-plugin-rebuild-restart-text').css('visibility')).toBe('hidden');
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
             $('.g-plugin-list-item:contains(test_plugin) .g-plugin-switch').click();
         });
         waitsFor(function () {
-            return $('.g-plugin-restart').css('visibility') !== 'hidden';
-        }, 'restart option to be shown');
+            return $('.g-plugin-rebuild-restart-text').css('visibility') === 'visible' &&
+                $('.g-rebuild-and-restart').hasClass('btn-danger');
+        }, 'rebuild and restart change color and restart messsage to be shown');
         runs(function () {
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
-            $('.g-plugin-restart-button').click();
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(2);
+            $('.g-rebuild-and-restart').click();
         });
         waitsFor(function () {
             return $('#g-confirm-button:visible').length > 0;
@@ -617,7 +682,7 @@ describe('Test the plugins page', function () {
             $('.g-plugin-list-item:contains(test_plugin) .g-plugin-switch').click();
         });
         runs(function () {
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
@@ -626,7 +691,7 @@ describe('Test the plugins page', function () {
                 async: false
             });
             return (resp && resp.responseJSON && resp.responseJSON.enabled &&
-                resp.responseJSON.enabled.length === 0);
+                resp.responseJSON.enabled.length === 1);
         });
     });
     /* Logout to make sure we don't see the plugins any more */
