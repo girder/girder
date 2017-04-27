@@ -146,6 +146,15 @@ function(add_web_client_test case specFile)
     set(test_module "tests.web_client_test")
   endif()
 
+  if(fn_EXTERNAL_DATA)
+    set(_data_files "")
+    foreach(_data_file ${fn_EXTERNAL_DATA})
+      list(APPEND _data_files "DATA{${GIRDER_EXTERNAL_DATA_BUILD_PATH}/${_data_file}}")
+    endforeach()
+    girder_ExternalData_expand_arguments("${testname}_data" _tmp ${_data_files})
+    girder_ExternalData_add_target("${testname}_data")
+  endif()
+
   add_test(
       NAME ${testname}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
@@ -171,6 +180,7 @@ function(add_web_client_test case specFile)
     "GIRDER_TEST_ASSETSTORE=${testname}"
     "GIRDER_PORT=${web_client_port}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
+    "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
     "${fn_ENVIRONMENT}"
   )
   math(EXPR next_web_client_port "${web_client_port} + 1")
