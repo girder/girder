@@ -1,0 +1,61 @@
+- hosts: all
+
+  vars:
+    girder_update: no
+    girder_force: no
+    girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
+
+    girder_worker_user: "worker"
+    girder_worker_virtualenv: "/home/{{ girder_worker_user }}/.virtualenvs/girder-worker"
+    girder_worker_plugins:
+      - docker
+      - girder_io
+
+  pre_tasks:
+
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      become: yes
+      become_user: root
+
+    - name: Install site specific packages
+      apt:
+        name: "{{ item }}"
+      with_items:
+        - acl
+      become: yes
+      become_user: root
+
+    - name: Create Worker user
+      user:
+        name: "{{ girder_worker_user }}"
+      become: yes
+      become_user: root
+
+    - include: "pre-tasks/docker.yml"
+
+  roles:
+    - role: Stouts.mongodb
+      become: yes
+      become_user: root
+
+    - role: girder.girder
+
+    - role: SimpliField.rabbitmq
+      become: yes
+      become_user: root
+
+    - role: girder.worker
+      girder_worker_install_source: "git"
+      girder_worker_path: "/home/{{ girder_worker_user }}/girder_worker"
+      become: yes
+      become_user: "{{ girder_worker_user }}"
+
+  post_tasks:
+
+    - include: "post-tasks/girder.yml"
+    # The girder_worker post_task can be removed when the girder_worker
+    # role adds support for setting girder_worker plugins in the girder_worker
+    # config.
+    - include: "post-tasks/worker.yml"

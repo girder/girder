@@ -1,0 +1,68 @@
+- name: Wait for Girder to be available
+  wait_for:
+    port: 8080
+
+- name: Install Girder-Client
+  pip:
+    name: "girder-client"
+    state: present
+  become: yes
+  become_user: root
+
+- name: Create Girder User
+  girder:
+    port: 8080
+    user:
+      firstName: "girder"
+      lastName: "girder"
+      login: "girder"
+      password: "girder"
+      email: "girder@girder.girder"
+      admin: yes
+      state: present
+
+- name: Enable item_tasks Plugin
+  girder:
+    port: 8080
+    username: "girder"
+    password: "girder"
+    plugins:
+      - item_tasks
+    state: present
+
+- name: Build Girder (web)
+  command: "{{ girder_virtualenv }}/bin/girder-install web"
+  args:
+    chdir: "{{ girder_path }}"
+
+- name: Restart Girder
+  service:
+    name: girder
+    state: restarted
+  become: yes
+  become_user: root
+
+- name: Wait for Girder to be available
+  wait_for:
+    port: 8080
+
+- name: Set Worker API Url
+  girder:
+    port: 8080
+    username: "girder"
+    password: "girder"
+    setting:
+      key: "worker.api_url"
+      value: "http://localhost:8080/api/v1"
+
+- name: Setup filesystem assetstore
+  girder:
+    port: 8080
+    username: "girder"
+    password: "girder"
+    assetstore:
+      name: "Primary assetstore"
+      type: "filesystem"
+      root: "{{ ansible_user_dir }}/assetstore"
+      current: true
+    state: present
