@@ -98,6 +98,7 @@ function(add_web_client_test case specFile)
   # SETUP_MODULES: colon-separated list of python scripts to import at test setup time
   #     for side effects such as mocking, adding API routes, etc.
   # REQUIRED_FILES: A list of files required to run the test.
+  # ENVIRONMENT: A list of key=value pairs to add to the test's runtime environment
   if (NOT BUILD_JAVASCRIPT_TESTS)
     return()
   endif()
@@ -106,7 +107,7 @@ function(add_web_client_test case specFile)
 
   set(_options NOCOVERAGE)
   set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES
-            SETUP_MODULES)
+            SETUP_MODULES ENVIRONMENT)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -170,6 +171,7 @@ function(add_web_client_test case specFile)
     "GIRDER_TEST_ASSETSTORE=${testname}"
     "GIRDER_PORT=${web_client_port}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
+    "${fn_ENVIRONMENT}"
   )
   math(EXPR next_web_client_port "${web_client_port} + 1")
   set(web_client_port ${next_web_client_port} PARENT_SCOPE)
