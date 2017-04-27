@@ -33,8 +33,6 @@
       become: yes
       become_user: root
 
-    - include: "pre-tasks/docker.yml"
-
   roles:
     - role: Stouts.mongodb
       become: yes
@@ -46,6 +44,10 @@
       become: yes
       become_user: root
 
+    - role: angstwad.docker_ubuntu
+      become: yes
+      become_user: root
+
     - role: girder.worker
       girder_worker_install_source: "git"
       girder_worker_path: "/home/{{ girder_worker_user }}/girder_worker"
@@ -53,6 +55,20 @@
       become_user: "{{ girder_worker_user }}"
 
   post_tasks:
+    - name: Add worker user to docker group
+      user:
+        shell: /bin/bash
+        name: "{{ girder_worker_user }}"
+        groups: docker
+        append: yes
+      become: yes
+
+    - name: Restart docker daemon
+      service:
+        name: docker
+        state: restarted
+        enabled: yes
+      become: yes
 
     - include: "post-tasks/girder.yml"
     # The girder_worker post_task can be removed when the girder_worker

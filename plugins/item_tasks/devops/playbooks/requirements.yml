@@ -3,3 +3,4 @@
 - src: girder.girder
 - src: SimpliField.rabbitmq
 - src: girder.worker
+- src: angstwad.docker_ubuntu
