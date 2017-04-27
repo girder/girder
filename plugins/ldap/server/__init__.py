@@ -94,8 +94,8 @@ def _ldapAuth(event):
         # ldap requires a uri complete with protocol.
         # Append one if the user did not specify.
         uri = server['uri']
-        if uri.find("://") == -1:
-          uri = "ldap://" + uri
+        if '://' not in uri:
+            uri = 'ldap://' + uri
         conn = ldap.initialize(uri)
         try:
             conn.bind_s(server['bindName'], server['password'], ldap.AUTH_SIMPLE)

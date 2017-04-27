@@ -9,7 +9,7 @@ import 'jquery-ui/ui/widgets/sortable';
 
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { apiRoot, restRequest } from 'girder/rest';
+import { restRequest } from 'girder/rest';
 import events from 'girder/events';
 
 import ConfigViewTemplate from '../templates/configView.pug';
@@ -22,72 +22,55 @@ var ConfigView = View.extend({
             this.$('#g-ldap-servers-error-message').empty();
             this._saveSettings();
         },
-        'click .icon-cancel': function (event) {
-            event.stopPropagation();
-            // Get the index of the server to remove.
-            var idx = Number(event.target.id.match(/server-([0-9]+)-remove/)[1]);
+        'click .g-remove-ldap-server': function (event) {
+            var idx = $(event.currentTarget).attr('idx');
 
             // Remove this server from the DOM.
             this.servers.splice(idx, 1);
             this.render();
         },
-        'click #g-ldap-add-server': function (event) {
+        'click .g-ldap-add-server': function () {
             this.servers.push({ collapsedClass: 'in' });
             this.render();
         }
     },
 
     initialize: function () {
-        var settingKeys = ['ldap.servers'];
         restRequest({
             type: 'GET',
             path: 'system/setting',
             data: {
-                list: JSON.stringify(settingKeys)
+                key: 'ldap.servers'
             }
-        }).done(_.bind(function (resp) {
-            if (resp["ldap.servers"].length > 0) {
-                this.servers = resp["ldap.servers"];
+        }).done(resp => {
+            if (resp.length) {
+                this.servers = resp;
             } else {
                 // Show an empty server for the user to fill in.
                 this.servers = [{ collapsedClass: 'in' }];
             }
             this.render();
-        }, this));
+        }, this);
+
+        this.breadcrumb = new PluginConfigBreadcrumbWidget({
+            pluginName: 'LDAP login',
+            parentView: this
+        });
     },
 
     render: function () {
-        var origin = window.location.protocol + '//' + window.location.host,
-            _apiRoot = apiRoot;
-
-        if (apiRoot.substring(0, 1) !== '/') {
-            _apiRoot = '/' + apiRoot;
-        }
-
         this.$el.html(ConfigViewTemplate({
-            origin: origin,
-            apiRoot: _apiRoot,
             servers: this.servers
         }));
 
-        if (!this.breadcrumb) {
-            this.breadcrumb = new PluginConfigBreadcrumbWidget({
-                pluginName: 'LDAP login',
-                el: this.$('.g-config-breadcrumb-container'),
-                parentView: this
-            }).render();
-        }
+        this.breadcrumb.setElement(this.$('.g-config-breadcrumb-container')).render();
 
-        var view = this;
-        $('#g-ldap-server-accordion').sortable({
-            stop: function(event, ui) {
-                var children = $('#g-ldap-server-accordion').children();
-                for (var i = 0; i < children.length; i++) {
-                    // Find index of this server.
-                    var idx = Number($(children[i]).attr('id').match(/server-([0-9]+)/)[1]);
-                    // Record its new position.
-                    view.servers[idx].position = i;
-                }
+        this.$('.g-ldap-server-accordion').sortable({
+            stop: () => {
+                _.each(this.$('.g-ldap-server-accordion').children(), (child, i) => {
+                    // Record new position of server in the list
+                    this.servers[$(child).attr('idx')].position = i;
+                });
             }
         });
 
@@ -95,59 +78,52 @@ var ConfigView = View.extend({
     },
 
     _saveSettings: function () {
-        var servers = []
-        var fieldsToSave = ['uri', 'bindName', 'baseDn', 'password', 'searchField'];
+        const servers = [];
+        const fieldsToSave = ['uri', 'bindName', 'baseDn', 'password', 'searchField'];
 
         // Whether or not the user modified the priority order of the servers.
-        var hasPosition = this.servers[0].hasOwnProperty('position');
+        const hasPosition = _.has(this.servers[0], 'position');
 
-        for (var i = 0; i < this.servers.length; i++) {
-            var server = {}
-            _.each(fieldsToSave, function (field) {
-                var val = this.$('#g-ldap-server-' + i + '-' + field).val();
+        _.each(this.servers, (oldServer, i) => {
+            const server = {};
+            _.each(fieldsToSave, field => {
+                const val = this.$(`#g-ldap-server-${i}-${field}`).val();
                 if (val) {
                     server[field] = val;
                 }
                 if (hasPosition) {
-                    server.position = this.servers[i].position;
+                    server.position = oldServer.position;
                 }
-            }, this);
+            });
             servers.push(server);
-        }
+        });
 
         if (hasPosition) {
             // Sort by position before serializing.
-            servers.sort(function(a, b){
-                return a.position - b.position;
+            servers.sort((a, b) => a.position - b.position);
+            _.each(servers, server => {
+                delete server.position;
             });
-            for (var i = 0; i < servers.length; i++) {
-              delete servers[i].position;
-            }
         }
-
-        var settings = [{
-            key: 'ldap.servers',
-            value: servers
-        }];
 
         restRequest({
             type: 'PUT',
             path: 'system/setting',
             data: {
-                list: JSON.stringify(settings)
+                key: 'ldap.servers',
+                value: JSON.stringify(servers)
             },
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
                 timeout: 3000
             });
-        }, this)).error(_.bind(function (resp) {
-            this.$('#g-ldap-servers-error-message').text(
-                resp.responseJSON.message);
-        }, this));
+        }).error(resp => {
+            this.$('.g-validation-failed-message').text(resp.responseJSON.message);
+        });
     }
 });
 
