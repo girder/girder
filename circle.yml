@@ -38,3 +38,9 @@ deployment:
     owner: girder
     commands:
       - curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
+
+  ansible_galaxy:
+    branch: master
+    owner: girder
+    commands:
+      - ./scripts/galaxy_deploy.sh
