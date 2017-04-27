@@ -396,7 +396,7 @@ Releasing the python client package
 The design intent behind the python client package is to work with as many
 versions of the Girder server as possible; think carefully before breaking this
 compatibility. Whenever the main Girder package is released, the python client
-package should also be versioned and released if is has changed since the last
+package should also be versioned and released if it has changed since the last
 Girder release or the last time it was released. Normal semantic versioning is
 not in use for the python client package because its version is partially
 dependent on the Girder server package version. The rules for versioning the
