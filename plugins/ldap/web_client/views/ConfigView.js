@@ -1,19 +1,16 @@
 import _ from 'underscore';
-
-import $ from 'jquery';
-import 'jquery-ui/themes/base/core.css';
-import 'jquery-ui/themes/base/theme.css';
-import 'jquery-ui/themes/base/sortable.css';
-import 'jquery-ui/ui/core';
-import 'jquery-ui/ui/widgets/sortable';
+import sortable from 'sortablejs';
 
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 import events from 'girder/events';
 
-import ConfigViewTemplate from '../templates/configView.pug';
+import template from '../templates/configView.pug';
+import newServerTemplate from '../templates/newServerTemplate.pug';
 import '../stylesheets/configView.styl';
+
+const FIELDS = ['uri', 'bindName', 'baseDn', 'password', 'searchField'];
 
 var ConfigView = View.extend({
     events: {
@@ -23,15 +20,17 @@ var ConfigView = View.extend({
             this._saveSettings();
         },
         'click .g-remove-ldap-server': function (event) {
-            var idx = $(event.currentTarget).attr('idx');
-
-            // Remove this server from the DOM.
-            this.servers.splice(idx, 1);
-            this.render();
+            $(event.currentTarget).parents('.panel').remove();
         },
         'click .g-ldap-add-server': function () {
-            this.servers.push({ collapsedClass: 'in' });
-            this.render();
+            this.$('.g-ldap-server-accordion').append(newServerTemplate({
+                server: {collapsedClass: 'in'},
+                index: this.$('.g-ldap-server-panel').length
+            }));
+        },
+        'input .g-uri-input': function (event) {
+            const field = $(event.currentTarget);
+            field.parents('.panel').find('.g-ldap-server-title').text(field.val());
         }
     },
 
@@ -43,14 +42,9 @@ var ConfigView = View.extend({
                 key: 'ldap.servers'
             }
         }).done(resp => {
-            if (resp.length) {
-                this.servers = resp;
-            } else {
-                // Show an empty server for the user to fill in.
-                this.servers = [{ collapsedClass: 'in' }];
-            }
+            this.servers = resp;
             this.render();
-        }, this);
+        });
 
         this.breadcrumb = new PluginConfigBreadcrumbWidget({
             pluginName: 'LDAP login',
@@ -59,52 +53,23 @@ var ConfigView = View.extend({
     },
 
     render: function () {
-        this.$el.html(ConfigViewTemplate({
+        this.$el.html(template({
             servers: this.servers
         }));
 
         this.breadcrumb.setElement(this.$('.g-config-breadcrumb-container')).render();
-
-        this.$('.g-ldap-server-accordion').sortable({
-            stop: () => {
-                _.each(this.$('.g-ldap-server-accordion').children(), (child, i) => {
-                    // Record new position of server in the list
-                    this.servers[$(child).attr('idx')].position = i;
-                });
-            }
-        });
-
+        sortable.create(this.$('.g-ldap-server-accordion')[0]);
         return this;
     },
 
     _saveSettings: function () {
-        const servers = [];
-        const fieldsToSave = ['uri', 'bindName', 'baseDn', 'password', 'searchField'];
-
-        // Whether or not the user modified the priority order of the servers.
-        const hasPosition = _.has(this.servers[0], 'position');
-
-        _.each(this.servers, (oldServer, i) => {
+        const servers = _.map(this.$('.g-ldap-server-panel'), panel => {
             const server = {};
-            _.each(fieldsToSave, field => {
-                const val = this.$(`#g-ldap-server-${i}-${field}`).val();
-                if (val) {
-                    server[field] = val;
-                }
-                if (hasPosition) {
-                    server.position = oldServer.position;
-                }
+            _.each(FIELDS, field => {
+                server[field] = $(panel).find(`input[name="${field}"]`).val();
             });
-            servers.push(server);
+            return server;
         });
-
-        if (hasPosition) {
-            // Sort by position before serializing.
-            servers.sort((a, b) => a.position - b.position);
-            _.each(servers, server => {
-                delete server.position;
-            });
-        }
 
         restRequest({
             type: 'PUT',

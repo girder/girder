@@ -1,44 +1,19 @@
+include editServerMixin
+
 .g-config-breadcrumb-container
+p.
+  Below is the list of LDAP servers that will attempt to authenticate
+  users when they log into this server. The list below is ordered, and
+  the servers will be checked in that order at login time. To change
+  the order, simply drag and drop the elements in the list.
 
 .g-ldap-server-list-title LDAP servers
 form.g-ldap-server-form(role="form")
   .panel-group.g-ldap-server-accordion
     each server, index in servers
-      .panel.panel-default(id=`g-ldap-server-${index}`, idx=index)
-        .panel-heading(data-toggle="collapse",
-            data-parent="#g-ldap-server-accordion",
-            data-target=`#g-ldap-server-${index}-settings`)
-          .panel-title.pull-left
-            a
-              span= server.uri
-          .panel-title.pull-right
-            a.g-remove-ldap-server(title="Remove this server", idx=index)
-              i.icon-cancel(id=`g-ldap-server-${index}-remove`)
-          .clearfix
-        .panel-collapse.collapse(id=`g-ldap-server-${index}-settings`,
-            class=server.collapsedClass)
-          .panel-body
-            .form-group
-              label.control-label(for=`g-ldap-server-${index}-uri`) URI
-              input.input-sm.form-control(id=`g-ldap-server-${index}-uri`,
-                  type="text", value=server.uri, placeholder="URI")
-            .form-group
-              label.control-label(for=`g-ldap-server-${index}-bindName`) bindName
-              input.input-sm.form-control(id=`g-ldap-server-${index}-bindName`,
-                  type="text", value=server.bindName, placeholder="bindName")
-            .form-group
-              label.control-label(for=`g-ldap-server-${index}-baseDn`) baseDn
-              input.input-sm.form-control(id=`g-ldap-server-${index}-baseDn`,
-                  type="text", value=server.baseDn, placeholder="baseDn")
-            .form-group
-              label.control-label(for=`g-ldap-server-${index}-password`) password
-              input.input-sm.form-control(id=`g-ldap-server-${index}-password`,
-                  type="password", value=server.password, placeholder="password (optional)")
-            .form-group
-              label.control-label(for=`g-ldap-server-${index}-searchField`) searchField
-              input.input-sm.form-control(id=`g-ldap-server-${index}-searchField`,
-                  type="text", value=server.searchField, placeholder="searchField (optional)")
+      +ldapServerEditPanel(server, index)
   .btn-toolbar
     input.g-ldap-add-server.btn.btn-sm.btn-primary(type="button", value="New Server")
     input.btn.btn-sm.btn-primary(type="submit", value="Save")
-  p.g-validation-failed-message
+
+p.g-validation-failed-message

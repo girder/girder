@@ -41,7 +41,6 @@
     "pug": "^2.0.0-beta6",
     "pug-loader": "^2.3.0",
     "jquery": "2.1.1",
-    "jquery-ui": "1.12.1",
     "json-loader": "^0.5.4",
     "jsoneditor": "4.1.2",
     "nib": "^1.1.0",
