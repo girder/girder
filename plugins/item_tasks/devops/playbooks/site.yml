@@ -71,7 +71,3 @@
       become: yes
 
     - include: "post-tasks/girder.yml"
-    # The girder_worker post_task can be removed when the girder_worker
-    # role adds support for setting girder_worker plugins in the girder_worker
-    # config.
-    - include: "post-tasks/worker.yml"
