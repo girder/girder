@@ -70,4 +70,12 @@
         enabled: yes
       become: yes
 
+    - name: (Re)start girder_worker service to pick up Docker group addition
+      service:
+        name: girder_worker
+        state: restarted
+      become: yes
+      become_user: root
+      when: girder_worker_start
+
     - include: "post-tasks/girder.yml"
