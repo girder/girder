@@ -165,6 +165,7 @@ class SettingKey:
     EMAIL_HOST = 'core.email_host'
     REGISTRATION_POLICY = 'core.registration_policy'
     EMAIL_VERIFICATION = 'core.email_verification'
+    SECURE_COOKIE = 'core.secure_cookie'
     SERVER_ROOT = 'core.server_root'
     SMTP_HOST = 'core.smtp_host'
     SMTP_PORT = 'core.smtp.port'
