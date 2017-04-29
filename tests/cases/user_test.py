@@ -27,6 +27,7 @@ from .. import base
 
 from girder import events
 from girder.constants import AccessType, SettingKey, TokenScope
+from girder.models.model_base import ValidationException
 
 
 def setUpModule():
@@ -39,7 +40,7 @@ def tearDownModule():
 
 class UserTestCase(base.TestCase):
 
-    def _verifyAuthCookie(self, resp):
+    def _verifyAuthCookie(self, resp, secure=''):
         self.assertTrue('girderToken' in resp.cookie)
         self.cookieVal = resp.cookie['girderToken'].value
         self.assertFalse(not self.cookieVal)
@@ -47,6 +48,7 @@ class UserTestCase(base.TestCase):
         self.assertEqual(
             resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)
+        self.assertEqual(resp.cookie['girderToken']['secure'], secure)
 
     def _verifyDeletedCookie(self, resp):
         self.assertTrue('girderToken' in resp.cookie)
@@ -163,13 +165,19 @@ class UserTestCase(base.TestCase):
                             authHeader='Authorization')
         self.assertStatusOk(resp)
 
+        # Test secure cookie validation
+        with self.assertRaises(ValidationException):
+            self.model('setting').set(SettingKey.SECURE_COOKIE, 'bad value')
+        # Set secure cookie value
+        self.model('setting').set(SettingKey.SECURE_COOKIE, True)
+
         # Login successfully with login
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='goodlogin:good:password')
         self.assertStatusOk(resp)
 
-        # Make sure we got a nice cookie
-        self._verifyAuthCookie(resp)
+        # Make sure we got a nice (secure) cookie
+        self._verifyAuthCookie(resp, secure=True)
 
         # Test user/me
         resp = self.request(path='/user/me', method='GET', user=user)
