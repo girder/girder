@@ -4,6 +4,8 @@
     girder_update: no
     girder_force: no
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
+    girder_enabled_plugins:
+      - item_tasks
 
     girder_worker_user: "worker"
     docker_group_members:
