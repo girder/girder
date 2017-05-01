@@ -1,11 +1,20 @@
 /**
+ * Intercept window.location.assign calls so we can test the behavior of,
+ * e.g. download directives that occur from js.
+ */
+(function () {
+    window.location.assign = function (url) {
+        girderTest._redirect = url;
+    };
+}(window.location.assign));
+
+/**
  * Start the girder backbone app.
  */
 girderTest.startApp();
 
 describe('Test the model class', function () {
-    var lastRequest, triggerRestError = false, requestCount = 0,
-        windowAlert, lastAlert, alertCount = 0;
+    var lastRequest, triggerRestError = false, requestCount = 0;
 
     beforeEach(function () {
         girder.rest.mockRestRequest(function (opts) {
@@ -21,17 +30,10 @@ describe('Test the model class', function () {
             resp.error = resp.fail;
             return resp;
         });
-
-        windowAlert = window.alert;
-        window.alert = function (msg) {
-            lastAlert = msg;
-            alertCount += 1;
-        };
     });
 
     afterEach(function () {
         girder.rest.unmockRestRequest();
-        window.alert = windowAlert;
     });
 
     it('test the base model', function () {
@@ -56,11 +58,8 @@ describe('Test the model class', function () {
         model.increment('count', 0);
         expect(model.get('count')).toBe(12);
         // test save
-        expect(alertCount).toBe(0);
         model.resourceName = null;
         model.save();
-        expect(alertCount).toBe(1);
-        expect(lastAlert.indexOf('You must set')).toBeGreaterThan(0);
         model.resourceName = 'sampleResource';
         expect(requestCount).toBe(0);
         model.save();
@@ -81,9 +80,8 @@ describe('Test the model class', function () {
         requestCount = 0;
         model.resourceName = null;
         model.fetch();
-        expect(alertCount).toBe(2);
-        expect(lastAlert.indexOf('You must set')).toBeGreaterThan(0);
         model.resourceName = 'sampleResource';
+        expect(requestCount).toBe(0);
         model.fetch();
         expect(requestCount).toBe(1);
         expect(lastRequest.type).toBe(undefined);
@@ -109,5 +107,46 @@ describe('Test the model class', function () {
         model.fetch();
         expect(requestCount).toBe(5);
         triggerRestError = false;
+        // test downloadUrl
+        expect(model.downloadUrl()).toBe(girder.rest.apiRoot + '/sampleResource/' + id + '/download');
+        expect(model.downloadUrl({foo: 'bar'})).toBe(girder.rest.apiRoot + '/sampleResource/' + id + '/download?foo=bar');
+        // test download
+        model.download();
+        waitsFor(function () {
+            return girderTest._redirect !== null;
+        }, 'redirect to the resource download URL');
+        runs(function () {
+            expect(/^http:\/\/.*\/api\/v1\/sampleResource\/.+\/download$/.test(
+                girderTest._redirect)).toBe(true);
+        });
+        // destroy
+        requestCount = 0;
+        model.resourceName = null;
+        model.destroy();
+        model.resourceName = 'sampleResource';
+        expect(requestCount).toBe(0);
+        model.destroy();
+        expect(requestCount).toBe(1);
+        expect(lastRequest.type).toBe('DELETE');
+        expect(/progress=true/.test(lastRequest.path)).toBe(false);
+        expect(lastRequest.error).toBe(null);
+        model.destroy({progress: true});
+        expect(requestCount).toBe(2);
+        expect(lastRequest.type).toBe('DELETE');
+        expect(/progress=true/.test(lastRequest.path)).toBe(true);
+        expect(lastRequest.error).toBe(null);
+        model.destroy({throwError: false});
+        expect(requestCount).toBe(3);
+        expect(lastRequest.type).toBe('DELETE');
+        expect(/progress=true/.test(lastRequest.path)).toBe(false);
+        expect(lastRequest.error).toBe(undefined);
+        triggerRestError = true;
+        model.destroy();
+        expect(requestCount).toBe(4);
+        triggerRestError = false;
+        // getAccessLevel
+        expect(model.getAccessLevel()).toBe(undefined);
+        model.set('_accessLevel', 'abc');
+        expect(model.getAccessLevel()).toBe('abc');
     });
 });

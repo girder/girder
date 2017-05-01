@@ -327,8 +327,10 @@ var GroupView = View.extend({
                     this.model.fetchAccess();
                 }
             }, this).off('g:error').on('g:error', function (err) {
-                // TODO don't alert, show something useful
-                alert(err.responseJSON.message);
+                events.trigger('g:alert', {
+                    text: err.responseJSON.message,
+                    type: 'warning'
+                });
             }, this).sendInvitation(params.user.id, params.level, false, opts);
         }, this).on('g:removeMember', this.removeMember, this)
                 .on('g:moderatorAdded', this.render, this)

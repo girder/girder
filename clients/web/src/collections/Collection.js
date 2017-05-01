@@ -129,7 +129,7 @@ var Collection = Backbone.Collection.extend({
      */
     fetch: function (params, reset) {
         if (this.altUrl === null && this.resourceName === null) {
-            alert('Error: You must set an altUrl or resourceName on your collection.');
+            console.error('Error: You must set an altUrl or resourceName on your collection.');
             return;
         }
 
