@@ -49,7 +49,7 @@ function _setMinimumChunkSize(minSize) {
     window.location.assign = function (url) {
         girderTest._redirect = url;
     };
-}(window.location.assign));
+}());
 
 /**
  * Start the girder backbone app.

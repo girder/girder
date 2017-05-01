@@ -20,7 +20,7 @@ var AccessControlledModel = Model.extend({
      */
     updateAccess: function (params) {
         if (this.altUrl === null && this.resourceName === null) {
-            alert('Error: You must set an altUrl or a resourceName on your model.');
+            console.error('Error: You must set an altUrl or a resourceName on your model.');
             return;
         }
 
@@ -48,7 +48,7 @@ var AccessControlledModel = Model.extend({
      */
     fetchAccess: function (force) {
         if (this.altUrl === null && this.resourceName === null) {
-            alert('Error: You must set an altUrl or a resourceName on your model.');
+            console.error('Error: You must set an altUrl or a resourceName on your model.');
             return;
         }
 
