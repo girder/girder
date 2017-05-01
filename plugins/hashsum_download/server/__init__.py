@@ -29,6 +29,7 @@ from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
+from girder.utility.progress import ProgressContext, noProgress
 
 SUPPORTED_ALGORITHMS = {'sha512'}
 
@@ -45,10 +46,9 @@ class HashedFile(File):
     def __init__(self, node):
         super(File, self).__init__()
 
-        node.route('GET', ('hashsum', ':algo', ':hash', 'download'),
-                   self.downloadWithHash)
-        node.route('GET', (':id', 'hashsum_file', ':algo'),
-                   self.downloadKeyFile)
+        node.route('GET', ('hashsum', ':algo', ':hash', 'download'), self.downloadWithHash)
+        node.route('GET', (':id', 'hashsum_file', ':algo'), self.downloadKeyFile)
+        node.route('POST', (':id', 'hashsum'), self.computeHashes)
 
     @access.cookie
     @access.public(scope=TokenScope.DATA_READ)
@@ -92,6 +92,21 @@ class HashedFile(File):
             raise RestException('File not found.', code=404)
 
         return self.download(id=file['_id'], params=params)
+
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @autoDescribeRoute(
+        Description('Manually compute the checksum values for a given file.')
+            .modelParam('id', 'The ID of the file.', model='file', level=AccessType.WRITE)
+            .param('progress', 'Whether to track progress of the operation', dataType='boolean',
+                   default=False, required=False)
+            .errorResponse()
+            .errorResponse('Write access was denied on the file.', 403)
+    )
+    def computeHashes(self, file, progress, params):
+        with ProgressContext(
+                progress, title='Computing hash: %s' % file['name'], total=file['size'],
+                user=self.getCurrentUser()) as pc:
+            return _computeHash(file, progress=pc)
 
     def _validateAlgo(self, algo):
         """
@@ -139,7 +154,7 @@ def _computeHashHook(event):
         _computeHash(event.info['file'])
 
 
-def _computeHash(file):
+def _computeHash(file, progress=noProgress):
     toCompute = SUPPORTED_ALGORITHMS - set(file)
     toCompute = {alg: getattr(hashlib, alg)() for alg in toCompute}
 
@@ -152,12 +167,16 @@ def _computeHash(file):
             chunk = fh.read(65536)
             if not chunk:
                 break
-            for hash in six.viewvalues(toCompute):
-                hash.update(chunk)
+            for digest in six.viewvalues(toCompute):
+                digest.update(chunk)
+            progress.update(increment=len(chunk))
 
+    digests = {alg: digest.hexdigest() for alg, digest in six.viewitems(toCompute)}
     fileModel.update({'_id': file['_id']}, update={
-        '$set': {alg: hash.hexdigest() for alg, hash in six.viewitems(toCompute)}
+        '$set': digests
     }, multi=False)
+
+    return digests
 
 
 @setting_utilities.validator(PluginSettings.AUTO_COMPUTE)
