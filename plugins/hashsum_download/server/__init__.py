@@ -26,9 +26,15 @@ from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import RestException, setRawResponse, setResponseHeader
 from girder.api.v1.file import File
 from girder.constants import AccessType, TokenScope
+from girder.models.model_base import ValidationException
+from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
-SUPPORTED_ALGORITHMS = {'sha256'}
+SUPPORTED_ALGORITHMS = {'sha512'}
+
+
+class PluginSettings(object):
+    AUTO_COMPUTE = 'hashsum_download.auto_compute'
 
 
 class HashedFile(File):
@@ -123,14 +129,17 @@ class HashedFile(File):
         return None
 
 
-def _computeHash(event):
+def _computeHashHook(event):
     """
     Computes all supported checksums on a given file. Downloads the
     file data and stream-computes all required hashes on it, saving
     the results in the file document.
     """
-    file = event.info['file']
+    if ModelImporter.model('setting').get(PluginSettings.AUTO_COMPUTE, default=False):
+        _computeHash(event.info['file'])
 
+
+def _computeHash(file):
     toCompute = SUPPORTED_ALGORITHMS - set(file)
     toCompute = {alg: getattr(hashlib, alg)() for alg in toCompute}
 
@@ -151,9 +160,15 @@ def _computeHash(event):
     }, multi=False)
 
 
+@setting_utilities.validator(PluginSettings.AUTO_COMPUTE)
+def _validateAutoCompute(doc):
+    if not isinstance(doc['value'], bool):
+        raise ValidationException('Auto-compute hash setting must be true or false.')
+
+
 def load(info):
     HashedFile(info['apiRoot'].file)
     ModelImporter.model('file').exposeFields(
         level=AccessType.READ, fields=SUPPORTED_ALGORITHMS)
 
-    events.bind('data.process', info['name'], _computeHash)
+    events.bind('data.process', info['name'], _computeHashHook)
