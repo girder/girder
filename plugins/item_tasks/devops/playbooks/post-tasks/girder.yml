@@ -21,7 +21,7 @@
       admin: yes
       state: present
 
-- name: Enable item_tasks Plugin
+- name: Enable Girder plugins
   girder:
     port: 8080
     username: "girder"
