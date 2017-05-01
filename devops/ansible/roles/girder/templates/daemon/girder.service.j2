@@ -1,6 +1,6 @@
 [Unit]
 Description=Girder
-After=network.target {% if girder_use_systemd %}mongod.service{% endif %}
+After=network.target
 
 [Service]
 User={{ ansible_user_id }}

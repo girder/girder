@@ -139,7 +139,7 @@ Homepage
 --------
 
 The Homepage plugin allows the default Girder front page to be replaced by
-content written in [Markdown](https://daringfireball.net/projects/markdown/)
+content written in `Markdown <https://daringfireball.net/projects/markdown/>`_
 format. After enabling this plugin, visit the plugin configuration page
 to edit and preview the Markdown.
 

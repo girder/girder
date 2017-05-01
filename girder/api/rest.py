@@ -1070,13 +1070,18 @@ class Resource(ModelImporter):
         """
         Helper method to send the authentication cookie
         """
-        days = float(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
+        setting = self.model('setting')
+        days = float(setting.get(SettingKey.COOKIE_LIFETIME))
+        secure = setting.get(SettingKey.SECURE_COOKIE)
         token = self.model('token').createToken(user, days=days, scope=scope)
 
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = str(token['_id'])
         cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = int(days * 3600 * 24)
+
+        if secure:
+            cookie['girderToken']['secure'] = True
 
         return token
 

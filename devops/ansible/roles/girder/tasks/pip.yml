@@ -4,11 +4,6 @@
     state: latest
     virtualenv: "{{ girder_virtualenv | default(omit) }}"
 
-- name: Install Girder Python requirements
-  pip:
-    requirements: "{{ girder_path }}/requirements.txt"
-    virtualenv: "{{ girder_virtualenv | default(omit) }}"
-
 - name: Install Girder and plugin requirements
   pip:
     name: ".[plugins]"

@@ -91,6 +91,19 @@ class PythonClientTestCase(base.TestCase):
 
         base.TestCase.tearDown(self)
 
+    def testSession(self):
+        @httmock.urlmatch(path=r'.*/describe$')
+        def mock(url, request):
+            self.assertIn('some-header', request.headers)
+            self.assertEqual(request.headers['some-header'], 'some-value')
+
+        with httmock.HTTMock(mock):
+            with self.client.session() as session:
+                session.headers.update({'some-header': 'some-value'})
+
+                self.client.get('describe')
+                self.client.get('describe')
+
     def getPublicFolder(self, user):
             folders = list(self.client.listFolder(
                 parentId=user['_id'], parentFolderType='user', name='Public'))
@@ -750,3 +763,7 @@ class PythonClientTestCase(base.TestCase):
 
             checkDescription(self.client.getServerAPIDescription(useCached=False))
             self.assertEqual(len(hits), 2)
+
+    def testNonJsonResponse(self):
+        resp = self.client.get('user', jsonResp=False)
+        self.assertIsInstance(resp.content, six.binary_type)

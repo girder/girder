@@ -8,6 +8,7 @@ var ControlsPanel = Panel.extend({
     initialize: function (settings) {
         this.title = settings.title || '';
         this.advanced = settings.advanced || false;
+        this.initialValues = settings.initialValues || null;
         this.listenTo(this.collection, 'add', this.addOne);
         this.listenTo(this.collection, 'reset', this.render);
         this.listenTo(this.collection, 'remove', this.removeWidget);

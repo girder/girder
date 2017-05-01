@@ -21,6 +21,11 @@ esac
 mkdir $HOME/build
 touch $HOME/build/test_failed
 ctest -VV -S $HOME/girder/cmake/circle_continuous.cmake
+
+# Convert CTest output to Junit and ensure CircleCI will include it in its summary
+pip install scikit-ci-addons==0.15.0
+mkdir ${CIRCLE_TEST_REPORTS}/CTest
+ci_addons ctest_junit_formatter $HOME/build > ${CIRCLE_TEST_REPORTS}/CTest/JUnit-${CIRCLE_NODE_INDEX}.xml || exit 1
 if [ -f $HOME/build/test_failed ] ; then
 	exit 1
 fi

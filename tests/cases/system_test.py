@@ -284,6 +284,16 @@ class SystemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         enabled = set(resp.json['value'])
         self.assertEqual({'bad_json', 'bad_yaml'}, enabled)
+
+        resp = self.request(path='/system/plugins', user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertIn('failed', resp.json)
+        self.assertHasKeys(resp.json['failed'], ['bad_json', 'bad_yaml'])
+        self.assertIn('traceback', resp.json['failed']['bad_json'])
+        self.assertIn('traceback', resp.json['failed']['bad_yaml'])
+        self.assertIn('ValueError:', resp.json['failed']['bad_json']['traceback'])
+        self.assertIn('ScannerError:', resp.json['failed']['bad_yaml']['traceback'])
+
         self.unmockPluginDir()
 
     def testRestart(self):

@@ -30,9 +30,10 @@ import shutil
 import six
 import tempfile
 
+from contextlib import contextmanager
 from requests_toolbelt import MultipartEncoder
 
-__version__ = '2.2.0'
+__version__ = '2.2.1'
 __license__ = 'Apache 2.0'
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
@@ -153,16 +154,6 @@ class GirderClient(object):
             {'q': 'aggregated','types': '["folder", "item"]'})
     """
 
-    # A convenience dictionary mapping HTTP method names to functions in the
-    # requests module
-    METHODS = {
-        'GET': requests.get,
-        'POST': requests.post,
-        'PUT': requests.put,
-        'DELETE': requests.delete,
-        'PATCH': requests.patch
-    }
-
     # The current maximum chunk size for uploading file chunks
     MAX_CHUNK_SIZE = 1024 * 1024 * 64
 
@@ -263,6 +254,39 @@ class GirderClient(object):
             progressReporterCls = _NoopProgressReporter
 
         self.progressReporterCls = progressReporterCls
+        self._session = None
+
+    @contextmanager
+    def session(self, session=None):
+        """
+        Use a :class:`requests.Session` object for all outgoing requests from
+        :class:`GirderClient`. If `session` isn't passed into the context manager
+        then one will be created and yielded. Session objects are useful for enabling
+        persistent HTTP connections as well as partially applying arguments to many
+        requests, such as headers.
+
+        Note: `session` is closed when the context manager exits, regardless of who
+        created it.
+
+        .. code-block:: python
+
+            with gc.session() as session:
+                session.headers.update({'User-Agent': 'myapp 1.0'})
+
+                for itemId in itemIds:
+                    gc.downloadItem(itemId, fh)
+
+        In the above example, each request will be executed with the User-Agent header
+        while reusing the same TCP connection.
+
+        :param session: An existing :class:`requests.Session` object, or None.
+        """
+        self._session = session if session else requests.Session()
+
+        yield self._session
+
+        self._session.close()
+        self._session = None
 
     def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
         """
@@ -310,7 +334,7 @@ class GirderClient(object):
                 raise Exception('A user name and password are required')
 
             url = self.urlBase + 'user/authentication'
-            authResponse = requests.get(url, auth=(username, password))
+            authResponse = self._requestFunc('get')(url, auth=(username, password))
 
             if authResponse.status_code == 404:
                 raise HttpError(404, authResponse.text, url, 'GET')
@@ -383,8 +407,14 @@ class GirderClient(object):
 
         return self._serverApiDescription
 
+    def _requestFunc(self, method):
+        if self._session is not None:
+            return getattr(self._session, method.lower())
+        else:
+            return getattr(requests, method.lower())
+
     def sendRestRequest(self, method, path, parameters=None,
-                        data=None, files=None, json=None, headers=None):
+                        data=None, files=None, json=None, headers=None, jsonResp=True):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -410,12 +440,23 @@ class GirderClient(object):
         :type json: dict
         :param headers: If present, a dictionary of headers to encode in the request.
         :type headers: dict
+        :param jsonResp: Whether the response should be parsed as JSON. If False, the raw
+            response object is returned. To get the raw binary content of the response,
+            use the ``content`` attribute of the return value, e.g.
+
+            .. code-block:: python
+
+                resp = client.get('my/endpoint', jsonResp=False)
+                print(resp.content)  # Raw binary content
+                print(resp.headers)  # Dict of headers
+
+        :type jsonResp: bool
         """
         if not parameters:
             parameters = {}
 
         # Look up the HTTP method we need
-        f = self.METHODS[method]
+        f = self._requestFunc(method)
 
         # Construct the url
         url = self.urlBase + path
@@ -426,50 +467,53 @@ class GirderClient(object):
             _headers.update(headers)
 
         result = f(
-            url, params=parameters, data=data, files=files, json=json,
-            headers=_headers)
+            url, params=parameters, data=data, files=files, json=json, headers=_headers)
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in (200, 201):
-            return result.json()
+            if jsonResp:
+                return result.json()
+            else:
+                return result
         # TODO handle 300-level status (follow redirect?)
         else:
             raise HttpError(
                 status=result.status_code, url=result.url, method=method, text=result.text)
 
-    def get(self, path, parameters=None):
+    def get(self, path, parameters=None, jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'GET' HTTP method.
         """
-        return self.sendRestRequest('GET', path, parameters)
+        return self.sendRestRequest('GET', path, parameters, jsonResp=jsonResp)
 
-    def post(self, path, parameters=None, files=None, data=None, json=None, headers=None):
+    def post(self, path, parameters=None, files=None, data=None, json=None, headers=None,
+             jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'POST' HTTP method.
         """
         return self.sendRestRequest('POST', path, parameters, files=files,
-                                    data=data, json=json, headers=headers)
+                                    data=data, json=json, headers=headers, jsonResp=jsonResp)
 
-    def put(self, path, parameters=None, data=None, json=None):
+    def put(self, path, parameters=None, data=None, json=None, jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PUT'
         HTTP method.
         """
         return self.sendRestRequest('PUT', path, parameters, data=data,
-                                    json=json)
+                                    json=json, jsonResp=jsonResp)
 
-    def delete(self, path, parameters=None):
+    def delete(self, path, parameters=None, jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'DELETE' HTTP method.
         """
-        return self.sendRestRequest('DELETE', path, parameters)
+        return self.sendRestRequest('DELETE', path, parameters, jsonResp=jsonResp)
 
-    def patch(self, path, parameters=None, data=None, json=None):
+    def patch(self, path, parameters=None, data=None, json=None, jsonResp=True):
         """
         Convenience method to call :py:func:`sendRestRequest` with the 'PATCH' HTTP method.
         """
         return self.sendRestRequest('PATCH', path, parameters, data=data,
-                                    json=json)
+                                    json=json, jsonResp=jsonResp)
 
     def createResource(self, path, params):
         """
@@ -1046,7 +1090,7 @@ class GirderClient(object):
         progressFileName = fileId
         if isinstance(path, six.string_types):
             progressFileName = os.path.basename(path)
-        req = requests.get(
+        req = self._requestFunc('get')(
             '%sfile/%s/download' % (self.urlBase, fileId),
             stream=True, headers={'Girder-Token': self.token})
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
