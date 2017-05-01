@@ -6,6 +6,8 @@
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
 
     girder_worker_user: "worker"
+    docker_group_members:
+      - "{{ girder_worker_user }}"
     girder_worker_virtualenv: "/home/{{ girder_worker_user }}/.virtualenvs/girder-worker"
     girder_worker_plugins:
       - docker
@@ -55,27 +57,5 @@
       become_user: "{{ girder_worker_user }}"
 
   post_tasks:
-    - name: Add worker user to docker group
-      user:
-        shell: /bin/bash
-        name: "{{ girder_worker_user }}"
-        groups: docker
-        append: yes
-      become: yes
-
-    - name: Restart docker daemon
-      service:
-        name: docker
-        state: restarted
-        enabled: yes
-      become: yes
-
-    - name: (Re)start girder_worker service to pick up Docker group addition
-      service:
-        name: girder_worker
-        state: restarted
-      become: yes
-      become_user: root
-      when: girder_worker_start
 
     - include: "post-tasks/girder.yml"
