@@ -27,7 +27,7 @@ import tempfile
 
 from .. import base
 import girder
-from girder import logger
+from girder import logger, logprint
 from girder.utility import config
 
 
@@ -151,7 +151,7 @@ class ConfigLoggingTestCase(base.TestCase):
         self.assertGreater(errorSize3, errorSize2)
 
     def testOneFile(self):
-        self.configureLogging(oneFile=True)
+        self.configureLogging({'log_max_info_level': 'CRITICAL'}, oneFile=True)
 
         logger.info(self.infoMessage)
         infoSize = os.path.getsize(self.infoFile)
@@ -177,4 +177,22 @@ class ConfigLoggingTestCase(base.TestCase):
         infoSize3 = os.path.getsize(self.infoFile)
         errorSize3 = os.path.getsize(self.errorFile)
         self.assertGreater(infoSize3, infoSize2)
+        self.assertGreater(errorSize3, errorSize2)
+
+    def testLogPrint(self):
+        self.configureLogging({'log_max_info_level': 'INFO'})
+
+        infoSize1 = os.path.getsize(self.infoFile)
+        errorSize1 = os.path.getsize(self.errorFile)
+        logprint.info(self.infoMessage)
+        infoSize2 = os.path.getsize(self.infoFile)
+        errorSize2 = os.path.getsize(self.errorFile)
+        self.assertGreater(infoSize2, infoSize1)
+        self.assertEqual(errorSize2, errorSize1)
+        logprint.error(self.errorMessage)
+        infoSize3 = os.path.getsize(self.infoFile)
+        errorSize3 = os.path.getsize(self.errorFile)
+        # logprint sends to stdout, which we capture except when sent via
+        # logprint, so we shouldn't see any additional data on the info log.
+        self.assertEqual(infoSize3, infoSize2)
         self.assertGreater(errorSize3, errorSize2)

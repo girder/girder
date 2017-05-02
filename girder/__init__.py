@@ -85,6 +85,19 @@ class StreamToLogger:
         self.logger = logger
         self.level = level
         self.logger._girderLogHandlerOutput = False
+        # This class is intended to override a default stream like sys.stdout
+        # and sys.stderr and send that information to both the original stream
+        # and the logger method.  However, we want to preserve as much
+        # functionality for stdout and stderr as possible, so that other
+        # modules that send data to them can do so without a problem.  The only
+        # method we really need to override is write, but we cannot mutate the
+        # write method on the stream itself, so we replace the stream with this
+        # custom class.  To preserve the stream methods, all of them get added
+        # to our class instance except private and built-in methods, which, in
+        # python, begin with _.
+        #     Fundamentally, this lets our stream replacement handle functions
+        # flush, writeline, and others without having to enumerate them
+        # individually.
         for key in dir(stream):
             if key != 'write' and not key.startswith('_') and callable(getattr(stream, key)):
                 setattr(self, key, getattr(stream, key))
