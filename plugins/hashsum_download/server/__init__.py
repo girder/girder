@@ -19,6 +19,7 @@
 
 import hashlib
 import six
+import warnings
 
 from girder import events
 from girder.api import access
@@ -39,9 +40,12 @@ class PluginSettings(object):
 
 
 class HashedFile(File):
-
-    # deprecated, use module-level constant instead
-    supportedAlgorithms = SUPPORTED_ALGORITHMS
+    @property
+    def supportedAlgorithms(self):  # pragma: no cover
+        warnings.warn(
+            'HashedFile.supportedAlgorithms is deprecated, use the module-level '
+            'SUPPORTED_ALGORITHMS instead.', DeprecationWarning)
+        return SUPPORTED_ALGORITHMS
 
     def __init__(self, node):
         super(File, self).__init__()
