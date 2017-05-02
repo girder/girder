@@ -1,10 +1,30 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#  Copyright Kitware Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###############################################################################
+
+import jsonschema
 import ldap
 import six
 
 from girder import events, logger
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
-from girder.api.rest import boundHandler, AccessException
+from girder.api.rest import boundHandler
 from girder.models.model_base import ValidationException
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
@@ -12,6 +32,26 @@ from .constants import PluginSettings
 
 _LDAP_ATTRS = ('uid', 'mail', 'cn', 'sn', 'givenName', 'distinguishedName')
 _MAX_NAME_ATTEMPTS = 10
+_serversSchema = {
+    'type': 'array',
+    'items': {
+        'type': 'object',
+        'properties': {
+            'uri': {
+                'type': 'string',
+                'minLength': 1
+            },
+            'bindName': {
+                'type': 'string',
+                'minLength': 1
+            },
+            'baseDn': {
+                'type': 'string'
+            }
+        },
+        'required': ['uri', 'bindName', 'baseDn']
+    }
+}
 
 
 @setting_utilities.default(PluginSettings.LDAP_SERVERS)
@@ -21,19 +61,12 @@ def _defaultServers():
 
 @setting_utilities.validator(PluginSettings.LDAP_SERVERS)
 def _validateLdapServers(doc):
-    if not isinstance(doc['value'], (list, tuple)):
-        raise ValidationException('LDAP servers must be a list.')
+    try:
+        jsonschema.validate(doc['value'], _serversSchema)
+    except jsonschema.ValidationError as e:
+        raise ValidationException('Invalid LDAP servers list: ' + e.message)
 
     for server in doc['value']:
-        if not server.get('uri'):
-            raise ValidationException('LDAP servers must contain a uri.')
-
-        if not server.get('bindName'):
-            raise ValidationException('LDAP servers must contain a bindName.')
-
-        if 'baseDn' not in server:
-            raise ValidationException('LDAP servers must contain a baseDn.')
-
         server['password'] = server.get('password', '')
         server['searchField'] = server.get('searchField', 'uid')
 
@@ -110,13 +143,10 @@ def _ldapAuth(event):
             entry, attrs = results[0]
             try:
                 conn.bind_s(attrs['distinguishedName'][0], password, ldap.AUTH_SIMPLE)
-            except ldap.INVALID_CREDENTIALS:
-                # Core authentication could still succeed if this user has
-                # a password stored in girder.
-                pass
-            except ldap.LDAPError as e:
+            except ldap.LDAPError:
+                # Try other LDAP servers or fall back to core auth
                 conn.unbind_s()
-                raise AccessException('Login failed: %s' % e[0]['desc'])
+                continue
 
             user = _getLdapUser(attrs)
             conn.unbind_s()
