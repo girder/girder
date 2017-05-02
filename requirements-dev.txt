@@ -1,8 +1,8 @@
 # girder core
 coverage==4.1.0
-flake8==2.5.4
-flake8-blind-except==0.1.0
-flake8-docstrings==0.2.6
+flake8==3.3.0
+flake8-blind-except==0.1.1
+flake8-docstrings==1.1.0
 httmock==1.2.5
 mock==2.0.0
 # Versions >0.4.0 of moto cause test failures
@@ -12,9 +12,9 @@ sphinx_rtd_theme==0.1.9
 virtualenv==15.0.2
 
 # dependencies of flake8
-mccabe==0.4.0
+mccabe==0.6.1
 pep8==1.7.0
-pyflakes==1.2.3
+pyflakes==1.5.0
 
 # dependencies of flake8-docstrings
 pep257==0.7.0
