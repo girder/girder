@@ -274,6 +274,7 @@ class TokenScope:
             'adminCustom': cls._adminCustomScopes
         }
 
+
 TokenScope.describeScope(
     TokenScope.USER_INFO_READ, 'Read your user information',
     'Allows clients to look up your user information, including private fields '
