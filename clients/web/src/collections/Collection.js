@@ -249,7 +249,7 @@ var Collection = Backbone.Collection.extend({
                         if (this.append && !reset) {
                             this.add(finalList);
                         } else {
-                            this.reset(finalList, this.offset);
+                            this.reset(finalList);
                         }
                     }
 
