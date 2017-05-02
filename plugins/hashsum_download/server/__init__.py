@@ -100,11 +100,11 @@ class HashedFile(File):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Manually compute the checksum values for a given file.')
-            .modelParam('id', 'The ID of the file.', model='file', level=AccessType.WRITE)
-            .param('progress', 'Whether to track progress of the operation', dataType='boolean',
-                   default=False, required=False)
-            .errorResponse()
-            .errorResponse('Write access was denied on the file.', 403)
+        .modelParam('id', 'The ID of the file.', model='file', level=AccessType.WRITE)
+        .param('progress', 'Whether to track progress of the operation', dataType='boolean',
+               default=False, required=False)
+        .errorResponse()
+        .errorResponse('Write access was denied on the file.', 403)
     )
     def computeHashes(self, file, progress, params):
         with ProgressContext(
