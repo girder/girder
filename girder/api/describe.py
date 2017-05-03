@@ -540,6 +540,20 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         else:
             kwargs['params'][name] = val
 
+    def _mungeKwargs(self, kwargs, fun):
+        """
+        Performs final modifications to the kwargs passed into the wrapped function.
+        Combines the sort/sortdir params appropriately for consumption by the model
+        layer, and only passes the "params" catch-all dict if there is a corresponding
+        kwarg for it in the wrapped function.
+        """
+        if self.description.hasPagingParams and 'sort' in kwargs:
+            sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
+            kwargs['sort'] = [(kwargs['sort'], sortdir)]
+
+        if 'params' not in fun._fnArgs and not fun._fnKeywds:
+            kwargs.pop('params', None)
+
     def __call__(self, fun):
         fnInfo = inspect.getargspec(fun)
         fun._fnArgs = set(fnInfo.args)
@@ -594,9 +608,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     else:
                         self._passArg(fun, kwargs, name, None)
 
-            if self.description.hasPagingParams and 'sort' in kwargs:
-                sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
-                kwargs['sort'] = [(kwargs['sort'], sortdir)]
+            self._mungeKwargs(kwargs, fun)
 
             return fun(*args, **kwargs)
 
