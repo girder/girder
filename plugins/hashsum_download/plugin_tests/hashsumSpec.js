@@ -59,13 +59,13 @@ describe('Test configuration page', function () {
         window.location.assign('#plugins/hashsum_download/config');
 
         waitsFor(function () {
-            return $('#hashsum_download_auto_compute').length > 0;
+            return $('#hashsum-download-auto-compute').length > 0;
         }, 'config page to load');
     });
 
     it('update auto compute setting', function () {
-        expect($('#hashsum_download_auto_compute').is(':checked')).toBe(false);
-        $('#hashsum_download_auto_compute').click();
+        expect($('#hashsum-download-auto-compute').is(':checked')).toBe(false);
+        $('#hashsum-download-auto-compute').click();
         $('.btn[value="Save"]').click();
 
         waitsFor(function () {
