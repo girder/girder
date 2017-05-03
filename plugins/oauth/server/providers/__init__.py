@@ -30,6 +30,7 @@ from .box import Box
 def addProvider(provider):
     idMap[provider.getProviderName()] = provider
 
+
 idMap = collections.OrderedDict()
 
 

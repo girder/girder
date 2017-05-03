@@ -388,14 +388,20 @@ recommended process for generating a new release is described here.
 
         python setup.py sdist upload
 
+.. _releasepythonclientpackage:
+
 Releasing the python client package
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Whenever the main Girder package is released, the python client package should also
-be versioned and released if is has changed since the last Girder release or the last
-time it was released. Normal semantic versioning is not in use for the python client
-package because its version is partially dependent on the Girder server package
-version. The rules for versioning the python client package are as follows:
+The design intent behind the python client package is to work with as many
+versions of the Girder server as possible; think carefully before breaking this
+compatibility. There isn't a formal rule for releasing versions of the python
+client package, releases tend to be made when a significant change is made to
+the client that people want to use in production.
+
+Normal semantic versioning is not in use for the python client package because
+its version is partially dependent on the Girder server package version. The
+rules for versioning the python client package are as follows:
 
 * The major version of the python client should be the same as the major version
   of the Girder server package, assuming it is compatible with the server API.

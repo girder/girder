@@ -35,6 +35,8 @@ __license__ = 'Apache 2.0'
 
 VERSION['apiVersion'] = __version__
 _quiet = False
+_originalStdOut = sys.stdout
+_originalStdErr = sys.stderr
 
 
 class LogLevelFilter(object):
@@ -72,6 +74,41 @@ class LogFormatter(logging.Formatter):
             if record.name.startswith('cherrypy.access'):
                 return record.message
         return super(LogFormatter, self).format(record, *args, **kwargs)
+
+
+class StreamToLogger:
+    """
+    Redirect a file-like stream to a logger.
+    """
+    def __init__(self, stream, logger, level):
+        self.stream = stream
+        self.logger = logger
+        self.level = level
+        self.logger._girderLogHandlerOutput = False
+        # This class is intended to override a default stream like sys.stdout
+        # and sys.stderr and send that information to both the original stream
+        # and the logger method.  However, we want to preserve as much
+        # functionality for stdout and stderr as possible, so that other
+        # modules that send data to them can do so without a problem.  The only
+        # method we really need to override is write, but we cannot mutate the
+        # write method on the stream itself, so we replace the stream with this
+        # custom class.  To preserve the stream methods, all of them get added
+        # to our class instance except private and built-in methods, which, in
+        # python, begin with _.
+        #     Fundamentally, this lets our stream replacement handle functions
+        # flush, writeline, and others without having to enumerate them
+        # individually.
+        for key in dir(stream):
+            if key != 'write' and not key.startswith('_') and callable(getattr(stream, key)):
+                setattr(self, key, getattr(stream, key))
+
+    def write(self, buf):
+        if not self.logger._girderLogHandlerOutput:
+            self.logger._girderLogHandlerOutput = True
+            _originalStdOut.write(buf)
+            for line in buf.rstrip().splitlines():
+                self.logger.log(self.level, line.rstrip())
+            self.logger._girderLogHandlerOutput = False
 
 
 def getLogPaths():
@@ -140,6 +177,7 @@ def _setupLogger():
             cherrypy.log.access_log.removeHandler(handler)
 
     fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
+    infoMaxLevel = logging.INFO
     # Create log handlers
     if logPaths['error'] != logPaths['info']:
         eh = logging.handlers.RotatingFileHandler(
@@ -149,14 +187,21 @@ def _setupLogger():
         eh._girderLogHandler = 'error'
         eh.setFormatter(fmt)
         logger.addHandler(eh)
+    else:
+        infoMaxLevel = logging.CRITICAL
 
+    if isinstance(getattr(logging, logCfg.get('log_max_info_level', ''), None), int):
+        infoMaxLevel = getattr(logging, logCfg['log_max_info_level'])
     ih = logging.handlers.RotatingFileHandler(
         logPaths['info'], maxBytes=logSize, backupCount=backupCount)
     ih.setLevel(level)
-    ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=logging.INFO))
+    ih.addFilter(LogLevelFilter(min=logging.DEBUG, max=infoMaxLevel))
     ih._girderLogHandler = 'info'
     ih.setFormatter(fmt)
     logger.addHandler(ih)
+
+    sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
+    sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
 
     # Log http accesses to the screen and/or the info log.
     accessLog = logCfg.get('log_access', 'screen')
@@ -199,7 +244,8 @@ def logprint(*args, **kwargs):
     if not _quiet:
         if color:
             data = getattr(TerminalColor, color)(data)
-        six.print_(data, flush=True)
+        _originalStdOut.write('%s\n' % data)
+        _originalStdOut.flush()
 
 
 # Expose common logging levels and colors as methods of logprint.

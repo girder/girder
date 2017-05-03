@@ -5,8 +5,10 @@
 var girderTest = girderTest || {};
 
 window.alert = function (msg) {
-    // alerts block phantomjs and will destroy us.
-    console.log(msg);
+    // We want to have no alerts in the code-base; alerts block phantomjs and
+    // will destroy us.
+    console.error(msg);
+    expect('Alert was used').toBe('Alerts should not be present');
 };
 
 // Timeout to wait for asynchronous actions

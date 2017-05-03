@@ -66,6 +66,30 @@ describe('Test normal collection operation', function () {
         waitsFor(done.check, 'to be done');
     });
 
+    it('ensure collection fetch fires backbone "reset" event with expected options', function () {
+        var done = canary();
+        var collection = new girder.collections.ApiKeyCollection();
+        var previousModels = null;
+
+        // Within a "reset" event, Backbone provides the list of previous models
+        // as options.previousModels.
+        collection.once('reset', function (collection, options) {
+            previousModels = options.previousModels;
+        });
+
+        collection.fetch()
+            .fail(failIfError)
+            .always(done);
+
+        waitsFor(done.check, 'to be done');
+
+        runs(function () {
+            expect(collection.length).toBe(10);
+            expect(Array.isArray(previousModels)).toBe(true);
+            expect(previousModels.length).toBe(0);
+        });
+    });
+
     it('ensure collections can go backwards and forwards', function () {
         var done = canary();
         var collection = new girder.collections.ApiKeyCollection();

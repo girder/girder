@@ -36,7 +36,7 @@ def _onUpload(event):
     """
     try:
         ref = json.loads(event.info.get('reference'))
-    except ValueError:
+    except (ValueError, TypeError):
         return
 
     if isinstance(ref, dict) and ref.get('type') == 'item_tasks.output':
