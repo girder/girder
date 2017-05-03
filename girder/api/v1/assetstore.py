@@ -29,6 +29,7 @@ class Assetstore(Resource):
     """
     API Endpoint for managing assetstores. Requires admin privileges.
     """
+
     def __init__(self):
         super(Assetstore, self).__init__()
         self.resourceName = 'assetstore'
@@ -39,6 +40,7 @@ class Assetstore(Resource):
         self.route('PUT', (':id',), self.updateAssetstore)
         self.route('DELETE', (':id',), self.deleteAssetstore)
         self.route('GET', (':id', 'files'), self.getAssetstoreFiles)
+        self.route('GET', (':id', 'spaceusage',), self.getSpaceUsageStatistics)
 
     @access.admin
     @autoDescribeRoute(
@@ -248,3 +250,73 @@ class Assetstore(Resource):
         return list(self.model('file').find(
             query={'assetstoreId': assetstore['_id']},
             offset=offset, limit=limit, sort=sort))
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('get space usage statistics by collection and by user.')
+        .modelParam('id', model='assetstore')
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403)
+    )
+    def getSpaceUsageStatistics(self, assetstore, params):
+        filesInStore = list(self.model('file').find(
+            query={'assetstoreId': assetstore['_id']}))
+
+        itemsUsingStore = list(self.model('item').find(query={
+            '_id': {
+                '$in': [x['itemId'] for x in filesInStore]
+            },
+            'baseParentType': 'collection'
+        }))
+        itemsUsingStoreMap = dict((x['_id'], x) for x in itemsUsingStore)
+
+        collectionUsingStore = list(self.model('collection').find(
+            query={
+                '_id': {
+                    '$in': [x['baseParentId'] for x in itemsUsingStore]
+                }
+            }))
+        collectionUsingStoreMap = dict((x['_id'], x) for x in collectionUsingStore)
+
+        collectionFileMap = {}
+        for file in filesInStore:
+            collectionId = itemsUsingStoreMap[file['itemId']]['baseParentId']
+            if collectionId not in collectionFileMap:
+                collectionFileMap[collectionId] = [file]
+            else:
+                collectionFileMap[collectionId].append(file)
+
+        usersUsingStore = list(self.model('user').find(
+            query={
+                '_id': {
+                    '$in': [x['creatorId'] for x in filesInStore]
+                }
+            }))
+        userUsingStoreMap = dict((x['_id'], x) for x in usersUsingStore)
+        userFileMap = {}
+        for file in filesInStore:
+            userId = file['creatorId']
+            if userId not in userFileMap:
+                userFileMap[userId] = [file]
+            else:
+                userFileMap[userId].append(file)
+
+        # based on collected data stored in dictionary, aggregate size and format result
+        currentUser = self.getCurrentUser()
+        collections = list({
+            'collection': self.model('collection')
+            .filter(collectionUsingStoreMap[collectionId], currentUser),
+            'size': sum(file['size'] for file in files)
+        } for collectionId, files in collectionFileMap.items())
+        collections.sort(key=lambda x: x['size'], reverse=True)
+
+        users = list({
+            'user': self.model('user').filter(userUsingStoreMap[userId], currentUser),
+            'size': sum(file['size'] for file in files)
+        } for userId, files in userFileMap.items())
+        users.sort(key=lambda x: x['size'], reverse=True)
+
+        return {
+            'collections': collections,
+            'users': users
+        }
