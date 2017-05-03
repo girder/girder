@@ -107,3 +107,25 @@ class LdapTestCase(base.TestCase):
             self.assertStatusOk(resp)
             self.assertEqual(str(normalUser['_id']), resp.json['user']['_id'])
 
+    def testLdapStatusCheck(self):
+        admin = self.model('user').createUser(
+            login='admin', email='a@a.com', firstName='admin', lastName='admin',
+            password='passwd', admin=True)
+
+        params = {
+            'bindName': 'cn=foo,cn=Users,dc=foo,dc=bar,dc=org',
+            'password': 'foo',
+            'uri': 'ldap://foo.bar.org:389'
+        }
+
+        with mock.patch('ldap.initialize', return_value=MockLdap(bindFail=True)):
+            resp = self.request('/system/ldap_server/status', user=admin, params=params)
+            self.assertStatusOk(resp)
+            self.assertFalse(resp.json['connected'])
+            self.assertEqual(resp.json['error'], 'LDAP connection error: failed to connect')
+
+        with mock.patch('ldap.initialize', return_value=MockLdap(bindFail=False)):
+            resp = self.request('/system/ldap_server/status', user=admin, params=params)
+            self.assertStatusOk(resp)
+            self.assertTrue(resp.json['connected'])
+            self.assertNotIn('error', resp.json)

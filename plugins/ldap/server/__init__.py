@@ -174,7 +174,7 @@ def _ldapServerTest(self, uri, bindName, password, params):
     except ldap.LDAPError as e:
         return {
             'connected': False,
-            'error': e.message.get('desc', 'Could not connect to server.')
+            'error': 'LDAP connection error: ' + e.message
         }
     finally:
         conn.unbind_s()
