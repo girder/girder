@@ -9,6 +9,7 @@ import events from 'girder/events';
 import template from '../templates/configView.pug';
 import newServerTemplate from '../templates/newServerTemplate.pug';
 import '../stylesheets/configView.styl';
+import 'girder/utilities/jquery/girderEnable';
 
 const FIELDS = ['uri', 'bindName', 'baseDn', 'password', 'searchField'];
 
@@ -31,6 +32,35 @@ var ConfigView = View.extend({
         'input .g-uri-input': function (event) {
             const field = $(event.currentTarget);
             field.parents('.panel').find('.g-ldap-server-title').text(field.val());
+        },
+        'click .g-ldap-test': function (event) {
+            const btn = $(event.currentTarget);
+            const idx = btn.attr('index');
+            const uri = this.$(`#g-ldap-server-${idx}-uri`).val();
+            const bindName = this.$(`#g-ldap-server-${idx}-bindName`).val();
+            const password = this.$(`#g-ldap-server-${idx}-password`).val();
+
+            restRequest({
+                path: 'system/ldap_server/status',
+                type: 'GET',
+                data: {
+                    uri,
+                    bindName,
+                    password
+                }
+            }).done(resp => {
+                btn.girderEnable(true);
+                if (resp.connected) {
+                    this.$(`#g-ldap-server-${idx}-conn-ok`).removeClass('hide');
+                } else {
+                    this.$(`#g-ldap-server-${idx}-conn-fail`).removeClass('hide')
+                        .find('.g-msg').text(resp.error);
+                }
+            });
+
+            btn.girderEnable(false);
+            this.$(`#g-ldap-server-${idx}-conn-ok`).addClass('hide');
+            this.$(`#g-ldap-server-${idx}-conn-fail`).addClass('hide');
         }
     },
 

@@ -32,6 +32,7 @@ from .constants import PluginSettings
 
 _LDAP_ATTRS = ('uid', 'mail', 'cn', 'sn', 'givenName', 'distinguishedName')
 _MAX_NAME_ATTEMPTS = 10
+_CONNECT_TIMEOUT = 4  # seconds
 _serversSchema = {
     'type': 'array',
     'items': {
@@ -130,6 +131,9 @@ def _ldapAuth(event):
         if '://' not in uri:
             uri = 'ldap://' + uri
         conn = ldap.initialize(uri)
+        conn.set_option(ldap.OPT_TIMEOUT, _CONNECT_TIMEOUT)
+        conn.set_option(ldap.OPT_NETWORK_TIMEOUT, _CONNECT_TIMEOUT)
+
         try:
             conn.bind_s(server['bindName'], server['password'], ldap.AUTH_SIMPLE)
         except ldap.LDAPError:
@@ -166,6 +170,9 @@ def _ldapAuth(event):
 )
 def _ldapServerTest(self, uri, bindName, password, params):
     conn = ldap.initialize(uri)
+    conn.set_option(ldap.OPT_TIMEOUT, _CONNECT_TIMEOUT)
+    conn.set_option(ldap.OPT_NETWORK_TIMEOUT, _CONNECT_TIMEOUT)
+
     try:
         conn.bind_s(bindName, password, ldap.AUTH_SIMPLE)
         return {
@@ -174,7 +181,7 @@ def _ldapServerTest(self, uri, bindName, password, params):
     except ldap.LDAPError as e:
         return {
             'connected': False,
-            'error': 'LDAP connection error: ' + e.message
+            'error': 'LDAP connection error: ' + e.args[0].get('desc', 'failed to connect')
         }
     finally:
         conn.unbind_s()

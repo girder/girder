@@ -40,7 +40,9 @@ class MockLdap(object):
 
     def bind_s(self, *args, **kwargs):
         if self.bindFail:
-            raise ldap.LDAPError('failed to connect')
+            raise ldap.LDAPError({
+                'desc': 'failed to connect'
+            })
 
     def search_s(self, *args, **kwargs):
         if self.searchFail:
@@ -53,6 +55,10 @@ class MockLdap(object):
             'givenName': ['Foo'],
             'mail': ['foo@bar.com']
         })]
+
+    def set_option(self, *args, **kwargs):
+        pass
+
     def unbind_s(self, *args, **kwargs):
         pass
 
