@@ -72,7 +72,7 @@ def _validateLdapServers(doc):
         server['searchField'] = server.get('searchField', 'uid')
 
 
-def _registerLdapUser(attrs, email):
+def _registerLdapUser(attrs, email, server):
     first, last = None, None
     if attrs.get('givenName'):
         first = attrs['givenName'][0]
@@ -87,6 +87,17 @@ def _registerLdapUser(attrs, email):
     if not first or not last:
         raise Exception('No LDAP name entry found for %s.' % email)
 
+    # Try using the search field value as the login. If it's an email address,
+    # use the part before the @.
+    try:
+        login = attrs[server['searchField']][0].split('@')[0]
+        return ModelImporter.model('user').createUser(
+            login, password=None, firstName=first, lastName=last, email=email)
+    except ValidationException as e:
+        if e.field != 'login':
+            raise
+
+    # Fall back to deriving login from user's name
     for i in six.moves.range(_MAX_NAME_ATTEMPTS):
         login = ''.join((first, last, str(i) if i else ''))
         try:
@@ -99,7 +110,7 @@ def _registerLdapUser(attrs, email):
     raise Exception('Failed to generate login name for LDAP user %s.' % email)
 
 
-def _getLdapUser(attrs):
+def _getLdapUser(attrs, server):
     emails = attrs.get('mail')
     if not emails:
         raise Exception('No email record present for the given LDAP user.')
@@ -115,7 +126,7 @@ def _getLdapUser(attrs):
         if existing:
             return existing
 
-    return _registerLdapUser(attrs, email)
+    return _registerLdapUser(attrs, email, server)
 
 
 def _ldapAuth(event):
@@ -152,7 +163,7 @@ def _ldapAuth(event):
                 conn.unbind_s()
                 continue
 
-            user = _getLdapUser(attrs)
+            user = _getLdapUser(attrs, server)
             conn.unbind_s()
             if user:
                 event.stopPropagation().preventDefault().addResponse(user)

@@ -34,9 +34,10 @@ def tearDownModule():
 
 
 class MockLdap(object):
-    def __init__(self, bindFail=False, searchFail=False):
+    def __init__(self, bindFail=False, searchFail=False, record=None):
         self.bindFail = bindFail
         self.searchFail = searchFail
+        self.record = record
 
     def bind_s(self, *args, **kwargs):
         if self.bindFail:
@@ -48,12 +49,12 @@ class MockLdap(object):
         if self.searchFail:
             return []
 
-        return [(None, {
+        return [(None, self.record or {
             'distinguishedName': ['foobar'],
             'uid': 'foobar',
             'sn': ['Bar'],
             'givenName': ['Foo'],
-            'mail': ['foo@bar.com']
+            'mail': 'foo@bar.com'
         })]
 
     def set_option(self, *args, **kwargs):
@@ -68,6 +69,8 @@ class LdapTestCase(base.TestCase):
         from girder.plugins.ldap.constants import PluginSettings
         settings = self.model('setting')
 
+        self.assertEqual(settings.get(PluginSettings.LDAP_SERVERS), [])
+
         with self.assertRaises(ValidationException):
             settings.set(PluginSettings.LDAP_SERVERS, {})
 
@@ -76,7 +79,7 @@ class LdapTestCase(base.TestCase):
             'bindName': 'cn=foo,cn=Users,dc=foo,dc=bar,dc=org',
             'password': 'foo',
             'searchField': 'mail',
-            'uri': 'ldap://foo.bar.org:389'
+            'uri': 'foo.bar.org:389'
         }])
 
         with mock.patch('ldap.initialize', return_value=MockLdap()) as ldapInit:
@@ -112,6 +115,32 @@ class LdapTestCase(base.TestCase):
             resp = self.request('/user/authentication', basicAuth='normal:normaluser')
             self.assertStatusOk(resp)
             self.assertEqual(str(normalUser['_id']), resp.json['user']['_id'])
+
+        # Test registering from a record that only has a cn, no sn/givenName
+        record = {
+            'cn': ['Fizz Buzz'],
+            'mail': ['fizz@buzz.com'],
+            'distinguishedName': ['shouldbeignored']
+        }
+        with mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
+            resp = self.request('/user/authentication', basicAuth='fizzbuzz:foo')
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['user']['login'],'fizz')
+            self.assertEqual(resp.json['user']['firstName'], 'Fizz')
+            self.assertEqual(resp.json['user']['lastName'], 'Buzz')
+
+        # Test falling back to other name generation behavior (first+last name)
+        record = {
+            'cn': ['Fizz Buzz'],
+            'mail': ['fizz@buzz2.com'],
+            'distinguishedName': ['shouldbeignored']
+        }
+        with mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
+            resp = self.request('/user/authentication', basicAuth='fizzbuzz:foo')
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['user']['login'], 'fizzbuzz')
+            self.assertEqual(resp.json['user']['firstName'], 'Fizz')
+            self.assertEqual(resp.json['user']['lastName'], 'Buzz')
 
     def testLdapStatusCheck(self):
         admin = self.model('user').createUser(
