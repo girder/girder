@@ -6,7 +6,6 @@ import CandelaWidgetTemplate from '../templates/candelaWidget.pug';
 import '../stylesheets/candelaWidget.styl';
 
 import candela from 'candela';
-import d3 from 'd3';
 import datalib from 'datalib';
 
 var CandelaWidget = View.extend({
@@ -46,8 +45,30 @@ var CandelaWidget = View.extend({
                 components: this._components
             }));
             this.parametersView.setElement($('.g-item-candela-parameters'));
-            d3.csv('/api/v1/item/' + this.item.get('_id') + '/download', (error, data) => {
+            datalib.csv('/api/v1/item/' + this.item.get('_id') + '/download', (error, data) => {
                 datalib.read(data, {parse: 'auto'});
+
+                // Vega has issues with empty-string fields and fields with dots, so rename those.
+                let rename = [];
+                for (let key in data.__types__) {
+                    if (data.__types__.hasOwnProperty(key)) {
+                        if (key === '') {
+                            rename.push(['', 'id']);
+                        } else if (key.indexOf('.') >= 0) {
+                            rename.push([key, key.replace(/\./g, '_')]);
+                        }
+                    }
+                }
+
+                rename.forEach(d => {
+                    data.__types__[d[1]] = data.__types__[d[0]];
+                    delete data.__types__[d[0]];
+                    data.forEach(row => {
+                        row[d[1]] = row[d[0]];
+                        delete row[d[0]];
+                    });
+                });
+
                 let columns = [];
                 for (let key in data.__types__) {
                     if (data.__types__.hasOwnProperty(key)) {
