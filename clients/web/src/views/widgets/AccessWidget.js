@@ -399,24 +399,37 @@ var AccessWidget = View.extend({
         var el = $(e.currentTarget),
             type = el.attr('resourcetype'),
             id = el.attr('resourceid'),
-            flag = el.attr('flag');
+            flag = el.attr('flag'),
+            container = this.$(`.g-flags-popover-container[resourcetype='${type}'][resourceid='${id}']`);
 
         // Since we clicked in a cloned popover element, we must apply this
         // change within the original element as well.
-        this.$(`.g-flags-popover-container[resourcetype='${type}'][resourceid='${id}']`)
-            .find(`.g-flag-checkbox[flag="${flag}"]`)
+        container.find(`.g-flag-checkbox[flag="${flag}"]`)
             .attr('checked', el.is(':checked') ? 'checked' : null);
+        this._updateFlagCount(container, '.g-flag-checkbox');
     },
 
     _togglePublicAccessFlag: function (e) {
         var el = $(e.currentTarget),
-            flag = el.attr('flag');
+            flag = el.attr('flag'),
+            container = this.$('.g-public-flags-popover-container');
 
         // Since we clicked in a cloned popover element, we must apply this
         // change within the original element as well.
-        this.$('.g-public-flags-popover-container')
-            .find(`.g-public-flag-checkbox[flag="${flag}"]`)
+        container.find(`.g-public-flag-checkbox[flag="${flag}"]`)
             .attr('checked', el.is(':checked') ? 'checked' : null);
+        this._updateFlagCount(container, '.g-public-flag-checkbox');
+    },
+
+    _updateFlagCount: function (container, sel) {
+        const nChecked = container.find(`${sel}[checked="checked"]`).length;
+        const countEl = container.parent().find('.g-flag-count-indicator');
+        countEl.text(nChecked);
+        if (nChecked) {
+            countEl.removeClass('hide');
+        } else {
+            countEl.addClass('hide');
+        }
     }
 });
 

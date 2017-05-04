@@ -15,7 +15,9 @@ mixin privacyEditor(typeName)
 
     if _.keys(flagList).length
       a.g-action-manage-public-flags.hide(title="Public access flags")
-        i.icon-flag
+        i.g-flag-icon.icon-flag
+          if publicFlags
+            .g-flag-count-indicator(class=(publicFlags.length ? null : "hide"))= publicFlags.length
         |  Manage public access flags...
       .g-public-flags-popover-container.hide
         each flag, key in flagList
