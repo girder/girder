@@ -18,8 +18,9 @@
 ###############################################################################
 
 import celery
+from celery.result import AsyncResult
 
-from girder import events
+from girder import events, logger
 from girder.constants import AccessType
 from girder.models.model_base import ValidationException
 from girder.plugins.jobs.constants import JobStatus
@@ -40,6 +41,7 @@ class CustomJobStatus(object):
     CONVERTING_INPUT = 821
     CONVERTING_OUTPUT = 822
     PUSHING_OUTPUT = 823
+    CANCELING = 824
 
     @classmethod
     def isValid(cls, status):
@@ -47,7 +49,8 @@ class CustomJobStatus(object):
             cls.FETCHING_INPUT,
             cls.CONVERTING_INPUT,
             cls.CONVERTING_OUTPUT,
-            cls.PUSHING_OUTPUT
+            cls.PUSHING_OUTPUT,
+            cls.CANCELING
         )
 
 
@@ -91,6 +94,34 @@ def schedule(event):
         })
 
 
+def cancel(event):
+    """
+    This is bound to the "jobs.cancel" event, and will be triggered any time
+    a job is canceled. This handler will process any job that has the
+    handler field set to "worker_handler".
+    """
+    job = event.info
+    if job['handler'] == 'worker_handler':
+        # Stop event propagation
+        event.stopPropagation()
+        # prevent default, we are using a custom state
+        event.preventDefault()
+
+        celeryTaskId = job.get('celeryTaskId')
+
+        if celeryTaskId is None:
+            msg = ("Unable to cancel Celery task. Job '%s' doesn't have a Celery task id."
+                   % job['_id'])
+            logger.warn(msg)
+            return
+
+        # Send the task to celery
+        asyncResult = AsyncResult(celeryTaskId)
+        asyncResult.revoke()
+        # Set the job status to canceling
+        ModelImporter.model('job', 'jobs').updateJob(job, status=CustomJobStatus.CANCELING)
+
+
 @setting_utilities.validator({
     PluginSettings.BROKER,
     PluginSettings.BACKEND
@@ -123,6 +154,7 @@ def validateJobStatus(event):
 def load(info):
     events.bind('jobs.schedule', 'worker', schedule)
     events.bind('jobs.status.validate', 'worker', validateJobStatus)
+    events.bind('jobs.cancel', 'worker', cancel)
 
     ModelImporter.model('job', 'jobs').exposeFields(
         AccessType.SITE_ADMIN, {'celeryTaskId', 'celeryQueue'})
