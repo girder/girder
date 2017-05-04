@@ -68,6 +68,8 @@ def _validateLdapServers(doc):
         raise ValidationException('Invalid LDAP servers list: ' + e.message)
 
     for server in doc['value']:
+        if '://' not in server['uri']:
+            server['uri'] = 'ldap://' + server['uri']
         server['password'] = server.get('password', '')
         server['searchField'] = server.get('searchField', 'uid')
 
@@ -138,10 +140,7 @@ def _ldapAuth(event):
     for server in servers:
         # ldap requires a uri complete with protocol.
         # Append one if the user did not specify.
-        uri = server['uri']
-        if '://' not in uri:
-            uri = 'ldap://' + uri
-        conn = ldap.initialize(uri)
+        conn = ldap.initialize(server['uri'])
         conn.set_option(ldap.OPT_TIMEOUT, _CONNECT_TIMEOUT)
         conn.set_option(ldap.OPT_NETWORK_TIMEOUT, _CONNECT_TIMEOUT)
 
