@@ -88,7 +88,10 @@ var ConfigView = View.extend({
         }));
 
         this.breadcrumb.setElement(this.$('.g-config-breadcrumb-container')).render();
-        sortable.create(this.$('.g-ldap-server-accordion')[0]);
+        sortable.create(this.$('.g-ldap-server-accordion')[0], {
+            filter: 'input',
+            preventOnFilter: false
+        });
         return this;
     },
 
