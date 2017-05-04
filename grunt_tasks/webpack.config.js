@@ -97,9 +97,9 @@ module.exports = {
                 test: /\.styl$/,
                 include: loaderPaths,
                 loaders: ExtractTextPlugin.extract({
-                    fallbackLoader: 'style-loader',
+                    fallback: 'style-loader',
                     // stylus loader query must be a string for now
-                    loader: ['css-loader', 'stylus-loader?resolve url=true']
+                    use: ['css-loader', 'stylus-loader?resolve url=true']
                 })
             },
             // CSS
@@ -107,8 +107,8 @@ module.exports = {
                 test: /\.css$/,
                 include: loaderPathsNodeModules,
                 loaders: ExtractTextPlugin.extract({
-                    fallbackLoader: 'style-loader',
-                    loader: ['css-loader']})
+                    fallback: 'style-loader',
+                    use: ['css-loader']})
             },
             // Pug
             {
