@@ -288,6 +288,11 @@ class HashsumDownloadTest(base.TestCase):
         self.assertIn('sha256', file)
         self.assertEqual(file['sha256'], expected.hexdigest())
 
+        expected = hashlib.sha512()
+        expected.update(self.userData)
+        self.assertIn('sha512', file)
+        self.assertEqual(file['sha512'], expected.hexdigest())
+
         hashsum_download.SUPPORTED_ALGORITHMS = old
 
     def testManualComputeHashes(self):

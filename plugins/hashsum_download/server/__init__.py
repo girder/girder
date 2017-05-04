@@ -33,6 +33,7 @@ from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext, noProgress
 
 SUPPORTED_ALGORITHMS = {'sha512'}
+_CHUNK_LEN = 65536
 
 
 class PluginSettings(object):
@@ -150,15 +151,23 @@ class HashedFile(File):
 
 def _computeHashHook(event):
     """
-    Computes all supported checksums on a given file. Downloads the
-    file data and stream-computes all required hashes on it, saving
-    the results in the file document.
+    Event hook that computes the file hashes in the background after
+    a completed upload. Only done if the AUTO_COMPUTE setting enabled.
     """
     if ModelImporter.model('setting').get(PluginSettings.AUTO_COMPUTE, default=False):
         _computeHash(event.info['file'])
 
 
 def _computeHash(file, progress=noProgress):
+    """
+    Computes all supported checksums on a given file. Downloads the
+    file data and stream-computes all required hashes on it, saving
+    the results in the file document.
+
+    In the case of assetstore impls that already compute the sha512,
+    and when sha512 is the only supported algorithm, we will not download
+    the file to the server.
+    """
     toCompute = SUPPORTED_ALGORITHMS - set(file)
     toCompute = {alg: getattr(hashlib, alg)() for alg in toCompute}
 
@@ -168,7 +177,7 @@ def _computeHash(file, progress=noProgress):
     fileModel = ModelImporter.model('file')
     with fileModel.open(file) as fh:
         while True:
-            chunk = fh.read(65536)
+            chunk = fh.read(_CHUNK_LEN)
             if not chunk:
                 break
             for digest in six.viewvalues(toCompute):
