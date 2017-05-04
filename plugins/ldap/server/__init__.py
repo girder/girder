@@ -199,6 +199,6 @@ def _ldapServerTest(self, uri, bindName, password, params):
 
 
 def load(info):
-    events.bind('user_auth', info['name'], _ldapAuth)
+    events.bind('model.user.authenticate', info['name'], _ldapAuth)
 
     info['apiRoot'].system.route('GET', ('ldap_server', 'status'), _ldapServerTest)

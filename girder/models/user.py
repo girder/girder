@@ -137,7 +137,7 @@ class User(AccessControlledModel):
         :returns: The corresponding user if the login was successful.
         :rtype: dict
         """
-        event = events.trigger('user_auth', {
+        event = events.trigger('model.user.authenticate', {
             'login': login,
             'password': password
         })
