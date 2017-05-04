@@ -104,6 +104,8 @@ var ConfigView = View.extend({
             return server;
         });
 
+        this.$('.g-validation-failed-message').empty();
+
         restRequest({
             type: 'PUT',
             path: 'system/setting',
