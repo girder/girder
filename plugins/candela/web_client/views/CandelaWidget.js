@@ -1,5 +1,6 @@
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
+import events from 'girder/events';
 
 import CandelaParametersView from './CandelaParametersView';
 import CandelaWidgetTemplate from '../templates/candelaWidget.pug';
@@ -23,7 +24,7 @@ var CandelaWidget = View.extend({
             }
         }
 
-        this.item.on('change', function () {
+        this.listenTo(this.item, 'change', function () {
             this.render();
         }, this);
 
@@ -45,7 +46,19 @@ var CandelaWidget = View.extend({
                 components: this._components
             }));
             this.parametersView.setElement($('.g-item-candela-parameters'));
-            datalib.csv('/api/v1/item/' + this.item.get('_id') + '/download', (error, data) => {
+            datalib.csv(this.item.downloadUrl(), (error, data) => {
+                if (error) {
+                    let info = {
+                        text: 'An error occurred while attempting to read and ' +
+                              'parse the data file. Details have been logged in the console.',
+                        type: 'danger',
+                        timeout: 5000,
+                        icon: 'attention'
+                    };
+                    events.trigger('g:alert', info);
+                    console.error(error);
+                }
+
                 datalib.read(data, {parse: 'auto'});
 
                 // Vega has issues with empty-string fields and fields with dots, so rename those.
@@ -79,7 +92,7 @@ var CandelaWidget = View.extend({
                 this.updateComponent();
             });
         } else {
-            $('.g-item-candela')
+            this.$('.g-item-candela')
                 .remove();
         }
     }

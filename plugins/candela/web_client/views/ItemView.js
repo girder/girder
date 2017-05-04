@@ -6,7 +6,7 @@ import { wrap } from 'girder/utilities/PluginUtils';
 import CandelaWidget from './CandelaWidget';
 
 wrap(ItemView, 'render', function (render) {
-    this.model.getAccessLevel(_.bind(function (accessLevel) {
+    this.model.getAccessLevel((accessLevel) => {
         // Because the passthrough call to render() also does an async call to
         // getAccessLevel(), wait until this one completes before invoking that
         // one.
@@ -16,9 +16,12 @@ wrap(ItemView, 'render', function (render) {
         // to exist until the passthrough call is made.
         render.call(this);
 
-        let candelaDiv = $('<div/>');
-        $('#g-app-body-container')
-            .append(candelaDiv);
+        let candelaDiv = $('<div/>').addClass('g-candela-container');
+        this.$el.append(candelaDiv);
+
+        if (this.candelaWidget) {
+            this.candelaWidget.remove();
+        }
 
         this.candelaWidget = new CandelaWidget({
             el: candelaDiv,
@@ -26,7 +29,7 @@ wrap(ItemView, 'render', function (render) {
             accessLevel: accessLevel,
             parentView: this
         });
-    }, this));
+    });
 
     return this;
 });

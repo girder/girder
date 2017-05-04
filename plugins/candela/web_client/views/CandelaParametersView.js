@@ -82,27 +82,25 @@ const CandelaParametersView = View.extend({
                     description: input.description || '',
                     value: input.default === undefined ? false : input.default
                 }));
-            } else if (['string', 'string_list'].includes(input.type)) {
+            } else if (['string', 'string_list'].includes(input.type) && input.domain) {
                 let type = input.type === 'string' ? 'string-enumeration' : 'string-enumeration-multiple';
                 let values = null;
                 let value = null;
-                if (input.domain) {
-                    if (_.isArray(input.domain)) {
-                        values = input.domain;
-                        if (input.type === 'string') {
-                            value = input.domain[0];
-                        } else {
-                            value = [];
-                        }
+                if (_.isArray(input.domain)) {
+                    values = input.domain;
+                    if (input.type === 'string') {
+                        value = input.domain[0];
                     } else {
-                        let numeric = !input.domain.fieldTypes.includes('string');
-                        if (input.type === 'string') {
-                            values = numeric ? this._numericColumns : this._columns;
-                            value = '(none)';
-                        } else {
-                            values = numeric ? this._multiNumericColumns : this._multiColumns;
-                            value = [];
-                        }
+                        value = [];
+                    }
+                } else {
+                    let numeric = !input.domain.fieldTypes.includes('string');
+                    if (input.type === 'string') {
+                        values = numeric ? this._numericColumns : this._columns;
+                        value = '(none)';
+                    } else {
+                        values = numeric ? this._multiNumericColumns : this._multiColumns;
+                        value = [];
                     }
                 }
                 this._inputWidgets.add(new WidgetModel({
@@ -112,6 +110,14 @@ const CandelaParametersView = View.extend({
                     description: input.description || '',
                     values: values,
                     value: value
+                }));
+            } else if (input.type === 'string') {
+                this._inputWidgets.add(new WidgetModel({
+                    type: 'string',
+                    title: input.name || input.id,
+                    id: input.id || input.name,
+                    description: input.description || '',
+                    value: input.default === undefined ? '' : input.default
                 }));
             }
         });

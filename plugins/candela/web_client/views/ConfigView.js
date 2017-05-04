@@ -5,20 +5,16 @@ import ConfigViewTemplate from '../templates/configView.pug';
 
 var ConfigView = View.extend({
     initialize: function (settings) {
+        this.breadcrumb = new PluginConfigBreadcrumbWidget({
+            pluginName: 'Candela file visualizer',
+            parentView: this
+        });
         this.render();
     },
 
     render: function () {
         this.$el.html(ConfigViewTemplate());
-
-        if (!this.breadcrumb) {
-            this.breadcrumb = new PluginConfigBreadcrumbWidget({
-                pluginName: 'Candela file visualizer',
-                el: this.$('.g-config-breadcrumb-container'),
-                parentView: this
-            }).render();
-        }
-
+        this.breadcrumb.setElement(this.$('.g-config-breadcrumb-container')).render();
         return this;
     }
 });
