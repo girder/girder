@@ -102,10 +102,8 @@ def cancel(event):
     """
     job = event.info
     if job['handler'] == 'worker_handler':
-        # Stop event propagation
-        event.stopPropagation()
-        # prevent default, we are using a custom state
-        event.preventDefault()
+        # Stop event propagation and prevent default, we are using a custom state
+        event.stopPropagation().preventDefault()
 
         celeryTaskId = job.get('celeryTaskId')
 
