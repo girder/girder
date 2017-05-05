@@ -1,4 +1,5 @@
-import WidgetModel from '../models/WidgetModel';
+import _ from 'underscore';
+
 import WidgetCollection from '../collections/WidgetCollection';
 import ControlsPanel from './ControlsPanel';
 import View from 'girder/views/View';
@@ -28,15 +29,13 @@ const TaskRunView = View.extend({
         const outputs = this._initialValues && this._initialValues.outputs || {};
 
         // Build all the widget models from the task IO spec
-        this._inputWidgets.add(this._inputs.map((input) => {
-            const info = this._getInputInfo(input, inputs);
-            return new WidgetModel(input, info);
-        }));
+        this._inputWidgets.add(
+            this._inputs.map((input) => this._setJobInfo(input, inputs))
+        );
 
-        this._outputWidgets.add(this._outputs.map((output) => {
-            const info = this._getOutputInfo(output, outputs);
-            return new WidgetModel(output, info);
-        }));
+        this._outputWidgets.add(
+            this._outputs.map((output) => this._setJobInfo(output, outputs))
+        );
 
         this._inputsPanel = new ControlsPanel({
             title: 'Configure inputs',
@@ -51,41 +50,31 @@ const TaskRunView = View.extend({
         });
     },
 
-    _getInputInfo: function (input, inputs) {
-        const match = inputs[input.id || input.name];
-        if (match) {
-            if (match.data) {
-                return {
-                    value: match.data
-                };
-            } else if (match.mode === 'girder' && match.id) {
-                if (match.resource_type === 'item') {
-                    return {
-                        value: new ItemModel({
-                            _id: match.id,
-                            _modelType: 'item',
-                            name: match.fileName || match.id
-                        }),
-                        fileName: match.fileName || match.id
-                    };
-                }
-            }
+    /**
+     * Fill in values according to an existing job.
+     *
+     * @param {object} spec The task parameter spec
+     * @param {object} bindings The job parameter bindings
+     */
+    _setJobInfo: function (spec, bindings) {
+        const match = bindings[spec.id || spec.name] || {};
+        if (match.mode === 'girder' && match.resource_type === 'item') {
+            spec.value = new ItemModel({
+                _id: match.id,
+                _modelType: 'item',
+                name: match.fileName || match.id
+            });
+            spec.fileName = match.fileName || match.id;
+        } else if (match.mode === 'girder' && match.parent_type === 'folder') {
+            spec.value = new FolderModel({
+                _id: match.parent_id,
+                _modelType: 'folder'
+            });
+            spec.fileName = match.name || match.id;
+        } else if (_.has(match, 'data')) {
+            spec.value = match.data;
         }
-        return {
-            value: input.default && input.default.data
-        };
-    },
-
-    _getOutputInfo: function (output, outputs) {
-        const match = outputs[output.id || output.name];
-        if (match) {
-            if (match.mode === 'girder' && match.parent_type === 'folder') {
-                return {
-                    value: new FolderModel({_id: match.parent_id, _modelType: 'folder'}),
-                    fileName: match.name
-                };
-            }
-        }
+        return spec;
     },
 
     render: function () {

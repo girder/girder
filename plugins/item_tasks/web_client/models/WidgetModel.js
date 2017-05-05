@@ -79,22 +79,27 @@ import tinycolor from 'tinycolor2';
  * @param {number} [attrs.step]
  *   The resolution of allowed numeric values.  This
  *   value determines the "ticks" in the number slider.
+ *
+ * @param {string} [attrs.fileName]
+ *   For output files, this is the name used for the new file.
  */
 var WidgetModel = Backbone.Model.extend({
     /**
      * Sets initial model attributes with normalization.
      */
-    initialize: function (attrs, options) {
+    initialize: function (attrs) {
         attrs = attrs || {};
-        options = options || {};
 
         _.defaults(attrs, {
             title: attrs.name || attrs.id,
             id: attrs.name,
-            description: '',
-            value: options && options.value,
-            fileName: options && options.fileName
+            description: ''
         });
+
+        if (!_.has(attrs, 'value') &&
+            _.has(attrs.default || {}, 'data')) {
+            attrs.value = attrs.default.data;
+        }
 
         this.set(attrs);
     },
