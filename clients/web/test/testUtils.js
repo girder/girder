@@ -1226,10 +1226,13 @@ girderTest.startApp = function () {
         girder.events.trigger('g:appload.before');
         var app = new girder.views.App({
             el: 'body',
-            parentView: null
+            parentView: null,
+            start: false
         });
-        girder.events.trigger('g:appload.after');
-        defer.resolve(app);
+        app.start().then(function () {
+            girder.events.trigger('g:appload.after');
+            defer.resolve(app);
+        });
     }).fail(function () {
         defer.reject.apply(defer, arguments);
     });
