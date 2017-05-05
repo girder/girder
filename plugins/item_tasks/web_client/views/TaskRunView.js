@@ -30,27 +30,12 @@ const TaskRunView = View.extend({
         // Build all the widget models from the task IO spec
         this._inputWidgets.add(this._inputs.map((input) => {
             const info = this._getInputInfo(input, inputs);
-            return new WidgetModel({
-                type: input.type,
-                title: input.name || input.id,
-                id: input.id || input.name,
-                description: input.description || '',
-                values: input.values,
-                value: info.value,
-                fileName: info.fileName
-            });
+            return new WidgetModel(input, info);
         }));
 
         this._outputWidgets.add(this._outputs.map((output) => {
             const info = this._getOutputInfo(output, outputs);
-            return new WidgetModel({
-                type: output.type,
-                title: output.name || output.id,
-                id: output.id || output.name,
-                description: output.description || '',
-                value: info && info.value,
-                fileName: info && info.fileName
-            });
+            return new WidgetModel(output, info);
         }));
 
         this._inputsPanel = new ControlsPanel({

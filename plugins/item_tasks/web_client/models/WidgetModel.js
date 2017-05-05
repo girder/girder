@@ -4,31 +4,99 @@ import tinycolor from 'tinycolor2';
 
 /**
  * A backbone model controlling the behavior and rendering of widgets.
+ * This model and the corresponding views provide UI elements to
+ * prompt the user for input.  Several different kinds of widgets
+ * are available:
+ *
+ * Primitive types:
+ *   * color:
+ *      a color picker
+ *   * range:
+ *      a slider for choosing a numeric value within some range
+ *   * number:
+ *      an input box that accepts arbitrary numbers
+ *   * boolean:
+ *      a checkbox
+ *   * string:
+ *      an input element that accepts arbitrary strings
+ *   * integer:
+ *      an input box that accepts integers
+ *   * number-vector:
+ *      an input box that accepts a comma seperated list of numbers
+ *   * string-vector:
+ *      an input box that accepts a comma seperated list of strings
+ *   * number-enumeration:
+ *      a select box containing numbers
+ *   * number-enumeration-multiple:
+ *      a multiselect box containing numbers
+ *   * string-enumeration:
+ *      a select box containing strings
+ *   * string-enumeration-multiple:
+ *      a multiselect box containing strings
+ *
+ * Girder models:
+ *   * file:
+ *      an input file (evaluates to an item id)
+ *   * directory:
+ *      an input folder (evaluates to a folder id)
+ *   * new-file:
+ *      an output file (contains an existing folder id and a
+ *      name that will be used for the new item.
+ *   * image:
+ *      an alias for the "file" type that expects the file
+ *      contents is an image (this is not validated)
+ *
+ * @param {object} [attrs]
+ * @param {string} [attrs.type]
+ *   The widget type.  See the list of supported types.
+ *
+ * @param {string} [attrs.title]
+ *   The label of the widget displayed to the user.  Falls back
+ *   to `attrs.name` or `attrs.id` if not provided.
+ *
+ * @param {string} [attrs.description]
+ *   A brief description of the parameter provided to the user.
+ *
+ * @param {object} [attrs.default]
+ *   The fallback value if attrs.value is not set.  Primitive
+ *   types expect this object to contain a "data" key whose
+ *   value is the default.
+ *
+ * @param {*} [attrs.value]
+ *   The current value of the widget.  Watch changes to this
+ *   attribute to respond to user selections.
+ *
+ * @param {array} [attrs.values]
+ *   The set of possible values for an enumerated type.  This
+ *   is used to fill in the options presented in a dropdown box.
+ *
+ * @param {number} [attrs.min]
+ *   The minimum value allowed for a numeric value.
+ *
+ * @param {number} [attrs.max]
+ *   The maximum value allowed for a numeric value.
+ *
+ * @param {number} [attrs.step]
+ *   The resolution of allowed numeric values.  This
+ *   value determines the "ticks" in the number slider.
  */
 var WidgetModel = Backbone.Model.extend({
     /**
      * Sets initial model attributes with normalization.
      */
-    initialize: function (model) {
-        this.set(_.defaults(model || {}, this.defaults));
-    },
+    initialize: function (attrs, options) {
+        attrs = attrs || {};
+        options = options || {};
 
-    defaults: {
-        type: '',          // The specific widget type
-        title: '',         // The label to display with the widget
-        description: '',   // The description to display with the widget
-        value: '',         // The current value of the widget
+        _.defaults(attrs, {
+            title: attrs.name || attrs.id,
+            id: attrs.name,
+            description: '',
+            value: options && options.value,
+            fileName: options && options.fileName
+        });
 
-        values: []         // A list of possible values for enum types
-
-        // optional attributes only used for certain widget types
-        /*
-        parent: {},        // A parent girder model
-        path: [],          // The path of a girder model in a folder hierarchy
-        min: undefined,    // A minimum value
-        max: undefined,    // A maximum value
-        step: 1            // Discrete value intervals
-        */
+        this.set(attrs);
     },
 
     /**
