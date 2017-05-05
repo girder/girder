@@ -33,6 +33,7 @@ class Job(Resource):
         self.route('GET', ('all',), self.listAllJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
+        self.route('PUT', (':id', 'cancel'), self.cancelJob)
         self.route('DELETE', (':id',), self.deleteJob)
         self.route('GET', ('typeandstatus', 'all',), self.allJobsTypesAndStatuses)
         self.route('GET', ('typeandstatus',), self.jobsTypesAndStatuses)
@@ -166,3 +167,15 @@ class Job(Resource):
     def jobsTypesAndStatuses(self, params):
         currentUser = self.getCurrentUser()
         return self.model('job', 'jobs').getAllTypesAndStatuses(user=currentUser)
+
+    @access.user
+    @filtermodel(model='job', plugin='jobs')
+    @autoDescribeRoute(
+        Description('Cancel a job by ID.')
+        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs', level=AccessType.WRITE,
+                    includeLog=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied for the job.', 403))
+    def cancelJob(self, job, params):
+        print('cancelJob')
+        return self.model('job', 'jobs').cancelJob(job)

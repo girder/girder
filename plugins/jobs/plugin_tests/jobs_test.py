@@ -461,6 +461,21 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(job['status'], JobStatus.CANCELED)
         self.assertEqual(len(job.get('log', [])), 1)
 
+    def testCancelJobEndpoint(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(title='test', type='x', user=self.users[0])
+
+        # Ensure requires write perms
+        job_cancel_url = '/job/%s/cancel' % job['_id']
+        resp = self.request(job_cancel_url, user=self.users[1], method='PUT')
+        self.assertStatus(resp, 403)
+
+        # Try again with the right user
+        job_cancel_url = '/job/%s/cancel' % job['_id']
+        resp = self.request(job_cancel_url, user=self.users[0], method='PUT')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['status'], JobStatus.CANCELED)
+
     def testJobsTypesAndStatuses(self):
         self.model('job', 'jobs').createJob(
             title='user 0 job', type='t1', user=self.users[0], public=False)
