@@ -72,7 +72,7 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin()
     ],
     module: {
-        loaders: [
+        rules: [
             // ES2015
             {
                 test: /\.js$/,
