@@ -106,7 +106,8 @@ girderTest.promise.then(function () {
         it('boolean', function () {
             var w = new itemTasks.models.WidgetModel({
                 type: 'boolean',
-                title: 'Boolean widget'
+                title: 'Boolean widget',
+                value: false
             });
             expect(w.isNumeric()).toBe(false);
             expect(w.isBoolean()).toBe(true);
