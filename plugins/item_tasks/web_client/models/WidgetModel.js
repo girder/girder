@@ -101,6 +101,9 @@ var WidgetModel = Backbone.Model.extend({
             attrs.value = attrs.default.data;
         }
 
+        if (attrs.type === 'integer') {
+            attrs.step = 1;
+        }
         this.set(attrs);
     },
 
@@ -208,8 +211,6 @@ var WidgetModel = Backbone.Model.extend({
         var out;
         if (this.isNumeric()) {
             out = this._validateNumeric(value);
-        } else if (this.isInteger()) {
-            out = this._validateInteger(value);
         }
         if (this.isEnumeration() && !_.contains(this.get('values'), this._normalizeValue(value))) {
             out = 'Invalid value choice';
@@ -270,34 +271,6 @@ var WidgetModel = Backbone.Model.extend({
     },
 
     /**
-     * Validate an integral value.
-     * @param {*} value The value to validate
-     * @returns {undefined|string} An error message or undefined
-     */
-    _validateInteger: function (value) {
-        var min = parseInt(this.get('min'));
-        var max = parseInt(this.get('max'));
-        var step = parseInt(this.get('step'));
-
-        // make sure it is a valid number
-        if (!isFinite(value)) {
-            return `Invalid integer "${value}"`;
-        }
-
-        // make sure it is in valid range
-        if (value < min || value > max) {
-            return `Value out of range [${min}, ${max}]]`;
-        }
-
-        // make sure value is approximately an integer number
-        // of "steps" larger than "min"
-        min = min || 0;
-        if ((value - min) % step) {
-            return `Value does not satisfy step "${step}"`;
-        }
-    },
-
-    /**
      * Validate a widget that selects a girder model.
      * @note This method is synchronous, so it cannot validate
      * the model on the server.
@@ -325,6 +298,7 @@ var WidgetModel = Backbone.Model.extend({
     isNumeric: function () {
         return _.contains([
             'range',
+            'integer',
             'number',
             'number-vector',
             'number-enumeration',

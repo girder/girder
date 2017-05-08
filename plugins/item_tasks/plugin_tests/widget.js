@@ -84,8 +84,8 @@ girderTest.promise.then(function () {
             expect(w.isValid()).toBe(false);
 
             w.set('value', '3.5');
-            expect(w.value()).toBe(3);
-            expect(w.isValid()).toBe(true);
+            expect(w.value()).toBe(3.5);
+            expect(w.isValid()).toBe(false);
 
             w.set('value', '-11');
             expect(w.value()).toBe(-11);
