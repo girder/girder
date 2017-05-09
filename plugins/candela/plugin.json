@@ -6,6 +6,7 @@
     "npm": {
         "dependencies": {
             "candela": "^0.12.1",
+            "d3": "^3.4.4",
             "datalib": "^1.7.3"
         }
     }
