@@ -77,8 +77,10 @@ module.exports = {
             {
                 test: /\.js$/,
                 include: loaderPaths,
-                loader: 'babel-loader',
                 exclude: /node_modules/,
+                use: [
+                    'babel-loader'
+                ],
                 query: {
                     presets: [es2015Preset],
                     env: {
@@ -90,13 +92,15 @@ module.exports = {
             {
                 test: /\.json$/,
                 include: loaderPaths.concat(loaderPathsNodeModules),
-                loader: 'json-loader'
+                use: [
+                    'json-loader'
+                ]
             },
             // Stylus
             {
                 test: /\.styl$/,
                 include: loaderPaths,
-                loaders: ExtractTextPlugin.extract({
+                use: ExtractTextPlugin.extract({
                     fallback: 'style-loader',
                     // stylus loader query must be a string for now
                     use: ['css-loader', 'stylus-loader?resolve url=true']
@@ -106,15 +110,16 @@ module.exports = {
             {
                 test: /\.css$/,
                 include: loaderPathsNodeModules,
-                loaders: ExtractTextPlugin.extract({
+                use: ExtractTextPlugin.extract({
                     fallback: 'style-loader',
-                    use: ['css-loader']})
+                    use: ['css-loader']
+                })
             },
             // Pug
             {
                 test: /\.(pug|jade)$/,
                 include: loaderPaths,
-                loaders: [
+                use: [
                     {
                         loader: 'babel-loader',
                         query: {
@@ -128,7 +133,7 @@ module.exports = {
             {
                 test: /\.(png|jpg)$/,
                 include: loaderPathsNodeModules,
-                loaders: [
+                use: [
                     fileLoader()
                 ]
             },
@@ -136,7 +141,7 @@ module.exports = {
             {
                 test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
                 include: loaderPathsNodeModules,
-                loaders: [
+                use: [
                     fileLoader()
                 ]
             },
@@ -144,7 +149,7 @@ module.exports = {
             {
                 test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
                 include: loaderPathsNodeModules,
-                loaders: [
+                use: [
                     fileLoader()
                 ]
             },
@@ -152,7 +157,7 @@ module.exports = {
             {
                 test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
                 include: loaderPathsNodeModules,
-                loaders: [
+                use: [
                     fileLoader()
                 ]
             },
@@ -160,7 +165,7 @@ module.exports = {
             {
                 test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
                 include: loaderPathsNodeModules,
-                loaders: [
+                use: [
                     fileLoader()
                 ]
             },
@@ -168,7 +173,7 @@ module.exports = {
             {
                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
                 include: loaderPathsNodeModules,
-                loaders: [
+                use: [
                     fileLoader()
                 ]
             }
