@@ -1,3 +1,5 @@
+/* global girderTest describe it runs waitsFor expect */
+
 girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/jobs/plugin.min.js',
     '/clients/web/static/built/plugins/worker/plugin.min.js',
@@ -83,7 +85,7 @@ describe('Run the item task', function () {
     it('navigate to task', function () {
         $('.g-nav-link[g-target="item_tasks"]').click();
 
-        waitsFor(function (){
+        waitsFor(function () {
             return $('.g-execute-task-link').length > 0;
         }, 'task list to be rendered');
 
@@ -258,12 +260,11 @@ describe('Auto-configure the JSON item task folder', function () {
     });
 });
 
-
 describe('Navigate to the new JSON task', function () {
     it('navigate to task', function () {
         $('.g-nav-link[g-target="item_tasks"]').click();
 
-        waitsFor(function (){
+        waitsFor(function () {
             return $('.g-execute-task-link').length > 0;
         }, 'task list to be rendered');
 

@@ -14,4 +14,5 @@ add_web_client_test(
     SETUP_MODULES "${CMAKE_CURRENT_LIST_DIR}/plugin_tests/mock_worker.py")
 
 add_eslint_test(${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client")
+add_eslint_test(${PLUGIN}-tests "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests")
 add_puglint_test(${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/templates")

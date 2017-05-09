@@ -1,3 +1,5 @@
+/* global girder girderTest describe it expect Backbone beforeEach afterEach */
+
 girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/jobs/plugin.min.js',
     '/clients/web/static/built/plugins/worker/plugin.min.js',
