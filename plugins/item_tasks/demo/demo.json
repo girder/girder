@@ -1,7 +1,7 @@
 [
   {
     "name": "item_tasks widget types demo",
-    "description": "A basic demonstration showing how to work with item_tasks control widgets",
+    "description": "A simple demonstration showing how to work with item_tasks control widgets",
     "mode": "docker",
     "pull_image": false,
     "container_args": [
