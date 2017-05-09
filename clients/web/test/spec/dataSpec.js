@@ -798,7 +798,7 @@ describe('Create a data hierarchy', function () {
         var dropActiveSelector = '.g-dropzone-show:visible';
 
         runs(function () {
-            $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+            $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
         });
 
         waitsFor(function () {
@@ -806,11 +806,11 @@ describe('Create a data hierarchy', function () {
         }, 'the drop bullseye to appear');
 
         runs(function () {
-            $(selector).trigger($.Event('drop', {originalEvent: {
+            $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {
                 dataTransfer: {
                     files: files,
                     items: items
-                }}}));
+                }})}));
         });
 
         waitsFor(function () {

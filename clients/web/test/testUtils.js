@@ -1031,7 +1031,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     _prepareTestUpload();
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
     });
 
     waitsFor(function () {
@@ -1047,7 +1047,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to disappear');
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
     });
 
     waitsFor(function () {
@@ -1056,8 +1056,8 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
 
     runs(function () {
         /* Try dropping nothing */
-        $(selector).trigger($.Event('dragover', {originalEvent: {dataTransfer: {}}}));
-        $(selector).trigger($.Event('drop', {originalEvent: {dataTransfer: {files: []}}}));
+        $(selector).trigger($.Event('dragover', {originalEvent: $.Event('dragover', {dataTransfer: {}})}));
+        $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {dataTransfer: {files: []}})}));
     });
 
     waitsFor(function () {
@@ -1065,7 +1065,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to disappear');
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
     });
 
     waitsFor(function () {
@@ -1073,7 +1073,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to appear');
 
     runs(function () {
-        $(selector).trigger($.Event('drop', {originalEvent: {dataTransfer: {files: files}}}));
+        $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {dataTransfer: {files: files}})}));
     });
 };
 
