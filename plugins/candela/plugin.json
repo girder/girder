@@ -5,7 +5,7 @@
     "staticWebDependencies": ["item_tasks"],
     "npm": {
         "dependencies": {
-            "candela": "^0.9.1",
+            "candela": "^0.12.1",
             "datalib": "^1.7.3"
         }
     }
