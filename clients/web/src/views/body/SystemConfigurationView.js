@@ -13,6 +13,7 @@ import 'girder/stylesheets/body/systemConfig.styl';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/tooltip';
+import 'bootstrap/js/transition';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
 import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
 
