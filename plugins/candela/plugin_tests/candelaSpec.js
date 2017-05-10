@@ -61,10 +61,12 @@ $(function () {
                 expect(inputs.eq(0).find('label').text()).toBe('Width');
                 expect(inputs.eq(1).find('label').text()).toBe('Height');
                 expect(inputs.eq(2).find('label').text()).toBe('x');
-                expect(inputs.eq(2).find('option').eq(0).text()).toBe('(none)');
-                expect(inputs.eq(2).find('option').eq(1).text()).toBe('a');
-                expect(inputs.eq(2).find('option').eq(2).text()).toBe('b');
-                expect(inputs.eq(2).find('option').eq(3).text()).toBe('c');
+                var values = [];
+                for (var i = 0; i < 4; i += 1) {
+                    values.push(inputs.eq(2).find('option').eq(i).text());
+                }
+                values.sort();
+                expect(values).toEqual(['(none)', 'a_b', 'c', 'id']);
                 expect(inputs.eq(3).find('label').text()).toBe('y');
                 expect(inputs.eq(4).find('label').text()).toBe('color');
                 expect(inputs.eq(5).find('label').text()).toBe('hover');
