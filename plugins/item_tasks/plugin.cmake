@@ -15,3 +15,34 @@ add_web_client_test(
 
 add_eslint_test(${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client")
 add_puglint_test(${PLUGIN} "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/templates")
+
+
+if(ANSIBLE_TESTS)
+  find_program(VAGRANT_EXECUTABLE vagrant)
+
+  add_test(NAME "${PLUGIN}.vagrant_up"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/devops"
+    COMMAND "${VAGRANT_EXECUTABLE}" "up" "--no-provision")
+  set_tests_properties("${PLUGIN}.vagrant_up" PROPERTIES
+    RUN_SERIAL ON
+    LABELS girder_ansible)
+
+  add_test(NAME "${PLUGIN}.vagrant_provision"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/devops"
+    COMMAND ${VAGRANT_EXECUTABLE} "provision")
+  set_tests_properties("${PLUGIN}.vagrant_provision"
+    PROPERTIES
+    FAIL_REGULAR_EXPRESSION "VM not created."
+    RUN_SERIAL ON
+    DEPENDS "${PLUGIN}.vagrant_up"
+    LABELS girder_ansible)
+
+  add_test(NAME "${PLUGIN}.vagrant_destroy"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/devops"
+    COMMAND "${VAGRANT_EXECUTABLE}" "destroy" "-f")
+  set_tests_properties("${PLUGIN}.vagrant_destroy" PROPERTIES
+    DEPENDS "${PLUGIN}.vagrant_up;${PLUGIN}.vagrant_provision"
+    RUN_SERIAL ON
+    FAIL_REGULAR_EXPRESSION "Host file not found;no hosts matched"
+    LABELS girder_ansible)
+endif()
