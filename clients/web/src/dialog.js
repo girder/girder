@@ -74,7 +74,9 @@ function confirm(params) {
     }, params);
     $('#g-dialog-container').html(ConfirmDialogTemplate({
         params: params
-    })).girderModal(false);
+    })).girderModal(false).one('hidden.bs.modal', function () {
+        $('#g-confirm-button').off('click');
+    });
 
     var el = $('#g-dialog-container').find('.modal-body>p');
     if (params.escapedHtml) {
