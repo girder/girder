@@ -50,11 +50,13 @@ $(function () {
 
             runs(function () {
                 expect($('.g-item-candela-component option').length).toBeGreaterThan(18);
+                $('.g-item-candela-component').val('BarChart').change();
             });
 
             waitsFor(function () {
-                return $('.g-candela-inputs-container').length === 1;
-            }, 'the inputs container to exist');
+                var inputs = $('.g-candela-inputs-container').children().eq(1).children().children();
+                return inputs.length === 6;
+            }, 'the bar chart options to be available');
 
             runs(function () {
                 var inputs = $('.g-candela-inputs-container').children().eq(1).children().children();
@@ -76,6 +78,22 @@ $(function () {
             waitsFor(function () {
                 return $('.g-candela-vis').find('canvas').length === 1;
             }, 'the vis canvas to be drawn');
+
+            runs(function () {
+                $('.g-item-candela-component').val('TreeHeatmap').change();
+            });
+
+            waitsFor(function () {
+                var inputs = $('.g-candela-inputs-container').children().eq(1).children().children();
+                return inputs.length === 9;
+            }, 'the visualization type to change');
+
+            runs(function () {
+                var inputs = $('.g-candela-inputs-container').children().eq(1).children().children();
+                expect(inputs.eq(2).find('label').text()).toBe('Identifier column');
+                expect(inputs.eq(3).find('label').text()).toBe('Color scale');
+                expect(inputs.eq(3).find('option').eq(1).text()).toBe('row');
+            });
         });
     });
 });
