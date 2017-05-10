@@ -3,6 +3,7 @@ import ItemCollection from 'girder/collections/ItemCollection';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 
 import template from '../templates/taskList.pug';
+import '../stylesheets/taskList.styl';
 
 var TaskListView = View.extend({
     initialize: function () {
@@ -25,7 +26,7 @@ var TaskListView = View.extend({
             tasks: this.collection.models
         }));
 
-        this.paginateWidget.setElement(this.$('.g-paginate-container')).render();
+        this.paginateWidget.setElement(this.$('.g-task-pagination')).render();
     }
 });
 

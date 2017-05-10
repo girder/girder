@@ -89,7 +89,10 @@ describe('Run the item task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(1);
-            expect($('.g-execute-task-link').text()).toBe('PET phantom detector CLI');
+            expect($('.g-execute-task-link .g-execute-task-link-header').text()).toBe(
+                'PET phantom detector CLI');
+            expect($('.g-execute-task-link .g-execute-task-link-body').text()).toContain(
+                'Detects positions of PET/CT pocket phantoms in PET image.');
             window.location.assign($('a.g-execute-task-link').attr('href'));
         });
 
@@ -269,8 +272,10 @@ describe('Navigate to the new JSON task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(3);
-            expect($('.g-execute-task-link').eq(0).text()).toBe('me/my_image:latest 0');
-            expect($('.g-execute-task-link').eq(1).text()).toBe('me/my_image:latest 1');
+            expect($('.g-execute-task-link .g-execute-task-link-header').eq(0).text()).toBe(
+                'me/my_image:latest 0');
+            expect($('.g-execute-task-link .g-execute-task-link-header').eq(1).text()).toBe(
+                'me/my_image:latest 1');
             window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
         });
 
