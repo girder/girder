@@ -6,8 +6,8 @@ import CandelaParametersView from './CandelaParametersView';
 import CandelaWidgetTemplate from '../templates/candelaWidget.pug';
 import '../stylesheets/candelaWidget.styl';
 
-import candela from 'candela';
-import datalib from 'datalib';
+import candela from 'girder_plugins/candela/node/candela';
+import datalib from 'girder_plugins/candela/node/datalib';
 
 var CandelaWidget = View.extend({
     events: {

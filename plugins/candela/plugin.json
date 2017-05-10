@@ -4,8 +4,8 @@
     "version": "0.1.0",
     "staticWebDependencies": ["item_tasks"],
     "npm": {
-        "dependencies": {
-            "candela": "^0.12.1"
-        }
+        "file": "package.json",
+        "fields": ["dependencies"],
+        "localNodeModules": true
     }
 }
