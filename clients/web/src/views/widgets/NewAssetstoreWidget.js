@@ -5,6 +5,7 @@ import { AssetstoreType } from 'girder/constants';
 import NewAssetstoreTemplate from 'girder/templates/widgets/newAssetstore.pug';
 
 import 'bootstrap/js/collapse';
+import 'bootstrap/js/transition';
 
 import 'girder/utilities/jquery/girderEnable';
 
