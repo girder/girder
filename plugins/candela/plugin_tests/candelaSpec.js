@@ -1,4 +1,4 @@
-/* globals girderTest, describe, expect, it, runs, waits, waitsFor  */
+/* globals girderTest, describe, expect, it, runs, waitsFor  */
 
 girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/candela/plugin.min.js'
@@ -8,10 +8,45 @@ girderTest.startApp();
 
 $(function () {
     describe('Test the candela UI.', function () {
-
         it('register a user', girderTest.createUser(
             'johndoe', 'john.doe@email.com', 'John', 'Doe', 'password!'
         ));
+
+        it('visits the configuration page', function () {
+            girderTest.waitForLoad();
+
+            waitsFor(function () {
+                return $('a.g-nav-link[g-target="admin"]:visible').length > 0;
+            }, 'admin nav link to appear');
+
+            runs(function () {
+                $('a.g-nav-link[g-target="admin"]').click();
+            });
+
+            waitsFor(function () {
+                return $('.g-plugins-config').length > 0;
+            }, 'navigate to admin page');
+
+            runs(function () {
+                $('.g-plugins-config').click();
+            });
+
+            waitsFor(function () {
+                return $('.g-plugin-config-link[g-route="plugins/candela/config"]').length > 0;
+            }, 'navigate to plugins page');
+
+            runs(function () {
+                $('.g-plugin-config-link[g-route="plugins/candela/config"]').click();
+            });
+
+            waitsFor(function () {
+                return $('.g-config-breadcrumb-container').length > 0;
+            }, 'navigate to candela plugin config page');
+
+            runs(function () {
+                expect($('.g-default-layout').children().eq(1).find('a').attr('href')).toBe('http://candela.readthedocs.io/');
+            });
+        });
 
         it('uploads the data file', function () {
             runs(function () {
