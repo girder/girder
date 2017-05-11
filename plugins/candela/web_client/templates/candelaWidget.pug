@@ -1,0 +1,10 @@
+.g-item-candela
+  .g-item-candela-header
+    i.icon-chart-bar
+    |  Candela visualization
+    select.form-control.g-item-candela-component
+      each component in components
+        option(value=component)
+          = component
+  .g-item-candela-container
+    .g-item-candela-parameters

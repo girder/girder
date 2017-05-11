@@ -2,6 +2,7 @@
 !.gitignore
 !authorized_upload
 !autojoin
+!candela/
 !celery_jobs/
 !curation/
 !dicom_viewer/
