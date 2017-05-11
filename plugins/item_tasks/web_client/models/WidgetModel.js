@@ -101,8 +101,22 @@ var WidgetModel = Backbone.Model.extend({
             attrs.value = attrs.default.data;
         }
 
+        /*
+         * Integers are special numeric types where adjecent values differ
+         * by exactly 1.  Setting the "step" field to one, ensures that
+         * clicking the input element arrows increment or decrement the
+         * value by one.
+         */
         if (attrs.type === 'integer') {
             attrs.step = 1;
+
+            if (_.has(attrs, 'min')) {
+                /*
+                 * Ensure the minimum value is an integer for correct
+                 * validation and input element behavior.
+                 */
+                attrs.min = Math.ceil(attrs.min);
+            }
         }
         this.set(attrs);
     },

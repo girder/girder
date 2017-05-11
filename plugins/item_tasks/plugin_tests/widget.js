@@ -95,6 +95,15 @@ girderTest.promise.then(function () {
 
             w.set('value', '8');
             expect(w.isValid()).toBe(true);
+
+            // ensure that minimum values are coerced into integers
+            w = new itemTasks.models.WidgetModel({
+                type: 'integer',
+                title: 'Integer widget',
+                min: 2.5,
+                max: 10
+            });
+            expect(w.get('min')).toBe(3);
         });
         it('float number', function () {
             var w = new itemTasks.models.WidgetModel({
