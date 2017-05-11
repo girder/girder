@@ -57,6 +57,7 @@ var CandelaWidget = View.extend({
                     };
                     events.trigger('g:alert', info);
                     console.error(error);
+                    return;
                 }
 
                 datalib.read(data, {parse: 'auto'});

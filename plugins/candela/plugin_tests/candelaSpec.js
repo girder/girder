@@ -121,13 +121,66 @@ $(function () {
             waitsFor(function () {
                 var inputs = $('.g-candela-inputs-container').children().eq(1).children().children();
                 return inputs.length === 9;
-            }, 'the visualization type to change');
+            }, 'the visualization type to change to TreeHeatmap');
 
             runs(function () {
                 var inputs = $('.g-candela-inputs-container').children().eq(1).children().children();
                 expect(inputs.eq(2).find('label').text()).toBe('Identifier column');
                 expect(inputs.eq(3).find('label').text()).toBe('Color scale');
                 expect(inputs.eq(3).find('option').eq(1).text()).toBe('row');
+            });
+
+            runs(function () {
+                $('.g-item-candela-component').val('BulletChart').change();
+            });
+
+            waitsFor(function () {
+                var inputs = $('.g-candela-inputs-container').children().eq(1).children().children();
+                return inputs.length === 5;
+            }, 'the visualization type to change to BulletChart');
+
+            runs(function () {
+                var inputs = $('.g-candela-inputs-container').children().eq(1).children().children();
+                expect(inputs.eq(3).find('label').text()).toBe('title');
+                expect(inputs.eq(4).find('label').text()).toBe('subtitle');
+            });
+        });
+
+        it('uploads a bad data file', function () {
+            runs(function () {
+                expect($('#g-user-action-menu.open').length).toBe(0);
+                $('.g-user-text>a:first').click();
+            });
+            girderTest.waitForLoad();
+
+            runs(function () {
+                expect($('#g-user-action-menu.open').length).toBe(1);
+                $('a.g-my-folders').click();
+            });
+            girderTest.waitForLoad();
+
+            runs(function () {
+                $('a.g-folder-list-link:last').click();
+            });
+            girderTest.waitForLoad();
+
+            waitsFor(function () {
+                return $('ol.breadcrumb>li.active').text() === 'Public' &&
+                       $('.g-item-list-link').length === 1;
+            }, 'descending into Public folder');
+
+            girderTest.binaryUpload('clients/web/test/testFileBad.csv');
+
+            runs(function () {
+                $('.g-item-list-link').eq(1).click();
+            });
+
+            waitsFor(function () {
+                return $('.alert-danger').length === 1;
+            }, 'the error message to appear');
+
+            runs(function () {
+                expect($('.alert-danger').text()).toContain('An error occurred while attempting to read and parse the data file.');
             });
         });
     });
