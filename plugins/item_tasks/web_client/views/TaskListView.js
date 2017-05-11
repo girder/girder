@@ -1,14 +1,13 @@
 import View from 'girder/views/View';
-import ItemCollection from 'girder/collections/ItemCollection';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+import ItemTaskCollection from '../collections/ItemTaskCollection';
 
 import template from '../templates/taskList.pug';
 import '../stylesheets/taskList.styl';
 
 var TaskListView = View.extend({
     initialize: function () {
-        this.collection = new ItemCollection();
-        this.collection.altUrl = 'item_task';
+        this.collection = new ItemTaskCollection();
 
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
