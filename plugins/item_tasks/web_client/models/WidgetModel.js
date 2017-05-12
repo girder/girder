@@ -102,7 +102,7 @@ var WidgetModel = Backbone.Model.extend({
         }
 
         /*
-         * Integers are special numeric types where adjecent values differ
+         * Integers are special numeric types where adjacent values differ
          * by exactly 1.  Setting the "step" field to one, ensures that
          * clicking the input element arrows increment or decrement the
          * value by one.
