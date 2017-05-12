@@ -447,6 +447,10 @@ describe('Navigate to the demo task', function () {
             return $('.g-job-status-badge').attr('status') === 'success';
         }, 'job success status', 10000);
 
+        waitsFor(function () {
+            return $('.g-job-log-container').text();
+        }, 'job log to appear');
+
         runs(function () {
             var args = JSON.parse($('.g-job-log-container').text());
             expect(args.color_input.data).toBe('#b22222');
