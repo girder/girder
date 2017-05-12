@@ -340,7 +340,8 @@ describe('Navigate to the demo task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(4);
-            expect($('.g-execute-task-link').eq(0).text()).toBe('item_tasks widget types demo');
+            expect($('.g-execute-task-link .g-execute-task-link-header').eq(0).text()).toBe(
+                'item_tasks widget types demo');
             window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
         });
 
@@ -416,9 +417,7 @@ describe('Navigate to the demo task', function () {
             $('.modal-dialog .g-submit-button').click();
         });
 
-        waitsFor(function () {
-            return $('#g-dialog-container').css('display') === 'none';
-        }, 'modal dialog to disappear');
+        girderTest.waitForLoad();
 
         runs(function () {
             // set the output
@@ -445,6 +444,10 @@ describe('Navigate to the demo task', function () {
         waitsFor(function () {
             return $('.g-job-status-badge').attr('status') === 'success';
         }, 'job success status', 10000);
+
+        waitsFor(function () {
+            return $('.g-job-log-container').text();
+        }, 'job log to appear');
 
         runs(function () {
             var args = JSON.parse($('.g-job-log-container').text());
