@@ -260,11 +260,11 @@ class Assetstore(Resource):
     )
     def getSpaceUsageStatistics(self, assetstore, params):
         filesInStore = list(self.model('file').find(
-            query={'assetstoreId': assetstore['_id']}))
+            query={'assetstoreId': assetstore['_id']}, fields=['size', 'creatorId', 'itemId']))
 
         itemsUsingStore = list(self.model('item').find(query={
             '_id': {
-                '$in': [x['itemId'] for x in filesInStore]
+                '$in': list(set([x['itemId'] for x in filesInStore]))
             },
             'baseParentType': 'collection'
         }))
@@ -273,7 +273,7 @@ class Assetstore(Resource):
         collectionUsingStore = list(self.model('collection').find(
             query={
                 '_id': {
-                    '$in': [x['baseParentId'] for x in itemsUsingStore]
+                    '$in': list(set([x['baseParentId'] for x in itemsUsingStore]))
                 }
             }))
         collectionUsingStoreMap = dict((x['_id'], x) for x in collectionUsingStore)
@@ -289,7 +289,7 @@ class Assetstore(Resource):
         usersUsingStore = list(self.model('user').find(
             query={
                 '_id': {
-                    '$in': [x['creatorId'] for x in filesInStore]
+                    '$in': list(set([x['creatorId'] for x in filesInStore]))
                 }
             }))
         userUsingStoreMap = dict((x['_id'], x) for x in usersUsingStore)
@@ -301,20 +301,42 @@ class Assetstore(Resource):
             else:
                 userFileMap[userId].append(file)
 
-        # based on collected data stored in dictionary, aggregate size and format result
+        # based on collected data stored in dictionary, aggregate size and format
+        # result. Ignore the fact there will be only one copy for the same file
+        # in the assetstore.
         currentUser = self.getCurrentUser()
-        collections = list({
-            'collection': self.model('collection')
-            .filter(collectionUsingStoreMap[collectionId], currentUser),
-            'size': sum(file['size'] for file in files)
-        } for collectionId, files in collectionFileMap.items())
-        collections.sort(key=lambda x: x['size'], reverse=True)
+        collectionModel = self.model('collection')
+        userModel = self.model('user')
 
-        users = list({
-            'user': self.model('user').filter(userUsingStoreMap[userId], currentUser),
-            'size': sum(file['size'] for file in files)
-        } for userId, files in userFileMap.items())
-        users.sort(key=lambda x: x['size'], reverse=True)
+        def collectionMapper(collectionId, files):
+            collection = collectionModel.filter(collectionUsingStoreMap[collectionId], currentUser)
+            collection = {
+                '_id': collection['_id'],
+                'name': collection['name']
+            }
+            collection['spaceUsage'] = sum(file['size'] for file in files)
+            return collection
+        collections = [
+            collectionMapper(collectionId, files) for collectionId, files in collectionFileMap.items()]
+        collections.sort(key=lambda x: x['spaceUsage'], reverse=True)
+
+        def userMapper(userId, files):
+            {
+                'user': userModel.filter(userUsingStoreMap[userId], currentUser),
+                'size': sum(file['size'] for file in files)
+            }
+            user = userModel.filter(userUsingStoreMap[userId], currentUser)
+            user = {
+                '_id': user['_id'],
+                'login': user['login'],
+                'firstName': user['firstName'],
+                'lastName': user['lastName'],
+                'email': user['email']
+            }
+            user['spaceUsage'] = sum(file['size'] for file in files)
+            return user
+        users = [userMapper(userId, files) for userId, files in userFileMap.items()]
+        users.sort(key=lambda x: x['spaceUsage'], reverse=True)
 
         return {
             'collections': collections,
