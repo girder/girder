@@ -13,6 +13,7 @@ add_web_client_test(
     tasks "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests/tasks.js" PLUGIN ${PLUGIN}
     SETUP_MODULES "${CMAKE_CURRENT_LIST_DIR}/plugin_tests/mock_worker.py")
 
+# run this test serially to avoid event stream timeouts on CI
 if (BUILD_JAVASCRIPT_TESTS)
     set_property(TEST web_client_item_tasks.tasks PROPERTY RUN_SERIAL ON)
 endif()
