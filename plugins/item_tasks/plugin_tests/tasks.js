@@ -1,3 +1,5 @@
+/* global girderTest describe it runs waitsFor expect */
+
 girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/jobs/plugin.min.js',
     '/clients/web/static/built/plugins/worker/plugin.min.js',
@@ -83,7 +85,7 @@ describe('Run the item task', function () {
     it('navigate to task', function () {
         $('.g-nav-link[g-target="item_tasks"]').click();
 
-        waitsFor(function (){
+        waitsFor(function () {
             return $('.g-execute-task-link').length > 0;
         }, 'task list to be rendered');
 
@@ -261,12 +263,11 @@ describe('Auto-configure the JSON item task folder', function () {
     });
 });
 
-
 describe('Navigate to the new JSON task', function () {
     it('navigate to task', function () {
         $('.g-nav-link[g-target="item_tasks"]').click();
 
-        waitsFor(function (){
+        waitsFor(function () {
             return $('.g-execute-task-link').length > 0;
         }, 'task list to be rendered');
 
@@ -287,6 +288,179 @@ describe('Navigate to the new JSON task', function () {
             expect($('.g-task-description-container').text()).toContain(
                 'Task 1 description');
             expect($('.g-inputs-container').length).toBe(0);
+        });
+    });
+});
+
+describe('Auto-configure the demo JSON task', function () {
+    it('go to collection page', function () {
+        $('ul.g-global-nav .g-nav-link[g-target="collections"]').click();
+    });
+
+    it('create collection and folder', girderTest.createCollection('demo task test', '', 'tasks'));
+
+    it('navigate to the folder', function () {
+        runs(function () {
+            $('.g-folder-list-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-empty-parent-message:visible').length > 0;
+        }, 'folder empty list to appear');
+    });
+
+    it('run configuration job', function () {
+        $('.g-folder-actions-button').click();
+        $('.g-folder-actions-menu .g-create-docker-tasks').click();
+
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('.modal-dialog .g-configure-docker-image').val('item-tasks-demo');
+            $('.modal-dialog button.btn.btn-success[type="submit"]').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-job-info-key').length > 0;
+        }, 'navigation to the configuration job');
+
+        waitsFor(function () {
+            return $('.g-job-status-badge').attr('status') === 'success';
+        }, 'job success status', 10000);
+    });
+});
+
+describe('Navigate to the demo task', function () {
+    it('navigate to task', function () {
+        $('.g-nav-link[g-target="item_tasks"]').click();
+
+        waitsFor(function () {
+            return $('.g-execute-task-link').length > 0;
+        }, 'task list to be rendered');
+
+        runs(function () {
+            expect($('.g-execute-task-link').length).toBe(4);
+            expect($('.g-execute-task-link').eq(0).text()).toBe('item_tasks widget types demo');
+            window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
+        });
+
+        waitsFor(function () {
+            return $('.g-task-description-container').length > 0;
+        }, 'task run view to display');
+
+        runs(function () {
+            expect($('.g-task-description-container').text()).toContain(
+                'A simple demonstration showing how to work with item_tasks control widgets');
+            expect($('.g-inputs-container').length).toBe(1);
+            expect($('.g-outputs-container').length).toBe(1);
+        });
+    });
+
+    it('task defaults', function () {
+        expect($('#color_input').val()).toBe('#1234ef');
+        expect($('#range_input').val()).toBe('5');
+        expect($('#number_input').val()).toBe('0.5');
+        expect($('#boolean_input').prop('checked')).toBe(true);
+        expect($('#string_input').val()).toBe('default value');
+        expect($('#integer_input').val()).toBe('3');
+        expect($('#number_vector_input').val()).toBe('1,2,3');
+        expect($('#string_vector_input').val()).toBe('one,two,three');
+        expect($('#number_choice_input').val()).toBe('3.14');
+        expect($('#string_choice_input').val()).toBe('green');
+        expect($('#number_multi_choice_input').val()).toEqual(['3.14', '1.62']);
+        expect($('#string_multi_choice_input').val()).toEqual(['green', 'yellow']);
+        expect($('#file_input').val()).toBe('');
+        expect($('#file_output').val()).toBe('');
+    });
+
+    it('set inputs and outputs', function () {
+        runs(function () {
+            $('#color_input').val('#b22222').trigger('change');
+            $('#range_input').val('6').trigger('change');
+            $('#number_input').val('1').trigger('change');
+            $('#boolean_input').click();
+            $('#string_input').val('another value').trigger('change');
+            $('#integer_input').val('-4').trigger('change');
+            $('#number_vector_input').val('-1,-2,-3').trigger('change');
+            $('#string_vector_input').val('red,blue,green').trigger('change');
+            $('#number_choice_input').val('1').trigger('change');
+            $('#string_choice_input').val('cyan').trigger('change');
+            $('#number_multi_choice_input').val(['3.14', '1.62']).trigger('change');
+            $('#string_multi_choice_input').val(['green', 'blue']).trigger('change');
+            $('#file_input').parent().find('button').click();
+        });
+
+        girderTest.waitForDialog();
+        runs(function () {
+            // Select our collection for the input item
+            var id = $('.modal-dialog #g-root-selector option[data-group="Collections"]').attr('value');
+            $('.modal-dialog #g-root-selector').val(id).trigger('change');
+        });
+
+        waitsFor(function () {
+            return $('.modal-dialog .g-folder-list-link').text().indexOf('tasks') !== -1;
+        }, 'hierarchy widget to update for input root');
+
+        runs(function () {
+            $('.modal-dialog .g-folder-list-link:first').click();
+        });
+
+        waitsFor(function () {
+            return $('.modal-dialog .g-item-list-link').length > 0;
+        }, 'folder nav in input selection widget');
+
+        runs(function () {
+            expect($('.modal-dialog #g-selected-model').val()).toBe('');
+            $('.modal-dialog .g-item-list-link').click();
+            expect($('.modal-dialog #g-selected-model').val()).not.toBe('');
+            $('.modal-dialog .g-submit-button').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-dialog-container').css('display') === 'none';
+        }, 'modal dialog to disappear');
+
+        runs(function () {
+            // set the output
+            $('#file_output').parent().find('button').click();
+        });
+
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('#g-input-element').val('output.txt');
+            $('.modal-dialog .g-submit-button').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-dialog-container').css('display') === 'none';
+        }, 'modal dialog to disappear');
+    });
+
+    it('run the task', function () {
+        runs(function () {
+            $('.g-run-task').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-job-status-badge').attr('status') === 'success';
+        }, 'job success status', 10000);
+
+        runs(function () {
+            var args = JSON.parse($('.g-job-log-container').text());
+            expect(args.color_input.data).toBe('#b22222');
+            expect(args.range_input.data).toBe(6);
+            expect(args.number_input.data).toBe(1);
+            expect(args.boolean_input.data).toBe(false);
+            expect(args.integer_input.data).toBe(-4);
+            expect(args.number_vector_input.data).toBe('-1,-2,-3');
+            expect(args.string_vector_input.data).toBe('red,blue,green');
+            expect(args.number_choice_input.data).toBe(1);
+            expect(args.string_choice_input.data).toBe('cyan');
+            expect(args.number_multi_choice_input.data).toBe('3.14,1.62');
+            expect(args.string_multi_choice_input.data).toBe('green,blue');
+            expect(args.file_input.fileName).toBe('item_tasks widget types demo');
+            expect(args.file_input.resource_type).toBe('item');
         });
     });
 });

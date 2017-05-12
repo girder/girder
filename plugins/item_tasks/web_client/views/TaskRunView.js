@@ -134,7 +134,7 @@ const TaskRunView = View.extend({
         const inputs = {}, outputs = {};
 
         const translate = (model) => {
-            const val = model.value();
+            let val = model.value();
 
             switch (model.get('type')) {
                 case 'image': // This is an input
@@ -159,9 +159,12 @@ const TaskRunView = View.extend({
                         name: model.get('fileName')
                     };
                 default:
+                    if (model.isVector()) {
+                        val = val.join(',');
+                    }
                     return {
                         mode: 'inline',
-                        data: model.value()
+                        data: val
                     };
             }
         };

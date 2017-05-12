@@ -46,6 +46,12 @@ var ControlWidget = View.extend({
         this.$el.html(this.template()(this.model.attributes));
         this.$('.g-control-item[data-type="range"] input').slider();
         this.$('.g-control-item[data-type="color"] .input-group').colorpicker({});
+
+        // work around a problem with the initial position of the tooltip
+        window.setTimeout(
+            () => this.$('.g-control-item[data-type="range"] input').slider('relayout'),
+            0
+        );
         return this;
     },
 
