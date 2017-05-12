@@ -340,7 +340,8 @@ describe('Navigate to the demo task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(4);
-            expect($('.g-execute-task-link').eq(0).text()).toBe('item_tasks widget types demo');
+            expect($('.g-execute-task-link .g-execute-task-link-header').eq(0).text()).toBe(
+                'item_tasks widget types demo');
             window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
         });
 
