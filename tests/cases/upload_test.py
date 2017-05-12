@@ -21,6 +21,11 @@ import json
 import os
 import re
 import requests
+import six
+import threading
+
+from girder import events
+from girder.utility import assetstore_utilities
 
 from .. import base
 from .. import mongo_replicaset
@@ -250,6 +255,54 @@ class UploadTestCase(base.TestCase):
 
     def testFilesystemAssetstoreUpload(self):
         self._testUpload()
+        # Test that a delete during an upload still results in one file
+        adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
+        size = 101
+        data = six.BytesIO(b' ' * size)
+        files = []
+        files.append(self.model('upload').uploadFromFile(
+            data, size, 'progress', parentType='folder', parent=self.folder,
+            assetstore=self.assetstore))
+        fullPath0 = adapter.fullPath(files[0])
+        conditionRemoveDone = threading.Condition()
+        conditionInEvent = threading.Condition()
+
+        def waitForCondition(*args, **kwargs):
+            # Single that we are in the event and then wait to be told that
+            # the delete has occured before returning.
+            with conditionInEvent:
+                conditionInEvent.notify()
+            with conditionRemoveDone:
+                conditionRemoveDone.wait()
+
+        def uploadFileWithWait():
+            size = 101
+            data = six.BytesIO(b' ' * size)
+            files.append(self.model('upload').uploadFromFile(
+                data, size, 'progress', parentType='folder', parent=self.folder,
+                assetstore=self.assetstore))
+
+        events.bind('model.file.finalizeUpload.before', 'waitForCondition',
+                    waitForCondition)
+        # We create an upload that is bound to an event that waits during the
+        # finalizeUpload.before event so that the remove will be executed
+        # during this time.
+        with conditionInEvent:
+            t = threading.Thread(target=uploadFileWithWait)
+            t.start()
+            conditionInEvent.wait()
+        self.assertTrue(os.path.exists(fullPath0))
+        self.model('file').remove(files[0])
+        # We shouldn't actually remove the file here
+        self.assertTrue(os.path.exists(fullPath0))
+        with conditionRemoveDone:
+            conditionRemoveDone.notify()
+        t.join()
+
+        events.unbind('model.file.finalizeUpload.before', 'waitForCondition')
+        fullPath1 = adapter.fullPath(files[0])
+        self.assertEqual(fullPath0, fullPath1)
+        self.assertTrue(os.path.exists(fullPath1))
 
     def testGridFSAssetstoreUpload(self):
         # Clear any old DB data

@@ -25,6 +25,7 @@ import six
 from six import BytesIO
 import stat
 import tempfile
+import threading
 
 from girder import events, logger
 from girder.api.rest import setResponseHeader
@@ -106,6 +107,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # happens to existing assetstores that no longer can access their temp
         # directories.
         self.tempDir = os.path.join(self.assetstore['root'], 'temp')
+        self.deleteLock = threading.Lock()
         try:
             mkdir(self.tempDir)
         except OSError:
@@ -216,11 +218,21 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         path = os.path.join(dir, hash)
         abspath = os.path.join(self.assetstore['root'], path)
 
+        # Store the hash in the upload so that deleting a file won't delete
+        # this file
+        upload['sha512'] = hash
+        upload = self.model('upload').save(upload, validate=False, triggerEvents=False)
+
         mkdir(absdir)
 
-        if os.path.exists(abspath):
+        # Only maintain the lock which checking if the file exists.  The only
+        # other place the lock is used is checking if an upload task has
+        # reserved the file, so this is sufficient.
+        with self.deleteLock:
+            pathExists = os.path.exists(abspath)
+        if pathExists:
             # Already have this file stored, just delete temp file.
-            os.remove(upload['tempFile'])
+            os.unlink(upload['tempFile'])
         else:
             # Move the temp file to permanent location in the assetstore.
             # shutil.move works across filesystems
@@ -303,7 +315,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if matching.count(True) == 1:
             path = os.path.join(self.assetstore['root'], file['path'])
             if os.path.isfile(path):
-                os.remove(path)
+                with self.deleteLock:
+                    if self.model('upload').findOne(q) is None:
+                        try:
+                            os.unlink(path)
+                        except Exception:
+                            logger.exception('Failed to delete file %s' % path)
 
     def cancelUpload(self, upload):
         """
