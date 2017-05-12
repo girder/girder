@@ -417,9 +417,7 @@ describe('Navigate to the demo task', function () {
             $('.modal-dialog .g-submit-button').click();
         });
 
-        waitsFor(function () {
-            return $('#g-dialog-container').css('display') === 'none';
-        }, 'modal dialog to disappear');
+        girderTest.waitForLoad();
 
         runs(function () {
             // set the output
