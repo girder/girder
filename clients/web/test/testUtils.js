@@ -588,6 +588,9 @@ girderTest.waitForLoad = function (desc) {
         return !$('.modal').data('bs.modal').$backdrop;
     }, 'any modal dialog to be hidden' + desc);
     waitsFor(function () {
+        return !girder._inTransition;
+    }, 'transitions to finish');
+    waitsFor(function () {
         return girder.rest.numberOutstandingRestRequests() === 0;
     }, 'rest requests to finish' + desc);
     waitsFor(function () {
@@ -612,6 +615,9 @@ girderTest.waitForDialog = function (desc) {
             $('.modal').data('bs.modal').isShown === true &&
             $('#g-dialog-container:visible').length > 0;
     }, 'a dialog to fully render' + desc);
+    waitsFor(function () {
+        return !girder._inTransition;
+    }, 'dialog transitions to finish');
     waitsFor(function () {
         return girder.rest.numberOutstandingRestRequests() === 0;
     }, 'dialog rest requests to finish' + desc);
@@ -1219,6 +1225,25 @@ $(function () {
 girderTest.startApp = function () {
     var defer = new $.Deferred();
     girderTest.promise.then(function () {
+        /* Track bootstrap transitions using our own test event. */
+        $.support.transition = {end: 'girdertest_transitionend'};
+        $.fn.emulateTransitionEnd = function (duration) {
+            girder._inTransition = true;
+            var $el = this;
+            window.setTimeout(function () {
+                girder._inTransition = false;
+                $($el).trigger($.support.transition.end);
+            }, duration);
+            return this;
+        };
+        $.event.special.bsTransitionEnd = {
+            bindType: $.support.transition.end,
+            delegateType: $.support.transition.end,
+            handle: function (e) {
+                if ($(e.target).is(this)) return e.handleObj.handler.apply(this, arguments);
+            }
+        };
+
         girder.events.trigger('g:appload.before');
         var app = new girder.views.App({
             el: 'body',
