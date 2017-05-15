@@ -262,29 +262,30 @@ class Assetstore(Resource):
         filesInStore = list(self.model('file').find(
             query={'assetstoreId': assetstore['_id']}, fields=['size', 'creatorId', 'itemId']))
 
-        itemsUsingStore = list(self.model('item').find(query={
+        collectionItemsInStore = list(self.model('item').find(query={
             '_id': {
                 '$in': list(set([x['itemId'] for x in filesInStore]))
             },
             'baseParentType': 'collection'
         }))
-        itemsUsingStoreMap = dict((x['_id'], x) for x in itemsUsingStore)
+        collectionItemsInStoreMap = dict((x['_id'], x) for x in collectionItemsInStore)
 
         collectionUsingStore = list(self.model('collection').find(
             query={
                 '_id': {
-                    '$in': list(set([x['baseParentId'] for x in itemsUsingStore]))
+                    '$in': list(set([x['baseParentId'] for x in collectionItemsInStore]))
                 }
             }))
         collectionUsingStoreMap = dict((x['_id'], x) for x in collectionUsingStore)
 
         collectionFileMap = {}
         for file in filesInStore:
-            collectionId = itemsUsingStoreMap[file['itemId']]['baseParentId']
-            if collectionId not in collectionFileMap:
-                collectionFileMap[collectionId] = [file]
-            else:
-                collectionFileMap[collectionId].append(file)
+            if file['itemId'] in collectionItemsInStoreMap:
+                collectionId = collectionItemsInStoreMap[file['itemId']]['baseParentId']
+                if collectionId not in collectionFileMap:
+                    collectionFileMap[collectionId] = [file]
+                else:
+                    collectionFileMap[collectionId].append(file)
 
         usersUsingStore = list(self.model('user').find(
             query={
@@ -317,7 +318,7 @@ class Assetstore(Resource):
             collection['spaceUsage'] = sum(file['size'] for file in files)
             return collection
         collections = [
-            collectionMapper(collectionId, files) for collectionId, files in collectionFileMap.items()]
+            collectionMapper(x, y) for x, y in collectionFileMap.items()]
         collections.sort(key=lambda x: x['spaceUsage'], reverse=True)
 
         def userMapper(userId, files):
@@ -335,10 +336,10 @@ class Assetstore(Resource):
             }
             user['spaceUsage'] = sum(file['size'] for file in files)
             return user
-        users = [userMapper(userId, files) for userId, files in userFileMap.items()]
+        users = [userMapper(x, y) for x, y in userFileMap.items()]
         users.sort(key=lambda x: x['spaceUsage'], reverse=True)
 
         return {
-            'collections': collections,
-            'users': users
+            'users': users,
+            'collections': collections
         }
