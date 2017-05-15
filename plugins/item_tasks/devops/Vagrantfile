@@ -8,6 +8,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
   config.vm.network "forwarded_port", guest: 8080, host: 9080
   config.vm.provider :virtualbox do |vb|
+    vb.customize ["modifyvm", :id, "--nictype1", "virtio"]
     vb.name = "it_fullstack_dev"
     vb.customize ["modifyvm", :id, "--memory", 2048]
     vb.customize ["modifyvm", :id, "--cpus", 2]

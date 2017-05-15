@@ -17,6 +17,10 @@ Logs for girder-worker go to /var/log/upstart/girder_worker.log.
  
 # Basic operations
 
+These commands should be run from the same directory as this README file,
+where the item_tasks Vagrantfile is located.  If these commands are run
+from a different directory, the wrong Vagrantfile may be used.
+
 ## Create the box for the first time and provision it
 
 `vagrant up`
