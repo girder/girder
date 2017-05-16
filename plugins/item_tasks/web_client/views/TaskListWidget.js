@@ -1,6 +1,7 @@
 import View from 'girder/views/View';
 
 import template from '../templates/taskListWidget.pug';
+import '../stylesheets/taskListTag.styl';
 import '../stylesheets/taskListWidget.styl';
 
 /**

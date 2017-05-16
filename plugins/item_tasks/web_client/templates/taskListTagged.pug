@@ -1,0 +1,16 @@
+.g-task-list-tagged-header
+  .g-task-pagination
+
+.g-task-list-tagged-status
+  if !collection.isEmpty()
+    i.icon-tags
+    |  Tasks tagged with&nbsp;
+    span.g-task-list-tag-container
+      each tag in tags
+        a.label.label-default.g-task-list-tag(href=`#item_tasks/tagged?tags=${tag}`)= tag
+        | &#x20;
+  else
+    i.icon-attention
+    |  No tasks with all of the specified tags were found.
+
+.g-task-list-widget-container
