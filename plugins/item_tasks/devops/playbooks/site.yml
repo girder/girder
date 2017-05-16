@@ -1,7 +1,7 @@
 - hosts: all
 
   vars:
-    girder_update: no
+    girder_update: yes
     girder_force: no
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
     girder_enabled_plugins:
