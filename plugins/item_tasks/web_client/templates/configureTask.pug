@@ -31,6 +31,10 @@
           label
             input.g-slicer-cli-use-description(type="checkbox", checked=true)
             | Update the description of this item from the CLI description
+        .checkbox
+          label
+            input.g-slicer-cli-pull-image(type="checkbox", checked=true)
+            | Pull image from Docker Hub prior to running
         .g-validation-failed-message
       .modal-footer
         a.btn.btn-default(data-dismiss="modal") Close
