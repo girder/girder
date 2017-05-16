@@ -2,7 +2,6 @@ import json
 import six
 
 from girder import events
-from girder import logger
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import ensureTokenScopes, filtermodel, Resource, RestException
@@ -219,8 +218,12 @@ class ItemTask(Resource):
                dataType='boolean', required=False, default=True)
         .param('setDescription', 'Whether the item description should be changed to the '
                'description of the CLI.', dataType='boolean', required=False, default=True)
+        .param('pullImage', 'Whether the image should be pulled from a docker registry. '
+               'Set to false to use local images only.', dataType='boolean', required=False,
+               default=True)
     )
-    def runSlicerCliDescription(self, item, image, args, setName, setDescription, params):
+    def runSlicerCliDescription(
+            self, item, image, args, setName, setDescription, pullImage, params):
         if 'meta' not in item:
             item['meta'] = {}
 
@@ -249,6 +252,7 @@ class ItemTask(Resource):
                     'mode': 'docker',
                     'docker_image': image,
                     'container_args': args + ['--xml'],
+                    'pull_image': pullImage,
                     'outputs': [{
                         'id': '_stdout',
                         'format': 'text'
@@ -333,7 +337,7 @@ class ItemTask(Resource):
         .modelParam('id', 'The ID of the folder that the task specs will be added to.',
                     model='folder', level=AccessType.WRITE)
         .param('image', 'The docker image name.', required=True, strip=True)
-        .param('pullImage', 'Whether the image should be pulled from a docker registry. ' +
+        .param('pullImage', 'Whether the image should be pulled from a docker registry. '
                'Set to false to use local images only.',
                dataType='boolean', required=False, default=True)
     )
@@ -412,16 +416,13 @@ class ItemTask(Resource):
                 if len(json) > 1:
                     name += ' ' + str(itemIndex)
 
-            logger.info('Configuring item "%s"' % name)
-
             item = self.model('item').createItem(
                 name=name,
                 creator=user,
                 folder=folder,
                 description=itemTaskSpec.get('description', ''),
                 reuseExisting=True)
-            logger.info(pullImage)
-            logger.info(params)
+
             itemTaskSpec['docker_image'] = image
             itemTaskSpec['pull_image'] = pullImage
             self.model('item').setMetadata(item, {

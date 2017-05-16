@@ -15,7 +15,8 @@ var ConfigureTaskDialog = View.extend({
 
             var data = {
                 setName: this.$('.g-slicer-cli-use-name').is(':checked'),
-                setDescription: this.$('.g-slicer-cli-use-description').is(':checked')
+                setDescription: this.$('.g-slicer-cli-use-description').is(':checked'),
+                pullImage: this.$('.g-slicer-cli-pull-image').is(':checked')
             };
 
             if (image) {
