@@ -87,6 +87,14 @@ class TasksTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 2)
 
+        resp = self.request('/item_task/search', params={'q': 'Task'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+
+        resp = self.request('/item_task/search', user=self.admin, params={'q': 'Task'})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+
         # Test adding single task spec
         folder2 = self.model('folder').createFolder(
             name='placeholder2', creator=self.admin, parent=self.admin, parentType='user')
@@ -110,6 +118,47 @@ class TasksTest(base.TestCase):
         parsedSpec['pull_image'] = False
         parsedSpec['docker_image'] = 'johndoe/foo:v5'
         self.assertEqual(item['meta']['itemTaskSpec'], parsedSpec)
+
+        # Test searching for tasks
+        resp = self.request('/item_task', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 3)
+
+        resp = self.request('/item_task/search', user=self.admin, params={'q': 'Task'})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+
+        resp = self.request('/item_task/search', user=self.admin, params={'q': 'Single'})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+
+        resp = self.request('/item_task/search', user=self.admin, params={'q': 'Task', 'limit': 1})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'johndoe/foo:v5 0')
+
+        resp = self.request('/item_task/search', user=self.admin, params={
+            'q': 'Task', 'limit': 1, 'offset': 1})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'johndoe/foo:v5 1')
+
+        resp = self.request('/item_task/search', user=self.admin, params={
+            'q': 'Task', 'limit': 2})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['name'], 'johndoe/foo:v5 0')
+        self.assertEqual(resp.json[1]['name'], 'johndoe/foo:v5 1')
+
+        resp = self.request('/item_task/search', user=self.admin, params={
+            'q': 'Task', 'limit': 2, 'offset': 1})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['name'], 'johndoe/foo:v5 1')
+
+        resp = self.request('/item_task/search', user=self.admin, params={'q': 'Bad'})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
 
     def testSlicerCli(self):
         # Create a new item that will become a task
