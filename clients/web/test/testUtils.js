@@ -588,6 +588,9 @@ girderTest.waitForLoad = function (desc) {
         return !$('.modal').data('bs.modal').$backdrop;
     }, 'any modal dialog to be hidden' + desc);
     waitsFor(function () {
+        return !girder._inTransition;
+    }, 'transitions to finish');
+    waitsFor(function () {
         return girder.rest.numberOutstandingRestRequests() === 0;
     }, 'rest requests to finish' + desc);
     waitsFor(function () {
@@ -612,6 +615,9 @@ girderTest.waitForDialog = function (desc) {
             $('.modal').data('bs.modal').isShown === true &&
             $('#g-dialog-container:visible').length > 0;
     }, 'a dialog to fully render' + desc);
+    waitsFor(function () {
+        return !girder._inTransition;
+    }, 'dialog transitions to finish');
     waitsFor(function () {
         return girder.rest.numberOutstandingRestRequests() === 0;
     }, 'dialog rest requests to finish' + desc);
@@ -1219,6 +1225,26 @@ $(function () {
 girderTest.startApp = function () {
     var defer = new $.Deferred();
     girderTest.promise.then(function () {
+        /* Track bootstrap transitions.  This is largely a duplicate of the
+         * Bootstrap emulateTransitionEnd function, with the only change being
+         * our tracking of the transition.  This still relies on the browser
+         * possibly firing css transition end events, with this function as a
+         * fail-safe. */
+        $.fn.emulateTransitionEnd = function (duration) {
+            girder._inTransition = true;
+            var called = false;
+            var $el = this;
+            $(this).one('bsTransitionEnd', function () { called = true; });
+            var callback = function () {
+                if (!called) {
+                    $($el).trigger($.support.transition.end);
+                }
+                girder._inTransition = false;
+            };
+            setTimeout(callback, duration);
+            return this;
+        };
+
         girder.events.trigger('g:appload.before');
         var app = new girder.views.App({
             el: 'body',
