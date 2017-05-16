@@ -1,30 +1,31 @@
-import router from 'girder/router';
 import View from 'girder/views/View';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import TaskListWidget from './TaskListWidget';
 import ItemTaskCollection from '../collections/ItemTaskCollection';
 
-import template from '../templates/taskList.pug';
-import '../stylesheets/taskList.styl';
+import template from '../templates/taskListSearchResults.pug';
+import '../stylesheets/taskListSearchResults.styl';
 
 /**
- * View for a list of tasks. The list can be paged through. The user can search
- * for tasks using a search box. Clicking a task's tag shows a list of tasks which
- * have that tag.
+ * View for a list of tasks resulting from a text search. The search results are
+ * ordered by search score and can be paged through.
  */
-var TaskListView = View.extend({
-    events: {
-        'submit .g-task-search-form': function (e) {
-            e.preventDefault();
-            const query = this.$('.g-task-search-field').val().trim();
-            if (query) {
-                router.navigate(`item_tasks/search?q=${query}`, {trigger: true});
-            }
-        }
-    },
+var TaskListSearchResultsView = View.extend({
+    /*
+     * @param {string} settings.q
+     *   The search query.
+     */
+    initialize: function (settings) {
+        this.query = settings.q || null;
 
-    initialize: function () {
         this.collection = new ItemTaskCollection();
+
+        // Set the fetch URL to the search endpoint
+        this.collection.altUrl = 'item_task/search';
+
+        // Clear the comparator to retain the sort order returned by the
+        // search endpoint
+        this.collection.comparator = null;
 
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
@@ -36,7 +37,11 @@ var TaskListView = View.extend({
             parentView: this
         });
 
-        this.collection.fetch()
+        const params = {
+            q: this.query
+        };
+
+        this.collection.fetch(params)
             .then(() => {
                 this.render();
 
@@ -49,7 +54,8 @@ var TaskListView = View.extend({
 
     render: function () {
         this.$el.html(template({
-            collection: this.collection
+            collection: this.collection,
+            query: this.query
         }));
 
         this.paginateWidget.setElement(this.$('.g-task-pagination')).render();
@@ -59,4 +65,4 @@ var TaskListView = View.extend({
     }
 });
 
-export default TaskListView;
+export default TaskListSearchResultsView;

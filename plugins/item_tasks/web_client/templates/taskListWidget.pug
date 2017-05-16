@@ -1,0 +1,15 @@
+if !collection.isEmpty()
+  .panel.panel-default.g-task-list-task-items
+    ul.list-group
+      each task in collection.models
+        li.list-group-item.g-execute-task-link
+          h4.list-group-item-heading.g-execute-task-link-header
+            a(href=`#item_task/${task.id}/run`)= task.name()
+          .list-group-item-text.g-execute-task-link-body= task.get('description')
+    if collection.hasNextPage()
+      .panel-footer.g-task-list-task-items-footer
+        a.g-task-list-task-items-next-page
+          | See next page &raquo;
+    else
+      .panel-footer.g-task-list-task-items-footer
+        | End of list

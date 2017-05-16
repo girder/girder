@@ -1,0 +1,12 @@
+.g-task-list-search-results-header
+  .g-task-pagination
+
+.g-task-list-search-results-status
+  if !collection.isEmpty()
+    i.icon-search
+    |  Search results for tasks containing "#{query}"
+  else
+    i.icon-attention
+    |  No tasks matching your search term were found.
+
+.g-task-list-widget-container
