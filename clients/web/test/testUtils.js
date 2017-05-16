@@ -1225,23 +1225,24 @@ $(function () {
 girderTest.startApp = function () {
     var defer = new $.Deferred();
     girderTest.promise.then(function () {
-        /* Track bootstrap transitions using our own test event. */
-        $.support.transition = {end: 'girdertest_transitionend'};
+        /* Track bootstrap transitions.  This is largely a duplicate of the
+         * Bootstrap emulateTransitionEnd function, with the only change being
+         * our tracking of the transition.  This still relies on the browser
+         * possibly firing css transition end events, with this function as a
+         * fail-safe. */
         $.fn.emulateTransitionEnd = function (duration) {
             girder._inTransition = true;
+            var called = false;
             var $el = this;
-            window.setTimeout(function () {
+            $(this).one('bsTransitionEnd', function () { called = true; });
+            var callback = function () {
+                if (!called) {
+                    $($el).trigger($.support.transition.end);
+                }
                 girder._inTransition = false;
-                $($el).trigger($.support.transition.end);
-            }, duration);
+            };
+            setTimeout(callback, duration);
             return this;
-        };
-        $.event.special.bsTransitionEnd = {
-            bindType: $.support.transition.end,
-            delegateType: $.support.transition.end,
-            handle: function (e) {
-                if ($(e.target).is(this)) return e.handleObj.handler.apply(this, arguments);
-            }
         };
 
         girder.events.trigger('g:appload.before');
