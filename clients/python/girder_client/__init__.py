@@ -892,7 +892,7 @@ class GirderClient(object):
         offset = 0
         uploadId = uploadObj['_id']
 
-        with self.progressReporterCls(label=uploadObj['name'], length=size) as reporter:
+        with self.progressReporterCls(label=uploadObj.get('name', ''), length=size) as reporter:
 
             while True:
                 chunk = stream.read(min(self.MAX_CHUNK_SIZE, (size - offset)))
@@ -1096,7 +1096,7 @@ class GirderClient(object):
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             with self.progressReporterCls(
                     label=progressFileName,
-                    length=int(req.headers['content-length'])) as reporter:
+                    length=int(req.headers.get('content-length', 0))) as reporter:
                 for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
                     reporter.update(len(chunk))
                     tmp.write(chunk)
