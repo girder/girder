@@ -487,8 +487,11 @@
             }, 'public flag popover to display');
 
             runs(function () {
+                var countSel = '.g-action-manage-public-flags .g-flag-count-indicator';
                 // Make sure the public flags popover rendered properly
                 expect($('.popover input.g-public-flag-checkbox').length).toBe(2);
+                expect($(countSel).text()).toBe('0');
+                expect($(countSel).is(':visible')).toBe(false);
 
                 var adminCheckbox = $('.popover input.g-public-flag-checkbox[flag="adminFlag"]');
                 var openCheckbox = $('.popover .g-public-flag-checkbox[flag="openFlag"]');
@@ -501,6 +504,9 @@
 
                 // Enable the open flag and close the popover
                 openCheckbox.click();
+                expect($(countSel).text()).toBe('1');
+                expect($(countSel).is(':visible')).toBe(true);
+
                 $('.popover .g-close-public-flags-popover').click();
             });
 
@@ -517,8 +523,11 @@
             }, 'individual user flag popover to display');
 
             runs(function () {
+                var countSel = '.g-action-manage-flags .g-flag-count-indicator';
                 // Make sure the per-user flag checkbox rendered properly
                 expect($('.popover input.g-flag-checkbox').length).toBe(2);
+                expect($(countSel).text()).toBe('0');
+                expect($(countSel).is(':visible')).toBe(false);
 
                 var adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
                 var openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');
@@ -530,6 +539,9 @@
                 expect(openCheckbox.is(':disabled')).toBe(false);
 
                 openCheckbox.click();
+
+                expect($(countSel).text()).toBe('1');
+                expect($(countSel).is(':visible')).toBe(true);
                 $('.popover .g-close-flags-popover').click();
             });
 
