@@ -29,13 +29,22 @@ class ItemTask(Resource):
     @access.public
     @autoDescribeRoute(
         Description('List all available tasks that can be executed.')
+        .jsonParam('tags', 'Constrain list to tasks with all specified tags.', required=False,
+                   requireArray=True)
         .pagingParams(defaultSort='name')
     )
     @filtermodel(model='item')
-    def listTasks(self, limit, offset, sort, params):
-        cursor = self.model('item').find({
+    def listTasks(self, tags, limit, offset, sort, params):
+        query = {
             'meta.isItemTask': {'$exists': True}
-        }, sort=sort)
+        }
+
+        if tags:
+            query.update({
+                'meta.itemTaskSpec.tags': {'$all': tags}
+            })
+
+        cursor = self.model('item').find(query, sort=sort)
 
         return list(self.model('item').filterResultsByPermission(
             cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
