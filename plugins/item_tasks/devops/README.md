@@ -14,6 +14,9 @@ The Girder admin user is girder/girder.
 
 Logs for Girder go to /var/log/upstart/girder.log.
 Logs for girder-worker go to /var/log/upstart/girder_worker.log.
+
+To ingest dockerhub docker images, set the variable `item_tasks_images` with
+a list of dockerhub image paths.
  
 # Basic operations
 
