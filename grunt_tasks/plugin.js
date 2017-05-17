@@ -26,6 +26,7 @@ module.exports = function (grunt) {
     var ExtractTextPlugin = require('extract-text-webpack-plugin');
     var webpack = require('webpack');
     var paths = require('./webpack.paths.js');
+    var webpackPlugins = require('./webpack.plugins.js');
 
     var buildAll = grunt.option('all-plugins');
     var configurePlugins = grunt.option('configure-plugins');
@@ -152,7 +153,7 @@ module.exports = function (grunt) {
         // the user can control whether this is a "Girder client extension" or
         // just a standalone web client.
         var output = config.webpack && config.webpack.output || 'plugin';
-
+        var deps = config.dependencies || [];
         var pluginNodeDir = path.join(getPluginLocalNodePath(plugin), 'node_modules');
 
         // Add webpack target and name resolution for this plugin if
@@ -167,7 +168,7 @@ module.exports = function (grunt) {
             };
         } else if (_.isEmpty(mains)) {
             // By default, use web_client/main.js if it exists.
-            var mainJs = path.join(webClient, 'main.js');
+            var mainJs = path.resolve(webClient, 'main.js');
 
             if (fs.existsSync(mainJs)) {
                 mains = {
@@ -178,7 +179,7 @@ module.exports = function (grunt) {
 
         _.each(mains, (main, output) => {
             if (!path.isAbsolute(main)) {
-                main = path.join(dir, main);
+                main = path.resolve(dir, main);
             }
             if (!fs.existsSync(main)) {
                 throw new Error(`Entry point file ${main} not found.`);
@@ -224,7 +225,8 @@ module.exports = function (grunt) {
                     },
                     output: {
                         path: path.join(paths.web_built, 'plugins', plugin),
-                        filename: `${output}.min.js`
+                        filename: `${output}.min.js`,
+                        library: `girder_plugin_${plugin}`
                     },
                     resolve: {
                         modules: [
@@ -237,15 +239,38 @@ module.exports = function (grunt) {
                         ]
                     },
                     plugins: [
+                        // DllPlugin causes the plugin bundle to build a manifest so that
+                        // downstream bundles can share its modules at runtime rather
+                        // than copying them in statically.
+                        new webpack.DllPlugin({
+                            path: path.join(paths.web_built, 'plugins', plugin, `${output}-manifest.json`),
+                            name: `girder_plugin_${plugin}`
+                        }),
+                        // DllBootstrapPlugin allows the same plugin bundle to also
+                        // execute an entry point at load time instead of just exposing symbols
+                        // as a library.
+                        new webpackPlugins.DllBootstrapPlugin({
+                            [helperConfig.pluginEntry]: main
+                        }),
+                        // This plugin allows this bundle to dynamically link against girder's
+                        // core library bundle.
                         new webpack.DllReferencePlugin({
                             context: '.',
                             manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
                         }),
+                        // This plugin pulls the CSS out of the bundle and into a separate file.
                         new ExtractTextPlugin({
                             filename: `${output}.min.css`,
                             allChunks: true
                         })
-                    ]
+                    ].concat(_.map(deps, dep => {
+                        // This dynamically links the current plugin against its
+                        // dependencies' bundles so they can share code.
+                        return new webpack.DllReferencePlugin({
+                            context: '.',
+                            manifest: path.join(paths.web_built, 'plugins', dep, 'plugin-manifest.json')
+                        });
+                    }))
                 };
                 configOpts.default = {
                     [`webpack:${output}_${plugin}`]: {
