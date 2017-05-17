@@ -27,9 +27,8 @@ var JobStatus = {
     },
 
     textColor: function (status) {
-      return this._map[status].textColor;
-  },
-
+        return this._map[status].textColor;
+    },
 
     /**
      * Convert this status text into a value appropriate for an HTML class name.
@@ -57,11 +56,10 @@ var JobStatus = {
             };
 
             if ('textColor' in info) {
-              statusInfo.textColor = info.textColor;
+                statusInfo.textColor = info.textColor;
             }
 
-            this._map[info.value] = statusInfo
-
+            this._map[info.value] = statusInfo;
         }, this);
     },
 

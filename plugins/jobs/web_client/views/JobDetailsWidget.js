@@ -1,5 +1,6 @@
 import _ from 'underscore';
 
+import { restRequest } from 'girder/rest';
 import TimelineWidget from 'girder/views/widgets/TimelineWidget';
 import View from 'girder/views/View';
 import eventStream from 'girder/utilities/EventStream';
@@ -11,6 +12,12 @@ import JobStatus from '../JobStatus';
 import '../stylesheets/jobDetailsWidget.styl';
 
 var JobDetailsWidget = View.extend({
+    events: {
+        'click .job-cancel': function (event) {
+            event.preventDefault();
+            this._cancelJob();
+        }
+    },
     initialize: function (settings) {
         this.job = settings.job;
 
@@ -113,6 +120,19 @@ var JobDetailsWidget = View.extend({
             startLabel: '0 s',
             endLabel: elapsed + ' s'
         }).render();
+    },
+
+    _cancelJob: function () {
+        const jobId = this.job.id;
+        restRequest({
+            path: `job/${jobId}/cancel`,
+            type: 'PUT',
+            error: null
+        }).done(_.bind(function () {
+            console.log('success');
+        }, this)).error(_.bind(function (err) {
+            console.log(err);
+        }, this));
     }
 });
 
