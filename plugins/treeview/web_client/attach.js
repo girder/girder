@@ -1,3 +1,6 @@
+import 'jstree';
+import 'jstree/dist/themes/default/style.css';
+
 import root from './root';
 
 export default function (el, settings) {
