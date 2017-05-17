@@ -24,5 +24,11 @@ JobStatus.registerStatus({
         text: 'Pushing output',
         icon: 'icon-upload',
         color: '#89d2e2'
+    },
+    WORKER_CANCELING: {
+        value: 824,
+        text: 'Canceling',
+        icon: 'icon-cancel',
+        color: '#f89406'
     }
 });

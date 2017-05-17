@@ -39,3 +39,7 @@ if job.get('args') && job.get('args').length
 if job.get('kwargs')
   .g-job-info-key(property="kwargs") Keyword arguments:
   .g-monospace-viewer(property="kwargs")= JSON.stringify(job.get('kwargs'), null, '  ')
+if job.get('status') === JobStatus.RUNNING
+  button.job-cancel.btn.btn-default.btn-sm(type="submit")
+    i.icon-cancel
+    | Cancel

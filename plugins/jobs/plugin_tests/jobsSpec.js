@@ -64,7 +64,22 @@ $(function () {
                 expect($('.g-timeline-point').length).toBe(4);
                 expect($('.g-timeline-start-label').text()).toBe('0 s');
                 expect($('.g-timeline-end-label').text()).toBe('12 s');
-                expect($('.g-timeline-point')[3].className).toContain('g-job-color-success');
+
+                function toHex(c) {
+                    var hex = parseInt(c, 10).toString(16);
+                    return hex.length == 1 ? '0' + hex : hex;
+                }
+
+                function rgbToHex(rgb) {
+                    rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                    print
+                    return '#' + toHex(rgb[1]) + toHex(rgb[2]) + toHex(rgb[3]);
+                }
+
+                var backgroundColor = $('.g-timeline-point')[3].style.getPropertyValue('background-color');
+                backgroundColor = rgbToHex(backgroundColor)
+                var successColor = girder.plugins.jobs.JobStatus.color(girder.plugins.jobs.JobStatus.SUCCESS);
+                expect(backgroundColor).toBe(successColor);
 
                 // Make sure view change happens when notification is sent for this job
                 girder.utilities.eventStream.trigger('g:event.job_status', {
