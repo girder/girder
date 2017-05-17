@@ -70,7 +70,7 @@ var JobDetailsWidget = View.extend({
         var segments = [{
             start: startTime,
             end: timestamps[0].time,
-            class: 'g-job-color-inactive',
+            color: JobStatus.color(JobStatus.INACTIVE),
             tooltip: 'Inactive: %r s'
         }];
 
@@ -80,13 +80,13 @@ var JobDetailsWidget = View.extend({
                 start: stamp.time,
                 end: timestamps[i + 1].time,
                 tooltip: statusText + ': %r s',
-                class: 'g-job-color-' + JobStatus.classAffix(stamp.status)
+                color: JobStatus.color(stamp.status)
             };
         }, this));
 
         var points = [{
             time: startTime,
-            class: 'g-job-color-inactive',
+            color: JobStatus.color(JobStatus.INACTIVE),
             tooltip: 'Created at ' + new Date(startTime).toISOString()
         }];
 
@@ -96,7 +96,7 @@ var JobDetailsWidget = View.extend({
                 time: stamp.time,
                 tooltip: 'Moved to ' + statusText + ' at ' +
                          new Date(stamp.time).toISOString(),
-                class: 'g-job-color-' + JobStatus.classAffix(stamp.status)
+                color: JobStatus.color(stamp.status)
             };
         }, this));
 
