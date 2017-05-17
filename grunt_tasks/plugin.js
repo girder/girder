@@ -31,6 +31,11 @@ module.exports = function (grunt) {
     var configurePlugins = grunt.option('configure-plugins');
     var plugins = grunt.option('plugins');
 
+    if (grunt.option('all-plugins')) {
+        throw new Error(
+            'The --all-plugins option no longer works, use `girder-install web --all-plugins` instead.')
+    }
+
     if (_.isString(plugins) && plugins) {
         plugins = plugins.split(',');
     } else {
