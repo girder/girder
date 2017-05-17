@@ -81,9 +81,9 @@ HierarchyWidget.prototype.events['click .g-create-docker-tasks'] = function () {
 };
 
 // Show task inputs and outputs on job details view
+import JobDetailsWidget from 'girder_plugins/jobs/views/JobDetailsWidget';
 import JobDetailsInfoView from './views/JobDetailsInfoView';
-/* global girder */
-wrap(girder.plugins.jobs.views.JobDetailsWidget, 'render', function (render) {
+wrap(JobDetailsWidget, 'render', function (render) {
     render.call(this);
 
     if (this.job.has('itemTaskBindings')) {
