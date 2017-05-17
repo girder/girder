@@ -215,6 +215,7 @@ var HierarchyWidget = View.extend({
         this.itemListView = new ItemListWidget({
             itemFilter: this._itemFilter,
             folderId: this.parentModel.get('_id'),
+            public: this.parentModel.get('public'),
             accessLevel: this.parentModel.getAccessLevel(),
             checkboxes: this._checkboxes,
             downloadLinks: this._downloadLinks,
