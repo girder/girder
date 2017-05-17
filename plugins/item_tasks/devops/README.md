@@ -15,8 +15,23 @@ The Girder admin user is girder/girder.
 Logs for Girder go to /var/log/upstart/girder.log.
 Logs for girder-worker go to /var/log/upstart/girder_worker.log.
 
-To ingest dockerhub docker images, set the variable `item_tasks_images` with
+To ingest dockerhub docker images, set the variable `item_tasks_dockerhub_images` with
 a list of dockerhub image paths.
+
+To ingest locally built docker images, set the variable `item_tasks_local_images` with
+a list of local image paths.
+
+As an example of a local docker image, build the Dockerfile in the Vagrant VM
+that is included with the item_tasks plugin.
+
+```
+ssh vagrant
+cd /home/vagrant/girder/plugins/item_tasks/demo
+sudo su worker
+docker build . -t item-tasks-demo:latest
+exit
+exit
+```
  
 # Basic operations
 
