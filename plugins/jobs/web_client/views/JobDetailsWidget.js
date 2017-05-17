@@ -46,7 +46,8 @@ var JobDetailsWidget = View.extend({
         this.$el.html(JobDetailsWidgetTemplate({
             job: this.job,
             statusText: JobStatus.text(status),
-            colorClass: 'g-job-color-' + JobStatus.classAffix(status),
+            textColor: JobStatus.textColor(status),
+            color: JobStatus.color(status),
             JobStatus: JobStatus,
             formatDate: formatDate,
             DATE_SECOND: DATE_SECOND,

@@ -26,6 +26,11 @@ var JobStatus = {
         return this._map[status].color;
     },
 
+    textColor: function (status) {
+      return this._map[status].textColor;
+  },
+
+
     /**
      * Convert this status text into a value appropriate for an HTML class name.
      */
@@ -43,11 +48,20 @@ var JobStatus = {
     registerStatus: function (status) {
         _.each(status, function (info, name) {
             this[name] = info.value;
-            this._map[info.value] = {
+
+            let statusInfo = {
                 text: info.text,
                 icon: info.icon,
-                color: info.color
+                color: info.color,
+                textColor: 'white'
             };
+
+            if ('textColor' in info) {
+              statusInfo.textColor = info.textColor;
+            }
+
+            this._map[info.value] = statusInfo
+
         }, this);
     },
 
@@ -61,7 +75,8 @@ JobStatus.registerStatus({
         value: 0,
         text: 'Inactive',
         icon: 'icon-pause',
-        color: '#ccc'
+        color: '#ccc',
+        textColor: '#555'
     },
     QUEUED: {
         value: 1,

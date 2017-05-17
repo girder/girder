@@ -17,7 +17,7 @@ table.g-jobs-list-table
     each job in jobs
       tr(g-job-id=job.id)
         if columns & columnEnum.COLUMN_STATUS_ICON
-          td.g-status-icon-container(status=job.get('status'))
+          td(style='color: ' + JobStatus.color(job.get('status')))
             i(class=JobStatus.icon(job.get('status')))
         if columns & columnEnum.COLUMN_TITLE
           if triggerJobClick
