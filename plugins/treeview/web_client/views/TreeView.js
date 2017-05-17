@@ -7,7 +7,17 @@ const TreeView = View.extend({
     },
 
     render() {
+        this._destroy();
         attach(this.el);
+    },
+
+    destroy() {
+        this._destroy();
+        return View.prototype.destroy.apply(this, arguments);
+    },
+
+    _destroy() {
+        this.$el.jstree('destroy');
     }
 });
 
