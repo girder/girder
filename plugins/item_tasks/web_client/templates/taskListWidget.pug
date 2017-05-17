@@ -3,10 +3,10 @@ if !collection.isEmpty()
     ul.list-group
       each task in collection.models
         - var tags = task.get('meta').itemTaskSpec.tags
-        li.list-group-item.g-execute-task-link
-          h4.list-group-item-heading.g-execute-task-link-header
-            a(href=`#item_task/${task.id}/run`)= task.name()
-          .list-group-item-text.g-execute-task-link-body= task.get('description')
+        li.list-group-item.g-task-list-task-container
+          h4.list-group-item-heading.g-task-list-task-name
+            a.g-task-list-execute-task-link(href=`#item_task/${task.id}/run`)= task.name()
+          .list-group-item-text.g-task-list-task-description= task.get('description')
           if tags
             .g-task-list-tag-container
               each tag in tags
