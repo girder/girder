@@ -69,7 +69,8 @@ def fix_path(path):
 
 def _getPluginBuildArgs(buildAll, plugins):
     if buildAll:
-        return ['--all-plugins']
+        sortedPlugins = plugin_utilities.getToposortedPlugins()
+        return ['--plugins=%s' % ','.join(sortedPlugins)]
     elif not plugins:  # build only the enabled plugins
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())

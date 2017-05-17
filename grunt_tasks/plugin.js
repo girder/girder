@@ -28,7 +28,6 @@ module.exports = function (grunt) {
     var paths = require('./webpack.paths.js');
     var webpackPlugins = require('./webpack.plugins.js');
 
-    var buildAll = grunt.option('all-plugins');
     var configurePlugins = grunt.option('configure-plugins');
     var plugins = grunt.option('plugins');
 
@@ -44,7 +43,7 @@ module.exports = function (grunt) {
         configurePlugins = [];
     }
 
-    if (!buildAll && !plugins.length && !configurePlugins.length) {
+    if (!plugins.length && !configurePlugins.length) {
         return;
     }
 
@@ -442,22 +441,14 @@ module.exports = function (grunt) {
         }
     };
 
-    // Glob for plugins and configure each one to be built
-    if (buildAll) {
-        // Glob for plugins and configure each one to be built
-        grunt.file.expand(grunt.config.get('pluginDir') + '/*').forEach(function (dir) {
-            configurePluginForBuilding(path.resolve(dir), true);
-        });
-    } else {
-        // Configure only the plugins that were requested via --configure-plugins
-        configurePlugins.forEach(function (name) {
-            configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name), false);
-        });
-        // Build only the plugins that were requested via --plugins
-        plugins.forEach(function (name) {
-            configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name), true);
-        });
-    }
+    // Configure the plugins that were requested via --configure-plugins in order
+    configurePlugins.forEach(function (name) {
+        configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name), false);
+    });
+    // Build the plugins that were requested via --plugins in order
+    plugins.forEach(function (name) {
+        configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name), true);
+    });
 
     /**
      * Register a "meta" task that will configure and run other tasks
