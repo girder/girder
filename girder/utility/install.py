@@ -74,7 +74,8 @@ def _getPluginBuildArgs(buildAll, plugins):
     elif not plugins:  # build only the enabled plugins
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
-        plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
+
+    plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
 
     # include static-only dependencies that are not in the runtime load set
     staticPlugins = plugin_utilities.getToposortedPlugins(
