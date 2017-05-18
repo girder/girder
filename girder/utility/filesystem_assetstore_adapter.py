@@ -303,7 +303,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Deletes the file from disk if it is the only File in this assetstore
         with the given sha512. Imported files are not actually deleted.
         """
-        if file.get('imported'):
+        if file.get('imported') or 'path' not in file:
             return
 
         q = {
