@@ -109,7 +109,6 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         self.tempDir = os.path.join(self.assetstore['root'], 'temp')
         # Use a filelock at the root level of the assetstore; this should work
         # between multiple servers.
-        self.deleteLock = filelock.FileLock(os.path.join(self.assetstore['root'], '_deleteLock'))
         try:
             mkdir(self.tempDir)
         except OSError:
@@ -230,7 +229,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # Only maintain the lock which checking if the file exists.  The only
         # other place the lock is used is checking if an upload task has
         # reserved the file, so this is sufficient.
-        with self.deleteLock:
+        with filelock.FileLock(abspath + '.deleteLock'):
             pathExists = os.path.exists(abspath)
         if pathExists:
             # Already have this file stored, just delete temp file.
@@ -317,7 +316,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if matching.count(True) == 1:
             path = os.path.join(self.assetstore['root'], file['path'])
             if os.path.isfile(path):
-                with self.deleteLock:
+                with filelock.FileLock(path + '.deleteLock'):
                     if self.model('upload').findOne(q) is None:
                         try:
                             os.unlink(path)

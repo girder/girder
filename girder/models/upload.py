@@ -37,6 +37,7 @@ class Upload(Model):
     """
     def initialize(self):
         self.name = 'upload'
+        self.ensureIndices(['sha512'])
 
     def _getChunkSize(self, minSize=32 * 1024**2):
         """
