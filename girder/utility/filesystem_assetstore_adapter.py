@@ -107,8 +107,6 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # happens to existing assetstores that no longer can access their temp
         # directories.
         self.tempDir = os.path.join(self.assetstore['root'], 'temp')
-        # Use a filelock at the root level of the assetstore; this should work
-        # between multiple servers.
         try:
             mkdir(self.tempDir)
         except OSError:
@@ -312,16 +310,16 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             'sha512': file['sha512'],
             'assetstoreId': self.assetstore['_id']
         }
-        matching = self.model('file').find(q, limit=2, fields=[])
-        if matching.count(True) == 1:
-            path = os.path.join(self.assetstore['root'], file['path'])
-            if os.path.isfile(path):
-                with filelock.FileLock(path + '.deleteLock'):
-                    if self.model('upload').findOne(q) is None:
-                        try:
-                            os.unlink(path)
-                        except Exception:
-                            logger.exception('Failed to delete file %s' % path)
+        path = os.path.join(self.assetstore['root'], file['path'])
+        if os.path.isfile(path):
+            with filelock.FileLock(path + '.deleteLock'):
+                matching = self.model('file').find(q, limit=2, fields=[])
+                matchingUpload = self.model('upload').findOne(q)
+                if matching.count(True) == 1 and matchingUpload is None:
+                    try:
+                        os.unlink(path)
+                    except Exception:
+                        logger.exception('Failed to delete file %s' % path)
 
     def cancelUpload(self, upload):
         """
