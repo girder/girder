@@ -63,6 +63,7 @@ install_reqs = [
     'bcrypt',
     'boto',
     'CherryPy',
+    'filelock',
     'jsonschema',
     'Mako',
     'pymongo>=3',

@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import filelock
 from hashlib import sha512
 import os
 import psutil
@@ -25,7 +26,6 @@ import six
 from six import BytesIO
 import stat
 import tempfile
-import threading
 
 from girder import events, logger
 from girder.api.rest import setResponseHeader
@@ -107,7 +107,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # happens to existing assetstores that no longer can access their temp
         # directories.
         self.tempDir = os.path.join(self.assetstore['root'], 'temp')
-        self.deleteLock = threading.Lock()
+        # Use a filelock at the root level of the assetstore; this should work
+        # between multiple servers.
+        self.deleteLock = filelock.FileLock(os.path.join(self.assetstore['root'], '_deleteLock'))
         try:
             mkdir(self.tempDir)
         except OSError:
@@ -221,7 +223,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # Store the hash in the upload so that deleting a file won't delete
         # this file
         upload['sha512'] = hash
-        upload = self.model('upload').save(upload, validate=False, triggerEvents=False)
+        self.model('upload').update({'_id': upload['_id']}, update={'$set': {'sha512': hash}})
 
         mkdir(absdir)
 
