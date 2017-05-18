@@ -352,11 +352,16 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         }
         matching = self.model('file').find(q, limit=2, projection=[])
         if matching.count(True) == 1:
+            # If we can't reach the database, we return anyway.  A system check
+            # will be necessary to remove the abandoned file.  Since we already
+            # can handle that case, tell Mongo to use a 0 write concern -- we
+            # don't need to know that the chunks have been deleted, and this
+            # can be faster.
             try:
-                self.chunkColl.delete_many({'uuid': file['chunkUuid']})
+                self.chunkColl.with_options(
+                    write_concern=pymongo.WriteConcern(w=0)).delete_many(
+                        {'uuid': file['chunkUuid']})
             except pymongo.errors.AutoReconnect:
-                # we can't reach the database.  Go ahead and return; a system
-                # check will be necessary to remove the abandoned file
                 pass
 
     def cancelUpload(self, upload):
