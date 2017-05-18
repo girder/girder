@@ -159,11 +159,11 @@ def _ldapAuth(event):
                 conn.bind_s(attrs['distinguishedName'][0], password, ldap.AUTH_SIMPLE)
             except ldap.LDAPError:
                 # Try other LDAP servers or fall back to core auth
-                conn.unbind_s()
                 continue
+            finally:
+                conn.unbind_s()
 
             user = _getLdapUser(attrs, server)
-            conn.unbind_s()
             if user:
                 event.stopPropagation().preventDefault().addResponse(user)
 
