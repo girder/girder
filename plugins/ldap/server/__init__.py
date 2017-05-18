@@ -120,15 +120,13 @@ def _getLdapUser(attrs, server):
     if not isinstance(emails, (list, tuple)):
         emails = (emails,)
 
-    userModel = ModelImporter.model('user')
-    for email in emails:
-        existing = userModel.findOne({
-            'email': {'$eq': email.lower()}
-        })
-        if existing:
-            return existing
+    existing = ModelImporter.model('user').find({
+        'email': {'$in': [e.lower() for e in emails]}
+    }, limit=1)
+    if existing.count():
+        return existing.next()
 
-    return _registerLdapUser(attrs, email, server)
+    return _registerLdapUser(attrs, emails[0], server)
 
 
 def _ldapAuth(event):
