@@ -554,7 +554,7 @@ describe('Test the assetstore page', function () {
         'g-new-gridfs-replicaset': 'replicaset'
     }, null, function () {
         return $('.g-validation-failed-message:contains(' +
-                      '"Could not connect to the database: ")').length === 1;
+                 '"Could not connect to the database: ")').length === 1;
     }, 'validation failure to display', true);
 
     _testAssetstore('s3', 'g-create-s3-tab', {
