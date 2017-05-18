@@ -636,7 +636,11 @@ girderTest.addScript = function (url) {
     girderTest.promise.then(function () {
         $.getScript(url).done(function () {
             defer.resolve();
+        }).fail(function () {
+            defer.reject('Failed to load script: ' + url);
         });
+    }).fail(function () {
+        defer.reject.apply(defer, arguments);
     });
     girderTest.promise = defer.promise();
 };
@@ -1248,10 +1252,15 @@ girderTest.startApp = function () {
         girder.events.trigger('g:appload.before');
         var app = new girder.views.App({
             el: 'body',
-            parentView: null
+            parentView: null,
+            start: false
         });
-        girder.events.trigger('g:appload.after');
-        defer.resolve(app);
+        app.start().then(function () {
+            girder.events.trigger('g:appload.after');
+            defer.resolve(app);
+        });
+    }).fail(function () {
+        defer.reject.apply(defer, arguments);
     });
     girderTest.promise = defer.promise();
     return girderTest.promise;

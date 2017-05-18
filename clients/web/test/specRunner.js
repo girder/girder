@@ -126,6 +126,9 @@ page.onCallback = function (data) {
             break;
         case 'exit':
             // The "Testing Finished" string is magical and causes web_client_test.py not to retry
+            if (data.errorMessage) {
+                console.error(data.errorMessage);
+            }
             console.log('Testing Finished with status=' + data.code);
             phantom.exit(data.code);
     }
@@ -172,6 +175,18 @@ page.onLoadFinished = function (status) {
             if (window.girderTest) {
                 girderTest.promise.then(function () {
                     jasmine.getEnv().execute();
+                }).fail(function (err) {
+                    window.callPhantom({
+                        action: 'exit',
+                        code: 1,
+                        errorMessage: err
+                    });
+                });
+            } else {
+                window.callPhantom({
+                    action: 'exit',
+                    code: 1,
+                    errorMessage: 'Girder test utils not loaded into phantom env.'
                 });
             }
         });

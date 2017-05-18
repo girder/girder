@@ -187,7 +187,6 @@ class WebClientTestCase(base.TestCase):
             retry = False
             task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
-            hasJasmine = False
             jasmineFinished = False
             for line in iter(task.stdout.readline, b''):
                 if isinstance(line, six.binary_type):
@@ -202,8 +201,6 @@ class WebClientTestCase(base.TestCase):
                     open('phantom_temp_%s.tmp' % os.environ['GIRDER_PORT'],
                          'wb').write(msg.get_payload(decode=True))
                     continue  # we don't want to print this
-                if 'Jasmine' in line:
-                    hasJasmine = True
                 if 'Testing Finished' in line:
                     jasmineFinished = True
                 try:
@@ -212,10 +209,8 @@ class WebClientTestCase(base.TestCase):
                     sys.stdout.write(repr(line))
                 sys.stdout.flush()
             returncode = task.wait()
-            if not retry and hasJasmine and jasmineFinished:
+            if not retry and jasmineFinished:
                 break
-            if not hasJasmine:
-                time.sleep(1)
             sys.stderr.write('Retrying test\n')
             # If we are retrying, we need to reset the whole test, as the
             # databases and other resources are in an unknown state
