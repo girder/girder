@@ -913,6 +913,14 @@ class GirderClient(object):
         if reference:
             params['reference'] = reference
 
+        if size <= self.MAX_CHUNK_SIZE and self.getServerVersion() >= ['2', '3']:
+            chunk = stream.read(size)
+            if isinstance(chunk, six.text_type):
+                chunk = chunk.encode('utf8')
+            with self.progressReporterCls(label=filename, length=size) as reporter:
+                return self.post(
+                    'file', params, data=_ProgressBytesIO(chunk, reporter=reporter))
+
         obj = self.post('file', params)
 
         if '_id' not in obj:
