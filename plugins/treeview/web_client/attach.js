@@ -3,6 +3,7 @@ import 'jstree';
 import 'jstree/dist/themes/default/style.css';
 
 import { root, auth, conditionalselect } from './utils';
+import { model } from './utils/node';
 
 export default function (el, settings = {}) {
     const selectable = settings.selectable;
@@ -41,7 +42,7 @@ export default function (el, settings = {}) {
                 }
             },
             conditionalselect: _.wrap(conditionalselect(selectable), function (func, node) {
-                return func.call(this, node.original.model, node);
+                return func.call(this, model(node), node);
             })
         }, settings.jstree);
         $(this).jstree(settings);
