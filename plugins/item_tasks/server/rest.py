@@ -337,7 +337,7 @@ class ItemTask(Resource):
         .modelParam('id', 'The ID of the folder that the task specs will be added to.',
                     model='folder', level=AccessType.WRITE)
         .param('image', 'The docker image name.', required=True, strip=True)
-        .param('pullImage', 'Whether the image should be pulled from a docker registry. '
+        .param('pullImage', 'Whether the image should be pulled from Docker Hub. '
                'Set to false to use local images only.',
                dataType='boolean', required=False, default=True)
     )
@@ -396,7 +396,7 @@ class ItemTask(Resource):
         .jsonParam('json', 'The JSON specifications as a list or a single object.',
                    paramType='body')
         .param('image', 'The docker image name.', required=True, strip=True)
-        .param('pullImage', 'Whether the image should be pulled from a docker registry. ' +
+        .param('pullImage', 'Whether the image should be pulled from Docker Hub. ' +
                'Set to false to use local images only.',
                dataType='boolean', required=False, default=True),
         hide=True
