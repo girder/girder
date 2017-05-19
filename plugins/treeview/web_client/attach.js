@@ -7,12 +7,13 @@ import { model } from './utils/node';
 
 export default function (el, settings = {}) {
     const selectable = settings.selectable;
+    const user = auth();
 
     $(el).each(function () {
         settings = $.extend(true, {
-            plugins: ['types', 'conditionalselect'],
+            plugins: ['types', 'conditionalselect', 'state'],
             core: {
-                data: root(_.defaults(settings.root || {}, {user: auth()})),
+                data: root(_.defaults(settings.root || {}, {user})),
                 force_text: true // prevent XSS
             },
             types: {
@@ -43,7 +44,10 @@ export default function (el, settings = {}) {
             },
             conditionalselect: _.wrap(conditionalselect(selectable), function (func, node) {
                 return func.call(this, model(node), node);
-            })
+            }),
+            state: {
+                key: user.login
+            }
         }, settings.jstree);
         $(this).jstree(settings);
     });
