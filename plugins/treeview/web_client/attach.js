@@ -1,14 +1,16 @@
+import _ from 'underscore';
 import 'jstree';
 import 'jstree/dist/themes/default/style.css';
 
 import root from './root';
+import currentUser from './auth';
 
-export default function (el, settings) {
+export default function (el, settings = {}) {
     $(el).each(function () {
         settings = $.extend(true, {
             plugins: ['types'],
             core: {
-                data: root(),
+                data: root(_.defaults(settings.root || {}, {user: currentUser()})),
                 force_text: true // prevent XSS
             },
             types: {
@@ -37,7 +39,7 @@ export default function (el, settings) {
                     icon: 'icon-doc-inv'
                 }
             }
-        }, settings);
+        }, settings.jstree);
         $(this).jstree(settings);
     });
 }
