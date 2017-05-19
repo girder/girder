@@ -2,15 +2,16 @@ import _ from 'underscore';
 import 'jstree';
 import 'jstree/dist/themes/default/style.css';
 
-import root from './root';
-import currentUser from './auth';
+import { root, auth, conditionalselect } from './utils';
 
 export default function (el, settings = {}) {
+    const selectable = settings.selectable;
+
     $(el).each(function () {
         settings = $.extend(true, {
-            plugins: ['types'],
+            plugins: ['types', 'conditionalselect'],
             core: {
-                data: root(_.defaults(settings.root || {}, {user: currentUser()})),
+                data: root(_.defaults(settings.root || {}, {user: auth()})),
                 force_text: true // prevent XSS
             },
             types: {
@@ -38,7 +39,10 @@ export default function (el, settings = {}) {
                 file: {
                     icon: 'icon-doc-inv'
                 }
-            }
+            },
+            conditionalselect: _.wrap(conditionalselect(selectable), function (func, node) {
+                return func.call(this, node.original.model, node);
+            })
         }, settings.jstree);
         $(this).jstree(settings);
     });

@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-import request from '../request';
+import request from '../utils/request';
 import { file } from '../types';
 
 export default function (parent) {

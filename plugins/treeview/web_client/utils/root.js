@@ -1,4 +1,4 @@
-import * as children from './children';
+import * as children from '../children';
 
 export default function (settings = {}) {
     const roots = settings.roots || [{
