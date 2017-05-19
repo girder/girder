@@ -14,7 +14,12 @@ export default function (el, settings = {}) {
             plugins: ['types', 'conditionalselect', 'state'],
             core: {
                 data: root(_.defaults(settings.root || {}, {user})),
-                force_text: true // prevent XSS
+                force_text: true, // prevent XSS
+                themes: {
+                    dots: false,
+                    responsive: true,
+                    stripes: true
+                }
             },
             types: {
                 folder: {
