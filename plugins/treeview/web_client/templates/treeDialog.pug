@@ -6,14 +6,15 @@
         = title
 
     .modal-body
-      .g-treeview-container
-      .g-treeview-selected.form-group
-        input#g-treeview-selected.form-control(
-          type='text', readonly=readonly)
-      .help-block.hidden
-        = help
+      .g-treeview
+        .g-treeview-container
+        .g-treeview-selected.form-group
+          input#g-treeview-selected.form-control(
+            type='text', readonly=readonly)
+        .help-block.hidden
+          = help
 
-      .g-validation-failed-message.hidden
+        .g-validation-failed-message.hidden
 
     .modal-footer
       a.btn.btn-small.btn-default(data-dismiss='modal') Cancel
