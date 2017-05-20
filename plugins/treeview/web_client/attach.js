@@ -19,7 +19,8 @@ export default function (el, settings = {}) {
                     dots: false,
                     responsive: true,
                     stripes: true
-                }
+                },
+                multiple: false
             },
             types: {
                 folder: {
