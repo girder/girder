@@ -40,6 +40,10 @@ const TreeView = View.extend({
         });
     },
 
+    path(node) {
+        return '/' + this.instance().get_path(node).join('/');
+    },
+
     _destroy() {
         this.$el.jstree('destroy');
     },

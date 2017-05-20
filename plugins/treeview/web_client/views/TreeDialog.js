@@ -14,6 +14,7 @@ const TreeDialog = View.extend({
         this.treeView = new TreeView({
             parentView: this
         });
+        this.listenTo(this.treeView, 'g:treeview:select', this._select);
     },
 
     render() {
@@ -29,6 +30,12 @@ const TreeDialog = View.extend({
         this.treeView.setElement(
             this.$('.g-treeview-container')
         ).render();
+    },
+
+    _select(model, node) {
+        this.$('#g-treeview-selected').val(
+            this.treeView.path(node)
+        );
     },
 
     _submit() {
