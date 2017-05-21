@@ -1,6 +1,6 @@
 import View from 'girder/views/View';
 
-import attach from '../attach';
+import jstree from '../jstree';
 import { model } from '../utils/node';
 
 const TreeView = View.extend({
@@ -13,7 +13,7 @@ const TreeView = View.extend({
 
     render() {
         this._destroy();
-        attach(this.el);
+        jstree(this.el);
     },
 
     destroy() {
