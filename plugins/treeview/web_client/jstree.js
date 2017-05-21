@@ -5,7 +5,7 @@ import 'jstree/dist/themes/default/style.css';
 import { auth, conditionalselect } from './utils';
 import root from './root';
 import { model } from './utils/node';
-import { icons } from './types';
+import { icons, contextMenu } from './types';
 
 export default function (el, settings = {}) {
     const selectable = settings.selectable;
@@ -14,7 +14,7 @@ export default function (el, settings = {}) {
     return root(settings.root).then((data) => {
         $(el).each(function () {
             settings = $.extend(true, {
-                plugins: ['types', 'conditionalselect', 'state'],
+                plugins: ['types', 'conditionalselect', 'state', 'contextmenu'],
                 core: {
                     data: data,
                     force_text: true, // prevent XSS
@@ -59,6 +59,9 @@ export default function (el, settings = {}) {
                 }),
                 state: {
                     key: user.login
+                },
+                contextmenu: {
+                    items: contextMenu
                 }
             }, settings.jstree);
             $(this).jstree(settings);

@@ -45,6 +45,11 @@ function getDefinition(type) {
     return definitions[type];
 }
 
+function contextMenu(node) {
+    const def = getDefinition(node.type);
+    return def.options.contextmenu;
+}
+
 function callMethod(doc, method) {
     const def = getDefinition(doc.type);
     if (!_.isFunction(def[method])) {
@@ -89,6 +94,7 @@ export {
     isAliased,
     getDefinition,
     callMethod,
+    contextMenu,
     parent,
     children,
     load,
