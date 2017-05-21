@@ -1,6 +1,7 @@
 import _ from 'underscore';
 
 const definitions = {};
+const aliases = {};
 
 function register(name, load, parent, children, options) {
     definitions[name] = {
@@ -12,11 +13,23 @@ function register(name, load, parent, children, options) {
 }
 
 function unregister(name) {
-    if (!_.has(definitions, name)) {
-        delete definitions[name];
-        return true;
-    }
-    return false;
+    const def = definitions[name];
+    delete definitions[name];
+    return def;
+}
+
+function alias(id, type) {
+    aliases[id] = type;
+}
+
+function unalias(id) {
+    const type = aliases[id];
+    delete aliases[id];
+    return type;
+}
+
+function isAliased(doc) {
+    return aliases[doc.id] && aliases[doc.id] !== doc.type;
 }
 
 function getDefinition(type) {
@@ -35,21 +48,39 @@ function callMethod(doc, method) {
 }
 
 function parent(doc) {
-    return callMethod(doc, 'parent');
+    return callMethod(doc, 'parent')
+        .then((doc) => {
+            if (isAliased(doc)) {
+                doc.type = aliases[doc.id];
+            }
+            return doc;
+        });
 }
 
 function children(doc) {
-    return callMethod(doc, 'children');
+    return callMethod(doc, 'children')
+        .then((children) => {
+            return _.reject(children, isAliased);
+        });
 }
 
 function load(doc) {
-    return callMethod(doc, 'load');
+    return callMethod(doc, 'load')
+        .then((doc) => {
+            if (isAliased(doc)) {
+                doc.type = aliases[doc.id];
+            }
+            return doc;
+        });
 }
 
 export {
     definitions,
     register,
     unregister,
+    alias,
+    unalias,
+    isAliased,
     getDefinition,
     callMethod,
     parent,
