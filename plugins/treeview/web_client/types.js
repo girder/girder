@@ -2,14 +2,20 @@ import _ from 'underscore';
 
 const definitions = {};
 const aliases = {};
+const icons = {};
 
-function register(name, load, parent, children, options) {
+function register(name, load, parent, children, options = {}) {
     definitions[name] = {
         load,
         parent,
         children,
         options
     };
+    if (options.icon) {
+        icons[name] = {
+            icons: options.icon
+        };
+    }
 }
 
 function unregister(name) {
@@ -85,5 +91,6 @@ export {
     callMethod,
     parent,
     children,
-    load
+    load,
+    icons
 };

@@ -5,6 +5,7 @@ import 'jstree/dist/themes/default/style.css';
 import { auth, conditionalselect } from './utils';
 import root from './root';
 import { model } from './utils/node';
+import { icons } from './types';
 
 export default function (el, settings = {}) {
     const selectable = settings.selectable;
@@ -24,7 +25,7 @@ export default function (el, settings = {}) {
                     },
                     multiple: false
                 },
-                types: {
+                types: _.defaults(icons, {
                     folder: {
                         icon: 'icon-folder'
                     },
@@ -48,8 +49,11 @@ export default function (el, settings = {}) {
                     },
                     file: {
                         icon: 'icon-doc-inv'
+                    },
+                    default: {
+                        icon: 'icon-doc'
                     }
-                },
+                }),
                 conditionalselect: _.wrap(conditionalselect(selectable), function (func, node) {
                     return func.call(this, model(node), node);
                 }),
