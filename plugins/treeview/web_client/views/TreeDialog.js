@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 import View from 'girder/views/View';
 
 import TreeView from './TreeView';
@@ -39,6 +41,11 @@ const TreeDialog = View.extend({
     },
 
     _submit() {
+        const selected = this.treeView.getSelected();
+        const models = _.map(selected, _.property('model'));
+        const paths = _.map(selected, (s) => this.treeView.path(s));
+        this.$el.modal('hide');
+        this.trigger('g:saved', {selected, models, paths});
     }
 });
 

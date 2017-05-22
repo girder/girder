@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 import View from 'girder/views/View';
 
 import jstree from '../jstree';
@@ -49,6 +51,13 @@ const TreeView = View.extend({
 
     _destroy() {
         this.$el.jstree('destroy');
+    },
+
+    getSelected() {
+        return _.map(
+            this.instance().get_selected(true),
+            _.property('original')
+        );
     },
 
     _onSelect(e, data) {
