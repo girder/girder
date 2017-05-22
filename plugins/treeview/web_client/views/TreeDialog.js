@@ -12,21 +12,22 @@ const TreeDialog = View.extend({
         'click .g-submit-button': '_submit'
     },
 
-    initialize(settings) {
-        this.treeView = new TreeView({
-            parentView: this
+    initialize(settings = {}) {
+        this.settings = _.defaults(settings, {
+            title: 'Select a document',
+            placeholder: 'Click on a document to select it.',
+            label: 'Selected',
+            submit: 'Save'
         });
+        this.treeView = new TreeView(_.defaults(settings.treeview || {}, {
+            parentView: this
+        }));
         this.listenTo(this.treeView, 'g:treeview:select', this._select);
     },
 
     render() {
         this.$el.html(
-            treeDialog({
-                title: 'some title',
-                help: 'some help',
-                submit: 'OK',
-                label: 'selected'
-            })
+            treeDialog(this.settings)
         ).girderModal(this);
 
         this.treeView.setElement(

@@ -10,12 +10,22 @@ const TreeView = View.extend({
         'select_node.jstree': '_onSelect'
     },
 
-    initialize(settings) {
+    initialize(settings = {}) {
+        this.jstreeConfig = {
+            core: {
+                multiple: settings.multiple,
+                check_callback: settings.check_callback
+            }
+        };
+
+        if (settings.selectable) {
+            this.jstreeConfig.selectable = settings.selectable;
+        }
     },
 
     render() {
         this._destroy();
-        jstree(this.el);
+        jstree(this.el, this.jstreeConfig);
     },
 
     destroy() {

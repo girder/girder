@@ -2,6 +2,7 @@ import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBread
 import View from 'girder/views/View';
 
 import TreeDialog from './TreeDialog';
+import FolderDialog from './FolderDialog';
 import TreeView from './TreeView';
 
 import configView from '../templates/configView.pug';
@@ -9,7 +10,8 @@ import '../stylesheets/configView.styl';
 
 const ConfigView = View.extend({
     events: {
-        'click .g-treeview-generic-dialog-button': '_genericDialog'
+        'click .g-treeview-generic-dialog-button': '_genericDialog',
+        'click .g-treeview-folder-dialog-button': '_folderDialog'
     },
 
     initialize() {
@@ -42,6 +44,17 @@ const ConfigView = View.extend({
         });
         this.listenTo(dialog, 'g:saved', (obj) => {
             this.$('#g-treeview-generic-dialog').val(obj.paths.join(', '));
+        });
+        dialog.render();
+    },
+
+    _folderDialog() {
+        const dialog = new FolderDialog({
+            parentView: this,
+            el: '#g-dialog-container'
+        });
+        this.listenTo(dialog, 'g:saved', (obj) => {
+            this.$('#g-treeview-folder-dialog').val(obj.paths.join(', '));
         });
         dialog.render();
     }
