@@ -300,6 +300,7 @@ var HierarchyWidget = View.extend({
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
 
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
+            this._initFolderViewSubwidgets();
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
             this.metadataWidget.setItem(this.parentModel);
             if (this._showMetadata) {
