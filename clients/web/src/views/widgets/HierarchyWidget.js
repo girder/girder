@@ -215,6 +215,7 @@ var HierarchyWidget = View.extend({
         this.itemListView = new ItemListWidget({
             itemFilter: this._itemFilter,
             folderId: this.parentModel.get('_id'),
+            public: this.parentModel.get('public'),
             accessLevel: this.parentModel.getAccessLevel(),
             checkboxes: this._checkboxes,
             downloadLinks: this._downloadLinks,
@@ -299,6 +300,7 @@ var HierarchyWidget = View.extend({
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
 
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
+            this._initFolderViewSubwidgets();
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
             this.metadataWidget.setItem(this.parentModel);
             if (this._showMetadata) {

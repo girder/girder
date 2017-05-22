@@ -43,6 +43,76 @@ function _editItem(button, buttonText) {
     girderTest.waitForLoad();
 }
 
+function _addItemToFolder(folder) {
+    var isPublic = 'false';
+
+    if (folder === 'Public') {
+        isPublic = 'true';
+    }
+
+    waitsFor(function () {
+        return $('a.g-folder-list-link:contains(' + folder + '):visible').length === 1;
+    }, 'the ' + folder + ' folder to be clickable');
+
+    runs(function () {
+        $('a.g-folder-list-link:contains(' + folder + ')').click();
+    });
+
+    waitsFor(function () {
+        return $('.g-empty-parent-message:visible').length === 1 &&
+            $('.g-folder-actions-button:visible').length === 1;
+    }, 'message that the folder is empty');
+
+    runs(function () {
+        $('.g-folder-actions-button:visible').click();
+    });
+
+    waitsFor(function () {
+        return $('a.g-create-item:visible').length === 1;
+    }, 'create item option is clickable');
+
+    runs(function () {
+        $('.g-create-item:visible').click();
+    });
+
+    waitsFor(function () {
+        return Backbone.history.fragment.slice(-18) === '?dialog=itemcreate';
+    }, 'the url state to change');
+
+    waitsFor(function () {
+        return $('a.btn-default:visible').text() === 'Cancel';
+    }, 'the cancel button of the item create dialog to appear');
+    girderTest.waitForDialog();
+
+    runs(function () {
+        $('#g-name').val('Test Item Name');
+        $('#item-description-write .g-markdown-text').val('Test Item Description');
+        $('.g-save-item').click();
+    });
+
+    waitsFor(function () {
+        return $('a.g-item-list-link:contains(Test Item Name)').length === 1;
+    }, 'the new item to appear in the list');
+    girderTest.waitForLoad();
+
+    runs(function () {
+        expect($('li.g-item-list-entry').attr('public')).toBe(isPublic);
+    });
+
+    runs(function () {
+        $('a.g-item-list-link:contains(Test Item Name)').click();
+    });
+
+    waitsFor(function () {
+        return $('.g-item-name:contains(Test Item Name)').length === 1;
+    }, 'the item page to load');
+
+    runs(function () {
+        expect($('.g-item-name').text()).toBe('Test Item Name');
+        expect($('.g-item-description').text().trim()).toBe('Test Item Description');
+    });
+}
+
 describe('Test item creation, editing, and deletion', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
@@ -91,63 +161,23 @@ describe('Test item creation, editing, and deletion', function () {
     });
 
     it('create an item in the public folder of the user', function () {
-        waitsFor(function () {
-            return $('a.g-folder-list-link:contains(Public):visible').length === 1;
-        }, 'the public folder to be clickable');
+        _addItemToFolder('Public');
+    });
 
+    it('go to users page', girderTest.goToUsersPage());
+
+    it('view the users on the user page and click on one', function () {
         runs(function () {
-            $('a.g-folder-list-link:contains(Public)').click();
+            $("a.g-user-link:contains('Not Admin')").click();
         });
 
         waitsFor(function () {
-            return $('.g-empty-parent-message:visible').length === 1 &&
-                   $('.g-folder-actions-button:visible').length === 1;
-        }, 'message that the folder is empty');
+            return $('.g-user-name').text() === 'Not Admin';
+        }, 'user page to appear');
+    });
 
-        runs(function () {
-            $('.g-folder-actions-button:visible').click();
-        });
-
-        waitsFor(function () {
-            return $('a.g-create-item:visible').length === 1;
-        }, 'create item option is clickable');
-
-        runs(function () {
-            $('.g-create-item:visible').click();
-        });
-
-        waitsFor(function () {
-            return Backbone.history.fragment.slice(-18) === '?dialog=itemcreate';
-        }, 'the url state to change');
-
-        waitsFor(function () {
-            return $('a.btn-default:visible').text() === 'Cancel';
-        }, 'the cancel button of the item create dialog to appear');
-        girderTest.waitForDialog();
-
-        runs(function () {
-            $('#g-name').val('Test Item Name');
-            $('#item-description-write .g-markdown-text').val('Test Item Description');
-            $('.g-save-item').click();
-        });
-
-        waitsFor(function () {
-            return $('a.g-item-list-link:contains(Test Item Name)').length === 1;
-        }, 'the new item to appear in the list');
-        girderTest.waitForLoad();
-
-        runs(function () {
-            $('a.g-item-list-link:contains(Test Item Name)').click();
-        });
-
-        waitsFor(function () {
-            return $('.g-item-name:contains(Test Item Name)').length === 1;
-        }, 'the item page to load');
-
-        runs(function () {
-            expect($('.g-item-name').text()).toBe('Test Item Name');
-            expect($('.g-item-description').text().trim()).toBe('Test Item Description');
-        });
+    it('create an item in the private folder of the user', function () {
+        _addItemToFolder('Private');
     });
 
     it('Open edit dialog and check url state', function () {
