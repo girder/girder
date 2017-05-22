@@ -536,7 +536,18 @@ var HierarchyWidget = View.extend({
         this.updateChecked();
 
         if (parent.resourceName === 'folder') {
-            this._initFolderViewSubwidgets();
+            if (this.itemListView) {
+                this.itemListView.initialize({
+                    folderId: parent.get('_id'),
+                    checkboxes: this._checkboxes,
+                    downloadLinks: this._downloadLinks,
+                    viewLinks: this._viewLinks,
+                    itemFilter: this._itemFilter,
+                    showSizes: this._showSizes
+                });
+            } else {
+                this._initFolderViewSubwidgets();
+            }
         }
 
         this.render();

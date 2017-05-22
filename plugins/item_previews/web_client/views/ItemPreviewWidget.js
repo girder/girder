@@ -1,4 +1,4 @@
-import ItemCollection from 'girder/collections/ItemCollection';
+import _ from 'underscore';
 import View from 'girder/views/View';
 import { restRequest, apiRoot } from 'girder/rest';
 
@@ -28,11 +28,16 @@ var ItemPreviewWidget = View.extend({
 
         this.supportedItems = [];
 
-        this.collection = settings.collection;
+        this.setCollection(settings.collection);
+    },
+
+    // Because the parent-child life cycle is not clean, this method is needed.
+    setCollection: function (collection) {
+        this.collection = collection;
         this.collection.on('g:changed', () => {
             this.supportedItems = this.collection.toJSON().filter(this._isSupportedItem);
-            if (this.supportedItems.length != 0 &&
-                this.isNotFull()) {
+            if (this.supportedItems.length !== 0 &&
+                (this.isNotFull() || this.isNearBottom())) {
                 this.debouncedAddMoreItem();
             }
         });
@@ -73,7 +78,7 @@ var ItemPreviewWidget = View.extend({
     },
 
     allItemAdded: function () {
-        return this.renderedIndex == this.supportedItems.length;
+        return this.renderedIndex === this.supportedItems.length;
     },
 
     addMoreItem: function () {
@@ -92,21 +97,20 @@ var ItemPreviewWidget = View.extend({
                         var contentType = xhr.getResponseHeader('Content-Type');
                         resolve([item, contentType]);
                     }
-                })
+                });
             }).then(([item, contentType]) => {
-                if (contentType == 'application/zip') {
+                if (contentType === 'application/zip') {
                     return Promise.resolve(restRequest({
-                        path: `item/${item._id}/files`,
+                        path: `item/${item._id}/files`
                     })).then(files => {
                         return Promise.all(files.map(file => {
                             return this.tryGetItemOrFileContent(file, file.mimeType, 'file');
-                        }))
-                    })
-                }
-                else {
+                        }));
+                    });
+                } else {
                     return Promise.all([this.tryGetItemOrFileContent(item, contentType, 'item')]);
                 }
-            })
+            });
         })).then(results => {
             items.forEach((item, i) => {
                 var contents = results[i].filter(result => result);
@@ -126,9 +130,13 @@ var ItemPreviewWidget = View.extend({
         });
     },
 
+    isNearBottom: function () {
+        var $container = this.$('.g-widget-item-previews-container');
+        return $container.scrollTop() + $container.innerHeight() >= $container[0].scrollHeight - 200;
+    },
+
     onScroll: function (e) {
-        var $wrapper = $(e.target);
-        if ($wrapper.scrollTop() + $wrapper.innerHeight() >= $wrapper[0].scrollHeight - 200) {
+        if (this.isNearBottom()) {
             if (!this.addingMoreItems && !this.allItemAdded()) {
                 this.addMoreItem();
             }
@@ -136,13 +144,12 @@ var ItemPreviewWidget = View.extend({
     },
 
     tryGetItemOrFileContent: function (record, contentType, type) {
-        if (this._isJSONItem(record.name) && contentType == 'application/octet-stream') {
+        if (this._isJSONItem(record.name) && contentType === 'application/octet-stream') {
             if (record.size > this._MAX_JSON_SIZE) {
                 return Promise.resolve(null);
             }
             return this.getJsonContent(`${type}/${record._id}/download`);
-        }
-        else if (this._isImageItem(contentType)) {
+        } else if (this._isImageItem(contentType)) {
             return this.getImageContent(`${type}/${record._id}/download`);
         }
     },
@@ -169,8 +176,8 @@ var ItemPreviewWidget = View.extend({
                 resolve({
                     type: 'image',
                     value: src
-                })
-            }
+                });
+            };
             image.src = src;
         });
     }

@@ -11,6 +11,7 @@ wrap(HierarchyWidget, 'render', function (render) {
         var $element = $('<div class="g-item-previews-container">');
         this.$el.append($element);
         this.itemPreviewView.setElement($element);
+        this.itemPreviewView.setCollection(this.itemListView.collection);
         this.itemPreviewView.render();
     }
 
@@ -20,8 +21,6 @@ wrap(HierarchyWidget, 'render', function (render) {
 wrap(HierarchyWidget, '_initFolderViewSubwidgets', function (base) {
     base.call(this);
     if (this._showItems) {
-
-        // Add the item preview widget into the container.
         this.itemPreviewView = new ItemPreviewWidget({
             collection: this.itemListView.collection,
             parentView: this
