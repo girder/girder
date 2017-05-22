@@ -50,11 +50,11 @@ class MockLdap(object):
             return []
 
         return [(None, self.record or {
-            'distinguishedName': ['foobar'],
-            'uid': 'foobar',
-            'sn': ['Bar'],
-            'givenName': ['Foo'],
-            'mail': 'foo@bar.com'
+            'distinguishedName': [b'foobar'],
+            'uid': [b'foobar'],
+            'sn': [b'Bar'],
+            'givenName': [b'Foo'],
+            'mail': [b'foo@bar.com']
         })]
 
     def set_option(self, *args, **kwargs):
@@ -118,9 +118,9 @@ class LdapTestCase(base.TestCase):
 
         # Test registering from a record that only has a cn, no sn/givenName
         record = {
-            'cn': ['Fizz Buzz'],
-            'mail': ['fizz@buzz.com'],
-            'distinguishedName': ['shouldbeignored']
+            'cn': [b'Fizz Buzz'],
+            'mail': [b'fizz@buzz.com'],
+            'distinguishedName': [b'shouldbeignored']
         }
         with mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
             resp = self.request('/user/authentication', basicAuth='fizzbuzz:foo')
@@ -131,9 +131,9 @@ class LdapTestCase(base.TestCase):
 
         # Test falling back to other name generation behavior (first+last name)
         record = {
-            'cn': ['Fizz Buzz'],
-            'mail': ['fizz@buzz2.com'],
-            'distinguishedName': ['shouldbeignored']
+            'cn': [b'Fizz Buzz'],
+            'mail': [b'fizz@buzz2.com'],
+            'distinguishedName': [b'shouldbeignored']
         }
         with mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
             resp = self.request('/user/authentication', basicAuth='fizzbuzz:foo')

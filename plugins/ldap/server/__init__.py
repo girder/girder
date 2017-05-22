@@ -77,14 +77,14 @@ def _validateLdapServers(doc):
 def _registerLdapUser(attrs, email, server):
     first, last = None, None
     if attrs.get('givenName'):
-        first = attrs['givenName'][0]
+        first = attrs['givenName'][0].decode('utf8')
     elif attrs.get('cn'):
-        first = attrs['cn'][0].split()[0]
+        first = attrs['cn'][0].decode('utf8').split()[0]
 
     if attrs.get('sn'):
-        last = attrs['sn'][0]
+        last = attrs['sn'][0].decode('utf8')
     elif attrs.get('cn'):
-        last = attrs['cn'][0].split()[-1]
+        last = attrs['cn'][0].decode('utf8').split()[-1]
 
     if not first or not last:
         raise Exception('No LDAP name entry found for %s.' % email)
@@ -92,7 +92,7 @@ def _registerLdapUser(attrs, email, server):
     # Try using the search field value as the login. If it's an email address,
     # use the part before the @.
     try:
-        login = attrs[server['searchField']][0].split('@')[0]
+        login = attrs[server['searchField']][0].decode('utf8').split('@')[0]
         return ModelImporter.model('user').createUser(
             login, password=None, firstName=first, lastName=last, email=email)
     except ValidationException as e:
@@ -120,8 +120,9 @@ def _getLdapUser(attrs, server):
     if not isinstance(emails, (list, tuple)):
         emails = (emails,)
 
+    emails = [e.decode('utf8').lower() for e in emails]
     existing = ModelImporter.model('user').find({
-        'email': {'$in': [e.lower() for e in emails]}
+        'email': {'$in': emails}
     }, limit=1)
     if existing.count():
         return existing.next()
@@ -153,8 +154,9 @@ def _ldapAuth(event):
 
         if results:
             entry, attrs = results[0]
+            dn = attrs['distinguishedName'][0].decode('utf8')
             try:
-                conn.bind_s(attrs['distinguishedName'][0], password, ldap.AUTH_SIMPLE)
+                conn.bind_s(dn, password, ldap.AUTH_SIMPLE)
             except ldap.LDAPError:
                 # Try other LDAP servers or fall back to core auth
                 continue
