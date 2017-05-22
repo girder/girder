@@ -23,7 +23,8 @@ export default function (el, settings = {}) {
                         responsive: true,
                         stripes: true
                     },
-                    multiple: false
+                    multiple: false,
+                    check_callback: true
                 },
                 types: _.defaults(icons, {
                     folder: {

@@ -47,7 +47,11 @@ function getDefinition(type) {
 
 function contextMenu(node) {
     const def = getDefinition(node.type);
-    return def.options.contextmenu;
+    const menu = def.options.contextmenu;
+    if (_.isFunction(menu)) {
+        return menu(node);
+    }
+    return menu;
 }
 
 function callMethod(doc, method) {

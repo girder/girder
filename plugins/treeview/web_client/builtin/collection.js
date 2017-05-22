@@ -37,7 +37,25 @@ function children(doc) {
     });
 }
 
-register('collection', load, parent, children);
+function create(data) {
+    const inst = $.jstree.reference(data.reference);
+    const node = inst.get_node(data.reference);
+
+    inst.create_node(node, {type: 'folder', id: 'derp'}, 'last', (newNode) => {
+        inst.edit(newNode);
+    });
+}
+
+function contextmenu(node) {
+    return {
+        create: {
+            label: 'Create folder',
+            action: create
+        }
+    };
+}
+
+register('collection', load, parent, children, {contextmenu});
 
 export {
     load,
