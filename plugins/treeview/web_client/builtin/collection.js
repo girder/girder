@@ -23,7 +23,9 @@ function load(doc) {
     }).then(mutate);
 }
 
-const parent = collections.load;
+const parent = function () {
+    return collections.load.apply(this, arguments);
+};
 
 function children(doc) {
     return request({

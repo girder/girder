@@ -65,6 +65,10 @@ function callMethod(doc, method) {
 function parent(doc) {
     return callMethod(doc, 'parent')
         .then((doc) => {
+            if (!doc) {
+                return doc;
+            }
+
             if (isAliased(doc)) {
                 doc.type = aliases[doc.id];
             }
