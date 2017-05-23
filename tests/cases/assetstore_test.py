@@ -1141,27 +1141,27 @@ class AssetstoreTestCase(base.TestCase):
 
         # check the space usage of assetstore 1
         result = json.loads(self.getBody(self.request(path='/assetstore/' +
-                            str(self.assetstore['_id']) + '/spaceusage',
+                            str(self.assetstore['_id']) + '/stats',
                             method='GET', user=self.admin)))
 
         user1Id = str(self.admin['_id'])
 
-        self.assertEqual([x for x in result['users']
+        self.assertEqual([x for x in result['spaceUsage']['users']
                           if x.get('_id') == user1Id][0]['spaceUsage'], 24)
-        self.assertEqual([x for x in result['users']
+        self.assertEqual([x for x in result['spaceUsage']['users']
                           if x.get('_id') == user2Id][0]['spaceUsage'], 12)
-        self.assertEqual([x for x in result['collections']
+        self.assertEqual([x for x in result['spaceUsage']['collections']
                           if x.get('_id') == collection1Id][0]['spaceUsage'], 12)
-        self.assertEqual([x for x in result['collections']
+        self.assertEqual([x for x in result['spaceUsage']['collections']
                           if x.get('_id') == collection2Id][0]['spaceUsage'], 12)
 
         # check the space usage of assetstore 2
         result = json.loads(self.getBody(self.request(
-                            path='/assetstore/' + str(assetstore2['_id']) + '/spaceusage',
+                            path='/assetstore/' + str(assetstore2['_id']) + '/stats',
                             method='GET', user=self.admin)))
-        self.assertEqual([x for x in result['users']
+        self.assertEqual([x for x in result['spaceUsage']['users']
                           if x.get('_id') == user1Id][0]['spaceUsage'], 6)
-        self.assertEqual([x for x in result['users']
+        self.assertEqual([x for x in result['spaceUsage']['users']
                           if x.get('_id') == user2Id][0]['spaceUsage'], 6)
-        self.assertEqual([x for x in result['collections']
+        self.assertEqual([x for x in result['spaceUsage']['collections']
                           if x.get('_id') == collection2Id][0]['spaceUsage'], 6)

@@ -40,7 +40,7 @@ class Assetstore(Resource):
         self.route('PUT', (':id',), self.updateAssetstore)
         self.route('DELETE', (':id',), self.deleteAssetstore)
         self.route('GET', (':id', 'files'), self.getAssetstoreFiles)
-        self.route('GET', (':id', 'spaceusage',), self.getSpaceUsageStatistics)
+        self.route('GET', (':id', 'stats',), self.getStats)
 
     @access.admin
     @autoDescribeRoute(
@@ -253,12 +253,12 @@ class Assetstore(Resource):
 
     @access.admin
     @autoDescribeRoute(
-        Description('get space usage statistics by collection and by user.')
+        Description('Get statistics by collection and by user.')
         .modelParam('id', model='assetstore')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def getSpaceUsageStatistics(self, assetstore, params):
+    def getStats(self, assetstore, params):
         filesInStore = list(self.model('file').find(
             query={'assetstoreId': assetstore['_id']}, fields=['size', 'creatorId', 'itemId']))
 
@@ -322,10 +322,8 @@ class Assetstore(Resource):
         collections.sort(key=lambda x: x['spaceUsage'], reverse=True)
 
         def userMapper(userId, files):
-            {
-                'user': userModel.filter(userUsingStoreMap[userId], currentUser),
-                'size': sum(file['size'] for file in files)
-            }
+            if userId not in userUsingStoreMap:
+                return None
             user = userModel.filter(userUsingStoreMap[userId], currentUser)
             user = {
                 '_id': user['_id'],
@@ -336,10 +334,12 @@ class Assetstore(Resource):
             }
             user['spaceUsage'] = sum(file['size'] for file in files)
             return user
-        users = [userMapper(x, y) for x, y in userFileMap.items()]
+        users = [z for z in (userMapper(x, y) for x, y in userFileMap.items()) if z]
         users.sort(key=lambda x: x['spaceUsage'], reverse=True)
 
         return {
-            'users': users,
-            'collections': collections
+            'spaceUsage': {
+                'users': users,
+                'collections': collections
+            }
         }
