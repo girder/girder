@@ -86,7 +86,7 @@ var ItemPreviewWidget = View.extend({
         var items = this.supportedItems.slice(this.renderedIndex, this.renderedIndex + this._LOAD_BATCH_SIZE);
         this.renderedIndex = Math.min(this.renderedIndex + this._LOAD_BATCH_SIZE, this.supportedItems.length);
 
-        if(!items.length){
+        if (!items.length) {
             return;
         }
 
