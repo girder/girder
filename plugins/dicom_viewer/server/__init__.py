@@ -12,7 +12,7 @@ import six
 
 class DicomItem(Resource):
 
-    @access.user(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get DICOM metadata, if any, for all files in the item.')
         .modelParam('id', 'The item ID',
