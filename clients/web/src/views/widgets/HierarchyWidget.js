@@ -300,7 +300,6 @@ var HierarchyWidget = View.extend({
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
 
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
-            this._initFolderViewSubwidgets();
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
             this.metadataWidget.setItem(this.parentModel);
             if (this._showMetadata) {
@@ -536,18 +535,7 @@ var HierarchyWidget = View.extend({
         this.updateChecked();
 
         if (parent.resourceName === 'folder') {
-            if (this.itemListView) {
-                this.itemListView.initialize({
-                    folderId: parent.get('_id'),
-                    checkboxes: this._checkboxes,
-                    downloadLinks: this._downloadLinks,
-                    viewLinks: this._viewLinks,
-                    itemFilter: this._itemFilter,
-                    showSizes: this._showSizes
-                });
-            } else {
-                this._initFolderViewSubwidgets();
-            }
+            this._initFolderViewSubwidgets();
         }
 
         this.render();

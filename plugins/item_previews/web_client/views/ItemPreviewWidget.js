@@ -86,8 +86,11 @@ var ItemPreviewWidget = View.extend({
         var items = this.supportedItems.slice(this.renderedIndex, this.renderedIndex + this._LOAD_BATCH_SIZE);
         this.renderedIndex = Math.min(this.renderedIndex + this._LOAD_BATCH_SIZE, this.supportedItems.length);
 
-        var $container = this.$('.g-widget-item-prevews-wrapper');
+        if(!items.length){
+            return;
+        }
 
+        var $container = this.$('.g-widget-item-prevews-wrapper');
         Promise.all(items.map(item => {
             return new Promise((resolve, reject) => {
                 restRequest({
