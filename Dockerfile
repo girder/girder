@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -qy software-properties-common python-soft
     build-essential \
     git \
     libffi-dev \
+    libsasl2-dev \
     libpython-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 

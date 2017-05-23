@@ -17,6 +17,7 @@
 !item_tasks/
 !jobs/
 !jquery_widgets/
+!ldap/
 !metadata_extractor/
 !mongo_search/
 !oauth/

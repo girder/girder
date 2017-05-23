@@ -80,6 +80,7 @@ extras_reqs = {
     'dicom_viewer': ['pydicom'],
     'geospatial': ['geojson'],
     'item_tasks': ['ctk-cli'],
+    'ldap': ['pyldap'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
     'worker': ['celery']
 }

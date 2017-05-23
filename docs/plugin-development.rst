@@ -29,10 +29,10 @@ our example, we'll just use JSON. ::
 
     touch cats/plugin.json
 
-The plugin config file should specify a human-readable name and description for 
-your plugin. It can also optionally contain a URL to documentation and 
-a list of other plugins that your plugin depends on. If your plugin has 
-dependencies, the other plugins will be enabled whenever your plugin is enabled. 
+The plugin config file should specify a human-readable name and description for
+your plugin. It can also optionally contain a URL to documentation and
+a list of other plugins that your plugin depends on. If your plugin has
+dependencies, the other plugins will be enabled whenever your plugin is enabled.
 The contents of plugin.json for our example will be:
 
 .. note:: If you have both ``plugin.json`` and ``plugin.yml`` files in the directory, the
@@ -57,10 +57,10 @@ The contents of plugin.json for our example will be:
 This information will appear in the web client administration console, and
 administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart is required in order for the
-change to take effect. 
+change to take effect.
 
-If you are developing a plugin for girder, sometimes using the Rebuild and restart button 
-on the Plugins page may be undesirable as it will rebuild core and all enabled plugins 
+If you are developing a plugin for girder, sometimes using the Rebuild and restart button
+on the Plugins page may be undesirable as it will rebuild core and all enabled plugins
 in production mode, which will take some time and doesn't provide sourcemaps.
 Rebuild specific plugin restart the server may be a better choice. See `During Development <development.html#during-development>`__ for details.
 
@@ -472,6 +472,13 @@ cancelled.
    be worthwhile to trigger your own events from within the plugin. If you do
    that, the identifiers for those events should begin with the name of your
    plugin, e.g., ``events.trigger('cats.something_happened', info='foo')``
+
+* **User login**
+
+The event ``model.user.authenticate`` is fired when a user is attempting to
+login via a username and password. This allows alternative authentication
+modes to be used instead of core, or prior to attempting core authentication.
+The event info contains two keys, "login" and "password".
 
 Automated testing for plugins
 *****************************

@@ -1,0 +1,22 @@
+include editServerMixin
+
+.g-config-breadcrumb-container
+p.
+  Below is the list of LDAP servers that will attempt to authenticate
+  users when they log into this server. The list below is ordered, and
+  the servers will be checked in that order at login time. To change
+  the order, simply drag and drop the elements in the list.
+
+  Full documentation of this plugin and how to configure it can be found
+  #[a(target="_blank", href="http://girder.readthedocs.io/en/latest/plugins.html#ldap-authentication") here].
+
+.g-ldap-server-list-title LDAP servers
+form.g-ldap-server-form(role="form")
+  .panel-group.g-ldap-server-accordion
+    each server, index in servers
+      +ldapServerEditPanel(server, index)
+  .btn-toolbar
+    input.g-ldap-add-server.btn.btn-sm.btn-primary(type="button", value="New Server")
+    input.btn.btn-sm.btn-primary(type="submit", value="Save")
+
+p.g-validation-failed-message
