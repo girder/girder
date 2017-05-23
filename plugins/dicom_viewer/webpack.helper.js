@@ -10,14 +10,7 @@ module.exports = function (config) {
         loaders: [{
             loader: 'babel-loader',
             query: {
-                presets: ['es2015', 'react']
-            }
-        }, {
-            loader: 'string-replace-loader',
-            query: {
-                multiple: [
-                    {search: /test\.onlyIfWebGL/g, replace: 'test'}
-                ]
+                presets: ['es2015']
             }
         }]
     });
