@@ -1,6 +1,6 @@
 
 function model(node) {
-    return node.original.model;
+    return node.original.model || null;
 }
 
 export {

@@ -37,6 +37,11 @@ const ConfigView = View.extend({
         this.breadcrumb.render();
 
         this.treeView.setElement(this.$('.g-treeview-container')).render();
+        this.listenTo(this.treeView, 'g:treeview:select', (model) => {
+            this.$('.g-treeview-selected').text(
+                JSON.stringify(model, null, 2)
+            );
+        });
 
         return this;
     },

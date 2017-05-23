@@ -85,7 +85,7 @@ const TreeView = View.extend({
             }
 
             this.trigger(
-                event, null, data.node, data.selected
+                event, modelObj, data.node, data.selected
             );
         }
     }
