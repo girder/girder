@@ -152,7 +152,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         else:
             try:
                 bucket = conn.get_bucket(bucket_name=doc['bucket'],
-                                         validate=True)
+                                         validate=False)
+                bucket.get_all_keys(maxkeys=0)
                 testKey = boto.s3.key.Key(
                     bucket=bucket, name='/'.join(
                         filter(None, (doc['prefix'], 'test'))))
