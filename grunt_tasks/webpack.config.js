@@ -109,9 +109,18 @@ module.exports = {
                     include: loaderPaths
                 },
                 use: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    // stylus loader query must be a string for now
-                    use: ['css-loader', 'stylus-loader?resolve url=true']
+                    use: [
+                        'css-loader',
+                        {
+                            loader: 'stylus-loader',
+                            options: {
+                                // The 'resolve url' option is not well-documented, but was
+                                // added at https://github.com/shama/stylus-loader/pull/6
+                                'resolve url': true
+                            }
+                        }
+                    ],
+                    fallback: 'style-loader'
                 })
             },
             // CSS
@@ -121,8 +130,8 @@ module.exports = {
                     include: loaderPathsNodeModules
                 },
                 use: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: ['css-loader']
+                    use: ['css-loader'],
+                    fallback: 'style-loader'
                 })
             },
             // Pug
