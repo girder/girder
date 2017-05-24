@@ -291,7 +291,7 @@ module.exports = function (grunt) {
             if (!config.webpack || config.webpack.defaultLoaders === undefined || config.webpack.defaultLoaders !== false) {
                 var numLoaders = grunt.config.get('webpack.options.module.rules').length;
                 for (var i = 0; i < numLoaders; i++) {
-                    var selector = 'webpack.options.module.rules.' + i + '.include';
+                    var selector = `webpack.options.module.rules.${i}.resource.include`;
                     var loaders = grunt.config.get(selector) || [];
                     var pluginPath = path.resolve(dir);
                     var realPath = fs.realpathSync(dir);

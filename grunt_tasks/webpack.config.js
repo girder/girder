@@ -75,9 +75,11 @@ module.exports = {
         rules: [
             // ES2015
             {
-                test: /\.js$/,
-                include: loaderPaths,
-                exclude: /node_modules/,
+                resource: {
+                    test: /\.js$/,
+                    include: loaderPaths,
+                    exclude: /node_modules/
+                },
                 use: [
                     'babel-loader'
                 ],
@@ -90,16 +92,20 @@ module.exports = {
             },
             // JSON files
             {
-                test: /\.json$/,
-                include: loaderPaths.concat(loaderPathsNodeModules),
+                resource: {
+                    test: /\.json$/,
+                    include: loaderPaths.concat(loaderPathsNodeModules)
+                },
                 use: [
                     'json-loader'
                 ]
             },
             // Stylus
             {
-                test: /\.styl$/,
-                include: loaderPaths,
+                resource: {
+                    test: /\.styl$/,
+                    include: loaderPaths
+                },
                 use: ExtractTextPlugin.extract({
                     fallback: 'style-loader',
                     // stylus loader query must be a string for now
@@ -108,8 +114,10 @@ module.exports = {
             },
             // CSS
             {
-                test: /\.css$/,
-                include: loaderPathsNodeModules,
+                resource: {
+                    test: /\.css$/,
+                    include: loaderPathsNodeModules
+                },
                 use: ExtractTextPlugin.extract({
                     fallback: 'style-loader',
                     use: ['css-loader']
@@ -117,8 +125,10 @@ module.exports = {
             },
             // Pug
             {
-                test: /\.(pug|jade)$/,
-                include: loaderPaths,
+                resource: {
+                    test: /\.(pug|jade)$/,
+                    include: loaderPaths
+                },
                 use: [
                     {
                         loader: 'babel-loader',
@@ -131,48 +141,60 @@ module.exports = {
             },
             // PNG, JPEG
             {
-                test: /\.(png|jpg)$/,
-                include: loaderPathsNodeModules,
+                resource: {
+                    test: /\.(png|jpg)$/,
+                    include: loaderPathsNodeModules
+                },
                 use: [
                     fileLoader()
                 ]
             },
             // WOFF
             {
-                test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
+                resource: {
+                    test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
                 use: [
                     fileLoader()
                 ]
             },
             // WOFF2
             {
-                test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
+                resource: {
+                    test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
                 use: [
                     fileLoader()
                 ]
             },
             // TTF
             {
-                test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
+                resource: {
+                    test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
                 use: [
                     fileLoader()
                 ]
             },
             // EOT
             {
-                test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
+                resource: {
+                    test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
                 use: [
                     fileLoader()
                 ]
             },
             // SVG
             {
-                test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
+                resource: {
+                    test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
                 use: [
                     fileLoader()
                 ]
