@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import boto
 import httmock
 import inspect
 import io
@@ -34,7 +35,7 @@ from girder import events
 from girder.constants import AssetstoreType, ROOT_DIR
 from girder.utility import assetstore_utilities
 from girder.utility.progress import ProgressContext
-from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
+from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
 from girder.utility import path as path_util
 
 
@@ -696,12 +697,20 @@ class AssetstoreTestCase(base.TestCase):
             self.assertEqual(extracted, b'dummy file contents')
 
         # Attempt to import item directly into user; should fail
-        resp = self.request(
-            '/assetstore/%s/import' % assetstore['_id'], method='POST', params={
-                'importPath': '/foo/bar',
-                'destinationType': 'user',
-                'destinationId': self.admin['_id']
-            }, user=self.admin)
+        key = boto.s3.key.Key(bucket=bucket, name='/foo/bar/test')
+        key.set_contents_from_string('')
+
+        def getMockedBucket(self, validate=True):
+            return bucket
+
+        with mock.patch.object(S3AssetstoreAdapter, '_getBucket', new=getMockedBucket):
+            resp = self.request(
+                '/assetstore/%s/import' % assetstore['_id'], method='POST', params={
+                    'importPath': '/foo/bar',
+                    'destinationType': 'user',
+                    'destinationId': self.admin['_id']
+                }, user=self.admin)
+
         self.assertStatus(resp, 400)
         self.assertEqual(
             resp.json['message'], 'Keys cannot be imported directly underneath a user.')
