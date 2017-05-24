@@ -54,7 +54,12 @@ var ItemPreviewWidget = View.extend({
     },
 
     render: function () {
-        var supportedItems = this.collection.filter(this._isSupportedItem.bind(this));
+        var supportedItems = {};
+
+        // Do not display items if this.wrapPreviews = True
+        if (!this.wrapPreviews) {
+            supportedItems = this.collection.filter(this._isSupportedItem.bind(this));
+        }
 
         var view = this;
 
@@ -66,27 +71,29 @@ var ItemPreviewWidget = View.extend({
             isJSONItem: this._isJSONItem
         }));
 
-        // Render any JSON files.
-        supportedItems.filter(this._isJSONItem).forEach(function (item) {
-            var id = item.get('_id');
+        if (!this.wrapPreviews) {
+            // Render any JSON files.
+            supportedItems.filter(this._isJSONItem).forEach(function (item) {
+                var id = item.get('_id');
 
-            // Don't process JSON files that are too big to preview.
-            var size = item.get('size');
-            if (size > this._MAX_JSON_SIZE) {
-                return view.$('.json[data-id="' + id + '"]').text('JSON too big to preview.');
-            }
+                // Don't process JSON files that are too big to preview.
+                var size = item.get('size');
+                if (size > this._MAX_JSON_SIZE) {
+                    return view.$('.json[data-id="' + id + '"]').text('JSON too big to preview.');
+                }
 
-            // Ajax request the JSON files to display them.
-            restRequest({
-                path: 'item/' + id + '/download',
-                type: 'GET',
-                error: null // don't do default error behavior (validation may fail)
-            }).done(function (resp) {
-                view.$('.json[data-id="' + id + '"]').text(JSON.stringify(resp, null, '\t'));
-            }).error(function (err) {
-                console.error('Could not preview item', err);
+                // Ajax request the JSON files to display them.
+                restRequest({
+                    path: 'item/' + id + '/download',
+                    type: 'GET',
+                    error: null // don't do default error behavior (validation may fail)
+                }).done(function (resp) {
+                    view.$('.json[data-id="' + id + '"]').text(JSON.stringify(resp, null, '\t'));
+                }).error(function (err) {
+                    console.error('Could not preview item', err);
+                });
             });
-        });
+        }
 
         this.$('.g-widget-item-previews-wrap').tooltip({
             container: this.$el,
