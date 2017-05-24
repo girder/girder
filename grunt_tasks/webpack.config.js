@@ -30,7 +30,7 @@ var es2015Preset = require.resolve('babel-preset-es2015');
 function fileLoader() {
     return {
         loader: 'file-loader',
-        query: {
+        options: {
             name: 'assets/[name]-[hash:8].[ext]'
         }
     };
@@ -81,14 +81,16 @@ module.exports = {
                     exclude: /node_modules/
                 },
                 use: [
-                    'babel-loader'
-                ],
-                query: {
-                    presets: [es2015Preset],
-                    env: {
-                        cover: _coverageConfig()
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: [es2015Preset],
+                            env: {
+                                cover: _coverageConfig()
+                            }
+                        }
                     }
-                }
+                ]
             },
             // JSON files
             {
@@ -132,7 +134,7 @@ module.exports = {
                 use: [
                     {
                         loader: 'babel-loader',
-                        query: {
+                        options: {
                             presets: [es2015Preset]
                         }
                     },
