@@ -24,7 +24,9 @@ from bson import json_util
 from girder import events
 from girder.constants import AccessType, SortDir
 from girder.models.model_base import AccessControlledModel, ValidationException
-from girder.plugins.jobs.constants import JobStatus, JOB_HANDLER_LOCAL
+from girder.plugins.jobs.constants import (JobStatus,
+                                           JOB_HANDLER_LOCAL,
+                                           REST_CREATE_JOB_TOKEN_SCOPE)
 
 
 class Job(AccessControlledModel):
