@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -qy software-properties-common python-soft
     git \
     libffi-dev \
     libsasl2-dev \
+    libldap2-dev \
     libpython-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
