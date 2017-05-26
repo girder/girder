@@ -626,7 +626,7 @@ girderTest.waitForDialog = function (desc) {
 /**
  * Contains a promise that is resolved when all requested sources are loaded.
  */
-girderTest.promise = $.when();
+girderTest.promise = $.Deferred().resolve().promise();
 
 /**
  * Import a javascript file and.

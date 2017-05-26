@@ -18,7 +18,7 @@ describe('Test the hierarchy browser modal', function () {
             if (onRestRequest) {
                 return onRestRequest.apply(this, arguments);
             }
-            return $.when(returnVal);
+            return $.Deferred().resolve(returnVal).promise();
         });
         transition = $.support.transition;
         $.support.transition = false;
@@ -99,12 +99,12 @@ describe('Test the hierarchy browser modal', function () {
             onRestRequest = function (params) {
                 if (params.path === '/user/authentication') {
                     // The return value for the initial login call
-                    return $.when(user);
+                    return $.Deferred().resolve(user).promise();
                 }
 
                 // After login return an empty array for collection fetches
                 // on the RootSelector
-                return $.when([]);
+                return $.Deferred().resolve([]).promise();
             };
 
             girder.auth.login('johndoe', 'password');

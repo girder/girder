@@ -68,7 +68,7 @@ var AccessControlledModel = Model.extend({
             }, this));
         } else {
             this.trigger('g:accessFetched');
-            return $.when(this.get('access'));
+            return $.Deferred().resolve(this.get('access')).promise();
         }
     }
 });
