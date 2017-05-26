@@ -1,5 +1,6 @@
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
+import { restRequest } from 'girder/rest';
 
 import VegaWidgetTemplate from '../templates/vegaWidget.pug';
 import '../stylesheets/vegaWidget.styl';
@@ -22,19 +23,17 @@ var VegaWidget = View.extend({
         if (this.accessLevel >= AccessType.READ && meta && meta.vega) {
             $('#g-app-body-container')
                 .append(VegaWidgetTemplate());
-            $.ajax({
-                url: '/api/v1/item/' + this.item.get('_id') + '/download',
-                type: 'GET',
-                dataType: 'json',
-                success: function (spec) {
+            restRequest({
+                path: '/api/v1/item/' + this.item.get('_id') + '/download',
+            })
+                .done(function (spec) {
                     vg.parse.spec(spec, function (chart) {
                         chart({
                             el: '.g-item-vega-vis',
                             renderer: 'svg'
                         }).update();
                     });
-                }
-            });
+                });
         } else {
             $('.g-item-vega')
                 .remove();
