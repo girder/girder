@@ -173,7 +173,7 @@ page.onLoadFinished = function (status) {
         }
         page.evaluate(function () {
             if (window.girderTest) {
-                girderTest.promise.then(function () {
+                girderTest.promise.done(function () {
                     jasmine.getEnv().execute();
                 }).fail(function (err) {
                     window.callPhantom({

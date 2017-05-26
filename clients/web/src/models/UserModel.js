@@ -21,7 +21,7 @@ var UserModel = Model.extend({
      */
     current: function () {
         fetchCurrentUser()
-            .then(_.bind(function (user) {
+            .done(_.bind(function (user) {
                 if (user) {
                     this.set(user);
                 } else {

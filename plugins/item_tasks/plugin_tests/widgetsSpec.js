@@ -6,7 +6,7 @@ girderTest.addCoveredScripts([
     '/clients/web/static/built/plugins/item_tasks/plugin.min.js'
 ]);
 
-girderTest.promise.then(function () {
+girderTest.promise.done(function () {
     var itemTasks = girder.plugins.item_tasks;
 
     describe('widget model', function () {

@@ -86,7 +86,7 @@ var AccessWidget = View.extend({
         $.when(
             flagListPromise,
             this.model.fetchAccess()
-        ).then(() => {
+        ).done(() => {
             this.render();
         });
     },

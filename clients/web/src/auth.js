@@ -108,9 +108,8 @@ function login(username, password, cors) {
         events.trigger('g:login', response);
 
         return response.user;
-    }, function (jqxhr) {
+    }).fail(function (jqxhr) {
         events.trigger('g:login.error', jqxhr.status, jqxhr);
-        return jqxhr;
     });
 }
 
@@ -118,13 +117,13 @@ function logout() {
     return restRequest({
         method: 'DELETE',
         path: '/user/authentication'
-    }).then(function () {
+    }).done(function () {
         setCurrentUser(null);
         setCurrentToken(null);
 
         events.trigger('g:login', null);
         events.trigger('g:logout.success');
-    }, function (jqxhr) {
+    }).fail(function (jqxhr) {
         events.trigger('g:logout.error', jqxhr.status, jqxhr);
     });
 }

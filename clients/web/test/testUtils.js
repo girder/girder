@@ -633,7 +633,7 @@ girderTest.promise = $.Deferred().resolve().promise();
  */
 girderTest.addScript = function (url) {
     var defer = new $.Deferred();
-    girderTest.promise.then(function () {
+    girderTest.promise.done(function () {
         $.getScript(url).done(function () {
             defer.resolve();
         }).fail(function () {
@@ -1214,7 +1214,7 @@ $(function () {
     });
     if (specs.length) {
         $.when.apply($, specs)
-            .then(function () {
+            .done(function () {
                 window.jasmine.getEnv().execute();
             });
     }
@@ -1228,7 +1228,7 @@ $(function () {
  */
 girderTest.startApp = function () {
     var defer = new $.Deferred();
-    girderTest.promise.then(function () {
+    girderTest.promise.done(function () {
         /* Track bootstrap transitions.  This is largely a duplicate of the
          * Bootstrap emulateTransitionEnd function, with the only change being
          * our tracking of the transition.  This still relies on the browser
@@ -1255,7 +1255,7 @@ girderTest.startApp = function () {
             parentView: null,
             start: false
         });
-        app.start().then(function () {
+        app.start().done(function () {
             girder.events.trigger('g:appload.after');
             defer.resolve(app);
         });
