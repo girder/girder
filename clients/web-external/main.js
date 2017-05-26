@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function () {
     girder.apiRoot = '/girder/api/v1';
     girder.router.enabled(false);
 
