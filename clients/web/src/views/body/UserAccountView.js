@@ -183,7 +183,7 @@ var UserAccountView = View.extend({
                 tab: 'password',
                 temporary: token
             });
-        }, this)).error(_.bind(function () {
+        }, this)).fail(_.bind(function () {
             router.navigate('users', {trigger: true});
         }, this));
     }

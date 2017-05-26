@@ -33,7 +33,7 @@ var AccessControlledModel = Model.extend({
             }, params || {})
         }).done(_.bind(function () {
             this.trigger('g:accessListSaved');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -62,7 +62,7 @@ var AccessControlledModel = Model.extend({
                 }
                 this.trigger('g:accessFetched');
                 return resp;
-            }, this)).error(_.bind(function (err) {
+            }, this)).fail(_.bind(function (err) {
                 this.trigger('g:error', err);
             }, this));
         } else {

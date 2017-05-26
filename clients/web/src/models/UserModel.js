@@ -97,7 +97,7 @@ var UserModel = Model.extend({
             error: null
         }).done(_.bind(function () {
             this.trigger('g:passwordChanged');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -115,7 +115,7 @@ var UserModel = Model.extend({
             error: null
         }).done(_.bind(function () {
             this.trigger('g:passwordChanged');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     }

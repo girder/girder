@@ -83,7 +83,7 @@ var ItemPreviewWidget = View.extend({
                 error: null // don't do default error behavior (validation may fail)
             }).done(function (resp) {
                 view.$('.json[data-id="' + id + '"]').text(JSON.stringify(resp, null, '\t'));
-            }).error(function (err) {
+            }).fail(function (err) {
                 console.error('Could not preview item', err);
             });
         });

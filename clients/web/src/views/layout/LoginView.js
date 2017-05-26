@@ -47,7 +47,7 @@ var LoginView = View.extend({
                 error: null
             }).done(_.bind(function (resp) {
                 this.$('.g-validation-failed-message').html(resp.message);
-            }, this)).error(_.bind(function (err) {
+            }, this)).fail(_.bind(function (err) {
                 this.$('.g-validation-failed-message').html(err.responseJSON.message);
             }, this));
         },

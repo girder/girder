@@ -131,7 +131,7 @@ router.route('plugins', 'plugins', function () {
         type: 'GET'
     }).done(_.bind(function (resp) {
         events.trigger('g:navigateTo', PluginsView, resp);
-    }, this)).error(_.bind(function () {
+    }, this)).fail(_.bind(function () {
         events.trigger('g:navigateTo', UsersView);
     }, this));
 });
@@ -169,7 +169,7 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
             tab: 'password',
             temporary: token
         });
-    }, this)).error(_.bind(function () {
+    }, this)).fail(_.bind(function () {
         router.navigate('users', {trigger: true});
     }, this));
 });
@@ -195,7 +195,7 @@ router.route('useraccount/:id/verification/:token', 'accountVerify', function (i
             type: 'success',
             timeout: 4000
         });
-    }, this)).error(_.bind(function () {
+    }, this)).fail(_.bind(function () {
         events.trigger('g:navigateTo', FrontPageView);
         events.trigger('g:alert', {
             icon: 'cancel',

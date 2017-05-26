@@ -11,7 +11,7 @@ wrap(ItemModel, 'fetch', function (fetch) {
         error: null
     }).done(_.bind(function (resp) {
         this.set(resp);
-    }, this)).error(_.bind(function (err) {
+    }, this)).fail(_.bind(function (err) {
         this.trigger('g:error', err);
     }, this));
     return this;

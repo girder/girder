@@ -37,7 +37,7 @@ var GroupModel = AccessControlledModel.extend({
                 }
             }
             this.trigger('g:invited');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -57,7 +57,7 @@ var GroupModel = AccessControlledModel.extend({
             this.set(resp);
 
             this.trigger('g:joined');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -75,7 +75,7 @@ var GroupModel = AccessControlledModel.extend({
             this.set(resp);
 
             this.trigger('g:inviteRequested');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -103,7 +103,7 @@ var GroupModel = AccessControlledModel.extend({
             this.set(resp);
 
             this.trigger('g:promoted');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -129,7 +129,7 @@ var GroupModel = AccessControlledModel.extend({
             this.set(resp);
 
             this.trigger('g:demoted');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -153,7 +153,7 @@ var GroupModel = AccessControlledModel.extend({
             this.set(resp);
 
             this.trigger('g:removed');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },

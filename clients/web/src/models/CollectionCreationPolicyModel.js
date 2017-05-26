@@ -11,7 +11,7 @@ var CollectionCreationPolicyModel = AccessControlledModel.extend({
             this.set('access', resp);
             this.trigger('g:accessFetched');
             return resp;
-        }).error(err => {
+        }).fail(err => {
             this.trigger('g:error', err);
         });
     }

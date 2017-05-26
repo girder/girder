@@ -31,7 +31,7 @@ var ResetPasswordView = View.extend({
                     text: 'Password reset email sent.',
                     type: 'success'
                 });
-            }, this)).error(_.bind(function (err) {
+            }, this)).fail(_.bind(function (err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
                 this.$('#g-reset-password-button').girderEnable(true);
             }, this));

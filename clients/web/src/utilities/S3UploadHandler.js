@@ -73,7 +73,7 @@ prototype.execute = function () {
                     error: null
                 }).done(_.bind(function (resp) {
                     this.trigger('g:upload.complete', resp);
-                }, handler)).error(_.bind(function (resp) {
+                }, handler)).fail(_.bind(function (resp) {
                     var msg;
 
                     if (resp.status === 0) {
@@ -125,7 +125,7 @@ prototype.resume = function () {
     }).done(_.bind(function (resp) {
         this.params.upload.s3.request = resp;
         this.execute();
-    }, this)).error(_.bind(function (resp) {
+    }, this)).fail(_.bind(function (resp) {
         var msg;
 
         if (resp.status === 0) {
@@ -239,7 +239,7 @@ prototype._sendNextChunk = function () {
         });
 
         xhr.send(data);
-    }, this)).error(_.bind(function () {
+    }, this)).fail(_.bind(function () {
         this.trigger('g:upload.error', {
             message: 'Error getting signed chunk request from Girder.'
         });
@@ -298,7 +298,7 @@ prototype._finalizeMultiChunkUpload = function () {
         };
 
         xhr.send(new window.XMLSerializer().serializeToString(root));
-    }, this)).error(_.bind(function (resp) {
+    }, this)).fail(_.bind(function (resp) {
         var msg;
 
         if (resp.status === 0) {
