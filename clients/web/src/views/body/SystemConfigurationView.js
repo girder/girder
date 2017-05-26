@@ -24,7 +24,7 @@ var SystemConfigurationView = View.extend({
     events: {
         'submit .g-settings-form': function (event) {
             event.preventDefault();
-            this.$('.g-submit-settings').addClass('disabled');
+            this.$('.g-submit-settings').girderEnable(false);
             this.$('#g-settings-error-message').empty();
 
             this.$('#g-core-collection-create-policy').val(JSON.stringify(this._covertCollectionCreationPolicy()));
@@ -52,7 +52,7 @@ var SystemConfigurationView = View.extend({
                 },
                 error: null
             }).done(_.bind(function () {
-                this.$('.g-submit-settings').removeClass('disabled');
+                this.$('.g-submit-settings').girderEnable(true);
                 events.trigger('g:alert', {
                     icon: 'ok',
                     text: 'Settings saved.',
@@ -60,7 +60,7 @@ var SystemConfigurationView = View.extend({
                     timeout: 4000
                 });
             }, this)).error(_.bind(function (resp) {
-                this.$('.g-submit-settings').removeClass('disabled');
+                this.$('.g-submit-settings').girderEnable(true);
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             }, this));
         },
