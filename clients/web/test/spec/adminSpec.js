@@ -80,7 +80,7 @@ describe('Test the settings page', function () {
         expect($('#g-core-email-from-address').val()).toBe('');
         expect($('#g-core-registration-policy').val()).toBe('open');
         expect($('#g-core-upload-minimum-chunk-size').val()).toBe('');
-        expect($.parseJSON($('#g-core-collection-create-policy').val())).toEqual({
+        expect(JSON.parse($('#g-core-collection-create-policy').val())).toEqual({
             open: false,
             users: [],
             groups: []
