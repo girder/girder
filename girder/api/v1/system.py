@@ -30,7 +30,7 @@ from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.models.model_base import GirderException
-from girder.utility import install, plugin_utilities, system
+from girder.utility import config, install, plugin_utilities, system
 from girder.utility.progress import ProgressContext
 from ..describe import API_VERSION, Description, autoDescribeRoute
 from ..rest import Resource, RestException
@@ -295,6 +295,9 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def restartServer(self, params):
+        if not config.getConfig()['server'].get('cherrypy_server', True):
+            raise RestException('Restarting of server is disabled.', 403)
+
         class Restart(cherrypy.process.plugins.Monitor):
             def __init__(self, bus, frequency=1):
                 cherrypy.process.plugins.Monitor.__init__(
