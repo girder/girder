@@ -33,6 +33,8 @@ class Job(Resource):
         self.route('GET', ('all',), self.listAllJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
+        self.route('GET', (':id', 'child',), self.getChildJobs)
+        self.route('PUT', (':id', 'parent',), self.setParentJob)
         self.route('DELETE', (':id',), self.deleteJob)
         self.route('GET', ('typeandstatus', 'all',), self.allJobsTypesAndStatuses)
         self.route('GET', ('typeandstatus',), self.jobsTypesAndStatuses)
@@ -157,3 +159,27 @@ class Job(Resource):
     def jobsTypesAndStatuses(self, params):
         currentUser = self.getCurrentUser()
         return self.model('job', 'jobs').getAllTypesAndStatuses(user=currentUser)
+
+    @access.user
+    @autoDescribeRoute(
+        Description('Set parent for a job.')
+        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs',
+                    level=AccessType.ADMIN)
+        .modelParam('parentId', 'The ID of the parent job.', model='job', plugin='jobs',
+                    destName='parentJob', level=AccessType.ADMIN, paramType='query')
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the job.', 403)
+    )
+    def setParentJob(self, job, parentJob, params):
+        return self.model('job', 'jobs').setParentJob(job, parentJob['_id'])
+
+    @access.user
+    @autoDescribeRoute(
+        Description('List child jobs for a job.')
+        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs',
+                    level=AccessType.ADMIN)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Admin access was denied for the job.', 403)
+    )
+    def getChildJobs(self, job, params):
+        return self.model('job', 'jobs').listChildJobs(job)
