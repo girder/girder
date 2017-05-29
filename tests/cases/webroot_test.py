@@ -18,6 +18,7 @@
 ###############################################################################
 
 from .. import base
+from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
 
 
 def setUpModule():
@@ -40,3 +41,22 @@ class WebRootTestCase(base.TestCase):
         body = self.getBody(resp)
         self.assertTrue('girder_app.min.js' in body)
         self.assertTrue('girder_lib.min.js' in body)
+
+    def testWebRootProperlyHandlesStaticRouteUrls(self):
+        self.model('setting').set(SettingKey.ROUTE_TABLE, {
+            GIRDER_ROUTE_ID: '/',
+            GIRDER_STATIC_ROUTE_ID: 'http://my-cdn-url.com/static'
+        })
+
+        resp = self.request(path='/', method='GET', isJson=False, prefix='')
+        self.assertStatus(resp, 200)
+        body = self.getBody(resp)
+
+        self.assertTrue('href="http://my-cdn-url.com/static/img/Girder_Favicon.png"' in body)
+
+        # Same assertion should hold true for Swagger
+        resp = self.request(path='/', method='GET', isJson=False)
+        self.assertStatus(resp, 200)
+        body = self.getBody(resp)
+
+        self.assertTrue('href="http://my-cdn-url.com/static/img/Girder_Favicon.png"' in body)

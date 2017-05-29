@@ -125,24 +125,32 @@ def configureServer(test=False, plugins=None, curConfig=None):
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
 
     plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
+
+    # If the static route is a URL, leave it alone
+    if '://' in routeTable[constants.GIRDER_STATIC_ROUTE_ID]:
+        apiStaticRoot = routeTable[constants.GIRDER_STATIC_ROUTE_ID]
+        staticRoot = routeTable[constants.GIRDER_STATIC_ROUTE_ID]
+    else:
+        # Make the staticRoot relative to the api_root, if possible.  The api_root
+        # could be relative or absolute, but it needs to be in an absolute form for
+        # relpath to behave as expected.  We always expect the api_root to
+        # contain at least two components, but the reference from static needs to
+        # be from only the first component.
+        apiRootBase = os.path.split(os.path.join('/', curConfig['server']['api_root']))[0]
+        apiStaticRoot = os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+                                        apiRootBase)
+        staticRoot = os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+                                     routeTable[constants.GIRDER_ROUTE_ID])
+
     root.updateHtmlVars({
         'apiRoot': curConfig['server']['api_root'],
-        'staticRoot': os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                      routeTable[constants.GIRDER_ROUTE_ID]),
+        'staticRoot': staticRoot,
         'plugins': plugins
     })
 
-    # Make the staticRoot relative to the api_root, if possible.  The api_root
-    # could be relative or absolute, but it needs to be in an absolute form for
-    # relpath to behave as expected.  We always expect the api_root to
-    # contain at least two components, but the reference from static needs to
-    # be from only the first component.
-    apiRootBase = os.path.split(os.path.join('/', curConfig['server']['api_root']))[0]
-
     root.api.v1.updateHtmlVars({
         'apiRoot': curConfig['server']['api_root'],
-        'staticRoot': os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                      apiRootBase)
+        'staticRoot': apiStaticRoot
     })
 
     root, appconf, _ = plugin_utilities.loadPlugins(
