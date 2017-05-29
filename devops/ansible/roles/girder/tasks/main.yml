@@ -16,6 +16,34 @@
   become: yes
   become_user: root
 
+- name: Check if vagrant path exists
+  stat: path=/home/vagrant/girder
+  register: check_vagrant_path
+
+- name: Create actual directory for node_modules
+  file:
+    path: "{{ ansible_user_dir }}/girder_node_modules"
+    state: directory
+  when: check_vagrant_path.stat.exists
+
+- name: Create virtual directory for node_modules
+  file:
+    path: "{{ girder_path }}/node_modules"
+    state: directory
+  when: check_vagrant_path.stat.exists
+
+- name: Bind mount node_modules
+  mount:
+    src: "{{ ansible_user_dir }}/girder_node_modules"
+    path: "{{ girder_path }}/node_modules"
+    opts: bind
+    fstype: none
+    state: mounted
+  register: fstab
+  become: yes
+  become_user: root
+  when: check_vagrant_path.stat.exists
+
 - include: npm-RedHat.yml
   when:
     - girder_web
