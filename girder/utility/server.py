@@ -18,6 +18,7 @@
 ###############################################################################
 
 import cherrypy
+import functools
 import mako
 import mimetypes
 import os
@@ -41,6 +42,47 @@ def _errorDefault(status, message, *args, **kwargs):
     return mako.template.Template(_errorTemplate).render(status=status, message=message)
 
 
+def _configureStaticRoutes(webroot, plugins, event=None):
+    """
+    Configures static routes for a given webroot.
+
+    This function is also run when the route table setting is modified
+    to allow for dynamically changing static routes at runtime.
+    """
+    # This was triggered by some unrelated setting changing
+    if event is not None and event.info['key'] != constants.SettingKey.ROUTE_TABLE:
+        return
+
+    routeTable = loadRouteTable()
+
+    # If the static route is a URL, leave it alone
+    if '://' in routeTable[constants.GIRDER_STATIC_ROUTE_ID]:
+        apiStaticRoot = routeTable[constants.GIRDER_STATIC_ROUTE_ID]
+        staticRoot = routeTable[constants.GIRDER_STATIC_ROUTE_ID]
+    else:
+        # Make the staticRoot relative to the api_root, if possible.  The api_root
+        # could be relative or absolute, but it needs to be in an absolute form for
+        # relpath to behave as expected.  We always expect the api_root to
+        # contain at least two components, but the reference from static needs to
+        # be from only the first component.
+        apiRootBase = os.path.split(os.path.join('/', config.getConfig()['server']['api_root']))[0]
+        apiStaticRoot = os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+                                        apiRootBase)
+        staticRoot = os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+                                     routeTable[constants.GIRDER_ROUTE_ID])
+
+    webroot.updateHtmlVars({
+        'apiRoot': config.getConfig()['server']['api_root'],
+        'staticRoot': staticRoot,
+        'plugins': plugins
+    })
+
+    webroot.api.v1.updateHtmlVars({
+        'apiRoot': config.getConfig()['server']['api_root'],
+        'staticRoot': apiStaticRoot
+    })
+
+
 def configureServer(test=False, plugins=None, curConfig=None):
     """
     Function to setup the cherrypy server. It configures it, but does
@@ -55,8 +97,6 @@ def configureServer(test=False, plugins=None, curConfig=None):
     """
     if curConfig is None:
         curConfig = config.getConfig()
-
-    routeTable = loadRouteTable()
 
     appconf = {
         '/': {
@@ -126,32 +166,10 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
     plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
 
-    # If the static route is a URL, leave it alone
-    if '://' in routeTable[constants.GIRDER_STATIC_ROUTE_ID]:
-        apiStaticRoot = routeTable[constants.GIRDER_STATIC_ROUTE_ID]
-        staticRoot = routeTable[constants.GIRDER_STATIC_ROUTE_ID]
-    else:
-        # Make the staticRoot relative to the api_root, if possible.  The api_root
-        # could be relative or absolute, but it needs to be in an absolute form for
-        # relpath to behave as expected.  We always expect the api_root to
-        # contain at least two components, but the reference from static needs to
-        # be from only the first component.
-        apiRootBase = os.path.split(os.path.join('/', curConfig['server']['api_root']))[0]
-        apiStaticRoot = os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                        apiRootBase)
-        staticRoot = os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                     routeTable[constants.GIRDER_ROUTE_ID])
+    _configureStaticRoutes(root, plugins)
 
-    root.updateHtmlVars({
-        'apiRoot': curConfig['server']['api_root'],
-        'staticRoot': staticRoot,
-        'plugins': plugins
-    })
-
-    root.api.v1.updateHtmlVars({
-        'apiRoot': curConfig['server']['api_root'],
-        'staticRoot': apiStaticRoot
-    })
+    girder.events.bind('model.setting.save.after', '_updateStaticRoutesIfModified',
+                       functools.partial(_configureStaticRoutes, root, plugins))
 
     root, appconf, _ = plugin_utilities.loadPlugins(
         plugins, root, appconf, root.api.v1, buildDag=False)
