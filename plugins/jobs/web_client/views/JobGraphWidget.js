@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import $ from 'jquery';
 import vg from 'vega';
 import moment from 'moment';
 
@@ -55,7 +56,7 @@ export default View.extend({
 
         if (this.view === 'timing-history') {
             jobs.forEach(job => job.calculateSegmentation());
-            let config = jQuery.extend(true, {}, timingHistoryChartConfig);
+            let config = $.extend(true, {}, timingHistoryChartConfig);
             // limit the width to the size of the container. When there are fewer records,
             // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
             let width = Math.min(this.$el.width(), jobs.length * 30 + 400);
@@ -91,7 +92,7 @@ export default View.extend({
 
         if (this.view === 'time') {
             jobs.forEach(job => job.calculateSegmentation());
-            let config = jQuery.extend(true, {}, timeChartConfig);
+            let config = $.extend(true, {}, timeChartConfig);
             // limit the width to the size of the container. When there are fewer records,
             // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
             let width = Math.min(this.$el.width(), jobs.length * 30 + 400);
