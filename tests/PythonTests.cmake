@@ -1,5 +1,3 @@
-include(CMakeParseArguments)
-
 set(server_port 20200)
 set(flake8_config "${PROJECT_SOURCE_DIR}/tests/flake8.cfg")
 set(coverage_html_dir "${PROJECT_SOURCE_DIR}/clients/web/dev/built/py_coverage")
