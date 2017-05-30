@@ -125,7 +125,7 @@ class LdapTestCase(base.TestCase):
         with mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
             resp = self.request('/user/authentication', basicAuth='fizzbuzz:foo')
             self.assertStatusOk(resp)
-            self.assertEqual(resp.json['user']['login'],'fizz')
+            self.assertEqual(resp.json['user']['login'], 'fizz')
             self.assertEqual(resp.json['user']['firstName'], 'Fizz')
             self.assertEqual(resp.json['user']['lastName'], 'Buzz')
 

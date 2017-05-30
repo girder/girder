@@ -314,7 +314,7 @@ var DicomView = View.extend({
 });
 
 function createImageData(image) {
-    const rows = image.getRows()
+    const rows = image.getRows();
     const cols = image.getCols();
     const rowSpacing = image.getPixelSpacing()[0];
     const colSpacing = image.getPixelSpacing()[1];
