@@ -339,7 +339,10 @@ module.exports = function (grunt) {
             // Get the list of the packages to install and append them to the
             // args object.
             var modules = Array.prototype.slice.call(arguments, 2);
-            args = args.concat(['install'], modules);
+
+            // npm@5 saves dependencies to package.json by default, add
+            // the --no-save flag to disable this behavior
+            args = args.concat(['install', '--no-save'], modules);
 
             // Launch the child process.
             child = child_process.spawnSync('npm', args, {
