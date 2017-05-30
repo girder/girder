@@ -41,7 +41,8 @@ class Job(AccessControlledModel):
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
-            'progress', 'log', 'meta', '_id', 'public', 'async', 'updated', 'timestamps'})
+            'progress', 'log', 'meta', '_id', 'public', 'parentId', 'async',
+            'updated', 'timestamps'})
 
         self.exposeFields(level=AccessType.SITE_ADMIN, fields={'args', 'kwargs'})
 
@@ -151,7 +152,7 @@ class Job(AccessControlledModel):
 
     def createJob(self, title, type, args=(), kwargs=None, user=None, when=None,
                   interval=0, public=False, handler=None, async=False,
-                  save=True, otherFields=None):
+                  save=True, parentId=None, otherFields=None):
         """
         Create a new job record.
 
@@ -183,6 +184,8 @@ class Job(AccessControlledModel):
         :type async: bool
         :param save: Whether the documented should be saved to the database.
         :type save: bool
+        :param parentId: Id of the job which will be set as a parent
+        :type parentId: ObjectId
         :param otherFields: Any additional fields to set on the job.
         :type otherFields: dict
         """
@@ -211,7 +214,8 @@ class Job(AccessControlledModel):
             'meta': {},
             'handler': handler,
             'async': async,
-            'timestamps': []
+            'timestamps': [],
+            'parentId': parentId
         }
 
         job.update(otherFields)
@@ -513,3 +517,31 @@ class Job(AccessControlledModel):
         types = self.collection.distinct('type', query)
         statuses = self.collection.distinct('status', query)
         return {'types': types, 'statuses': statuses}
+
+    def setParentJob(self, job, parentId):
+        """
+        Sets a parent job for a job
+        :param job: Job document which the parent will be set on
+        :type job: Job
+        :param parentId: Id of the parent job
+        :type parentId: ObjectId
+        """
+        if str(job['_id']) == str(parentId):
+            raise ValueError('Parent Id cannot be equal to Child Id')
+
+        return self.updateJob(job, otherFields={'parentId': parentId})
+
+    def listChildJobs(self, job):
+        """
+        Lists the child jobs for a given job
+        :param job: Job document
+        :type job: Job
+        """
+        query = {'parentId': job['_id']}
+        cursor = self.find(query)
+        user = self.model('user').load(job['userId'], force=True)
+        jobList = list(self.filterResultsByPermission(cursor=cursor,
+                                                      user=user,
+                                                      level=AccessType.READ))
+
+        return jobList
