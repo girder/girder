@@ -22,6 +22,7 @@ import functools
 import mako
 import mimetypes
 import os
+import posixpath
 import six
 
 import girder.events
@@ -65,11 +66,12 @@ def _configureStaticRoutes(webroot, plugins, event=None):
         # relpath to behave as expected.  We always expect the api_root to
         # contain at least two components, but the reference from static needs to
         # be from only the first component.
-        apiRootBase = os.path.split(os.path.join('/', config.getConfig()['server']['api_root']))[0]
-        apiStaticRoot = os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                        apiRootBase)
-        staticRoot = os.path.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                     routeTable[constants.GIRDER_ROUTE_ID])
+        apiRootBase = posixpath.split(posixpath.join('/',
+                                                     config.getConfig()['server']['api_root']))[0]
+        apiStaticRoot = posixpath.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+                                          apiRootBase)
+        staticRoot = posixpath.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+                                       routeTable[constants.GIRDER_ROUTE_ID])
 
     webroot.updateHtmlVars({
         'apiRoot': config.getConfig()['server']['api_root'],
