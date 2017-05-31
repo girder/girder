@@ -121,7 +121,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 3000
             });
-        }).error(resp => {
+        }).fail(resp => {
             this.$('.g-validation-failed-message').text(resp.responseJSON.message);
         });
     }

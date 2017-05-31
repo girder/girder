@@ -14,7 +14,7 @@ AssetstoreModel.hdfsImport = function (params) {
         error: null
     }).done(_.bind(function () {
         this.trigger('g:imported');
-    }, this)).error(_.bind(function (err) {
+    }, this)).fail(_.bind(function (err) {
         this.trigger('g:error', err);
     }, this));
 

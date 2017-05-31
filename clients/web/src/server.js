@@ -21,7 +21,7 @@ function restartServer() {
                     } else {
                         window.setTimeout(wait, 1000);
                     }
-                }).error(() => {
+                }).fail(() => {
                     window.setTimeout(wait, 1000);
                 });
             }

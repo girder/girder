@@ -71,7 +71,7 @@ var Model = Backbone.Model.extend({
         }).done(_.bind(function (resp) {
             this.set(resp);
             this.trigger('g:saved');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -110,7 +110,7 @@ var Model = Backbone.Model.extend({
             } else {
                 this.trigger('g:fetched');
             }
-        }).error((err) => {
+        }).fail((err) => {
             this.trigger('g:error', err);
         });
     },
@@ -170,7 +170,7 @@ var Model = Backbone.Model.extend({
                 this.collection.remove(this);
             }
             this.trigger('g:deleted');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },

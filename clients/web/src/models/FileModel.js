@@ -155,7 +155,7 @@ var FileModel = Model.extend({
                 this.set(upload);
                 this.trigger('g:upload.complete');
             }
-        }, this)).error(_.bind(function (resp) {
+        }, this)).fail(_.bind(function (resp) {
             var text = 'Error: ', identifier;
 
             if (resp.status === 0) {
@@ -192,7 +192,7 @@ var FileModel = Model.extend({
         }).done(_.bind(function (resp) {
             this.startByte = resp.offset;
             this._uploadChunk(this.resumeInfo.file, this.resumeInfo.uploadId);
-        }, this)).error(_.bind(function (resp) {
+        }, this)).fail(_.bind(function (resp) {
             var msg;
 
             if (resp.status === 0) {

@@ -61,7 +61,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 4000
             });
-        }).error(resp => {
+        }).fail(resp => {
             this.$('#g-hashsum-download-error-message').text(
                 resp.responseJSON.message);
         });
