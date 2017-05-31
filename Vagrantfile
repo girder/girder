@@ -30,7 +30,7 @@ Vagrant.configure("2") do |config|
   end
 
   client_testing = ENV["ANSIBLE_CLIENT_TESTING"] || false
-  bind_node_modules = (ENV.fetch("BIND_NODE_MODULES", "true") != "false" && !client_testing)
+  bind_node_modules = (ENV.fetch("BIND_NODE_MODULES", "true") != "false" && !client_testing && !ENV["ANSIBLE_TESTING"])
 
   if bind_node_modules 
     $script = <<SCRIPT
