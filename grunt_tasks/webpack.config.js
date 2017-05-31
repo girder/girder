@@ -92,16 +92,6 @@ module.exports = {
                     }
                 ]
             },
-            // JSON files
-            {
-                resource: {
-                    test: /\.json$/,
-                    include: loaderPaths.concat(loaderPathsNodeModules)
-                },
-                use: [
-                    'json-loader'
-                ]
-            },
             // Stylus
             {
                 resource: {

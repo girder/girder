@@ -41,7 +41,6 @@
     "pug": "^2.0.0-rc.1",
     "pug-loader": "^2.3.0",
     "jquery": "2.2.4",
-    "json-loader": "^0.5.4",
     "jsoneditor": "4.1.2",
     "nib": "^1.1.0",
     "remarkable": "1.7.1",
