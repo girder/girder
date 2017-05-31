@@ -26,7 +26,7 @@ import 'girder/utilities/jquery/girderModal';
 var AccessWidget = View.extend({
     events: {
         'click button.g-save-access-list': function (e) {
-            $(e.currentTarget).attr('disabled', 'disabled');
+            $(e.currentTarget).girderEnable(false);
             this.saveAccessList();
         },
         'click .g-close-flags-popover': function (e) {
