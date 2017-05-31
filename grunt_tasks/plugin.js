@@ -308,11 +308,15 @@ module.exports = function (grunt) {
                 }
             }
 
-            var newConfig = webpackHelper(grunt.config.getRaw('webpack.options'), helperConfig);
+            var baseConfig = grunt.config.getRaw('webpack.options');
+            baseConfig.module.loaders = [];
+            var newConfig = webpackHelper(baseConfig, helperConfig);
             if (_.has(newConfig.module, 'loaders')) {
-                grunt.log.writeln(`  >> "module.loaders" is deprecated, use "module.rules" in ${webpackHelperFile} instead.`.yellow);
-                newConfig.module.rules = newConfig.module.rules || [];
-                newConfig.module.rules = newConfig.module.rules.concat(newConfig.module.loaders);
+                if (!_.isEmpty(newConfig.module.loaders)) {
+                    grunt.log.writeln(`  >> "module.loaders" is deprecated, use "module.rules" in ${webpackHelperFile} instead.`.yellow);
+                    newConfig.module.rules = newConfig.module.rules || [];
+                    newConfig.module.rules = newConfig.module.rules.concat(newConfig.module.loaders);
+                }
                 delete newConfig.module.loaders;
             }
             grunt.config.set('webpack.options', newConfig);
