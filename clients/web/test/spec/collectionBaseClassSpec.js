@@ -97,7 +97,7 @@ describe('Test normal collection operation', function () {
         collection.pageLimit = 2;
         collection.append = false;
 
-        $.when(collection.fetchNextPage()).then(function () {
+        collection.fetchNextPage().then(function () {
             expect(collection.length).toBe(2);
             expect(collection.at(0).get('name')).toBe('test0');
             expect(collection.at(1).get('name')).toBe('test1');
@@ -240,7 +240,7 @@ describe('Test collection filtering', function () {
             return match;
         };
 
-        $.when(collection.fetch()).then(function () {
+        collection.fetch().then(function () {
             expect(collection.length).toBe(5);
         }).fail(failIfError).always(done);
 
@@ -272,7 +272,7 @@ describe('Test collection filtering', function () {
          *     had not yet been included
          */
         collection.pageLimit = 5;
-        $.when(collection.fetch()).then(function () {
+        collection.fetch().then(function () {
             expect(collection.length).toBe(5);
             expect(collection.at(0).get('name')).toBe('filterTest0');
             expect(collection.at(1).get('name')).toBe('filterTest1');
@@ -302,7 +302,7 @@ describe('Test collection filtering', function () {
         collection.pageLimit = 2;
         collection.append = false;
 
-        $.when(collection.fetchNextPage()).then(function () {
+        collection.fetchNextPage().then(function () {
             expect(collection.length).toBe(2);
             expect(collection.at(0).get('name')).toBe('filterTest0');
             expect(collection.at(1).get('name')).toBe('filterTest1');
