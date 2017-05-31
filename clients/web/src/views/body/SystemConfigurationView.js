@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import _ from 'underscore';
 
 import AccessWidget from 'girder/views/widgets/AccessWidget';

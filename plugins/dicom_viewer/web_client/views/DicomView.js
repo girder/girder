@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import ViewTemplate from '../templates/view.pug';
 import TagsTemplate from '../templates/tags.pug';
 import '../stylesheets/dicom_viewer.styl';

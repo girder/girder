@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import router from 'girder/router';
 import events from 'girder/events';
 
