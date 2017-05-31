@@ -799,9 +799,13 @@ class AccessControlledModel(Model):
                 else:
                     update['$set'] = {k: v for k, v in six.viewitems(doc)
                                       if k != 'access'}
-                doc = self.collection.find_one_and_update(
-                    {'_id': ObjectId(doc['_id'])}, update,
-                    return_document=pymongo.ReturnDocument.AFTER)
+
+                event = events.trigger('model.%s.save' % self.name, doc)
+                if not event.defaultPrevented:
+                    doc = self.collection.find_one_and_update(
+                        {'_id': ObjectId(doc['_id'])}, update,
+                        return_document=pymongo.ReturnDocument.AFTER)
+                    events.trigger('model.%s.save.after' % self.name, doc)
 
         return doc
 
