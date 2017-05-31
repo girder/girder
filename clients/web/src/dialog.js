@@ -85,7 +85,7 @@ function confirm(params) {
         el.text(params.text);
     }
 
-    $('#g-confirm-button').unbind('click').click(function () {
+    $('#g-confirm-button').off('click').click(function () {
         $('#g-dialog-container').modal('hide');
         params.confirmCallback();
     });

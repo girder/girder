@@ -95,7 +95,7 @@ application bootstrapping
    var app = new App({start: false});
 
    // start your application after the page loads
-   $(document).ready(function () {
+   $(function () {
       app.start();
    });
 
