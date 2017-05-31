@@ -83,6 +83,18 @@ restartServer._checkServer = function (lastStartDate) {
     });
 };
 
+/* Having these as object properties facilitates testing */
+restartServer._callSystemRestart = function () {
+    return restRequest({
+        type: 'PUT',
+        path: 'system/restart'
+    });
+};
+
+restartServer._reloadWindow = function () {
+    window.location.reload();
+};
+
 function restartServerPrompt() {
     confirm({
         text: 'Are you sure you want to restart the server?  This ' +
@@ -93,19 +105,10 @@ function restartServerPrompt() {
 }
 
 function rebuildWebClient() {
-    return restartServer._rebuildWebClient();
+    return rebuildWebClient._rebuildWebClient();
 }
 
-/* Having these as object properties facilitates testing */
-restartServer._callSystemRestart = function () {
-    return restRequest({type: 'PUT', path: 'system/restart'});
-};
-
-restartServer._reloadWindow = function () {
-    window.location.reload();
-};
-
-restartServer._rebuildWebClient = function () {
+rebuildWebClient._rebuildWebClient = function () {
     return restRequest({
         path: 'system/web_build',
         type: 'POST',

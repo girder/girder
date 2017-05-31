@@ -583,11 +583,11 @@ describe('Test the plugins page', function () {
             }, 100);
             return restartResolution.promise();
         });
+        spyOn(girder.server.restartServer, '_reloadWindow');
         // We don't want to really rebuild the web code, so replace the original one with a resolved Promise
-        spyOn(girder.server.restartServer, '_rebuildWebClient').andCallFake(function () {
+        spyOn(girder.server.rebuildWebClient, '_rebuildWebClient').andCallFake(function () {
             return $.Deferred().resolve().promise();
         });
-        spyOn(girder.server.restartServer, '_reloadWindow');
     });
 
     it('Test that anonymous loading plugins page prompts login', function () {
