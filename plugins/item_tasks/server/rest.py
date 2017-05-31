@@ -18,6 +18,7 @@ class ItemTask(Resource):
         self.resourceName = 'item_task'
 
         self.route('GET', (), self.listTasks)
+        self.route('GET', ('search',), self.search)
         self.route('POST', (':id', 'execution'), self.executeTask)
         self.route('POST', (':id', 'slicer_cli_description'), self.runSlicerCliDescription)
         self.route('PUT', (':id', 'slicer_cli_xml'), self.setSpecFromXml)
@@ -37,6 +38,30 @@ class ItemTask(Resource):
 
         return list(self.model('item').filterResultsByPermission(
             cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
+            flags=constants.ACCESS_FLAG_EXECUTE_TASK))
+
+    @access.public
+    @autoDescribeRoute(
+        Description('Search for tasks that can be executed in the system.')
+        .param('q', 'The search query.')
+        .pagingParams(defaultSort=None, defaultLimit=20)
+    )
+    def search(self, q, limit, offset, params):
+        user = self.getCurrentUser()
+        itemModel = self.model('item')
+
+        filters = {
+            'meta.isItemTask': {'$exists': True}
+        }
+
+        cursor = itemModel.textSearch(
+            query=q, filters=filters, user=user, limit=limit, offset=offset)
+
+        # AccessControlledModel.textSearch() already runs filterResultsByPermission(),
+        # but doesn't accept flags. Filter the results again to apply the flags, but
+        # ignore the paging parameters as they were already applied.
+        return list(itemModel.filterResultsByPermission(
+            cursor, user, level=AccessType.READ, limit=0, offset=0,
             flags=constants.ACCESS_FLAG_EXECUTE_TASK))
 
     def _validateTask(self, item):

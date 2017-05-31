@@ -1,0 +1,27 @@
+- var hasTasks = !collection.isEmpty()
+if searching
+  .g-task-list-search-status
+    if hasTasks
+      i.icon-search
+      |  Search results for tasks containing "#{query}"
+    else
+      i.icon-attention
+      |  No tasks matching your search term were found.
+
+if hasTasks
+  .panel.panel-default.g-task-list-task-items
+    .list-group
+      each task in collection.models
+        a.list-group-item.g-execute-task-link(href=`#item_task/${task.id}/run`)
+          h4.list-group-item-heading.g-execute-task-link-header= task.name()
+          .list-group-item-text.g-execute-task-link-body= task.get('description')
+    if collection.hasNextPage()
+      .panel-footer.g-task-list-task-items-footer
+        a.g-task-list-task-items-next-page
+          | See next page &raquo;
+    else
+      .panel-footer.g-task-list-task-items-footer
+        | End of list
+else if !searching
+  i.icon-attention
+  |  No tasks are available.
