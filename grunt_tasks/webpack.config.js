@@ -30,7 +30,7 @@ var es2015Preset = require.resolve('babel-preset-es2015');
 function fileLoader() {
     return {
         loader: 'file-loader',
-        query: {
+        options: {
             name: 'assets/[name]-[hash:8].[ext]'
         }
     };
@@ -72,52 +72,68 @@ module.exports = {
         new webpack.NoEmitOnErrorsPlugin()
     ],
     module: {
-        loaders: [
+        rules: [
             // ES2015
             {
-                test: /\.js$/,
-                include: loaderPaths,
-                loader: 'babel-loader',
-                exclude: /node_modules/,
-                query: {
-                    presets: [es2015Preset],
-                    env: {
-                        cover: _coverageConfig()
+                resource: {
+                    test: /\.js$/,
+                    include: loaderPaths,
+                    exclude: /node_modules/
+                },
+                use: [
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            presets: [es2015Preset],
+                            env: {
+                                cover: _coverageConfig()
+                            }
+                        }
                     }
-                }
-            },
-            // JSON files
-            {
-                test: /\.json$/,
-                include: loaderPaths.concat(loaderPathsNodeModules),
-                loader: 'json-loader'
+                ]
             },
             // Stylus
             {
-                test: /\.styl$/,
-                include: loaderPaths,
-                loaders: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    // stylus loader query must be a string for now
-                    use: ['css-loader', 'stylus-loader?resolve url=true']
+                resource: {
+                    test: /\.styl$/,
+                    include: loaderPaths
+                },
+                use: ExtractTextPlugin.extract({
+                    use: [
+                        'css-loader',
+                        {
+                            loader: 'stylus-loader',
+                            options: {
+                                // The 'resolve url' option is not well-documented, but was
+                                // added at https://github.com/shama/stylus-loader/pull/6
+                                'resolve url': true
+                            }
+                        }
+                    ],
+                    fallback: 'style-loader'
                 })
             },
             // CSS
             {
-                test: /\.css$/,
-                include: loaderPathsNodeModules,
-                loaders: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: ['css-loader']})
+                resource: {
+                    test: /\.css$/,
+                    include: loaderPathsNodeModules
+                },
+                use: ExtractTextPlugin.extract({
+                    use: ['css-loader'],
+                    fallback: 'style-loader'
+                })
             },
             // Pug
             {
-                test: /\.(pug|jade)$/,
-                include: loaderPaths,
-                loaders: [
+                resource: {
+                    test: /\.(pug|jade)$/,
+                    include: loaderPaths
+                },
+                use: [
                     {
                         loader: 'babel-loader',
-                        query: {
+                        options: {
                             presets: [es2015Preset]
                         }
                     },
@@ -126,49 +142,61 @@ module.exports = {
             },
             // PNG, JPEG
             {
-                test: /\.(png|jpg)$/,
-                include: loaderPathsNodeModules,
-                loaders: [
+                resource: {
+                    test: /\.(png|jpg)$/,
+                    include: loaderPathsNodeModules
+                },
+                use: [
                     fileLoader()
                 ]
             },
             // WOFF
             {
-                test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
-                loaders: [
+                resource: {
+                    test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
+                use: [
                     fileLoader()
                 ]
             },
             // WOFF2
             {
-                test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
-                loaders: [
+                resource: {
+                    test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
+                use: [
                     fileLoader()
                 ]
             },
             // TTF
             {
-                test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
-                loaders: [
+                resource: {
+                    test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
+                use: [
                     fileLoader()
                 ]
             },
             // EOT
             {
-                test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
-                loaders: [
+                resource: {
+                    test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
+                use: [
                     fileLoader()
                 ]
             },
             // SVG
             {
-                test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-                include: loaderPathsNodeModules,
-                loaders: [
+                resource: {
+                    test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+                    include: loaderPathsNodeModules
+                },
+                use: [
                     fileLoader()
                 ]
             }

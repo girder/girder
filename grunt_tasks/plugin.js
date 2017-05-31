@@ -289,9 +289,9 @@ module.exports = function (grunt) {
             // explicitly set to anything besides false, then augment the
             // webpack loader configurations with the plugin source directory.
             if (!config.webpack || config.webpack.defaultLoaders === undefined || config.webpack.defaultLoaders !== false) {
-                var numLoaders = grunt.config.get('webpack.options.module.loaders').length;
+                var numLoaders = grunt.config.get('webpack.options.module.rules').length;
                 for (var i = 0; i < numLoaders; i++) {
-                    var selector = 'webpack.options.module.loaders.' + i + '.include';
+                    var selector = `webpack.options.module.rules.${i}.resource.include`;
                     var loaders = grunt.config.get(selector) || [];
                     var pluginPath = path.resolve(dir);
                     var realPath = fs.realpathSync(dir);
@@ -308,7 +308,17 @@ module.exports = function (grunt) {
                 }
             }
 
-            var newConfig = webpackHelper(grunt.config.getRaw('webpack.options'), helperConfig);
+            var baseConfig = grunt.config.getRaw('webpack.options');
+            baseConfig.module.loaders = [];
+            var newConfig = webpackHelper(baseConfig, helperConfig);
+            if (_.has(newConfig.module, 'loaders')) {
+                if (!_.isEmpty(newConfig.module.loaders)) {
+                    grunt.log.writeln(`  >> "module.loaders" is deprecated, use "module.rules" in ${webpackHelperFile} instead.`.yellow);
+                    newConfig.module.rules = newConfig.module.rules || [];
+                    newConfig.module.rules = newConfig.module.rules.concat(newConfig.module.loaders);
+                }
+                delete newConfig.module.loaders;
+            }
             grunt.config.set('webpack.options', newConfig);
         });
 
