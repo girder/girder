@@ -94,10 +94,10 @@
     username: "girder"
     password: "girder"
     post:
-      path: "item_task/{{public_folder_id}}/json_description"
+      path: "item_task/{{ public_folder_id }}/json_description"
       parameters:
         image: "{{ item }}"
-  with_items: "{{item_tasks_dockerhub_images}}"
+  with_items: "{{ item_tasks_dockerhub_images }}"
   register: job_return
 
 - name: Wait for Dockerhub images to be ingested successfully as item_tasks
@@ -107,6 +107,7 @@
     get:
       path: "job/{{ item['gc_return']['_id'] }}"
   register: job_result
+  when: job_return
   until: job_result['gc_return']['status'] == 3
   retries: 5
   delay: 10

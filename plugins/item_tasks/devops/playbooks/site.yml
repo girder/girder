@@ -15,6 +15,9 @@
       - docker
       - girder_io
 
+    # Images to pull/import into item_tasks (from Dockerhub)
+    item_tasks_dockerhub_images: []
+
   pre_tasks:
 
     - name: Update package cache
