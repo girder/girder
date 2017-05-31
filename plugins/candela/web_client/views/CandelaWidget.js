@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import events from 'girder/events';

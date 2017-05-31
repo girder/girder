@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import ItemView from 'girder/views/body/ItemView';
 import { wrap } from 'girder/utilities/PluginUtils';
 

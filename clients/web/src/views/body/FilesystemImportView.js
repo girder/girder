@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import BrowserWidget from 'girder/views/widgets/BrowserWidget';
 import router from 'girder/router';
 import View from 'girder/views/View';

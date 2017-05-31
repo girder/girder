@@ -1,4 +1,6 @@
+import $ from 'jquery';
 import _ from 'underscore';
+
 import View from 'girder/views/View';
 import events from 'girder/events';
 import { handleClose, handleOpen } from 'girder/dialog';

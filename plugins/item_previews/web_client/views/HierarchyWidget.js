@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import { wrap } from 'girder/utilities/PluginUtils';
 
