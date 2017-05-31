@@ -39,6 +39,7 @@ class CustomRootTestCase(base.TestCase):
     def tearDown(self):
         base.stopServer()
         self.unmockPluginDir()
+        base.dropAllTestDatabases()
 
     def testCustomWebRoot(self):
         """
