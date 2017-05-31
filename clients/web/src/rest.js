@@ -30,7 +30,7 @@ function setStaticRoot(root) {
 /**
  * Make a request to the REST API. Bind a "done" handler to the return
  * value that will be called when the response is successful. To bind a
- * custom error handler, bind an "error" handler to the return promise,
+ * custom error handler, bind a "fail" handler to the return promise,
  * which will be executed in addition to the normal behavior of logging
  * the error to the console. To override the default error handling
  * behavior, pass an "error" key in your opts object; this should be done
@@ -113,7 +113,13 @@ function __restRequest(opts) {
         opts.headers = opts.headers || {};
         opts.headers['Girder-Token'] = token;
     }
-    return Backbone.ajax(opts);
+
+    let jqXHR = Backbone.ajax(opts);
+    jqXHR.error = function () {
+        console.warn('Use of restRequest.error is deprecated, use restRequest.fail instead.');
+        return jqXHR.fail.apply(jqXHR, arguments);
+    };
+    return jqXHR;
 }
 
 /**
