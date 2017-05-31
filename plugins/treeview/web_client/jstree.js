@@ -74,7 +74,7 @@ export default function (el, settings = {}) {
                 }),
                 conditionalselect: selectableFunc,
                 state: {
-                    key: user.login
+                    key: user ? user.login : 'anonymous'
                 },
                 contextmenu: {
                     items: contextMenu
