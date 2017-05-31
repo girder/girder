@@ -41,8 +41,7 @@ var Model = Backbone.Model.extend({
      */
     save: function () {
         if (this.altUrl === null && this.resourceName === null) {
-            console.error('Error: You must set an altUrl or resourceName on your model.');
-            return;
+            throw new Error('An altUrl or resourceName must be set on the Model.');
         }
 
         var path, type;
@@ -88,8 +87,7 @@ var Model = Backbone.Model.extend({
      */
     fetch: function (opts) {
         if (this.altUrl === null && this.resourceName === null) {
-            console.error('Error: You must set an altUrl or a resourceName on your model.');
-            return;
+            throw new Error('An altUrl or resourceName must be set on the Model.');
         }
 
         opts = opts || {};
@@ -150,8 +148,7 @@ var Model = Backbone.Model.extend({
      */
     destroy: function (opts) {
         if (this.altUrl === null && this.resourceName === null) {
-            console.error('Error: You must set an altUrl or a resourceName on your model.');
-            return;
+            throw new Error('An altUrl or resourceName must be set on the Model.');
         }
 
         var args = {
