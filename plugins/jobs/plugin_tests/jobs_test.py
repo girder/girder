@@ -495,3 +495,65 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['types']), 2)
         self.assertEqual(len(resp.json['statuses']), 1)
+
+    def testCreateJobWithParent(self):
+
+        jobModel = self.model('job', 'jobs')
+        parentJob = jobModel.createJob(title='Parent Job', type='parent',
+                                       user=self.users[0])
+
+        childJob = jobModel.createJob(title='Child Job', type='child',
+                                      user=self.users[0],
+                                      parentId=parentJob['_id'])
+
+        # When not passed parentId should be None
+        self.assertEqual(parentJob['parentId'], None)
+        # When passed parentId should be correct
+        self.assertEqual(childJob['parentId'], parentJob['_id'])
+        # When parent is not a valid job it should fail
+        with self.assertRaises(ValidationException):
+            childJob = self.model('job', 'jobs').createJob(
+                title='Bad Child Job', type='child', user=self.users[0],
+                parentId='Bad Parent Id')
+
+    def testParentChildRest(self):
+        jobModel = self.model('job', 'jobs')
+
+        parentJob = jobModel.createJob(title='Parent Job', type='parent',
+                                       user=self.users[0])
+
+        childJob = jobModel.createJob(title='Child Job', type='child',
+                                      user=self.users[0])
+
+        childJob2 = jobModel.createJob(title='Child Job 2', type='child',
+                                       user=self.users[0])
+
+        # Test setting up the parent job with the endpoint
+        path = '/job/%s/parent' % childJob['_id']
+        resp = self.request(path, user=self.users[0], method='PUT',
+                            params={'id': childJob['_id'],
+                                    'parentId': parentJob['_id']})
+
+        resp2 = self.request(path, user=self.users[0], method='PUT',
+                             params={'id': childJob2['_id'],
+                                     'parentId': parentJob['_id']})
+
+        self.assertStatusOk(resp)
+        self.assertStatusOk(resp2)
+        # Make sure parent id is set correctly
+        self.assertEquals(resp.json['parentId'], str(parentJob['_id']))
+        self.assertEquals(resp2.json['parentId'], str(parentJob['_id']))
+
+        # This path lists child jobs for a given job
+        childPath = '/job/%s/child' % parentJob['_id']
+        childResp = self.request(childPath, user=self.users[0],
+                                 params={'id': parentJob['_id']})
+        self.assertStatusOk(childResp)
+        # Make sure parent job has 2 child jobs
+        self.assertEquals(len(childResp.json), 2)
+        # Make sure child jobs has no child jobs
+        noChildPath = '/job/%s/child' % childJob['_id']
+        noChildResp = self.request(noChildPath, user=self.users[0],
+                                   params={'id': childJob['_id']})
+        self.assertStatusOk(noChildResp)
+        self.assertEquals(len(noChildResp.json), 0)
