@@ -56,6 +56,12 @@ class Job(AccessControlledModel):
             raise ValidationException(
                 'Invalid job status %s.' % status, field='status')
 
+    def _validateChildParent(self, parentId, childId=None):
+        if parentId is not None:
+            self.load(parentId, force=True)
+            if parentId == childId:
+                raise ValidationException('Parent Id cannot be equal to Child Id')
+
     def list(self, user=None, types=None, statuses=None,
              limit=0, offset=0, sort=None, currentUser=None):
         """
@@ -217,7 +223,7 @@ class Job(AccessControlledModel):
             'timestamps': [],
             'parentId': parentId
         }
-
+        self._validateChildParent(parentId)
         job.update(otherFields)
 
         self.setPublic(job, public=public)
@@ -342,7 +348,7 @@ class Job(AccessControlledModel):
         now = datetime.datetime.utcnow()
         user = None
         otherFields = otherFields or {}
-
+        self._validateChildParent(job['_id'], job['parentId'])
         if job['userId']:
             user = self.model('user').load(job['userId'], force=True)
 
@@ -526,8 +532,6 @@ class Job(AccessControlledModel):
         :param parentId: Id of the parent job
         :type parentId: ObjectId
         """
-        if str(job['_id']) == str(parentId):
-            raise ValueError('Parent Id cannot be equal to Child Id')
 
         return self.updateJob(job, otherFields={'parentId': parentId})
 
