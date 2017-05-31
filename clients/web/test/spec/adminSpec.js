@@ -576,13 +576,16 @@ describe('Test the assetstore page', function () {
 describe('Test the plugins page', function () {
     beforeEach(function () {
         spyOn(girder.server.restartServer, '_callSystemRestart').andCallFake(function () {
+            var restartResolution = $.Deferred();
             window.setTimeout(function () {
                 girder.server.restartServer._lastStartDate = 0;
+                restartResolution.resolve();
             }, 100);
+            return restartResolution.promise();
         });
         // We don't want to really rebuild the web code, so replace the original one with a resolved Promise
         spyOn(girder.server.restartServer, '_rebuildWebClient').andCallFake(function () {
-            return Promise.resolve();
+            return $.Deferred().resolve().promise();
         });
         spyOn(girder.server.restartServer, '_reloadWindow');
     });

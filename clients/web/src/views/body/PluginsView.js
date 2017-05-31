@@ -35,15 +35,18 @@ var PluginsView = View.extend({
                 yesText: 'Restart',
                 confirmCallback: function () {
                     $(e.currentTarget).girderEnable(false);
-                    rebuildWebClient().then(() => {
+                    rebuildWebClient()
+                    .done(() => {
                         events.trigger('g:alert', {
                             text: 'Web client code built successfully',
                             type: 'success',
                             duration: 3000
                         });
-                        return restartServer();
-                    }).then(() => {
-                        $(e.currentTarget).girderEnable(true);
+
+                        restartServer()
+                        .done(() => {
+                            $(e.currentTarget).girderEnable(true);
+                        });
                     });
                 }
             });
