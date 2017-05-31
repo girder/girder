@@ -29,9 +29,26 @@ Vagrant.configure("2") do |config|
     provisioner_type = "ansible"
   end
 
+  client_testing = ENV["ANSIBLE_CLIENT_TESTING"] || false
+  bind_node_modules = (ENV.fetch("BIND_NODE_MODULES", "true") != "false" && !client_testing && !ENV["ANSIBLE_TESTING"])
+
+  if bind_node_modules 
+    $script = <<SCRIPT
+mkdir -p /home/vagrant/girder/node_modules
+chown vagrant:vagrant /home/vagrant/girder/node_modules
+mkdir -p /home/vagrant/girder_node_modules
+chown vagrant:vagrant /home/vagrant/girder_node_modules
+if [[ ! $(grep -q "girder_node_modules" /etc/fstab) ]]; then
+  echo "# bind mount girder node_modules" >> /etc/fstab
+  echo "/home/vagrant/girder_node_modules /home/vagrant/girder/node_modules none defaults,bind 0 0" >> /etc/fstab
+fi
+mount /home/vagrant/girder_node_modules
+SCRIPT
+    config.vm.provision "shell", inline: $script
+  end
+
   config.vm.provision provisioner_type do |ansible|
 
-    client_testing = ENV["ANSIBLE_CLIENT_TESTING"] || false
     if client_testing then
       ansible.groups = {
         "girder" => ["default"]
