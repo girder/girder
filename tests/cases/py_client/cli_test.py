@@ -221,6 +221,17 @@ class PythonCliTestCase(base.TestCase):
         self.assertEqual(ret['exitVal'], 0)
         self.assertIn('Ignoring file hello.txt as it is blacklisted', ret['stdout'])
 
+        # Test with multiple files in a dry-run
+        ret = invokeCli([
+            'upload', str(self.publicFolder['_id']), '--parent-type=folder',
+            os.path.join(localDir, 'hello.txt'),
+            os.path.join(localDir, 'world.txt'), '--dry-run'],
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Uploading Item from hello.txt', ret['stdout'])
+        self.assertIn('Uploading Item from world.txt', ret['stdout'])
+
+        # Actually upload the test data
         ret = invokeCli(args, username='mylogin', password='password', useApiUrl=True)
         self.assertEqual(ret['exitVal'], 0)
         six.assertRegex(
