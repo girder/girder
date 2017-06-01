@@ -249,8 +249,6 @@ var JobListWidget = View.extend({
     },
 
     _fetchWithFilter() {
-        const fetchResolution = $.Deferred();
-
         var filter = {};
         if (this.userId) {
             filter.userId = this.userId;
@@ -262,14 +260,7 @@ var JobListWidget = View.extend({
             filter.statuses = JSON.stringify(this.statusFilter);
         }
         this.collection.params = filter;
-        this.collection.fetch({}, true);
-        var callback = () => {
-            this.collection.off('g:changed', callback);
-            fetchResolution.resolve();
-        };
-        this.collection.on('g:changed', callback);
-
-        return fetchResolution.promise();
+        return this.collection.fetch({}, true);
     }
 });
 
