@@ -129,11 +129,14 @@ def cancel(event):
             logger.warn(msg)
             return
 
-        # Send the task to celery
-        asyncResult = AsyncResult(celeryTaskId)
-        asyncResult.revoke()
-        # Set the job status to canceling
-        ModelImporter.model('job', 'jobs').updateJob(job, status=CustomJobStatus.CANCELING)
+        if job['status'] not in [JobStatus.COMPLETE, JobStatus.ERROR]:
+            # Send the revoke request.
+            asyncResult = AsyncResult(celeryTaskId)
+            asyncResult.revoke()
+
+	    # Set the job status to canceling
+            ModelImporter.model('job', 'jobs').updateJob(job, status=CustomJobStatus.CANCELING)
+	
 
 
 @setting_utilities.validator({

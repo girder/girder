@@ -22,6 +22,7 @@ from girder.models.notification import ProgressState
 
 JOB_HANDLER_LOCAL = 'jobs._local'
 
+
 # integer enum describing job states. Note, no order is implied.
 class JobStatus(object):
     INACTIVE = 0
@@ -77,7 +78,4 @@ class JobStatus(object):
         if event.defaultPrevented and len(event.responses):
             return event.responses[-1]
 
-        return  JobStatus.valid_transitions.get(status)
-
-
-
+        return JobStatus.valid_transitions.get(status)

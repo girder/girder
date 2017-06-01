@@ -418,7 +418,7 @@ class JobsTestCase(base.TestCase):
             jobModel.updateJob(job, status=1234)  # Should fail
 
         with events.bound('jobs.status.validate', 'test', validateStatus), \
-             events.bound('jobs.status.validTransitions', 'test', validTransitions):
+                events.bound('jobs.status.validTransitions', 'test', validTransitions):
             jobModel.updateJob(job, status=1234)  # Should work
 
             with self.assertRaises(ValidationException):
@@ -438,12 +438,11 @@ class JobsTestCase(base.TestCase):
             if event.info == 'a':
                 event.preventDefault().addResponse([JobStatus.INACTIVE])
 
-
         with self.assertRaises(ValidationException):
             jobModel.updateJob(job, status='a')
 
         with events.bound('jobs.status.validate', 'test', validateStatus), \
-             events.bound('jobs.status.validTransitions', 'test', validTransitions):
+                events.bound('jobs.status.validTransitions', 'test', validTransitions):
             jobModel.updateJob(job, status='a')
             self.assertEqual(job['status'], 'a')
 
@@ -641,7 +640,7 @@ class JobsTestCase(base.TestCase):
         # Move to QUEUED and try again
         jobModel.updateJob(job, status=JobStatus.QUEUED)
         jobModel.updateJob(job, status=JobStatus.RUNNING)
-        print jobModel.updateJob(job, status=JobStatus.ERROR)
+        jobModel.updateJob(job, status=JobStatus.ERROR)
 
         # We shouldn't be able to move backwards
         with self.assertRaises(ValidationException):
