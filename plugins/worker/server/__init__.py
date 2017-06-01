@@ -131,14 +131,12 @@ def cancel(event):
             return
 
         if job['status'] not in [JobStatus.COMPLETE, JobStatus.ERROR]:
+            # Set the job status to canceling
+            ModelImporter.model('job', 'jobs').updateJob(job, status=CustomJobStatus.CANCELING)
+
             # Send the revoke request.
             asyncResult = AsyncResult(celeryTaskId)
             asyncResult.revoke()
-
-	    # Set the job status to canceling
-            ModelImporter.model('job', 'jobs').updateJob(job, status=CustomJobStatus.CANCELING)
-	
-
 
 @setting_utilities.validator({
     PluginSettings.BROKER,
