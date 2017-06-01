@@ -117,7 +117,7 @@ def dropTestDatabase(dropModels=True):
     if 'girder_test_' not in dbName:
         raise Exception('Expected a testing database name, but got %s' % dbName)
     if dbName in db_connection.database_names():
-        if (dbName not in usedDBs and 'newdb' in os.environ.get('EXTRADEBUG', '').split()):
+        if dbName not in usedDBs and 'newdb' in os.environ.get('EXTRADEBUG', '').split():
             raise Exception('Warning: database %s already exists' % dbName)
         db_connection.drop_database(dbName)
     usedDBs[dbName] = True
@@ -132,7 +132,7 @@ def dropGridFSDatabase(dbName):
     """
     db_connection = getDbConnection()
     if dbName in db_connection.database_names():
-        if (dbName not in usedDBs and 'newdb' in os.environ.get('EXTRADEBUG', '').split()):
+        if dbName not in usedDBs and 'newdb' in os.environ.get('EXTRADEBUG', '').split():
             raise Exception('Warning: database %s already exists' % dbName)
         db_connection.drop_database(dbName)
     usedDBs[dbName] = True
