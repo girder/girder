@@ -390,7 +390,9 @@ class Job(AccessControlledModel):
             # If our query didn't match anything then our state transition
             # was not valid. So raise an exception
             if update_result.matched_count != 1:
-                msg = 'Invalid state transition to \'%s\'' % status
+                job = self.load(job['_id'], force=True)
+                msg = 'Invalid state transition to \'%s\', Current state is \'%s\'.' % (
+                    status, job['status'])
                 raise ValidationException(msg, field='status')
 
             events.trigger('jobs.job.update.after', {
@@ -428,7 +430,11 @@ class Job(AccessControlledModel):
             job['status'] = status
             previous_states = JobStatus.validTransitions(status)
             if previous_states is None:
-                raise ValidationException('No valid state transition to \'%s\'.' % status)
+                # Get the current state
+                job = self.load(job['_id'], force=True)
+                msg = 'No valid state transition to \'%s\'. Current state is \'%s\'.' % (
+                    status, job['status'])
+                raise ValidationException(msg, field='status')
 
             query['status'] = {
                 '$in': previous_states
