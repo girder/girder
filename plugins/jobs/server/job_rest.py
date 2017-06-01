@@ -33,8 +33,6 @@ class Job(Resource):
         self.route('GET', ('all',), self.listAllJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
-        self.route('GET', (':id', 'child',), self.getChildJobs)
-        self.route('PUT', (':id', 'parent',), self.setParentJob)
         self.route('DELETE', (':id',), self.deleteJob)
         self.route('GET', ('typeandstatus', 'all',), self.allJobsTypesAndStatuses)
         self.route('GET', ('typeandstatus',), self.jobsTypesAndStatuses)
@@ -47,11 +45,14 @@ class Job(Resource):
                'not passed or empty, will use the currently logged in user. If '
                'set to "None", will list all jobs that do not have an owning '
                'user.', required=False)
+        .param('parentId', 'The ID of the parent job to filter child jobs',
+               required=False)
         .jsonParam('types', 'Filter for type', requireArray=True, required=False)
         .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
         .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
     )
-    def listJobs(self, userId, types, statuses, limit, offset, sort, params):
+    def listJobs(self, userId, parentId, types, statuses, limit, offset, sort,
+                 params):
         currentUser = self.getCurrentUser()
         if not userId:
             user = currentUser
@@ -60,10 +61,13 @@ class Job(Resource):
         else:
             user = self.model('user').load(
                 userId, user=currentUser, level=AccessType.READ)
+        if parentId:
+            parentId = self.model('job', 'jobs').load(parentId, force=True)['_id']
 
         return list(self.model('job', 'jobs').list(
             user=user, offset=offset, limit=limit, types=types,
-            statuses=statuses, sort=sort, currentUser=currentUser))
+            statuses=statuses, sort=sort, currentUser=currentUser,
+            parentId=parentId))
 
     @access.admin
     @filtermodel(model='job', plugin='jobs')
@@ -159,27 +163,3 @@ class Job(Resource):
     def jobsTypesAndStatuses(self, params):
         currentUser = self.getCurrentUser()
         return self.model('job', 'jobs').getAllTypesAndStatuses(user=currentUser)
-
-    @access.user
-    @autoDescribeRoute(
-        Description('Set parent for a job.')
-        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs',
-                    level=AccessType.ADMIN)
-        .modelParam('parentId', 'The ID of the parent job.', model='job', plugin='jobs',
-                    destName='parentJob', level=AccessType.ADMIN, paramType='query')
-        .errorResponse('ID was invalid.')
-        .errorResponse('Admin access was denied for the job.', 403)
-    )
-    def setParentJob(self, job, parentJob, params):
-        return self.model('job', 'jobs').setParentJob(job, parentJob['_id'])
-
-    @access.user
-    @autoDescribeRoute(
-        Description('List child jobs for a job.')
-        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs',
-                    level=AccessType.ADMIN)
-        .errorResponse('ID was invalid.')
-        .errorResponse('Admin access was denied for the job.', 403)
-    )
-    def getChildJobs(self, job, params):
-        return self.model('job', 'jobs').listChildJobs(job)
