@@ -28,7 +28,7 @@ JobStatus.registerStatus({
     WORKER_CANCELING: {
         value: 824,
         text: 'Canceling',
-        icon: 'icon-cancel',
+        icon: 'icon-spin3 animate-spin',
         color: '#f89406'
     }
 });
