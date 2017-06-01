@@ -56,14 +56,17 @@ class Job(AccessControlledModel):
             raise ValidationException(
                 'Invalid job status %s.' % status, field='status')
 
-    def _validateChildParent(self, parentId, childId=None):
-        if parentId is not None:
-            self.load(parentId, force=True)
-            if parentId == childId:
-                raise ValidationException('Parent Id cannot be equal to Child Id')
+    def _validateParent(self, parentJobId):
+        self.model('job', 'jobs').load(parentJobId, force=True)
+
+    def _validateChild(self, parentJobId, childJob):
+        if parentJobId == childJob['_id']:
+            raise ValidationException('Child Id cannot be equal to Parent Id')
+        if childJob['parentId']:
+            raise ValidationException('Cannot overwrite the Parent Id')
 
     def list(self, user=None, types=None, statuses=None,
-             limit=0, offset=0, sort=None, currentUser=None):
+             limit=0, offset=0, sort=None, currentUser=None, parentId=None):
         """
         List a page of jobs for a given user.
 
@@ -77,6 +80,7 @@ class Job(AccessControlledModel):
         :param limit: The page limit.
         :param offset: The page offset.
         :param sort: The sort field.
+        :param parentId: Parent Job Id.
         :param currentUser: User for access filtering.
         """
         query = {}
@@ -93,6 +97,8 @@ class Job(AccessControlledModel):
             query['type'] = {'$in': types}
         if statuses is not None:
             query['status'] = {'$in': statuses}
+
+        query['parentId'] = parentId
 
         cursor = self.find(query, sort=sort)
 
@@ -223,7 +229,7 @@ class Job(AccessControlledModel):
             'timestamps': [],
             'parentId': parentId
         }
-        self._validateChildParent(parentId)
+
         job.update(otherFields)
 
         self.setPublic(job, public=public)
@@ -234,7 +240,8 @@ class Job(AccessControlledModel):
 
         if save:
             job = self.save(job)
-
+        if parentId:
+            self._validateParent(parentId)
         if user:
             deserialized_kwargs = job['kwargs']
             job['kwargs'] = json_util.dumps(job['kwargs'])
@@ -348,7 +355,8 @@ class Job(AccessControlledModel):
         now = datetime.datetime.utcnow()
         user = None
         otherFields = otherFields or {}
-        self._validateChildParent(job['_id'], job['parentId'])
+        if 'parentId' in otherFields:
+            self._validateParent(otherFields['parentId'])
         if job['userId']:
             user = self.model('user').load(job['userId'], force=True)
 
@@ -532,7 +540,7 @@ class Job(AccessControlledModel):
         :param parentId: Id of the parent job
         :type parentId: ObjectId
         """
-
+        self._validateChild(parentId, job)
         return self.updateJob(job, otherFields={'parentId': parentId})
 
     def listChildJobs(self, job):
