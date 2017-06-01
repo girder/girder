@@ -4,6 +4,7 @@ import _ from 'underscore';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import View from 'girder/views/View';
 import router from 'girder/router';
+import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 import { defineFlags, formatDate, DATE_SECOND } from 'girder/misc';
 import eventStream from 'girder/utilities/EventStream';
@@ -28,6 +29,27 @@ var JobListWidget = View.extend({
         'change select.g-page-size': function (e) {
             this.collection.pageLimit = parseInt($(e.target).val());
             this.collection.fetch({}, true);
+        },
+        'change input.g-job-checkbox': function (e) {
+            var jobId = $(e.target).closest('tr').attr('g-job-id');
+            if ($(e.target).is(':checked')) {
+
+                this.jobCheckedStates[jobId] = true;
+            } else {
+                delete this.jobCheckedStates[jobId];
+            }
+            this._renderData();
+        },
+        'change input.g-job-checkbox-all': function (e) {
+            if ($(e.target).is(':checked')) {
+                this.jobs.forEach(job => this.jobCheckedStates[job.id] = true);
+            } else {
+                this.jobCheckedStates = {};
+            }
+            this._renderData();
+        },
+        'click .check-menu-dropdown a.g-job-cancel': function (e) {
+            this._cancelJobs();
         }
     },
 
@@ -45,6 +67,17 @@ var JobListWidget = View.extend({
             obj[status.text] = true;
             return obj;
         }, {});
+        this.jobCheckedStates = {};
+        this.jobHighlightStates = {};
+        Object.defineProperty(this, 'jobs', {
+            get: () => this.collection.toArray()
+        });
+        Object.defineProperty(this, 'anyJobChecked', {
+            get: () => Object.keys(this.jobCheckedStates).find(key => this.jobCheckedStates[key])
+        });
+        Object.defineProperty(this, 'allJobChecked', {
+            get: () => !this.jobs.find(job => !this.jobCheckedStates[job.id])
+        });
 
         this.jobGraphWidget = null;
 
@@ -59,8 +92,8 @@ var JobListWidget = View.extend({
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
         this.collection
-            .on('g:changed', this._renderData, this)
-            .on('add', this._renderData, this);
+            .on('g:changed', this._onDataChange, this)
+            .on('add', this._onDataChange, this);
 
         this._fetchWithFilter();
 
@@ -143,6 +176,7 @@ var JobListWidget = View.extend({
     },
 
     columnEnum: defineFlags([
+        'COLUMN_ACTION_CHECKBOX',
         'COLUMN_STATUS_ICON',
         'COLUMN_TITLE',
         'COLUMN_UPDATED',
@@ -189,10 +223,13 @@ var JobListWidget = View.extend({
         return this;
     },
 
-    _renderData: function () {
-        var jobs = this.collection.toArray();
+    _onDataChange: function () {
+        this.jobCheckedStates = {};
+        this._renderData();
+    },
 
-        if (!jobs.length) {
+    _renderData: function () {
+        if (!this.jobs.length) {
             this.$('.g-main-content,.g-job-pagination').hide();
             this.$('.g-no-job-record').show();
             return;
@@ -203,7 +240,7 @@ var JobListWidget = View.extend({
 
         if (this.currentView === 'list') {
             this.$('.g-main-content').html(JobListTemplate({
-                jobs: jobs,
+                jobs: this.jobs,
                 showHeader: this.showHeader,
                 columns: this.columns,
                 columnEnum: this.columnEnum,
@@ -211,12 +248,16 @@ var JobListWidget = View.extend({
                 triggerJobClick: this.triggerJobClick,
                 JobStatus: JobStatus,
                 formatDate: formatDate,
-                DATE_SECOND: DATE_SECOND
+                DATE_SECOND: DATE_SECOND,
+                jobCheckedStates: this.jobCheckedStates,
+                jobHighlightStates: this.jobHighlightStates,
+                allJobChecked: this.allJobChecked,
+                anyJobChecked: this.anyJobChecked
             }));
         }
 
         if (this.currentView === 'timing-history' || this.currentView === 'time') {
-            this.jobGraphWidget.update(jobs);
+            this.jobGraphWidget.update(this.jobs);
         }
 
         if (this.showPaging) {
@@ -225,42 +266,78 @@ var JobListWidget = View.extend({
     },
 
     _statusChange: function (event) {
-        let job = _.find(this.collection.toArray(), job => job.get('_id') === event.data._id);
+        let job = _.find(this.jobs, job => job.get('_id') === event.data._id);
         if (!job) {
             return;
         }
         job.set(event.data);
         this._renderData();
-        this._highlightRecordIfOnList(event.data._id);
+        this.trySetHighlightRecord(event.data._id);
     },
 
     _jobCreated: function (event) {
         this._fetchWithFilter()
-            .done(() => {
-                this._highlightRecordIfOnList(event.data._id);
+            .then(() => {
+                this.trySetHighlightRecord(event.data._id);
             });
     },
 
-    _highlightRecordIfOnList: function (jobId) {
-        if (this.currentView === 'list') {
-            var tr = this.$('tr[g-job-id=' + jobId + ']').addClass('g-highlight');
-            setTimeout(() => tr.removeClass('g-highlight'), 1000);
+    trySetHighlightRecord: function (jobId) {
+        if (this.jobs.find(job => job.id === jobId)) {
+            this.jobHighlightStates[jobId] = true;
+            this._renderData();
+            setTimeout(() => {
+                delete this.jobHighlightStates[jobId];
+                this._renderData();
+            }, 1000);
         }
     },
 
     _fetchWithFilter() {
-        var filter = {};
-        if (this.userId) {
-            filter.userId = this.userId;
-        }
-        if (this.typeFilter) {
-            filter.types = JSON.stringify(this.typeFilter);
-        }
-        if (this.statusFilter) {
-            filter.statuses = JSON.stringify(this.statusFilter);
-        }
-        this.collection.params = filter;
-        return this.collection.fetch({}, true);
+        return new Promise((resolve, reject) => {
+            var filter = {};
+            if (this.userId) {
+                filter.userId = this.userId;
+            }
+            if (this.typeFilter) {
+                filter.types = JSON.stringify(this.typeFilter);
+            }
+            if (this.statusFilter) {
+                filter.statuses = JSON.stringify(this.statusFilter);
+            }
+            this.collection.params = filter;
+            this.collection.fetch({}, true);
+            var callback = () => {
+                this.collection.off('g:changed', callback);
+                resolve();
+            };
+            this.collection.on('g:changed', callback);
+        });
+    },
+
+    _cancelJobs: function () {
+        Promise.all(
+            Object.keys(this.jobCheckedStates)
+                .filter(jobId => {
+                    var status = this.jobs.find(job => job.id === jobId).get('status');
+                    return [JobStatus.CANCELED, JobStatus.SUCCESS, JobStatus.ERROR].indexOf(status) === -1;
+                })
+                .map(jobId => Promise.resolve(restRequest({
+                    path: `job/${jobId}/cancel`,
+                    type: 'PUT',
+                    error: null
+                })))
+        ).then(results => {
+            if (!results.length) {
+                return;
+            }
+            events.trigger('g:alert', {
+                icon: 'ok',
+                text: `Cancel requests sent for ${results.length} ${results.length == 1 ? 'job' : 'jobs'}`,
+                type: 'info',
+                timeout: 4000
+            })
+        });
     }
 });
 

@@ -13,8 +13,7 @@ import '../stylesheets/jobDetailsWidget.styl';
 
 var JobDetailsWidget = View.extend({
     events: {
-        'click .job-cancel': function (event) {
-            event.preventDefault();
+        'click .g-job-cancel': function (event) {
             this._cancelJob();
         }
     },
