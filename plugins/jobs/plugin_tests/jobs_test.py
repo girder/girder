@@ -271,7 +271,8 @@ class JobsTestCase(base.TestCase):
         self.assertTrue('created' not in resp.json)
 
     def testJobProgressAndNotifications(self):
-        job = self.model('job', 'jobs').createJob(
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(
             title='a job', type='t', user=self.users[1], public=True)
 
         path = '/job/%s' % job['_id']
@@ -284,7 +285,7 @@ class JobsTestCase(base.TestCase):
             'progressCurrent': 3,
             'progressMessage': 'Started',
             'notify': 'false',
-            'status': JobStatus.RUNNING
+            'status': JobStatus.QUEUED
         })
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['progress'], {
@@ -297,17 +298,17 @@ class JobsTestCase(base.TestCase):
         # The status update should make it so we now have a timestamp
         self.assertEqual(len(resp.json['timestamps']), 1)
         self.assertEqual(
-            resp.json['timestamps'][0]['status'], JobStatus.RUNNING)
+            resp.json['timestamps'][0]['status'], JobStatus.QUEUED)
         self.assertIn('time', resp.json['timestamps'][0])
 
         # If the status does not change on update, no timestamp should be added
         resp = self.request(path, method='PUT', user=self.users[1], params={
-            'status': JobStatus.RUNNING
+            'status': JobStatus.QUEUED
         })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['timestamps']), 1)
         self.assertEqual(
-            resp.json['timestamps'][0]['status'], JobStatus.RUNNING)
+            resp.json['timestamps'][0]['status'], JobStatus.QUEUED)
 
         # We passed notify=false, so we should only have the job creation notification
         resp = self.request(path='/notification/stream', method='GET',
@@ -363,7 +364,7 @@ class JobsTestCase(base.TestCase):
 
         # Make sure we can update a job and notification creation works
         self.model('job', 'jobs').updateJob(
-            job, status=JobStatus.ERROR, notify=True)
+            job, status=JobStatus.QUEUED, notify=True)
 
         self.assertEqual(job['kwargs'], kwargs)
 
@@ -409,10 +410,15 @@ class JobsTestCase(base.TestCase):
             if event.info == 1234:
                 event.preventDefault().addResponse(True)
 
+        def validTransitions(event):
+            if event.info == 1234:
+                event.preventDefault().addResponse([JobStatus.INACTIVE])
+
         with self.assertRaises(ValidationException):
             jobModel.updateJob(job, status=1234)  # Should fail
 
-        with events.bound('jobs.status.validate', 'test', validateStatus):
+        with events.bound('jobs.status.validate', 'test', validateStatus), \
+             events.bound('jobs.status.validTransitions', 'test', validTransitions):
             jobModel.updateJob(job, status=1234)  # Should work
 
             with self.assertRaises(ValidationException):
@@ -428,10 +434,16 @@ class JobsTestCase(base.TestCase):
             if event.info in states:
                 event.preventDefault().addResponse(True)
 
+        def validTransitions(event):
+            if event.info == 'a':
+                event.preventDefault().addResponse([JobStatus.INACTIVE])
+
+
         with self.assertRaises(ValidationException):
             jobModel.updateJob(job, status='a')
 
-        with events.bound('jobs.status.validate', 'test', validateStatus):
+        with events.bound('jobs.status.validate', 'test', validateStatus), \
+             events.bound('jobs.status.validTransitions', 'test', validTransitions):
             jobModel.updateJob(job, status='a')
             self.assertEqual(job['status'], 'a')
 
@@ -613,3 +625,28 @@ class JobsTestCase(base.TestCase):
         self.assertEquals(len(resp.json), 2)
         # Should return an empty list
         self.assertEquals(len(resp2.json), 0)
+
+    def testJobStateTransitions(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(
+            title='user 0 job', type='t1', user=self.users[0], public=False)
+
+        # We can't move straight to RUNNING or SUCCESS
+        with self.assertRaises(ValidationException):
+            job = jobModel.updateJob(job, status=JobStatus.RUNNING)
+
+        with self.assertRaises(ValidationException):
+            job = jobModel.updateJob(job, status=JobStatus.SUCCESS)
+
+        # Move to QUEUED and try again
+        jobModel.updateJob(job, status=JobStatus.QUEUED)
+        jobModel.updateJob(job, status=JobStatus.RUNNING)
+        print jobModel.updateJob(job, status=JobStatus.ERROR)
+
+        # We shouldn't be able to move backwards
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status=JobStatus.QUEUED)
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status=JobStatus.RUNNING)
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status=JobStatus.INACTIVE)

@@ -177,5 +177,4 @@ class Job(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the job.', 403))
     def cancelJob(self, job, params):
-        print('cancelJob')
         return self.model('job', 'jobs').cancelJob(job)

@@ -359,6 +359,10 @@ class Job(AccessControlledModel):
         if job['userId']:
             user = self.model('user').load(job['userId'], force=True)
 
+        query = {
+            '_id': job['_id']
+        }
+
         updates = {
             '$push': {},
             '$set': {}
@@ -367,7 +371,7 @@ class Job(AccessControlledModel):
         if log is not None:
             self._updateLog(job, log, overwrite, now, notify, user, updates)
         if status is not None:
-            self._updateStatus(job, status, now, notify, user, updates)
+            self._updateStatus(job, status, now, notify, user, query, updates)
         if progressMessage is not None or progressCurrent is not None or progressTotal is not None:
             self._updateProgress(
                 job, progressTotal, progressCurrent, progressMessage, notify, user, updates)
@@ -382,7 +386,12 @@ class Job(AccessControlledModel):
             job['updated'] = now
             updates['$set']['updated'] = now
 
-            self.update({'_id': job['_id']}, update=updates, multi=False)
+            update_result = self.update(query, update=updates, multi=False)
+            # If our query didn't match anything then our state transition
+            # was not valid. So raise an exception
+            if update_result.matched_count != 1:
+                msg = 'Invalid state transition to \'%s\'' % status
+                raise ValidationException(msg, field='status')
 
             events.trigger('jobs.job.update.after', {
                 'job': job
@@ -405,7 +414,7 @@ class Job(AccessControlledModel):
                     'text': log
                 }, user=user, expires=expires)
 
-    def _updateStatus(self, job, status, now, notify, user, updates):
+    def _updateStatus(self, job, status, now, notify, user, query, updates):
         """Helper for updating job progress information."""
         try:
             status = int(status)
@@ -417,6 +426,14 @@ class Job(AccessControlledModel):
 
         if status != job['status']:
             job['status'] = status
+            previous_states = JobStatus.validTransitions(status)
+            if previous_states is None:
+                raise ValidationException('No valid state transition to \'%s\'.' % status)
+
+            query['status'] = {
+                '$in': previous_states
+            }
+
             updates['$set']['status'] = status
             ts = {
                 'status': status,
