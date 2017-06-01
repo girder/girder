@@ -52,7 +52,8 @@ class CustomJobStatus(object):
         JobStatus.ERROR: [FETCHING_INPUT, CONVERTING_INPUT, CONVERTING_OUTPUT,
                           PUSHING_OUTPUT, CANCELING, JobStatus.QUEUED,
                           JobStatus.RUNNING],
-        JobStatus.CANCELED: [CANCELING]
+        # The last two are allow for revoke called from outside Girder
+        JobStatus.CANCELED: [CANCELING, JobStatus.QUEUED, JobStatus.RUNNING]
     }
 
     @classmethod
