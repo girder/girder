@@ -514,6 +514,11 @@ module.exports = function (grunt) {
         if (buildPlugin) {
             processPluginDependencies(plugin, dir, config);
 
+            // Make sure the npm task runs before plugin build tasks
+            grunt.config.set(`default.plugin:${plugin}`, {
+                dependencies: ['npm-install-plugins']
+            });
+
             // For backward compatibility, we still generate the old 'npm-install'
             // task as a noop, but ensure that the real npm install task is
             // executed as a prerequisite.
