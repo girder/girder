@@ -43,6 +43,18 @@ class CustomJobStatus(object):
     PUSHING_OUTPUT = 823
     CANCELING = 824
 
+    valid_transitions = {
+        FETCHING_INPUT: [JobStatus.RUNNING],
+        CONVERTING_INPUT: [JobStatus.RUNNING, FETCHING_INPUT],
+        CONVERTING_OUTPUT: [JobStatus.RUNNING],
+        PUSHING_OUTPUT: [JobStatus.RUNNING, CONVERTING_OUTPUT],
+        CANCELING: [JobStatus.INACTIVE, JobStatus.QUEUED, JobStatus.RUNNING],
+        JobStatus.ERROR: [FETCHING_INPUT, CONVERTING_INPUT, CONVERTING_OUTPUT,
+                          PUSHING_OUTPUT, CANCELING, JobStatus.QUEUED,
+                          JobStatus.RUNNING],
+        JobStatus.CANCELED: [CANCELING]
+    }
+
     @classmethod
     def isValid(cls, status):
         return status in (
@@ -52,6 +64,10 @@ class CustomJobStatus(object):
             cls.PUSHING_OUTPUT,
             cls.CANCELING
         )
+
+    @classmethod
+    def validTransition(cls, status):
+        return cls.valid_transitions.get(status)
 
 
 def getCeleryApp():
@@ -145,7 +161,7 @@ def validateApiUrl(doc):
 
 def validateJobStatus(event):
     """Allow our custom job status values."""
-    if CustomJobStatus.isValid(event.info):
+    if event.info['handler'] == 'worker_handler' and CustomJobStatus.isValid(event.info):
         event.preventDefault().addResponse(True)
 
 
