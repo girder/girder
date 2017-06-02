@@ -1522,7 +1522,8 @@ class GirderClient(object):
         create a hierarchy on the server under the parentId.
 
         :param filePattern: a glob pattern for files that will be uploaded,
-            recursively copying any file folder structures.
+            recursively copying any file folder structures.  If this is a list,
+            each item in the list will be used in turn.
         :type filePattern: str
         :param parentId: Id of the parent in Girder or resource path.
         :type parentId: ObjectId or Unix-style path to the resource in Girder.
@@ -1538,32 +1539,34 @@ class GirderClient(object):
             do not actually communicate with the server.
         :type dryRun: bool
         """
+        filePatternList = filePattern if isinstance(filePattern, list) else [filePattern]
         blacklist = blacklist or []
         empty = True
         parentId = self._checkResourcePath(parentId)
-        for currentFile in glob.iglob(filePattern):
-            empty = False
-            currentFile = os.path.normpath(currentFile)
-            filename = os.path.basename(currentFile)
-            if filename in blacklist:
-                if dryRun:
-                    print('Ignoring file %s as it is blacklisted' % filename)
-                continue
-            if os.path.isfile(currentFile):
-                if parentType != 'folder':
-                    raise Exception(
-                        'Attempting to upload an item under a %s. Items can only be added to '
-                        'folders.' % parentType)
+        for pattern in filePatternList:
+            for currentFile in glob.iglob(pattern):
+                empty = False
+                currentFile = os.path.normpath(currentFile)
+                filename = os.path.basename(currentFile)
+                if filename in blacklist:
+                    if dryRun:
+                        print('Ignoring file %s as it is blacklisted' % filename)
+                    continue
+                if os.path.isfile(currentFile):
+                    if parentType != 'folder':
+                        raise Exception(
+                            'Attempting to upload an item under a %s. Items can only be added to '
+                            'folders.' % parentType)
+                    else:
+                        self._uploadAsItem(
+                            os.path.basename(currentFile), parentId, currentFile, reuseExisting,
+                            dryRun=dryRun)
                 else:
-                    self._uploadAsItem(
-                        os.path.basename(currentFile), parentId, currentFile, reuseExisting,
-                        dryRun=dryRun)
-            else:
-                self._uploadFolderRecursive(
-                    currentFile, parentId, parentType, leafFoldersAsItems, reuseExisting,
-                    blacklist=blacklist, dryRun=dryRun)
+                    self._uploadFolderRecursive(
+                        currentFile, parentId, parentType, leafFoldersAsItems, reuseExisting,
+                        blacklist=blacklist, dryRun=dryRun)
         if empty:
-            print('No matching files: ' + filePattern)
+            print('No matching files: ' + repr(filePattern))
 
     def _checkResourcePath(self, objId):
         if isinstance(objId, six.string_types) and objId.startswith('/'):
