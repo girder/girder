@@ -33,22 +33,24 @@ var JobListWidget = View.extend({
         'change input.g-job-checkbox': function (e) {
             var jobId = $(e.target).closest('tr').attr('g-job-id');
             if ($(e.target).is(':checked')) {
-
                 this.jobCheckedStates[jobId] = true;
             } else {
                 delete this.jobCheckedStates[jobId];
             }
             this._renderData();
         },
+        'click input.g-job-checkbox-all': function (e) {
+            e.stopPropagation();
+        },
         'change input.g-job-checkbox-all': function (e) {
             if ($(e.target).is(':checked')) {
-                this.jobs.forEach(job => this.jobCheckedStates[job.id] = true);
+                this.jobs.forEach(job => { this.jobCheckedStates[job.id] = true; });
             } else {
                 this.jobCheckedStates = {};
             }
             this._renderData();
         },
-        'click .check-menu-dropdown a.g-job-cancel': function (e) {
+        'click .check-menu-dropdown a.g-jobs-list-cancel': function (e) {
             this._cancelJobs();
         }
     },
@@ -333,10 +335,10 @@ var JobListWidget = View.extend({
             }
             events.trigger('g:alert', {
                 icon: 'ok',
-                text: `Cancel requests sent for ${results.length} ${results.length == 1 ? 'job' : 'jobs'}`,
+                text: `Cancel requests sent for ${results.length} ${results.length === 1 ? 'job' : 'jobs'}`,
                 type: 'info',
                 timeout: 4000
-            })
+            });
         });
     }
 });
