@@ -2,22 +2,22 @@ module.exports = {
   "extends": "semistandard",
   "rules": {
     "indent": [
-      2,
+      "error",
       4,
       {
         "SwitchCase": 1
       }
     ],
     "space-before-function-paren": [
-      2,
+      "error",
       {
         "anonymous": "always",
         "named": "never"
       }
     ],
-    "one-var": 0,
+    "one-var": "off",
     "no-multi-spaces": [
-      2,
+      "error",
       {
         "exceptions": {
           "VariableDeclarator": true,
@@ -25,52 +25,52 @@ module.exports = {
         }
       }
     ],
-    "backbone/collection-model": 2,
-    "backbone/defaults-on-top": 0,
-    "backbone/event-scope": 0,
-    "backbone/events-on-top": [2, ["tagName", "className"]],
-    "backbone/events-sort": 0,
-    "backbone/initialize-on-top": [2, {
+    "backbone/collection-model": "error",
+    "backbone/defaults-on-top": "off",
+    "backbone/event-scope": "off",
+    "backbone/events-on-top": ["error", ["tagName", "className"]],
+    "backbone/events-sort": "off",
+    "backbone/initialize-on-top": ["error", {
       View: ["tagName", "className", "events"],
       Model: ["defaults", "url", "urlRoot"],
       Collection: ["model", "url"]
     }],
-    "backbone/model-defaults": 0,
-    "backbone/no-changed-set": 0,
-    "backbone/no-collection-models": 0,
-    "backbone/no-constructor": 2,
-    "backbone/no-el-assign": 0,
-    "backbone/no-model-attributes": 2,
-    "backbone/no-native-jquery": 0,
-    "backbone/no-silent": 0,
-    "backbone/no-view-collection-models": 2,
-    "backbone/no-view-model-attributes": 0,
-    "backbone/no-view-onoff-binding": 0,
-    "backbone/no-view-qualified-jquery": 0,
-    "backbone/render-return": 0,
-    "underscore/collection-return": 2,
+    "backbone/model-defaults": "off",
+    "backbone/no-changed-set": "off",
+    "backbone/no-collection-models": "off",
+    "backbone/no-constructor": "error",
+    "backbone/no-el-assign": "off",
+    "backbone/no-model-attributes": "error",
+    "backbone/no-native-jquery": "off",
+    "backbone/no-silent": "off",
+    "backbone/no-view-collection-models": "error",
+    "backbone/no-view-model-attributes": "off",
+    "backbone/no-view-onoff-binding": "off",
+    "backbone/no-view-qualified-jquery": "off",
+    "backbone/render-return": "off",
+    "underscore/collection-return": "error",
     "underscore/matches-shorthand": [
-      2,
+      "error",
       "always"
     ],
-    "underscore/no-unnecessary-bind": 2,
-    "underscore/prefer-compact": 2,
-    "underscore/prefer-constant": 2,
-    "underscore/prefer-filter": 2,
-    "underscore/prefer-findwhere": 2,
-    "underscore/prefer-invoke": 2,
-    "underscore/prefer-map": 2,
-    "underscore/prefer-matches": 2,
-    "underscore/prefer-noop": 0,
-    "underscore/prefer-pluck": 2,
-    "underscore/prefer-reject": 2,
-    "underscore/prefer-times": 2,
-    "underscore/prefer-underscore-method": 0,
-    "underscore/prefer-underscore-typecheck": 2,
-    "underscore/prefer-where": 2,
-    "underscore/preferred-alias": 2,
+    "underscore/no-unnecessary-bind": "error",
+    "underscore/prefer-compact": "error",
+    "underscore/prefer-constant": "error",
+    "underscore/prefer-filter": "error",
+    "underscore/prefer-findwhere": "error",
+    "underscore/prefer-invoke": "error",
+    "underscore/prefer-map": "error",
+    "underscore/prefer-matches": "error",
+    "underscore/prefer-noop": "off",
+    "underscore/prefer-pluck": "error",
+    "underscore/prefer-reject": "error",
+    "underscore/prefer-times": "error",
+    "underscore/prefer-underscore-method": "off",
+    "underscore/prefer-underscore-typecheck": "error",
+    "underscore/prefer-where": "error",
+    "underscore/preferred-alias": "error",
     "underscore/prop-shorthand": [
-      2,
+      "error",
       "always"
     ]
   },
