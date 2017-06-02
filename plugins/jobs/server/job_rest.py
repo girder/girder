@@ -45,13 +45,14 @@ class Job(Resource):
                'not passed or empty, will use the currently logged in user. If '
                'set to "None", will list all jobs that do not have an owning '
                'user.', required=False)
-        .param('parentId', 'The ID of the parent job to filter child jobs',
-               required=False)
+        .modelParam('parentId', 'Id of the parent job.', model='job',
+                    plugin='jobs', level=AccessType.ADMIN,
+                    destName='parentJob', paramType='query', required=False)
         .jsonParam('types', 'Filter for type', requireArray=True, required=False)
         .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
         .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
     )
-    def listJobs(self, userId, parentId, types, statuses, limit, offset, sort,
+    def listJobs(self, userId, parentJob, types, statuses, limit, offset, sort,
                  params):
         currentUser = self.getCurrentUser()
         if not userId:
@@ -61,8 +62,10 @@ class Job(Resource):
         else:
             user = self.model('user').load(
                 userId, user=currentUser, level=AccessType.READ)
-        if parentId:
-            parentId = self.model('job', 'jobs').load(parentId, force=True)['_id']
+
+        parentId = None
+        if parentJob:
+            parentId = parentJob['_id']
 
         return list(self.model('job', 'jobs').list(
             user=user, offset=offset, limit=limit, types=types,
