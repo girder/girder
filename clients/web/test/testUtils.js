@@ -2,7 +2,7 @@
  * Contains utility functions used in the Girder Jasmine tests.
  */
 
-var girderTest = girderTest || {};
+var girderTest = window.girderTest || {};
 
 window.alert = function (msg) {
     // We want to have no alerts in the code-base; alerts block phantomjs and

@@ -124,6 +124,7 @@ router.route('item/:id', 'item', function (itemId, params) {
  * Plugins
  */
 import PluginsView from 'girder/views/body/PluginsView';
+import UsersView from 'girder/views/body/UsersView';
 router.route('plugins', 'plugins', function () {
     // Fetch the plugin list
     restRequest({
@@ -209,7 +210,6 @@ router.route('useraccount/:id/verification/:token', 'accountVerify', function (i
 /**
  * Users
  */
-import UsersView from 'girder/views/body/UsersView';
 router.route('users', 'users', function (params) {
     events.trigger('g:navigateTo', UsersView, params || {});
     events.trigger('g:highlightItem', 'UsersView');
