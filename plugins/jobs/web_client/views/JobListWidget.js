@@ -335,7 +335,7 @@ var JobListWidget = View.extend({
             }
             events.trigger('g:alert', {
                 icon: 'ok',
-                text: `Cancel requests sent for ${results.length} ${results.length === 1 ? 'job' : 'jobs'}`,
+                text: `Cancel ${results.length === 1 ? 'request' : 'requests'} sent for ${results.length} ${results.length === 1 ? 'job' : 'jobs'}`,
                 type: 'info',
                 timeout: 4000
             });
