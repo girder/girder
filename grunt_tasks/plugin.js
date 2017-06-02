@@ -537,8 +537,11 @@ module.exports = function (grunt) {
         configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name), true);
     });
 
-    // This is noop that exists for backwards compatibility in case any plugins rely
-    // on its existence.
+    /**
+     * This task is noop that exists for backwards compatibility in case any plugins rely
+     * on its existence.
+     * @deprecated: remove in v3
+     */
     grunt.registerTask(
         'npm-install', 'Install plugin NPM dependencies (deprecated)',
         _.constant(true)
