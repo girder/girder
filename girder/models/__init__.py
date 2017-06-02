@@ -18,6 +18,7 @@
 ###############################################################################
 
 import pymongo
+from six.moves import urllib
 
 from pymongo.read_preferences import ReadPreference
 from girder import logger, logprint
@@ -80,6 +81,12 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
         'replicaSet': replicaSet
     }
     clientOptions.update(kwargs)
+    # if the connection URI overrides any option, honor it above our own
+    # settings.
+    uriParams = urllib.parse.parse_qs(urllib.parse.urlparse(uri).query)
+    for key in uriParams:
+        if key in clientOptions:
+            del clientOptions[key]
 
     if uri is None:
         dbUriRedacted = 'mongodb://localhost:27017/girder'
