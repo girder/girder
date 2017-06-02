@@ -197,8 +197,12 @@ describe('Test item creation, editing, and deletion', function () {
             var id = window.location.hash.split('/')[1].split('?')[0];
             /* Create a link file */
             girder.rest.restRequest({
-                path: 'file', type: 'POST',
-                data: {parentType: 'item', parentId: id, name: 'File 1',
+                path: 'file',
+                type: 'POST',
+                data: {
+                    parentType: 'item',
+                    parentId: id,
+                    name: 'File 1',
                     linkUrl: 'http://nowhere.com/file1'
                 },
                 async: false

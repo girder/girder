@@ -99,12 +99,17 @@ describe('Test routing paths', function () {
     });
     it('create an item in the private folder of the user', function () {
         runs(function () {
-            girder.rest.restRequest({type: 'POST', path: 'file', data: {
-                parentType: 'folder',
-                parentId: ids.userFolder,
-                name: 'Link File',
-                linkUrl: 'http://data.kitware.com'
-            }, async: false});
+            girder.rest.restRequest({
+                type: 'POST',
+                path: 'file',
+                data: {
+                    parentType: 'folder',
+                    parentId: ids.userFolder,
+                    name: 'Link File',
+                    linkUrl: 'http://data.kitware.com'
+                },
+                async: false
+            });
         });
         _getFirstId(girder.collections.ItemCollection, ids, 'item',
             function () {
