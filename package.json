@@ -12,7 +12,7 @@
     "url": "https://github.com/girder/eslint-config-girder.git"
   },
   "peerDependencies": {
-    "eslint-config-semistandard": "^6.0.2"
+    "eslint-config-semistandard": ">=6.0.2"
   },
   "keywords": [
     "eslint",
