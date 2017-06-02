@@ -576,15 +576,18 @@ describe('Test the assetstore page', function () {
 describe('Test the plugins page', function () {
     beforeEach(function () {
         spyOn(girder.server.restartServer, '_callSystemRestart').andCallFake(function () {
+            var restartResolution = $.Deferred();
             window.setTimeout(function () {
                 girder.server.restartServer._lastStartDate = 0;
+                restartResolution.resolve();
             }, 100);
-        });
-        // We don't want to really rebuild the web code, so replace the original one with a resolved Promise
-        spyOn(girder.server.restartServer, '_rebuildWebClient').andCallFake(function () {
-            return Promise.resolve();
+            return restartResolution.promise();
         });
         spyOn(girder.server.restartServer, '_reloadWindow');
+        // We don't want to really rebuild the web code, so replace the original one with a resolved Promise
+        spyOn(girder.server.rebuildWebClient, '_rebuildWebClient').andCallFake(function () {
+            return $.Deferred().resolve().promise();
+        });
     });
 
     it('Test that anonymous loading plugins page prompts login', function () {
