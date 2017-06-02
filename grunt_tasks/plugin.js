@@ -104,7 +104,7 @@ module.exports = function (grunt) {
         });
 
         if (child.status !== 0) {
-            throw new Error(`"npm ${args.join(' ')}" failed`);
+            grunt.fail.fatal(`"npm ${args.join(' ')}" failed`);
         }
     }
 
