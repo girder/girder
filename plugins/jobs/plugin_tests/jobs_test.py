@@ -576,9 +576,9 @@ class JobsTestCase(base.TestCase):
                            parentId=parentJob['_id'])
 
         # Should return a list with 2 jobs
-        self.assertEquals(len(jobModel.listChildJobs(parentJob)), 2)
+        self.assertEquals(len(list(jobModel.listChildJobs(parentJob))), 2)
         # Should return an empty list
-        self.assertEquals(len(jobModel.listChildJobs(childJob)), 0)
+        self.assertEquals(len(list(jobModel.listChildJobs(childJob))), 0)
 
     def testListChildJobsRest(self):
         jobModel = self.model('job', 'jobs')

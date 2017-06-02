@@ -555,8 +555,7 @@ class Job(AccessControlledModel):
         query = {'parentId': job['_id']}
         cursor = self.find(query)
         user = self.model('user').load(job['userId'], force=True)
-        jobList = list(self.filterResultsByPermission(cursor=cursor,
+        for r in self.filterResultsByPermission(cursor=cursor,
                                                       user=user,
-                                                      level=AccessType.READ))
-
-        return jobList
+                                                      level=AccessType.READ):
+            yield r
