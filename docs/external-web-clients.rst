@@ -73,7 +73,7 @@ application bootstrapping
              fetch: false,  // disable automatic fetching of the user model
              history: false,// disable initialization of Backbone's router
              render: false  // disable automatic rendering on start
-         }).then(_.bind(function () {
+         }).done(() => {
 
             // set the current user somehow
             girder.currentUser = new girder.models.UserModel({...});
@@ -87,7 +87,7 @@ application bootstrapping
 
             // start up the router with the `pushState` option enabled
             Backbone.history.start({pushState: true});
-         }, this));
+         });
       }
    });
 

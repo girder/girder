@@ -254,6 +254,7 @@ var Collection = Backbone.Collection.extend({
 
                     this.trigger('g:changed');
                 }
+                return undefined;
             });
             xhr.girder = {fetch: true};
             return result;
