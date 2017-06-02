@@ -96,4 +96,3 @@ var UsersView = View.extend({
 });
 
 export default UsersView;
-

@@ -340,4 +340,3 @@ var UploadWidget = View.extend({
 });
 
 export default UploadWidget;
-

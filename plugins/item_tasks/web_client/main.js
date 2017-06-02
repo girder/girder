@@ -1,3 +1,5 @@
+/* eslint-disable import/first */
+
 import $ from 'jquery';
 import _ from 'underscore';
 import './routes';

@@ -104,4 +104,3 @@ var FolderListWidget = View.extend({
 });
 
 export default FolderListWidget;
-

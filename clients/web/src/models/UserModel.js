@@ -122,4 +122,3 @@ var UserModel = Model.extend({
 });
 
 export default UserModel;
-

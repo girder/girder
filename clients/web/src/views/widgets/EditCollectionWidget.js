@@ -107,4 +107,3 @@ var EditCollectionWidget = View.extend({
 });
 
 export default EditCollectionWidget;
-

@@ -197,4 +197,3 @@ var GroupModel = AccessControlledModel.extend({
 });
 
 export default GroupModel;
-

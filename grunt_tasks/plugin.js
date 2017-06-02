@@ -142,7 +142,7 @@ module.exports = function (grunt) {
 
         // Find the plugin's webpack helper file; default to the identity
         // function.
-        var webpackHelperFile = path.resolve(dir, config.webpack && config.webpack.configHelper || 'webpack.helper.js');
+        var webpackHelperFile = path.resolve(dir, (config.webpack && config.webpack.configHelper) || 'webpack.helper.js');
         var webpackHelper;
         if (fs.existsSync(webpackHelperFile)) {
             grunt.log.writeln(`  >> Loading webpack helper from ${webpackHelperFile}`);
@@ -156,14 +156,14 @@ module.exports = function (grunt) {
         // files named "plugin.min.js" into the Girder web client at runtime, so
         // the user can control whether this is a "Girder client extension" or
         // just a standalone web client.
-        var output = config.webpack && config.webpack.output || 'plugin';
+        var output = (config.webpack && config.webpack.output) || 'plugin';
         var deps = config.dependencies || [];
         var pluginNodeDir = path.join(getPluginLocalNodePath(plugin), 'node_modules');
 
         // Add webpack target and name resolution for this plugin if
         // web_client/main.js (or user-specified name) exists.
         var webClient = path.resolve(dir + '/web_client');
-        var mains = config.webpack && config.webpack.main || {};
+        var mains = (config.webpack && config.webpack.main) || {};
 
         if (_.isString(mains)) {
             // If main was specified as a string, convert to an object

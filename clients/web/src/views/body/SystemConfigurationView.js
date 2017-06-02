@@ -192,4 +192,3 @@ var SystemConfigurationView = View.extend({
 });
 
 export default SystemConfigurationView;
-

@@ -7,6 +7,7 @@
  * the context of that test application, and afterwards runs our custom coverage
  * handler on the coverage data.
  */
+/* eslint-disable node/no-deprecated-api */
 /* globals phantom, WebPage, jasmine, girderTest */
 
 var system = require('system');

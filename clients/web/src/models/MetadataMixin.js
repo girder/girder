@@ -86,4 +86,3 @@ var MetadataMixin = {
 };
 
 export default MetadataMixin;
-

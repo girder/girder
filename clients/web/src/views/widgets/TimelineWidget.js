@@ -164,4 +164,3 @@ var TimelineWidget = View.extend({
 });
 
 export default TimelineWidget;
-

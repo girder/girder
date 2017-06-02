@@ -158,4 +158,3 @@ var FileListWidget = View.extend({
 });
 
 export default FileListWidget;
-

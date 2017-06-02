@@ -18,4 +18,3 @@ var LayoutFooterView = View.extend({
 });
 
 export default LayoutFooterView;
-
