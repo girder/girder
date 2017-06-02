@@ -480,68 +480,6 @@ login via a username and password. This allows alternative authentication
 modes to be used instead of core, or prior to attempting core authentication.
 The event info contains two keys, "login" and "password".
 
-Automated testing for plugins
-*****************************
-
-Girder makes it easy to add automated testing to your plugin that integrates
-with the main Girder testing framework. In general, any CMake code that you
-want to be executed for your plugin can be performed by adding a
-**plugin.cmake** file in your plugin. ::
-
-    cd plugins/cats ; touch plugin.cmake
-
-That file will be automatically included when Girder is configured by CMake.
-To add tests for your plugin, you can make use of some handy CMake functions
-provided by the core system. For example:
-
-.. code-block:: cmake
-
-    add_python_test(cat PLUGIN cats)
-    add_python_style_test(python_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/server")
-
-Then you should create a ``plugin_tests`` package in your plugin: ::
-
-    mkdir plugin_tests ; cd plugin-tests ; touch __init__.py cat_test.py
-
-The **cat_test.py** file should look like: ::
-
-    from tests import base
-
-
-    def setUpModule():
-        base.enabledPlugins.append('cats')
-        base.startServer()
-
-
-    def tearDownModule():
-        base.stopServer()
-
-
-    class CatsCatTestCase(base.TestCase):
-
-        def testCatsWork(self):
-            ...
-
-You can use all of the testing utilities provided by the ``base.TestCase`` class
-from core. You will also get coverage results for your plugin aggregated with
-the main Girder coverage results if coverage is enabled.
-
-Plugins can also use the external data interface provided by Girder as described
-in :ref:`use_external_data`.  For plugins, the data key files should be placed
-inside a directory called ``plugin_tests/data/``.  When referencing the
-files, they must be prefixed by your plugin name as follows
-
-.. code-block:: cmake
-
-    add_python_test(my_test EXTERNAL_DATA plugins/cats/test_file.txt)
-
-Then inside your unittest, the file will be available under the main data path
-as ``os.environ['GIRDER_TEST_DATA_PREFIX'] + '/plugins/cats/test_file.txt'``.
-
-.. note:: When enabling coverage in a plugin, only files residing under the plugin's
-          ``server`` directory will be included.  See :ref:`python-coverage-paths`
-          to change the paths used to generate python coverage reports.
-
 .. _client-side-plugins:
 
 Extending the Client-Side Application
@@ -637,55 +575,6 @@ default):
             "defaultLoaders": false
         }
     }
-
-Linting and Style Checking Client-Side Code
-*******************************************
-
-Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its
-own JavaScript files.  Developers can easily add the same static analysis
-tests to their own plugins using a CMake function call defined by Girder.
-
-.. code-block:: cmake
-
-    add_eslint_test(
-        js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
-    )
-
-This will check all files with the extension **.js** inside of the ``cats`` plugin's
-``web_client`` directory using the same style rules enforced within Girder itself.
-Plugin developers can also choose to extend or even override entirely the core style
-rules.  To do this, you only need to provide a path to a custom ESLint configuration
-file as follows.
-
-.. code-block:: cmake
-
-    add_eslint_test(
-        js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
-        ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/cats/.eslintrc"
-    )
-
-You can `configure ESLint <http://eslint.org/docs/user-guide/configuring.html>`_
-inside this file however you choose.  For example, to extend Girder's own
-configuration by adding a new global variable ``cats`` and you really hate using
-semicolons, you can put the following in your **.eslintrc**
-
-.. code-block:: javascript
-
-    {
-        "extends": "../../.eslintrc",
-        "globals": {
-            "cats": true
-        },
-        "rules": {
-            "semi": 0
-        }
-    }
-
-You can also lint your pug templates using the ``pug-lint`` tool.
-
-.. code-block:: cmake
-
-   add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
 
 Installing custom dependencies from npm
 ***************************************
@@ -947,3 +836,138 @@ route to your plugin.
             router.navigate('/collections', {trigger: true});
         }, this).fetch();
     });
+
+Automated testing for plugins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Girder makes it easy to add automated testing to your plugin that integrates with the main Girder
+testing framework. In general, any CMake code for configuring testing can be added to the
+``plugin.cmake`` file in your plugin. For example:
+
+.. code-block:: bash
+
+    cd plugins/cats ; touch plugin.cmake
+
+That file will be automatically included when Girder is configured by CMake. To add tests for your
+plugin, you can make use of a handy CMake function provided by the core system. Simply add to your
+``plugin.cmake``:
+
+.. code-block:: cmake
+
+    add_standard_plugin_tests()
+
+This will automatically run static analysis tools on most parts of your plugin, including the
+server, client, and testing files. Additionally, it will detect and run any tests in the special
+``plugin_tests`` directory of your plugin, provided that server-side tests are named with the suffix
+``_test.py`` (and the directory contains a ``__init__.py`` to make it a Python module) and
+client-side tests are named with the suffix ``Spec.js``. For example:
+
+.. code-block:: bash
+
+    cd plugins/cats; mkdir plugin_tests ; cd plugin_tests ; touch __init__.py cat_test.py catSpec.js
+
+For more sophisticated configuration of plugin testing, options to ``add_standard_plugin_tests`` can
+be used to disable some of the automatically-added tests, so they can be explicitly added with
+additional options. See the ``add_standard_plugin_tests`` implementation for full option
+documentation.
+
+Testing Server-Side Code
+************************
+
+The ``plugin_tests/cat_test.py`` file should look like:
+
+.. code-block:: python
+
+    from tests import base
+
+
+    def setUpModule():
+        base.enabledPlugins.append('cats')
+        base.startServer()
+
+
+    def tearDownModule():
+        base.stopServer()
+
+
+    class CatsCatTestCase(base.TestCase):
+
+        def testCatsWork(self):
+            ...
+
+You can use all of the testing utilities provided by the ``base.TestCase`` class
+from core. You will also get coverage results for your plugin aggregated with
+the main Girder coverage results if coverage is enabled.
+
+.. note:: When enabling coverage in a plugin, only files residing under the plugin's
+          ``server`` directory will be included.  See :ref:`python-coverage-paths`
+          to change the paths used to generate python coverage reports.
+
+Testing Client-Side Code
+************************
+
+Web client components may also be tested, using the
+`Jasmine 1.3 test framework <https://jasmine.github.io/1.3/introduction>`_.
+
+For example, the cats plugin would define tests in a ``plugin_tests/catSpec.js`` file.
+
+Using External Data Artifacts
+*****************************
+
+Plugin tests can also use the external data interface provided by Girder as described in
+:ref:`use_external_data`.  The data key files should be placed inside a directory
+called ``plugin_tests/data/``.  Tests which depend on these files should be explicitly added using
+the ``EXTERNAL_DATA`` option, with arguments of data file names (without the hash file extension)
+prefixed by ``plugins/<plugin_name>``. For example:
+
+.. code-block:: cmake
+
+    add_standard_plugin_tests(NO_SERVER_TESTS)
+    add_python_test(cats_server_test PLUGIN cats EXTERNAL_DATA plugins/cats/test_file.txt)
+
+Then, within your test environment, the file will be available
+under the a location specified by the ``GIRDER_TEST_DATA_PREFIX`` environment variable, in the
+subdirectory ``plugins/<plugin_name>``. For example, in the same ``cats_server_test``, the file
+can be loaded at the path:
+
+.. code-block:: python
+
+    os.path.join(os.environ['GIRDER_TEST_DATA_PREFIX'], 'plugins', 'cats', 'test_file.txt')
+
+
+Customizing Static Analysis of Client-Side Code
+***********************************************
+
+Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its own JavaScript files.
+If the ``add_standard_plugin_tests`` CMake macro is used, these same tests are run on all
+Javascript code in the ``web_client`` and ``plugin_tests`` directories of a plugin.
+
+However, plugin developers can also choose to extend or even entirely override the core style rules.
+To do this, you only need to provide a path to a custom ESLint configuration file, using the
+``ESLINT_CONFIG_FILE`` option to ``add_eslint_test``. Of course, since ``add_standard_plugin_tests``
+should be prevented from adding these tests, static analysis should also be manually added to PugJS
+template files with ``add_puglint_test``. For example:
+
+.. code-block:: cmake
+
+    add_standard_plugin_tests(NO_CLIENT)
+    add_eslint_test(js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
+        ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/cats/.eslintrc")
+    add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
+
+You can `configure ESLint <http://eslint.org/docs/user-guide/configuring.html>`_ inside your
+``.eslintrc`` file however you choose.  For example, to extend Girder's own configuration to add
+a new global variable ``cats`` and stop requiring semicolons to terminate statements, you can put
+the following in your ``.eslintrc``:
+
+.. code-block:: javascript
+
+    {
+        "extends": "../../.eslintrc",
+        "globals": {
+            "cats": true
+        },
+        "rules": {
+            "semi": 0
+        }
+    }
