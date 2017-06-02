@@ -209,8 +209,7 @@ var WidgetModel = Backbone.Model.extend({
             return this._validateVector(model.value);
         } else if (model.type === 'new-file') {
             return this._validateGirderModel(model.value) ||
-                (!model.fileName || undefined) &&
-                'No file name provided';
+                (model.fileName ? undefined : 'No file name provided');
         } else if (this.isGirderModel()) {
             return this._validateGirderModel(model.value);
         }
