@@ -36,18 +36,20 @@ var PluginsView = View.extend({
                 confirmCallback: function () {
                     $(e.currentTarget).girderEnable(false);
                     rebuildWebClient()
-                    .done(() => {
-                        events.trigger('g:alert', {
-                            text: 'Web client code built successfully',
-                            type: 'success',
-                            duration: 3000
-                        });
+                        .then(() => {
+                            events.trigger('g:alert', {
+                                text: 'Web client code built successfully',
+                                type: 'success',
+                                duration: 3000
+                            });
 
-                        restartServer()
-                        .done(() => {
+                            return restartServer();
+                        })
+                        .always(() => {
+                            // Re-enable the button whether the chain succeeds or fails, though if
+                            // it succeeds, the page will probably be refreshed
                             $(e.currentTarget).girderEnable(true);
                         });
-                    });
                 }
             });
         }
