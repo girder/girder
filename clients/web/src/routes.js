@@ -1,3 +1,5 @@
+/* eslint-disable import/first */
+
 import _ from 'underscore';
 
 import router from 'girder/router';

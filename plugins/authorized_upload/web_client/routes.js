@@ -1,3 +1,5 @@
+/* eslint-disable import/first */
+
 import router from 'girder/router';
 import events from 'girder/events';
 import FolderModel from 'girder/models/FolderModel';
