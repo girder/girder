@@ -37,7 +37,7 @@ class Job(AccessControlledModel):
             ('type', SortDir.ASCENDING),
             ('status', SortDir.ASCENDING)
         )
-        self.ensureIndices([(compoundSearchIndex, {}), 'created'])
+        self.ensureIndices([(compoundSearchIndex, {}), 'created', 'parentId'])
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
@@ -538,6 +538,7 @@ class Job(AccessControlledModel):
     def setParentJob(self, job, parentId):
         """
         Sets a parent job for a job
+
         :param job: Job document which the parent will be set on
         :type job: Job
         :param parentId: Id of the parent job
@@ -549,6 +550,7 @@ class Job(AccessControlledModel):
     def listChildJobs(self, job):
         """
         Lists the child jobs for a given job
+
         :param job: Job document
         :type job: Job
         """
@@ -556,6 +558,6 @@ class Job(AccessControlledModel):
         cursor = self.find(query)
         user = self.model('user').load(job['userId'], force=True)
         for r in self.filterResultsByPermission(cursor=cursor,
-                                                      user=user,
-                                                      level=AccessType.READ):
+                                                user=user,
+                                                level=AccessType.READ):
             yield r
