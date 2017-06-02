@@ -32,6 +32,7 @@ module.exports = function (grunt) {
             test: {
                 files: {
                     'clients/web/static/built/testing/testing.min.js': [
+                        'node_modules/core-js/client/shim.js',
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js',
                         'clients/web/test/testUtils.js'
@@ -42,7 +43,7 @@ module.exports = function (grunt) {
 
         default: {
             'test-env-html': {
-                dependencies: ['build']
+                dependencies: ['build', 'uglify:test']
             },
             'uglify:test': {}
         }
@@ -60,11 +61,13 @@ module.exports = function (grunt) {
             cssFiles: [
                 '/clients/web/static/built/fontello/css/fontello.css',
                 '/clients/web/static/built/girder_lib.min.css',
-                '/clients/web/static/built/girder_app.min.css'
+                '/clients/web/static/built/girder_app.min.css',
+                '/clients/web/test/lib/jasmine-1.3.1/jasmine.css'
             ],
             jsFiles: [
                 '/clients/web/static/built/girder_lib.min.js',
-                '/clients/web/static/built/girder_app.min.js'
+                '/clients/web/static/built/girder_app.min.js',
+                '/clients/web/static/built/testing/testing.min.js'
             ],
             staticRoot: '/static',
             apiRoot: '/api/v1'
