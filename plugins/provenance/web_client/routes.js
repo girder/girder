@@ -8,4 +8,3 @@ import ConfigView from './views/ConfigView';
 router.route('plugins/provenance/config', 'provenanceConfig', function () {
     events.trigger('g:navigateTo', ConfigView);
 });
-

@@ -73,4 +73,3 @@ var ConfigView = View.extend({
 });
 
 export default ConfigView;
-

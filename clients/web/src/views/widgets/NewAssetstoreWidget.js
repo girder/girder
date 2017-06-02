@@ -76,4 +76,3 @@ var NewAssetstoreWidget = View.extend({
 });
 
 export default NewAssetstoreWidget;
-

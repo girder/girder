@@ -234,4 +234,3 @@ var AssetstoresView = View.extend({
 });
 
 export default AssetstoresView;
-

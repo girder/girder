@@ -104,4 +104,3 @@ var CreateThumbnailView = View.extend({
 });
 
 export default CreateThumbnailView;
-

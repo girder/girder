@@ -192,4 +192,3 @@ var GroupMembersWidget = View.extend({
 });
 
 export default GroupMembersWidget;
-
