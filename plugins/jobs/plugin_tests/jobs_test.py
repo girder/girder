@@ -411,7 +411,7 @@ class JobsTestCase(base.TestCase):
                 event.preventDefault().addResponse(True)
 
         def validTransitions(event):
-            if event.info == 1234:
+            if event.info['status'] == 1234:
                 event.preventDefault().addResponse([JobStatus.INACTIVE])
 
         with self.assertRaises(ValidationException):
@@ -435,7 +435,7 @@ class JobsTestCase(base.TestCase):
                 event.preventDefault().addResponse(True)
 
         def validTransitions(event):
-            if event.info == 'a':
+            if event.info['status'] == 'a':
                 event.preventDefault().addResponse([JobStatus.INACTIVE])
 
         with self.assertRaises(ValidationException):
