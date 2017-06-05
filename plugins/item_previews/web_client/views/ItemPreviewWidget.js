@@ -44,7 +44,7 @@ var ItemPreviewWidget = View.extend({
     },
 
     _MAX_JSON_SIZE: 2e6 /* bytes */,
-    _LOAD_BATCH_SIZE: 1,
+    _LOAD_BATCH_SIZE: 2,
 
     _isSupportedItem: function (item) {
         return this._isImageItem(item.name) || this._isJSONItem(item.name);
@@ -92,27 +92,12 @@ var ItemPreviewWidget = View.extend({
 
         var $container = this.$('.g-widget-item-prevews-wrapper');
         Promise.all(items.map(item => {
-            return new Promise((resolve, reject) => {
-                restRequest({
-                    path: `item/${item._id}/download`,
-                    type: 'HEAD',
-                    complete: function (xhr) {
-                        var contentType = xhr.getResponseHeader('Content-Type');
-                        resolve([item, contentType]);
-                    }
-                });
-            }).then(([item, contentType]) => {
-                if (contentType === 'application/zip') {
-                    return Promise.resolve(restRequest({
-                        path: `item/${item._id}/files`
-                    })).then(files => {
-                        return Promise.all(files.map(file => {
-                            return this.tryGetItemOrFileContent(file, file.mimeType, 'file');
-                        }));
-                    });
-                } else {
-                    return Promise.all([this.tryGetItemOrFileContent(item, contentType, 'item')]);
-                }
+            return Promise.resolve(restRequest({
+                path: `item/${item._id}/files`
+            })).then(files => {
+                return Promise.all(files.map(file => {
+                    return this.tryGetFileContent(file, file.mimeType, 'file');
+                }));
             });
         })).then(results => {
             items.forEach((item, i) => {
@@ -146,14 +131,14 @@ var ItemPreviewWidget = View.extend({
         }
     },
 
-    tryGetItemOrFileContent: function (record, contentType, type) {
-        if (this._isJSONItem(record.name) && contentType === 'application/octet-stream') {
-            if (record.size > this._MAX_JSON_SIZE) {
+    tryGetFileContent: function (file, contentType, type) {
+        if (this._isJSONItem(file.name) && contentType === 'application/octet-stream') {
+            if (file.size > this._MAX_JSON_SIZE) {
                 return Promise.resolve(null);
             }
-            return this.getJsonContent(`${type}/${record._id}/download`);
+            return this.getJsonContent(`${type}/${file._id}/download`);
         } else if (this._isImageItem(contentType)) {
-            return this.getImageContent(`${type}/${record._id}/download`);
+            return this.getImageContent(`${type}/${file._id}/download`);
         }
     },
 
