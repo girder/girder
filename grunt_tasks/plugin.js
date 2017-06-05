@@ -61,6 +61,168 @@ module.exports = function (grunt) {
     });
 
     /**
+     * Collect dependencies from a package.json-like object.
+     */
+    function getDependencies(obj, fields, deps) {
+        deps = deps || {};
+        fields = fields || ['dependencies'];
+
+        _.each(fields, function (field) {
+            _.extend(deps, obj[field]);
+        });
+        return deps;
+    }
+
+    /**
+     * Run npm install in the given prefix directory.
+     *
+     * @param {object} [deps]
+     *   A dependency -> version mapping in the same syntax provided
+     *   in a package.json file.
+     *
+     * @param {string} [prefix]
+     *   The `--prefix` argument to the npm command.
+     */
+    function npmInstall(deps, prefix) {
+        var args = [];
+
+        if (prefix) {
+            args = ['--prefix', prefix];
+        }
+        args = args.concat(['--color=always', 'install', '--no-save']);
+
+        if (deps) {
+            args = args.concat(
+                _.map(deps, function (version, dep) {
+                    return dep + '@' + version;
+                })
+            );
+        }
+
+        var child = child_process.spawnSync('npm', args, {
+            stdio: 'inherit'
+        });
+
+        if (child.status !== 0) {
+            grunt.fail.fatal(`"npm ${args.join(' ')}" failed`);
+        }
+    }
+
+    /**
+     * Handle a request for extra dependencies.  Those provided will
+     * be stored in the grunt config object and installed in a task
+     * added after all plugins have been configured.
+     *
+     * @param {object} deps
+     *   A dependency -> version mapping in the same syntax provided
+     *   in a package.json file.  If no object is given, it will fall
+     *   back to the default behavior of `npm install` executed in
+     *   the given path.
+     *
+     * @param {string} [prefix]
+     *   The path where the packages will be installed.  By default,
+     *   this will be the main girder directory.
+     */
+    function addDependencies(deps, prefix) {
+        var config = {};
+
+        if (prefix) {
+            config.local = {[prefix]: deps};
+        } else {
+            config.global = deps;
+        }
+
+        grunt.config.merge({
+            'npm-install-plugins': config
+        });
+    }
+
+    /**
+     * This inspects the plugin directory to configure installation of external
+     * dependencies that must by installed via npm prior to building the
+     * plugin.  There are several cases that this handles:
+     *
+     *   1. `package.json` in the plugin directory
+     *   2. `plugin.json` dependencies installed to a custom prefix
+     *   3. `plugin.json` dependencies installed to girder's prefix
+     *   4. `plugin.json` grunt dependencies installed into girder's prefix
+     *
+     * Cases (1) and (2) are handled by running a custom invocation `npm install`
+     * for each plugin.  For cases (3) and (4), the dependency lists are aggregated
+     * and installed in a single invocation for all plugins.  This is done for two
+     * reasons: it reduces the number of time `npm install` is executed (which is
+     * slow) and it eliminates the problem of autoprunning the `node_modules`
+     * directory by npm@5.
+     *
+     * @param {string} pluginName
+     *   The name of the plugin.
+     * @param {string} pluginDir
+     *   The path to the plugin's directory.
+     * @param {object} pluginConfig
+     *   The plugin config object.
+     */
+    function processPluginDependencies(pluginName, pluginDir, pluginConfig) {
+        var npmConfig = pluginConfig.npm || {};
+        var fields, npmFile, prefix, deps;
+
+        // get dependencies from the plugin config object
+        deps = getDependencies(npmConfig);
+
+        // `npm.install` is a shortcut to installing directly from package.json
+        if (npmConfig.install) {
+            npmConfig.file = 'package.json';
+            npmConfig.fields = ['dependencies'];
+        }
+
+        // get dependencies from a package.json file
+        if (npmConfig.file) {
+            npmFile = path.resolve(pluginDir, npmConfig.file);
+            fields = npmConfig.fields || [
+                'devDependencies', 'dependencies', 'optionalDependencies'
+            ];
+
+            grunt.log.writeln('  >> Loading NPM dependencies from: ' + npmFile);
+            grunt.log.writeln('  >> Using fields: ' + fields.join(', '));
+
+            getDependencies(require(npmFile), fields, deps);
+        }
+
+        if (npmConfig.install) {
+            /*
+             * Case 1:
+            */
+            prefix = path.resolve(pluginDir, 'package.json');
+            grunt.log.writeln('  >> Installing NPM dependencies in-place from: ' + prefix);
+            addDependencies({}, prefix);
+        }
+
+        // The configuration for cases 2 and 3 are mutually exclusive
+        if (npmConfig.localNodeModules) {
+            /*
+             * Case 2:
+             */
+            grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: node_modules_${pluginName}`);
+            addDependencies(deps, getPluginLocalNodePath(pluginName));
+            deps = {};
+        } else {
+            /*
+             * Case 3:
+             */
+            grunt.verbose.writeln('  >> Installing NPM dependencies to Girder node_modules directory');
+        }
+
+        if (pluginConfig.grunt && pluginConfig.grunt.dependencies) {
+            /*
+             * Case 4:
+             */
+            deps = getDependencies(pluginConfig.grunt, null, deps);
+        }
+
+        // Add the collected dependencies to the global install list.
+        addDependencies(deps);
+    }
+
+    /**
      * Adds configuration for plugin related multitasks:
      *
      *   * copy:plugin-<plugin name>
@@ -322,120 +484,10 @@ module.exports = function (grunt) {
             grunt.config.set('webpack.options', newConfig);
         });
 
-        grunt.registerTask('npm-install', 'Install plugin NPM dependencies', function (plugin, localNodeModules) {
-            var args, child;
-            if (localNodeModules === 'install') {
-                args = ['--color=always', 'install'];
-
-                child = child_process.spawnSync('npm', args, {
-                    cwd: path.resolve(dir),
-                    stdio: 'inherit'
-                });
-
-                return child.status === 0;
-            }
-
-            // Start building the list of arguments to the NPM executable.
-            //
-            // We want color output embedded in the Grunt output.
-            args = ['--color=always'];
-
-            // If the plugin requested to install the dependencies in its own
-            // dedicated directory, set the prefix option.
-            if (localNodeModules === 'true') {
-                args = args.concat(['--prefix', getPluginLocalNodePath(plugin)]);
-            }
-
-            // Get the list of the packages to install and append them to the
-            // args object.
-            var modules = Array.prototype.slice.call(arguments, 2);
-
-            // npm@5 saves dependencies to package.json by default, add
-            // the --no-save flag to disable this behavior
-            args = args.concat(['install', '--no-save'], modules);
-
-            // Launch the child process.
-            child = child_process.spawnSync('npm', args, {
-                stdio: 'inherit'
-            });
-
-            return child.status === 0;
-        });
-
-        function addDependencies(deps, localNodeModules) {
-            if (arguments.length === 0) {
-                grunt.config.set('default.npm-install:' + plugin + ':install', {});
-                return;
-            }
-
-            // install any additional npm packages during init
-            var npm = (
-                _(deps || {})
-                    .map(function (version, dep) {
-                        return [
-                            dep.replace(':', '\\:'),
-                            version.replace(':', '\\:')
-                        ].join('@');
-                    })
-            );
-
-            if (npm.length) {
-                grunt.config.set('default.npm-install:' + plugin + ':' + !!localNodeModules + ':' + grunt.config.escape(npm.join(':')), {});
-            }
-        }
-
-        if (config.npm && config.npm.install) {
-            grunt.log.writeln('  >> Installing NPM dependencies in-place from: ' + path.resolve(dir, 'package.json'));
-            addDependencies();
-        } else if (config.npm) {
-            var modules = {};
-
-            // If the config contains a "file" section, load NPM dependencies
-            // from it.
-            if (config.npm.file) {
-                var npmFile = require(path.resolve(dir, config.npm.file));
-                var fields = config.npm.fields || ['devDependencies', 'dependencies', 'optionalDependencies'];
-
-                grunt.log.writeln('  >> Loading NPM dependencies from: ' + config.npm.file);
-                grunt.log.writeln('  >> Using fields: ' + fields.join(', '));
-
-                fields.forEach(function (field) {
-                    _.each(npmFile[field] || {}, function (version, dep) {
-                        modules[dep] = version;
-                    });
-                });
-            }
-
-            // Additionally add any extra dependencies found in the
-            // "dependencies" property.
-            if (config.npm.dependencies) {
-                if (config.npm.file) {
-                    grunt.log.writeln('  >> Loading additional NPM dependencies');
-                } else {
-                    grunt.log.writeln('  >> Loading NPM dependencies');
-                }
-
-                _.each(config.npm.dependencies, function (version, dep) {
-                    modules[dep] = version;
-                });
-            }
-
-            if (config.npm.localNodeModules) {
-                grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: node_modules_${plugin}`);
-            } else {
-                grunt.verbose.writeln('  >> Installing NPM dependencies to Girder node_modules directory');
-            }
-
-            // Invoke the npm installation task.
-            addDependencies(modules, config.npm.localNodeModules);
-        }
-
         if (config.grunt) {
             grunt.log.writeln((
                 'Configuring plugin: ' + plugin + ' (custom Gruntfile)'
             ).bold);
-
-            addDependencies(config.grunt.dependencies);
 
             // load the plugin's gruntfile
             try {
@@ -457,6 +509,23 @@ module.exports = function (grunt) {
                 grunt.config.set('default.' + target, {});
             });
         }
+
+        // process all external dependencies when building
+        if (buildPlugin) {
+            processPluginDependencies(plugin, dir, config);
+
+            // Make sure the npm task runs before plugin build tasks
+            grunt.config.set(`default.plugin:${plugin}`, {
+                dependencies: ['npm-install-plugins']
+            });
+
+            // For backward compatibility, we still generate the old 'npm-install'
+            // task as a noop, but ensure that the real npm install task is
+            // executed as a prerequisite.
+            grunt.config.set(`default.npm-install:${plugin}`, {
+                dependencies: ['npm-install-plugins']
+            });
+        }
     };
 
     // Configure the plugins that were requested via --configure-plugins in order
@@ -467,6 +536,29 @@ module.exports = function (grunt) {
     plugins.forEach(function (name) {
         configurePluginForBuilding(path.resolve(grunt.config.get('pluginDir'), name), true);
     });
+
+    /**
+     * This task is noop that exists for backwards compatibility in case any plugins rely
+     * on its existence.
+     * @deprecated: remove in v3
+     */
+    grunt.registerTask(
+        'npm-install', 'Install plugin NPM dependencies (deprecated)',
+        _.constant(true)
+    );
+
+    grunt.registerTask(
+        'npm-install-plugins', 'Install all NPM dependencies',
+        function () {
+            var local = grunt.config.get('npm-install-plugins.local') || {};
+            var global = grunt.config.get('npm-install-plugins.global') || {};
+
+            if (!_.isEmpty(global)) {
+                npmInstall(global);
+            }
+            _.each(local, npmInstall);
+        }
+    );
 
     /**
      * Register a "meta" task that will configure and run other tasks
@@ -484,4 +576,6 @@ module.exports = function (grunt) {
             grunt.task.run(task);
         });
     });
+
+    grunt.config.set('default.npm-install-plugins', []);
 };

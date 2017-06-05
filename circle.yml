@@ -20,6 +20,7 @@ dependencies:
   override:
     - sudo apt-get -q update; sudo apt-get install -q -y libgif-dev libsasl2-dev
     - ./scripts/install_cmake.sh
+    - npm install -g npm
     - npm config set progress false
     - npm update; npm prune
     - set -o pipefail; pyenv exec pip install -U pip setuptools | cat

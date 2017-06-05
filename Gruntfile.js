@@ -31,7 +31,17 @@ function sortTasks(obj) {
         })
         .flatten(true)
         .value();
-    return toposort.array(nodes, edges);
+    var sorted = toposort.array(nodes, edges);
+
+    // We need to ensure that the npm install task is run first.
+    // This is currently necessary because some external plugins
+    // don't specify any external tasks as dependencies.
+    var installIndex = _.indexOf(sorted, 'npm-install-plugins');
+    if (installIndex >= 0) {
+        sorted.splice(installIndex, 1);
+        sorted.splice(0, 0, 'npm-install-plugins');
+    }
+    return sorted;
 }
 
 module.exports = function (grunt) {
