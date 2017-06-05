@@ -38,8 +38,8 @@ function sortTasks(obj) {
     // don't specify any external tasks as dependencies.
     var installIndex = _.indexOf(sorted, 'npm-install-plugins');
     if (installIndex >= 0) {
-        sorted.splice(0, 0, 'npm-install-plugins');
         sorted.splice(installIndex, 1);
+        sorted.splice(0, 0, 'npm-install-plugins');
     }
     return sorted;
 }
