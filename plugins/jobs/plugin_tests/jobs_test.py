@@ -496,14 +496,6 @@ class JobsTestCase(base.TestCase):
         self.assertEqual(len(resp.json['types']), 2)
         self.assertEqual(len(resp.json['statuses']), 1)
 
-    def testParentIdValidity(self):
-        jobModel = self.model('job', 'jobs')
-        # When parent is not a valid job it should fail
-        with self.assertRaises(ValidationException):
-            jobModel.createJob(
-                title='Child Job', type='child', user=self.users[0],
-                parentId='Bad Parent Id')
-
     def testDefaultParentId(self):
         jobModel = self.model('job', 'jobs')
         job = jobModel.createJob(title='Job', type='Job',
@@ -518,7 +510,7 @@ class JobsTestCase(base.TestCase):
 
         childJob = jobModel.createJob(title='Child Job',
                                       type='Child Job', user=self.users[0],
-                                      parentId=parentJob['_id'])
+                                      parentJob=parentJob)
         # During initialization parent job should be set correctly
         self.assertEqual(childJob['parentId'], parentJob['_id'])
 
@@ -530,7 +522,7 @@ class JobsTestCase(base.TestCase):
         childJob = jobModel.createJob(title='Child Job', type='Child Job',
                                       user=self.users[0])
 
-        jobModel.setParentJob(childJob, parentJob['_id'])
+        jobModel.setParentJob(childJob, parentJob)
 
         # After setParentJob method is called parent job should be set correctly
         self.assertEqual(childJob['parentId'], parentJob['_id'])
@@ -542,7 +534,7 @@ class JobsTestCase(base.TestCase):
 
         # Cannot set a job as it's own parent
         with self.assertRaises(ValidationException):
-            childJob = jobModel.setParentJob(childJob, childJob['_id'])
+            childJob = jobModel.setParentJob(childJob, childJob)
 
     def testParentIdCannotBeOverridden(self):
         jobModel = self.model('job', 'jobs')
@@ -555,11 +547,11 @@ class JobsTestCase(base.TestCase):
 
         childJob = jobModel.createJob(title='Child Job',
                                       type='Child Job', user=self.users[0],
-                                      parentId=parentJob['_id'])
+                                      parentJob=parentJob)
 
         with self.assertRaises(ValidationException):
             # If parent job is set, cannot be overridden
-            childJob = jobModel.setParentJob(childJob, anotherParentJob['_id'])
+            childJob = jobModel.setParentJob(childJob, anotherParentJob)
 
     def testListChildJobs(self):
         jobModel = self.model('job', 'jobs')
@@ -568,12 +560,12 @@ class JobsTestCase(base.TestCase):
 
         childJob = jobModel.createJob(title='Child Job',
                                       type='Child Job', user=self.users[0],
-                                      parentId=parentJob['_id'])
+                                      parentJob=parentJob)
 
         jobModel.createJob(title='Another Child Job',
                            type='Child Job',
                            user=self.users[0],
-                           parentId=parentJob['_id'])
+                           parentJob=parentJob)
 
         # Should return a list with 2 jobs
         self.assertEquals(len(list(jobModel.listChildJobs(parentJob))), 2)
@@ -587,12 +579,12 @@ class JobsTestCase(base.TestCase):
 
         childJob = jobModel.createJob(title='Child Job',
                                       type='Child Job', user=self.users[0],
-                                      parentId=parentJob['_id'])
+                                      parentJob=parentJob)
 
         jobModel.createJob(title='Another Child Job',
                            type='Child Job',
                            user=self.users[0],
-                           parentId=parentJob['_id'])
+                           parentJob=parentJob)
 
         resp = self.request('/job', user=self.users[0],
                             params={'parentId': str(parentJob['_id'])})

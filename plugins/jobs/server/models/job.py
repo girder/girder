@@ -56,11 +56,8 @@ class Job(AccessControlledModel):
             raise ValidationException(
                 'Invalid job status %s.' % status, field='status')
 
-    def _validateParent(self, parentJobId):
-        self.model('job', 'jobs').load(parentJobId, force=True, exc=True)
-
-    def _validateChild(self, parentJobId, childJob):
-        if parentJobId == childJob['_id']:
+    def _validateChild(self, parentJob, childJob):
+        if str(parentJob['_id']) == str(childJob['_id']):
             raise ValidationException('Child Id cannot be equal to Parent Id')
         if childJob['parentId']:
             raise ValidationException('Cannot overwrite the Parent Id')
@@ -164,7 +161,7 @@ class Job(AccessControlledModel):
 
     def createJob(self, title, type, args=(), kwargs=None, user=None, when=None,
                   interval=0, public=False, handler=None, async=False,
-                  save=True, parentId=None, otherFields=None):
+                  save=True, parentJob=None, otherFields=None):
         """
         Create a new job record.
 
@@ -196,8 +193,8 @@ class Job(AccessControlledModel):
         :type async: bool
         :param save: Whether the documented should be saved to the database.
         :type save: bool
-        :param parentId: Id of the job which will be set as a parent
-        :type parentId: ObjectId
+        :param parentJob: The job which will be set as a parent
+        :type parentJob: Job
         :param otherFields: Any additional fields to set on the job.
         :type otherFields: dict
         """
@@ -210,7 +207,9 @@ class Job(AccessControlledModel):
             kwargs = {}
 
         otherFields = otherFields or {}
-
+        parentId = None
+        if parentJob:
+            parentId = parentJob['_id']
         job = {
             'title': title,
             'type': type,
@@ -240,8 +239,6 @@ class Job(AccessControlledModel):
 
         if save:
             job = self.save(job)
-        if parentId:
-            self._validateParent(parentId)
         if user:
             deserialized_kwargs = job['kwargs']
             job['kwargs'] = json_util.dumps(job['kwargs'])
@@ -355,8 +352,6 @@ class Job(AccessControlledModel):
         now = datetime.datetime.utcnow()
         user = None
         otherFields = otherFields or {}
-        if 'parentId' in otherFields:
-            self._validateParent(otherFields['parentId'])
         if job['userId']:
             user = self.model('user').load(job['userId'], force=True)
 
@@ -532,17 +527,17 @@ class Job(AccessControlledModel):
         statuses = self.collection.distinct('status', query)
         return {'types': types, 'statuses': statuses}
 
-    def setParentJob(self, job, parentId):
+    def setParentJob(self, job, parentJob):
         """
         Sets a parent job for a job
 
         :param job: Job document which the parent will be set on
         :type job: Job
-        :param parentId: Id of the parent job
-        :type parentId: ObjectId
+        :param parentJob: Parent job
+        :type parentId: Job
         """
-        self._validateChild(parentId, job)
-        return self.updateJob(job, otherFields={'parentId': parentId})
+        self._validateChild(parentJob, job)
+        return self.updateJob(job, otherFields={'parentId': parentJob['_id']})
 
     def listChildJobs(self, job):
         """
