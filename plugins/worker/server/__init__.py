@@ -133,7 +133,7 @@ def cancel(event):
             logger.warn(msg)
             return
 
-        if job['status'] not in [JobStatus.COMPLETE, JobStatus.ERROR]:
+        if job['status'] not in [JobStatus.SUCCESS, JobStatus.ERROR]:
             # Set the job status to canceling
             ModelImporter.model('job', 'jobs').updateJob(job, status=CustomJobStatus.CANCELING)
 
