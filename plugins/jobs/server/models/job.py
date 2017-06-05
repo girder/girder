@@ -57,10 +57,7 @@ class Job(AccessControlledModel):
                 'Invalid job status %s.' % status, field='status')
 
     def _validateParent(self, parentJobId):
-        try:
-            self.model('job', 'jobs').load(parentJobId, force=True, exc=True)
-        except ValidationException:
-            raise ValidationException('%s is not a valid Job Id' % parentJobId)
+        self.model('job', 'jobs').load(parentJobId, force=True, exc=True)
 
     def _validateChild(self, parentJobId, childJob):
         if parentJobId == childJob['_id']:
