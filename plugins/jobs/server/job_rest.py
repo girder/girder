@@ -127,6 +127,16 @@ class Job(Resource):
         .errorResponse('Read access was denied for the job.', 403)
     )
     def getJob(self, job):
+        user = self.getCurrentUser()
+
+        # If the job is not public check access
+        if not job.get('public', False):
+            if user:
+                self.model('job', 'jobs').requireAccess(
+                    job, user, level=AccessType.READ)
+            else:
+                self.ensureTokenScopes('jobs.job_' + str(job['_id']))
+
         return job
 
     @access.token
