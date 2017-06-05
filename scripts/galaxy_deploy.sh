@@ -14,6 +14,7 @@ readonly SUBTREE_DEST_BRANCH="master"
 git fetch --unshallow
 
 # Push any changes that have occurred
+git reset --hard
 git branch ansible-role-subtree
 git filter-branch --subdirectory-filter "$SUBTREE_PREFIX" ansible-role-subtree
 git push "$SUBTREE_DEST_REPO" ansible-role-subtree:"$SUBTREE_DEST_BRANCH"
