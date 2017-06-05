@@ -44,6 +44,8 @@ class CustomJobStatus(object):
     CANCELING = 824
 
     valid_transitions = {
+        JobStatus.QUEUED: [JobStatus.INACTIVE],
+        JobStatus.RUNNING: [JobStatus.QUEUED],
         FETCHING_INPUT: [JobStatus.RUNNING],
         CONVERTING_INPUT: [JobStatus.RUNNING, FETCHING_INPUT],
         CONVERTING_OUTPUT: [JobStatus.RUNNING],
@@ -52,8 +54,9 @@ class CustomJobStatus(object):
         JobStatus.ERROR: [FETCHING_INPUT, CONVERTING_INPUT, CONVERTING_OUTPUT,
                           PUSHING_OUTPUT, CANCELING, JobStatus.QUEUED,
                           JobStatus.RUNNING],
-        # The last two are allow for revoke called from outside Girder
-        JobStatus.CANCELED: [CANCELING, JobStatus.QUEUED, JobStatus.RUNNING]
+        # The last two are allowed for revoke called from outside Girder
+        JobStatus.CANCELED: [CANCELING, JobStatus.QUEUED, JobStatus.RUNNING],
+        JobStatus.SUCCESS: [JobStatus.RUNNING, PUSHING_OUTPUT]
     }
 
     @classmethod
