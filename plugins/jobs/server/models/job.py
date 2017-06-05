@@ -63,7 +63,7 @@ class Job(AccessControlledModel):
             raise ValidationException('Cannot overwrite the Parent Id')
 
     def list(self, user=None, types=None, statuses=None,
-             limit=0, offset=0, sort=None, currentUser=None, parentId=None):
+             limit=0, offset=0, sort=None, currentUser=None, parentJob=None):
         """
         List a page of jobs for a given user.
 
@@ -77,7 +77,7 @@ class Job(AccessControlledModel):
         :param limit: The page limit.
         :param offset: The page offset.
         :param sort: The sort field.
-        :param parentId: Parent Job Id.
+        :param parentJob: Parent Job.
         :param currentUser: User for access filtering.
         """
         query = {}
@@ -94,6 +94,10 @@ class Job(AccessControlledModel):
             query['type'] = {'$in': types}
         if statuses is not None:
             query['status'] = {'$in': statuses}
+
+        parentId = None
+        if parentJob:
+            parentId = parentJob['_id']
 
         query['parentId'] = parentId
 

@@ -63,14 +63,14 @@ class Job(Resource):
             user = self.model('user').load(
                 userId, user=currentUser, level=AccessType.READ)
 
-        parentId = None
+        parent = None
         if parentJob:
-            parentId = parentJob['_id']
+            parent = parentJob
 
         return list(self.model('job', 'jobs').list(
             user=user, offset=offset, limit=limit, types=types,
             statuses=statuses, sort=sort, currentUser=currentUser,
-            parentId=parentId))
+            parentJob=parent))
 
     @access.admin
     @filtermodel(model='job', plugin='jobs')
