@@ -39,6 +39,7 @@ CHUNK_SIZE = 2097152
 
 # Cache recent connections so we can skip some start up actions
 RECENT_CONNECTION_CACHE_TIME = 600  # seconds
+RECENT_CONNECTION_CACHE_MAX_SIZE = 100
 _recentConnections = {}
 
 
@@ -110,6 +111,8 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             if not recent:
                 _ensureChunkIndices(self.chunkColl)
                 if key is not None:
+                    if len(_recentConnections) >= RECENT_CONNECTION_CACHE_MAX_SIZE:
+                        _recentConnections.clear()
                     _recentConnections[key] = {
                         'created': time.time()
                     }
