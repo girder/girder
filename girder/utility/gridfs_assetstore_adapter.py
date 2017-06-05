@@ -104,9 +104,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         except TypeError:
             key = None
         try:
-            # MongoClient automatically reuses connections from a pool, however
-            # getting the connection takes time, so use our own cache.  We also
-            # avoid redoing ensureChunkIndices, which also takes time.
+            # MongoClient automatically reuses connections from a pool, but we
+            # want to avoid redoing ensureChunkIndices each time we get such a
+            # connection.
             self.chunkColl = getDbConnection(*connectionArgs)[self.assetstore['db']].chunk
             if not recent:
                 _ensureChunkIndices(self.chunkColl)
