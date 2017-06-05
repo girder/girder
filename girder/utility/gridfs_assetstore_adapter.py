@@ -27,6 +27,7 @@ import uuid
 
 from girder import logger
 from girder.api.rest import setResponseHeader
+from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
 from . import hash_state
@@ -46,11 +47,47 @@ _recentConnections = {}
 def _ensureChunkIndices(collection):
     """
     Ensure that we have appropriate indices on the chunk collection.
+
+    :param collection: a connection to a mongo collection.
     """
     collection.create_index([
         ('uuid', pymongo.ASCENDING),
         ('n', pymongo.ASCENDING)
     ], unique=True)
+
+
+def _setupSharding(collection, keyname='uuid'):
+    """
+    If we are communicating with a sharded server, and the collection is not
+    sharded, ask for it to be sharded based on a key.
+
+    :param collection: a connection to a mongo collection.
+    :param keyname: the name of the key to shard on.
+    :returns: True if sharding was added, False if it could not be added, or
+        'present' if already sharded.
+    """
+    database = collection.database
+    client = database.client
+    stat = client.admin.command('serverStatus')
+    # sharding will be non-None if the client is communicating with a mongos
+    # instance
+    if not stat.get('sharding'):
+        return False
+    if database.command('collstats', collection.name).get('sharded'):
+        return 'present'
+    try:
+        client.admin.command('enableSharding', database.name)
+    except pymongo.errors.OperationFailure:
+        # sharding may already be enabled
+        pass
+    try:
+        client.admin.command(
+            'shardCollection', '%s.%s' % (database.name, collection.name),
+            key={keyname: 1})
+        return True
+    except pymongo.errors.OperationFailure:
+        pass
+    return False
 
 
 class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -93,11 +130,12 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         super(GridFsAssetstoreAdapter, self).__init__(assetstore)
         recent = False
-        connectionArgs = (self.assetstore.get('mongohost', None),
-                          self.assetstore.get('replicaset', None))
+        self._connectionArgs = (self.assetstore.get('mongohost', None),
+                                self.assetstore.get('replicaset', None),
+                                self.assetstore.get('shard', None))
         try:
             # Guard in case the connectionArgs is unhashable
-            key = connectionArgs
+            key = self._connectionArgs
             if key in _recentConnections:
                 recent = (time.time() - _recentConnections[key]['created'] <
                           RECENT_CONNECTION_CACHE_TIME)
@@ -107,9 +145,12 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             # MongoClient automatically reuses connections from a pool, but we
             # want to avoid redoing ensureChunkIndices each time we get such a
             # connection.
-            self.chunkColl = getDbConnection(*connectionArgs)[self.assetstore['db']].chunk
+            client = getDbConnection(*self._connectionArgs, quiet=recent)
+            self.chunkColl = MongoProxy(client[self.assetstore['db']].chunk)
             if not recent:
                 _ensureChunkIndices(self.chunkColl)
+                if self.assetstore.get('shard') == 'auto':
+                    _setupSharding(self.chunkColl)
                 if key is not None:
                     if len(_recentConnections) >= RECENT_CONNECTION_CACHE_MAX_SIZE:
                         _recentConnections.clear()

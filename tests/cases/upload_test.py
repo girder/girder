@@ -23,6 +23,7 @@ import re
 import requests
 import six
 import threading
+from six.moves import range
 
 from girder import events
 from girder.utility import assetstore_utilities
@@ -319,7 +320,8 @@ class UploadTestCase(base.TestCase):
         if 'REPLICASET' in os.environ.get('EXTRADEBUG', '').split():
             verbose = 2
         # Starting the replica sets takes time (~25 seconds)
-        mongo_replicaset.startMongoReplicaSet(verbose=verbose)
+        rscfg = mongo_replicaset.makeConfig()
+        mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
         # Clear the assetstore database and create a GridFS assetstore
         self.model('assetstore').remove(self.model('assetstore').getCurrent())
         # When the mongo connection to one of the replica sets goes down, it
@@ -338,20 +340,54 @@ class UploadTestCase(base.TestCase):
         # 30 seconds to elect a new primary.  If we step down the current
         # primary before pausing it, then the new election will happen in 20
         # seconds.
-        mongo_replicaset.stepDownMongoReplicaSet(0)
+        mongo_replicaset.stepDownMongoReplicaSet(rscfg, 0)
         mongo_replicaset.waitForRSStatus(
-            mongo_replicaset.getMongoClient(0), status=[2, (1, 2), (1, 2)],
+            rscfg,
+            mongo_replicaset.getMongoClient(rscfg, 0),
+            status=[2, (1, 2), (1, 2)],
             verbose=verbose)
-        mongo_replicaset.pauseMongoReplicaSet([True], verbose=verbose)
+        mongo_replicaset.pauseMongoReplicaSet(rscfg, [True], verbose=verbose)
         self._uploadFile('rs_upload_1')
         # Have a different member of the replica set go offline and the first
         # come back.  This takes a long time, so I am disabling it
-        #  mongo_replicaset.pauseMongoReplicaSet([False, True], verbose=verbose)
+        #  mongo_replicaset.pauseMongoReplicaSet(rscfg, [False, True], verbose=verbose)
         #  self._uploadFile('rs_upload_2')
         # Have the set come back online and upload once more
-        mongo_replicaset.pauseMongoReplicaSet([False, False], verbose=verbose)
+        mongo_replicaset.pauseMongoReplicaSet(rscfg, [False, False], verbose=verbose)
         self._uploadFile('rs_upload_3')
-        mongo_replicaset.stopMongoReplicaSet()
+        mongo_replicaset.stopMongoReplicaSet(rscfg)
+
+    def testGridFSShardingAssetstoreUpload(self):
+        verbose = 0
+        if 'REPLICASET' in os.environ.get('EXTRADEBUG', '').split():
+            verbose = 2
+        # Starting the sharding service takes time
+        rscfg = mongo_replicaset.makeConfig(port=27073, shard=True, sharddb=None)
+        mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
+        # Clear the assetstore database and create a GridFS assetstore
+        self.model('assetstore').remove(self.model('assetstore').getCurrent())
+        self.assetstore = self.model('assetstore').createGridFsAssetstore(
+            name='Test', db='girder_assetstore_shard_upload_test',
+            mongohost='mongodb://127.0.0.1:27073', shard='auto')
+        self._testUpload()
+        # Verify that we have successfully sharded the collection
+        adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
+        stat = adapter.chunkColl.database.command('collstats', adapter.chunkColl.name)
+        self.assertTrue(bool(stat['sharded']))
+        # Although we have asked for multiple shards, the chunks may all be on
+        # one shard.  Make sure at least one shard is reported.
+        self.assertGreaterEqual(len(stat['shards']), 1)
+
+        # Asking for the same database again should also report sharding.  Use
+        # a slightly differt URI to ensure that the sharding is checked anew.
+        assetstore = self.model('assetstore').createGridFsAssetstore(
+            name='Test 2', db='girder_assetstore_shard_upload_test',
+            mongohost='mongodb://127.0.0.1:27073/?', shard='auto')
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        stat = adapter.chunkColl.database.command('collstats', adapter.chunkColl.name)
+        self.assertTrue(bool(stat['sharded']))
+
+        mongo_replicaset.stopMongoReplicaSet(rscfg)
 
     def testS3AssetstoreUpload(self):
         # Clear the assetstore database and create an S3 assetstore
