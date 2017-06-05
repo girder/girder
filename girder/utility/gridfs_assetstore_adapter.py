@@ -101,12 +101,12 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             if key in _recentConnections:
                 recent = (time.time() - _recentConnections[key]['created'] <
                           RECENT_CONNECTION_CACHE_TIME)
-        except Exception:
+        except TypeError:
             key = None
         try:
             # MongoClient automatically reuses connections from a pool, however
             # getting the connection takes time, so use our own cache.  We also
-            # avoid redoing ensureChunkIndices, which is also takes time.
+            # avoid redoing ensureChunkIndices, which also takes time.
             self.chunkColl = getDbConnection(*connectionArgs)[self.assetstore['db']].chunk
             if not recent:
                 _ensureChunkIndices(self.chunkColl)
