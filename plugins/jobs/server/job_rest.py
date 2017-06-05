@@ -91,12 +91,22 @@ class Job(Resource):
     @filtermodel(model='job', plugin='jobs')
     @autoDescribeRoute(
         Description('Get a job by ID.')
-        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs', level=AccessType.READ,
+        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs', force=True,
                     includeLog=True)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the job.', 403)
     )
     def getJob(self, job, params):
+        user = self.getCurrentUser()
+
+        # If the job is not public check access
+        if not job.get('public', False):
+            if user:
+                    self.model('job', 'jobs').requireAccess(
+                        job, user, level=AccessType.READ)
+            else:
+                self.ensureTokenScopes('jobs.job_' + str(job['_id']))
+
         return job
 
     @access.token
