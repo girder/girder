@@ -67,7 +67,7 @@ class CustomJobStatus(object):
         )
 
     @classmethod
-    def validTransition(cls, status):
+    def validTransitions(cls, status):
         return cls.valid_transitions.get(status)
 
 
@@ -163,13 +163,21 @@ def validateApiUrl(doc):
 
 def validateJobStatus(event):
     """Allow our custom job status values."""
-    if event.info['handler'] == 'worker_handler' and CustomJobStatus.isValid(event.info):
+    if CustomJobStatus.isValid(event.info):
         event.preventDefault().addResponse(True)
+
+
+def validTransitions(event):
+    """Allow our custom job transitions."""
+    if event.info['job']['handler'] == 'worker_handler':
+            states = CustomJobStatus.validTransitions(event.info['status'])
+            event.preventDefault().addResponse(states)
 
 
 def load(info):
     events.bind('jobs.schedule', 'worker', schedule)
     events.bind('jobs.status.validate', 'worker', validateJobStatus)
+    events.bind('jobs.status.validTransitions', 'worker', validTransitions)
     events.bind('jobs.cancel', 'worker', cancel)
 
     ModelImporter.model('job', 'jobs').exposeFields(

@@ -428,7 +428,7 @@ class Job(AccessControlledModel):
 
         if status != job['status']:
             job['status'] = status
-            previous_states = JobStatus.validTransitions(status)
+            previous_states = JobStatus.validTransitions(job, status)
             if previous_states is None:
                 # Get the current state
                 job = self.load(job['_id'], force=True)

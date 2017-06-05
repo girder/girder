@@ -64,7 +64,7 @@ class JobStatus(object):
             return ProgressState.ERROR
 
     @staticmethod
-    def validTransitions(status):
+    def validTransitions(job, status):
         """
         Returns a list of states that it is valid to transition from for the
         status.
@@ -73,7 +73,10 @@ class JobStatus(object):
         :type status: str
         :return Returns list of states it valid to transition from.
         """
-        event = events.trigger('jobs.status.validTransitions', info=status)
+        event = events.trigger('jobs.status.validTransitions', info={
+            'job': job,
+            'status': status
+        })
 
         if event.defaultPrevented and len(event.responses):
             return event.responses[-1]
