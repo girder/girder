@@ -22,6 +22,7 @@ from hashlib import sha512
 import pymongo
 import six
 from six import BytesIO
+import time
 import uuid
 
 from girder import logger
@@ -35,6 +36,11 @@ from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 # 2MB chunks. Clients must not send any chunks that are smaller than this
 # unless they are sending the final chunk.
 CHUNK_SIZE = 2097152
+
+# Cache recent connections so we can skip some start up actions
+RECENT_CONNECTION_CACHE_TIME = 600  # seconds
+RECENT_CONNECTION_CACHE_MAX_SIZE = 100
+_recentConnections = {}
 
 
 def _ensureChunkIndices(collection):
@@ -79,31 +85,47 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
     @staticmethod
     def fileIndexFields():
-        return ['sha512']
+        return ['sha512', 'chunkUuid']
 
     def __init__(self, assetstore):
         """
         :param assetstore: The assetstore to act on.
         """
         super(GridFsAssetstoreAdapter, self).__init__(assetstore)
+        recent = False
+        connectionArgs = (self.assetstore.get('mongohost', None),
+                          self.assetstore.get('replicaset', None))
         try:
-            self.chunkColl = getDbConnection(
-                self.assetstore.get('mongohost', None),
-                self.assetstore.get('replicaset', None)
-            )[self.assetstore['db']].chunk
-            _ensureChunkIndices(self.chunkColl)
+            # Guard in case the connectionArgs is unhashable
+            key = connectionArgs
+            if key in _recentConnections:
+                recent = (time.time() - _recentConnections[key]['created'] <
+                          RECENT_CONNECTION_CACHE_TIME)
+        except TypeError:
+            key = None
+        try:
+            # MongoClient automatically reuses connections from a pool, but we
+            # want to avoid redoing ensureChunkIndices each time we get such a
+            # connection.
+            self.chunkColl = getDbConnection(*connectionArgs)[self.assetstore['db']].chunk
+            if not recent:
+                _ensureChunkIndices(self.chunkColl)
+                if key is not None:
+                    if len(_recentConnections) >= RECENT_CONNECTION_CACHE_MAX_SIZE:
+                        _recentConnections.clear()
+                    _recentConnections[key] = {
+                        'created': time.time()
+                    }
         except pymongo.errors.ConnectionFailure:
             logger.error('Failed to connect to GridFS assetstore %s',
                          self.assetstore['db'])
             self.chunkColl = 'Failed to connect'
             self.unavailable = True
-            return
         except pymongo.errors.ConfigurationError:
             logger.exception('Failed to configure GridFS assetstore %s',
                              self.assetstore['db'])
             self.chunkColl = 'Failed to configure'
             self.unavailable = True
-            return
 
     def initUpload(self, upload):
         """
