@@ -40,7 +40,7 @@
     "grunt-webpack": "2.0.0",
     "pug": "^2.0.0-rc.1",
     "pug-loader": "^2.3.0",
-    "jquery": "2.2.4",
+    "jquery": "~3.2.1",
     "jsoneditor": "4.1.2",
     "nib": "^1.1.0",
     "remarkable": "1.7.1",
