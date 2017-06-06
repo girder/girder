@@ -4,5 +4,20 @@
         "no-throw-literal": "off",
         "promise/always-return": "error",
         "promise/no-nesting": "error"
+    },
+    "settings": {
+        "backbone": {
+            "Collection": [
+               "Collection"
+            ],
+            "Model": [
+                "Model",
+                "AccessControlledModel"
+            ],
+            "View": [
+                "View",
+                "MetadatumEditWidget"
+            ]
+        }
     }
 }

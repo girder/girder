@@ -22,7 +22,7 @@ var TaskListView = View.extend({
 
     render: function () {
         this.$el.html(template({
-            tasks: this.collection.models
+            tasks: this.collection.toArray()
         }));
 
         this.paginateWidget.setElement(this.$('.g-task-pagination')).render();

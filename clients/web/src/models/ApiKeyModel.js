@@ -22,10 +22,10 @@ var ApiKeyModel = AccessControlledModel.extend({
     save: function () {
         // Scope needs to be sent to the server as JSON
         var scope = this.get('scope');
-        this.attributes.scope = JSON.stringify(scope);
+        this.attributes.scope = JSON.stringify(scope);  // eslint-disable-line backbone/no-model-attributes
         var promise = AccessControlledModel.prototype.save.call(this, arguments);
         // Restore scope to its original state
-        this.attributes.scope = scope;
+        this.attributes.scope = scope;  // eslint-disable-line backbone/no-model-attributes
         return promise;
     }
 });
