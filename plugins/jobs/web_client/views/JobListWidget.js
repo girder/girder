@@ -152,7 +152,7 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(JobListWidgetTemplate($.extend({}, this, {
+        this.$el.html(JobListWidgetTemplate(_.extend({}, this, {
             pageSize: this.collection.pageLimit
         })));
 

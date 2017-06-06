@@ -11,7 +11,12 @@
         "backbone/no-view-qualified-jquery": "error",
         "backbone/render-return": "error",
         "promise/always-return": "error",
-        "promise/no-nesting": "error"
+        "promise/no-nesting": "error",
+        "underscore/identity-shorthand": ["error", "always"],
+        "underscore/jquery-each": ["error", "never"],
+        "underscore/jquery-extend": ["error", "never"],
+        "underscore/jquery-proxy": ["error", "never"],
+        "underscore/no-return-value-from-each-iteratee": "error"
     },
     "settings": {
         "backbone": {

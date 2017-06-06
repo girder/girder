@@ -768,7 +768,6 @@ var HierarchyWidget = View.extend({
             _.each(items, function (cid) {
                 var item = this.itemListView.collection.get(cid);
                 resources.item.push(item.id);
-                return true;
             }, this);
         }
         _.each(resources, function (list, key) {
