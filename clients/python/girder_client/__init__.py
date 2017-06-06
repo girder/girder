@@ -706,7 +706,8 @@ class GirderClient(object):
         }
         return self.createResource('collection', params)
 
-    def createFolder(self, parentId, name, description='', parentType='folder', public=None):
+    def createFolder(self, parentId, name, description='', parentType='folder',
+                     reuseExisting=False, public=None):
         """
         Creates and returns a folder.
 
@@ -716,7 +717,8 @@ class GirderClient(object):
             'parentId': parentId,
             'parentType': parentType,
             'name': name,
-            'description': description
+            'description': description,
+            'reuseExisting': reuseExisting
         }
         if public is not None:
             params['public'] = public
