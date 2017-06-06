@@ -296,25 +296,19 @@ var JobListWidget = View.extend({
     },
 
     _fetchWithFilter() {
-        return new Promise((resolve, reject) => {
-            var filter = {};
-            if (this.userId) {
-                filter.userId = this.userId;
-            }
-            if (this.typeFilter) {
-                filter.types = JSON.stringify(this.typeFilter);
-            }
-            if (this.statusFilter) {
-                filter.statuses = JSON.stringify(this.statusFilter);
-            }
-            this.collection.params = filter;
-            this.collection.fetch({}, true);
-            var callback = () => {
-                this.collection.off('g:changed', callback);
-                resolve();
-            };
-            this.collection.on('g:changed', callback);
-        });
+        var filter = {};
+        if (this.userId) {
+            filter.userId = this.userId;
+        }
+        if (this.typeFilter) {
+            filter.types = JSON.stringify(this.typeFilter);
+        }
+        if (this.statusFilter) {
+            filter.statuses = JSON.stringify(this.statusFilter);
+        }
+        this.collection.params = filter;
+
+        return this.collection.fetch({}, true);
     },
 
     _cancelJobs: function () {
