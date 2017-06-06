@@ -73,13 +73,11 @@ restartServer._checkServer = function (lastStartDate) {
         error: null
     })
     .then((resp) => {
-        const checkResolution = $.Deferred();
         if (resp.serverStartDate !== lastStartDate) {
-            checkResolution.resolve();
+            return undefined;
         } else {
-            checkResolution.reject();
+            throw undefined;
         }
-        return checkResolution.promise();
     });
 };
 
