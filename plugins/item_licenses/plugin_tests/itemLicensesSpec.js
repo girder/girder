@@ -244,9 +244,7 @@ $(function () {
             girderTest.waitForLoad();
             runs(function () {
                 expect($('.g-item-name').text()).toBe('testFile.txt');
-                // TODO: to investigate; only one license will be shown when girder is live.
-                // It will be duplicated while testing -- g:rendered seems to be received twice.
-                expect($('.g-item-license').length).not.toBe(0); // was .toBe(1)
+                expect($('.g-item-license').length).toBe(1);
                 expect($('.g-item-license').text()).toContain('Apache License 2');
             });
 
