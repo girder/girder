@@ -2,6 +2,14 @@
     "extends": "girder",
     "rules": {
         "no-throw-literal": "off",
+        "backbone/defaults-on-top": "error",
+        "backbone/no-changed-set": "error",
+        "backbone/no-collection-models": "error",
+        "backbone/no-el-assign": "error",
+        "backbone/no-silent": "error",
+        "backbone/no-view-model-attributes": "error",
+        "backbone/no-view-qualified-jquery": "error",
+        "backbone/render-return": "error",
         "promise/always-return": "error",
         "promise/no-nesting": "error"
     },
