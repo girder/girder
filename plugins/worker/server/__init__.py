@@ -141,6 +141,7 @@ def cancel(event):
             asyncResult = AsyncResult(celeryTaskId)
             asyncResult.revoke()
 
+
 @setting_utilities.validator({
     PluginSettings.BROKER,
     PluginSettings.BACKEND
