@@ -707,7 +707,7 @@ class GirderClient(object):
         return self.createResource('collection', params)
 
     def createFolder(self, parentId, name, description='', parentType='folder',
-                     reuseExisting=False, public=None):
+                     public=None, reuseExisting=False):
         """
         Creates and returns a folder.
 
