@@ -10,6 +10,10 @@
         "backbone/no-view-model-attributes": "error",
         "backbone/no-view-qualified-jquery": "error",
         "backbone/render-return": "error",
+        "import/order": ["error", {
+            "groups": ["builtin", "external", "parent", "sibling", "index"],
+            "newlines-between": "always-and-inside-groups"
+        }],
         "promise/always-return": "error",
         "promise/no-nesting": "error",
         "underscore/identity-shorthand": ["error", "always"],

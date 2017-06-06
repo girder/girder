@@ -1,7 +1,7 @@
 import View from 'girder/views/View';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
-import ItemTaskCollection from '../collections/ItemTaskCollection';
 
+import ItemTaskCollection from '../collections/ItemTaskCollection';
 import template from '../templates/taskList.pug';
 import '../stylesheets/taskList.styl';
 

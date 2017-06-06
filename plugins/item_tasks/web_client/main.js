@@ -1,8 +1,7 @@
-/* eslint-disable import/first */
+/* eslint-disable import/first, import/order */
 
 import $ from 'jquery';
 import _ from 'underscore';
-import './routes';
 
 import { getCurrentUser } from 'girder/auth';
 import { wrap } from 'girder/utilities/PluginUtils';
@@ -12,6 +11,8 @@ import ItemView from 'girder/views/body/ItemView';
 import { registerPluginNamespace } from 'girder/pluginUtils';
 import JobModel from 'girder_plugins/jobs/models/JobModel';
 import * as itemTasks from 'girder_plugins/item_tasks';
+
+import './routes';
 
 registerPluginNamespace('item_tasks', itemTasks);
 
