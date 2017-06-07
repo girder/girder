@@ -24,6 +24,10 @@ $(function () {
                 $('a.g-my-folders').click();
             });
             girderTest.waitForLoad();
+            waitsFor(function () {
+                // The page may be loaded, but the folder list still populates asynchronously
+                return $('.g-folder-list>.g-folder-list-entry').length === 2;
+            });
 
             runs(function () {
                 $('a.g-folder-list-link:last').click();
