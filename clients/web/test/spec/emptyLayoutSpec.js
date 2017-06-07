@@ -51,8 +51,9 @@ describe('Test empty and default layouts', function () {
         }, 'wait for app header container to appear so we can know it will disappear');
 
         girderTest.testRoute('collections/emptylayout', false, function () {
-            // go to emptylayout, be sure that app header is gone
-            return $('#g-app-header-container').is(':visible') === false;
+            // go to emptylayout, be sure that app header is gone, and collection list has finished loading
+            return $('#g-app-header-container').is(':visible') === false &&
+                $('.g-collection-list-header').is(':visible') === true;
         });
 
         runs(expectEmptyLayout);
@@ -62,8 +63,9 @@ describe('Test empty and default layouts', function () {
         girderTest.testRoute('collections', false, function () {
             // route back to the standard collections view, this should
             // revert to the default layout
-            // be sure that app header is back
-            return $('#g-app-header-container').is(':visible') === true;
+            // be sure that app header is back, and collection list has finished loading
+            return $('#g-app-header-container').is(':visible') === true &&
+                $('.g-collection-list-header').is(':visible') === true;
         });
 
         runs(expectDefaultLayout);
@@ -81,16 +83,18 @@ describe('Test empty and default layouts', function () {
         }, 'wait for app header container to appear so we can know it will disappear');
 
         girderTest.testRoute('collections/emptylayout', false, function () {
-            // go to emptylayout, be sure that app header is gone
-            return $('#g-app-header-container').is(':visible') === false;
+            // go to emptylayout, be sure that app header is gone, and collection list has finished loading
+            return $('#g-app-header-container').is(':visible') === false &&
+                $('.g-collection-list-header').is(':visible') === true;
         });
 
         runs(expectEmptyLayout);
 
         girderTest.testRoute('collections/defaultlayout', false, function () {
             // this should revert to the default layout
-            // be sure that app header is back
-            return $('#g-app-header-container').is(':visible') === true;
+            // be sure that app header is back, and collection list has finished loading
+            return $('#g-app-header-container').is(':visible') === true &&
+                $('.g-collection-list-header').is(':visible') === true;
         });
 
         runs(expectDefaultLayout);
