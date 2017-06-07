@@ -12,7 +12,7 @@
         "backbone/render-return": "error",
         "import/named": "error",
         "import/order": ["error", {
-            "groups": ["builtin", "external", "parent", "sibling", "index"],
+            "groups": ["builtin", "external", ["parent", "sibling", "index"]],
             "newlines-between": "always-and-inside-groups"
         }],
         "promise/always-return": "error",
