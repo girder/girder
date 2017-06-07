@@ -133,11 +133,11 @@ $(function () {
                     showFilters: true,
                     showPageSizeSelector: true
                 }).render();
-
+            });
+            girderTest.waitForLoad();
+            runs(function () {
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
             });
-
-            girderTest.waitForLoad();
 
             runs(function () {
                 jobs = _.map([1, 2, 3], function (i) {
