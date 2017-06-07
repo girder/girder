@@ -130,12 +130,11 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         super(GridFsAssetstoreAdapter, self).__init__(assetstore)
         recent = False
-        self._connectionArgs = (self.assetstore.get('mongohost', None),
-                                self.assetstore.get('replicaset', None),
-                                self.assetstore.get('shard', None))
         try:
             # Guard in case the connectionArgs is unhashable
-            key = self._connectionArgs
+            key = (self.assetstore.get('mongohost', None),
+                   self.assetstore.get('replicaset', None),
+                   self.assetstore.get('shard', None))
             if key in _recentConnections:
                 recent = (time.time() - _recentConnections[key]['created'] <
                           RECENT_CONNECTION_CACHE_TIME)
@@ -145,7 +144,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             # MongoClient automatically reuses connections from a pool, but we
             # want to avoid redoing ensureChunkIndices each time we get such a
             # connection.
-            client = getDbConnection(*self._connectionArgs, quiet=recent)
+            client = getDbConnection(self.assetstore.get('mongohost', None),
+                                     self.assetstore.get('replicaset', None),
+                                     quiet=recent)
             self.chunkColl = MongoProxy(client[self.assetstore['db']].chunk)
             if not recent:
                 _ensureChunkIndices(self.chunkColl)
