@@ -16,7 +16,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
 import click
 import sys
 import types
@@ -273,7 +272,7 @@ _short_help = 'Upload files to Girder'
               help='will not write anything to Girder, only report what would happen')
 @click.option('--blacklist', default='',
               help='comma-separated list of filenames to ignore')
-@click.option('--reference', is_flag=True,
+@click.option('--reference', default=None,
               help='optional reference to send along with the upload')
 @click.pass_obj
 def _upload(gc, parent_type, parent_id, local_folder,

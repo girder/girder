@@ -1394,13 +1394,14 @@ class GirderClient(object):
 
         return item
 
-    def _uploadFileToItem(self, localFile, parentItemId, filePath):
+    def _uploadFileToItem(self, localFile, parentItemId, filePath, reference=None):
         """Helper function to upload a file to an item
         :param localFile: name of local file to upload
         :param parentItemId: id of parent item in Girder to add file to
         :param filePath: full path to the file
+        :param reference: Option reference to send along with the upload.
         """
-        self.uploadFileToItem(parentItemId, filePath, filename=localFile)
+        self.uploadFileToItem(parentItemId, filePath, filename=localFile, reference=reference)
 
     def _uploadAsItem(self, localFile, parentFolderId, filePath, reuseExisting=False, dryRun=False,
                       reference=None):
@@ -1417,7 +1418,7 @@ class GirderClient(object):
         if not dryRun:
             currentItem = self.loadOrCreateItem(
                 os.path.basename(localFile), parentFolderId, reuseExisting)
-            self._uploadFileToItem(localFile, currentItem['_id'], filePath)
+            self._uploadFileToItem(localFile, currentItem['_id'], filePath, reference=reference)
 
             for callback in self._itemUploadCallbacks:
                 callback(currentItem, filePath)
@@ -1452,7 +1453,7 @@ class GirderClient(object):
             print('Adding file %s, (%d of %d) to Item' % (currentFile, ind + 1, filecount))
 
             if not dryRun:
-                self._uploadFileToItem(currentFile, item['_id'], filepath)
+                self._uploadFileToItem(currentFile, item['_id'], filepath, reference=reference)
 
         if not dryRun:
             for callback in self._itemUploadCallbacks:
@@ -1510,10 +1511,11 @@ class GirderClient(object):
                     # pass that as the parent_type
                     self._uploadFolderRecursive(
                         fullEntry, folder['_id'], 'folder', leafFoldersAsItems, reuseExisting,
-                        dryRun=dryRun)
+                        dryRun=dryRun, reference=reference)
                 else:
                     self._uploadAsItem(
-                        entry, folder['_id'], fullEntry, reuseExisting, dryRun=dryRun)
+                        entry, folder['_id'], fullEntry, reuseExisting, dryRun=dryRun,
+                        reference=reference)
 
             if not dryRun:
                 for callback in self._folderUploadCallbacks:
