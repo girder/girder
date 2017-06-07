@@ -35,7 +35,7 @@ class JobStatus(object):
     # Mapping of states to valid previous states
     valid_transitions = {
         QUEUED: [INACTIVE],
-        RUNNING: [QUEUED],
+        RUNNING: [QUEUED, INACTIVE],
         SUCCESS: [RUNNING],
         ERROR: [QUEUED, RUNNING],
         CANCELED: [INACTIVE, QUEUED, RUNNING]

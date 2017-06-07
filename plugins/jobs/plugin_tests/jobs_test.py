@@ -630,14 +630,10 @@ class JobsTestCase(base.TestCase):
         job = jobModel.createJob(
             title='user 0 job', type='t1', user=self.users[0], public=False)
 
-        # We can't move straight to RUNNING or SUCCESS
-        with self.assertRaises(ValidationException):
-            job = jobModel.updateJob(job, status=JobStatus.RUNNING)
-
+        # We can't move straight to  SUCCESS
         with self.assertRaises(ValidationException):
             job = jobModel.updateJob(job, status=JobStatus.SUCCESS)
 
-        # Move to QUEUED and try again
         jobModel.updateJob(job, status=JobStatus.QUEUED)
         jobModel.updateJob(job, status=JobStatus.RUNNING)
         jobModel.updateJob(job, status=JobStatus.ERROR)
