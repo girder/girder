@@ -25,6 +25,7 @@ import pprint
 import pymongo
 import shutil
 import signal
+import six
 import subprocess
 import time
 
@@ -126,8 +127,31 @@ def makeConfig(port=27070, replicaset='replicaset', servers=3, shard=False,
     :param dirroot: base temp directory name.
     :returns: a new configuration array.
     """
+    try:
+        cmd = [os.environ.get('MONGOD_EXECUTABLE', 'mongod'), '--version']
+        version = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
+        version = tuple(int(part) for part in version.split(
+            'db version v')[1].split()[0].strip().split('.'))
+    except Exception:
+        version = (0, 0, 0)
     config = []
     if shard:
+        config.append({
+            'dir': '%scfg' % dirroot,
+            'config': True,
+            'port': port + 1,
+            'replicaset': replicaset
+        })
+        if version < (3, 2):
+            del config[-1]['replicaset']
+        for i in range(servers):
+            config.append({
+                'dir': '%s%d' % (dirroot, i + 1),
+                'port': port + 2 + i,
+                'shard': True
+            })
+        # On a mongo 3 server, this has to be started last, so add it at the
+        # end of the list
         config.append({
             'route': True,
             'port': port,
@@ -135,18 +159,6 @@ def makeConfig(port=27070, replicaset='replicaset', servers=3, shard=False,
             'collection': shardcollection,
             'shardkey': shardkey,
         })
-        config.append({
-            'dir': '%scfg' % dirroot,
-            'config': True,
-            'port': port + 1,
-            'replicaset': replicaset
-        })
-        for i in range(servers):
-            config.append({
-                'dir': '%s%d' % (dirroot, i + 1),
-                'port': port + 2 + i,
-                'shard': True
-            })
     else:
         for i in range(servers):
             config.append({
@@ -193,11 +205,12 @@ def pauseMongoReplicaSet(config, pauseList, verbose=0):
             pprint.pprint(stat)
 
 
-def _startMongoProcesses(config, verbose=0):
+def _startMongoProcesses(config, timeout=60, verbose=0):
     """
     Create a set of directories in /tmp and start mongod and mongos processes.
 
     :param config: list of servers.
+    :param timeout: maximum time to wait for a mongo server to be ready.
     :param verbose: verbosity for logging.
     :returns: replicasets: an object with a key for each created replicaset.
         Each has a value which is the offset within the config list of the
@@ -219,12 +232,11 @@ def _startMongoProcesses(config, verbose=0):
             ]
         else:
             shardRoute = server
-            cfgsvr = (entry for i, entry in enumerate(config) if entry.get('config')).next()
-            cmd = [
-                os.environ.get('MONGOS_EXECUTABLE', 'mongos'),
-                '--configdb', '%s/127.0.0.1:%d' % (
-                    cfgsvr['replicaset'], cfgsvr['port'])
-            ]
+            cfgsvr = six.next(entry for i, entry in enumerate(config) if entry.get('config'))
+            cmd = [os.environ.get('MONGOS_EXECUTABLE', 'mongos'),
+                   '--configdb', '%s127.0.0.1:%d' % (
+                   cfgsvr['replicaset'] + '/' if 'replicaset' in cfgsvr else '',
+                   cfgsvr['port'])]
         cmd.extend(['--port', str(server['port'])])
         if server.get('dir'):
             if os.path.exists(server['dir']):
@@ -243,6 +255,10 @@ def _startMongoProcesses(config, verbose=0):
             print(' '.join(cmd))
         proc = subprocess.Popen(cmd, **kwargs)
         server['proc'] = proc
+        # Make sure we can query the database before moving on to starting the
+        # next one.
+        if not server.get('route'):
+            _waitForStatus('127.0.0.1:%d' % server['port'], timeout)
     return replicasets, shardRoute
 
 
@@ -257,7 +273,7 @@ def startMongoReplicaSet(config, timeout=60, verbose=0):
     :param verbose: verbosity for logging.
     """
     atexit.register(stopMongoReplicaSet, config, False)
-    replicasets, shardRoute = _startMongoProcesses(config, verbose)
+    replicasets, shardRoute = _startMongoProcesses(config, timeout, verbose)
     for replicaset in replicasets:
         replConf = {
             '_id': replicaset, 'version': 1,
@@ -382,6 +398,8 @@ def waitForRSStatus(config, client, status=[1], timeout=60, verbose=0,
     okay = False
     while time.time() < starttime + timeout:
         stat = getOrderedRSStatus(config, client, len(status), baseIdx)
+        if verbose >= 3:
+            print('Status: %r, waiting for %r' % (stat, status))
         if stat:
             okay = True
             numberOfPrimary = 0
@@ -410,6 +428,26 @@ def waitForRSStatus(config, client, status=[1], timeout=60, verbose=0,
     return client, stat
 
 
+def _waitForStatus(uri, timeout):
+    """
+    Check if we can get status from a database server.  Raise an exception if
+    not.
+
+    :param uri: connection uri.
+    :param timeout: maximum time to wait for a mongo server to be ready.
+    :returns: status.
+    """
+    starttime = time.time()
+    while time.time() - starttime < timeout:
+        try:
+            client = pymongo.MongoClient(uri)
+            stat = client.admin.command('serverStatus')
+            return stat
+        except Exception:
+            time.sleep(0.1)
+    raise
+
+
 if __name__ == '__main__':
     """
     Provide a simple stand-alone program so that developers can run a more
@@ -425,31 +463,32 @@ if __name__ == '__main__':
         '--dirroot', default='/tmp/mongodb',
         help='The root name of directories to create.  Multiple directories '
         'e created with paths like <dirroot>1, <dirroot>2.  They are deleted '
-        'en the program finishes.')
+        'en the program finishes.  Default /tmp/mongodb.')
     parser.add_argument(
         '--pause', action='count',
         help='Pause and unpause replicateset servers.', default=0)
     parser.add_argument(
-        '--port', default=27070, type=int, help='Starting port number.')
+        '--port', default=27070, type=int,
+        help='Starting port number.  Default 27070')
     parser.add_argument(
         '--replicaset', default='replicaset',
         help='Replica set name (on shards, this is the configuration replica '
-        'set name).')
+        'set name).  Default replicaset.')
     parser.add_argument(
         '--servers', default=3, type=int, help='Number of servers.  For '
         'sharding, this is the number of shards; there is also a config '
-        'server and a shard router.')
+        'server and a shard router.  Default 3.')
     parser.add_argument(
         '--shard', action='store_true', help='Create a sharding server.')
     parser.add_argument(
         '--sharddb', default='gridfs',
-        help='Name of a database to set as sharded.')
+        help='Name of a database to set as sharded.  Default gridfs.')
     parser.add_argument(
         '--shardcollection', default='chunk',
-        help='Name of a collection to set as sharded.')
+        help='Name of a collection to set as sharded.  Default chunk.')
     parser.add_argument(
         '--shardkey', default='uuid',
-        help='Name of an index to use for sharding.')
+        help='Name of an index to use for sharding.  Default uuid.')
     parser.add_argument(
         '-v', '--verbose', action='count', help='Increase verbosity.',
         default=0)

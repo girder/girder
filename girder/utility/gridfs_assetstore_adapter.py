@@ -70,8 +70,8 @@ def _setupSharding(collection, keyname='uuid'):
     client = database.client
     stat = client.admin.command('serverStatus')
     # sharding will be non-None if the client is communicating with a mongos
-    # instance
-    if not stat.get('sharding'):
+    # instance. For mongo 3.0 we have to check the process name for 'mongos'.
+    if not stat.get('sharding') and 'mongos' not in stat.get('process', ''):
         return False
     if database.command('collstats', collection.name).get('sharded'):
         return 'present'
