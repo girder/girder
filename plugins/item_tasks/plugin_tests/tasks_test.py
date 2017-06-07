@@ -370,6 +370,9 @@ class TasksTest(base.TestCase):
         self.assertIn('itemTaskTempToken', job)
 
         from girder.plugins.jobs.constants import JobStatus
+        # Transition through states to SUCCESS
+        job = jobModel.updateJob(job, status=JobStatus.QUEUED)
+        job = jobModel.updateJob(job, status=JobStatus.RUNNING)
         job = jobModel.updateJob(job, status=JobStatus.SUCCESS)
 
         self.assertNotIn('itemTaskTempToken', job)
