@@ -278,11 +278,10 @@ def _upload(gc, parent_type, parent_id, local_folder,
             leaf_folders_as_items, reuse, blacklist, dry_run):
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
-    for local in local_folder:
-        gc.upload(
-            local, parent_id, parent_type,
-            leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,
-            blacklist=blacklist.split(','), dryRun=dry_run)
+    gc.upload(
+        local_folder, parent_id, parent_type,
+        leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,
+        blacklist=blacklist.split(','), dryRun=dry_run)
 
 
 if __name__ == '__main__':
