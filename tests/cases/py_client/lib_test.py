@@ -438,6 +438,17 @@ class PythonClientTestCase(base.TestCase):
         file = self.client.uploadFileToItem(item['_id'], testPath)
         self.assertEqual(file['mimeType'], 'text/plain')
 
+        # Test uploading to a folder
+        self.client.uploadFileToFolder(
+            str(self.publicFolder['_id']), path, reference='test4_reference')
+        while (not events.daemon.eventQueue.empty() and
+                time.time() - starttime < 5):
+            time.sleep(0.05)
+        self.assertEqual(len(eventList), 6)
+        self.assertEqual(eventList[-1]['reference'], 'test4_reference')
+        self.assertNotEqual(eventList[2]['file']['_id'],
+                            eventList[-1]['file']['_id'])
+
     def testUploadContentWithMultipart(self):
         with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
             self._testUploadContent()
@@ -713,6 +724,12 @@ class PythonClientTestCase(base.TestCase):
         uploadedFile = self.client.uploadFileToItem(item['_id'], path, filename='g1')
 
         self.assertEqual(uploadedFile['name'], 'g1')
+
+    def _testUploadFileToFolder(self):
+        path = os.path.join(self.libTestDir, 'sub1', 'f1')
+        uploadedFile = self.client.uploadFileToFolder(
+            self.publicFolder['_id'], path, filename='g2')
+        self.assertEqual(uploadedFile['name'], 'g2')
 
     def testGetServerVersion(self):
 

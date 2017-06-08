@@ -872,6 +872,57 @@ class GirderClient(object):
         with open(filepath, 'rb') as f:
             return self._uploadContents(obj, f, filesize, progressCallback=progressCallback)
 
+    def uploadFileToFolder(self, folderId, filepath, reference=None, mimeType=None, filename=None,
+                           progressCallback=None):
+        """
+        Uploads a file to an folder, creating a new item in the process.  If
+        the has 0 bytes, no uploading will be performed, and no item will be
+        created.
+
+        :param folderId: ID of parent folder for file.
+        :param filepath: path to file on disk.
+        :param reference: optional reference to send along with the upload.
+        :type reference: str
+        :param mimeType: MIME type for the file. Will be guessed if not passed.
+        :type mimeType: str or None
+        :param filename: path with filename used in Girder. Defaults to basename of filepath.
+        :param progressCallback: If passed, will be called after each chunk
+            with progress information. It passes a single positional argument
+            to the callable which is a dict of information about progress.
+        :type progressCallback: callable
+        :returns: the file that was created.
+        """
+        if filename is None:
+            filename = filepath
+        filename = os.path.basename(filename)
+        filepath = os.path.abspath(filepath)
+        filesize = os.path.getsize(filepath)
+
+        if filesize == 0:
+            return
+
+        if mimeType is None:
+            # Attempt to guess MIME type if not passed explicitly
+            mimeType, _ = mimetypes.guess_type(filepath)
+
+        params = {
+            'parentType': 'folder',
+            'parentId': folderId,
+            'name': filename,
+            'size': filesize,
+            'mimeType': mimeType
+        }
+        if reference:
+            params['reference'] = reference
+        obj = self.post('file', params)
+        if '_id' not in obj:
+            raise Exception(
+                'After creating an upload token for a new file, expected '
+                'an object with an id. Got instead: ' + json.dumps(obj))
+
+        with open(filepath, 'rb') as f:
+            return self._uploadContents(obj, f, filesize, progressCallback=progressCallback)
+
     def _uploadContents(self, uploadObj, stream, size, progressCallback=None):
         """
         Uploads contents of a file.
@@ -1392,14 +1443,6 @@ class GirderClient(object):
 
         return item
 
-    def _uploadFileToItem(self, localFile, parentItemId, filePath):
-        """Helper function to upload a file to an item
-        :param localFile: name of local file to upload
-        :param parentItemId: id of parent item in Girder to add file to
-        :param filePath: full path to the file
-        """
-        self.uploadFileToItem(parentItemId, filePath, filename=localFile)
-
     def _uploadAsItem(self, localFile, parentFolderId, filePath, reuseExisting=False, dryRun=False):
         """Function for doing an upload of a file as an item.
         :param localFile: name of local file to upload
@@ -1411,12 +1454,19 @@ class GirderClient(object):
         if not self.progressReporterCls.reportProgress:
             print('Uploading Item from %s' % localFile)
         if not dryRun:
-            currentItem = self.loadOrCreateItem(
-                os.path.basename(localFile), parentFolderId, reuseExisting)
-            self._uploadFileToItem(localFile, currentItem['_id'], filePath)
+            # If we are reusing existing items or have upload callbacks, then
+            # we need to know the item as part of the process.  Otherwise, we
+            # can just upload to the parent folder and never learn about the
+            # created item.
+            if reuseExisting or len(self._itemUploadCallbacks) or os.path.getsize(filePath) == 0:
+                currentItem = self.loadOrCreateItem(
+                    os.path.basename(localFile), parentFolderId, reuseExisting)
+                self.uploadFileToItem(currentItem['_id'], filePath, filename=localFile)
 
-            for callback in self._itemUploadCallbacks:
-                callback(currentItem, filePath)
+                for callback in self._itemUploadCallbacks:
+                    callback(currentItem, filePath)
+            else:
+                self.uploadFileToFolder(parentFolderId, filePath, filename=localFile)
 
     def _uploadFolderAsItem(self, localFolder, parentFolderId, reuseExisting=False, blacklist=None,
                             dryRun=False):
@@ -1447,7 +1497,7 @@ class GirderClient(object):
             print('Adding file %s, (%d of %d) to Item' % (currentFile, ind + 1, filecount))
 
             if not dryRun:
-                self._uploadFileToItem(currentFile, item['_id'], filepath)
+                self.uploadFileToItem(item['_id'], filepath, filename=currentFile)
 
         if not dryRun:
             for callback in self._itemUploadCallbacks:
