@@ -1,3 +1,9 @@
+/**
+ * This module defines a series of functions to handle loading
+ * folders over Girder's rest interface using a consistent
+ * API supported by jstree.
+ */
+
 import _ from 'underscore';
 import $ from 'jquery';
 
@@ -8,6 +14,10 @@ import * as user from './user';
 import * as collection from './collection';
 import * as item from './item';
 
+/**
+ * Mutate a document returned from Girder's rest api
+ * returning a jstree node object.
+ */
 function mutate(folder) {
     return {
         id: folder._id,
@@ -19,43 +29,57 @@ function mutate(folder) {
     };
 }
 
-function load(doc) {
+/**
+ * Load a folder node from the server.
+ */
+function load(node) {
     return request({
-        path: `folder/${doc.id}`
+        path: `folder/${node.id}`
     }).then(mutate);
 }
 
-function parent(doc) {
-    const parentDoc = {
-        id: doc.model.parentId,
-        type: doc.model.parentCollection
+/**
+ * Load the folder's parent node from the server.  This
+ * automatically determines if the type is a folder, user,
+ * or collection and calls the correct load method.
+ */
+function parent(node) {
+    const parentnode = {
+        id: node.model.parentId,
+        type: node.model.parentCollection
     };
 
-    switch (parentDoc.type) {
+    switch (parentnode.type) {
         case 'folder':
-            return load(parentDoc);
+            return load(parentnode);
         case 'user':
-            return user.load(parentDoc);
+            return user.load(parentnode);
         case 'collection':
-            return collection.load(parentDoc);
+            return collection.load(parentnode);
         default:
-            throw new Error(`Unknown folder parent type "${parentDoc.type}"`);
+            throw new Error(`Unknown folder parent type "${parentnode.type}"`);
     }
 }
 
-function children(doc) {
+/**
+ * Load the folder's children from the server.  This has to be
+ * done using two requests; one for folders and one for items.
+ * The requests are merged together into a single array with
+ * folders first.
+ */
+function children(node) {
     return $.when(...[
         request({
             path: 'folder',
             data: {
-                parentId: doc.id,
+                parentId: node.id,
                 parentType: 'folder'
             }
         }),
         request({
             path: 'item',
             data: {
-                folderId: doc.id
+                folderId: node.id
             }
         })
     ]).then((folders, items) => {

@@ -1,7 +1,16 @@
+/**
+ * This module defines a builtin `home` node type.  This
+ * type is an alias of the current user to display the
+ * user's home folders more prominently.
+ */
+
 import { register } from '../types';
 
 import * as user from './user';
 
+/**
+ * Mutate a user node or document into a `home` node.
+ */
 function mutate(doc) {
     return {
         id: doc._id || doc.id,
@@ -13,13 +22,20 @@ function mutate(doc) {
     };
 }
 
-function load(doc) {
-    return user.load(doc)
+/**
+ * Load the home node from the server by calling the
+ * user `load` method.
+ */
+function load(node) {
+    return user.load(node)
         .then(mutate);
 }
 
-function children(doc) {
-    return user.children(doc);
+/**
+ * Get a list of all folders under the current user.
+ */
+function children(node) {
+    return user.children(node);
 }
 
 register('home', {load, children});

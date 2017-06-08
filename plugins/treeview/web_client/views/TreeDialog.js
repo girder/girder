@@ -7,6 +7,11 @@ import TreeView from './TreeView';
 import treeDialog from '../templates/treeDialog.pug';
 import '../stylesheets/treeDialog.styl';
 
+/**
+ * This view is a modal dialog for selecting arbitrary documents.
+ * It is primarly used as a parent view for more specific modal
+ * modal dialogs.
+ */
 const TreeDialog = View.extend({
     events: {
         'click .g-submit-button': '_submit'

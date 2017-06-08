@@ -10,6 +10,11 @@ import TreeView from './TreeView';
 import configView from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
 
+/**
+ * This view is added to the treeview plugin configuration page
+ * to serve both as a demo of what the plugin does and an example
+ * of how to use it with other views.
+ */
 const ConfigView = View.extend({
     events: {
         'click .g-treeview-generic-dialog-button': '_genericDialog',

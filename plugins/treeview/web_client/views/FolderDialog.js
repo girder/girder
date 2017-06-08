@@ -2,6 +2,9 @@ import _ from 'underscore';
 
 import TreeDialog from './TreeDialog';
 
+/**
+ * This view is a modal dialog for selecting folders.
+ */
 const FolderDialog = TreeDialog.extend({
     initialize(settings = {}) {
         const treeviewSettings = _.defaults(

@@ -1,3 +1,9 @@
+/**
+ * This module defines a series of functions to handle loading
+ * items over Girder's rest interface using a consistent
+ * API supported by jstree.
+ */
+
 import _ from 'underscore';
 
 import { register } from '../types';
@@ -6,6 +12,10 @@ import request from '../utils/request';
 import * as folder from './folder';
 import * as file from './file';
 
+/**
+ * Mutate a document returned from Girder's rest api
+ * returning a jstree node object.
+ */
 function mutate(item) {
     return {
         id: item._id,
@@ -17,22 +27,31 @@ function mutate(item) {
     };
 }
 
-function load(doc) {
+/**
+ * Load an item node from the server.
+ */
+function load(node) {
     return request({
-        path: `item/${doc.id}`
+        path: `item/${node.id}`
     }).then(mutate);
 }
 
-function parent(doc) {
+/**
+ * Load the item's parent folder from the server.
+ */
+function parent(node) {
     return folder.load({
-        id: doc.model.folderId,
+        id: node.model.folderId,
         type: 'folder'
     });
 }
 
-function children(doc) {
+/**
+ * Load all files contained in an item from the server.
+ */
+function children(node) {
     return request({
-        path: `item/${doc.id}/files`
+        path: `item/${node.id}/files`
     }).then((files) => {
         return _.map(files, file.mutate);
     });

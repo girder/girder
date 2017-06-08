@@ -4,6 +4,19 @@ import $ from 'jquery';
 import auth from './utils/auth';
 import { children, load, alias } from './types';
 
+/**
+ * Generate a tree construction function to pass into jstree.
+ *
+ * @param {object} [settings={}] Optional settings object
+ * @param {object[]} [settings.root]
+ *   Describes the root nodes to generate.  Defaults to
+ *   "Collections", "Users", and "Home".
+ *
+ * @returns {Promise}
+ *   A promise that resolves to a lazy-loading function compatible
+ *   with jstree:
+ *     https://github.com/vakata/jstree#populating-the-tree-using-a-callback-function
+ */
 export default function (settings = {}) {
     const user = auth();
     const roots = settings.roots || [{

@@ -2,7 +2,10 @@ import _ from 'underscore';
 
 import TreeDialog from './TreeDialog';
 
-const FolderDialog = TreeDialog.extend({
+/**
+ * This view is a modal dialog for selecting items.
+ */
+const ItemDialog = TreeDialog.extend({
     initialize(settings = {}) {
         const treeviewSettings = _.defaults(
             settings.treeview || {},
@@ -22,4 +25,4 @@ const FolderDialog = TreeDialog.extend({
     }
 });
 
-export default FolderDialog;
+export default ItemDialog;
