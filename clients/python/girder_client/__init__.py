@@ -1090,7 +1090,7 @@ class GirderClient(object):
         progressFileName = fileId
         if isinstance(path, six.string_types):
             progressFileName = os.path.basename(path)
-            
+
         url = '%sfile/%s/download' % (self.urlBase, fileId)
         req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
         if req.status_code != requests.codes.ok:
