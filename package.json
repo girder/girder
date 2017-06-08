@@ -11,6 +11,10 @@
     "type": "git",
     "url": "https://github.com/girder/girder.git"
   },
+  "engines": {
+    "node": ">=6.5",
+    "npm": ">=3.10"
+  },
   "dependencies": {
     "as-jqplot": "1.0.8",
     "babel-core": "^6.24.1",
