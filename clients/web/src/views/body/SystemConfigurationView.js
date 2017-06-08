@@ -34,7 +34,7 @@ var SystemConfigurationView = View.extend({
                     return {
                         key: key,
                         value: _.object(_.map($('.g-core-route-table'), function (el) {
-                            return [$(el).data('webroot-name'), $(el).val()];
+                            return [$(el).data('webrootName'), $(el).val()];
                         }))
                     };
                 }

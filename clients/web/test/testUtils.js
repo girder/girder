@@ -632,17 +632,11 @@ girderTest.promise = $.Deferred().resolve().promise();
  * Import a javascript file and.
  */
 girderTest.addScript = function (url) {
-    var defer = new $.Deferred();
-    girderTest.promise.done(function () {
-        $.getScript(url).done(function () {
-            defer.resolve();
-        }).fail(function () {
-            defer.reject('Failed to load script: ' + url);
+    girderTest.promise = girderTest.promise
+        .then(_.partial($.getScript, url))
+        .catch(function () {
+            throw 'Failed to load script: ' + url;
         });
-    }).fail(function () {
-        defer.reject.apply(defer, arguments);
-    });
-    girderTest.promise = defer.promise();
 };
 
 /**

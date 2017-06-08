@@ -24,6 +24,10 @@ $(function () {
                 $('a.g-my-folders').click();
             });
             girderTest.waitForLoad();
+            waitsFor(function () {
+                // The page may be loaded, but the folder list still populates asynchronously
+                return $('.g-folder-list>.g-folder-list-entry').length === 2;
+            });
 
             runs(function () {
                 $('a.g-folder-list-link:last').click();
@@ -61,9 +65,7 @@ $(function () {
             girderTest.waitForLoad();
 
             waitsFor(function () {
-                // TODO: to investigate; only one thumbnail will be shown when girder is live.
-                // It will be duplicated while testing -- g:rendered seems to be received twice.
-                return $('.g-thumbnail-container').length > 0; // was .length === 1
+                return $('.g-thumbnail-container').length === 1;
             }, 'thumbnail to appear on the item');
         });
     });

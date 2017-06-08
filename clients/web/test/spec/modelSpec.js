@@ -28,7 +28,7 @@ describe('Test the model class', function () {
             }
             // The jqXHR response of a rest request needs an error function
             resp.error = resp.fail;
-            return resp;
+            return resp.promise();
         });
     });
 
