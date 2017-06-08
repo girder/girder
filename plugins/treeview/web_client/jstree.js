@@ -31,7 +31,7 @@ export default function (el, settings = {}) {
             };
 
             settings = $.extend(true, {
-                plugins: ['types', 'conditionalselect', 'state', 'contextmenu'],
+                plugins: ['types', 'conditionalselect', 'state'],
                 core: {
                     data: data,
                     force_text: true, // prevent XSS
@@ -41,7 +41,7 @@ export default function (el, settings = {}) {
                         stripes: true
                     },
                     multiple: false,
-                    check_callback: true
+                    check_callback: false
                 },
                 types: _.defaults(icons, {
                     folder: {
