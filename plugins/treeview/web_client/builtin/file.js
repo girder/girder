@@ -26,15 +26,10 @@ function parent(doc) {
     });
 }
 
-function children(doc) {
-    return Promise.resolve([]);
-}
-
-register('file', load, parent, children);
+register('file', {load, parent});
 
 export {
     load,
     parent,
-    children,
     mutate
 };

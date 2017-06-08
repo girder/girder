@@ -63,7 +63,7 @@ function children(doc) {
     });
 }
 
-register('folder', load, parent, children);
+register('folder', {load, parent, children});
 
 export {
     load,

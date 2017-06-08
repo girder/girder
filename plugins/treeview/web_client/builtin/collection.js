@@ -39,7 +39,7 @@ function children(doc) {
     });
 }
 
-register('collection', load, parent, children);
+register('collection', {load, parent, children});
 
 export {
     load,

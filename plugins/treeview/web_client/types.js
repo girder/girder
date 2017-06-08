@@ -1,21 +1,29 @@
 import _ from 'underscore';
+import $ from 'jquery';
 
 const definitions = {};
 const aliases = {};
 const icons = {};
 
-function register(name, load, parent, children, options = {}) {
-    definitions[name] = {
-        load,
-        parent,
-        children,
-        options
-    };
-    if (options.icon) {
+const defaultChildren = _.constant($.Deferred().resolve([]).promise());
+const defaultParent = _.constant($.Deferred().resolve(null).promise());
+
+function register(name, def = {}) {
+    if (!_.isFunction(def.load)) {
+        throw new Error('Node types require a load method');
+    }
+
+    if (def.icon) {
         icons[name] = {
-            icons: options.icon
+            icons: def.icon
         };
     }
+
+    definitions[name] = _.defaults(def, {
+        children: defaultChildren,
+        parent: defaultParent,
+        options: {}
+    });
 }
 
 function unregister(name) {
@@ -47,7 +55,7 @@ function getDefinition(type) {
 
 function contextMenu(node) {
     const def = getDefinition(node.type);
-    const menu = def.options.contextmenu;
+    const menu = def.contextmenu;
     if (_.isFunction(menu)) {
         return menu(node);
     }

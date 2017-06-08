@@ -32,11 +32,15 @@ describe('treeview type registry', function () {
         var load = assertArguments('load', doc);
         var parent = assertArguments('parent', {id: '#', type: '#'});
         var children = assertArguments('children', []);
-        var options = {
-            icon: 'icon-test'
-        };
+        var options = {};
 
-        treeview.types.register('testtype', load, parent, children, options);
+        treeview.types.register('testtype', {
+            load: load,
+            parent: parent,
+            children: children,
+            options: options,
+            icon: 'icon-test'
+        });
         var def = treeview.types.getDefinition('testtype');
 
         expect(def.load).toBe(load);

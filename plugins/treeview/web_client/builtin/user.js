@@ -37,7 +37,7 @@ function children(doc) {
     });
 }
 
-register('user', load, parent, children);
+register('user', {load, parent, children});
 
 export {
     load,

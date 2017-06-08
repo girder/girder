@@ -19,10 +19,6 @@ function load(doc) {
     });
 }
 
-function parent(doc) {
-    return Promise.resolve(null);
-}
-
 function children(doc) {
     return request({
         path: 'collection'
@@ -31,11 +27,10 @@ function children(doc) {
     });
 }
 
-register('collections', load, parent, children);
+register('collections', {load, children});
 
 export {
     load,
-    parent,
     children,
     mutate
 };

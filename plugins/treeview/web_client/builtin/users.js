@@ -19,10 +19,6 @@ function load(doc) {
     });
 }
 
-function parent(doc) {
-    return Promise.resolve(null);
-}
-
 function children(doc) {
     return request({
         path: 'user'
@@ -31,11 +27,10 @@ function children(doc) {
     });
 }
 
-register('users', load, parent, children);
+register('users', {load, children});
 
 export {
     load,
-    parent,
     children,
     mutate
 };

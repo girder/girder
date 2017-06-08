@@ -18,19 +18,14 @@ function load(doc) {
         .then(mutate);
 }
 
-function parent(doc) {
-    return Promise.resolve(null);
-}
-
 function children(doc) {
     return user.children(doc);
 }
 
-register('home', load, parent, children);
+register('home', {load, children});
 
 export {
     load,
-    parent,
     children,
     mutate
 };

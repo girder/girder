@@ -38,7 +38,7 @@ function children(doc) {
     });
 }
 
-register('item', load, parent, children);
+register('item', {load, parent, children});
 
 export {
     load,
