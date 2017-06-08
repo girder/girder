@@ -25,7 +25,6 @@ import shutil
 import sys
 import six
 import httmock
-import urlparse
 
 from girder import config
 from tests import base
@@ -272,7 +271,7 @@ class PythonCliTestCase(base.TestCase):
         # Test uploading with reference
         @httmock.urlmatch(netloc='localhost', path='/api/v1/file$', method='POST')
         def checkParams(url, request):
-            query = urlparse.parse_qs(url[3])
+            query = six.moves.urllib.parse.parse_qs(url[3])
             self.assertIn('reference', query)
             self.assertIn('reference_string', query['reference'])
 
