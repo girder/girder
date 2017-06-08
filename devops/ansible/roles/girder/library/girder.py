@@ -39,7 +39,7 @@ __version__ = "0.3.0"
 DOCUMENTATION = '''
 ---
 module: girder
-author: "Chris Kotfila (chris.kotfila@kitware.com)
+author: "Kitware, Inc. <kitware@kitware.com>
 version_added: "0.1"
 short_description: A module that wraps girder_client
 requirements: [ girder_client==1.1.0 ]
