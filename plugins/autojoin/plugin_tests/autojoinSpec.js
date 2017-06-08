@@ -75,7 +75,7 @@ $(function () {
 
         it('create auto join rules', function () {
             runs(function () {
-                $('#g-autojoin-pattern').val('@kitware.com');
+                $('#g-autojoin-pattern').val('@test.com');
                 $('#g-autojoin-group').val(group1);
                 $('#g-autojoin-level').val(2);
                 $('#g-autojoin-add').click();
@@ -125,7 +125,7 @@ $(function () {
 
         it('logout', girderTest.logout());
         it('register a user', girderTest.createUser(
-            'user2', 'user2@kitware.com', 'Joe', 'User', 'password'
+            'user2', 'user2@test.com', 'Joe', 'User', 'password'
         ));
         it('go to groups page', girderTest.goToGroupsPage());
         it('verify correct groups', function () {

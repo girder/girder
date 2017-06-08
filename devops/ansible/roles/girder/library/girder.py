@@ -456,11 +456,11 @@ EXAMPLES = '''
 - name: Create 'admin' User
   girder:
     user:
-      firstName: "Chris"
-      lastName: "Kotfila"
+      firstName: "John"
+      lastName: "Doe"
       login: "admin"
       password: "letmein"
-      email: "chris.kotfila@kitware.com"
+      email: "john.due@test.com"
       admin: yes
     state: present
 
@@ -474,7 +474,7 @@ EXAMPLES = '''
       lastName: "Bar"
       login: "foobar"
       password: "foobarbaz"
-      email: "foo.bar@kitware.com"
+      email: "foo.bar@test.com"
       admin: yes
     state: present
 
@@ -500,10 +500,10 @@ EXAMPLES = '''
     password: "letmein"
     user:
       firstName: "Alice"
-      lastName: "Test"
+      lastName: "Doe"
       login: "alice"
       password: "letmein"
-      email: "alice.test@kitware.com"
+      email: "alice.doe@test.com"
     state: present
 
 # Create a 'bill' user
@@ -514,10 +514,10 @@ EXAMPLES = '''
     password: "letmein"
     user:
       firstName: "Bill"
-      lastName: "Test"
+      lastName: "Doe"
       login: "bill"
       password: "letmein"
-      email: "bill.test@kitware.com"
+      email: "bill.doe@test.com"
     state: present
 
 # Create a 'chris' user
@@ -528,10 +528,10 @@ EXAMPLES = '''
     password: "letmein"
     user:
       firstName: "Chris"
-      lastName: "Test"
+      lastName: "Doe"
       login: "chris"
       password: "letmein"
-      email: "chris.test@kitware.com"
+      email: "chris.doe@test.com"
     state: present
 
 - name: Create a test group with users
