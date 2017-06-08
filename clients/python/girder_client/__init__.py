@@ -1522,8 +1522,8 @@ class GirderClient(object):
         create a hierarchy on the server under the parentId.
 
         :param filePattern: a glob pattern for files that will be uploaded,
-            recursively copying any file folder structures.  If this is a list,
-            each item in the list will be used in turn.
+            recursively copying any file folder structures.  If this is a list
+            or tuple each item in it will be used in turn.
         :type filePattern: str
         :param parentId: Id of the parent in Girder or resource path.
         :type parentId: ObjectId or Unix-style path to the resource in Girder.
@@ -1539,7 +1539,7 @@ class GirderClient(object):
             do not actually communicate with the server.
         :type dryRun: bool
         """
-        filePatternList = filePattern if isinstance(filePattern, list) else [filePattern]
+        filePatternList = filePattern if isinstance(filePattern, (list, tuple)) else [filePattern]
         blacklist = blacklist or []
         empty = True
         parentId = self._checkResourcePath(parentId)
