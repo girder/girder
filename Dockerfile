@@ -1,5 +1,5 @@
 FROM node:6
-MAINTAINER Patrick Reynolds <patrick.reynolds@kitware.com>
+MAINTAINER Kitware, Inc. <kitware@kitware.com>
 
 EXPOSE 8080
 

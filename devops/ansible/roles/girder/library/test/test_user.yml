@@ -6,11 +6,11 @@
       girder:
         port: 8080
         user:
-          firstName: "Chris"
-          lastName: "Kotfila"
+          firstName: "John"
+          lastName: "Doe"
           login: "admin"
           password: "letmein"
-          email: "chris.kotfila@kitware.com"
+          email: "john.doe@test.com"
           admin: yes
         state: present
       register: gc_return
@@ -40,11 +40,11 @@
       girder:
         port: 8080
         user:
-          firstName: "Chris"
-          lastName: "Kotfila"
+          firstName: "John"
+          lastName: "Doe"
           login: "admin"
           password: "letmein"
-          email: "chris.kotfila@kitware.com"
+          email: "john.doe@test.com"
           admin: yes
         state: present
       register: ret
@@ -57,15 +57,15 @@
 
     # Should show 'changed'  because we update the name
     # Note that 'login' and 'password' cannot but updated
-    - name: Update 'admin' User (Chris => Christopher)
+    - name: Update 'admin' User (John => Jack)
       girder:
         port: 8080
         user:
-          firstName: "Christopher"
-          lastName: "Kotfila"
+          firstName: "Jack"
+          lastName: "Doe"
           login: "admin"
           password: "letmein"
-          email: "chris.kotfila@kitware.com"
+          email: "john.doe@test.com"
           admin: yes
         state: present
       register: ret
@@ -99,7 +99,7 @@
           lastName: "Bar"
           login: "foobar"
           password: "foobarbaz"
-          email: "foo.bar@kitware.com"
+          email: "foo.bar@test.com"
           admin: yes
         state: present
 
