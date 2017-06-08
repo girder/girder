@@ -375,28 +375,27 @@ describe('builtin types', function () {
         asyncCall(function () {
             onrequest = function (opts) {
                 if (opts.path.match(/^folder/)) {
-                    response = [{
+                    response = [[{
                         _id: 'childfolder',
                         _modelType: 'folder',
                         name: 'child folder',
                         parentCollection: 'folder',
                         parentId: doc.id
-                    }];
+                    }]];
                 } else {
-                    response = [{
+                    response = [[{
                         _id: 'childitem',
                         _modelType: 'item',
                         name: 'child item',
                         parentCollection: 'folder',
                         parentId: doc.id
-                    }];
+                    }]];
                 }
             };
             response = [];
             return treeview.types.children(doc)
                 .then(function (children) {
                     var child;
-
                     expect(children.length).toBe(2);
 
                     child = children[0];

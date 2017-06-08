@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import $ from 'jquery';
 
 import View from 'girder/views/View';
 
@@ -48,10 +49,10 @@ const TreeView = View.extend({
     },
 
     reload() {
-        return new Promise((resolve) => {
-            this.$el.one('refresh.jstree', () => resolve(this));
-            this.instance().refresh();
-        });
+        const defer = $.Deferred();
+        this.$el.one('refresh.jstree', () => defer.resolve(this));
+        this.instance().refresh();
+        return defer.promise();
     },
 
     path(node) {

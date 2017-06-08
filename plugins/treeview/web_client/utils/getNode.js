@@ -10,17 +10,12 @@ import findResource from './findResource';
  * will be rejected.
  */
 function getNode(jstree, id, type) {
-    return new Promise((resolve, reject) => {
-        let node = jstree.get_node(id);
-        if (node) {
-            resolve(node);
-            return;
-        }
-
-        findResource(id, type).then((object) => {
-            resolve(object);
-        });
-    });
+    let node = jstree.get_node(id);
+    if (node) {
+        return $.Deferred.resolve(node).promise();
+    } else {
+        return findResource(id, type);
+    }
 }
 
 export default getNode;

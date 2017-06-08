@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import $ from 'jquery';
 
 import auth from './utils/auth';
 import { children, load, alias } from './types';
@@ -21,8 +22,8 @@ export default function (settings = {}) {
         alias(user._id, 'home');
     }
 
-    return Promise.all(_.map(roots, load))
-        .then((rootDocs) => {
+    return $.when(..._.map(roots, load))
+        .then((...rootDocs) => {
             return function (node, cb) {
                 if (node.id === '#') {
                     cb(rootDocs);

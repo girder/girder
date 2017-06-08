@@ -41,7 +41,8 @@ export default function (el, settings = {}) {
                         stripes: true
                     },
                     multiple: false,
-                    check_callback: false
+                    check_callback: false,
+                    worker: false
                 },
                 types: _.defaults(icons, {
                     folder: {

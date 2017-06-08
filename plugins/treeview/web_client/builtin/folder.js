@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import $ from 'jquery';
 
 import { register } from '../types';
 import request from '../utils/request';
@@ -43,7 +44,7 @@ function parent(doc) {
 }
 
 function children(doc) {
-    return Promise.all([
+    return $.when(...[
         request({
             path: 'folder',
             data: {
@@ -57,9 +58,9 @@ function children(doc) {
                 folderId: doc.id
             }
         })
-    ]).then(([folders, items]) => {
-        return _.map(folders, mutate)
-            .concat(_.map(items, item.mutate));
+    ]).then((folders, items) => {
+        return _.map(folders[0], mutate)
+            .concat(_.map(items[0], item.mutate));
     });
 }
 

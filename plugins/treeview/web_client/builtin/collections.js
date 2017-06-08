@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import $ from 'jquery';
 
 import { register } from '../types';
 import request from '../utils/request';
@@ -10,13 +11,13 @@ function mutate(doc) {
 }
 
 function load(doc) {
-    return Promise.resolve({
+    return $.Deferred().resolve({
         id: '#collections',
         parent: '#',
         type: 'collections',
         text: 'Collections',
         children: true
-    });
+    }).promise();
 }
 
 function children(doc) {
