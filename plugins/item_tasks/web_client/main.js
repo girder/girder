@@ -49,10 +49,10 @@ wrap(ItemView, 'render', function (render) {
     return render.call(this);
 });
 
-import ConfigureTaskDialog from './views/ConfigureTaskDialog';
+import ConfigureTasksDialog from './views/ConfigureTasksDialog';
 ItemView.prototype.events['click .g-configure-item-task'] = function () {
     if (!this.configureTaskDialog) {
-        this.configureTaskDialog = new ConfigureTaskDialog({
+        this.configureTaskDialog = new ConfigureTasksDialog({
             model: this.model,
             parentView: this,
             el: $('#g-dialog-container')
@@ -71,7 +71,6 @@ wrap(HierarchyWidget, 'render', function (render) {
     return this;
 });
 
-import ConfigureTasksDialog from './views/ConfigureTasksDialog';
 HierarchyWidget.prototype.events['click .g-create-docker-tasks'] = function () {
     if (!this.configureTasksDialog) {
         this.configureTasksDialog = new ConfigureTasksDialog({

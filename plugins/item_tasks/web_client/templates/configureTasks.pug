@@ -1,25 +1,30 @@
-.modal-dialog
+.modal-dialog.g-configure-tasks-dialog
   .modal-content
     form.g-configure-docker-form.modal-form(role="form")
       .modal-header
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
-        h4.modal-title Auto-configure task items
+        h4.modal-title
+          if isFolder
+            | Auto-configure task items
+          else
+            | Auto-configure task item
         .g-dialog-subtitle
-          i.icon-folder
-          = folder.name()
+          if isFolder
+            i.icon-folder
+          else
+            i.icon-doc-text-inv
+          = model.name()
       .modal-body
-        p.
-          Running this will pull and run the specified docker image in order
-          to introspect its task specification output. Once that output
-          is parsed, the information will be transformed into metadata on new
-          items under this folder, which can then be run as tasks via the worker.
-        .form-group
-          label Docker image identifier
-          input.g-configure-docker-image.form-control.input-sm
-        .checkbox
-          label
-            input.g-configure-docker-pull-image(type="checkbox", checked=true)
-            | Pull image from Docker Hub
+        ul.nav.nav-tabs
+          li.g-configure-json-tasks-tab.active
+            a(href="#g-configure-json-tasks-tab-content", data-toggle="tab") JSON
+          li.g-configure-slicer-cli-task-tab
+            a(href="#g-configure-slicer-cli-task-tab-content", data-toggle="tab") Slicer CLI
+        .tab-content
+          #g-configure-json-tasks-tab-content.tab-pane.active
+            include configureJsonTasks.pug
+          #g-configure-slicer-cli-task-tab-content.tab-pane
+            include configureSlicerCliTask.pug
         .g-validation-failed-message
       .modal-footer
         a.btn.btn-default(data-dismiss="modal") Close

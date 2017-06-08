@@ -1,0 +1,27 @@
+p.
+  Running this will pull and run the specified docker image in order
+  to introspect its Slicer/CTK CLI specification output. Once that output
+  is parsed, the information will be transformed into metadata on this
+  item, which can then be used as an item task to run this Slicer CLI
+  via the worker.
+.form-group
+  label Docker image identifier
+  input.g-slicer-cli-docker-image.form-control.input-sm(name="docker-image", value=currentImage)
+.form-group
+  label Arguments to container for listing CLI (optional)
+  p.
+    If the image requires additional arguments to be specified prior
+    to #[code --xml], specify them here as a JSON list.
+  input.g-slicer-cli-docker-args.form-control.input-sm(name="docker-args", value=currentSlicerCliArgs)
+.checkbox
+  label
+    input.g-slicer-cli-use-name(type="checkbox", checked=true)
+    | Update the name of this item from the CLI name
+.checkbox
+  label
+    input.g-slicer-cli-use-description(type="checkbox", checked=true)
+    | Update the description of this item from the CLI description
+.checkbox
+  label
+    input.g-slicer-cli-pull-image(type="checkbox", checked=true)
+    | Pull image from Docker Hub prior to running
