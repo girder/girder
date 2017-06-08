@@ -24,6 +24,8 @@ import os
 import shutil
 import sys
 import six
+import httmock
+import urlparse
 
 from girder import config
 from tests import base
@@ -266,6 +268,17 @@ class PythonCliTestCase(base.TestCase):
         ret = invokeCli(('download', '/user/mylogin/Public/testdata',
                          downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
+
+        # Test uploading with reference
+        @httmock.urlmatch(netloc='localhost', path='/api/v1/file$', method='POST')
+        def checkParams(url, request):
+            query = urlparse.parse_qs(url[3])
+            self.assertIn('reference', query)
+            self.assertIn('reference_string', query['reference'])
+
+        with httmock.HTTMock(checkParams):
+            ret = invokeCli(
+                args + ['--reference', 'reference_string'], username='mylogin', password='password')
 
         # Create a collection and subfolder
         resp = self.request('/collection', 'POST', user=self.user, params={
