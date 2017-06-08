@@ -1090,9 +1090,12 @@ class GirderClient(object):
         progressFileName = fileId
         if isinstance(path, six.string_types):
             progressFileName = os.path.basename(path)
-        req = self._requestFunc('get')(
-            '%sfile/%s/download' % (self.urlBase, fileId),
-            stream=True, headers={'Girder-Token': self.token})
+        # import rpdb
+        # rpdb.set_trace()
+        url = '%sfile/%s/download' % (self.urlBase, fileId)
+        req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
+        if req.status_code != requests.codes.ok:
+            raise HttpError(req.status_code, req.text, url, 'GET')
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             with self.progressReporterCls(
                     label=progressFileName,
