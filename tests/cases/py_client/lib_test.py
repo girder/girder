@@ -567,7 +567,7 @@ class PythonClientTestCase(base.TestCase):
 
         @httmock.urlmatch(path=r'.*/file/.+/download$')
         def mock(url, request):
-            return httmock.response(500,'error', request=request)
+            return httmock.response(500, 'error', request=request)
 
         # Attempt to download file to object stream, should raise HttpError
         with httmock.HTTMock(mock):
