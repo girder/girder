@@ -876,8 +876,8 @@ class GirderClient(object):
                            progressCallback=None):
         """
         Uploads a file to an folder, creating a new item in the process.  If
-        the has 0 bytes, no uploading will be performed, and no item will be
-        created.
+        the file has 0 bytes, no uploading will be performed, and no item will
+        be created.
 
         :param folderId: ID of parent folder for file.
         :param filepath: path to file on disk.
@@ -1455,9 +1455,10 @@ class GirderClient(object):
             print('Uploading Item from %s' % localFile)
         if not dryRun:
             # If we are reusing existing items or have upload callbacks, then
-            # we need to know the item as part of the process.  Otherwise, we
-            # can just upload to the parent folder and never learn about the
-            # created item.
+            # we need to know the item as part of the process.  If this is a
+            # zero-length file, we create an item.  Otherwise, we can just
+            # upload to the parent folder and never learn about the created
+            # item.
             if reuseExisting or len(self._itemUploadCallbacks) or os.path.getsize(filePath) == 0:
                 currentItem = self.loadOrCreateItem(
                     os.path.basename(localFile), parentFolderId, reuseExisting)
