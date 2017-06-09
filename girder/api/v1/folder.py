@@ -213,12 +213,12 @@ class Folder(Resource):
         .param('name', 'Name of the folder.', strip=True)
         .param('description', 'Description for the folder.', required=False,
                default='', strip=True)
-        .param('reuseExisting', "Return existing folder if it exists rather than "
-               "creating a new one.", required=False,
+        .param('reuseExisting', 'Return existing folder if it exists rather than '
+               'creating a new one.', required=False,
                dataType='boolean', default=False)
-        .param('public', "Whether the folder should be publicly visible. By "
-               "default, inherits the value from parent folder, or in the "
-               "case of user or collection parentType, defaults to False.",
+        .param('public', 'Whether the folder should be publicly visible. By '
+               'default, inherits the value from parent folder, or in the '
+               'case of user or collection parentType, defaults to False.',
                required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
