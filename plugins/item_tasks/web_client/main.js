@@ -38,7 +38,7 @@ wrap(ItemView, 'render', function (render) {
 
         if (this.model.get('createdByJob')) {
             var job = new JobModel({_id: this.model.get('createdByJob')});
-            job.fetch().done(() => {
+            job.fetch({ignoreError: true}).done(() => {
                 this.$('.g-item-info').append(itemInfoModTemplate({
                     job
                 }));
