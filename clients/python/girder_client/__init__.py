@@ -1093,7 +1093,7 @@ class GirderClient(object):
 
         url = '%sfile/%s/download' % (self.urlBase, fileId)
         req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
-        if req.status_code != requests.codes.ok:
+        if not req.ok:
             raise HttpError(req.status_code, req.text, url, 'GET')
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             with self.progressReporterCls(

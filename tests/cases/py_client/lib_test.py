@@ -565,15 +565,14 @@ class PythonClientTestCase(base.TestCase):
 
         obj = six.BytesIO()
 
-        @httmock.urlmatch(path=r'.*.*/file/.+/download$')
+        @httmock.urlmatch(path=r'.*/file/.+/download$')
         def mock(url, request):
-            resp = request.models.Response()
-            resp.status_code = 500
-            resp.text = "error"
-            return resp
+            return httmock.response(500,'error', request=request)
 
         # Attempt to download file to object stream, should raise HttpError
-        self.assertRaises(girder_client.HttpError, self.client.downloadFile(file['_id'], obj))
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.HttpError):
+                self.client.downloadFile(file['_id'], obj)
 
     def testAddMetadataToItem(self):
         item = self.client.createItem(self.publicFolder['_id'],
