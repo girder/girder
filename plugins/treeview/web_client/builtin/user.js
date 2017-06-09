@@ -9,8 +9,8 @@ import _ from 'underscore';
 import { register } from '../types';
 import request from '../utils/request';
 
-import * as users from './users';
 import * as folder from './folder';
+import * as users from './users';
 
 /**
  * Mutate a document returned from Girder's rest api
@@ -59,8 +59,8 @@ function children(node) {
 register('user', {load, parent, children});
 
 export {
-    load,
-    parent,
     children,
-    mutate
+    load,
+    mutate,
+    parent
 };

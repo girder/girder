@@ -1,19 +1,19 @@
-import * as collections from './collections';
 import * as collection from './collection';
-import * as users from './users';
-import * as user from './user';
-import * as home from './home';
-import * as folder from './folder';
-import * as item from './item';
+import * as collections from './collections';
 import * as file from './file';
+import * as folder from './folder';
+import * as home from './home';
+import * as item from './item';
+import * as user from './user';
+import * as users from './users';
 
 export {
-    collections,
     collection,
-    users,
-    user,
-    home,
+    collections,
+    file,
     folder,
+    home,
     item,
-    file
+    user,
+    users
 };

@@ -62,8 +62,8 @@ function children(node) {
 register('collection', {load, parent, children});
 
 export {
-    load,
-    parent,
     children,
-    mutate
+    load,
+    mutate,
+    parent
 };

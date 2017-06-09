@@ -1,10 +1,10 @@
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 
-import TreeDialog from './TreeDialog';
+import FileDialog from './FileDialog';
 import FolderDialog from './FolderDialog';
 import ItemDialog from './ItemDialog';
-import FileDialog from './FileDialog';
+import TreeDialog from './TreeDialog';
 import TreeView from './TreeView';
 
 import configView from '../templates/configView.pug';

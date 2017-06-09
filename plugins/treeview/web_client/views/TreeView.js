@@ -3,8 +3,8 @@ import $ from 'jquery';
 
 import View from 'girder/views/View';
 
-import jstree from '../jstree';
 import { model } from '../utils/node';
+import jstree from '../jstree';
 
 /**
  * This view is wrapper around the jstree interface allowing it to

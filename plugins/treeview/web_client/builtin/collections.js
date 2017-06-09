@@ -47,7 +47,7 @@ function children(node) {
 register('collections', {load, children});
 
 export {
-    load,
     children,
+    load,
     mutate
 };

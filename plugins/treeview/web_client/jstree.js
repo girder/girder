@@ -1,11 +1,11 @@
-import _ from 'underscore';
 import 'jstree';
 import 'jstree/dist/themes/default/style.css';
+import _ from 'underscore';
 
+import { contextMenu, icons } from './types';
 import { auth } from './utils';
-import root from './root';
 import { model } from './utils/node';
-import { icons, contextMenu } from './types';
+import root from './root';
 
 /**
  * This is a helper function to unify the behavior of the

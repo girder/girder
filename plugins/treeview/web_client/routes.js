@@ -1,7 +1,7 @@
 /* eslint-disable import/first */
-import router from 'girder/router';
-import events from 'girder/events';
 import { exposePluginConfig } from 'girder/utilities/PluginUtils';
+import events from 'girder/events';
+import router from 'girder/router';
 
 exposePluginConfig('treeview', 'plugins/treeview/config');
 

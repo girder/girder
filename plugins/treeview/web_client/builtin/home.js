@@ -41,7 +41,7 @@ function children(node) {
 register('home', {load, children});
 
 export {
-    load,
     children,
+    load,
     mutate
 };

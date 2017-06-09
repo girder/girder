@@ -216,17 +216,17 @@ function load(node) {
 }
 
 export {
-    definitions,
-    register,
-    unregister,
     alias,
-    unalias,
-    isAliased,
-    getDefinition,
     callMethod,
-    contextMenu,
-    parent,
     children,
+    contextMenu,
+    definitions,
+    getDefinition,
+    icons,
+    isAliased,
     load,
-    icons
+    parent,
+    register,
+    unalias,
+    unregister
 };

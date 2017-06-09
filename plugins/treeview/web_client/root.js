@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import $ from 'jquery';
 
+import { alias, children, load } from './types';
 import auth from './utils/auth';
-import { children, load, alias } from './types';
 
 /**
  * Generate a tree construction function to pass into jstree.

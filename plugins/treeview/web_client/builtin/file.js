@@ -46,6 +46,6 @@ register('file', {load, parent});
 
 export {
     load,
-    parent,
-    mutate
+    mutate,
+    parent
 };

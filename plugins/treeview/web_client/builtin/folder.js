@@ -10,9 +10,9 @@ import $ from 'jquery';
 import { register } from '../types';
 import request from '../utils/request';
 
-import * as user from './user';
 import * as collection from './collection';
 import * as item from './item';
+import * as user from './user';
 
 /**
  * Mutate a document returned from Girder's rest api
@@ -91,8 +91,8 @@ function children(node) {
 register('folder', {load, parent, children});
 
 export {
-    load,
-    parent,
     children,
-    mutate
+    load,
+    mutate,
+    parent
 };
