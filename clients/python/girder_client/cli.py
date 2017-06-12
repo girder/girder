@@ -284,5 +284,6 @@ def _upload(gc, parent_type, parent_id, local_folder,
         leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,
         blacklist=blacklist.split(','), dryRun=dry_run, reference=reference)
 
+
 if __name__ == '__main__':
     main()  # pragma: no cover
