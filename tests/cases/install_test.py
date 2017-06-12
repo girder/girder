@@ -295,6 +295,12 @@ class InstallTestCase(base.TestCase):
         with mock.patch('subprocess.Popen', return_value=ProcMock(keyboardInterrupt=True)):
             install.install_web(PluginOpts(watch=True))
 
+        # Test "--plugins=" and --core-only
+        with mock.patch('girder.utility.install.model_importer.ModelImporter.model') as p:
+            install.install_web(PluginOpts(plugins=''))
+            install.install_web(PluginOpts(core_only=True))
+            self.assertEqual(len(p.mock_calls), 0)
+
     def testStaticDependencies(self):
         for p in ('does_nothing', 'has_deps', 'has_static_deps', 'has_webroot', 'test_plugin'):
             install.install_plugin(PluginOpts(plugin=[
