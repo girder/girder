@@ -320,19 +320,26 @@ def main():
 
     web.add_argument('--npm', default='npm',
                      help='specify the full path to the npm executable.')
-    web.add_argument('--all-plugins', action='store_true',
-                     help='build all available plugins rather than just enabled ones')
-    web.add_argument('--plugins', default=None, help='comma-separated list of plugins to build')
+
     web.add_argument('--watch', action='store_true',
                      help='watch for changes and rebuild girder core library in dev mode')
+
     web.add_argument('--watch-plugin', default='',
                      help='watch for changes and rebuild a specific plugin in dev mode')
 
-    web.add_argument('--plugin-prefix', default='plugin',
-                     help='prefix of the generated plugin bundle')
+    pluginGroup = web.add_mutually_exclusive_group()
 
-    web.add_argument('--core-only', action='store_true',
-                     help='build only the girder web with no additional plugins')
+    pluginGroup.add_argument('--all-plugins', action='store_true',
+                             help='build all available plugins rather than just enabled ones')
+
+    pluginGroup.add_argument('--plugins', default=None,
+                             help='comma-separated list of plugins to build')
+
+    pluginGroup.add_argument('--plugin-prefix', default='plugin',
+                             help='prefix of the generated plugin bundle')
+
+    pluginGroup.add_argument('--core-only', action='store_true',
+                             help='build only the girder web with no additional plugins')
 
     web.set_defaults(func=install_web)
 
