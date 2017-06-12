@@ -281,6 +281,8 @@ class PythonCliTestCase(base.TestCase):
                 args + ['--reference', 'reference_string'], username='mylogin', password='password')
 
         # Test if reference is sent with each file upload
+        fileList = os.listdir(localDir)
+        self.assertEqual(len(queryList), len(fileList))
         for query in queryList:
             self.assertIn('reference', query)
             self.assertIn('reference_string', query['reference'])
