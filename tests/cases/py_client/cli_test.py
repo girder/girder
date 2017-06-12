@@ -282,6 +282,8 @@ class PythonCliTestCase(base.TestCase):
 
         # Test if reference is sent with each file upload
         fileList = os.listdir(localDir)
+        self.assertTrue(queryList)
+        self.assertTrue(fileList)
         self.assertEqual(len(queryList), len(fileList))
         for query in queryList:
             self.assertIn('reference', query)
