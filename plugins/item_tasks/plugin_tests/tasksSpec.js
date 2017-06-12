@@ -56,6 +56,7 @@ describe('Auto-configure the item task', function () {
         girderTest.waitForDialog();
 
         runs(function () {
+            $('.modal-dialog .g-configure-slicer-cli-task-tab > a').click();
             $('.modal-dialog .g-slicer-cli-docker-image').val('me/my_image:latest');
             $('.modal-dialog .g-slicer-cli-docker-args').val('["foo", "bar"]');
             $('.modal-dialog button.btn.btn-success[type="submit"]').click();
@@ -289,7 +290,7 @@ describe('Auto-configure the demo JSON task', function () {
 
     it('create collection and folder', girderTest.createCollection('demo task test', '', 'tasks'));
 
-    it('navigate to the folder', function () {
+    it('create item', function () {
         runs(function () {
             $('.g-folder-list-link').click();
         });
@@ -297,16 +298,41 @@ describe('Auto-configure the demo JSON task', function () {
         waitsFor(function () {
             return $('.g-empty-parent-message:visible').length > 0;
         }, 'folder empty list to appear');
+
+        runs(function () {
+            $('.g-folder-actions-button').click();
+            $('.g-folder-actions-menu .g-create-item').click();
+        });
+
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('.modal-dialog #g-name').val('task placeholder');
+            $('.modal-dialog .g-save-item').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-item-list-link').text().indexOf('task placeholder') !== -1;
+        }, 'item to appear in the list');
+    });
+
+    it('navigate to the item', function () {
+        $('.g-item-list-link:first').click();
+
+        waitsFor(function () {
+            return $('.g-item-files .g-file-list').length > 0;
+        }, 'item view to render');
     });
 
     it('run configuration job', function () {
-        $('.g-folder-actions-button').click();
-        $('.g-folder-actions-menu .g-create-docker-tasks').click();
+        $('.g-item-actions-button').click();
+        $('.g-item-actions-menu .g-configure-item-task').click();
 
         girderTest.waitForDialog();
 
         runs(function () {
             $('.modal-dialog .g-configure-docker-image').val('item-tasks-demo');
+            $('.modal-dialog .g-configure-task-name').val('item_tasks widget types demo');
             $('.modal-dialog button.btn.btn-success[type="submit"]').click();
         });
 
@@ -454,6 +480,76 @@ describe('Navigate to the demo task', function () {
             expect(args.string_multi_choice_input.data).toBe('green,blue');
             expect(args.file_input.fileName).toBe('item_tasks widget types demo');
             expect(args.file_input.resource_type).toBe('item');
+        });
+    });
+});
+
+describe('Auto-configure the Slicer CLI item task folder', function () {
+    it('go to collection page', function () {
+        $('ul.g-global-nav .g-nav-link[g-target="collections"]').click();
+    });
+
+    it('create collection and folder', girderTest.createCollection('slicer cli task test', '', 'tasks'));
+
+    it('navigate to the folder', function () {
+        runs(function () {
+            $('.g-folder-list-link').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-empty-parent-message:visible').length > 0;
+        }, 'folder empty list to appear');
+    });
+
+    it('run configuration job', function () {
+        $('.g-folder-actions-button').click();
+        $('.g-folder-actions-menu .g-create-docker-tasks').click();
+
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('.modal-dialog .g-configure-slicer-cli-task-tab > a').click();
+            $('.modal-dialog .g-slicer-cli-docker-image').val('me/my_image:latest');
+            $('.modal-dialog .g-slicer-cli-docker-args').val('["foo", "bar"]');
+            $('.modal-dialog button.btn.btn-success[type="submit"]').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-job-info-key').length > 0;
+        }, 'navigation to the configuration job');
+
+        waitsFor(function () {
+            return $('.g-job-status-badge').attr('status') === 'success';
+        }, 'job success status', 10000);
+    });
+});
+
+describe('Navigate to the new Slicer CLI task', function () {
+    it('navigate to task', function () {
+        $('.g-nav-link[g-target="item_tasks"]').click();
+
+        waitsFor(function () {
+            return $('.g-execute-task-link').length > 0;
+        }, 'task list to be rendered');
+
+        runs(function () {
+            expect($('.g-execute-task-link').length).toBe(5);
+            expect($('.g-execute-task-link .g-execute-task-link-header').eq(4).text()).toBe(
+                'PET phantom detector CLI');
+            expect($('.g-execute-task-link .g-execute-task-link-body').eq(4).text()).toContain(
+                'Detects positions of PET/CT pocket phantoms in PET image.');
+            window.location.assign($('a.g-execute-task-link').eq(4).attr('href'));
+        });
+
+        waitsFor(function () {
+            return $('.g-task-description-container').length > 0;
+        }, 'task run view to display');
+
+        runs(function () {
+            expect($('.g-task-description-container').text()).toContain(
+                'Detects positions of PET/CT pocket phantoms in PET image.');
+            expect($('.g-inputs-container').length).toBe(1);
+            expect($('.g-inputs-container .g-control-item').length).toBe(9);
         });
     });
 });

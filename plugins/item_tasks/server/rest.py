@@ -9,8 +9,8 @@ from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
 from girder.plugins.worker import utils
 from . import constants
-from .json_tasks import runJsonTasksDescription, addJsonSpecs
-from .slicer_cli_tasks import runSlicerCliDescription, setSpecFromXml
+from .json_tasks import createItemTasksFromJson, runJsonTasksDescriptionForFolder
+from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, runSlicerCliTasksDescriptionForItem
 
 
 class ItemTask(Resource):
@@ -21,10 +21,14 @@ class ItemTask(Resource):
 
         self.route('GET', (), self.listTasks)
         self.route('POST', (':id', 'execution'), self.executeTask)
-        self.route('POST', (':id', 'slicer_cli_description'), runSlicerCliDescription)
-        self.route('PUT', (':id', 'slicer_cli_xml'), setSpecFromXml)
-        self.route('POST', (':id', 'json_description'), runJsonTasksDescription)
-        self.route('POST', (':id', 'json_specs'), addJsonSpecs)
+        # Deprecated in favor of POST /item/:id/item_task_slicer_cli_description
+        self.route('POST', (':id', 'slicer_cli_description'), runSlicerCliTasksDescriptionForItem)
+        # Deprecated in favor of PUT /item/:id/item_task_slicer_cli_xml
+        self.route('PUT', (':id', 'slicer_cli_xml'), configureItemTaskFromSlicerCliXml)
+        # Deprecated in favor of POST /folder/:id/item_task_json_description
+        self.route('POST', (':id', 'json_description'), runJsonTasksDescriptionForFolder)
+        # Deprecated in favor of POST /folder/:id/:item_task_json_specs
+        self.route('POST', (':id', 'json_specs'), createItemTasksFromJson)
 
     @access.public
     @autoDescribeRoute(
