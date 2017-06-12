@@ -24,6 +24,7 @@ import os
 import shutil
 import sys
 import six
+import httmock
 
 from girder import config
 from tests import base
@@ -266,6 +267,27 @@ class PythonCliTestCase(base.TestCase):
         ret = invokeCli(('download', '/user/mylogin/Public/testdata',
                          downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
+
+        # Test uploading with reference
+        queryList = []
+
+        @httmock.urlmatch(netloc='localhost', path='/api/v1/file$', method='POST')
+        def checkParams(url, request):
+            # Add query for every file upload request
+            queryList.append(six.moves.urllib.parse.parse_qs(url[3]))
+
+        with httmock.HTTMock(checkParams):
+            ret = invokeCli(
+                args + ['--reference', 'reference_string'], username='mylogin', password='password')
+
+        # Test if reference is sent with each file upload
+        fileList = os.listdir(localDir)
+        self.assertTrue(queryList)
+        self.assertTrue(fileList)
+        self.assertEqual(len(queryList), len(fileList))
+        for query in queryList:
+            self.assertIn('reference', query)
+            self.assertIn('reference_string', query['reference'])
 
         # Create a collection and subfolder
         resp = self.request('/collection', 'POST', user=self.user, params={
