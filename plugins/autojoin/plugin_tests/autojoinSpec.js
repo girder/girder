@@ -17,26 +17,20 @@ $(function () {
         it('go to groups page', girderTest.goToGroupsPage());
         it('create a group', girderTest.createGroup('group1', '', false));
         it('assign group 1', function () {
-            runs(function () {
-                group1 = window.location.hash.split('/')[1];
-            });
+            group1 = window.location.hash.split('/')[1];
         });
 
         it('go to groups page', girderTest.goToGroupsPage());
         it('create a group', girderTest.createGroup('group2', '', false));
         it('assign group 2', function () {
-            runs(function () {
-                group2 = window.location.hash.split('/')[1];
-            });
+            group2 = window.location.hash.split('/')[1];
         });
 
         it('go to groups page', girderTest.goToGroupsPage());
         it('create a group', girderTest.createGroup('group3', '', false));
 
         it('assign group 3', function () {
-            runs(function () {
-                group3 = window.location.hash.split('/')[1];
-            });
+            group3 = window.location.hash.split('/')[1];
         });
 
         it('go to auto join plugin settings', function () {
@@ -65,12 +59,8 @@ $(function () {
             });
 
             waitsFor(function () {
-                return $('.g-autojoin-container:visible').length > 0;
-            }, 'auto join config to display');
-
-            waitsFor(function () {
-                return girder.rest.numberOutstandingRestRequests() === 0;
-            }, 'rest requests to finish');
+                return $('#g-autojoin-group>option').length === 4;
+            }, 'group dropdown to appear');
         });
 
         it('create auto join rules', function () {
@@ -79,37 +69,22 @@ $(function () {
                 $('#g-autojoin-group').val(group1);
                 $('#g-autojoin-level').val(2);
                 $('#g-autojoin-add').click();
-            });
-            waitsFor(function () {
-                return girder.rest.numberOutstandingRestRequests() === 0;
-            }, 'rest requests to finish');
 
-            runs(function () {
                 $('#g-autojoin-pattern').val('@example.com');
                 $('#g-autojoin-group').val(group2);
                 $('#g-autojoin-level').val(1);
                 $('#g-autojoin-add').click();
-            });
-            waitsFor(function () {
-                return girder.rest.numberOutstandingRestRequests() === 0;
-            }, 'rest requests to finish');
 
-            runs(function () {
                 $('#g-autojoin-pattern').val('@example.com');
                 $('#g-autojoin-group').val(group3);
                 $('#g-autojoin-level').val(0);
                 $('#g-autojoin-add').click();
-            });
-            waitsFor(function () {
-                return girder.rest.numberOutstandingRestRequests() === 0;
-            }, 'rest requests to finish');
 
-            runs(function () {
                 $('#g-autojoin-save').click();
             });
             waitsFor(function () {
-                return girder.rest.numberOutstandingRestRequests() === 0;
-            }, 'rest requests to finish');
+                return $('#g-alerts-container').text().indexOf('Settings saved') !== -1;
+            }, 'settings to be saved');
         });
 
         it('logout', girderTest.logout());
