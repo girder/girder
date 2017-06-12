@@ -71,7 +71,7 @@ def _getPluginBuildArgs(buildAll, plugins):
     if buildAll:
         sortedPlugins = plugin_utilities.getToposortedPlugins()
         return ['--plugins=%s' % ','.join(sortedPlugins)]
-    elif not plugins:  # build only the enabled plugins
+    elif plugins is None:  # build only the enabled plugins
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
 
@@ -143,7 +143,7 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     :type coreOnly: bool
     """
     if coreOnly:
-        plugins = ['']
+        plugins = []
     elif isinstance(plugins, six.string_types):
         plugins = plugins.split(',')
 
