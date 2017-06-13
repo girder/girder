@@ -1,4 +1,6 @@
 import _ from 'underscore';
+import $ from 'jquery';
+import 'girder/utilities/jquery/promise';
 import View from 'girder/views/View';
 import { restRequest, apiRoot } from 'girder/rest';
 
@@ -91,11 +93,11 @@ var ItemPreviewWidget = View.extend({
         }
 
         var $container = this.$('.g-widget-item-prevews-wrapper');
-        Promise.all(items.map(item => {
-            return Promise.resolve(restRequest({
+        $.whenAll(items.map(item => {
+            return restRequest({
                 path: `item/${item._id}/files`
-            })).then(files => {
-                return Promise.all(files.map(file => {
+            }).then(files => {
+                return $.whenAll(files.map(file => {
                     return this.tryGetFileContent(file, file.mimeType, 'file');
                 }));
             });
@@ -115,6 +117,7 @@ var ItemPreviewWidget = View.extend({
             if (!this.allItemAdded() && this.isNotFull()) {
                 this.addMoreItem();
             }
+            return undefined;
         });
     },
 
@@ -134,7 +137,7 @@ var ItemPreviewWidget = View.extend({
     tryGetFileContent: function (file, contentType, type) {
         if (this._isJSONItem(file.name) && contentType === 'application/octet-stream') {
             if (file.size > this._MAX_JSON_SIZE) {
-                return Promise.resolve(null);
+                return $.Defrred().resolve(null).promise();
             }
             return this.getJsonContent(`${type}/${file._id}/download`);
         } else if (this._isImageItem(contentType)) {
@@ -143,11 +146,11 @@ var ItemPreviewWidget = View.extend({
     },
 
     getJsonContent: function (url) {
-        return Promise.resolve(restRequest({
+        return restRequest({
             path: url,
             type: 'GET',
             error: null
-        })).then(resp => {
+        }).then(resp => {
             return {
                 type: 'json',
                 value: resp
@@ -157,19 +160,18 @@ var ItemPreviewWidget = View.extend({
 
     getImageContent: function (url) {
         // preload image to help evaluate height and avoid jumpy behavior
-        return new Promise((resolve, reject) => {
-            var src = apiRoot + '/' + url;
-            var image = new Image();
-            image.onload = function () {
-                resolve({
-                    type: 'image',
-                    value: src
-                });
-            };
-            image.src = src;
-        });
+        var deferred = $.Deferred();
+        var src = apiRoot + '/' + url;
+        var image = new Image();
+        image.onload = function () {
+            deferred.resolve({
+                type: 'image',
+                value: src
+            });
+        };
+        image.src = src;
+        return deferred.promise();
     }
-
 });
 
 export default ItemPreviewWidget;
