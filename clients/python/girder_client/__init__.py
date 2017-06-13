@@ -877,7 +877,7 @@ class GirderClient(object):
     def uploadFileToFolder(self, folderId, filepath, reference=None, mimeType=None, filename=None,
                            progressCallback=None):
         """
-        Uploads a file to an folder, creating a new item in the process.  If
+        Uploads a file to a folder, creating a new item in the process.  If
         the file has 0 bytes, no uploading will be performed, and no item will
         be created.
 
@@ -1084,7 +1084,7 @@ class GirderClient(object):
 
     def addMetadataToFolder(self, folderId, metadata):
         """
-        Takes an folder ID and a dictionary containing the metadata
+        Takes a folder ID and a dictionary containing the metadata
 
         :param folderId: ID of the folder to set metadata on.
         :param metadata: dictionary of metadata to set on folder.
