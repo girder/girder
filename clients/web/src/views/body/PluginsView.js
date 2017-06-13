@@ -63,14 +63,27 @@ var PluginsView = View.extend({
             this.failed = _.has(settings, 'failed') ? settings.failed : null;
             this.render();
         } else {
+            const promises = [
+                restRequest({
+                    path: 'system/plugins',
+                    type: 'GET'
+                }).then((resp) => resp),
+                restRequest({
+                    path: 'system/configuration',
+                    type: 'GET',
+                    data: {
+                        section: 'server',
+                        key: 'cherrypy_server'
+                    }
+                }).then((resp) => resp)
+            ];
+
             // Fetch the plugin list
-            restRequest({
-                path: 'system/plugins',
-                type: 'GET'
-            }).done((resp) => {
-                this.enabled = resp.enabled;
-                this.allPlugins = resp.all;
-                this.failed = _.has(resp, 'failed') ? resp.failed : null;
+            $.when(...promises).done((plugins, cherrypyServer) => {
+                this.cherrypyServer = cherrypyServer;
+                this.enabled = plugins.enabled;
+                this.allPlugins = plugins.all;
+                this.failed = plugins.failed;
                 this.render();
             }).fail(() => {
                 router.navigate('/', { trigger: true });
@@ -97,6 +110,7 @@ var PluginsView = View.extend({
         }, this);
 
         this.$el.html(PluginsTemplate({
+            cherrypyServer: this.cherrypyServer,
             allPlugins: this._sortPlugins(this.allPlugins)
         }));
 
