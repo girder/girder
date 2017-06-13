@@ -327,6 +327,9 @@ def main():
     web.add_argument('--watch-plugin', default='',
                      help='watch for changes and rebuild a specific plugin in dev mode')
 
+    web.add_argument('--plugin-prefix', default='plugin',
+                     help='prefix of the generated plugin bundle')
+
     pluginGroup = web.add_mutually_exclusive_group()
 
     pluginGroup.add_argument('--all-plugins', action='store_true',
@@ -334,9 +337,6 @@ def main():
 
     pluginGroup.add_argument('--plugins', default=None,
                              help='comma-separated list of plugins to build')
-
-    pluginGroup.add_argument('--plugin-prefix', default='plugin',
-                             help='prefix of the generated plugin bundle')
 
     pluginGroup.add_argument('--no-plugins', action='store_true',
                              help='build only the girder web with no additional plugins')
