@@ -188,6 +188,11 @@ var JobListWidget = View.extend({
     },
 
     _renderData: function () {
+        if (!this.$('.g-main-content').length) {
+            // Do nothing until render has been called
+            return;
+        }
+
         var jobs = this.collection.toArray();
 
         if (!jobs.length) {
