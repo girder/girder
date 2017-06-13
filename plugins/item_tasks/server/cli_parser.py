@@ -15,10 +15,10 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'float-vector': 'number_list',
     'double-vector': 'number_list',
     'string-vector': 'string_list',
-    'integer-enumeration': 'integer',
-    'float-enumeration': 'number',
-    'double-enumeration': 'number',
-    'string-enumeration': 'string',
+    'integer-enumeration': 'number-enumeration',
+    'float-enumeration': 'number-enumeration',
+    'double-enumeration': 'number-enumeration',
+    'string-enumeration': 'string-enumeration',
     'file': 'file',
     'directory': 'folder',
     'image': 'file',
@@ -102,6 +102,9 @@ def parseSlicerCliXml(fd):
             'type': typ,
             'format': typ
         }
+
+        if typ in ('string-enumeration', 'number-enumeration'):
+            spec['values'] = list(param.elements)
 
         if param.isExternalType():
             spec['target'] = 'filepath'
