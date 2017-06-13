@@ -123,7 +123,7 @@ def _pipeOutputToProgress(proc, progress):
 
 
 def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, progress=None,
-                coreOnly=False):
+                noPlugins=False):
     """
     Use this to run `npm install` inside the package. Also builds the web code
     using `npm run build`.
@@ -139,10 +139,10 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     :type plugins: str, list or None
     :param progress: A progress context for reporting output of the tasks.
     :type progress: ``girder.utility.progress.ProgressContext`` or None
-    :param coreOnly: Enable this to build the girder web with no additional plugins.
-    :type coreOnly: bool
+    :param noPlugins: Enable this to build the girder web with no additional plugins.
+    :type noPlugins: bool
     """
-    if coreOnly:
+    if noPlugins:
         plugins = []
     elif isinstance(plugins, six.string_types):
         plugins = plugins.split(',')
@@ -211,7 +211,7 @@ def install_web(opts=None):
     else:
         runWebBuild(
             dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
-            plugins=opts.plugins, coreOnly=opts.core_only)
+            plugins=opts.plugins, noPlugins=opts.no_plugins)
 
 
 def install_plugin(opts):
@@ -338,7 +338,7 @@ def main():
     pluginGroup.add_argument('--plugin-prefix', default='plugin',
                              help='prefix of the generated plugin bundle')
 
-    pluginGroup.add_argument('--core-only', action='store_true',
+    pluginGroup.add_argument('--no-plugins', action='store_true',
                              help='build only the girder web with no additional plugins')
 
     web.set_defaults(func=install_web)

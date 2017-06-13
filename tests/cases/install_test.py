@@ -33,7 +33,7 @@ pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plug
 class PluginOpts():
     def __init__(self, plugin=None, force=False, symlink=False, dev=False, npm='npm',
                  skip_requirements=False, all_plugins=False, plugins=None, watch=False,
-                 watch_plugin=None, plugin_prefix='plugin', core_only=False):
+                 watch_plugin=None, plugin_prefix='plugin', no_plugins=False):
         self.plugin = plugin
         self.force = force
         self.symlink = symlink
@@ -45,7 +45,7 @@ class PluginOpts():
         self.watch = watch
         self.watch_plugin = watch_plugin
         self.plugin_prefix = plugin_prefix
-        self.core_only = core_only
+        self.no_plugins = no_plugins
 
 
 class ProcMock(object):
@@ -295,10 +295,10 @@ class InstallTestCase(base.TestCase):
         with mock.patch('subprocess.Popen', return_value=ProcMock(keyboardInterrupt=True)):
             install.install_web(PluginOpts(watch=True))
 
-        # Test "--plugins=" and --core-only
+        # Test "--plugins=" and --no-plugins
         with mock.patch('girder.utility.install.model_importer.ModelImporter.model') as p:
             install.install_web(PluginOpts(plugins=''))
-            install.install_web(PluginOpts(core_only=True))
+            install.install_web(PluginOpts(no_plugins=True))
             self.assertEqual(len(p.mock_calls), 0)
 
     def testStaticDependencies(self):
