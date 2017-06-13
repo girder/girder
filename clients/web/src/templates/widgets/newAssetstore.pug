@@ -54,11 +54,16 @@
           .form-group
             label.control-label(for="g-new-gridfs-mongohost") Mongo Host URI
             input.input-sm.form-control#g-new-gridfs-mongohost(
-                type="text", placeholder="Mongo host uri (defaults to the main Girder database)")
+                type="text", placeholder="Mongo host uri (defaults to the main Girder database)",
+                title="The URI is of the form mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]")
           .form-group
             label.control-label(for="g-new-gridfs-replicaset") Replica Set
             input.input-sm.form-control#g-new-gridfs-replicaset(
                 type="text", placeholder="Replica set name (blank if not using a replica set)")
+          .checkbox
+            label(title="If the Mongo Host supports sharding, this requests that the database support sharding and shards the GridFS collection using an appropriate index.")
+              input#g-new-gridfs-shard-auto(type="checkbox")
+              | Shard collection
           p#g-new-gridfs-error.g-validation-failed-message
           input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")
 
