@@ -1,4 +1,4 @@
-export default {
+const timingHistoryChartConfig = {
     'width': 800,
     'height': 500,
     'padding': 'strict',
@@ -399,3 +399,5 @@ export default {
         }
     ]
 };
+
+export default timingHistoryChartConfig;

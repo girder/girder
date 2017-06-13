@@ -11,7 +11,7 @@ import JobsGraphWidgetTemplate from '../templates/jobsGraphWidget.pug';
 import timingHistoryChartConfig from './timingHistoryChartConfig';
 import timeChartConfig from './timeChartConfig';
 
-export default View.extend({
+const JobGraphWidget = View.extend({
     events: {
         'change input.linear-scale': function (e) {
             this.yScale = $(e.target).is(':checked') ? 'linear' : 'sqrt';
@@ -193,3 +193,5 @@ export default View.extend({
         return allRecords;
     }
 });
+
+export default JobGraphWidget;

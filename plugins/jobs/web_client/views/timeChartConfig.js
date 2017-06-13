@@ -1,4 +1,4 @@
-export default {
+const timeChartConfig = {
     'width': 894,
     'height': 673,
     'padding': 'strict',
@@ -287,3 +287,5 @@ export default {
         }
     ]
 };
+
+export default timeChartConfig;
