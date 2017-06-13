@@ -23,53 +23,71 @@ from girder.constants import AccessType
 from girder.models.item import Item
 from girder.models.file import File
 
-import rpdb
 
 def downloadItemStartEvent(event):
-    # TODO Find which file is being downloaded with this item.
-    if 'offset' not in event.info['params'] or event.info['params']['offset'] == '0':
-        rpdb.set_trace()
-        itemModel = Item()
-        item = itemModel.load(event.info['id'], force=True)
-        files = list(itemModel.childFiles(item=item, limit=2))
-        for file in files:
-            downloadFileStart(file['_id'])
-
-def downloadItemCompleteEvent(event):
-    # TODO Find which file is being downloaded with this item.
+    # Ony count download as started if offset is 0
     itemModel = Item()
     item = itemModel.load(event.info['id'], force=True)
-    files = list(itemModel.childFiles(item=item, limit=2))
+    firstRequest = 'offset' not in event.info['params'] or event.info['params']['offset'] == '0'
+
+    # Get all files in item to increment their download count
+    files = list(itemModel.childFiles(item=item))
     for file in files:
-        downloadFileComplete(fileId)
+        if firstRequest:
+            downloadFileStart(file['_id'])
+        downloadFileRequest(file['_id'])
+
+
+def downloadItemCompleteEvent(event):
+    itemModel = Item()
+    item = itemModel.load(event.info['id'], force=True)
+
+    # Get all files in item to increment their download count
+    files = list(itemModel.childFiles(item=item))
+    for file in files:
+        downloadFileComplete(file['_id'])
+
 
 def downloadFileStartEvent(event):
-    # TODO Get fileId from event
-    if 'offset' not in event.info['params'] or event.info['params']['offset'] == '0':
-        rpdb.set_trace()
-        fileModel = File()
-        file = fileModel.load(event.info['id'], force=True)
+    # Ony count download as started if offset is 0
+    fileModel = File()
+    file = fileModel.load(event.info['id'], force=True)
+    firstRequest = 'offset' not in event.info['params'] or event.info['params']['offset'] == '0'
+
+    if firstRequest:
         downloadFileStart(file['_id'])
+    downloadFileRequest(file['_id'])
+
 
 def downloadFileCompleteEvent(event):
-    # TODO Get fileId from event
     fileModel = File()
     file = fileModel.load(event.info['id'], force=True)
     downloadFileComplete(file['_id'])
 
+
 def downloadFileStart(fileId):
     File().increment(query={'_id': fileId}, field='downloadsStarted', amount=1, multi=False)
+
+
+def downloadFileRequest(fileId):
+    File().increment(query={'_id': fileId}, field='downloadsRequested', amount=1, multi=False)
+
 
 def downloadFileComplete(fileId):
     File().increment(query={'_id': fileId}, field='downloadsCompleted', amount=1, multi=False)
 
+
 def load(info):
     # Bind REST events
-    events.bind('rest.get.item/:id/download.before', 'download_statistics', downloadItemStartEvent)
-    events.bind('rest.get.item/:id/download.after', 'download_statistics', downloadItemCompleteEvent)
-    events.bind('rest.get.file/:id/download.before', 'download_statistics', downloadFileStartEvent)
-    events.bind('rest.get.file/:id/download.after', 'download_statistics', downloadFileCompleteEvent)
+    events.bind('rest.get.item/:id/download.before', 'download_statistics',
+                downloadItemStartEvent)
+    events.bind('rest.get.item/:id/download.after', 'download_statistics',
+                downloadItemCompleteEvent)
+    events.bind('rest.get.file/:id/download.before', 'download_statistics',
+                downloadFileStartEvent)
+    events.bind('rest.get.file/:id/download.after', 'download_statistics',
+                downloadFileCompleteEvent)
 
-    # Add download count field to file model
-    File().exposeFields(level=AccessType.READ, fields='downloadsStarted')
-    File().exposeFields(level=AccessType.READ, fields='downloadsCompleted')
+    # Add download count fields to file model
+    File().exposeFields(level=AccessType.READ,
+                        fields=('downloadsStarted', 'downloadsRequested', 'downloadsCompleted'))
