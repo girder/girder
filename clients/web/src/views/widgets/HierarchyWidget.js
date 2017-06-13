@@ -250,25 +250,11 @@ var HierarchyWidget = View.extend({
     },
 
     _fetchToRoot: function (folder) {
-        var parentId = folder.get('parentId');
-        var parentType = folder.get('parentCollection');
-        var modelName = getModelClassByName(parentType);
-        if (allModels[modelName]) {
-            var parent = new allModels[modelName]();
-            parent.set({
-                _id: parentId
-            }).once('g:fetched', function () {
-                this.breadcrumbs.push(parent);
-                if (parentType === 'folder') {
-                    this._fetchToRoot(parent);
-                } else {
-                    this.breadcrumbs.reverse();
-                    this.render();
-                }
-            }, this).fetch();
-        } else {
-            throw new Error('No such model: ' + modelName);
-        }
+        folder.getRootPath().done((path) => {
+            const breadcrumbs = path.map(r => new allModels[getModelClassByName(r.type)](r.object));
+            this.breadcrumbs.unshift(...breadcrumbs);
+            this.render();
+        });
     },
 
     render: function () {
