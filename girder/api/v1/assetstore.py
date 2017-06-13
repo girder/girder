@@ -16,7 +16,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
+from collections import defaultdict
+import six
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, RestException
 from girder import events
@@ -264,11 +265,11 @@ class Assetstore(Resource):
 
         collectionItemsInStore = list(self.model('item').find(query={
             '_id': {
-                '$in': list(set([x['itemId'] for x in filesInStore]))
+                '$in': list(set([file['itemId'] for file in filesInStore if 'itemId' in file]))
             },
             'baseParentType': 'collection'
         }))
-        collectionItemsInStoreMap = dict((x['_id'], x) for x in collectionItemsInStore)
+        collectionItemsInStoreMap = dict((item['_id'], item) for item in collectionItemsInStore)
 
         collectionUsingStore = list(self.model('collection').find(
             query={
@@ -276,66 +277,61 @@ class Assetstore(Resource):
                     '$in': list(set([x['baseParentId'] for x in collectionItemsInStore]))
                 }
             }))
-        collectionUsingStoreMap = dict((x['_id'], x) for x in collectionUsingStore)
+        collectionUsingStoreMap = dict((collection['_id'], collection) for
+                                       collection in collectionUsingStore)
 
-        collectionFileMap = {}
+        collectionFileMap = defaultdict(list)
         for file in filesInStore:
             if file['itemId'] in collectionItemsInStoreMap:
                 collectionId = collectionItemsInStoreMap[file['itemId']]['baseParentId']
-                if collectionId not in collectionFileMap:
-                    collectionFileMap[collectionId] = [file]
-                else:
-                    collectionFileMap[collectionId].append(file)
+                collectionFileMap[collectionId].append(file)
 
         usersUsingStore = list(self.model('user').find(
             query={
                 '_id': {
-                    '$in': list(set([x['creatorId'] for x in filesInStore]))
+                    '$in': list(set([file['creatorId'] for file in filesInStore]))
                 }
             }))
-        userUsingStoreMap = dict((x['_id'], x) for x in usersUsingStore)
-        userFileMap = {}
+        userUsingStoreMap = {user['_id']: user for user in usersUsingStore}
+        userFileMap = defaultdict(list)
         for file in filesInStore:
             userId = file['creatorId']
-            if userId not in userFileMap:
-                userFileMap[userId] = [file]
-            else:
-                userFileMap[userId].append(file)
+            userFileMap[userId].append(file)
 
         # based on collected data stored in dictionary, aggregate size and format
         # result. Ignore the fact there will be only one copy for the same file
         # in the assetstore.
-        currentUser = self.getCurrentUser()
-        collectionModel = self.model('collection')
-        userModel = self.model('user')
 
         def collectionMapper(collectionId, files):
-            collection = collectionModel.filter(collectionUsingStoreMap[collectionId], currentUser)
+            collection = collectionUsingStoreMap[collectionId]
             collection = {
-                '_id': collection['_id'],
-                'name': collection['name']
+                '_id': collection.get('_id'),
+                'name': collection.get('name')
             }
             collection['spaceUsage'] = sum(file['size'] for file in files)
             return collection
-        collections = [
-            collectionMapper(x, y) for x, y in collectionFileMap.items()]
-        collections.sort(key=lambda x: x['spaceUsage'], reverse=True)
+
+        collections = sorted((
+            collectionMapper(collectionId, files)
+            for collectionId, files in six.viewitems(collectionFileMap)),
+            key=lambda collection: collection['spaceUsage'], reverse=True)
 
         def userMapper(userId, files):
             if userId not in userUsingStoreMap:
                 return None
-            user = userModel.filter(userUsingStoreMap[userId], currentUser)
+            user = userUsingStoreMap[userId]
             user = {
-                '_id': user['_id'],
-                'login': user['login'],
-                'firstName': user['firstName'],
-                'lastName': user['lastName'],
-                'email': user['email']
+                '_id': user.get('_id'),
+                'login': user.get('login'),
+                'firstName': user.get('firstName'),
+                'lastName': user.get('lastName'),
+                'email': user.get('email')
             }
             user['spaceUsage'] = sum(file['size'] for file in files)
             return user
-        users = [z for z in (userMapper(x, y) for x, y in userFileMap.items()) if z]
-        users.sort(key=lambda x: x['spaceUsage'], reverse=True)
+        users = sorted((x for x in (userMapper(userId, files)
+                                    for userId, files in six.viewitems(userFileMap))
+                        if x), key=lambda user: user['spaceUsage'], reverse=True)
 
         return {
             'spaceUsage': {
