@@ -180,14 +180,9 @@ var HierarchyWidget = View.extend({
                 }, this);
 
         if (this.parentModel.resourceName === 'folder') {
-            this._initFolderViewSubwidgets();
-        } else {
-            this.itemCount = 0;
-        }
-
-        if (this.parentModel.resourceName === 'folder') {
             this._fetchToRoot(this.parentModel);
         } else {
+            this.itemCount = 0;
             this.render();
         }
         events.on('g:login', () => {
@@ -212,30 +207,34 @@ var HierarchyWidget = View.extend({
      * is a folder type.
      */
     _initFolderViewSubwidgets: function () {
-        this.itemListView = new ItemListWidget({
-            itemFilter: this._itemFilter,
-            folderId: this.parentModel.get('_id'),
-            public: this.parentModel.get('public'),
-            accessLevel: this.parentModel.getAccessLevel(),
-            checkboxes: this._checkboxes,
-            downloadLinks: this._downloadLinks,
-            viewLinks: this._viewLinks,
-            showSizes: this._showSizes,
-            parentView: this
-        });
-        this.itemListView.on('g:itemClicked', this._onItemClick, this)
-            .off('g:checkboxesChanged')
-            .on('g:checkboxesChanged', this.updateChecked, this)
-            .off('g:changed').on('g:changed', function () {
-                this.itemCount = this.itemListView.collection.length;
-                this._childCountCheck();
-            }, this);
+        if (!this.itemListView) {
+            this.itemListView = new ItemListWidget({
+                itemFilter: this._itemFilter,
+                folderId: this.parentModel.id,
+                public: this.parentModel.get('public'),
+                accessLevel: this.parentModel.getAccessLevel(),
+                checkboxes: this._checkboxes,
+                downloadLinks: this._downloadLinks,
+                viewLinks: this._viewLinks,
+                showSizes: this._showSizes,
+                parentView: this
+            });
+            this.itemListView.on('g:itemClicked', this._onItemClick, this)
+                .off('g:checkboxesChanged')
+                .on('g:checkboxesChanged', this.updateChecked, this)
+                .off('g:changed').on('g:changed', function () {
+                    this.itemCount = this.itemListView.collection.length;
+                    this._childCountCheck();
+                }, this);
+        }
 
-        this.metadataWidget = new MetadataWidget({
-            item: this.parentModel,
-            parentView: this,
-            accessLevel: this.parentModel.getAccessLevel()
-        });
+        if (!this.metadataWidget) {
+            this.metadataWidget = new MetadataWidget({
+                item: this.parentModel,
+                parentView: this,
+                accessLevel: this.parentModel.getAccessLevel()
+            });
+        }
     },
 
     _setRoute: function () {
