@@ -193,14 +193,13 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             # within test methods
             gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName
             dropGridFSDatabase(gridfsDbName)
-            self.assetstore = self.model('assetstore'). \
-                createGridFsAssetstore(name='Test', db=gridfsDbName)
+            self.assetstore = self.model('assetstore').createGridFsAssetstore(
+                name='Test', db=gridfsDbName)
         elif assetstoreType == 'gridfsrs':
             gridfsDbName = 'girder_test_%s_rs_assetstore_auto' % assetstoreName
             self.replicaSetConfig = mongo_replicaset.makeConfig()
             mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
-            self.assetstore = self.model('assetstore'). \
-                createGridFsAssetstore(
+            self.assetstore = self.model('assetstore').createGridFsAssetstore(
                 name='Test', db=gridfsDbName,
                 mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
                 '127.0.0.1:27072', replicaset='replicaset')
@@ -209,19 +208,17 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             self.replicaSetConfig = mongo_replicaset.makeConfig(
                 port=27073, shard=True, sharddb=None)
             mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
-            self.assetstore = self.model('assetstore'). \
-                createGridFsAssetstore(
+            self.assetstore = self.model('assetstore').createGridFsAssetstore(
                 name='Test', db=gridfsDbName,
                 mongohost='mongodb://127.0.0.1:27073', shard='auto')
         elif assetstoreType == 's3':
-            self.assetstore = self.model('assetstore'). \
-                createS3Assetstore(name='Test', bucket='bucketname',
-                                   accessKeyId='test', secret='test',
-                                   service=mockS3Server.service)
+            self.assetstore = self.model('assetstore').createS3Assetstore(
+                name='Test', bucket='bucketname', accessKeyId='test',
+                secret='test', service=mockS3Server.service)
         else:
             dropFsAssetstore(assetstorePath)
-            self.assetstore = self.model('assetstore'). \
-                createFilesystemAssetstore(name='Test', root=assetstorePath)
+            self.assetstore = self.model('assetstore').createFilesystemAssetstore(
+                name='Test', root=assetstorePath)
 
         addr = ':'.join(map(str, mockSmtp.address or ('localhost', 25)))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
@@ -617,8 +614,7 @@ class MultipartFormdataEncoder(object):
     """
     def __init__(self):
         self.boundary = uuid.uuid4().hex
-        self.contentType = \
-            'multipart/form-data; boundary=%s' % self.boundary
+        self.contentType = 'multipart/form-data; boundary=%s' % self.boundary
 
     @classmethod
     def u(cls, s):

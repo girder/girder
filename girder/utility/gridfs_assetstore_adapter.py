@@ -110,8 +110,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         try:
             chunkColl = getDbConnection(
-                doc.get('mongohost', None), doc.get('replicaset', None),
-                autoRetry=False,
+                doc.get('mongohost'), doc.get('replicaset'), autoRetry=False,
                 serverSelectionTimeoutMS=10000)[doc['db']].chunk
             _ensureChunkIndices(chunkColl)
         except pymongo.errors.ServerSelectionTimeoutError as e:
@@ -132,9 +131,9 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         recent = False
         try:
             # Guard in case the connectionArgs is unhashable
-            key = (self.assetstore.get('mongohost', None),
-                   self.assetstore.get('replicaset', None),
-                   self.assetstore.get('shard', None))
+            key = (self.assetstore.get('mongohost'),
+                   self.assetstore.get('replicaset'),
+                   self.assetstore.get('shard'))
             if key in _recentConnections:
                 recent = (time.time() - _recentConnections[key]['created'] <
                           RECENT_CONNECTION_CACHE_TIME)
@@ -144,8 +143,8 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             # MongoClient automatically reuses connections from a pool, but we
             # want to avoid redoing ensureChunkIndices each time we get such a
             # connection.
-            client = getDbConnection(self.assetstore.get('mongohost', None),
-                                     self.assetstore.get('replicaset', None),
+            client = getDbConnection(self.assetstore.get('mongohost'),
+                                     self.assetstore.get('replicaset'),
                                      quiet=recent)
             self.chunkColl = MongoProxy(client[self.assetstore['db']].chunk)
             if not recent:
