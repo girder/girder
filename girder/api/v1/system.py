@@ -31,6 +31,7 @@ from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.models.model_base import GirderException
 from girder.utility import config, install, plugin_utilities, system
+from girder.utility.path import NotFoundException
 from girder.utility.progress import ProgressContext
 from ..describe import API_VERSION, Description, autoDescribeRoute
 from ..rest import Resource, RestException
@@ -48,6 +49,7 @@ class System(Resource):
         self.resourceName = 'system'
         self.route('DELETE', ('setting',), self.unsetSetting)
         self.route('GET', ('version',), self.getVersion)
+        self.route('GET', ('configuration',), self.getConfigurationOption)
         self.route('GET', ('setting',), self.getSetting)
         self.route('GET', ('plugins',), self.getPlugins)
         self.route('GET', ('access_flag',), self.getAccessFlags)
@@ -95,6 +97,25 @@ class System(Resource):
                 self.model('setting').set(key=key, value=value)
 
         return True
+
+    @access.admin(scope=TokenScope.SETTINGS_READ)
+    @autoDescribeRoute(
+        Description('Get the value of a system configuration option.')
+        .notes('Must be a system administrator to call this.')
+        .param('section', 'The section identifying the configuration option.', required=True)
+        .param('key', 'The key identifying the configuration option.', required=True)
+        .errorResponse('You are not a system administrator.', 403)
+        .errorResponse('No such option with the given section/key exists.', 404)
+    )
+    def getConfigurationOption(self, section, key, params):
+        configSection = config.getConfig().get(section)
+
+        if configSection is None:
+            raise NotFoundException('No section with that name exists.')
+        elif key not in configSection:
+            raise NotFoundException('No key with that name exists.')
+        else:
+            return configSection.get(key)
 
     @access.admin(scope=TokenScope.SETTINGS_READ)
     @autoDescribeRoute(
