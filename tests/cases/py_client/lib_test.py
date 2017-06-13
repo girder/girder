@@ -487,7 +487,7 @@ class PythonClientTestCase(base.TestCase):
         girder_client.DEFAULT_PAGE_LIMIT = old
 
     def testDownloadInline(self):
-        # Creating item
+        # Create item
         item = self.client.createItem(self.publicFolder['_id'],
                                       'SomethingMoreUnique')
         # Upload file to item
@@ -550,6 +550,25 @@ class PythonClientTestCase(base.TestCase):
             client.downloadFile(file['_id'], obj)
             self.assertTrue(obj.getvalue().endswith(expected))
             self.assertEqual(len(hits), 2)
+
+    def testDownloadFail(self):
+        # Create item
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'SomethingMostUnique')
+        # Upload file to item
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        file = self.client.uploadFileToItem(item['_id'], path)
+
+        obj = six.BytesIO()
+
+        @httmock.urlmatch(path=r'.*/file/.+/download$')
+        def mock(url, request):
+            return httmock.response(500, 'error', request=request)
+
+        # Attempt to download file to object stream, should raise HttpError
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.HttpError):
+                self.client.downloadFile(file['_id'], obj)
 
     def testAddMetadataToItem(self):
         item = self.client.createItem(self.publicFolder['_id'],

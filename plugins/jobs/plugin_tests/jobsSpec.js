@@ -22,35 +22,42 @@ $(function () {
                 return $('#g-app-body-container').length > 0;
             });
 
+            var oldFetch;
+            var jobInfo = {
+                _id: 'foo',
+                title: 'My batch job',
+                status: girder.plugins.jobs.JobStatus.INACTIVE,
+                log: ['Hello world\n', 'goodbye world'],
+                updated: '2015-01-12T12:00:12Z',
+                created: '2015-01-12T12:00:00Z',
+                when: '2015-01-12T12:00:00Z',
+                timestamps: [{
+                    status: girder.plugins.jobs.JobStatus.QUEUED,
+                    time: '2015-01-12T12:00:02Z'
+                }, {
+                    status: girder.plugins.jobs.JobStatus.RUNNING,
+                    time: '2015-01-12T12:00:03Z'
+                }, {
+                    status: girder.plugins.jobs.JobStatus.SUCCESS,
+                    time: '2015-01-12T12:00:12Z'
+                }]
+            };
             runs(function () {
-                var jobInfo = {
-                    _id: 'foo',
-                    title: 'My batch job',
-                    status: girder.plugins.jobs.JobStatus.INACTIVE,
-                    log: ['Hello world\n', 'goodbye world'],
-                    updated: '2015-01-12T12:00:12Z',
-                    created: '2015-01-12T12:00:00Z',
-                    when: '2015-01-12T12:00:00Z',
-                    timestamps: [{
-                        status: girder.plugins.jobs.JobStatus.QUEUED,
-                        time: '2015-01-12T12:00:02Z'
-                    }, {
-                        status: girder.plugins.jobs.JobStatus.RUNNING,
-                        time: '2015-01-12T12:00:03Z'
-                    }, {
-                        status: girder.plugins.jobs.JobStatus.SUCCESS,
-                        time: '2015-01-12T12:00:12Z'
-                    }]
-                };
-
                 // mock fetch to simulate fetching a job
-                var oldFetch = girder.plugins.jobs.models.JobModel.prototype.fetch;
+                oldFetch = girder.plugins.jobs.models.JobModel.prototype.fetch;
                 girder.plugins.jobs.models.JobModel.prototype.fetch = function () {
                     this.set(jobInfo);
                     this.trigger('g:fetched');
                 };
 
-                girder.router.navigate('job/foo', { trigger: true });
+                girder.router.navigate('job/foo', {trigger: true});
+            });
+
+            waitsFor(function () {
+                return $('.g-job-info-key').length > 0;
+            }, 'the JobDetailsWidget to finish rendering');
+
+            runs(function () {
                 girder.plugins.jobs.models.JobModel.prototype.fetch = oldFetch;
 
                 expect($('.g-monospace-viewer[property="kwargs"]').length).toBe(0);
@@ -126,11 +133,11 @@ $(function () {
                     showFilters: true,
                     showPageSizeSelector: true
                 }).render();
-
+            });
+            girderTest.waitForLoad();
+            runs(function () {
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
             });
-
-            girderTest.waitForLoad();
 
             runs(function () {
                 jobs = _.map([1, 2, 3], function (i) {

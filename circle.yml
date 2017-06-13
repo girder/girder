@@ -9,7 +9,7 @@ machine:
     JASMINE_TIMEOUT: 15000
     DEBIAN_FRONTEND: noninteractive
   node:
-    version: 5.12
+    version: 6
   post:
     - pyenv global 2.7.11
     - if [ "$CIRCLE_NODE_INDEX" -eq 1 ] ; then pyenv global 3.4.4 ; fi

@@ -88,15 +88,13 @@ $(function () {
             girderTest.waitForLoad();
 
             waitsFor(function () {
-                return $('.g-item-name').length === 1;
-            }, 'the item page to load');
+                return $('.g-item-name').length === 1 && $('.g-item-license').length === 1;
+            }, 'the item page and license field to load');
             girderTest.waitForLoad();
 
             runs(function () {
                 // Item info should show license
-                // TODO: to investigate; only one license will be shown when girder is live.
-                // It will be duplicated while testing -- g:rendered seems to be received twice.
-                expect($('.g-item-license').length).not.toBe(0); // was .toBe(1)
+                expect($('.g-item-license').length).toBe(1);
                 expect($('.g-item-license').text()).toContain('The MIT License (MIT)');
             });
         });
@@ -140,8 +138,8 @@ $(function () {
             girderTest.waitForLoad();
 
             waitsFor(function () {
-                return $('.g-item-name').length === 1;
-            }, 'the item page to load');
+                return $('.g-item-name').length === 1 && $('.g-item-license').length === 1;
+            }, 'the item page and license field to load');
             girderTest.waitForLoad();
             runs(function () {
                 // Item info should show license
@@ -239,14 +237,12 @@ $(function () {
             });
             girderTest.waitForLoad();
             waitsFor(function () {
-                return $('.g-item-name').length === 1;
-            }, 'the item page to load');
+                return $('.g-item-name').length === 1 && $('.g-item-license').length === 1;
+            }, 'the item page and license field to load');
             girderTest.waitForLoad();
             runs(function () {
                 expect($('.g-item-name').text()).toBe('testFile.txt');
-                // TODO: to investigate; only one license will be shown when girder is live.
-                // It will be duplicated while testing -- g:rendered seems to be received twice.
-                expect($('.g-item-license').length).not.toBe(0); // was .toBe(1)
+                expect($('.g-item-license').length).toBe(1);
                 expect($('.g-item-license').text()).toContain('Apache License 2');
             });
 
@@ -304,15 +300,13 @@ $(function () {
             girderTest.waitForLoad();
 
             waitsFor(function () {
-                return $('.g-item-name').length === 1;
-            }, 'the item page to load');
+                return $('.g-item-name').length === 1 && $('.g-item-license').length === 1;
+            }, 'the item page and license field to load');
             girderTest.waitForLoad();
 
             runs(function () {
                 // Item info should show that license is unspecified
-                // TODO: to investigate; only one license will be shown when girder is live.
-                // It will be duplicated while testing -- g:rendered seems to be received twice.
-                expect($('.g-item-license').length).not.toBe(0); // was .toBe(1)
+                expect($('.g-item-license').length).toBe(1);
                 expect($('.g-item-license').text()).toContain('Unspecified');
             });
         });
@@ -358,8 +352,8 @@ $(function () {
             girderTest.waitForLoad();
 
             waitsFor(function () {
-                return $('.g-item-name').length === 1;
-            }, 'the item page to load');
+                return $('.g-item-name').length === 1 && $('.g-item-license').length === 1;
+            }, 'the item page and license field to load');
             girderTest.waitForLoad();
             runs(function () {
                 // Item info should show license
@@ -409,8 +403,8 @@ $(function () {
             girderTest.waitForLoad();
 
             waitsFor(function () {
-                return $('.g-item-name').length === 1;
-            }, 'the item page to load');
+                return $('.g-item-name').length === 1 && $('.g-item-license').length === 1;
+            }, 'the item page and license field to load');
             girderTest.waitForLoad();
             runs(function () {
                 // Item info should show that license is unspecified
