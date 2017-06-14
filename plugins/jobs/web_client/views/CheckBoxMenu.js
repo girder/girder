@@ -25,7 +25,7 @@ var CheckBoxMenu = View.extend({
             e.stopPropagation();
             // If any are unchecked, set all to checked; if all are checked, set all to unchecked
             var newCheckedState = !this._allItemsChecked();
-            _.keys(this.items).forEach(key => {
+            _.keys(this.items).forEach((key) => {
                 this.items[key] = newCheckedState;
             });
             this.trigger('g:triggerCheckBoxMenuChanged', this.items);

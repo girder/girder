@@ -119,14 +119,14 @@ var JobListWidget = View.extend({
         restRequest({
             path: this.showAllJobs ? 'job/typeandstatus/all' : 'job/typeandstatus',
             method: 'GET'
-        }).done(result => {
+        }).done((result) => {
             var typesFilter = result.types.reduce((obj, type) => {
                 obj[type] = true;
                 return obj;
             }, {});
             this.typeFilterWidget.setItems(typesFilter);
 
-            var statusFilter = result.statuses.map(status => {
+            var statusFilter = result.statuses.map((status) => {
                 let statusText = JobStatus.text(status);
                 statusTextToStatusCode[statusText] = status;
                 return statusText;
@@ -162,7 +162,7 @@ var JobListWidget = View.extend({
         this.typeFilterWidget.setElement(this.$('.g-job-filter-container .type')).render();
         this.statusFilterWidget.setElement(this.$('.g-job-filter-container .status')).render();
 
-        this.$('a[data-toggle="tab"]').on('shown.bs.tab', e => {
+        this.$('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
             this.currentView = $(e.target).attr('name');
             if (this.userId) {
                 router.navigate(`jobs/user/${this.userId}/${this.currentView}`);

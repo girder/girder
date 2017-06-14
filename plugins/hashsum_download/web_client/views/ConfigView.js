@@ -32,7 +32,7 @@ var ConfigView = View.extend({
                     'hashsum_download.auto_compute'
                 ])
             }
-        }).done(resp => {
+        }).done((resp) => {
             this.settings = resp;
             this.render();
         });
@@ -61,7 +61,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 4000
             });
-        }).fail(resp => {
+        }).fail((resp) => {
             this.$('#g-hashsum-download-error-message').text(
                 resp.responseJSON.message);
         });

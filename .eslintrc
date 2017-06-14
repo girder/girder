@@ -1,6 +1,7 @@
 {
     "extends": "girder",
     "rules": {
+        "arrow-parens": "error",
         "no-throw-literal": "off",
         "backbone/defaults-on-top": "error",
         "backbone/no-changed-set": "error",

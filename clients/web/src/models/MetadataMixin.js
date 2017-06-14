@@ -50,12 +50,12 @@ var MetadataMixin = {
             data: JSON.stringify(key),
             type: 'DELETE',
             error: null
-        }).done(resp => {
+        }).done((resp) => {
             this.set(opts.field || 'meta', resp.meta);
             if (_.isFunction(successCallback)) {
                 successCallback();
             }
-        }).fail(err => {
+        }).fail((err) => {
             err.message = err.responseJSON.message;
             if (_.isFunction(errorCallback)) {
                 errorCallback(err);
