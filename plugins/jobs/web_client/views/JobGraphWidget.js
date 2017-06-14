@@ -58,7 +58,6 @@ const JobGraphWidget = View.extend({
         };
 
         if (this.view === 'timing-history') {
-            jobs.forEach(job => job.calculateSegmentation());
             let config = $.extend(true, {}, timingHistoryChartConfig);
             // limit the width to the size of the container. When there are fewer records,
             // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
@@ -94,7 +93,6 @@ const JobGraphWidget = View.extend({
         }
 
         if (this.view === 'time') {
-            jobs.forEach(job => job.calculateSegmentation());
             let config = $.extend(true, {}, timeChartConfig);
             // limit the width to the size of the container. When there are fewer records,
             // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
@@ -155,7 +153,7 @@ const JobGraphWidget = View.extend({
             let title = job.get('title');
             let currentStatus = JobStatus.text(job.get('status'));
             let updated = moment(job.get('updated')).format('L LT');
-            let records = job.get('segments')
+            let records = job.calculateSegmentation()
                 .map(segment => {
                     let status = segment.status;
                     let elapsed = '';
