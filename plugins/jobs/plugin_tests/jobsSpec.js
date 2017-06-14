@@ -328,6 +328,28 @@ $(function () {
             });
         });
 
+        it('job list widget in all jobs mode', function () {
+            var widget;
+            runs(function () {
+                widget = new girder.plugins.jobs.views.JobListWidget({
+                    el: $('#g-app-body-container'),
+                    parentView: app,
+                    filter: {},
+                    allJobsMode: true,
+                    showGraphs: true,
+                    showFilters: true,
+                    showPageSizeSelector: true
+                });
+            });
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
+
+            runs(function () {
+                expect(widget.collection.resourceName).toEqual('job/all');
+            });
+        });
+
         it('timing history and time chart', function () {
             var jobs, widget;
             runs(function () {
