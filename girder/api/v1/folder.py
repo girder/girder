@@ -38,6 +38,7 @@ class Folder(Resource):
         self.route('GET', (':id', 'details'), self.getFolderDetails)
         self.route('GET', (':id', 'access'), self.getFolderAccess)
         self.route('GET', (':id', 'download'), self.downloadFolder)
+        self.route('GET', (':id', 'rootpath'), self.rootpath)
         self.route('POST', (), self.createFolder)
         self.route('PUT', (':id',), self.updateFolder)
         self.route('PUT', (':id', 'access'), self.updateFolderAccess)
@@ -378,3 +379,13 @@ class Folder(Resource):
     )
     def deleteMetadata(self, folder, fields, params):
         return self.model('folder').deleteMetadata(folder, fields)
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Get the path to the root of the folder\'s hierarchy.')
+        .modelParam('id', model='folder', level=AccessType.READ)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the folder.', 403)
+    )
+    def rootpath(self, folder, params):
+        return self.model('folder').parentsToRoot(folder, user=self.getCurrentUser())
