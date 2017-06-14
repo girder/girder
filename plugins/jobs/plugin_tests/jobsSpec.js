@@ -137,7 +137,7 @@ $(function () {
                     showGraphs: true,
                     showFilters: true,
                     showPageSizeSelector: true
-                }).render();
+                });
             });
             girderTest.waitForLoad();
             runs(function () {
@@ -214,7 +214,7 @@ $(function () {
                     showGraphs: true,
                     showFilters: true,
                     showPageSizeSelector: true
-                }).render();
+                });
 
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
@@ -275,7 +275,7 @@ $(function () {
                     showGraphs: true,
                     showFilters: true,
                     showPageSizeSelector: true
-                }).render();
+                });
 
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
             });
@@ -362,7 +362,7 @@ $(function () {
                     showGraphs: true,
                     showFilters: true,
                     showPageSizeSelector: true
-                }).render();
+                });
             });
 
             girderTest.waitForLoad();
