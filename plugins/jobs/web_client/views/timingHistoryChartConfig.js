@@ -382,7 +382,7 @@ const timingHistoryChartConfig = {
     'legends': [
         {
             'fill': 'color',
-            'title': 'timings',
+            'title': 'Status',
             'offset': -3,
             'properties': {
                 'title': {

@@ -270,7 +270,7 @@ const timeChartConfig = {
     'legends': [
         {
             'fill': 'timing',
-            'title': 'Timings',
+            'title': 'Status',
             'offset': -3,
             'properties': {
                 'title': {
