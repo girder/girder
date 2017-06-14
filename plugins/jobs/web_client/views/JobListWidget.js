@@ -150,9 +150,14 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(JobListWidgetTemplate(_.extend({}, this, {
-            pageSize: this.collection.pageLimit
-        })));
+        this.$el.html(JobListWidgetTemplate({
+            currentView: this.currentView,
+            pageSize: this.collection.pageLimit,
+            pageSizes: this.pageSizes,
+            showFilters: this.showFilters,
+            showGraphs: this.showGraphs,
+            showPageSizeSelector: this.showPageSizeSelector
+        }));
 
         this.typeFilterWidget.setElement(this.$('.g-job-filter-container .type')).render();
         this.statusFilterWidget.setElement(this.$('.g-job-filter-container .status')).render();
