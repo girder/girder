@@ -21,10 +21,6 @@ import importlib
 
 from girder import events
 from . import constants, job_rest
-from girder.api import access
-from girder.api.rest import getCurrentToken
-from girder.models.model_base import AccessException
-from girder.utility.model_importer import ModelImporter
 
 
 def scheduleLocal(event):
@@ -46,18 +42,7 @@ def scheduleLocal(event):
         fn = getattr(module, job.get('function', 'run'))
         fn(job)
 
-@access.token(scope=constants.REST_CREATE_JOB_TOKEN_SCOPE)
-def _authorizeRestJobCreation(event):
-    tokenModel = ModelImporter.model('token')
-    token = getCurrentToken()
-
-    if not tokenModel.hasScope(token, constants.REST_CREATE_JOB_TOKEN_SCOPE):
-        raise AccessException(
-            'Invalid token scope.\n'
-            'Required: %s.\n' % (constants.REST_CREATE_JOB_TOKEN_SCOPE))
-
 
 def load(info):
     info['apiRoot'].job = job_rest.Job()
-    events.bind('rest.post.job.before', 'jobs', _authorizeRestJobCreation)
     events.bind('jobs.schedule', 'jobs', scheduleLocal)

@@ -16,6 +16,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
@@ -73,11 +74,10 @@ class Job(Resource):
             statuses=statuses, sort=sort, currentUser=currentUser,
             parentJob=parent))
 
-
     @filtermodel(model='job', plugin='jobs')
-    @access.token(scope=constants.REST_CREATE_JOB_TOKEN_SCOPE)
+    @access.token(scope=constants.REST_CREATE_JOB_TOKEN_SCOPE, required=True)
     @autoDescribeRoute(
-        Description('Create a job model via a RESTful endpoint')
+        Description('Create a job model')
         .param('title', '', required=True)
         .param('type', '', required=True)
         .param('public', '', required=False, dataType='boolean', default=False)
