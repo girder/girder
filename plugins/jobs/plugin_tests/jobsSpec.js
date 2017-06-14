@@ -375,23 +375,23 @@ $(function () {
 
                 $('.g-jobs.nav.nav-tabs li a[name="timing-history"]').tab('show');
             });
-
             waitsFor(function () {
+                // Charts will render asynchronously with Vega
                 return widget.$('.g-jobs-graph svg .mark-rect.timing rect').length;
             }, 'timing history graph to render');
 
             runs(function () {
+                expect(widget.$('.g-jobs-graph svg .mark-rect.timing rect').length).toBe(6);
                 $('.g-jobs.nav.nav-tabs li a[name="time"]').tab('show');
             });
-
             waitsFor(function () {
                 return widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
             }, 'time graph to render');
 
             runs(function () {
+                expect(widget.$('.g-jobs-graph svg .mark-symbol.circle path').length).toBe(3);
                 $('.g-job-filter-container .timing .dropdown .g-job-checkall input').click();
             });
-
             waitsFor(function () {
                 return !widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
             }, 'graph to clear');
