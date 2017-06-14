@@ -38,6 +38,7 @@ var JobModel = AccessControlledModel.extend({
 
         return segments;
     },
+
     _calculateElapsed: function (start, end) {
         return new Date(end) - new Date(start);
     }

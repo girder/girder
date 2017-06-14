@@ -183,8 +183,7 @@ var JobListWidget = View.extend({
                 view: this.currentView,
                 timingFilter: this.timingFilter,
                 timingFilterWidget: this.timingFilterWidget
-            });
-            this.jobGraphWidget.render();
+            }).render();
         }
 
         this._renderData();
@@ -198,9 +197,7 @@ var JobListWidget = View.extend({
             return;
         }
 
-        var jobs = this.collection.toArray();
-
-        if (!jobs.length) {
+        if (this.collection.isEmpty()) {
             this.$('.g-main-content,.g-job-pagination').hide();
             this.$('.g-no-job-record').show();
             return;
@@ -211,7 +208,7 @@ var JobListWidget = View.extend({
 
         if (this.currentView === 'list') {
             this.$('.g-main-content').html(JobListTemplate({
-                jobs: jobs,
+                jobs: this.collection.toArray(),
                 showHeader: this.showHeader,
                 columns: this.columns,
                 columnEnum: this.columnEnum,
@@ -229,7 +226,7 @@ var JobListWidget = View.extend({
     },
 
     _statusChange: function (event) {
-        let job = _.find(this.collection.toArray(), job => job.get('_id') === event.data._id);
+        let job = this.collection.get(event.data._id);
         if (!job) {
             return;
         }
