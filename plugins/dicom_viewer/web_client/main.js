@@ -1,6 +1,7 @@
-import DicomView from './views/DicomView';
 import { wrap } from 'girder/utilities/PluginUtils';
 import ItemView from 'girder/views/body/ItemView';
+
+import DicomView from './views/DicomView';
 
 wrap(ItemView, 'render', function (render) {
     this.once('g:rendered', function () {

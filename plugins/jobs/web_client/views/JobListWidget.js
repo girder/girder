@@ -11,13 +11,13 @@ import { getCurrentUser } from 'girder/auth';
 import { SORT_DESC } from 'girder/constants';
 
 import JobCollection from '../collections/JobCollection';
-import JobListWidgetTemplate from '../templates/jobListWidget.pug';
-import JobListTemplate from '../templates/jobList.pug';
 import JobStatus from '../JobStatus';
+import JobListWidgetTemplate from '../templates/jobListWidget.pug';
+import '../stylesheets/jobListWidget.styl';
+import JobListTemplate from '../templates/jobList.pug';
+
 import CheckBoxMenu from './CheckBoxMenu';
 import JobGraphWidget from './JobGraphWidget';
-
-import '../stylesheets/jobListWidget.styl';
 
 var JobListWidget = View.extend({
     events: {
@@ -152,7 +152,7 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(JobListWidgetTemplate($.extend({}, this, {
+        this.$el.html(JobListWidgetTemplate(_.extend({}, this, {
             pageSize: this.collection.pageLimit
         })));
 

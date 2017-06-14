@@ -1,5 +1,7 @@
 import _ from 'underscore';
+
 import View from 'girder/views/View';
+
 import JobCheckBoxMenuTemplate from '../templates/jobCheckBoxMenu.pug';
 import JobCheckBoxContentTemplate from '../templates/jobCheckBoxContent.pug';
 

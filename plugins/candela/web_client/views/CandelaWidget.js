@@ -4,12 +4,13 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import events from 'girder/events';
 
-import CandelaParametersView from './CandelaParametersView';
+import candela from 'girder_plugins/candela/node/candela';
+import datalib from 'girder_plugins/candela/node/datalib';
+
 import CandelaWidgetTemplate from '../templates/candelaWidget.pug';
 import '../stylesheets/candelaWidget.styl';
 
-import candela from 'girder_plugins/candela/node/candela';
-import datalib from 'girder_plugins/candela/node/datalib';
+import CandelaParametersView from './CandelaParametersView';
 
 var CandelaWidget = View.extend({
     events: {
