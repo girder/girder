@@ -115,7 +115,10 @@ $(function () {
 
             runs(function () {
                 girder.plugins.jobs.models.JobModel.prototype.fetch.andCallThrough();
+                // Return to the main page, since 'job/foo' isn't legal without mocking
+                girder.router.navigate('', {trigger: true});
             });
+            girderTest.waitForLoad();
         });
     });
 
