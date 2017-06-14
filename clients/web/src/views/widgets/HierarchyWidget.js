@@ -219,13 +219,12 @@ var HierarchyWidget = View.extend({
                 showSizes: this._showSizes,
                 parentView: this
             });
-            this.itemListView.on('g:itemClicked', this._onItemClick, this)
-                .off('g:checkboxesChanged')
-                .on('g:checkboxesChanged', this.updateChecked, this)
-                .off('g:changed').on('g:changed', function () {
-                    this.itemCount = this.itemListView.collection.length;
-                    this._childCountCheck();
-                }, this);
+            this.listenTo(this.itemListView, 'g:itemClicked', this._onItemClick);
+            this.listenTo(this.itemListView, 'g:checkboxesChanged', this.updateChecked);
+            this.listenTo(this.itemListView, 'g:changed', () => {
+                this.itemCount = this.itemListView.collection.length;
+                this._childCountCheck();
+            });
         }
 
         if (!this.metadataWidget) {
@@ -251,7 +250,7 @@ var HierarchyWidget = View.extend({
 
     _fetchToRoot: function (folder) {
         folder.getRootPath().done((path) => {
-            const breadcrumbs = path.map(r => new allModels[getModelClassByName(r.type)](r.object));
+            const breadcrumbs = path.map((r) => new allModels[getModelClassByName(r.type)](r.object));
             this.breadcrumbs.unshift(...breadcrumbs);
             this.render();
         });
