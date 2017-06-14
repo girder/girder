@@ -408,3 +408,6 @@ class CollectionTestCase(base.TestCase):
         # Changes should have been saved to the database
         coll = collModel.load(coll['_id'], force=True)
         self.assertEqual(acl, coll['access'])
+
+    def testPagingHeaders(self):
+        self.runPagingTest('/collection', user=self.user)

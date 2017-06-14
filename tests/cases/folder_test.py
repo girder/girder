@@ -695,3 +695,10 @@ class FolderTestCase(base.TestCase):
                 'parentType': 'folder',
                 'parentId': str(subFolder['_id'])})
         self.assertStatusOk(resp)
+
+    def testPagingHeaders(self):
+        params = {
+            'parentType': 'user',
+            'parentId': self.user['_id']
+        }
+        self.runPagingTest('/folder', user=self.user, params=params)

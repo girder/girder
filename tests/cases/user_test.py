@@ -856,3 +856,6 @@ class UserTestCase(base.TestCase):
             path='/file/chunk', user=pvt, fields=fields, files=files)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['itemId'], itemId)
+
+    def testPagingHeaders(self):
+        self.runPagingTest('/user')

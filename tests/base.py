@@ -25,6 +25,7 @@ import json
 import logging
 import mock
 import os
+import re
 import shutil
 import signal
 import six
@@ -32,6 +33,7 @@ import sys
 import unittest
 import uuid
 
+from requests.utils import parse_header_links
 from six import BytesIO
 from six.moves import urllib
 from girder.utility import model_importer, plugin_utilities
@@ -347,6 +349,69 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         self.assertEqual('Parameter "%s" is required.' % param, response.json.get('message', ''))
         self.assertStatus(response, 400)
+
+    def assertPagingLink(self, link, path, offset=0, **params):
+        """
+        Assert the paging headers were correctly added to response.
+        """
+        self.assertEqual(re.sub('.*/api/v1', '', link['path']), path)
+        self.assertEqual(int(link['query'].get('offset')), offset)
+
+        self.assertHasKeys(link['query'], params.keys())
+        for param, value in six.iteritems(params):
+            if param != 'offset':
+                self.assertEqual(link['query'][param], value)
+
+    def runPagingTest(self, path, user=None, params=None):
+        """
+        Run a series of requests on a paged resource asserting that the
+        headers are set correctly.
+
+        :param path: The resource path (e.g. '/collection')
+        :param user: A user model to run the requests as
+        :param params: A dictionary of extra parameters in the request
+        """
+        params = params or {}
+
+        links = self.getPagingLinks(
+            self.request(path, user=user, params=params)
+        )
+        self.assertHasKeys(links, ['next', 'first'])
+        self.assertPagingLink(links['next'], path, offset=50)
+        self.assertPagingLink(links['first'], path, offset=0)
+
+        links = self.getPagingLinks(
+            self.request(path, user=user, params=dict(params, limit=10, offset=10))
+        )
+        self.assertHasKeys(links, ['next', 'first', 'prev'])
+        self.assertPagingLink(links['next'], path, offset=20, limit='10')
+        self.assertPagingLink(links['prev'], path, offset=0, limit='10')
+        self.assertPagingLink(links['first'], path, offset=0, limit='10')
+
+        links = self.getPagingLinks(
+            self.request(path, user=user, params=dict(params, limit=10, offset=5))
+        )
+        self.assertHasKeys(links, ['next', 'first', 'prev'])
+        self.assertPagingLink(links['next'], path, offset=15, limit='10')
+        self.assertPagingLink(links['prev'], path, offset=0, limit='10')
+        self.assertPagingLink(links['first'], path, offset=0, limit='10')
+
+    def getPagingLinks(self, response):
+        """
+        Get a dictionary containing parsed links in a response header.
+        """
+        self.assertStatusOk(response)
+        links = {}
+        for link in parse_header_links(response.headers.get('Link', '')):
+            rel = link.get('rel')
+            if rel:
+                parsed = urllib.parse.urlparse(link['url'])
+                links[rel] = {
+                    'url': link['url'],
+                    'path': parsed.path,
+                    'query': cherrypy.lib.httputil.parse_query_string(parsed.query)
+                }
+        return links
 
     def getSseMessages(self, resp):
         messages = self.getBody(resp).strip().split('\n\n')
