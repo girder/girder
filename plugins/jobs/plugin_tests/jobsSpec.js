@@ -156,11 +156,15 @@ $(function () {
             runs(function () {
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
-                jobs = _.map([1, 2, 3], function (i) {
+                jobs = _.map([
+                    girder.plugins.jobs.JobStatus.QUEUED,
+                    girder.plugins.jobs.JobStatus.RUNNING,
+                    girder.plugins.jobs.JobStatus.SUCCESS
+                ], function (status, i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
                         title: 'My batch job ' + i,
-                        status: i,
+                        status: status,
                         updated: '2015-01-12T12:00:0' + i,
                         created: '2015-01-12T12:00:0' + i,
                         when: '2015-01-12T12:00:0' + i
@@ -176,17 +180,17 @@ $(function () {
             runs(function () {
                 // Make sure we are in reverse chronological order
                 rows = $('.g-jobs-list-table>tbody>tr');
-                expect($(rows[0]).text()).toContain('My batch job 3');
+                expect($(rows[0]).text()).toContain('My batch job 2');
                 expect($(rows[0]).text()).toContain('Success');
-                expect($(rows[1]).text()).toContain('My batch job 2');
+                expect($(rows[1]).text()).toContain('My batch job 1');
                 expect($(rows[1]).text()).toContain('Running');
-                expect($(rows[2]).text()).toContain('My batch job 1');
+                expect($(rows[2]).text()).toContain('My batch job 0');
                 expect($(rows[2]).text()).toContain('Queued');
 
                 // Simulate an SSE notification that changes a job status
                 girder.utilities.eventStream.trigger('g:event.job_status', {
                     data: _.extend({}, jobs[0].attributes, {
-                        status: 4
+                        status: girder.plugins.jobs.JobStatus.ERROR
                     })
                 });
             });
@@ -203,7 +207,7 @@ $(function () {
                     data: {
                         _id: 'foo' + 4,
                         title: 'My batch job ' + 4,
-                        status: 4,
+                        status: girder.plugins.jobs.JobStatus.ERROR,
                         updated: '2015-01-12T12:00:0' + 4,
                         created: '2015-01-12T12:00:0' + 4,
                         when: '2015-01-12T12:00:0' + 4
@@ -292,11 +296,15 @@ $(function () {
             runs(function () {
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
-                jobs = _.map([1, 2, 3], function (i) {
+                jobs = _.map([
+                    girder.plugins.jobs.JobStatus.QUEUED,
+                    girder.plugins.jobs.JobStatus.RUNNING,
+                    girder.plugins.jobs.JobStatus.SUCCESS
+                ], function (status, i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
                         title: 'My batch job ' + i,
-                        status: i,
+                        status: status,
                         updated: '2015-01-12T12:00:0' + i,
                         created: '2015-01-12T12:00:0' + i,
                         when: '2015-01-12T12:00:0' + i
@@ -337,23 +345,23 @@ $(function () {
             }, 'job list to finish initial loading');
 
             runs(function () {
-                jobs = _.map(['one', 'two', 'three'], function (t, i) {
+                jobs = _.map(['one', 'two', 'three'], function (type, i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
                         title: 'My batch job ' + i,
-                        status: 4,
-                        type: t,
+                        status: girder.plugins.jobs.JobStatus.ERROR,
+                        type: type,
                         timestamps: [
                             {
-                                'status': 1,
+                                'status': girder.plugins.jobs.JobStatus.QUEUED,
                                 'time': '2017-03-10T18:31:59.008Z'
                             },
                             {
-                                'status': 2,
+                                'status': girder.plugins.jobs.JobStatus.RUNNING,
                                 'time': '2017-03-10T18:32:06.190Z'
                             },
                             {
-                                'status': 4,
+                                'status': girder.plugins.jobs.JobStatus.ERROR,
                                 'time': '2017-03-10T18:32:34.760Z'
                             }
                         ],
