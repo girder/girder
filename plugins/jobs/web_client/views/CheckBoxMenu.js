@@ -10,7 +10,6 @@ var CheckBoxMenu = View.extend({
         'click input.g-job-filter-checkbox': function (e) {
             e.stopPropagation();
             this.items[e.target.id] = e.target.checked;
-            this._renderContent();
             this.trigger('g:triggerCheckBoxMenuChanged', this.items);
         },
         // When a label wraps an input and the label is clicked,
@@ -28,13 +27,13 @@ var CheckBoxMenu = View.extend({
             _.keys(this.items).forEach(key => {
                 this.items[key] = checked;
             });
-            this._renderContent();
             this.trigger('g:triggerCheckBoxMenuChanged', this.items);
         }
     },
     initialize: function (params) {
         this.params = params;
         this.items = this.params.items;
+        this.on('g:triggerCheckBoxMenuChanged', this._renderContent, this);
     },
 
     render: function () {
