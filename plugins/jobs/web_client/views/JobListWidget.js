@@ -58,9 +58,7 @@ var JobListWidget = View.extend({
         this.collection.sortDir = settings.sortDir || SORT_DESC;
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
-        this.collection
-            .on('g:changed', this._renderData, this)
-            .on('add', this._renderData, this);
+        this.collection.on('update reset', this._renderData, this);
 
         this._fetchWithFilter();
 
