@@ -22,7 +22,8 @@ const TreeDialog = View.extend({
             title: 'Select a document',
             placeholder: 'Click on a document to select it.',
             label: 'Selected',
-            submit: 'Save'
+            submit: 'Save',
+            readonly: true
         });
         this.treeView = new TreeView(_.defaults(settings.treeview || {}, {
             parentView: this
