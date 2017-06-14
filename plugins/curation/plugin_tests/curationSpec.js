@@ -6,29 +6,29 @@ girderTest.addCoveredScripts([
 
 girderTest.startApp();
 
-$(function () {
-    function _goToCurationDialog() {
-        girderTest.waitForLoad();
-        waitsFor(function () {
-            return $('button.g-folder-actions-button:visible').length === 1;
-        }, 'folder actions button to be visible');
-        runs(function () {
-            $('button.g-folder-actions-button:visible').click();
-        });
-        waitsFor(function () {
-            return $('a.g-curation-button:visible').length === 1;
-        }, 'curation button to be visible');
-        runs(function () {
-            $('a.g-curation-button:visible').click();
-        });
-        girderTest.waitForDialog();
-    }
+function _goToCurationDialog() {
+    girderTest.waitForLoad();
+    waitsFor(function () {
+        return $('button.g-folder-actions-button:visible').length === 1;
+    }, 'folder actions button to be visible');
+    runs(function () {
+        $('button.g-folder-actions-button:visible').click();
+    });
+    waitsFor(function () {
+        return $('a.g-curation-button:visible').length === 1;
+    }, 'curation button to be visible');
+    runs(function () {
+        $('a.g-curation-button:visible').click();
+    });
+    girderTest.waitForDialog();
+}
 
-    describe('test the curation ui', function () {
-        it('register an admin', girderTest.createUser(
-            'admin', 'admin@example.com', 'Joe', 'Admin', 'password'
-        ));
+describe('test the curation ui', function () {
+    it('register an admin', girderTest.createUser(
+        'admin', 'admin@example.com', 'Joe', 'Admin', 'password'
+    ));
 
+    it('test curation functionality', function () {
         waitsFor(function () {
             return $('a.g-my-folders').length > 0;
         }, 'my folders link to load');
