@@ -609,6 +609,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
                 kwargs['sort'] = [(kwargs['sort'], sortdir)]
 
+            self._addPagingHeaders()
+
             return fun(*args, **kwargs)
 
         if self.hide:
@@ -616,6 +618,33 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         else:
             wrapped.description = self.description
         return wrapped
+
+    def _addPagingHeaders(self):
+        """
+        Inject a "Link" header when this is a paged request.
+
+        Follows: https://tools.ietf.org/html/rfc5988
+        """
+        if not self.description.hasPagingParams:
+            return
+
+        params = cherrypy.lib.httputil.parse_query_string(cherrypy.request.query_string)
+        offset = int(params.get('offset', 0))
+        limit = int(params.get('limit', 50))
+        qs = dict(**params)
+        link = []
+
+        qs['offset'] = 0
+        link.append('<%s>; rel="first"' % cherrypy.url(qs=qs))
+
+        qs['offset'] = offset + limit
+        link.append('<%s>; rel="next"' % cherrypy.url(qs=qs))
+
+        if offset > 0:
+            qs['offset'] = max(0, offset - limit)
+            link.append('<%s>; rel="prev"' % cherrypy.url(qs=qs))
+
+        cherrypy.response.headers['Link'] = ', '.join(link)
 
     def _validateJsonType(self, name, info, val):
         if info.get('schema') is not None:
