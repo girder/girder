@@ -145,7 +145,8 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'mode': 'testing',
             'api_root': 'api/v1',
             'static_root': 'static',
-            'api_static_root': '../static'
+            'api_static_root': '../static',
+            'cherrypy_server': True
         }})
 
     mode = curConfig['server']['mode'].lower()

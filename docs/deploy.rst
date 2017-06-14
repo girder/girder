@@ -64,6 +64,22 @@ And under the containing ``server`` block, make sure to add the following rule:
         # ... elided configuration
     }
 
+WSGI
+----
+
+Girder also comes with a callable WSGI application that can be run with WSGI servers
+like `uWSGI`.
+
+A simple example of running Girder with ``uwsgi`` instead of CherryPy's built in HTTP server
+would be::
+  
+  uwsgi --lazy --http :8080 --module girder.wsgi --check-static clients/web
+
+.. seealso::
+   
+   `CherryPy documentation describing how to deploy under WSGI <http://docs.cherrypy.org/en/latest/deploy.html#wsgi-servers>`_
+
+
 Girder Settings
 +++++++++++++++
 

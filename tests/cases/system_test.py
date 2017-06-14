@@ -301,6 +301,15 @@ class SystemTestCase(base.TestCase):
                             user=self.users[0])
         self.assertStatusOk(resp)
 
+    def testRestartWhenNotUsingCherryPyServer(self):
+        # Restart should be disallowed
+        conf = config.getConfig()
+        conf['server']['cherrypy_server'] = False
+
+        resp = self.request(path='/system/restart', method='PUT',
+                            user=self.users[0])
+        self.assertStatus(resp, 403)
+
     def testCheck(self):
         resp = self.request(path='/token/session', method='GET')
         self.assertStatusOk(resp)
