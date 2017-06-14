@@ -22,7 +22,6 @@ $(function () {
                 return $('#g-app-body-container').length > 0;
             });
 
-            var oldFetch;
             var jobInfo = {
                 _id: 'foo',
                 title: 'My batch job',
@@ -42,13 +41,14 @@ $(function () {
                     time: '2015-01-12T12:00:12Z'
                 }]
             };
+
             runs(function () {
                 // mock fetch to simulate fetching a job
-                oldFetch = girder.plugins.jobs.models.JobModel.prototype.fetch;
-                girder.plugins.jobs.models.JobModel.prototype.fetch = function () {
+                spyOn(girder.plugins.jobs.models.JobModel.prototype, 'fetch').andCallFake(function () {
                     this.set(jobInfo);
                     this.trigger('g:fetched');
-                };
+                    return $.Deferred().resolve(jobInfo).promise();
+                });
 
                 girder.router.navigate('job/foo', {trigger: true});
             });
@@ -58,8 +58,6 @@ $(function () {
             }, 'the JobDetailsWidget to finish rendering');
 
             runs(function () {
-                girder.plugins.jobs.models.JobModel.prototype.fetch = oldFetch;
-
                 expect($('.g-monospace-viewer[property="kwargs"]').length).toBe(0);
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe(jobInfo.log.join(''));
                 expect($('.g-job-info-value[property="_id"]').text()).toBe(jobInfo._id);
@@ -113,6 +111,10 @@ $(function () {
 
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe(
                     'overwritten log<script type="text/javascript">xss probe!</script>');
+            });
+
+            runs(function () {
+                girder.plugins.jobs.models.JobModel.prototype.fetch.andCallThrough();
             });
         });
     });
