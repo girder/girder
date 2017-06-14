@@ -218,10 +218,6 @@ var JobListWidget = View.extend({
             }));
         }
 
-        if (this.currentView === 'timing-history' || this.currentView === 'time') {
-            this.jobGraphWidget.update(jobs);
-        }
-
         if (this.showPaging) {
             this.paginateWidget.setElement(this.$('.g-job-pagination')).render();
         }

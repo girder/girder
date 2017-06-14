@@ -31,13 +31,14 @@ export default View.extend({
             this.timingFilter = _.extend(this.timingFilter, e);
             this.update();
         });
+        this.listenTo(this.collection, 'update reset', this.update);
     },
 
     render: function () {
-        this.$el.empty();
         this.$el.html(JobsGraphWidgetTemplate(this));
         this.timingFilterWidget.setItems(this.timingFilter);
         this.timingFilterWidget.setElement(this.$('.g-job-filter-container .timing')).render();
+        this.update();
     },
 
     remove: function () {
