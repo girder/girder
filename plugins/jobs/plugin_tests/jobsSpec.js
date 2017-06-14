@@ -123,6 +123,13 @@ $(function () {
     });
 
     describe('Unit test the job list widget.', function () {
+        // This spy must be attached to the prototype, since the instantiation of JobListWidget will
+        // bind and make calls to '_renderData' immediately
+        var renderDataSpy;
+        beforeEach(function () {
+            renderDataSpy = spyOn(girder.plugins.jobs.views.JobListWidget.prototype, '_renderData').andCallThrough();
+        });
+
         it('Show a job list widget.', function () {
             var jobs, rows, widget;
 
@@ -139,12 +146,16 @@ $(function () {
                     showPageSizeSelector: true
                 });
             });
-            girderTest.waitForLoad();
-            runs(function () {
-                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
-            });
+            waitsFor(function () {
+                // Wait for the pending fetch (causing the 2nd render) to complete, so it doesn't
+                // overwrite "widget.collection" after the synchronous "widget.collection.add"
+                // is made below
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+
                 jobs = _.map([1, 2, 3], function (i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
@@ -157,11 +168,10 @@ $(function () {
                 });
 
                 widget.collection.add(jobs);
-            });
 
-            waitsFor(function () {
-                return $('.g-jobs-list-table>tbody>tr').length === 3;
-            }, 'job list to auto-reload when collection is updated');
+                // job list should re-render when collection is updated
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(3)
+            });
 
             runs(function () {
                 // Make sure we are in reverse chronological order
@@ -187,6 +197,8 @@ $(function () {
             }, 'Third row status change to Error');
 
             runs(function () {
+                // The data in this is meaningless, but this will trigger a new API fetch
+                renderDataSpy.reset();
                 girder.utilities.eventStream.trigger('g:event.job_created', {
                     data: {
                         _id: 'foo' + 4,
@@ -200,8 +212,15 @@ $(function () {
             });
 
             waitsFor(function () {
-                return $('.g-no-job-record').is(':visible');
-            }, 'job list to auto-reload when job_created is triggered');
+                return renderDataSpy.wasCalled;
+            });
+
+            runs(function () {
+                // Since the server contains no actual jobs, once the API fetch completes, all of
+                // the previously-added local jobs will be blown away, and the local view will
+                // re-render to show no jobs
+                expect($('.g-no-job-record').is(':visible')).toBe(true);
+            });
         });
 
         it('Job list widget filter by status & type.', function () {
@@ -215,7 +234,12 @@ $(function () {
                     showFilters: true,
                     showPageSizeSelector: true
                 });
+            });
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
+            runs(function () {
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
                 // programmatically set value
@@ -276,13 +300,14 @@ $(function () {
                     showFilters: true,
                     showPageSizeSelector: true
                 });
-
-                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
             });
-
-            girderTest.waitForLoad();
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+
                 jobs = _.map([1, 2, 3], function (i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
@@ -364,8 +389,9 @@ $(function () {
                     showPageSizeSelector: true
                 });
             });
-
-            girderTest.waitForLoad();
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
                 jobs = _.map(['one', 'two', 'three'], function (t, i) {
@@ -420,7 +446,7 @@ $(function () {
             }, 'graph to clear');
         });
 
-        it('job list widget without graphs, filter, and page size selector', function () {
+        it('Instantiate without graphs, filter, and page size selector.', function () {
             var widget;
 
             runs(function () {
@@ -430,8 +456,9 @@ $(function () {
                     filter: {}
                 });
             });
-
-            girderTest.waitForLoad();
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
                 expect(widget.$('.g-jobs.nav.nav-tabs').length).toBe(0);
