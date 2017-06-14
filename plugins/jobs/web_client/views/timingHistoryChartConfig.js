@@ -382,7 +382,7 @@ const timingHistoryChartConfig = {
     'legends': [
         {
             'fill': 'color',
-            'title': 'Status',
+            'title': 'Selected Phases',
             'offset': -3,
             'properties': {
                 'title': {
