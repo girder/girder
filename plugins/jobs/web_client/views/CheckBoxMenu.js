@@ -23,9 +23,10 @@ var CheckBoxMenu = View.extend({
         },
         'click .g-job-checkall input': function (e) {
             e.stopPropagation();
-            var checked = !this.allItemsChecked();
+            // If any are unchecked, set all to checked; if all are checked, set all to unchecked
+            var newCheckedState = !this._allItemsChecked();
             _.keys(this.items).forEach(key => {
-                this.items[key] = checked;
+                this.items[key] = newCheckedState;
             });
             this.trigger('g:triggerCheckBoxMenuChanged', this.items);
         }
@@ -49,14 +50,18 @@ var CheckBoxMenu = View.extend({
         this._renderContent();
     },
 
-    allItemsChecked: function () {
+    _allItemsChecked: function () {
         return _.every(this.items);
+    },
+
+    _anyItemsChecked: function () {
+        return _.some(this.items);
     },
 
     _renderContent: function () {
         this.$('.dropdown-menu').html(JobCheckBoxContentTemplate({
             items: this.items,
-            checkAllChecked: this.allItemsChecked()
+            checkAllChecked: this._allItemsChecked()
         }));
     }
 });
