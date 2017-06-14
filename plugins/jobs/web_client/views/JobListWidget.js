@@ -58,7 +58,7 @@ var JobListWidget = View.extend({
         this.collection.sortDir = settings.sortDir || SORT_DESC;
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
-        this.collection.on('update reset', this._renderData, this);
+        this.listenTo(this.collection, 'update reset', this._renderData);
 
         this._fetchWithFilter();
 
@@ -74,8 +74,8 @@ var JobListWidget = View.extend({
             parentView: this
         });
 
-        eventStream.on('g:event.job_status', this._statusChange, this);
-        eventStream.on('g:event.job_created', this._jobCreated, this);
+        this.listenTo(eventStream, 'g:event.job_status', this._statusChange);
+        this.listenTo(eventStream, 'g:event.job_created', this._jobCreated);
 
         this.timingFilterWidget = new CheckBoxMenu({
             title: 'Phases',
@@ -89,7 +89,7 @@ var JobListWidget = View.extend({
             parentView: this
         });
 
-        this.typeFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
+        this.listenTo(this.typeFilterWidget, 'g:triggerCheckBoxMenuChanged', function (e) {
             this.typeFilter = _.keys(e).reduce((arr, key) => {
                 if (e[key]) {
                     arr.push(key);
@@ -97,7 +97,7 @@ var JobListWidget = View.extend({
                 return arr;
             }, []);
             this._fetchWithFilter();
-        }, this);
+        });
 
         this.statusFilterWidget = new CheckBoxMenu({
             title: 'Status',
@@ -106,7 +106,7 @@ var JobListWidget = View.extend({
         });
 
         let statusTextToStatusCode = {};
-        this.statusFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
+        this.listenTo(this.statusFilterWidget, 'g:triggerCheckBoxMenuChanged', function (e) {
             this.statusFilter = _.keys(e).reduce((arr, key) => {
                 if (e[key]) {
                     arr.push(parseInt(statusTextToStatusCode[key]));
@@ -114,7 +114,7 @@ var JobListWidget = View.extend({
                 return arr;
             }, []);
             this._fetchWithFilter();
-        }, this);
+        });
 
         restRequest({
             path: this.showAllJobs ? 'job/typeandstatus/all' : 'job/typeandstatus',

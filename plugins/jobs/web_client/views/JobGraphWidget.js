@@ -27,10 +27,10 @@ export default View.extend({
 
         this.yScale = 'sqrt';
 
-        this.timingFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
+        this.listenTo(this.timingFilterWidget, 'g:triggerCheckBoxMenuChanged', function (e) {
             this.timingFilter = _.extend(this.timingFilter, e);
             this.update();
-        }, this);
+        });
     },
 
     render: function () {
