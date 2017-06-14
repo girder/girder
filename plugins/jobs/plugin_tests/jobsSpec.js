@@ -336,47 +336,6 @@ $(function () {
             });
         });
 
-        it('job list widget in all jobs mode', function () {
-            var widget;
-
-            runs(function () {
-                widget = new girder.plugins.jobs.views.JobListWidget({
-                    el: $('#g-app-body-container'),
-                    parentView: app,
-                    filter: {},
-                    allJobsMode: true,
-                    showGraphs: true,
-                    showFilters: true,
-                    showPageSizeSelector: true
-                });
-
-                expect(widget.collection.resourceName).toEqual('job/all');
-
-                girderTest.logout('logout from admin')();
-
-                girderTest.createUser(
-                    'user1', 'user@email.com', 'Quota', 'User', 'testpassword')();
-            });
-
-            girderTest.waitForLoad();
-
-            runs(function () {
-                widget = new girder.plugins.jobs.views.JobListWidget({
-                    el: $('#g-app-body-container'),
-                    parentView: app,
-                    allJobsMode: true,
-                    showGraphs: true,
-                    showFilters: true,
-                    showPageSizeSelector: true
-                });
-            });
-            girderTest.waitForLoad();
-
-            waitsFor(function () {
-                return widget.$('.g-jobs-list-table tr').length === 0;
-            }, 'no record show be shown');
-        });
-
         it('timing history and time chart', function () {
             var jobs, widget;
             runs(function () {
