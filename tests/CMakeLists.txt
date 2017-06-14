@@ -7,6 +7,12 @@ if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
   set(MONGOD_EXECUTABLE "local mongod required")
 endif()
 
+# Test if mongos is present for tests that require it.
+find_program(MONGOS_EXECUTABLE mongod)
+if("${MONGOS_EXECUTABLE}" STREQUAL "MONGOS_EXECUTABLE-NOTFOUND")
+  set(MONGOS_EXECUTABLE "local mongos required")
+endif()
+
 python_tests_init()
 javascript_tests_init()
 
@@ -54,7 +60,7 @@ if(RUN_CORE_TESTS)
   add_python_test(system)
   add_python_test(token)
   # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
-  add_python_test(upload RUN_SERIAL REQUIRED_FILES "${MONGOD_EXECUTABLE}")
+  add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
   add_python_test(user)
   add_python_test(webroot)
   add_python_test(path_utilities)
@@ -65,10 +71,12 @@ if(RUN_CORE_TESTS)
   add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE filesystem)
   add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfs)
   add_web_client_test(data_gridfsrs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfsrs RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
+  add_web_client_test(data_gridfsshard "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfsshard RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/clients/web/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
     PLUGIN_DIR "${PROJECT_SOURCE_DIR}/tests/test_plugins"
     ENABLEDPLUGINS "bad_server"
+    RESOURCE_LOCKS replicaset
     )
   add_web_client_test(collection "${PROJECT_SOURCE_DIR}/clients/web/test/spec/collectionSpec.js")
   add_web_client_test(collection_base_class "${PROJECT_SOURCE_DIR}/clients/web/test/spec/collectionBaseClassSpec.js")
@@ -87,9 +95,6 @@ if(RUN_CORE_TESTS)
   add_web_client_test(browser "${PROJECT_SOURCE_DIR}/clients/web/test/spec/browserSpec.js")
   add_web_client_test(set_api "${PROJECT_SOURCE_DIR}/clients/web/test/spec/setApiSpec.js")
 
-  if (BUILD_JAVASCRIPT_TESTS)
-    set_property(TEST web_client_admin PROPERTY RUN_SERIAL ON)
-  endif()
   # Add tests for the local TestData module
   add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
   add_python_test(external_data_core

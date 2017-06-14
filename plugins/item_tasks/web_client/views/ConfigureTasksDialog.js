@@ -1,8 +1,9 @@
 import { restRequest } from 'girder/rest';
 import router from 'girder/router';
 import View from 'girder/views/View';
-import template from '../templates/configureTasks.pug';
 import 'girder/utilities/jquery/girderModal';
+
+import template from '../templates/configureTasks.pug';
 
 var ConfigureTasksDialog = View.extend({
     events: {

@@ -1,6 +1,7 @@
 import _ from 'underscore';
 
 import AccessControlledModel from 'girder/models/AccessControlledModel';
+
 import JobStatus from '../JobStatus';
 
 var JobModel = AccessControlledModel.extend({

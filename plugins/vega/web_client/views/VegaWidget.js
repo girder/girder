@@ -1,13 +1,13 @@
 import $ from 'jquery';
 
+import vg from 'vega';
+
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { restRequest } from 'girder/rest';
 
 import VegaWidgetTemplate from '../templates/vegaWidget.pug';
 import '../stylesheets/vegaWidget.styl';
-
-import vg from 'vega';
 
 var VegaWidget = View.extend({
     initialize: function (settings) {

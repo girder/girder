@@ -214,7 +214,11 @@ describe('Test the assetstore page', function () {
                     if (value === 'service') {
                         value = service;
                     }
-                    $('input#' + key).val(value);
+                    if ($('input#' + key).is(':checkbox')) {
+                        $('input#' + key).attr('checked', value);
+                    } else {
+                        $('input#' + key).val(value);
+                    }
                 }
             });
             waitsFor(function () {
@@ -551,7 +555,8 @@ describe('Test the assetstore page', function () {
         'g-new-gridfs-db': 'girder_webclient_gridfsrs',
         'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,127.0.0.2:27081,' +
                                   '127.0.0.2:27082/?serverSelectionTimeoutMS=250',
-        'g-new-gridfs-replicaset': 'replicaset'
+        'g-new-gridfs-replicaset': 'replicaset',
+        'g-new-gridfs-shard-auto': false
     }, null, function () {
         return $('.g-validation-failed-message:contains(' +
                  '"Could not connect to the database: ")').length === 1;

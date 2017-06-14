@@ -1,4 +1,5 @@
 import Collection from 'girder/collections/Collection';
+
 import JobModel from '../models/JobModel';
 
 var JobCollection = Collection.extend({

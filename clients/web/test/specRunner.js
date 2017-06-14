@@ -10,7 +10,11 @@
 /* eslint-disable node/no-deprecated-api */
 /* globals phantom, WebPage, jasmine, girderTest */
 
+var fs = require('fs');
+
 var system = require('system');
+require('event-source/global');
+
 var args = phantom.args ? phantom.args : system.args.slice(1);
 
 if (args && args.length < 2) {
@@ -28,9 +32,6 @@ var pageUrl = args[0];
 var spec = args[1];
 var coverageOutput = args[2] || null;
 var page = new WebPage();
-
-var fs = require('fs');
-require('event-source/global');
 
 try {
     fs.remove(coverageOutput);

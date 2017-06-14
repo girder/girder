@@ -1,5 +1,6 @@
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
+
 import template from '../templates/authorizeUpload.pug';
 import '../stylesheets/authorizeUpload.styl';
 
