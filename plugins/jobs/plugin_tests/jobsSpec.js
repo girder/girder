@@ -250,37 +250,21 @@ $(function () {
                 });
 
                 // one item should be unchecked
-                expect(
-                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
-                        return total + ($(input).is(':checked') ? 1 : 0);
-                    }, 0)
-                ).toBe(2);
+                expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(2);
 
                 widget.$('.g-job-filter-container .type .dropdown ul li input').first().click();
 
-                expect(
-                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
-                        return total + ($(input).is(':checked') ? 1 : 0);
-                    }, 0)
-                ).toBe(1);
+                expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(1);
 
                 widget.$('.g-job-filter-container .type .dropdown .g-job-checkall input').click();
 
                 // all should be checked after clicking Check all
-                expect(
-                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
-                        return total + ($(input).is(':checked') ? 1 : 0);
-                    }, 0)
-                ).toBe(3);
+                expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(3);
                 expect($('.g-job-filter-container .type .dropdown .g-job-checkall input').is(':checked')).toBe(true);
 
                 widget.$('.g-job-filter-container .status .dropdown .g-job-checkall input').click();
 
-                expect(
-                    widget.$('.g-job-filter-container .status .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
-                        return total + ($(input).is(':checked') ? 1 : 0);
-                    }, 0)
-                ).toBe(0);
+                expect(widget.$('.g-job-filter-container .status .dropdown ul li input[type="checkbox"]:checked').length).toBe(0);
 
                 widget.$('.g-page-size').val(50).trigger('change');
                 expect(widget.collection.pageLimit).toBe(50);
