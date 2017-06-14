@@ -36,8 +36,9 @@ var JobModel = AccessControlledModel.extend({
             }));
         }
 
-        this.set('segments', segments);
+        return segments;
     },
+
     _calculateElapsed: function (start, end) {
         return new Date(end) - new Date(start);
     }

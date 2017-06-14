@@ -10,7 +10,6 @@ var CheckBoxMenu = View.extend({
         'click input.g-job-filter-checkbox': function (e) {
             e.stopPropagation();
             this.items[e.target.id] = e.target.checked;
-            this._renderContent();
             this.trigger('g:triggerCheckBoxMenuChanged', this.items);
         },
         // When a label wraps an input and the label is clicked,
@@ -24,17 +23,19 @@ var CheckBoxMenu = View.extend({
         },
         'click .g-job-checkall input': function (e) {
             e.stopPropagation();
-            var checked = !this.allItemChecked();
+            // If any are unchecked, set all to checked; if all are checked, set all to unchecked
+            var newCheckedState = !this._allItemsChecked();
             _.keys(this.items).forEach(key => {
-                this.items[key] = checked;
+                this.items[key] = newCheckedState;
             });
-            this._renderContent();
             this.trigger('g:triggerCheckBoxMenuChanged', this.items);
         }
     },
+
     initialize: function (params) {
         this.params = params;
         this.items = this.params.items;
+        this.on('g:triggerCheckBoxMenuChanged', this._renderContent, this);
     },
 
     render: function () {
@@ -43,17 +44,24 @@ var CheckBoxMenu = View.extend({
         }));
         this._renderContent();
     },
+
     setItems: function (items) {
         this.items = items;
         this._renderContent();
     },
-    allItemChecked: function () {
-        return _.every(_.values(this.items));
+
+    _allItemsChecked: function () {
+        return _.every(this.items);
     },
+
+    _anyItemsChecked: function () {
+        return _.some(this.items);
+    },
+
     _renderContent: function () {
         this.$('.dropdown-menu').html(JobCheckBoxContentTemplate({
             items: this.items,
-            checkAllChecked: this.allItemChecked()
+            checkAllChecked: this._allItemsChecked()
         }));
     }
 });
