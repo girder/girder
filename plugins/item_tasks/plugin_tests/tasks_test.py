@@ -630,3 +630,6 @@ class TasksTest(base.TestCase):
 
         self.assertEqual(
             job['itemTaskBindings']['outputs']['--DetectedPoints']['itemId'], file['itemId'])
+
+    def testPagingHeaders(self):
+        self.runPagingTest('/item_task', user=self.admin)

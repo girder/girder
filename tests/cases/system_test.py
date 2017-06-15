@@ -765,6 +765,3 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['users'][0]['id'], str(self.users[0]['_id']))
         self.assertEqual(resp.json['users'][0]['login'], str(self.users[0]['login']))
         self.assertEqual(resp.json['groups'][0]['id'], str(self.group['_id']))
-
-    def testPagingHeaders(self):
-        self.runPagingTest('/system/uploads', user=self.users[0])

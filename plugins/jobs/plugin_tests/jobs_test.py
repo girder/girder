@@ -614,3 +614,7 @@ class JobsTestCase(base.TestCase):
                              params={'title': 'job', 'type': 'job'})
         # If user has the necessary token status is 200
         self.assertStatus(resp2, 200)
+
+    def testPagingHeaders(self):
+        self.runPagingTest('/job', user=self.users[0])
+        self.runPagingTest('/job/all', user=self.users[0])

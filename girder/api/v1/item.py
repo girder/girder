@@ -52,7 +52,7 @@ class Item(Resource):
                required=False)
         .param('name', 'Pass to lookup an item by exact name match. Must '
                'pass folderId as well when using this.', required=False)
-        .pagingParams(defaultSort='lowerName')
+        .pagingParams(defaultSort='lowerName', linkHeader=True)
         .errorResponse()
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
@@ -209,7 +209,7 @@ class Item(Resource):
         Description('Get the files within an item.')
         .responseClass('File', array=True)
         .modelParam('id', model='item', level=AccessType.READ)
-        .pagingParams(defaultSort='name')
+        .pagingParams(defaultSort='name', linkHeader=True)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
