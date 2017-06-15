@@ -609,9 +609,9 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
                 kwargs['sort'] = [(kwargs['sort'], sortdir)]
 
-            self._addPagingHeaders(kwargs)
-
-            return fun(*args, **kwargs)
+            result = fun(*args, **kwargs)
+            self._addPagingHeaders(kwargs, result)
+            return result
 
         if self.hide:
             wrapped.description = None
@@ -619,11 +619,13 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             wrapped.description = self.description
         return wrapped
 
-    def _addPagingHeaders(self, params):
+    def _addPagingHeaders(self, params, result):
         """
         Inject a "Link" header when this is a paged request.
-
         Follows: https://tools.ietf.org/html/rfc5988
+
+        :param params: An object containing the paging parameters
+        :param result: The list of results from query
         """
         if not self.description.hasPagingParams or \
            not cherrypy.request.method == 'GET':
@@ -637,8 +639,13 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         qs['offset'] = 0
         link.append('<%s>; rel="first"' % cherrypy.url(qs=qs))
 
-        qs['offset'] = offset + limit
-        link.append('<%s>; rel="next"' % cherrypy.url(qs=qs))
+        # Try to autodetect if there is a next page.  If the result is not iterable
+        # then the endpoint doesn't follow the usual conventions, so we fall back
+        # to adding the headers.  This has the limitation that "next" page might
+        # have zero results, but there is no way to detect that from here.
+        if not isinstance(result, (list, tuple)) or len(result) == limit:
+            qs['offset'] = offset + limit
+            link.append('<%s>; rel="next"' % cherrypy.url(qs=qs))
 
         if offset > 0:
             qs['offset'] = max(0, offset - limit)
