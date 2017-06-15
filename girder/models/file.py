@@ -105,7 +105,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                         for data in fileDownload():
                             yield data
                         if endByte is None or endByte >= file['size']:
-                            events.trigger('download.complete', info={'file': file})
+                            events.trigger('download.complete', info={'file': file, 'redirect': False})
                     return downloadGenerator
                 else:
                     return fileDownload
@@ -122,7 +122,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                 def stream():
                     yield file['linkUrl'][offset:endByte]
                     if endByte >= len(file['linkUrl']):
-                        events.trigger('download.complete', info={'file': file})
+                        events.trigger('download.complete', info={'file': file, 'redirect': False})
                 return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')
