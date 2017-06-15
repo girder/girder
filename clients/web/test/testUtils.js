@@ -833,39 +833,42 @@ girderTest.getCallbackSuffix = function () {
 /* Upload tests require that we modify how xmlhttp requests are handled.  Check
  * that this has been done (but only do it once).
  */
-function _prepareTestUpload() {
-    if (girderTest._preparedTestUpload) {
-        return;
-    }
-    girderTest._uploadData = null;
-    /* used for resume testing */
-    girderTest._uploadDataExtra = 0;
-    girderTest.getCallbackSuffix();
+girderTest._prepareTestUpload = (function () {
+    var alreadyPrepared = false;
+    return function () {
+        if (alreadyPrepared) {
+            return;
+        }
 
-    (function (impl) {
-        XMLHttpRequest.prototype.send = function (data) {
-            if (data && data instanceof Blob) {
-                if (girderTest._uploadDataExtra) {
-                    /* Our mock S3 server will take extra data, so break it
-                     * by adding a faulty copy header.  This will throw an
-                     * error so we can test resumes. */
-                    this.setRequestHeader('x-amz-copy-source', 'bad_value');
-                }
-                if (girderTest._uploadData.length &&
-                    girderTest._uploadData.length === data.size &&
-                    !girderTest._uploadDataExtra) {
-                    data = girderTest._uploadData;
-                } else {
-                    data = new Array(
-                        data.size + 1 + girderTest._uploadDataExtra).join('-');
-                }
-            }
-            impl.call(this, data);
-        };
-    }(XMLHttpRequest.prototype.send));
+        girderTest._uploadData = null;
+        /* used for resume testing */
+        girderTest._uploadDataExtra = 0;
+        girderTest.getCallbackSuffix();
 
-    girderTest._preparedTestUpload = true;
-}
+        (function (impl) {
+            XMLHttpRequest.prototype.send = function (data) {
+                if (data && data instanceof Blob) {
+                    if (girderTest._uploadDataExtra) {
+                        /* Our mock S3 server will take extra data, so break it
+                         * by adding a faulty copy header.  This will throw an
+                         * error so we can test resumes. */
+                        this.setRequestHeader('x-amz-copy-source', 'bad_value');
+                    }
+                    if (girderTest._uploadData.length &&
+                        girderTest._uploadData.length === data.size && !girderTest._uploadDataExtra) {
+                        data = girderTest._uploadData;
+                    } else {
+                        data = new Array(
+                            data.size + 1 + girderTest._uploadDataExtra).join('-');
+                    }
+                }
+                impl.call(this, data);
+            };
+        }(XMLHttpRequest.prototype.send));
+
+        alreadyPrepared = true;
+    };
+})();
 
 girderTest.sendFile = function (uploadItem, selector) {
     // Incantation that causes the phantom environment to send us a File.
@@ -896,7 +899,7 @@ girderTest.sendFile = function (uploadItem, selector) {
 girderTest.testUpload = function (uploadItem, needResume, error) {
     var origLen;
 
-    _prepareTestUpload();
+    girderTest._prepareTestUpload();
 
     waitsFor(function () {
         return $('.g-upload-here-button').length > 0;
@@ -1051,7 +1054,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
         });
     }
 
-    _prepareTestUpload();
+    girderTest._prepareTestUpload();
 
     runs(function () {
         $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
