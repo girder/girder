@@ -105,7 +105,8 @@ class File(acl_mixin.AccessControlMixin, Model):
                         for data in fileDownload():
                             yield data
                         if endByte is None or endByte >= file['size']:
-                            events.trigger('download.complete', info={'file': file, 'redirect': False})
+                            events.trigger('download.complete', info={'file': file,
+                                                                      'redirect': False})
                     return downloadGenerator
                 else:
                     return fileDownload
