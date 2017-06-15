@@ -629,7 +629,7 @@ girderTest.waitForDialog = function (desc) {
 girderTest.promise = $.Deferred().resolve().promise();
 
 /**
- * Import a javascript file and.
+ * Import a javascript file.
  */
 girderTest.addScript = function (url) {
     girderTest.promise = girderTest.promise
@@ -640,19 +640,7 @@ girderTest.addScript = function (url) {
 };
 
 /**
- * An alias to addScript for backwards compatibility.
- */
-girderTest.addCoveredScript = girderTest.addScript;
-
-/**
- * Import a list of covered scripts. Order will be respected.
- */
-girderTest.addCoveredScripts = function (scripts) {
-    _.each(scripts, girderTest.addCoveredScript);
-};
-
-/**
- * Import a list of non-covered scripts. Order will be respected.
+ * Import a list of scripts. Order will be respected.
  */
 girderTest.addScripts = function (scripts) {
     _.each(scripts, girderTest.addScript);
@@ -675,6 +663,24 @@ girderTest.importStylesheet = function (css) {
 girderTest.importPlugin = function (pluginName) {
     girderTest.addScript('/static/built/plugins/' + pluginName + '/plugin.min.js');
     girderTest.importStylesheet('/static/built/plugins/' + pluginName + '/plugin.min.css');
+};
+
+/**
+ * An alias to addScript for backwards compatibility.
+ * @deprecated
+ */
+girderTest.addCoveredScript = function (url) {
+    console.warn('girderTest.addCoveredScript is deprecated, use girderTest.addScript instead');
+    girderTest.addScript(url);
+};
+
+/**
+ * An alias to addScripts for backwards compatibility.
+ * @deprecated
+ */
+girderTest.addCoveredScripts = function (scripts) {
+    console.warn('girderTest.addCoveredScripts is deprecated, use girderTest.addScripts instead');
+    girderTest.addScripts(scripts);
 };
 
 /**
