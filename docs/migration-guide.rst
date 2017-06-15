@@ -69,7 +69,7 @@ Web client changes
       on all desired plugins via the switches, click the **Rebuild web code** button, and once that
       finishes, click the button to restart the server.
 * **Jade** |ra| **Pug** rename: Due to trademark issues, our upstream HTML templating engine was renamed from
-  jade to pug. In addition, this rename coincides with a major version bump in the language which comes
+  Jade to Pug. In addition, this rename coincides with a major version bump in the language which comes
   with notable breaking changes.
 
     * Template files should now end in ``.pug`` instead of ``.jade``. This affects how they are imported as modules
@@ -100,9 +100,7 @@ Web client changes
 
       .. code-block:: javascript
 
-        girderTest.addCoveredScripts([
-            '/clients/web/static/built/plugins/jobs/plugin.min.js'
-        ]);
+        girderTest.importPlugin('jobs');
 
 * **Build system overhaul**: Girder web client code is now built with `Webpack <https://webpack.github.io/>`_
   instead of uglify, and we use the `Babel <https://babeljs.io/>`_ loader to enable ES2015 language support.
