@@ -61,6 +61,7 @@ class DownloadStatisticsTestCase(base.TestCase):
         # Download item through REST api
         path = '/item/%s/download' % str(itemId)
         resp = self.request(path, user=self.admin, isJson=False)
+        self.assertStatusOk(resp)
         self.getBody(resp)
 
     def _downloadFile(self, fileId):
@@ -68,26 +69,27 @@ class DownloadStatisticsTestCase(base.TestCase):
         path = '/file/%s/download' % str(fileId)
         resp = self.request(path, user=self.admin, isJson=False)
         self.assertStatusOk(resp)
+        self.getBody(resp)
 
     def _checkDownloadsStarted(self, fileId, count):
         # Test downloadsStarted is equal to count
         file = self.model('file').load(fileId, force=True)
         self.assertEqual(file['downloadStatistics']['started'], count,
-                         'downloadsStarted count inaccurate')
+                         'Started Downloads count inaccurate')
 
     def _checkDownloadsRequested(self, fileId, count):
         # Test downloadsStarted is equal to count
         file = self.model('file').load(fileId, force=True)
         self.assertEqual(file['downloadStatistics']['requested'], count,
-                         'downloadsRequested count inaccurate')
+                         'Requested Downloads count inaccurate')
 
     def _checkDownloadsCompleted(self, fileId, count):
         # Test downloadsStarted is equal to count
         file = self.model('file').load(fileId, force=True)
         self.assertEqual(file['downloadStatistics']['completed'], count,
-                         'downloadsCompleted count inaccurate')
+                         'Completed downloads count inaccurate')
 
-    def testFileDownload(self):
+    def testItemAndFileDownload(self):
         # Create item
         item = self.model('item').createItem('item1', self.admin, self.publicFolder)
 
@@ -105,11 +107,13 @@ class DownloadStatisticsTestCase(base.TestCase):
                                                 parent=item, user=self.admin)
 
         # Download item, and its files, several times and ensure downloads are recorded
-        for n in range(0, 5):
-            self._downloadItem(item['_id'])
         files = list(self.model('item').childFiles(item=item))
         self.assertTrue(files)
+        for n in range(0, 5):
+            self._downloadItem(item['_id'])
+            for file in files:
+                self._downloadFile(file['_id'])
         for file in files:
-            self._checkDownloadsStarted(file['_id'], 5)
-            self._checkDownloadsRequested(file['_id'], 5)
-            self._checkDownloadsCompleted(file['_id'], 5)
+            self._checkDownloadsStarted(file['_id'], 10)
+            self._checkDownloadsRequested(file['_id'], 10)
+            self._checkDownloadsCompleted(file['_id'], 10)
