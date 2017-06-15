@@ -1,6 +1,10 @@
 {
     "extends": "girder",
     "rules": {
+        "arrow-parens": "error",
+        "eqeqeq": ["error",
+            "always", {"null": "always"}
+        ],
         "no-throw-literal": "off",
         "backbone/defaults-on-top": "error",
         "backbone/no-changed-set": "error",

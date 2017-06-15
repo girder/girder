@@ -187,7 +187,7 @@ var AccessWidget = View.extend({
 
         // Re-binding popovers actually breaks them, so we make sure to
         // only bind ones that aren't already bound.
-        _.each(this.$('.g-action-manage-flags'), el => {
+        _.each(this.$('.g-action-manage-flags'), (el) => {
             if (!$(el).data('bs.popover')) {
                 $(el).popover({
                     trigger: 'manual',
@@ -208,7 +208,7 @@ var AccessWidget = View.extend({
 
         // Re-binding popovers actually breaks them, so we make sure to
         // only bind ones that aren't already bound.
-        _.each(this.$('.g-action-manage-public-flags'), el => {
+        _.each(this.$('.g-action-manage-public-flags'), (el) => {
             if (!$(el).data('bs.popover')) {
                 $(el).popover({
                     trigger: 'manual',
@@ -310,7 +310,7 @@ var AccessWidget = View.extend({
     saveAccessList: function () {
         var acList = this.getAccessList();
 
-        var publicFlags = _.map(this.$('.g-public-flag-checkbox:checked'), checkbox => {
+        var publicFlags = _.map(this.$('.g-public-flag-checkbox:checked'), (checkbox) => {
             return $(checkbox).attr('flag');
         });
 

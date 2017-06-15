@@ -47,7 +47,7 @@ const JobGraphWidget = View.extend({
     },
 
     update: function () {
-        var openDetailView = view => {
+        var openDetailView = (view) => {
             return (event, item) => {
                 if (item && (item.itemName === 'bar' || item.itemName === 'circle')) {
                     window.open(`#/job/${item.datum.id}`, '_blank');
@@ -72,13 +72,13 @@ const JobGraphWidget = View.extend({
             config.height = this.$('.g-jobs-graph').height();
             config.data[0].values = vegaData;
             config.scales[1].type = this.yScale;
-            let allStatus = JobStatus.getAll().filter(status => this.timingFilter ? this.timingFilter[status.text] : true);
-            config.scales[2].domain = allStatus.map(status => status.text);
-            config.scales[2].range = allStatus.map(status => status.color);
+            let allStatus = JobStatus.getAll().filter((status) => this.timingFilter ? this.timingFilter[status.text] : true);
+            config.scales[2].domain = allStatus.map((status) => status.text);
+            config.scales[2].range = allStatus.map((status) => status.color);
             config.scales[3].domain = this.collection.pluck('_id');
             config.scales[3].range = this.collection.pluck('title');
 
-            vg.parse.spec(config, chart => {
+            vg.parse.spec(config, (chart) => {
                 var view = chart({
                     el: this.$('.g-jobs-graph').get(0),
                     renderer: 'svg'
@@ -113,7 +113,7 @@ const JobGraphWidget = View.extend({
                 (job) => moment(job.get('updated')).format('MM/DD'));
             config.scales[3].domain = this.collection.pluck('_id');
             config.scales[3].range = this.collection.pluck('title');
-            let allStatus = JobStatus.getAll().filter(status => {
+            let allStatus = JobStatus.getAll().filter((status) => {
                 if (status.text !== 'Inactive' && status.text !== 'Queued') {
                     if (this.timingFilter) {
                         return this.timingFilter[status.text];
@@ -122,10 +122,10 @@ const JobGraphWidget = View.extend({
                 }
                 return false;
             });
-            config.scales[4].domain = allStatus.map(status => status.text);
-            config.scales[4].range = allStatus.map(status => status.color);
+            config.scales[4].domain = allStatus.map((status) => status.text);
+            config.scales[4].range = allStatus.map((status) => status.color);
 
-            vg.parse.spec(config, chart => {
+            vg.parse.spec(config, (chart) => {
                 var view = chart({
                     el: this.$('.g-jobs-graph').get(0),
                     renderer: 'svg'
@@ -150,7 +150,7 @@ const JobGraphWidget = View.extend({
             let currentStatus = JobStatus.text(job.get('status'));
             let updated = moment(job.get('updated')).format('L LT');
             let records = job.calculateSegmentation()
-                .map(segment => {
+                .map((segment) => {
                     let status = segment.status;
                     let elapsed = '';
                     switch (status) {
@@ -172,7 +172,7 @@ const JobGraphWidget = View.extend({
                         elapsed: elapsed
                     };
                 })
-                .filter(record => this.timingFilter[record.status]);
+                .filter((record) => this.timingFilter[record.status]);
             if (records.length) {
                 allRecords = records.concat(allRecords);
             } else {

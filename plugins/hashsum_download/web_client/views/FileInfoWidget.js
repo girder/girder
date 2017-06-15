@@ -36,7 +36,7 @@ FileInfoWidget.prototype.events['click .g-hashsum-compute'] = function () {
         data: {
             'progress': true
         }
-    }).done(resp => {
+    }).done((resp) => {
         this.model.set(resp);
         this.render();
     });
