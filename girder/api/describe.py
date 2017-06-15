@@ -609,15 +609,37 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
                 kwargs['sort'] = [(kwargs['sort'], sortdir)]
 
-            result = fun(*args, **kwargs)
-            self._addPagingHeaders(kwargs, result)
-            return result
+            return self._callEndpointFunction(fun, args, kwargs)
 
         if self.hide:
             wrapped.description = None
         else:
             wrapped.description = self.description
         return wrapped
+
+    def _callEndpointFunction(self, fun, args, kwargs):
+        """
+        Make the actual call to the endpoint function.  When making a paged
+        request the ``limit`` is artificially incremented by one to detect
+        if there are more results after the current page.  The result is
+        then truncated to the correct size before being returned.
+
+        Note: This is isolated from the __call__ method to prevent exceeding
+        the cyclomatic complexity limit.
+        """
+        pagedResponse = self.description.hasPagingParams and cherrypy.request.method == 'GET'
+
+        if pagedResponse:
+            kwargs['limit'] += 1
+
+        result = fun(*args, **kwargs)
+
+        if pagedResponse:
+            kwargs['limit'] -= 1
+            self._addPagingHeaders(kwargs, result)
+            result = result[:kwargs['limit']]
+
+        return result
 
     def _addPagingHeaders(self, params, result):
         """
@@ -627,10 +649,6 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         :param params: An object containing the paging parameters
         :param result: The list of results from query
         """
-        if not self.description.hasPagingParams or \
-           not cherrypy.request.method == 'GET':
-            return
-
         qs = cherrypy.lib.httputil.parse_query_string(cherrypy.request.query_string)
         offset = params['offset']
         limit = params['limit']
@@ -641,9 +659,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
         # Try to autodetect if there is a next page.  If the result is not iterable
         # then the endpoint doesn't follow the usual conventions, so we fall back
-        # to adding the headers.  This has the limitation that "next" page might
-        # have zero results, but there is no way to detect that from here.
-        if not isinstance(result, (list, tuple)) or len(result) == limit:
+        # to adding the headers.
+        if not isinstance(result, (list, tuple)) or len(result) > limit:
             qs['offset'] = offset + limit
             link.append('<%s>; rel="next"' % cherrypy.url(qs=qs))
 

@@ -747,7 +747,11 @@ class ItemTestCase(base.TestCase):
         params = {
             'folderId': self.publicFolder['_id']
         }
-        self.runPagingTest('/item', user=self.users[0], params=params)
+        for i in range(10):
+            self._createItem(self.publicFolder['_id'],
+                             'test_for_paging_%i' % i, '',
+                             self.users[0])
+        self.runPagingTest('/item', user=self.users[0], params=params, total=10)
 
     def testFilesPagingHeaders(self):
         curItem = self._createItem(self.publicFolder['_id'],
