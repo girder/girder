@@ -106,6 +106,12 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, quiet=False, **kw
 
         client = pymongo.MongoClient(uri, **clientOptions)
 
+    if not quiet:
+        desc = ''
+        if replicaSet:
+            desc += ', replica set: %s' % replicaSet
+        logprint.info('Connecting to MongoDB: %s%s' % (dbUriRedacted, desc))
+
     # Make sure we can connect to the mongo server at startup
     client.server_info()
 
@@ -113,9 +119,4 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, quiet=False, **kw
         client = MongoProxy(client, logger=logger)
         _dbClients[origKey] = _dbClients[(uri, replicaSet)] = client
 
-    if not quiet:
-        desc = ''
-        if replicaSet:
-            desc += ', replica set: %s' % replicaSet
-        logprint.info('Connected to MongoDB: %s%s' % (dbUriRedacted, desc))
     return client
