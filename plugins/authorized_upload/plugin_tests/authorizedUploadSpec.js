@@ -2,13 +2,7 @@
 
 var secureUrl = null;
 
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/authorized_upload/plugin.min.js'
-]);
-
-girderTest.importStylesheet(
-    '/static/built/plugins/authorized_upload/plugin.min.css'
-);
+girderTest.importPlugin('authorized_upload');
 
 girderTest.startApp();
 

@@ -1,14 +1,8 @@
 /* global girderTest describe it runs waitsFor expect */
 
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/jobs/plugin.min.js',
-    '/clients/web/static/built/plugins/worker/plugin.min.js',
-    '/clients/web/static/built/plugins/item_tasks/plugin.min.js'
-]);
-
-girderTest.importStylesheet('/static/built/plugins/jobs/plugin.min.css');
-girderTest.importStylesheet('/static/built/plugins/worker/plugin.min.css');
-girderTest.importStylesheet('/static/built/plugins/item_tasks/plugin.min.css');
+girderTest.importPlugin('jobs');
+girderTest.importPlugin('worker');
+girderTest.importPlugin('item_tasks');
 
 girderTest.startApp();
 

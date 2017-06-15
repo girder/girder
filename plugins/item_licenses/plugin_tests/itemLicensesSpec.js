@@ -1,8 +1,6 @@
 /* globals girderTest, describe, expect, it, runs, waitsFor, _prepareTestUpload  */
 
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/item_licenses/plugin.min.js'
-]);
+girderTest.importPlugin('item_licenses');
 
 girderTest.startApp();
 

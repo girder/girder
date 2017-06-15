@@ -670,6 +670,14 @@ girderTest.importStylesheet = function (css) {
 };
 
 /**
+ * Import the JS and CSS files for a plugin.
+ */
+girderTest.importPlugin = function (pluginName) {
+    girderTest.addScript('/static/built/plugins/' + pluginName + '/plugin.min.js');
+    girderTest.importStylesheet('/static/built/plugins/' + pluginName + '/plugin.min.css');
+};
+
+/**
  * For the current folder, check if it is public or private and take an action.
  * :param current: either 'public' or 'private': expect this value to match.
  * :param action: if 'public' or 'private', switch to that setting.
