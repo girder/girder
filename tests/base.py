@@ -372,27 +372,27 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         :param params: A dictionary of extra parameters in the request
         """
         params = params or {}
+        resp = self.request(path, user=user, params=params)
+        links = self.getPagingLinks(resp)
 
-        links = self.getPagingLinks(
-            self.request(path, user=user, params=params)
-        )
-        self.assertHasKeys(links, ['next', 'first'])
-        self.assertPagingLink(links['next'], path, offset=50)
+        self.assertHasKeys(links, ['first'])
+        self.assertNotHasKeys(links, ['prev'])
         self.assertPagingLink(links['first'], path, offset=0)
 
-        links = self.getPagingLinks(
-            self.request(path, user=user, params=dict(params, limit=10, offset=10))
-        )
-        self.assertHasKeys(links, ['next', 'first', 'prev'])
-        self.assertPagingLink(links['next'], path, offset=20, limit='10')
-        self.assertPagingLink(links['prev'], path, offset=0, limit='10')
-        self.assertPagingLink(links['first'], path, offset=0, limit='10')
+        resp = self.request(path, user=user, params=dict(params, limit=1, offset=1))
+        links = self.getPagingLinks(resp)
+        self.assertHasKeys(links, ['first', 'prev'])
+        self.assertPagingLink(links['prev'], path, offset=0, limit='1')
+        self.assertPagingLink(links['first'], path, offset=0, limit='1')
+        if len(resp.json):
+            self.assertPagingLink(links['next'], path, offset=2, limit='1')
+        else:
+            self.assertNotHasKeys(links, ['next'])
 
         links = self.getPagingLinks(
             self.request(path, user=user, params=dict(params, limit=10, offset=5))
         )
-        self.assertHasKeys(links, ['next', 'first', 'prev'])
-        self.assertPagingLink(links['next'], path, offset=15, limit='10')
+        self.assertHasKeys(links, ['first', 'prev'])
         self.assertPagingLink(links['prev'], path, offset=0, limit='10')
         self.assertPagingLink(links['first'], path, offset=0, limit='10')
 
