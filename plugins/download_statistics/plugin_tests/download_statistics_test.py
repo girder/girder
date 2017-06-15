@@ -61,7 +61,7 @@ class DownloadStatisticsTestCase(base.TestCase):
         # Download item through REST api
         path = '/item/%s/download' % str(itemId)
         resp = self.request(path, user=self.admin, isJson=False)
-        self.assertStatusOk(resp)
+        self.getBody(resp)
 
     def _downloadFile(self, fileId):
         # Download file through REST api
@@ -72,7 +72,20 @@ class DownloadStatisticsTestCase(base.TestCase):
     def _checkDownloadsStarted(self, fileId, count):
         # Test downloadsStarted is equal to count
         file = self.model('file').load(fileId, force=True)
-        self.assertEqual(file['downloadsStarted'], count, 'downloadsStarted count inaccurate')
+        self.assertEqual(file['downloadStatistics']['started'], count,
+                         'downloadsStarted count inaccurate')
+
+    def _checkDownloadsRequested(self, fileId, count):
+        # Test downloadsStarted is equal to count
+        file = self.model('file').load(fileId, force=True)
+        self.assertEqual(file['downloadStatistics']['requested'], count,
+                         'downloadsRequested count inaccurate')
+
+    def _checkDownloadsCompleted(self, fileId, count):
+        # Test downloadsStarted is equal to count
+        file = self.model('file').load(fileId, force=True)
+        self.assertEqual(file['downloadStatistics']['completed'], count,
+                         'downloadsCompleted count inaccurate')
 
     def testFileDownload(self):
         # Create item
@@ -98,3 +111,5 @@ class DownloadStatisticsTestCase(base.TestCase):
         self.assertTrue(files)
         for file in files:
             self._checkDownloadsStarted(file['_id'], 5)
+            self._checkDownloadsRequested(file['_id'], 5)
+            self._checkDownloadsCompleted(file['_id'], 5)

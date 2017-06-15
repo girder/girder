@@ -20,6 +20,7 @@
 import cherrypy
 import datetime
 import six
+import inspect
 
 from .model_base import Model, ValidationException
 from girder import events
@@ -94,10 +95,19 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type extraParameters: str or None
         """
         if file.get('assetstoreId'):
-            return self.getAssetstoreAdapter(file).downloadFile(
+            fileDownload = self.getAssetstoreAdapter(file).downloadFile(
                 file, offset=offset, headers=headers, endByte=endByte,
                 contentDisposition=contentDisposition,
                 extraParameters=extraParameters)
+            if inspect.isgeneratorfunction(fileDownload):
+                def downloadGenerator():
+                    for data in fileDownload():
+                        yield data
+                    if endByte is None or endByte >= file['size']:
+                        events.trigger('download.complete', info={'id': file['_id']})
+                return downloadGenerator
+            else:
+                return fileDownload
         elif file.get('linkUrl'):
             if headers:
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
@@ -106,6 +116,8 @@ class File(acl_mixin.AccessControlMixin, Model):
 
                 def stream():
                     yield file['linkUrl'][offset:endByte]
+                    if endByte >= len(file['linkUrl']):
+                        events.trigger('download.complete', info={'id': file['_id']})
                 return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')

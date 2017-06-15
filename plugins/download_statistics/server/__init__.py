@@ -20,37 +20,26 @@
 
 from girder import events
 from girder.constants import AccessType
-from girder.models.item import Item
-from girder.models.file import File
+from girder.utility.model_importer import ModelImporter
 
 
 def downloadItemStartEvent(event):
     # Ony count download as started if offset is 0
-    itemModel = Item()
+    itemModel = ModelImporter.model('item')
     item = itemModel.load(event.info['id'], force=True)
     firstRequest = 'offset' not in event.info['params'] or event.info['params']['offset'] == '0'
 
     # Get all files in item to increment their download count
-    files = list(itemModel.childFiles(item=item))
+    files = itemModel.childFiles(item=item)
     for file in files:
         if firstRequest:
             downloadFileStart(file['_id'])
         downloadFileRequest(file['_id'])
 
 
-def downloadItemCompleteEvent(event):
-    itemModel = Item()
-    item = itemModel.load(event.info['id'], force=True)
-
-    # Get all files in item to increment their download count
-    files = list(itemModel.childFiles(item=item))
-    for file in files:
-        downloadFileComplete(file['_id'])
-
-
 def downloadFileStartEvent(event):
     # Ony count download as started if offset is 0
-    fileModel = File()
+    fileModel = ModelImporter.model('file')
     file = fileModel.load(event.info['id'], force=True)
     firstRequest = 'offset' not in event.info['params'] or event.info['params']['offset'] == '0'
 
@@ -60,34 +49,39 @@ def downloadFileStartEvent(event):
 
 
 def downloadFileCompleteEvent(event):
-    fileModel = File()
+    # WHAT TO SEND IN INFO FOR EVENT?
+    fileModel = ModelImporter.model('file')
     file = fileModel.load(event.info['id'], force=True)
     downloadFileComplete(file['_id'])
 
 
 def downloadFileStart(fileId):
-    File().increment(query={'_id': fileId}, field='downloadsStarted', amount=1, multi=False)
+    ModelImporter.model('file').increment(query={'_id': fileId},
+                                          field='downloadStatistics.started', amount=1)
 
 
 def downloadFileRequest(fileId):
-    File().increment(query={'_id': fileId}, field='downloadsRequested', amount=1, multi=False)
+    ModelImporter.model('file').increment(query={'_id': fileId},
+                                          field='downloadStatistics.requested', amount=1)
 
 
 def downloadFileComplete(fileId):
-    File().increment(query={'_id': fileId}, field='downloadsCompleted', amount=1, multi=False)
+    ModelImporter.model('file').increment(query={'_id': fileId},
+                                          field='downloadStatistics.completed', amount=1)
 
 
 def load(info):
     # Bind REST events
     events.bind('rest.get.item/:id/download.before', 'download_statistics',
                 downloadItemStartEvent)
-    events.bind('rest.get.item/:id/download.after', 'download_statistics',
-                downloadItemCompleteEvent)
     events.bind('rest.get.file/:id/download.before', 'download_statistics',
                 downloadFileStartEvent)
-    events.bind('rest.get.file/:id/download.after', 'download_statistics',
+    events.bind('download.complete', 'download_statistics',
                 downloadFileCompleteEvent)
 
     # Add download count fields to file model
-    File().exposeFields(level=AccessType.READ,
-                        fields=('downloadsStarted', 'downloadsRequested', 'downloadsCompleted'))
+    downloadStatistics = {'started': 0,
+                          'requested': 0,
+                          'completed': 0}
+    ModelImporter.model('file').exposeFields(level=AccessType.READ,
+                                             fields=downloadStatistics)
