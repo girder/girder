@@ -80,6 +80,9 @@ class Job(Resource):
         Description('Create a job model')
         .param('title', '', required=True)
         .param('type', '', required=True)
+        .modelParam('parentId', 'ID of the parent job.', model='job',
+                    plugin='jobs', level=AccessType.ADMIN,
+                    destName='parentJob', paramType='query', required=False)
         .param('public', '', required=False, dataType='boolean', default=False)
         .param('handler', '', required=False, dataType='string')
         .jsonParam('args', 'Job arguments', required=False, requireArray=True)
@@ -88,7 +91,8 @@ class Job(Resource):
         .jsonParam('otherFields', 'Other fields specific to the job handler',
                    requireObject=True, required=False)
     )
-    def createJob(self, title, type, public, handler, args, kwargs, otherFields, params):
+    def createJob(self, title, type, parentJob, public, handler, args, kwargs,
+                  otherFields, params):
         return self.model('job', 'jobs').createJob(
             title=title,
             type=type,
@@ -97,6 +101,7 @@ class Job(Resource):
             user=self.getCurrentUser(),
             args=args,
             kwargs=kwargs,
+            parentJob=parentJob,
             otherFields=otherFields)
 
     @access.admin
