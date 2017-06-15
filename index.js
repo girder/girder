@@ -1,30 +1,20 @@
 module.exports = {
   "extends": "semistandard",
   "rules": {
-    "indent": [
-      "error",
-      4,
-      {
-        "SwitchCase": 1
-      }
-    ],
-    "space-before-function-paren": [
-      "error",
-      {
-        "anonymous": "always",
-        "named": "never"
-      }
-    ],
+    "indent": ["error", 4, {
+      "SwitchCase": 1
+    }],
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "never"
+    }],
     "one-var": "off",
-    "no-multi-spaces": [
-      "error",
-      {
-        "exceptions": {
-          "VariableDeclarator": true,
-          "ImportDeclaration": true
-        }
+    "no-multi-spaces": ["error", {
+      "exceptions": {
+        "VariableDeclarator": true,
+        "ImportDeclaration": true
       }
-    ],
+    }],
     "backbone/collection-model": "error",
     "backbone/defaults-on-top": "off",
     "backbone/event-scope": "off",
@@ -49,10 +39,7 @@ module.exports = {
     "backbone/no-view-qualified-jquery": "off",
     "backbone/render-return": "off",
     "underscore/collection-return": "error",
-    "underscore/matches-shorthand": [
-      "error",
-      "always"
-    ],
+    "underscore/matches-shorthand": ["error", "always"],
     "underscore/no-unnecessary-bind": "error",
     "underscore/prefer-compact": "error",
     "underscore/prefer-constant": "error",
@@ -69,10 +56,7 @@ module.exports = {
     "underscore/prefer-underscore-typecheck": "error",
     "underscore/prefer-where": "error",
     "underscore/preferred-alias": "error",
-    "underscore/prop-shorthand": [
-      "error",
-      "always"
-    ]
+    "underscore/prop-shorthand": ["error", "always"]
   },
   "env": {
     "browser": true,
@@ -82,19 +66,19 @@ module.exports = {
     "backbone",
     "underscore"
   ],
-  "globals": {
-  },
+  "globals": {},
   "settings": {
     "backbone": {
       "Collection": [
-        "girder.Collection"
+       "Collection"
       ],
       "Model": [
-        "girder.Model"
+        "Model",
+        "AccessControlledModel"
       ],
       "View": [
-        "girder.View",
-        "girder.views.MetadatumEditWidget"
+        "View",
+        "MetadatumEditWidget"
       ]
     }
   }
