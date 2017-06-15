@@ -1025,3 +1025,6 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(
             path='/file/%s/download' % file['_id'], user=self.admin, isJson=False)
         self.assertStatusOk(resp)
+
+    def testPagingHeaders(self):
+        self.runPagingTest('/assetstore', user=self.admin)
