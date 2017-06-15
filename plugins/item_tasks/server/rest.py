@@ -27,7 +27,7 @@ class ItemTask(Resource):
     @access.public
     @autoDescribeRoute(
         Description('List all available tasks that can be executed.')
-        .pagingParams(defaultSort='name')
+        .pagingParams(defaultSort='name', linkHeader=True)
     )
     @filtermodel(model='item')
     def listTasks(self, limit, offset, sort, params):

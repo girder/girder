@@ -343,7 +343,7 @@ class Description(object):
 
         return self
 
-    def pagingParams(self, defaultSort, defaultSortDir=1, defaultLimit=50):
+    def pagingParams(self, defaultSort, defaultSortDir=1, defaultLimit=50, linkHeader=False):
         """
         Adds the limit, offset, sort, and sortdir parameter documentation to
         this route handler.
@@ -354,6 +354,10 @@ class Description(object):
         :type defaultSortDir: int
         :param defaultLimit: The default page size.
         :type defaultLimit: int
+        :param linkHeader: Add a `Link` header for paging.  This assumes that the value returned
+            by the endpoint is a list or tuple.  The limit passed to the endpoint function will
+            be artifically incremented by one to detect the last page, and the result sent back
+            to the client will be truncated to the requested size.
         """
         self.param(
             'limit', 'Result set size limit.', default=defaultLimit, required=False, dataType='int')
@@ -368,6 +372,7 @@ class Description(object):
                 required=False, dataType='integer', enum=(1, -1), default=defaultSortDir)
 
         self.hasPagingParams = True
+        self.addLinkHeader = linkHeader
         return self
 
     def consumes(self, value):
@@ -627,14 +632,13 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         Note: This is isolated from the __call__ method to prevent exceeding
         the cyclomatic complexity limit.
         """
-        pagedResponse = self.description.hasPagingParams and cherrypy.request.method == 'GET'
-
-        if pagedResponse:
+        addLinkHeader = getattr(self.description, 'addLinkHeader', False)
+        if addLinkHeader:
             kwargs['limit'] += 1
 
         result = fun(*args, **kwargs)
 
-        if pagedResponse:
+        if addLinkHeader:
             kwargs['limit'] -= 1
             self._addPagingHeaders(kwargs, result)
             result = result[:kwargs['limit']]

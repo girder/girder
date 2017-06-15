@@ -50,7 +50,7 @@ class Job(Resource):
                     destName='parentJob', paramType='query', required=False)
         .jsonParam('types', 'Filter for type', requireArray=True, required=False)
         .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
-        .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
+        .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING, linkHeader=True)
     )
     def listJobs(self, userId, parentJob, types, statuses, limit, offset, sort,
                  params):
@@ -78,7 +78,7 @@ class Job(Resource):
         Description('List all jobs.')
         .jsonParam('types', 'Filter for type', requireArray=True, required=False)
         .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
-        .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
+        .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING, linkHeader=True)
     )
     def listAllJobs(self, types, statuses, limit, offset, sort, params):
         currentUser = self.getCurrentUser()

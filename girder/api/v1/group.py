@@ -53,7 +53,7 @@ class Group(Resource):
         .param('text', 'Pass this to perform a full-text search for groups.', required=False)
         .param('exact', 'If true, only return exact name matches. This is '
                'case sensitive.', required=False, dataType='boolean', default=False)
-        .pagingParams(defaultSort='name')
+        .pagingParams(defaultSort='name', linkHeader=True)
         .errorResponse()
     )
     def find(self, text, exact, limit, offset, sort, params):
@@ -123,7 +123,7 @@ class Group(Resource):
         Description('Show outstanding invitations for a group.')
         .responseClass('Group')
         .modelParam('id', model='group', level=AccessType.READ)
-        .pagingParams(defaultSort='lastName')
+        .pagingParams(defaultSort='lastName', linkHeader=True)
         .errorResponse()
         .errorResponse('Read access was denied for the group.', 403)
     )
@@ -182,7 +182,7 @@ class Group(Resource):
     @autoDescribeRoute(
         Description('List members of a group.')
         .modelParam('id', model='group', level=AccessType.READ)
-        .pagingParams(defaultSort='lastName')
+        .pagingParams(defaultSort='lastName', linkHeader=True)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403)
     )

@@ -57,7 +57,7 @@ class Folder(Resource):
         .param('text', 'Pass to perform a text search.', required=False)
         .param('name', 'Pass to lookup a folder by exact name match. Must '
                'pass parentType and parentId as well when using this.', required=False)
-        .pagingParams(defaultSort='lowerName')
+        .pagingParams(defaultSort='lowerName', linkHeader=True)
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403)
     )
