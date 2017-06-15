@@ -8,10 +8,6 @@ module.exports = {
     "indent": ["error", 4, {
       "SwitchCase": 1
     }],
-    "space-before-function-paren": ["error", {
-      "anonymous": "always",
-      "named": "never"
-    }],
     "one-var": "off",
     "no-multi-spaces": ["error", {
       "exceptions": {
@@ -20,6 +16,10 @@ module.exports = {
       }
     }],
     "no-throw-literal": "off",  // This would be desirable, but interferes with use in Promise.then
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "never"
+    }],
     "backbone/collection-model": "error",
     "backbone/defaults-on-top": "error",
     "backbone/event-scope": "off",
