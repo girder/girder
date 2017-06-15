@@ -5,10 +5,11 @@ import $ from 'jquery';
 import router from 'girder/router';
 import events from 'girder/events';
 
-import TaskListView from './views/TaskListView';
-import TaskRunView from './views/TaskRunView';
 import ItemModel from 'girder/models/ItemModel';
 import JobModel from 'girder_plugins/jobs/models/JobModel';
+
+import TaskListView from './views/TaskListView';
+import TaskRunView from './views/TaskRunView';
 
 router.route('item_tasks', 'itemTaskList', () => {
     events.trigger('g:navigateTo', TaskListView);

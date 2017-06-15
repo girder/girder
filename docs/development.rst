@@ -49,7 +49,7 @@ Once Girder is started via ``girder-server``, the server
 will reload itself whenever a Python file is modified.
 
 If you are doing front-end development, it's much faster to use a *watch* process to perform
-automatic fast rebuilds of your code whenever you make changes to source files. 
+automatic fast rebuilds of your code whenever you make changes to source files.
 
 If you are making changes to Girder's core web client, run the following watch command: ::
 
@@ -125,7 +125,7 @@ API specification programmatically, the JSON listing is served out of ``api/v1/d
 
 If you are working on the main Girder web client, either in core or extending it via
 plugins, there are a few conventions that should be followed. Namely, if you write
-code that instantiates new ``girder.View`` descendant objects, you should pass a
+code that instantiates new ``View`` descendant objects, you should pass a
 ``parentView`` property when constructing it. This will allow the child view to
 be cleaned up recursively when the parent view is destroyed. If you forget to set
 the ``parentView`` property when constructing the view, the view will still work as
@@ -133,7 +133,9 @@ expected, but a warning message will appear in the console to remind you. Exampl
 
 .. code-block:: javascript
 
-    MySubView = girder.View.extend({
+    import View from 'girder/views/View';
+
+    MySubView = View.extend({
        ...
     });
 
@@ -143,9 +145,9 @@ expected, but a warning message will appear in the console to remind you. Exampl
         parentView: this
     });
 
-If you use ``girder.View`` in custom Backbone apps and need to create a new root
+If you use ``View`` in custom Backbone apps and need to create a new root
 view object, set the ``parentView`` to ``null``. If you are using a Girder widget
-in a custom app that does not use the ``girder.View`` as the base object for
+in a custom app that does not use the ``View`` as the base object for
 its views, you should pass ``parentView: null`` and make sure to call
 ``destroy()`` on the view manually when it should be cleaned up.
 
@@ -170,7 +172,7 @@ tests, just: ::
     ctest
 
 There are many ways to filter tests when running CTest or run the tests in
-parallel. For example, this command will run tests with name matches regex **server_user** with verbose output. 
+parallel. For example, this command will run tests with name matches regex **server_user** with verbose output.
 More information about CTest can be found
 `here <http://www.cmake.org/cmake/help/v3.0/manual/ctest.1.html>`_. ::
 

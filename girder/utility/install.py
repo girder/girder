@@ -71,7 +71,7 @@ def _getPluginBuildArgs(buildAll, plugins):
     if buildAll:
         sortedPlugins = plugin_utilities.getToposortedPlugins()
         return ['--plugins=%s' % ','.join(sortedPlugins)]
-    elif not plugins:  # build only the enabled plugins
+    elif plugins is None:  # build only the enabled plugins
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
 
@@ -122,7 +122,8 @@ def _pipeOutputToProgress(proc, progress):
             proc.wait()
 
 
-def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, progress=None):
+def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, progress=None,
+                noPlugins=False):
     """
     Use this to run `npm install` inside the package. Also builds the web code
     using `npm run build`.
@@ -138,8 +139,12 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     :type plugins: str, list or None
     :param progress: A progress context for reporting output of the tasks.
     :type progress: ``girder.utility.progress.ProgressContext`` or None
+    :param noPlugins: Enable this to build the girder web with no additional plugins.
+    :type noPlugins: bool
     """
-    if isinstance(plugins, six.string_types) and plugins:
+    if noPlugins:
+        plugins = []
+    elif isinstance(plugins, six.string_types):
         plugins = plugins.split(',')
 
     if shutil.which(npm) is None:
@@ -206,7 +211,7 @@ def install_web(opts=None):
     else:
         runWebBuild(
             dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
-            plugins=opts.plugins)
+            plugins=opts.plugins, noPlugins=opts.no_plugins)
 
 
 def install_plugin(opts):
@@ -315,16 +320,26 @@ def main():
 
     web.add_argument('--npm', default='npm',
                      help='specify the full path to the npm executable.')
-    web.add_argument('--all-plugins', action='store_true',
-                     help='build all available plugins rather than just enabled ones')
-    web.add_argument('--plugins', default='', help='comma-separated list of plugins to build')
+
     web.add_argument('--watch', action='store_true',
                      help='watch for changes and rebuild girder core library in dev mode')
+
     web.add_argument('--watch-plugin', default='',
                      help='watch for changes and rebuild a specific plugin in dev mode')
 
     web.add_argument('--plugin-prefix', default='plugin',
                      help='prefix of the generated plugin bundle')
+
+    pluginGroup = web.add_mutually_exclusive_group()
+
+    pluginGroup.add_argument('--all-plugins', action='store_true',
+                             help='build all available plugins rather than just enabled ones')
+
+    pluginGroup.add_argument('--plugins', default=None,
+                             help='comma-separated list of plugins to build')
+
+    pluginGroup.add_argument('--no-plugins', action='store_true',
+                             help='build only the girder web with no additional plugins')
 
     web.set_defaults(func=install_web)
 

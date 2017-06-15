@@ -83,6 +83,7 @@ class Description(object):
         self._responseClass = None
         self._responseClassArray = False
         self._notes = None
+        self._deprecated = False
         self.hasPagingParams = False
         self.modelParams = {}
         self.jsonParams = {}
@@ -123,6 +124,9 @@ class Description(object):
 
         if self._consumes:
             resp['consumes'] = self._consumes
+
+        if self._deprecated:
+            resp['deprecated'] = True
 
         return resp
 
@@ -399,6 +403,13 @@ class Description(object):
                 'description': reason
             }
 
+        return self
+
+    def deprecated(self):
+        """
+        Mark the route as deprecated.
+        """
+        self._deprecated = True
         return self
 
     @property

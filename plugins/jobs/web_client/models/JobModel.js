@@ -1,6 +1,7 @@
 import _ from 'underscore';
 
 import AccessControlledModel from 'girder/models/AccessControlledModel';
+
 import JobStatus from '../JobStatus';
 
 var JobModel = AccessControlledModel.extend({
@@ -35,8 +36,9 @@ var JobModel = AccessControlledModel.extend({
             }));
         }
 
-        this.set('segments', segments);
+        return segments;
     },
+
     _calculateElapsed: function (start, end) {
         return new Date(end) - new Date(start);
     }

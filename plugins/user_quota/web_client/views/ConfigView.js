@@ -4,8 +4,8 @@ import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBread
 import View from 'girder/views/View';
 import events from 'girder/events';
 import { restRequest } from 'girder/rest';
-import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 
+import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 import ConfigViewTemplate from '../templates/configView.pug';
 
 var ConfigView = View.extend({

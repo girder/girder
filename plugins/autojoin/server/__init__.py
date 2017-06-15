@@ -1,14 +1,37 @@
+import jsonschema
+
 from girder import events
+from girder.models.model_base import ValidationException
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
+
+_autojoinSchema = {
+    'type': 'array',
+    'items': {
+        'type': 'object',
+        'properties': {
+            'pattern': {
+                'type': 'string'
+            },
+            'groupId': {
+                'type': 'string',
+                'minLength': 1
+            },
+            'level': {
+                'type': 'number'
+            }
+        },
+        'required': ['pattern', 'groupId', 'level']
+    }
+}
 
 
 @setting_utilities.validator('autojoin')
 def validateSettings(doc):
-    """
-    Allow the autojoin setting key.
-    """
-    pass  # any value is valid
+    try:
+        jsonschema.validate(doc['value'], _autojoinSchema)
+    except jsonschema.ValidationError as e:
+        raise ValidationException('Invalid autojoin rules: ' + e.message)
 
 
 def userCreated(event):
