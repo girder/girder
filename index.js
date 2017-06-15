@@ -1,32 +1,27 @@
 module.exports = {
   "extends": "semistandard",
   "rules": {
-    "indent": [
-      "error",
-      4,
-      {
-        "SwitchCase": 1
-      }
+    "arrow-parens": "error",
+    "eqeqeq": ["error",
+      "always", {"null": "always"}
     ],
-    "space-before-function-paren": [
-      "error",
-      {
-        "anonymous": "always",
-        "named": "never"
-      }
-    ],
+    "indent": ["error", 4, {
+      "SwitchCase": 1
+    }],
     "one-var": "off",
-    "no-multi-spaces": [
-      "error",
-      {
-        "exceptions": {
-          "VariableDeclarator": true,
-          "ImportDeclaration": true
-        }
+    "no-multi-spaces": ["error", {
+      "exceptions": {
+        "VariableDeclarator": true,
+        "ImportDeclaration": true
       }
-    ],
+    }],
+    "no-throw-literal": "off",  // This would be desirable, but interferes with use in Promise.then
+    "space-before-function-paren": ["error", {
+      "anonymous": "always",
+      "named": "never"
+    }],
     "backbone/collection-model": "error",
-    "backbone/defaults-on-top": "off",
+    "backbone/defaults-on-top": "error",
     "backbone/event-scope": "off",
     "backbone/events-on-top": ["error", ["tagName", "className"]],
     "backbone/events-sort": "off",
@@ -36,23 +31,31 @@ module.exports = {
       Collection: ["model", "url"]
     }],
     "backbone/model-defaults": "off",
-    "backbone/no-changed-set": "off",
-    "backbone/no-collection-models": "off",
+    "backbone/no-changed-set": "error",
+    "backbone/no-collection-models": "error",
     "backbone/no-constructor": "error",
-    "backbone/no-el-assign": "off",
+    "backbone/no-el-assign": "error",
     "backbone/no-model-attributes": "error",
     "backbone/no-native-jquery": "off",
-    "backbone/no-silent": "off",
+    "backbone/no-silent": "error",
     "backbone/no-view-collection-models": "error",
-    "backbone/no-view-model-attributes": "off",
+    "backbone/no-view-model-attributes": "error",
     "backbone/no-view-onoff-binding": "off",
-    "backbone/no-view-qualified-jquery": "off",
-    "backbone/render-return": "off",
+    "backbone/no-view-qualified-jquery": "error",
+    "backbone/render-return": "error",
+    "import/named": "error",
+    "import/order": ["error", {
+      "groups": ["builtin", "external", ["parent", "sibling", "index"]],
+      "newlines-between": "always-and-inside-groups"
+    }],
+    "promise/always-return": "error",
+    "promise/no-nesting": "error",
     "underscore/collection-return": "error",
-    "underscore/matches-shorthand": [
-      "error",
-      "always"
-    ],
+    "underscore/identity-shorthand": ["error", "always"],
+    "underscore/jquery-each": ["error", "never"],
+    "underscore/jquery-proxy": ["error", "never"],
+    "underscore/matches-shorthand": ["error", "always"],
+    "underscore/no-return-value-from-each-iteratee": "error",
     "underscore/no-unnecessary-bind": "error",
     "underscore/prefer-compact": "error",
     "underscore/prefer-constant": "error",
@@ -69,10 +72,7 @@ module.exports = {
     "underscore/prefer-underscore-typecheck": "error",
     "underscore/prefer-where": "error",
     "underscore/preferred-alias": "error",
-    "underscore/prop-shorthand": [
-      "error",
-      "always"
-    ]
+    "underscore/prop-shorthand": ["error", "always"]
   },
   "env": {
     "browser": true,
@@ -82,19 +82,19 @@ module.exports = {
     "backbone",
     "underscore"
   ],
-  "globals": {
-  },
+  "globals": {},
   "settings": {
     "backbone": {
       "Collection": [
-        "girder.Collection"
+       "Collection"
       ],
       "Model": [
-        "girder.Model"
+        "Model",
+        "AccessControlledModel"
       ],
       "View": [
-        "girder.View",
-        "girder.views.MetadatumEditWidget"
+        "View",
+        "MetadatumEditWidget"
       ]
     }
   }
