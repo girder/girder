@@ -95,19 +95,22 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type extraParameters: str or None
         """
         if file.get('assetstoreId'):
-            fileDownload = self.getAssetstoreAdapter(file).downloadFile(
-                file, offset=offset, headers=headers, endByte=endByte,
-                contentDisposition=contentDisposition,
-                extraParameters=extraParameters)
-            if inspect.isgeneratorfunction(fileDownload):
-                def downloadGenerator():
-                    for data in fileDownload():
-                        yield data
-                    if endByte is None or endByte >= file['size']:
-                        events.trigger('download.complete', info={'id': file['_id']})
-                return downloadGenerator
-            else:
-                return fileDownload
+            try:
+                fileDownload = self.getAssetstoreAdapter(file).downloadFile(
+                    file, offset=offset, headers=headers, endByte=endByte,
+                    contentDisposition=contentDisposition,
+                    extraParameters=extraParameters)
+                if inspect.isgeneratorfunction(fileDownload) or inspect.isgenerator(fileDownload):
+                    def downloadGenerator():
+                        for data in fileDownload():
+                            yield data
+                        if endByte is None or endByte >= file['size']:
+                            events.trigger('download.complete', info={'file': file})
+                    return downloadGenerator
+                else:
+                    return fileDownload
+            except cherrypy.HTTPRedirect as e:
+                events.trigger('download.complete', info={'file': file, 'redirect': True})
         elif file.get('linkUrl'):
             if headers:
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
@@ -117,7 +120,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                 def stream():
                     yield file['linkUrl'][offset:endByte]
                     if endByte >= len(file['linkUrl']):
-                        events.trigger('download.complete', info={'id': file['_id']})
+                        events.trigger('download.complete', info={'file': file})
                 return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')

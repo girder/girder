@@ -49,9 +49,8 @@ def downloadFileStartEvent(event):
 
 
 def downloadFileCompleteEvent(event):
-    # WHAT TO SEND IN INFO FOR EVENT?
     fileModel = ModelImporter.model('file')
-    file = fileModel.load(event.info['id'], force=True)
+    file = fileModel.load(event.info['file']['_id'], force=True)
     downloadFileComplete(file['_id'])
 
 
