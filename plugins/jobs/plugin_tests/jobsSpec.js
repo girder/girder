@@ -1,12 +1,6 @@
 /* globals girderTest, describe, expect, it, runs, waitsFor, girder, _ */
 
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/jobs/plugin.min.js'
-]);
-
-girderTest.importStylesheet(
-    '/static/built/plugins/jobs/plugin.min.css'
-);
+girderTest.importPlugin('jobs');
 
 girder.events.trigger('g:appload.before');
 var app = new girder.views.App({

@@ -40,12 +40,19 @@ module.exports = function (grunt) {
                 }
             }
         },
+        copy: {
+            test: {
+                src: 'clients/web/test/lib/jasmine-1.3.1/jasmine.css',
+                dest: 'clients/web/static/built/testing/testing.min.css'
+            }
+        },
 
         default: {
             'test-env-html': {
-                dependencies: ['build', 'uglify:test']
+                dependencies: ['build', 'uglify:test', 'copy:test']
             },
-            'uglify:test': {}
+            'uglify:test': {},
+            'copy:test': {}
         }
     });
 
@@ -59,15 +66,15 @@ module.exports = function (grunt) {
         });
         fs.writeFileSync('clients/web/static/built/testing/testEnv.html', fn({
             cssFiles: [
-                '/clients/web/static/built/fontello/css/fontello.css',
-                '/clients/web/static/built/girder_lib.min.css',
-                '/clients/web/static/built/girder_app.min.css',
-                '/clients/web/test/lib/jasmine-1.3.1/jasmine.css'
+                '/static/built/fontello/css/fontello.css',
+                '/static/built/girder_lib.min.css',
+                '/static/built/girder_app.min.css',
+                '/static/built/testing.min.css'
             ],
             jsFiles: [
-                '/clients/web/static/built/girder_lib.min.js',
-                '/clients/web/static/built/girder_app.min.js',
-                '/clients/web/static/built/testing/testing.min.js'
+                '/static/built/girder_lib.min.js',
+                '/static/built/girder_app.min.js',
+                '/static/built/testing/testing.min.js'
             ],
             staticRoot: '/static',
             apiRoot: '/api/v1'

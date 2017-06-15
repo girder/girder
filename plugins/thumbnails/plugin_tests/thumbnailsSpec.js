@@ -1,8 +1,6 @@
 /* globals girderTest, describe, expect, it, runs, waitsFor  */
 
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/thumbnails/plugin.min.js'
-]);
+girderTest.importPlugin('jobs', 'thumbnails');
 
 girderTest.startApp();
 
