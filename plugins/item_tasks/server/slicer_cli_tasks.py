@@ -28,6 +28,7 @@ from . import cli_parser, constants
     .param('pullImage', 'Whether the image should be pulled from a docker registry. '
            'Set to false to use local images only.', dataType='boolean', required=False,
            default=True)
+    .deprecated()
 )
 def runSlicerCliTasksDescriptionForItem(
         self, item, image, args, setName, setDescription, pullImage, params):
@@ -111,7 +112,8 @@ def runSlicerCliTasksDescriptionForItem(
     .param('setName', 'Whether item name should be changed to the title of the CLI.',
            dataType='boolean', required=True)
     .param('setDescription', 'Whether the item description should be changed to the '
-           'description of the CLI.', dataType='boolean', required=False, default=True),
+           'description of the CLI.', dataType='boolean', required=False, default=True)
+    .deprecated(),
     hide=True
 )
 def configureItemTaskFromSlicerCliXml(self, item, xml, setName, setDescription, params):

@@ -148,6 +148,7 @@ def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDes
     .param('pullImage', 'Whether the image should be pulled from Docker Hub. '
            'Set to false to use local images only.',
            dataType='boolean', required=False, default=True)
+    .deprecated()
 )
 def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
     jobModel = self.model('job', 'jobs')
@@ -208,7 +209,8 @@ def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
     .param('image', 'The docker image name.', required=True, strip=True)
     .param('pullImage', 'Whether the image should be pulled from Docker Hub. ' +
            'Set to false to use local images only.',
-           dataType='boolean', required=False, default=True),
+           dataType='boolean', required=False, default=True)
+    .deprecated(),
     hide=True
 )
 def createItemTasksFromJson(self, folder, json, image, pullImage, params):
