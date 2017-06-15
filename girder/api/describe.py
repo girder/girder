@@ -609,7 +609,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
                 kwargs['sort'] = [(kwargs['sort'], sortdir)]
 
-            self._addPagingHeaders()
+            self._addPagingHeaders(kwargs)
 
             return fun(*args, **kwargs)
 
@@ -619,19 +619,19 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             wrapped.description = self.description
         return wrapped
 
-    def _addPagingHeaders(self):
+    def _addPagingHeaders(self, params):
         """
         Inject a "Link" header when this is a paged request.
 
         Follows: https://tools.ietf.org/html/rfc5988
         """
-        if not self.description.hasPagingParams:
+        if not self.description.hasPagingParams or \
+           not cherrypy.request.method == 'GET':
             return
 
-        params = cherrypy.lib.httputil.parse_query_string(cherrypy.request.query_string)
-        offset = int(params.get('offset', 0))
-        limit = int(params.get('limit', 50))
-        qs = dict(**params)
+        qs = cherrypy.lib.httputil.parse_query_string(cherrypy.request.query_string)
+        offset = params['offset']
+        limit = params['limit']
         link = []
 
         qs['offset'] = 0
