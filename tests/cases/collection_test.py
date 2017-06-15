@@ -410,4 +410,4 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(acl, coll['access'])
 
     def testPagingHeaders(self):
-        self.runPagingTest('/collection', user=self.user)
+        self.runPagingTest('/collection', user=self.user, total=1)
