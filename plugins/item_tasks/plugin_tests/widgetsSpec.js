@@ -1,8 +1,6 @@
 /* global girder girderTest describe it expect Backbone beforeEach afterEach */
 
-girderTest.importPlugin('jobs');
-girderTest.importPlugin('worker');
-girderTest.importPlugin('item_tasks');
+girderTest.importPlugin('jobs', 'worker', 'item_tasks');
 
 girderTest.promise.done(function () {
     var itemTasks = girder.plugins.item_tasks;

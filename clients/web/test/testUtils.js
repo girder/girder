@@ -659,10 +659,15 @@ girderTest.importStylesheet = function (css) {
 
 /**
  * Import the JS and CSS files for a plugin.
+ *
+ * @param {...string} pluginNames A plugin name. Multiple arguments may be passed, to import
+ *                                multiple plugins in order.
  */
 girderTest.importPlugin = function (pluginName) {
-    girderTest.addScript('/static/built/plugins/' + pluginName + '/plugin.min.js');
-    girderTest.importStylesheet('/static/built/plugins/' + pluginName + '/plugin.min.css');
+    _.each(arguments, function (pluginName) {
+        girderTest.addScript('/static/built/plugins/' + pluginName + '/plugin.min.js');
+        girderTest.importStylesheet('/static/built/plugins/' + pluginName + '/plugin.min.css');
+    });
 };
 
 /**
