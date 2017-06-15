@@ -1,5 +1,3 @@
-/* global girderTest describe it runs waitsFor expect */
-
 girderTest.importPlugin('jobs', 'worker', 'item_tasks');
 
 girderTest.startApp();

@@ -1,4 +1,3 @@
-
 function canary() {
     var isDone = false;
     var result = function done() {

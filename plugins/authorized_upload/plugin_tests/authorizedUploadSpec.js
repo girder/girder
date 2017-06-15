@@ -1,5 +1,3 @@
-/* globals girderTest, describe, expect, it, runs, waitsFor  */
-
 var secureUrl = null;
 
 girderTest.importPlugin('authorized_upload');

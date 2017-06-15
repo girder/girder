@@ -1,5 +1,3 @@
-/* globals girder, girderTest, describe, expect, it, runs, waitsFor */
-
 girderTest.importPlugin('homepage');
 
 girderTest.startApp();

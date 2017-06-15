@@ -1,5 +1,3 @@
-/* globals girderTest, describe, expect, it, runs, waitsFor, _prepareTestUpload  */
-
 girderTest.importPlugin('item_licenses');
 
 girderTest.startApp();

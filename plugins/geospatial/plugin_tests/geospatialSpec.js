@@ -1,5 +1,3 @@
-/* globals girderTest, describe, it, runs, expect, waitsFor */
-
 girderTest.importPlugin('geospatial');
 
 girderTest.startApp();

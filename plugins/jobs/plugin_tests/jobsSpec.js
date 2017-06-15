@@ -1,5 +1,3 @@
-/* globals girderTest, describe, expect, it, runs, waitsFor, girder, _ */
-
 girderTest.importPlugin('jobs');
 
 girder.events.trigger('g:appload.before');
@@ -168,7 +166,7 @@ $(function () {
                 widget.collection.add(jobs);
 
                 // job list should re-render when collection is updated
-                expect($('.g-jobs-list-table>tbody>tr').length).toBe(3)
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(3);
             });
 
             runs(function () {

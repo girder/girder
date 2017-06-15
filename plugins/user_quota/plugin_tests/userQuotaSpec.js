@@ -1,5 +1,3 @@
-/* globals girderTest, runs, waitsFor, expect, describe, it */
-
 girderTest.importPlugin('user_quota');
 
 girderTest.startApp();

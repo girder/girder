@@ -1,5 +1,3 @@
-/* global girder girderTest describe it expect Backbone beforeEach afterEach */
-
 girderTest.importPlugin('jobs', 'worker', 'item_tasks');
 
 girderTest.promise.done(function () {
