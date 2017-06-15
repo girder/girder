@@ -111,8 +111,10 @@ class File(acl_mixin.AccessControlMixin, Model):
                     return fileDownload
             except cherrypy.HTTPRedirect as e:
                 events.trigger('download.complete', info={'file': file, 'redirect': True})
+                raise e
         elif file.get('linkUrl'):
             if headers:
+                events.trigger('download.complete', info={'file': file, 'redirect': True})
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
             else:
                 endByte = endByte or len(file['linkUrl'])
