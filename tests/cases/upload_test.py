@@ -330,7 +330,7 @@ class UploadTestCase(base.TestCase):
         self.assertStatusOk(resp)
         foundUploads = resp.json
         self.assertEqual(len(foundUploads), len(partialUploads))
-        # Check that no upload model is saved when we are using one chunk
+        # Check that the upload model is saved when we are using one chunk
         self._uploadWasSaved = 0
 
         def trackUploads(*args, **kwargs):
@@ -338,7 +338,9 @@ class UploadTestCase(base.TestCase):
 
         events.bind('model.upload.save', 'uploadWithInitialChunk', trackUploads)
         self._uploadFileWithInitialChunk('upload4', oneChunk=True)
-        self.assertEqual(self._uploadWasSaved, 0)
+        # This can be changed to assertEqual if one chunk uploads aren't saved
+        self.assertGreater(self._uploadWasSaved, 0)
+        self._uploadWasSaved = 0
         # But that it is saved when using multiple chunks
         self._uploadFileWithInitialChunk('upload5')
         self.assertGreater(self._uploadWasSaved, 0)
