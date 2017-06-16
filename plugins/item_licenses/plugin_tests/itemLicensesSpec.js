@@ -1,5 +1,3 @@
-/* globals girderTest, describe, expect, it, runs, waitsFor, _prepareTestUpload  */
-
 girderTest.importPlugin('item_licenses');
 
 girderTest.startApp();
@@ -209,7 +207,7 @@ $(function () {
             // Upload file
             // XXX: add support to test uploading multiple files
             runs(function () {
-                _prepareTestUpload();
+                girderTest._prepareTestUpload();
                 girderTest._uploadDataExtra = 0;
                 girderTest.sendFile('clients/web/test/testFile.txt');
             });

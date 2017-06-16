@@ -1,5 +1,3 @@
-/* globals girderTest, runs, waitsFor, expect, describe, it */
-
 girderTest.importPlugin('user_quota');
 
 girderTest.startApp();
@@ -124,7 +122,7 @@ $(function () {
             return $('.g-validation-failed-message').text().indexOf('Invalid quota') >= 0;
         }, 'an error message to appear');
         runs(function () {
-            $('#g-sizeValue').val(capacity ? capacity : '');
+            $('#g-sizeValue').val(capacity || '');
         });
         runs(function () {
             $('.g-save-policies').click();

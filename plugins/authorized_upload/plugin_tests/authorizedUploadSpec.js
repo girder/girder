@@ -1,5 +1,3 @@
-/* globals girderTest, describe, expect, it, runs, waitsFor  */
-
 var secureUrl = null;
 
 girderTest.importPlugin('authorized_upload');
@@ -8,7 +6,7 @@ girderTest.startApp();
 
 describe('Create an authorized upload.', function () {
     it('register a user', girderTest.createUser(
-        'admin', 'admin@email.com', 'Admin', 'Admin',  'passwd'));
+        'admin', 'admin@email.com', 'Admin', 'Admin', 'passwd'));
 
     it('go to the authorize upload page', function () {
         runs(function () {
@@ -45,7 +43,6 @@ describe('Create an authorized upload.', function () {
         waitsFor(function () {
             return $('btn.g-create-authorized-upload').length > 0;
         }, 'authorize upload page to display');
-
     });
 
     it('create an authorized upload', function () {
@@ -60,7 +57,7 @@ describe('Create an authorized upload.', function () {
         runs(function () {
             secureUrl = $('.g-authorized-upload-url-target').val();
             expect(secureUrl).toMatch(/.*#authorized_upload\/[a-f0-9]+\/[a-zA-Z0-9]/);
-        })
+        });
     });
 
     it('logout', girderTest.logout());
@@ -76,7 +73,7 @@ describe('Perform authorized upload', function () {
         }, 'authorized upload page to display');
 
         runs(function () {
-            _prepareTestUpload();
+            girderTest._prepareTestUpload();
             girderTest.sendFile('clients/web/test/testFile.txt');
             $('#g-files').parent().addClass('hide');
             $('.g-start-upload').click();
@@ -84,7 +81,7 @@ describe('Perform authorized upload', function () {
 
         waitsFor(function () {
             return $('.g-complete-wrapper:visible').length > 0;
-        }, 'upload completion message to appear')
+        }, 'upload completion message to appear');
 
         runs(function () {
             window.callPhantom({
@@ -94,4 +91,3 @@ describe('Perform authorized upload', function () {
         });
     });
 });
-
