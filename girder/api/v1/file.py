@@ -67,6 +67,12 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Start a new upload or create an empty or link file.')
+        .notes('Use POST /file/chunk to send the contents of the file.  '
+               'The data for the first chunk of the file can be included with '
+               'this query by sending it as the body of the request using an '
+               'appropriate content-type and with the other parameters as '
+               'part of the query string.  If the entire file is uploaded as '
+               'a single via this call, the resulting file is returned.')
         .responseClass('Upload')
         .param('parentType', 'Type being uploaded into.', enum=['folder', 'item'])
         .param('parentId', 'The ID of the parent.')
@@ -197,6 +203,12 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Upload a chunk of a file.')
+        .notes('The data for the chunk should be sent as the body of the '
+               'request using an appropriate content-type and with the other '
+               'parameters as part of the query string.  Alternately, the '
+               'data can be sent as a file in the "chunk" field in multipart '
+               'form data.  Multipart uploads are much less efficient and '
+               'their use is deprecated.')
         .modelParam('uploadId', paramType='formData')
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
                paramType='formData')
