@@ -632,7 +632,10 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         Note: This is isolated from the __call__ method to prevent exceeding
         the cyclomatic complexity limit.
         """
-        addLinkHeader = getattr(self.description, 'addLinkHeader', False)
+        # We disable paging behavior when limit == 0 because it is a special
+        # case meaning "get all documents".
+        addLinkHeader = getattr(self.description, 'addLinkHeader', False) and \
+            kwargs.get('limit', 0) > 0
         if addLinkHeader:
             kwargs['limit'] += 1
 
