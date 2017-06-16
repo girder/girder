@@ -309,7 +309,7 @@ class Upload(Model):
 
     def createUpload(self, user, name, parentType, parent, size, mimeType=None,
                      reference=None, assetstore=None, attachParent=False,
-                     saveUpload=True):
+                     save=True):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent
@@ -339,6 +339,8 @@ class Upload(Model):
             appear as direct children of the parent, but are still associated
             with it.
         :type attachParent: boolean
+        :param save: if True, save the document after it is created.
+        :type save: boolean
         :returns: The upload document that was created.
         """
         assetstore = self.getTargetAssetstore(parentType, parent, assetstore)
@@ -374,7 +376,7 @@ class Upload(Model):
             upload['userId'] = None
 
         upload = adapter.initUpload(upload)
-        if saveUpload:
+        if save:
             upload = self.save(upload)
         return upload
 

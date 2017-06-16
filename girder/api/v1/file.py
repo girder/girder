@@ -123,7 +123,7 @@ class File(Resource):
                 upload = self.model('upload').createUpload(
                     user=user, name=name, parentType=parentType, parent=parent, size=size,
                     mimeType=mimeType, reference=reference, assetstore=assetstore,
-                    saveUpload=chunk is None)
+                    save=chunk is None)
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(
