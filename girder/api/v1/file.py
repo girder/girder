@@ -111,15 +111,7 @@ class File(Resource):
                 assetstore = self.model('assetstore').load(assetstoreId)
 
             chunk = None
-            if 'chunk' in params:
-                chunk = params['chunk']
-                if isinstance(chunk, cherrypy._cpreqbody.Part):
-                    # Seek is the only obvious way to get the length of the part
-                    chunk.file.seek(0, os.SEEK_END)
-                    chunkSize = chunk.file.tell()
-                    chunk.file.seek(0, os.SEEK_SET)
-                    chunk = RequestBodyStream(chunk.file, size=chunkSize)
-            elif size > 0 and cherrypy.request.headers.get('Content-Length'):
+            if size > 0 and cherrypy.request.headers.get('Content-Length'):
                 ct = cherrypy.request.body.content_type.value
                 if (ct not in cherrypy.request.body.processors and
                         ct.split('/', 1)[0] not in cherrypy.request.body.processors):

@@ -171,7 +171,7 @@ class UploadTestCase(base.TestCase):
         return upload
 
     def _uploadFileWithInitialChunk(self, name, partial=False, largeFile=False,
-                                    oneChunk=False, multipart=True):
+                                    oneChunk=False):
         """
         Upload a file either completely or partially, sending the first chunk
         with the initial POST.
@@ -183,8 +183,6 @@ class UploadTestCase(base.TestCase):
         :param oneChunk: if True, upload everything as one chunk.  Otherwise,
             upload one chunk when creating the upload and one via the
             file/chunk endpoint.
-        :param multipart: True for multipart uploads, False for using a single
-            body with the main data and the remaining parameters in the url.
         :returns: the upload record which includes the upload id.
         """
         if not largeFile:
@@ -203,30 +201,18 @@ class UploadTestCase(base.TestCase):
             'size': len(chunk1) + len(chunk2),
             'mimeType': 'text/plain',
         }
-        files = [('chunk', 'helloWorld.txt', chunk1)]
-        if multipart:
-            resp = self.multipartRequest(
-                path='/file', user=self.user,
-                fields=list(six.iteritems(params)), files=files)
-        else:
-            resp = self.request(
-                path='/file', method='POST', user=self.user,
-                params=params, body=files[0][-1], type='text/plain')
+        resp = self.request(
+            path='/file', method='POST', user=self.user,
+            params=params, body=chunk1, type='text/plain')
         self.assertStatusOk(resp)
         if partial is not False:
             return resp.json
         if not oneChunk:
             upload = resp.json
             params = {'offset': len(chunk1), 'uploadId': upload['_id']}
-            files = [('chunk', 'helloWorld.txt', chunk2)]
-            if multipart:
-                resp = self.multipartRequest(
-                    path='/file/chunk', user=self.user,
-                    fields=list(six.iteritems(params)), files=files)
-            else:
-                resp = self.request(
-                    path='/file/chunk', method='POST', user=self.user,
-                    params=params, body=files[0][-1], type='text/plain')
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user,
+                params=params, body=chunk2, type='text/plain')
             self.assertStatusOk(resp)
         else:
             upload = None
@@ -344,10 +330,6 @@ class UploadTestCase(base.TestCase):
         self.assertStatusOk(resp)
         foundUploads = resp.json
         self.assertEqual(len(foundUploads), len(partialUploads))
-        # Now try with non-multipart uploads
-        self._uploadFileWithInitialChunk('upload4', multipart=False)
-        self._uploadFileWithInitialChunk('upload5', oneChunk=True, multipart=False)
-        self._uploadFileWithInitialChunk('upload6', largeFile=True, multipart=False)
         # Check that no upload model is saved when we are using one chunk
         self._uploadWasSaved = 0
 
@@ -355,10 +337,10 @@ class UploadTestCase(base.TestCase):
             self._uploadWasSaved += 1
 
         events.bind('model.upload.save', 'uploadWithInitialChunk', trackUploads)
-        self._uploadFileWithInitialChunk('upload7', oneChunk=True, multipart=False)
+        self._uploadFileWithInitialChunk('upload4', oneChunk=True)
         self.assertEqual(self._uploadWasSaved, 0)
         # But that it is saved when using multiple chunks
-        self._uploadFileWithInitialChunk('upload8', multipart=False)
+        self._uploadFileWithInitialChunk('upload5')
         self.assertGreater(self._uploadWasSaved, 0)
         events.unbind('model.upload.save', 'uploadWithInitialChunk')
 
