@@ -184,7 +184,7 @@ class TasksTest(base.TestCase):
                 '$input{--MinimumSphereActivity}', '--MinimumSphereDistance',
                 '$input{--MinimumSphereDistance}', '--SpheresPerPhantom',
                 '$input{--SpheresPerPhantom}', '$flag{--StrictSorting}',
-                '--DetectedPoints', '/mnt/girder_worker/data/--DetectedPoints'
+                '--DetectedPoints', '$output{--DetectedPoints}'
             ],
             'inputs': [{
                 'description': 'Input image to be analysed.',
