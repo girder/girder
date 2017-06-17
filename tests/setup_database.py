@@ -94,7 +94,14 @@ def addCreator(spec, parent=None):
     if 'creator' in spec:
         spec['creator'] = users[spec['creator'].lower()]
     elif parent is not None:
-        spec['creator'] = userIds[parent['creatorId']]
+
+        if parent.get('_modelType') == 'user':
+            # if the parent is a user, then use that as the creator
+            # (users don't have creators)
+            spec['creator'] = parent
+        else:
+            # otherwise, use the creator of the parent
+            spec['creator'] = userIds[parent['creatorId']]
 
 
 def createUser(defaultFolders=False, **args):

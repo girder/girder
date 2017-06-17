@@ -38,6 +38,23 @@ class SetupDatabaseTestCase(base.TestCase):
             'admin': True
         }, admin, 'Admin user')
 
+        folder = self.model('folder').findOne({'parentId': admin['_id']})
+        self.assertDictContains({
+            'name': 'folder'
+        }, folder, 'imported folder')
+
+        item = self.model('item').findOne({'folderId': folder['_id']})
+        self.assertDictContains({
+            'name': 'file.txt'
+        }, item, 'imported item')
+
+        file = self.model('file').findOne({'itemId': item['_id']})
+        self.assertDictContains({
+            'name': 'file.txt',
+            'mimeType': 'text/plain',
+            'size': 5
+        }, file, 'imported file')
+
     def testUserDefaultFolders(self):
         user = self.model('user').findOne({'login': 'defaultfolders'})
         self.assertDictContains({
