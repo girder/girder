@@ -83,12 +83,16 @@ function(add_python_test case)
   set(_options BIND_SERVER PY2_ONLY RUN_SERIAL)
   set(_args DBNAME PLUGIN SUBMODULE)
   set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES COVERAGE_PATHS
-                     ENVIRONMENT)
+                     ENVIRONMENT SETUP_DATABASE)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PY2_ONLY AND PYTHON_VERSION MATCHES "^3")
     message(STATUS " !!! Not adding test ${name}, cannot run in python version ${PYTHON_VERSION}.")
     return()
+  endif()
+
+  if(fn_SETUP_DATABASE)
+    set(setup_database_env "GIRDER_TEST_DATABASE_CONFIG=${fn_SETUP_DATABASE}")
   endif()
 
   if(fn_PLUGIN)
@@ -141,6 +145,7 @@ function(add_python_test case)
     "GIRDER_TEST_PORT=${server_port}"
     "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
+    "${setup_database_env}"
     "${fn_ENVIRONMENT}"
   )
   set_property(TEST ${name} PROPERTY COST 50)

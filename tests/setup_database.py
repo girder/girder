@@ -26,6 +26,7 @@ from girder.constants import SettingKey
 
 #: A module level cache of created users
 users = {}
+userIds = {}
 
 #: A prefix for all relative file paths
 prefix = '.'
@@ -91,9 +92,9 @@ def addCreator(spec, parent=None):
     :type parent: dict
     """
     if 'creator' in spec:
-        spec['creator'] = users[spec['creator']]
+        spec['creator'] = users[spec['creator'].lower()]
     elif parent is not None:
-        spec['creator'] = parent['creator']
+        spec['creator'] = userIds[parent['creatorId']]
 
 
 def createUser(defaultFolders=False, **args):
@@ -120,6 +121,7 @@ def createUser(defaultFolders=False, **args):
     if not defaultFolders:
         settingModel.unset(SettingKey.USER_DEFAULT_FOLDERS)
     users[user['login']] = user
+    userIds[user['_id']] = user
     return user
 
 
@@ -185,6 +187,7 @@ def createFile(parent, path, **args):
     addCreator(args, parent)
     uploadModel = loadModel('upload')
 
+    path = resolvePath(path)
     args['parentType'] = 'item'
     args['parent'] = parent
     args['user'] = args.pop('creator')
@@ -273,6 +276,10 @@ def createUsers(users):
     """
     folders = []
     for user in users:
+        for folder in folders:
+            # By default set the creator under a user to that user
+            folder.setdefault('creator', user['login'])
+
         folders.extend(createDocument('user', user)['folder'])
     return folders
 
@@ -290,9 +297,8 @@ def importRecursive(type, parent, root):
     :param root: The local path where the import will begin
     :type root: str
     """
+    root = resolvePath(root)
     folders = {root: parent}
-    public = parent.get('public')
-    creator = parent.get('creator')
 
     for root, dirs, files in os.walk(root, followlinks=True):
         parent = folders[root]
@@ -302,23 +308,18 @@ def importRecursive(type, parent, root):
         for dir in dirs:
             path = os.path.join(root, dir)
             folder = {
-                'name': dir,
-                'creator': creator,
-                'public': public
+                'name': dir
             }
             folders[path] = folder
             parent['folders'].append(folder)
 
         for file in files:
             path = os.path.join(root, file)
-            folder = folders[root]
 
-            folder['items'].append({
+            parent['items'].append({
                 'name': file,
-                'creator': creator,
                 'files': [{
                     'name': file,
-                    'creator': creator,
                     'path': path
                 }]
             })
