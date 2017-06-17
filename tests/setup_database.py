@@ -200,7 +200,7 @@ def createFile(parent, path, **args):
     if not args.get('mimeType'):
         args['mimeType'] = mimetypes.guess_type(path)[0]
 
-    with open(path, 'r') as f:
+    with open(path, 'rb') as f:
         return uploadModel.uploadFromFile(f, **args)
 
 
