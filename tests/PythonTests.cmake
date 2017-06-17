@@ -91,10 +91,6 @@ function(add_python_test case)
     return()
   endif()
 
-  if(fn_SETUP_DATABASE)
-    set(setup_database_env "GIRDER_TEST_DATABASE_CONFIG=${fn_SETUP_DATABASE}")
-  endif()
-
   if(fn_PLUGIN)
     set(name "server_${fn_PLUGIN}.${case}")
     set(module plugin_tests.${case}_test)
@@ -145,7 +141,7 @@ function(add_python_test case)
     "GIRDER_TEST_PORT=${server_port}"
     "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
-    "${setup_database_env}"
+    "GIRDER_TEST_DATABASE_CONFIG=${fn_SETUP_DATABASE}"
     "${fn_ENVIRONMENT}"
   )
   set_property(TEST ${name} PROPERTY COST 50)

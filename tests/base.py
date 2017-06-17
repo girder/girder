@@ -226,7 +226,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         self.model('setting').set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
-        if 'GIRDER_TEST_DATABASE_CONFIG' in os.environ:
+        if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
             setup_database.main(os.environ['GIRDER_TEST_DATABASE_CONFIG'])
 
     def tearDown(self):
