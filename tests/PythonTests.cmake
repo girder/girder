@@ -83,7 +83,7 @@ function(add_python_test case)
   set(_options BIND_SERVER PY2_ONLY RUN_SERIAL)
   set(_args DBNAME PLUGIN SUBMODULE)
   set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES COVERAGE_PATHS
-                     ENVIRONMENT)
+                     ENVIRONMENT SETUP_DATABASE)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PY2_ONLY AND PYTHON_VERSION MATCHES "^3")
@@ -96,10 +96,12 @@ function(add_python_test case)
     set(module plugin_tests.${case}_test)
     set(pythonpath "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}")
     set(other_covg ",${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/server")
+    set(test_file "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/plugin_tests/${case}_test.py")
   else()
     set(module tests.cases.${case}_test)
     set(pythonpath "")
     set(other_covg "")
+    set(test_file "${PROJECT_SOURCE_DIR}/tests/cases/${case}_test.py")
   endif()
 
   if(fn_COVERAGE_PATHS)
@@ -133,6 +135,12 @@ function(add_python_test case)
     set(_db_name ${name})
   endif()
 
+  if(fn_SETUP_DATABASE)
+    set(TEST_DATABASE_FILE "${fn_SETUP_DATABASE}")
+  else()
+    get_test_database_spec("${test_file}")
+  endif()
+
   string(REPLACE "." "_" _db_name ${_db_name})
   set_property(TEST ${name} PROPERTY ENVIRONMENT
     "PYTHONPATH=$ENV{PYTHONPATH}${_separator}${pythonpath}${_separator}${PROJECT_SOURCE_DIR}/clients/python"
@@ -141,6 +149,7 @@ function(add_python_test case)
     "GIRDER_TEST_PORT=${server_port}"
     "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
+    "GIRDER_TEST_DATABASE_CONFIG=${TEST_DATABASE_FILE}"
     "${fn_ENVIRONMENT}"
   )
   set_property(TEST ${name} PROPERTY COST 50)
