@@ -4,7 +4,7 @@ import FolderCollection from '../collections/FolderCollection';
 const CollectionModel = Model.extend({
     resource: 'collection',
     children() {
-        return new FolderCollection([], {parent: this});
+        return [new FolderCollection([], {parent: this})];
     }
 });
 
