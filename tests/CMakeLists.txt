@@ -64,7 +64,7 @@ if(RUN_CORE_TESTS)
   add_python_test(user)
   add_python_test(webroot)
   add_python_test(path_utilities)
-  add_python_test(setup_database SETUP_DATABASE "${PROJECT_SOURCE_DIR}/tests/test_database/spec.yml")
+  add_python_test(setup_database)
 
   add_python_test(py_client.cli BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
   add_python_test(py_client.lib BIND_SERVER RESOURCE_LOCKS py_client_test_dir)

@@ -7,7 +7,7 @@ users:
     lastName: 'Last'
     email: 'admin@email.com'
     admin: true
-    import: 'files/admin'
+    import: 'setup_database_test/admin'
 
   # a user with default folders
   - login: 'defaultFolders'
@@ -30,7 +30,7 @@ users:
     lastName: 'Two'
     email: 'user2@email.com'
     admin: false
-    import: 'files/user2'
+    import: 'setup_database_test/user2'
 
   # a user with a folder created by a different user
   - login: 'creatorTest'
@@ -60,9 +60,9 @@ collections:
             description: 'This is an item'
             files:
               - name: 'File1.txt'
-                path: 'files/publicCollection/file.txt'
+                path: 'setup_database_test/publicCollection/file.txt'
               - name: 'File2.txt'
-                path: 'files/publicCollection/file.txt'
+                path: 'setup_database_test/publicCollection/file.txt'
                 mimeType: 'application/json'
 
         folders:
@@ -81,11 +81,11 @@ collections:
   # create a collection with imported folders
   - name: 'Imported collection'
     creator: 'admin'
-    import: 'files/importedCollection'
+    import: 'setup_database_test/importedCollection'
 
   # create a collection to test importing to a folder
   - name: 'Imported folder collection'
     creator: 'admin'
     folders:
       - name: 'Imported folder'
-        import: 'files/importedCollection'
+        import: 'setup_database_test/importedCollection'
