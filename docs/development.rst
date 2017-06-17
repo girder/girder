@@ -276,17 +276,17 @@ before executing your test.  A typical example of this format is as follows
 This will create one admin user and a public collection owned by that user.  Both the generated user and collection objects
 will contain folders imported from the file system.  Relative paths provided by the ``import`` key will be resolved relative
 to the location of the YAML file on disk.  You can also describe the full hierarchy in the YAML file itself for more complicated
-use cases.  See the test spec in ``test/test_database/spec.yml`` for a more complete example.
+use cases.  See the test spec in ``tests/cases/setup_database_test.yml`` for a more complete example.
 
 .. note::
 
     When importing from a local path into a user or collection, files directly under that path are ignored because
     items can be only inserted under folders.
 
-To use the initialization mechanism, you should add an argument to the ``add_web_client_test`` or ``add_python_test``
-call that registers your test providing an absolute path to YAML spec as follows ::
-
-    add_web_client_test(mytest mytest.js SETUP_DATABASE "/path/to/spec.yaml")
+To use the initialization mechanism, you should add the YAML file next to your test file.  For example, if your test
+is defined in ``tests/cases/my_test.py``, then the initialization spec should go in ``tests/cases/my_test.yml``.  This
+file will be automatically detected and loaded before executing your test code.  This is true for both python and
+javascript tests added in core or inside plugins.
 
 The python module ``setup_database.py`` that generates the database can also be run standalone to help in development.  To use it,
 you should point girder to an empty database ::
@@ -296,6 +296,11 @@ you should point girder to an empty database ::
 You can browse the result in Girder by running ::
 
     GIRDER_MONGO_URI='mongodb://127.0.0.1:27017/mytest' girder-server
+
+.. note::
+
+    The ``setup_database`` module is meant to provision fixures for tests **only**.  If you want to provision
+    a Girder instance for deployment, see the `Girder ansible client <https://github.com/girder/girder/tree/master/devops/ansible/roles/girder/library>`_.
 
 
 Ansible Testing
