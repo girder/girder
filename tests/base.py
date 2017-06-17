@@ -41,6 +41,7 @@ from girder.models import getDbConnection
 from . import mock_smtp
 from . import mock_s3
 from . import mongo_replicaset
+from . import setup_database
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 30000)
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 30001)
@@ -224,6 +225,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         self.model('setting').set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
+
+        if 'GIRDER_TEST_DATABASE_CONFIG' in os.environ:
+            setup_database(os.environ['GIRDER_TEST_DATABASE_CONFIG'])
 
     def tearDown(self):
         """
