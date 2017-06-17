@@ -234,6 +234,16 @@ def createDocument(type, node):
         'file': node.pop('files', [])
     }
 
+    # remove invalid child types
+    if type in ['user', 'collection']:
+        del children['item']
+        del children['file']
+    elif type == 'folder':
+        del children['file']
+    elif type == 'item':
+        del children['folder']
+        del children['item']
+
     # generate the document
     doc = dispatch[type](**node)
 
