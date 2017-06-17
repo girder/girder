@@ -598,3 +598,7 @@ class JobsTestCase(base.TestCase):
         self.assertEquals(len(resp.json), 2)
         # Should return an empty list
         self.assertEquals(len(resp2.json), 0)
+
+    def testPagingHeaders(self):
+        self.runPagingTest('/job', user=self.users[0])
+        self.runPagingTest('/job/all', user=self.users[0])

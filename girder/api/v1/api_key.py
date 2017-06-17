@@ -40,7 +40,7 @@ class ApiKey(Resource):
         .notes('Only site administrators may list keys for other users. If no '
                'userId parameter is passed, lists keys for the current user.')
         .param('userId', 'ID of the user whose keys to list.', required=False)
-        .pagingParams(defaultSort='name')
+        .pagingParams(defaultSort='name', linkHeader=True)
         .errorResponse()
     )
     def listKeys(self, userId, limit, offset, sort, params):

@@ -1,0 +1,17 @@
+users:
+  - login: 'admin'
+    email: 'admin@email.com'
+    firstName: 'Admin'
+    lastName: 'Admin'
+    password: 'adminpassword'
+collections:
+  - name: 'c1'
+    creator: 'admin'
+    folders:
+      - name: 'f1'
+      - name: 'f2'
+      - name: 'f3'
+  - name: 'c2'
+    creator: 'admin'
+  - name: 'c3'
+    creator: 'admin'

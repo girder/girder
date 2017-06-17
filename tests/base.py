@@ -25,13 +25,16 @@ import json
 import logging
 import mock
 import os
+import re
 import shutil
 import signal
 import six
 import sys
 import unittest
 import uuid
+import warnings
 
+from requests.utils import parse_header_links
 from six import BytesIO
 from six.moves import urllib
 from girder.utility import model_importer, plugin_utilities
@@ -41,6 +44,10 @@ from girder.models import getDbConnection
 from . import mock_smtp
 from . import mock_s3
 from . import mongo_replicaset
+
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', 'setup_database.*')
+    from . import setup_database
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 30000)
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 30001)
@@ -225,6 +232,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         self.model('setting').set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
+        if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
+            setup_database.main(os.environ['GIRDER_TEST_DATABASE_CONFIG'])
+
     def tearDown(self):
         """
         Stop any services that we started just for this test.
@@ -269,6 +279,26 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 msg += 'Response body was:\n%s' % self.getBody(response)
 
             self.fail(msg)
+
+    def assertDictContains(self, expected, actual, msg=''):
+        """
+        Assert that an object is a subset of another.
+
+        This test will fail under the following conditions:
+
+            1. ``actual`` is not a dictionary.
+            2. ``expected`` contains a key not in ``actual``.
+            3. for any key in ``expected``, ``expected[key] != actual[key]``
+
+        :param test: The expected key/value pairs
+        :param actual: The actual object
+        :param msg: An optional message to include with test failures
+        """
+        self.assertIsInstance(actual, dict, msg + ' does not exist')
+        for k, v in six.iteritems(expected):
+            if k not in actual:
+                self.fail('%s expected key "%s"' % (msg, k))
+            self.assertEqual(v, actual[k])
 
     def assertHasKeys(self, obj, keys):
         """
@@ -347,6 +377,80 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         self.assertEqual('Parameter "%s" is required.' % param, response.json.get('message', ''))
         self.assertStatus(response, 400)
+
+    def assertPagingLink(self, link, path, offset=0, **params):
+        """
+        Assert the paging headers were correctly added to response.
+        """
+        self.assertEqual(re.sub('.*/api/v1', '', link['path']), path)
+        self.assertEqual(int(link['query'].get('offset')), offset)
+
+        self.assertHasKeys(link['query'], params.keys())
+        for param, value in six.iteritems(params):
+            if param != 'offset':
+                self.assertEqual(link['query'][param], value)
+
+    def runPagingTest(self, path, user=None, params=None, total=None):
+        """
+        Run a series of requests on a paged resource asserting that the
+        headers are set correctly.
+
+        :param path: The resource path (e.g. '/collection')
+        :param user: A user model to run the requests as
+        :param params: A dictionary of extra parameters in the request
+        :param total: The total number of documents expected in the collection
+        """
+        params = params or {}
+
+        # test a default request for basic functionality
+        resp = self.request(path, user=user, params=params)
+        links = self.getPagingLinks(resp)
+        self.assertHasKeys(links, ['first'])
+        self.assertNotHasKeys(links, ['prev'])
+        self.assertPagingLink(links['first'], path, offset=0)
+
+        # if the total number of documents is given, test the behavior of the `next` link
+        if total:
+            resp = self.request(path, user=user, params=dict(params, limit=1, offset=1))
+            links = self.getPagingLinks(resp)
+            self.assertHasKeys(links, ['first', 'prev'])
+            self.assertPagingLink(links['prev'], path, offset=0, limit='1')
+            self.assertPagingLink(links['first'], path, offset=0, limit='1')
+
+            if total > 1:
+                self.assertPagingLink(links['next'], path, offset=2, limit='1')
+            else:
+                self.assertNotHasKeys(links, ['next'])
+
+            # test the absence of the next link when on the last page
+            resp = self.request(path, user=user, params=dict(params, limit=total, offset=0))
+            links = self.getPagingLinks(resp)
+            self.assertNotHasKeys(links, ['next', 'prev'])
+
+        # test the behavior of a request between page boundaries
+        links = self.getPagingLinks(
+            self.request(path, user=user, params=dict(params, limit=10, offset=5))
+        )
+        self.assertHasKeys(links, ['first', 'prev'])
+        self.assertPagingLink(links['prev'], path, offset=0, limit='10')
+        self.assertPagingLink(links['first'], path, offset=0, limit='10')
+
+    def getPagingLinks(self, response):
+        """
+        Get a dictionary containing parsed links in a response header.
+        """
+        self.assertStatusOk(response)
+        links = {}
+        for link in parse_header_links(response.headers.get('Link', '')):
+            rel = link.get('rel')
+            if rel:
+                parsed = urllib.parse.urlparse(link['url'])
+                links[rel] = {
+                    'url': link['url'],
+                    'path': parsed.path,
+                    'query': cherrypy.lib.httputil.parse_query_string(parsed.query)
+                }
+        return links
 
     def getSseMessages(self, resp):
         messages = self.getBody(resp).strip().split('\n\n')

@@ -1,0 +1,6 @@
+name: Backbone
+description: A plugin defining Backbone collections and models with a uniform interface.
+version: 0.1.0
+npm:
+  dependencies:
+    backbone.paginator: ^2.0

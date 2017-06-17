@@ -343,7 +343,7 @@ class Description(object):
 
         return self
 
-    def pagingParams(self, defaultSort, defaultSortDir=1, defaultLimit=50):
+    def pagingParams(self, defaultSort, defaultSortDir=1, defaultLimit=50, linkHeader=False):
         """
         Adds the limit, offset, sort, and sortdir parameter documentation to
         this route handler.
@@ -354,6 +354,10 @@ class Description(object):
         :type defaultSortDir: int
         :param defaultLimit: The default page size.
         :type defaultLimit: int
+        :param linkHeader: Add a `Link` header for paging.  This assumes that the value returned
+            by the endpoint is a list or tuple.  The limit passed to the endpoint function will
+            be artifically incremented by one to detect the last page, and the result sent back
+            to the client will be truncated to the requested size.
         """
         self.param(
             'limit', 'Result set size limit.', default=defaultLimit, required=False, dataType='int')
@@ -368,6 +372,7 @@ class Description(object):
                 required=False, dataType='integer', enum=(1, -1), default=defaultSortDir)
 
         self.hasPagingParams = True
+        self.addLinkHeader = linkHeader
         return self
 
     def consumes(self, value):
@@ -609,13 +614,68 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
                 kwargs['sort'] = [(kwargs['sort'], sortdir)]
 
-            return fun(*args, **kwargs)
+            return self._callEndpointFunction(fun, args, kwargs)
 
         if self.hide:
             wrapped.description = None
         else:
             wrapped.description = self.description
         return wrapped
+
+    def _callEndpointFunction(self, fun, args, kwargs):
+        """
+        Make the actual call to the endpoint function.  When making a paged
+        request the ``limit`` is artificially incremented by one to detect
+        if there are more results after the current page.  The result is
+        then truncated to the correct size before being returned.
+
+        Note: This is isolated from the __call__ method to prevent exceeding
+        the cyclomatic complexity limit.
+        """
+        # We disable paging behavior when limit == 0 because it is a special
+        # case meaning "get all documents".
+        addLinkHeader = getattr(self.description, 'addLinkHeader', False) and \
+            kwargs.get('limit', 0) > 0
+        if addLinkHeader:
+            kwargs['limit'] += 1
+
+        result = fun(*args, **kwargs)
+
+        if addLinkHeader:
+            kwargs['limit'] -= 1
+            self._addPagingHeaders(kwargs, result)
+            result = result[:kwargs['limit']]
+
+        return result
+
+    def _addPagingHeaders(self, params, result):
+        """
+        Inject a "Link" header when this is a paged request.
+        Follows: https://tools.ietf.org/html/rfc5988
+
+        :param params: An object containing the paging parameters
+        :param result: The list of results from query
+        """
+        qs = cherrypy.lib.httputil.parse_query_string(cherrypy.request.query_string)
+        offset = params['offset']
+        limit = params['limit']
+        link = []
+
+        qs['offset'] = 0
+        link.append('<%s>; rel="first"' % cherrypy.url(qs=qs))
+
+        # Try to autodetect if there is a next page.  If the result is not iterable
+        # then the endpoint doesn't follow the usual conventions, so we fall back
+        # to adding the headers.
+        if not isinstance(result, (list, tuple)) or len(result) > limit:
+            qs['offset'] = offset + limit
+            link.append('<%s>; rel="next"' % cherrypy.url(qs=qs))
+
+        if offset > 0:
+            qs['offset'] = max(0, offset - limit)
+            link.append('<%s>; rel="prev"' % cherrypy.url(qs=qs))
+
+        cherrypy.response.headers['Link'] = ', '.join(link)
 
     def _validateJsonType(self, name, info, val):
         if info.get('schema') is not None:

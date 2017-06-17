@@ -2,6 +2,7 @@
 !.gitignore
 !authorized_upload
 !autojoin
+!backbone/
 !candela/
 !celery_jobs/
 !curation/
