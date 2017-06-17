@@ -96,10 +96,12 @@ function(add_python_test case)
     set(module plugin_tests.${case}_test)
     set(pythonpath "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}")
     set(other_covg ",${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/server")
+    set(test_file "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/plugin_tests/${case}_test.py")
   else()
     set(module tests.cases.${case}_test)
     set(pythonpath "")
     set(other_covg "")
+    set(test_file "${PROJECT_SOURCE_DIR}/tests/cases/${case}_test.py")
   endif()
 
   if(fn_COVERAGE_PATHS)
@@ -133,6 +135,12 @@ function(add_python_test case)
     set(_db_name ${name})
   endif()
 
+  if(fn_SETUP_DATABASE)
+    set(TEST_DATABASE_FILE "${fn_SETUP_DATABASE}")
+  else()
+    get_test_database_spec("${test_file}")
+  endif()
+
   string(REPLACE "." "_" _db_name ${_db_name})
   set_property(TEST ${name} PROPERTY ENVIRONMENT
     "PYTHONPATH=$ENV{PYTHONPATH}${_separator}${pythonpath}${_separator}${PROJECT_SOURCE_DIR}/clients/python"
@@ -141,7 +149,7 @@ function(add_python_test case)
     "GIRDER_TEST_PORT=${server_port}"
     "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
-    "GIRDER_TEST_DATABASE_CONFIG=${fn_SETUP_DATABASE}"
+    "GIRDER_TEST_DATABASE_CONFIG=${TEST_DATABASE_FILE}"
     "${fn_ENVIRONMENT}"
   )
   set_property(TEST ${name} PROPERTY COST 50)

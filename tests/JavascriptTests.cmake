@@ -156,6 +156,12 @@ function(add_web_client_test case specFile)
     girder_ExternalData_add_target("${testname}_data")
   endif()
 
+  if(fn_SETUP_DATABASE)
+    set(TEST_DATABASE_FILE "${fn_SETUP_DATABASE}")
+  else()
+    get_test_database_spec("${specFile}")
+  endif()
+
   add_test(
       NAME ${testname}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
@@ -182,7 +188,7 @@ function(add_web_client_test case specFile)
     "GIRDER_PORT=${web_client_port}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
     "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
-    "GIRDER_TEST_DATABASE_CONFIG=${fn_SETUP_DATABASE}"
+    "GIRDER_TEST_DATABASE_CONFIG=${TEST_DATABASE_FILE}"
     "${fn_ENVIRONMENT}"
   )
   math(EXPR next_web_client_port "${web_client_port} + 1")
