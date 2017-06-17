@@ -218,4 +218,10 @@ class SetupDatabaseTestCase(base.TestCase):
             'creatorId': admin['_id']
         }, folder, 'imported folder root')
 
+        item = self.model('item').findOne(
+            {'name': 'item.txt', 'folderId': folder['_id']})
+        self.assertDictContains({
+            'creatorId': admin['_id']
+        }, item, 'item.txt')
+
         self.assertImported(folder)
