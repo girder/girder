@@ -97,6 +97,7 @@ function(add_web_client_test case specFile)
   #     "tests.web_client_test"
   # SETUP_MODULES: colon-separated list of python scripts to import at test setup time
   #     for side effects such as mocking, adding API routes, etc.
+  # SETUP_DATABASE: An absolute path to a database initialization spec
   # REQUIRED_FILES: A list of files required to run the test.
   # ENVIRONMENT: A list of key=value pairs to add to the test's runtime environment
   if (NOT BUILD_JAVASCRIPT_TESTS)
@@ -107,7 +108,7 @@ function(add_web_client_test case specFile)
 
   set(_options NOCOVERAGE)
   set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES
-            SETUP_MODULES ENVIRONMENT EXTERNAL_DATA)
+            SETUP_MODULES ENVIRONMENT EXTERNAL_DATA SETUP_DATABASE)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -155,6 +156,10 @@ function(add_web_client_test case specFile)
     girder_ExternalData_add_target("${testname}_data")
   endif()
 
+  if(fn_SETUP_DATABASE)
+    set(setup_database_env "GIRDER_TEST_DATABASE_CONFIG=${fn_SETUP_DATABASE}")
+  endif()
+
   add_test(
       NAME ${testname}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
@@ -181,6 +186,7 @@ function(add_web_client_test case specFile)
     "GIRDER_PORT=${web_client_port}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
     "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
+    "${setup_database_env}"
     "${fn_ENVIRONMENT}"
   )
   math(EXPR next_web_client_port "${web_client_port} + 1")
