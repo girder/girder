@@ -4,9 +4,7 @@ import Model from './Model';
 const UserModel = Model.extend({
     resource: 'user',
     children() {
-        return $.Deferred()
-            .resolve([new FolderCollection([], {parent: this})])
-            .promise();
+        return [new FolderCollection([], {parent: this})];
     }
 });
 

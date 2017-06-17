@@ -1,5 +1,3 @@
-import $ from 'jquery';
-
 import Model from './Model';
 import CollectionModel from './CollectionModel';
 import UserModel from './UserModel';
@@ -10,9 +8,7 @@ import ItemCollection from '../collections/ItemCollection';
 const FolderModel = Model.extend({
     resource: 'folder',
     parent() {
-        const promise = $.Deferred();
         let parent;
-
         switch (this.get('parentType')) {
             case 'folder':
                 parent = new FolderModel({_id: this.get('parentId')});
@@ -22,30 +18,22 @@ const FolderModel = Model.extend({
                 break;
             case 'user':
                 parent = new UserModel({_id: this.get('parentId')});
+                break;
+            default:
+                throw new Error('Unknown parent type');
         }
-        if (parent) {
-            promise.resolve(parent);
-        } else {
-            promise.reject('Unset or unknown parent type');
-        }
-
-        return promise.promise();
+        return parent;
     },
     children() {
-        return $.when(this.childFolders(), this.childItems())
-            .then((folders, items) => [folders, items]);
+        return [this.items(), this.folders()];
     },
 
-    childFolders() {
-        return $.Deferred()
-            .resolve(new FolderCollection([], {parent: this}))
-            .promise();
+    folders() {
+        return new FolderCollection([], {parent: this});
     },
 
-    childItems() {
-        return $.Deferred()
-            .resolve(new ItemCollection([], {parent: this}))
-            .promise();
+    items() {
+        return new ItemCollection([], {parent: this});
     }
 });
 

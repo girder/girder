@@ -5,14 +5,10 @@ import Model from './Model';
 const ItemModel = Model.extend({
     resource: 'item',
     children() {
-        return $.Deferred()
-            .resolve([new FileCollection([], {parent: this})])
-            .promise();
+        return [new FileCollection([], {parent: this})];
     },
     parent() {
-        return $.Deferred()
-            .resolve(new FolderModel({_id: this.get('folderId')}))
-            .promise();
+        return new FolderModel({_id: this.get('folderId')});
     }
 });
 
