@@ -16,19 +16,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-import six
-
 from .. import base
 
 
 class SetupDatabaseTestCase(base.TestCase):
-    def assertDictContains(self, test, actual, msg=''):
-        self.assertIsInstance(actual, dict, msg + ' does not exist')
-        for k, v in six.iteritems(test):
-            if k not in actual:
-                self.fail('%s expected key "%s"' % (msg, k))
-            self.assertEqual(v, actual[k])
-
     def testAdmin(self):
         admin = self.model('user').findOne({'login': 'admin'})
         self.assertDictContains({

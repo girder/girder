@@ -274,6 +274,26 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
 
             self.fail(msg)
 
+    def assertDictContains(self, expected, actual, msg=''):
+        """
+        Assert that an object is a subset of another.
+
+        This test will fail under the following conditions:
+
+            1. ``actual`` is not a dictionary.
+            2. ``expected`` contains a key not in ``actual``.
+            3. for any key in ``expected``, ``expected[key] != actual[key]``
+
+        :param test: The expected key/value pairs
+        :param actual: The actual object
+        :param msg: An optional message to include with test failures
+        """
+        self.assertIsInstance(actual, dict, msg + ' does not exist')
+        for k, v in six.iteritems(expected):
+            if k not in actual:
+                self.fail('%s expected key "%s"' % (msg, k))
+            self.assertEqual(v, actual[k])
+
     def assertHasKeys(self, obj, keys):
         """
         Assert that the given object has the given list of keys.
