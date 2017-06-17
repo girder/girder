@@ -1,0 +1,11 @@
+{
+    "extends": "girder",
+    "env": {
+        "jasmine": true,
+    },
+    "globals": {
+        "girder": true,
+        "testHelper": true,
+        "girderTest": true
+    }
+}
