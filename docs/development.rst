@@ -278,6 +278,11 @@ will contain folders imported from the file system.  Relative paths provided by 
 to the location of the YAML file on disk.  You can also describe the full hierarchy in the YAML file itself for more complicated
 use cases.  See the test spec in ``test/test_database/spec.yml`` for a more complete example.
 
+.. note::
+
+    When importing from a local path into a user or collection, files directly under that path are ignored because
+    items can be only inserted under folders.
+
 To use the initialization mechanism, you should add an argument to the ``add_web_client_test`` or ``add_python_test``
 call that registers your test providing an absolute path to YAML spec as follows ::
 
