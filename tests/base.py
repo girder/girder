@@ -31,6 +31,7 @@ import six
 import sys
 import unittest
 import uuid
+import warnings
 
 from six import BytesIO
 from six.moves import urllib
@@ -41,7 +42,10 @@ from girder.models import getDbConnection
 from . import mock_smtp
 from . import mock_s3
 from . import mongo_replicaset
-from . import setup_database
+
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', 'setup_database.*')
+    from . import setup_database
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 30000)
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 30001)

@@ -20,9 +20,16 @@
 import mimetypes
 import os
 import tempfile
+import warnings
 
 from girder.models.model_base import ModelImporter, GirderException
 from girder.constants import SettingKey
+
+warnings.warn(
+    'setup_database.py is only meant for test fixtures, not for provisioning.'
+    '\nSee Girder\'s ansible client for a deployment solution: '
+    'https://github.com/girder/girder/tree/master/devops/ansible/roles/girder/library'
+)
 
 #: A module level cache of created users
 users = {}
