@@ -109,7 +109,8 @@ def runJsonTasksDescriptionForItem(self, item, image, taskName, setName, setDesc
 )
 def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDescription, pullImage,
                               params):
-    self.ensureTokenScopes('item_task.set_task_spec.%s' % item['_id'])
+    self.model('token').requireScope(
+        self.getCurrentToken(), 'item_task.set_task_spec.%s' % item['_id'])
 
     if not isinstance(json, list):
         json = [json]
@@ -212,7 +213,8 @@ def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
     hide=True
 )
 def createItemTasksFromJson(self, folder, json, image, pullImage, params):
-    self.ensureTokenScopes('item_task.set_task_spec.%s' % folder['_id'])
+    self.model('token').requireScope(
+        self.getCurrentToken(), 'item_task.set_task_spec.%s' % folder['_id'])
     token = self.getCurrentToken()
     user = self.model('user').load(token['userId'], force=True)
 

@@ -116,7 +116,8 @@ def runSlicerCliTasksDescriptionForItem(
     hide=True
 )
 def configureItemTaskFromSlicerCliXml(self, item, xml, setName, setDescription, params):
-    self.ensureTokenScopes('item_task.set_task_spec.%s' % item['_id'])
+    self.model('token').requireScope(
+        self.getCurrentToken(), 'item_task.set_task_spec.%s' % item['_id'])
 
     args = item.get('meta', {}).get('itemTaskSlicerCliArgs') or []
     cliSpec = cli_parser.parseSlicerCliXml(xml)
@@ -222,7 +223,8 @@ def runSlicerCliTasksDescriptionForFolder(self, folder, image, args, pullImage, 
     hide=True
 )
 def createItemTasksFromSlicerCliXml(self, folder, xml, image, args, pullImage, params):
-    self.ensureTokenScopes('item_task.set_task_spec.%s' % folder['_id'])
+    self.model('token').requireScope(
+        self.getCurrentToken(), 'item_task.set_task_spec.%s' % folder['_id'])
     token = self.getCurrentToken()
     user = self.model('user').load(token['userId'], force=True)
 
