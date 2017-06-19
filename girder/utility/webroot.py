@@ -24,8 +24,8 @@ import re
 import cherrypy
 import mako
 
-from girder import constants, events
-from girder.constants import CoreEventHandler, SettingKey
+from girder import constants
+from girder.constants import SettingKey
 from girder.models.setting import Setting
 from girder.utility import config
 
@@ -74,10 +74,7 @@ class WebrootBase(object):
             js=self._escapeJavascript, json=json.dumps, **self.vars)
 
     def GET(self, **params):
-        if self.indexHtml is None or self.config['server']['mode'] == 'development':
-            self.indexHtml = self._renderHTML()
-
-        return self.indexHtml
+        return self._renderHTML()
 
     def DELETE(self, **params):
         raise cherrypy.HTTPError(405)
@@ -100,58 +97,15 @@ class Webroot(WebrootBase):
         if not templatePath:
             templatePath = os.path.join(constants.PACKAGE_DIR, 'utility', 'webroot.mako')
         super(Webroot, self).__init__(templatePath)
-        settings = Setting()
 
         self.vars = {
-            'plugins': [],
-            'apiRoot': '',
-            'staticRoot': '',
-            # 'title' is depreciated use brandName instead
-            'title': 'Girder',
-            'brandName': settings.get(SettingKey.BRAND_NAME),
-            'bannerColor': settings.get(SettingKey.BANNER_COLOR),
-            'contactEmail': settings.get(SettingKey.CONTACT_EMAIL_ADDRESS),
-            'registrationPolicy': settings.get(SettingKey.REGISTRATION_POLICY),
-            'enablePasswordLogin': settings.get(SettingKey.ENABLE_PASSWORD_LOGIN)
+            # 'title' is deprecated use brandName instead
+            'title': 'Girder'
         }
 
-        events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
-                    self._onSettingSave)
-        events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
-                    self._onSettingRemove)
-
-    def _onSettingSave(self, event):
-        settingDoc = event.info
-        if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
-            self.updateHtmlVars({'contactEmail': settingDoc['value']})
-        elif settingDoc['key'] == SettingKey.BRAND_NAME:
-            self.updateHtmlVars({'brandName': settingDoc['value']})
-        elif settingDoc['key'] == SettingKey.BANNER_COLOR:
-            self.updateHtmlVars({'bannerColor': settingDoc['value']})
-        elif settingDoc['key'] == SettingKey.REGISTRATION_POLICY:
-            self.updateHtmlVars({'registrationPolicy': settingDoc['value']})
-        elif settingDoc['key'] == SettingKey.ENABLE_PASSWORD_LOGIN:
-            self.updateHtmlVars({'enablePasswordLogin': settingDoc['value']})
-
-    def _onSettingRemove(self, event):
-        settingDoc = event.info
-        if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
-            self.updateHtmlVars({'contactEmail': Setting().getDefault(
-                SettingKey.CONTACT_EMAIL_ADDRESS)})
-        elif settingDoc['key'] == SettingKey.BRAND_NAME:
-            self.updateHtmlVars({'brandName': Setting().getDefault(
-                SettingKey.BRAND_NAME)})
-        elif settingDoc['key'] == SettingKey.BANNER_COLOR:
-            self.updateHtmlVars({'bannerColor': settingDoc['value']})
-        elif settingDoc['key'] == SettingKey.REGISTRATION_POLICY:
-            self.updateHtmlVars({'registrationPolicy': Setting().getDefault(
-                SettingKey.REGISTRATION_POLICY)})
-        elif settingDoc['key'] == SettingKey.ENABLE_PASSWORD_LOGIN:
-            self.updateHtmlVars({'enablePasswordLogin': Setting().getDefault(
-                SettingKey.ENABLE_PASSWORD_LOGIN
-            )})
-
     def _renderHTML(self):
+        from girder.utility import server
+        self.vars['plugins'] = server.getPlugins()
         self.vars['pluginCss'] = []
         self.vars['pluginJs'] = []
         builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web',
@@ -161,5 +115,14 @@ class Webroot(WebrootBase):
                 self.vars['pluginCss'].append(plugin)
             if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.js')):
                 self.vars['pluginJs'].append(plugin)
+
+        self.vars['apiRoot'] = server.getApiRoot()
+        self.vars['staticRoot'] = server.getStaticRoot()
+        self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
+        self.vars['contactEmail'] = Setting().get(
+            SettingKey.CONTACT_EMAIL_ADDRESS)
+        self.vars['bannerColor'] = Setting().get(SettingKey.BANNER_COLOR)
+        self.vars['registrationPolicy'] = Setting().get(SettingKey.REGISTRATION_POLICY)
+        self.vars['enablePasswordLogin'] = Setting().get(SettingKey.ENABLE_PASSWORD_LOGIN)
 
         return super(Webroot, self)._renderHTML()
