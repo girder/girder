@@ -170,6 +170,55 @@ class UploadTestCase(base.TestCase):
             _send_s3_request(resp.json['s3FinalizeRequest'])
         return upload
 
+    def _uploadFileWithInitialChunk(self, name, partial=False, largeFile=False,
+                                    oneChunk=False):
+        """
+        Upload a file either completely or partially, sending the first chunk
+        with the initial POST.
+
+        :param name: the name of the file to upload.
+        :param partial: the number of steps to complete in the uploads: 1
+                        uploads 1 chunk.  False to complete the upload.
+        :param largeFile: if True, upload a file that is > 32Mb
+        :param oneChunk: if True, upload everything as one chunk.  Otherwise,
+            upload one chunk when creating the upload and one via the
+            file/chunk endpoint.
+        :returns: the upload record which includes the upload id.
+        """
+        if not largeFile:
+            chunk1 = Chunk1
+            chunk2 = Chunk2
+        else:
+            chunk1 = '-' * (1024 * 1024 * 32)
+            chunk2 = '-' * (1024 * 1024 * 1)
+        if oneChunk:
+            chunk1 += chunk2
+            chunk2 = ''
+        params = {
+            'parentType': 'folder',
+            'parentId': str(self.folder['_id']),
+            'name': name,
+            'size': len(chunk1) + len(chunk2),
+            'mimeType': 'text/plain',
+        }
+        resp = self.request(
+            path='/file', method='POST', user=self.user,
+            params=params, body=chunk1, type='text/plain')
+        self.assertStatusOk(resp)
+        if partial is not False:
+            return resp.json
+        if not oneChunk:
+            upload = resp.json
+            params = {'offset': len(chunk1), 'uploadId': upload['_id']}
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user,
+                params=params, body=chunk2, type='text/plain')
+            self.assertStatusOk(resp)
+        else:
+            upload = None
+        self.assertEqual(resp.json['_modelType'], 'file')
+        return upload
+
     def _testUpload(self):
         """
         Upload a file to the server and several partial files.  Test that we
@@ -253,6 +302,49 @@ class UploadTestCase(base.TestCase):
         resp = self.request(path='/system/uploads', method='GET',
                             user=self.admin)
         self.assertEqual(resp.json, [])
+
+    def testUploadWithInitialChunk(self):
+        """
+        Upload a file to the server and several partial files.  Test that we
+        can delete a partial upload but not a completed upload. Test that we
+        can delete partial uploads that are older than a certain date.
+        """
+        self._uploadFileWithInitialChunk('upload1')
+        self._uploadFileWithInitialChunk('upload2', oneChunk=True)
+        # test uploading large files
+        self._uploadFileWithInitialChunk('upload3', largeFile=True)
+        partialUploads = []
+        for largeFile in (False, True):
+            for partial in range(1, 3):
+                partialUploads.append(self._uploadFileWithInitialChunk(
+                    'partial_upload_%d_%s' % (partial, str(largeFile)),
+                    partial, largeFile))
+        # check that a user cannot list partial uploads
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.user)
+        self.assertStatus(resp, 403)
+        # The admin user should see all of the partial uploads, but not the
+        # complete upload
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        foundUploads = resp.json
+        self.assertEqual(len(foundUploads), len(partialUploads))
+        # Check that the upload model is saved when we are using one chunk
+        self._uploadWasSaved = 0
+
+        def trackUploads(*args, **kwargs):
+            self._uploadWasSaved += 1
+
+        events.bind('model.upload.save', 'uploadWithInitialChunk', trackUploads)
+        self._uploadFileWithInitialChunk('upload4', oneChunk=True)
+        # This can be changed to assertEqual if one chunk uploads aren't saved
+        self.assertGreater(self._uploadWasSaved, 0)
+        self._uploadWasSaved = 0
+        # But that it is saved when using multiple chunks
+        self._uploadFileWithInitialChunk('upload5')
+        self.assertGreater(self._uploadWasSaved, 0)
+        events.unbind('model.upload.save', 'uploadWithInitialChunk')
 
     def testFilesystemAssetstoreUpload(self):
         self._testUpload()
