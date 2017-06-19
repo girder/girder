@@ -68,7 +68,7 @@ describe('Auto-configure the item task', function () {
 
         waitsFor(function () {
             return $('.g-job-status-badge').attr('status') === 'success';
-        }, 'job success status', 10000);
+        }, 'job success status');
     });
 });
 
@@ -250,7 +250,7 @@ describe('Auto-configure the JSON item task folder', function () {
 
         waitsFor(function () {
             return $('.g-job-status-badge').attr('status') === 'success';
-        }, 'job success status', 10000);
+        }, 'job success status');
     });
 });
 
@@ -342,7 +342,7 @@ describe('Auto-configure the demo JSON task', function () {
 
         waitsFor(function () {
             return $('.g-job-status-badge').attr('status') === 'success';
-        }, 'job success status', 10000);
+        }, 'job success status');
     });
 });
 
@@ -459,7 +459,7 @@ describe('Navigate to the demo task', function () {
 
         waitsFor(function () {
             return $('.g-job-status-badge').attr('status') === 'success';
-        }, 'job success status', 10000);
+        }, 'job success status');
 
         waitsFor(function () {
             return $('.g-job-log-container').text();
@@ -520,7 +520,7 @@ describe('Auto-configure the Slicer CLI item task folder', function () {
 
         waitsFor(function () {
             return $('.g-job-status-badge').attr('status') === 'success';
-        }, 'job success status', 10000);
+        }, 'job success status');
     });
 });
 
