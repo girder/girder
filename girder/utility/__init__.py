@@ -149,6 +149,8 @@ class RequestBodyStream(object):
     """
     Wraps a cherrypy request body into a more abstract file-like object.
     """
+    _ITER_CHUNK_LEN = 65536
+
     def __init__(self, stream, size=None):
         self.stream = stream
         self.size = size
@@ -158,6 +160,18 @@ class RequestBodyStream(object):
 
     def close(self, *args, **kwargs):
         pass
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        data = self.read(self._ITER_CHUNK_LEN)
+        if not data:
+            raise StopIteration
+        return data
+
+    def __next__(self):
+        return self.next()
 
     def getSize(self):
         """
