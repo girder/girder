@@ -65,12 +65,13 @@ class TasksTest(base.TestCase):
 
         parsedSpecs = json.loads(specs)
 
+        token = self.model('token').createToken(
+            user=self.admin, scope='item_task.set_task_spec.%s' % folder['_id'])
         resp = self.request(
-            '/folder/%s/item_task_json_specs' % (folder['_id']), method='POST', params={
+            '/folder/%s/item_task_json_specs' % folder['_id'], method='POST', params={
                 'image': 'johndoe/foo:v5',
                 'pullImage': False
-            },
-            user=self.admin, body=specs, type='application/json')
+            }, token=token, body=specs, type='application/json')
 
         self.assertStatusOk(resp)
 
@@ -103,12 +104,16 @@ class TasksTest(base.TestCase):
         with open(os.path.join(os.path.dirname(__file__), 'spec.json')) as f:
             spec = f.read()
         parsedSpec = json.loads(spec)
+
+        token = self.model('token').createToken(
+            user=self.admin, scope='item_task.set_task_spec.%s' % folder2['_id'])
         resp = self.request(
-            '/folder/%s/item_task_json_specs' % (folder2['_id']), method='POST', params={
+            '/folder/%s/item_task_json_specs' % folder2['_id'], method='POST', params={
                 'image': 'johndoe/foo:v5',
                 'pullImage': False
             },
-            user=self.admin, body=spec, type='application/json')
+            token=token, body=spec, type='application/json')
+        self.assertStatusOk(resp)
         items = list(self.model('folder').childItems(folder2, user=self.admin))
         self.assertEqual(len(items), 1)
 
@@ -164,12 +169,13 @@ class TasksTest(base.TestCase):
             specs = f.read()
 
         # Simulate callback with an invalid task name
+        token = self.model('token').createToken(scope='item_task.set_task_spec.%s' % item['_id'])
         resp = self.request(
             '/item/%s/item_task_json_specs' % (item['_id']), method='PUT', params={
                 'image': 'johndoe/foo:v5',
                 'taskName': 'Invalid task'
             },
-            user=self.admin, body=specs, type='application/json')
+            token=token, body=specs, type='application/json')
         self.assertStatus(resp, 400)
 
         # Simulate callback with a valid task name
@@ -181,7 +187,7 @@ class TasksTest(base.TestCase):
                 'setDescription': True,
                 'pullImage': False
             },
-            user=self.admin, body=specs, type='application/json')
+            token=token, body=specs, type='application/json')
         self.assertStatusOk(resp)
 
         # We should only be able to see tasks we have read access on
@@ -230,15 +236,16 @@ class TasksTest(base.TestCase):
             self.assertEqual(params['pullImage'], True)
 
         # Simulate callback from introspection job
+        token = self.model('token').createToken(scope='item_task.set_task_spec.%s' % item['_id'])
         resp = self.request(
-            '/item/%s/item_task_json_specs' % (item['_id']), method='PUT', params={
+            '/item/%s/item_task_json_specs' % item['_id'], method='PUT', params={
                 'image': 'johndoe/foo:v5',
                 'taskName': 'Task 1',
                 'setName': True,
                 'setDescription': True,
                 'pullImage': False
             },
-            user=self.admin, body=specs, type='application/json')
+            token=token, body=specs, type='application/json')
         self.assertStatusOk(resp)
 
         resp = self.request('/item_task', user=self.admin)
@@ -303,13 +310,15 @@ class TasksTest(base.TestCase):
         with open(os.path.join(os.path.dirname(__file__), 'slicer_cli.xml')) as f:
             xml = f.read()
 
+        token = self.model('token').createToken(
+            user=self.admin, scope='item_task.set_task_spec.%s' % folder['_id'])
         resp = self.request(
-            '/folder/%s/item_task_slicer_cli_xml' % (folder['_id']), method='POST', params={
+            '/folder/%s/item_task_slicer_cli_xml' % folder['_id'], method='POST', params={
                 'image': 'johndoe/foo:v5',
                 'args': json.dumps(['--foo', 'bar']),
                 'pullImage': False
             },
-            user=self.admin, body=xml, type='application/xml')
+            token=token, body=xml, type='application/xml')
         self.assertStatusOk(resp)
 
         # We should only be able to see tasks we have read access on
@@ -377,11 +386,12 @@ class TasksTest(base.TestCase):
         with open(os.path.join(os.path.dirname(__file__), 'slicer_cli.xml')) as f:
             xml = f.read()
 
+        token = self.model('token').createToken(scope='item_task.set_task_spec.%s' % item['_id'])
         resp = self.request(
             '/item/%s/item_task_slicer_cli_xml' % item['_id'], method='PUT', params={
                 'setName': True,
                 'setDescription': True
-            }, user=self.admin, body=xml, type='application/xml')
+            }, token=token, body=xml, type='application/xml')
         self.assertStatusOk(resp)
 
         # We should only be able to see tasks we have read access on
