@@ -26,7 +26,7 @@ var ConfigureTasksDialog = View.extend({
     },
 
     initialize: function () {
-        this.isFolder = this.model.get('_modelType') === 'folder';
+        this.isFolder = this.model.resourceName === 'folder';
         this.resourceName = this.isFolder ? 'folder' : 'item';
     },
 
