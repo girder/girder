@@ -6,9 +6,11 @@ import 'girder/utilities/jquery/girderModal';
 
 import template from '../templates/configureTasks.pug';
 
-// View to configure item tasks. Supports both populating a folder with tasks
-// and configuring an item with a task. In both cases, tabs are presented to
-// allow choosing between a JSON container and a Slicer CLI container.
+/**
+ * View to configure item tasks. Supports both populating a folder with tasks
+ * and configuring an item with a task. In both cases, tabs are presented to
+ * allow choosing between a JSON container and a Slicer CLI container.
+ */
 var ConfigureTasksDialog = View.extend({
     events: {
         'submit .g-configure-docker-form': function (e) {
