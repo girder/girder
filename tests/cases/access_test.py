@@ -23,6 +23,8 @@ from girder.api.rest import loadmodel, Resource
 from girder.api import access
 from girder.constants import AccessType, SettingKey, TokenScope
 
+CUSTOM_SCOPE = "Some.Exclusive.Scope"
+
 
 # We deliberately don't have an access decorator
 def defaultFunctionHandler(**kwargs):
@@ -41,6 +43,11 @@ def userFunctionHandler(**kwargs):
 
 @access.public
 def publicFunctionHandler(**kwargs):
+    return
+
+
+@access.token(scope=CUSTOM_SCOPE, required=True)
+def requireScope(**kwargs):
     return
 
 
@@ -130,6 +137,7 @@ def setUpModule():
                      publicFunctionHandler)
     accesstest.route('GET', ('test_loadmodel_plain', ':id'), plainFn)
     accesstest.route('GET', ('test_loadmodel_query',), loadModelWithMap)
+    accesstest.route('GET', ('test_required_scope_exists', ), requireScope)
 
 
 def tearDownModule():
@@ -325,3 +333,23 @@ class AccessTestCase(base.TestCase):
         resp = self.request(path=path, token=token)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_id'], str(self.user['_id']))
+
+    def testRequiredScopeExists(self):
+
+        token = self.model('token').createToken(scope=CUSTOM_SCOPE)
+
+        resp = self.request(path='/accesstest/test_required_scope_exists')
+        # If not given a user or a valid auth token the status should be 401
+        self.assertStatus(resp, 401)
+
+        resp2 = self.request(path='/accesstest/test_required_scope_exists',
+                             user=self.user)
+        # If the token does not have the CUSTOM_SCOPE the status should be 403
+        self.assertStatus(resp2, 403)
+
+        # If user is not given but the token has the correct scope
+        # the status should be 200
+        resp3 = self.request(path='/accesstest/test_required_scope_exists',
+                             token=token)
+
+        self.assertStatus(resp3, 200)

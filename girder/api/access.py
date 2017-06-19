@@ -21,6 +21,7 @@ import six
 
 from girder.api import rest
 from girder.models.model_base import AccessException
+from girder.utility.model_importer import ModelImporter
 
 
 def admin(*args, **kwargs):
@@ -105,6 +106,10 @@ def token(*args, **kwargs):
                 if not rest.getCurrentToken():
                     raise AccessException(
                         'You must be logged in or have a valid auth token.')
+                required = kwargs.get('required', False)
+                if required:
+                    ModelImporter.model('token').requireScope(rest.getCurrentToken(),
+                                                              kwargs['scope'])
                 return fun(*iargs, **ikwargs)
             wrapped.accessLevel = 'token'
             wrapped.requiredScopes = kwargs.get('scope')
