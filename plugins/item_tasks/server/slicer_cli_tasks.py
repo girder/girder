@@ -82,8 +82,7 @@ def runSlicerCliTasksDescriptionForItem(
             },
             'jobInfo': utils.jobInfoSpec(job),
             'validate': False,
-            'auto_convert': False,
-            'cleanup': True
+            'auto_convert': False
         }
     })
 
@@ -198,8 +197,7 @@ def runSlicerCliTasksDescriptionForFolder(self, folder, image, args, pullImage, 
             },
             'jobInfo': utils.jobInfoSpec(job),
             'validate': False,
-            'auto_convert': False,
-            'cleanup': True
+            'auto_convert': False
         }
     }
     job.update(jobOptions)

@@ -79,8 +79,7 @@ def runJsonTasksDescriptionForItem(self, item, image, taskName, setName, setDesc
             },
             'jobInfo': utils.jobInfoSpec(job),
             'validate': False,
-            'auto_convert': False,
-            'cleanup': True
+            'auto_convert': False
         }
     }
     job.update(jobOptions)
@@ -188,8 +187,7 @@ def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
             },
             'jobInfo': utils.jobInfoSpec(job),
             'validate': False,
-            'auto_convert': False,
-            'cleanup': True
+            'auto_convert': False
         }
     }
     job.update(jobOptions)
