@@ -53,6 +53,7 @@ class TasksTest(base.TestCase):
             params = job['kwargs']['outputs']['_stdout']['params']
             self.assertEqual(params['image'], 'johndoe/foo:v5')
             self.assertEqual(params['pullImage'], True)
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
 
         # Task should not be registered until we get the callback
         resp = self.request('/item_task', user=self.admin)
@@ -65,8 +66,6 @@ class TasksTest(base.TestCase):
 
         parsedSpecs = json.loads(specs)
 
-        token = self.model('token').createToken(
-            user=self.admin, scope='item_task.set_task_spec.%s' % folder['_id'])
         resp = self.request(
             '/folder/%s/item_task_json_specs' % folder['_id'], method='POST', params={
                 'image': 'johndoe/foo:v5',
@@ -158,6 +157,7 @@ class TasksTest(base.TestCase):
             self.assertEqual(params['setName'], True)
             self.assertEqual(params['setDescription'], True)
             self.assertEqual(params['pullImage'], True)
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
 
         # Task should not be registered until we get the callback
         resp = self.request('/item_task', user=self.admin)
@@ -169,7 +169,6 @@ class TasksTest(base.TestCase):
             specs = f.read()
 
         # Simulate callback with an invalid task name
-        token = self.model('token').createToken(scope='item_task.set_task_spec.%s' % item['_id'])
         resp = self.request(
             '/item/%s/item_task_json_specs' % (item['_id']), method='PUT', params={
                 'image': 'johndoe/foo:v5',
@@ -234,9 +233,9 @@ class TasksTest(base.TestCase):
             self.assertEqual(params['setName'], True)
             self.assertEqual(params['setDescription'], True)
             self.assertEqual(params['pullImage'], True)
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
 
         # Simulate callback from introspection job
-        token = self.model('token').createToken(scope='item_task.set_task_spec.%s' % item['_id'])
         resp = self.request(
             '/item/%s/item_task_json_specs' % item['_id'], method='PUT', params={
                 'image': 'johndoe/foo:v5',
@@ -300,6 +299,7 @@ class TasksTest(base.TestCase):
             self.assertEqual(params['image'], 'johndoe/foo:v5')
             self.assertEqual(params['args'], '["--foo", "bar"]')
             self.assertEqual(params['pullImage'], True)
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
 
         # Task should not be registered until we get the callback
         resp = self.request('/item_task', user=self.admin)
@@ -310,8 +310,6 @@ class TasksTest(base.TestCase):
         with open(os.path.join(os.path.dirname(__file__), 'slicer_cli.xml')) as f:
             xml = f.read()
 
-        token = self.model('token').createToken(
-            user=self.admin, scope='item_task.set_task_spec.%s' % folder['_id'])
         resp = self.request(
             '/folder/%s/item_task_slicer_cli_xml' % folder['_id'], method='POST', params={
                 'image': 'johndoe/foo:v5',
@@ -371,6 +369,7 @@ class TasksTest(base.TestCase):
             self.assertEqual(job['kwargs']['outputs']['_stdout']['method'], 'PUT')
             self.assertTrue(job['kwargs']['outputs']['_stdout']['url'].endswith(
                 'item/%s/item_task_slicer_cli_xml' % item['_id']))
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
 
         # Task should not be registered until we get the callback
         resp = self.request('/item_task', user=self.admin)
@@ -386,7 +385,6 @@ class TasksTest(base.TestCase):
         with open(os.path.join(os.path.dirname(__file__), 'slicer_cli.xml')) as f:
             xml = f.read()
 
-        token = self.model('token').createToken(scope='item_task.set_task_spec.%s' % item['_id'])
         resp = self.request(
             '/item/%s/item_task_slicer_cli_xml' % item['_id'], method='PUT', params={
                 'setName': True,
