@@ -71,8 +71,8 @@ class File(Resource):
                'The data for the first chunk of the file can be included with '
                'this query by sending it as the body of the request using an '
                'appropriate content-type and with the other parameters as '
-               'part of the query string.  If the entire file is uploaded as '
-               'a single via this call, the resulting file is returned.')
+               'part of the query string.  If the entire file is uploaded via '
+               'this call, the resulting file is returned.')
         .responseClass('Upload')
         .param('parentType', 'Type being uploaded into.', enum=['folder', 'item'])
         .param('parentId', 'The ID of the parent.')
@@ -126,7 +126,7 @@ class File(Resource):
                 chunk = None
 
             try:
-                # This can be made more efficient by adding
+                # TODO: This can be made more efficient by adding
                 #    save=chunk is None
                 # to the createUpload call parameters.  However, since this is
                 # a breaking change, that should be deferred until a major
