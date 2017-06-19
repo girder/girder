@@ -216,7 +216,7 @@ def runSlicerCliTasksDescriptionForFolder(self, folder, image, args, pullImage, 
     .param('image', 'The docker image name.', required=True, strip=True)
     .jsonParam('args', 'Arguments to be passed to the docker container to output the '
                'Slicer CLI spec.', required=False, default=[], requireArray=True)
-    .param('pullImage', 'Whether the image should be pulled from Docker Hub. ' +
+    .param('pullImage', 'Whether the image should be pulled from Docker Hub. '
            'Set to false to use local images only.',
            dataType='boolean', required=False, default=True),
     hide=True
