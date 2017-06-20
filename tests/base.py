@@ -31,6 +31,7 @@ import six
 import sys
 import unittest
 import uuid
+import warnings
 
 from six import BytesIO
 from six.moves import urllib
@@ -41,6 +42,10 @@ from girder.models import getDbConnection
 from . import mock_smtp
 from . import mock_s3
 from . import mongo_replicaset
+
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', 'setup_database.*')
+    from . import setup_database
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 30000)
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 30001)
@@ -225,6 +230,9 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         self.model('setting').set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
+        if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
+            setup_database.main(os.environ['GIRDER_TEST_DATABASE_CONFIG'])
+
     def tearDown(self):
         """
         Stop any services that we started just for this test.
@@ -269,6 +277,26 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 msg += 'Response body was:\n%s' % self.getBody(response)
 
             self.fail(msg)
+
+    def assertDictContains(self, expected, actual, msg=''):
+        """
+        Assert that an object is a subset of another.
+
+        This test will fail under the following conditions:
+
+            1. ``actual`` is not a dictionary.
+            2. ``expected`` contains a key not in ``actual``.
+            3. for any key in ``expected``, ``expected[key] != actual[key]``
+
+        :param test: The expected key/value pairs
+        :param actual: The actual object
+        :param msg: An optional message to include with test failures
+        """
+        self.assertIsInstance(actual, dict, msg + ' does not exist')
+        for k, v in six.iteritems(expected):
+            if k not in actual:
+                self.fail('%s expected key "%s"' % (msg, k))
+            self.assertEqual(v, actual[k])
 
     def assertHasKeys(self, obj, keys):
         """

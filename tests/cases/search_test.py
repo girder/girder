@@ -39,76 +39,16 @@ class SearchTestCase(base.TestCase):
         """
         Test resource/search endpoint
         """
-        # Create a bunch of searchable documents
-        admin = {
-            'email': 'admin@email.com',
-            'login': 'adminlogin',
-            'firstName': 'Admin',
-            'lastName': 'Last',
-            'password': 'adminpassword',
-            'admin': True
-        }
-        admin = self.model('user').createUser(**admin)
+        # get expected models from the database
+        admin = self.model('user').findOne({'login': 'adminlogin'})
+        user = self.model('user').findOne({'login': 'goodlogin'})
+        coll1 = self.model('collection').findOne({'name': 'Test Collection'})
+        coll2 = self.model('collection').findOne({'name': 'Magic collection'})
+        item1 = self.model('item').findOne({'name': 'Public object'})
 
-        user = {
-            'email': 'good@email.com',
-            'login': 'goodlogin',
-            'firstName': 'First',
-            'lastName': 'Last',
-            'password': 'goodpassword',
-            'admin': False
-        }
-        user = self.model('user').createUser(**user)
-
-        coll1 = {
-            'name': 'Test Collection',
-            'description': 'magic words. And more magic.',
-            'public': True,
-            'creator': admin
-        }
-        coll1 = self.model('collection').createCollection(**coll1)
-
-        coll2 = {
-            'name': 'Magic collection',
-            'description': 'private',
-            'public': False,
-            'creator': admin
-        }
-        coll2 = self.model('collection').createCollection(**coll2)
+        # set user read permissions on the private collection
         self.model('collection').setUserAccess(
             coll2, user, level=AccessType.READ, save=True)
-
-        folder1 = {
-            'parent': coll1,
-            'parentType': 'collection',
-            'name': 'Public test folder'
-        }
-        folder1 = self.model('folder').createFolder(**folder1)
-        self.model('folder').setUserAccess(
-            folder1, user, level=AccessType.READ, save=True)
-
-        folder2 = {
-            'parent': coll2,
-            'parentType': 'collection',
-            'name': 'Private test folder'
-        }
-        folder2 = self.model('folder').createFolder(**folder2)
-        self.model('folder').setUserAccess(
-            folder2, user, level=AccessType.NONE, save=True)
-
-        item1 = {
-            'name': 'Public object',
-            'creator': admin,
-            'folder': folder1
-        }
-        item1 = self.model('item').createItem(**item1)
-
-        item2 = {
-            'name': 'Secret object',
-            'creator': admin,
-            'folder': folder2
-        }
-        self.model('item').createItem(**item2)
 
         # Grab the default user folders
         resp = self.request(
