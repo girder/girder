@@ -377,7 +377,7 @@ class HdfsAssetstoreTest(base.TestCase):
             elif url.netloc == 'localhost:50075':
                 # Write the contents
                 with open(absPath, 'a') as f:
-                    f.write(request.body.read())
+                    f.write(b''.join(request.body))
                 return {
                     'status_code': 200
                 }
@@ -401,10 +401,11 @@ class HdfsAssetstoreTest(base.TestCase):
             self.assertStatusOk(resp)
             self.assertEqual(resp.json['offset'], len(chunk1))
 
-            fields = [('offset', len(chunk1)), ('uploadId', upload['_id'])]
-            files = [('chunk', 'testUpload.txt', chunk2)]
-            resp = self.multipartRequest(
-                path='/file/chunk', user=self.admin, fields=fields, files=files)
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.admin, body=chunk2, params={
+                    'offset': len(chunk1),
+                    'uploadId': upload['_id']
+                }, type='text/plain')
             self.assertStatusOk(resp)
             file = resp.json
 
