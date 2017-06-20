@@ -24,8 +24,9 @@ const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 module.exports = function (grunt) {
     // Get and validate options
     const progress = !grunt.option('no-progress');
-    const environment = grunt.config.get('environment');
     const isWatch = grunt.option('watch');
+    // Force environment to 'dev' if in watch mode
+    const environment = isWatch ? 'dev' : grunt.config.get('environment');
 
     // Set some environment variables
     if (!process.env.BABEL_ENV) {
@@ -50,6 +51,11 @@ module.exports = function (grunt) {
                 debug: true
             })
         ]);
+        if (isWatch) {
+            // When "watch" is enabled for webpack, grunt-webpack will intelligently set its own
+            // options for "keepalive" and "failOnError"
+            webpackConfig.watch = true;
+        }
     } else {
         // "devtool" is off by default
         webpackConfig.cache = false;
@@ -71,11 +77,6 @@ module.exports = function (grunt) {
                 }
             })
         ]);
-    }
-    if (isWatch) {
-        // When "watch" is enabled for webpack, grunt-webpack will intelligently set its own options
-        // for "keepalive" and "failOnError"
-        webpackConfig.watch = true;
     }
 
     // Add extra config options for grunt-webpack
