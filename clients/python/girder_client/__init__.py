@@ -323,7 +323,7 @@ class GirderClient(object):
             resp = self.post('api_key/token', parameters={
                 'key': apiKey
             })
-            self.token = resp['authToken']['token']
+            self.setToken(resp['authToken']['token'])
         else:
             if interactive:
                 if username is None:
@@ -343,7 +343,16 @@ class GirderClient(object):
             if 'authToken' not in resp:
                 raise AuthenticationError()
 
-            self.token = resp['authToken']['token']
+            self.setToken(resp['authToken']['token'])
+
+    def setToken(self, token):
+        """
+        Set a token on the GirderClient instance. This is useful in the case
+        where the client has already been given a valid token, such as a remote job.
+
+        :param token: A string containing the existing Girder token
+        """
+        self.token = token
 
     def getServerVersion(self, useCached=True):
         """
