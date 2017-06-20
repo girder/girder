@@ -28,10 +28,11 @@ var ItemPreviewWidget = View.extend({
 
     initialize: function (settings) {
         this.collection = new ItemCollection();
+        this.itemCollection = {};
 
         this.collection.on('g:changed', function () {
             this.trigger('g:changed');
-            this.render();
+            this.loadFileList();
         }, this).fetch({
             folderId: settings.folderId
         });
@@ -53,8 +54,35 @@ var ItemPreviewWidget = View.extend({
         return /\.(jpg|jpeg|png|gif)$/i.test(item.get('name'));
     },
 
+    _isSingleFileItem: function (item) {
+        return this.itemCollection[item.get('_id')].length === 1;
+    },
+
+    loadFileList: function () {
+        var count = 0;
+        var view = this;
+        this.collection.forEach(function (item) {
+            restRequest({
+                path: `/item/${item.id}/files`
+            }).done(resp => {
+                // add files data to itemCollection
+                view.itemCollection[item.get('_id')] = resp;
+
+                // when all files from items are fetched --> render
+                if (count === view.collection.length - 1) {
+                    view.render();
+                } else {
+                    count++;
+                }
+            });
+        });
+    },
+
     render: function () {
         var supportedItems = this.collection.filter(this._isSupportedItem.bind(this));
+
+        // do not support preview for multiples files inside item
+        supportedItems = supportedItems.filter(this._isSingleFileItem.bind(this));
 
         var view = this;
 
