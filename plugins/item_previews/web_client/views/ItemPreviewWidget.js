@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import $ from 'jquery';
-import 'girder/utilities/jquery/promise';
 import View from 'girder/views/View';
 import { restRequest, apiRoot } from 'girder/rest';
+import { _whenAll } from 'girder/misc';
 
 import ItemPreviewWidgetTemplate from '../templates/itemPreviewWidget.pug';
 import ItemPreviewItemTemplate from '../templates/itemPreviewItem.pug';
@@ -29,8 +29,6 @@ var ItemPreviewWidget = View.extend({
         this.addingMoreItems = false;
 
         this.supportedItems = [];
-
-        this.setCollection(settings.collection);
     },
 
     // Because the parent-child life cycle is not clean, this method is needed.
@@ -70,7 +68,7 @@ var ItemPreviewWidget = View.extend({
             this.initialized = true;
             this.renderedIndex = 0;
             this.$el.html(ItemPreviewWidgetTemplate(this));
-            this.$('.g-widget-item-previews-container').on('scroll', e => this.onScroll(e));
+            this.$('.g-widget-item-previews-container').on('scroll', (e) => this.onScroll(e));
             this.debouncedAddMoreItem();
         }
     },
@@ -93,17 +91,17 @@ var ItemPreviewWidget = View.extend({
         }
 
         var $container = this.$('.g-widget-item-prevews-wrapper');
-        $.whenAll(items.map(item => {
+        _whenAll(items.map((item) => {
             return restRequest({
                 path: `item/${item._id}/files`
-            }).then(files => {
-                return $.whenAll(files.map(file => {
+            }).then((files) => {
+                return _whenAll(files.map((file) => {
                     return this.tryGetFileContent(file, file.mimeType, 'file');
                 }));
             });
-        })).then(results => {
+        })).then((results) => {
             items.forEach((item, i) => {
-                var contents = results[i].filter(result => result);
+                var contents = results[i].filter((result) => result);
                 if (contents.length) {
                     $container.append(ItemPreviewItemTemplate({
                         item: item,
@@ -150,7 +148,7 @@ var ItemPreviewWidget = View.extend({
             path: url,
             type: 'GET',
             error: null
-        }).then(resp => {
+        }).then((resp) => {
             return {
                 type: 'json',
                 value: resp

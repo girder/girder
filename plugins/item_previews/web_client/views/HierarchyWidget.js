@@ -20,7 +20,7 @@ wrap(HierarchyWidget, 'render', function (render) {
 
 wrap(HierarchyWidget, '_initFolderViewSubwidgets', function (base) {
     base.call(this);
-    if (this._showItems) {
+    if (this._showItems && !this.itemPreviewView) {
         this.itemPreviewView = new ItemPreviewWidget({
             collection: this.itemListView.collection,
             parentView: this
