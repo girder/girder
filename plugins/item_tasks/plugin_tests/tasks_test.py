@@ -477,11 +477,12 @@ class TasksTest(base.TestCase):
                 'name': 'MinimumSphereDistance'
             }, {
                 'description': 'What kind of phantom are we working with here?',
-                'format': 'integer',
+                'format': 'number-enumeration',
                 'default': {'data': 3},
-                'type': 'integer',
+                'type': 'number-enumeration',
                 'id': '--SpheresPerPhantom',
-                'name': 'SpheresPerPhantom'
+                'name': 'SpheresPerPhantom',
+                'values': [2, 3]
             }, {
                 'description': 'Controls whether spheres within a phantom must have descending '
                                'activities. If OFF, they can have approximately same activities '
