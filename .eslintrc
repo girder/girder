@@ -1,8 +1,3 @@
 {
-    "extends": "girder",
-    "rules": {
-        "no-throw-literal": "off",
-        "promise/always-return": "error",
-        "promise/no-nesting": "error"
-    }
+    "extends": "girder"
 }

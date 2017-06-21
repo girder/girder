@@ -49,7 +49,7 @@ var ConfigView = View.extend({
                     bindName,
                     password
                 }
-            }).done(resp => {
+            }).done((resp) => {
                 btn.girderEnable(true);
                 if (resp.connected) {
                     this.$(`#g-ldap-server-${idx}-conn-ok`).removeClass('hide');
@@ -72,7 +72,7 @@ var ConfigView = View.extend({
             data: {
                 key: 'ldap.servers'
             }
-        }).done(resp => {
+        }).done((resp) => {
             this.servers = resp;
             this.render();
         });
@@ -97,9 +97,9 @@ var ConfigView = View.extend({
     },
 
     _saveSettings: function () {
-        const servers = _.map(this.$('.g-ldap-server-panel'), panel => {
+        const servers = _.map(this.$('.g-ldap-server-panel'), (panel) => {
             const server = {};
-            _.each(FIELDS, field => {
+            _.each(FIELDS, (field) => {
                 server[field] = $(panel).find(`input[name="${field}"]`).val();
             });
             return server;
@@ -122,7 +122,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 3000
             });
-        }).fail(resp => {
+        }).fail((resp) => {
             this.$('.g-validation-failed-message').text(resp.responseJSON.message);
         });
     }

@@ -6,6 +6,10 @@ from girder.plugins.jobs.constants import JobStatus
 from girder.utility.model_importer import ModelImporter
 from . import constants
 from .rest import ItemTask
+from .json_tasks import createItemTasksFromJson, configureItemTaskFromJson, \
+    runJsonTasksDescriptionForFolder, runJsonTasksDescriptionForItem
+from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, createItemTasksFromSlicerCliXml, \
+    runSlicerCliTasksDescriptionForFolder, runSlicerCliTasksDescriptionForItem
 
 
 def _onJobSave(event):
@@ -80,3 +84,21 @@ def load(info):
     events.bind('data.process', info['name'], _onUpload)
 
     info['apiRoot'].item_task = ItemTask()
+
+    info['apiRoot'].item.route('POST', (':id', 'item_task_slicer_cli_description'),
+                               runSlicerCliTasksDescriptionForItem)
+    info['apiRoot'].item.route('PUT', (':id', 'item_task_slicer_cli_xml'),
+                               configureItemTaskFromSlicerCliXml)
+    info['apiRoot'].item.route('POST', (':id', 'item_task_json_description'),
+                               runJsonTasksDescriptionForItem)
+    info['apiRoot'].item.route('PUT', (':id', 'item_task_json_specs'),
+                               configureItemTaskFromJson)
+
+    info['apiRoot'].folder.route('POST', (':id', 'item_task_slicer_cli_description'),
+                                 runSlicerCliTasksDescriptionForFolder)
+    info['apiRoot'].folder.route('POST', (':id', 'item_task_slicer_cli_xml'),
+                                 createItemTasksFromSlicerCliXml)
+    info['apiRoot'].folder.route('POST', (':id', 'item_task_json_description'),
+                                 runJsonTasksDescriptionForFolder)
+    info['apiRoot'].folder.route('POST', (':id', 'item_task_json_specs'),
+                                 createItemTasksFromJson)

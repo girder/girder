@@ -27,7 +27,7 @@ const CandelaParametersView = View.extend({
         this._columns = ['(none)'].concat(columns);
         this._multiColumns = this._columns.slice(1);
         this._numericColumns = ['(none)'].concat(
-            this._columns.filter(d => this._data.__types__[d] === 'number'));
+            this._columns.filter((d) => this._data.__types__[d] === 'number'));
         this._multiNumericColumns = this._numericColumns.slice(1);
         this.render();
     },

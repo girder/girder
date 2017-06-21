@@ -128,15 +128,7 @@ router.route('item/:id', 'item', function (itemId, params) {
 import PluginsView from 'girder/views/body/PluginsView';
 import UsersView from 'girder/views/body/UsersView';
 router.route('plugins', 'plugins', function () {
-    // Fetch the plugin list
-    restRequest({
-        path: 'system/plugins',
-        type: 'GET'
-    }).done(_.bind(function (resp) {
-        events.trigger('g:navigateTo', PluginsView, resp);
-    }, this)).fail(_.bind(function () {
-        events.trigger('g:navigateTo', UsersView);
-    }, this));
+    events.trigger('g:navigateTo', PluginsView);
 });
 
 /**

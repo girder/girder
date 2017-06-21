@@ -1,4 +1,4 @@
-export default {
+const timingHistoryChartConfig = {
     'width': 800,
     'height': 500,
     'padding': 'strict',
@@ -382,7 +382,7 @@ export default {
     'legends': [
         {
             'fill': 'color',
-            'title': 'timings',
+            'title': 'Selected Phases',
             'offset': -3,
             'properties': {
                 'title': {
@@ -399,3 +399,5 @@ export default {
         }
     ]
 };
+
+export default timingHistoryChartConfig;

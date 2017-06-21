@@ -15,10 +15,11 @@
  */
 
 var path = require('path');
-var _ = require('underscore');
 
+var _ = require('underscore');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+
 var webpackGlobalConfig = require('./webpack.config.js');
 var paths = require('./webpack.paths.js');
 

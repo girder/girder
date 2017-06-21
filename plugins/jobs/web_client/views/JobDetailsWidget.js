@@ -14,15 +14,15 @@ var JobDetailsWidget = View.extend({
     initialize: function (settings) {
         this.job = settings.job;
 
-        eventStream.on('g:event.job_status', function (event) {
+        this.listenTo(eventStream, 'g:event.job_status', function (event) {
             var info = event.data;
             if (info._id === this.job.id) {
                 this.job.set(info);
                 this.render();
             }
-        }, this);
+        });
 
-        eventStream.on('g:event.job_log', function (event) {
+        this.listenTo(eventStream, 'g:event.job_log', function (event) {
             var info = event.data;
             if (info._id === this.job.id) {
                 var container = this.$('.g-job-log-container');
@@ -34,7 +34,7 @@ var JobDetailsWidget = View.extend({
                     container.append(_.escape(info.text));
                 }
             }
-        }, this);
+        });
 
         if (settings.renderImmediate) {
             this.render();

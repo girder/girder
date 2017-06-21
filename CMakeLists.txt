@@ -53,6 +53,7 @@ endif()
 
 if(BUILD_TESTING)
   include(tests/TestData.cmake)
+  include(tests/TestCommon.cmake)
   include(tests/PythonTests.cmake)
   include(tests/JavascriptTests.cmake)
   add_subdirectory(tests)

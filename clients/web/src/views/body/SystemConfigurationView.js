@@ -180,7 +180,7 @@ var SystemConfigurationView = View.extend({
         if (this.$('.g-plugin-switch').bootstrapSwitch('state')) {
             settingValue = { open: this.$('.g-plugin-switch').bootstrapSwitch('state') };
             var accessList = this.accessWidget.getAccessList();
-            _.each(_.keys(accessList), key => {
+            _.each(_.keys(accessList), (key) => {
                 settingValue[key] = _.pluck(accessList[key], 'id');
             });
         } else {

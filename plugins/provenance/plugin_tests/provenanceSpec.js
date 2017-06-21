@@ -1,8 +1,4 @@
-/* globals girderTest, describe, expect, it, runs, waitsFor  */
-
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/provenance/plugin.min.js'
-]);
+girderTest.importPlugin('provenance');
 
 girderTest.startApp();
 

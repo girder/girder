@@ -629,7 +629,7 @@ girderTest.waitForDialog = function (desc) {
 girderTest.promise = $.Deferred().resolve().promise();
 
 /**
- * Import a javascript file and.
+ * Import a javascript file.
  */
 girderTest.addScript = function (url) {
     girderTest.promise = girderTest.promise
@@ -640,19 +640,7 @@ girderTest.addScript = function (url) {
 };
 
 /**
- * An alias to addScript for backwards compatibility.
- */
-girderTest.addCoveredScript = girderTest.addScript;
-
-/**
- * Import a list of covered scripts. Order will be respected.
- */
-girderTest.addCoveredScripts = function (scripts) {
-    _.each(scripts, girderTest.addCoveredScript);
-};
-
-/**
- * Import a list of non-covered scripts. Order will be respected.
+ * Import a list of scripts. Order will be respected.
  */
 girderTest.addScripts = function (scripts) {
     _.each(scripts, girderTest.addScript);
@@ -667,6 +655,37 @@ girderTest.importStylesheet = function (css) {
         type: 'text/css',
         href: css
     }).appendTo('head');
+};
+
+/**
+ * Import the JS and CSS files for a plugin.
+ *
+ * @param {...string} pluginNames A plugin name. Multiple arguments may be passed, to import
+ *                                multiple plugins in order.
+ */
+girderTest.importPlugin = function (pluginName) {
+    _.each(arguments, function (pluginName) {
+        girderTest.addScript('/static/built/plugins/' + pluginName + '/plugin.min.js');
+        girderTest.importStylesheet('/static/built/plugins/' + pluginName + '/plugin.min.css');
+    });
+};
+
+/**
+ * An alias to addScript for backwards compatibility.
+ * @deprecated
+ */
+girderTest.addCoveredScript = function (url) {
+    console.warn('girderTest.addCoveredScript is deprecated, use girderTest.addScript instead');
+    girderTest.addScript(url);
+};
+
+/**
+ * An alias to addScripts for backwards compatibility.
+ * @deprecated
+ */
+girderTest.addCoveredScripts = function (scripts) {
+    console.warn('girderTest.addCoveredScripts is deprecated, use girderTest.addScripts instead');
+    girderTest.addScripts(scripts);
 };
 
 /**
@@ -814,39 +833,42 @@ girderTest.getCallbackSuffix = function () {
 /* Upload tests require that we modify how xmlhttp requests are handled.  Check
  * that this has been done (but only do it once).
  */
-function _prepareTestUpload() {
-    if (girderTest._preparedTestUpload) {
-        return;
-    }
-    girderTest._uploadData = null;
-    /* used for resume testing */
-    girderTest._uploadDataExtra = 0;
-    girderTest.getCallbackSuffix();
+girderTest._prepareTestUpload = (function () {
+    var alreadyPrepared = false;
+    return function () {
+        if (alreadyPrepared) {
+            return;
+        }
 
-    (function (impl) {
-        XMLHttpRequest.prototype.send = function (data) {
-            if (data && data instanceof Blob) {
-                if (girderTest._uploadDataExtra) {
-                    /* Our mock S3 server will take extra data, so break it
-                     * by adding a faulty copy header.  This will throw an
-                     * error so we can test resumes. */
-                    this.setRequestHeader('x-amz-copy-source', 'bad_value');
-                }
-                if (girderTest._uploadData.length &&
-                    girderTest._uploadData.length === data.size &&
-                    !girderTest._uploadDataExtra) {
-                    data = girderTest._uploadData;
-                } else {
-                    data = new Array(
-                        data.size + 1 + girderTest._uploadDataExtra).join('-');
-                }
-            }
-            impl.call(this, data);
-        };
-    }(XMLHttpRequest.prototype.send));
+        girderTest._uploadData = null;
+        /* used for resume testing */
+        girderTest._uploadDataExtra = 0;
+        girderTest.getCallbackSuffix();
 
-    girderTest._preparedTestUpload = true;
-}
+        (function (impl) {
+            XMLHttpRequest.prototype.send = function (data) {
+                if (data && data instanceof Blob) {
+                    if (girderTest._uploadDataExtra) {
+                        /* Our mock S3 server will take extra data, so break it
+                         * by adding a faulty copy header.  This will throw an
+                         * error so we can test resumes. */
+                        this.setRequestHeader('x-amz-copy-source', 'bad_value');
+                    }
+                    if (girderTest._uploadData.length &&
+                        girderTest._uploadData.length === data.size && !girderTest._uploadDataExtra) {
+                        data = girderTest._uploadData;
+                    } else {
+                        data = new Array(
+                            data.size + 1 + girderTest._uploadDataExtra).join('-');
+                    }
+                }
+                impl.call(this, data);
+            };
+        }(XMLHttpRequest.prototype.send));
+
+        alreadyPrepared = true;
+    };
+})();
 
 girderTest.sendFile = function (uploadItem, selector) {
     // Incantation that causes the phantom environment to send us a File.
@@ -877,7 +899,7 @@ girderTest.sendFile = function (uploadItem, selector) {
 girderTest.testUpload = function (uploadItem, needResume, error) {
     var origLen;
 
-    _prepareTestUpload();
+    girderTest._prepareTestUpload();
 
     waitsFor(function () {
         return $('.g-upload-here-button').length > 0;
@@ -1032,7 +1054,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
         });
     }
 
-    _prepareTestUpload();
+    girderTest._prepareTestUpload();
 
     runs(function () {
         $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));

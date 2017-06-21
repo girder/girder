@@ -219,8 +219,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         # Store the hash in the upload so that deleting a file won't delete
         # this file
-        upload['sha512'] = hash
-        self.model('upload').update({'_id': upload['_id']}, update={'$set': {'sha512': hash}})
+        if '_id' in upload:
+            upload['sha512'] = hash
+            self.model('upload').update({'_id': upload['_id']}, update={'$set': {'sha512': hash}})
 
         mkdir(absdir)
 

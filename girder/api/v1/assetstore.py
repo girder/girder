@@ -76,6 +76,8 @@ class Assetstore(Resource):
         .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
         .param('replicaset', 'Replica set name (for GridFS type)',
                required=False)
+        .param('shard', 'Shard the collection (for GridFS type).  Set to '
+               '"auto" to set up sharding.', required=False)
         .param('bucket', 'The S3 bucket to store data in (for S3 type).',
                required=False)
         .param('prefix', 'Optional path prefix within the bucket under which '
@@ -93,7 +95,7 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def createAssetstore(self, name, type, root, perms, db, mongohost, replicaset, bucket,
+    def createAssetstore(self, name, type, root, perms, db, mongohost, replicaset, shard, bucket,
                          prefix, accessKeyId, secret, service, readOnly, params):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
@@ -102,7 +104,7 @@ class Assetstore(Resource):
         elif type == AssetstoreType.GRIDFS:
             self.requireParams({'db': db})
             return self.model('assetstore').createGridFsAssetstore(
-                name=name, db=db, mongohost=mongohost, replicaset=replicaset)
+                name=name, db=db, mongohost=mongohost, replicaset=replicaset, shard=shard)
         elif type == AssetstoreType.S3:
             self.requireParams({'bucket': bucket})
             return self.model('assetstore').createS3Assetstore(
@@ -162,6 +164,8 @@ class Assetstore(Resource):
         .param('db', 'Database name (for GridFS type)', required=False)
         .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
         .param('replicaset', 'Replica set name (for GridFS type)', required=False)
+        .param('shard', 'Shard the collection (for GridFS type).  Set to '
+               '"auto" to set up sharding.', required=False)
         .param('bucket', 'The S3 bucket to store data in (for S3 type).', required=False)
         .param('prefix', 'Optional path prefix within the bucket under which '
                'files will be stored (for S3 type).', required=False, default='')
@@ -179,8 +183,8 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def updateAssetstore(self, assetstore, name, root, perms, db, mongohost, replicaset, bucket,
-                         prefix, accessKeyId, secret, service, readOnly, current, params):
+    def updateAssetstore(self, assetstore, name, root, perms, db, mongohost, replicaset, shard,
+                         bucket, prefix, accessKeyId, secret, service, readOnly, current, params):
         assetstore['name'] = name
         assetstore['current'] = current
 
@@ -196,6 +200,8 @@ class Assetstore(Resource):
                 assetstore['mongohost'] = mongohost
             if replicaset is not None:
                 assetstore['replicaset'] = replicaset
+            if shard is not None:
+                assetstore['shard'] = shard
         elif assetstore['type'] == AssetstoreType.S3:
             self.requireParams({
                 'bucket': bucket,
@@ -214,7 +220,7 @@ class Assetstore(Resource):
                 'assetstore': assetstore,
                 'params': dict(
                     name=name, current=current, readOnly=readOnly, root=root, perms=perms,
-                    db=db, mongohost=mongohost, replicaset=replicaset, bucket=bucket,
+                    db=db, mongohost=mongohost, replicaset=replicaset, shard=shard, bucket=bucket,
                     prefix=prefix, accessKeyId=accessKeyId, secret=secret, service=service,
                     **params
                 )
