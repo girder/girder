@@ -68,8 +68,8 @@ if(RUN_CORE_TESTS)
   add_python_test(path_utilities)
   add_python_test(setup_database)
 
-  add_python_test(py_client.cli BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
-  add_python_test(py_client.lib BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
+  add_python_test(py_client.cli BIND_SERVER RESOURCE_LOCKS py_client_test_dir TEST_FILE "py_client/cli_test.py")
+  add_python_test(py_client.lib BIND_SERVER RESOURCE_LOCKS py_client_test_dir TEST_FILE "py_client/lib_test.py")
 
   add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE filesystem)
   add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfs)

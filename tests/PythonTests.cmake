@@ -81,7 +81,7 @@ function(add_python_test case)
   set(name "server_${case}")
 
   set(_options BIND_SERVER PY2_ONLY RUN_SERIAL)
-  set(_args DBNAME PLUGIN SUBMODULE)
+  set(_args DBNAME PLUGIN SUBMODULE TEST_FILE)
   set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES COVERAGE_PATHS
                      ENVIRONMENT SETUP_DATABASE)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
@@ -96,12 +96,20 @@ function(add_python_test case)
     set(module plugin_tests.${case}_test)
     set(pythonpath "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}")
     set(other_covg ",${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/server")
-    set(test_file "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/plugin_tests/${case}_test.py")
+    if (fn_TEST_FILE)
+      set(test_file "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/${fn_TEST_FILE}")
+    else()
+      set(test_file "${PROJECT_SOURCE_DIR}/plugins/${fn_PLUGIN}/plugin_tests/${case}_test.py")
+    endif()
   else()
     set(module tests.cases.${case}_test)
     set(pythonpath "")
     set(other_covg "")
-    set(test_file "${PROJECT_SOURCE_DIR}/tests/cases/${case}_test.py")
+    if (fn_TEST_FILE)
+      set(test_file "${PROJECT_SOURCE_DIR}/tests/cases/${fn_TEST_FILE}")
+    else()
+      set(test_file "${PROJECT_SOURCE_DIR}/tests/cases/${case}_test.py")
+    endif()
   endif()
 
   if(fn_COVERAGE_PATHS)
@@ -117,15 +125,16 @@ function(add_python_test case)
     add_test(
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --parallel-mode "--rcfile=${PYTHON_COVERAGE_CONFIG}"
-              "--source=girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
-              -m unittest -v ${module}
+      COMMAND "${PYTHON_EXECUTABLE}" -m pytest "--cov=girder"
+      "--cov=${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
+      "--cov-append"
+      "--cov-config=${PYTHON_COVERAGE_CONFIG}" -v ${fn_PYTEST_ARGS} ${test_file}
     )
   else()
     add_test(
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v ${module}
+      COMMAND "${PYTHON_EXECUTABLE}" -m pytest -v ${test_file}
     )
   endif()
 
