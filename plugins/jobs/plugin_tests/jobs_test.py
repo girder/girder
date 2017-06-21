@@ -641,7 +641,7 @@ class JobsTestCase(base.TestCase):
         # If user has the necessary token status is 200
         self.assertStatus(resp2, 200)
 
-	def testJobStateTransitions(self):
+    def testJobStateTransitions(self):
         jobModel = self.model('job', 'jobs')
         job = jobModel.createJob(
             title='user 0 job', type='t1', user=self.users[0], public=False)
@@ -661,4 +661,3 @@ class JobsTestCase(base.TestCase):
             jobModel.updateJob(job, status=JobStatus.RUNNING)
         with self.assertRaises(ValidationException):
             jobModel.updateJob(job, status=JobStatus.INACTIVE)
-
