@@ -228,27 +228,27 @@ def createItemTasksFromSlicerCliXml(self, folder, xml, image, args, pullImage, p
     token = self.getCurrentToken()
     user = self.model('user').load(token['userId'], force=True)
 
-    # TODO: Update once CLI spec supports multiple executables
-    cliSpec = cli_parser.parseSlicerCliXml(xml)
+    cliSpecs = cli_parser.parseSlicerCliXml(xml, multi=True)
 
-    itemTaskSpec = {
-        'container_args': args + cliSpec['args'],
-        'inputs': cliSpec['inputs'],
-        'outputs': cliSpec['outputs']
-    }
+    for cliSpec in cliSpecs:
+        itemTaskSpec = {
+            'container_args': args + cliSpec['args'],
+            'inputs': cliSpec['inputs'],
+            'outputs': cliSpec['outputs']
+        }
 
-    item = self.model('item').createItem(
-        name=cliSpec['title'],
-        creator=user,
-        folder=folder,
-        description=cliSpec['description'],
-        reuseExisting=True)
+        item = self.model('item').createItem(
+            name=cliSpec['title'],
+            creator=user,
+            folder=folder,
+            description=cliSpec['description'],
+            reuseExisting=True)
 
-    itemTaskSpec['mode'] = 'docker'
-    itemTaskSpec['docker_image'] = image
-    itemTaskSpec['pull_image'] = pullImage
-    self.model('item').setMetadata(item, {
-        'itemTaskSlicerCliArgs': args,
-        'itemTaskSpec': itemTaskSpec,
-        'isItemTask': True
-    })
+        itemTaskSpec['mode'] = 'docker'
+        itemTaskSpec['docker_image'] = image
+        itemTaskSpec['pull_image'] = pullImage
+        self.model('item').setMetadata(item, {
+            'itemTaskSlicerCliArgs': args,
+            'itemTaskSpec': itemTaskSpec,
+            'isItemTask': True
+        })
