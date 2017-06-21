@@ -85,13 +85,16 @@ def simulateRun(job):
 
 
 def mockedSchedule(self, job, *args, **kwargs):
-    if job['type'] == 'item_task.slicer_cli':
+    # Configure item/folder from Slicer CLI
+    if job['type'].endswith('.item_task_slicer_cli_description'):
         simulateConfigure(job)
-    elif job['type'] == 'item_task.json_description' and \
-            job['title'].find('item-tasks-demo') >= 0:
-        simulateJsonConfigure(job, os.path.join('..', 'demo', 'demo.json'))
-    elif job['type'] == 'item_task.json_description':
-        simulateJsonConfigure(job, 'specs.json')
+    # Configure item/folder from JSON
+    elif job['type'].endswith('.item_task_json_description'):
+        if job['title'].find('item-tasks-demo') >= 0:
+            simulateJsonConfigure(job, os.path.join('..', 'demo', 'demo.json'))
+        else:
+            simulateJsonConfigure(job, 'specs.json')
+    # Execute task
     elif job['type'] == 'item_task':
         simulateRun(job)
     else:

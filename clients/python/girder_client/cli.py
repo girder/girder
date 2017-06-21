@@ -16,7 +16,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
 import click
 import sys
 import types
@@ -273,16 +272,17 @@ _short_help = 'Upload files to Girder'
               help='will not write anything to Girder, only report what would happen')
 @click.option('--blacklist', default='',
               help='comma-separated list of filenames to ignore')
+@click.option('--reference', default=None,
+              help='optional reference to send along with the upload')
 @click.pass_obj
 def _upload(gc, parent_type, parent_id, local_folder,
-            leaf_folders_as_items, reuse, blacklist, dry_run):
+            leaf_folders_as_items, reuse, blacklist, dry_run, reference):
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
-    for local in local_folder:
-        gc.upload(
-            local, parent_id, parent_type,
-            leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,
-            blacklist=blacklist.split(','), dryRun=dry_run)
+    gc.upload(
+        local_folder, parent_id, parent_type,
+        leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,
+        blacklist=blacklist.split(','), dryRun=dry_run, reference=reference)
 
 
 if __name__ == '__main__':

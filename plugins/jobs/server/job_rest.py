@@ -21,6 +21,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType, SortDir
+from . import constants
 
 
 class Job(Resource):
@@ -30,6 +31,7 @@ class Job(Resource):
         self.resourceName = 'job'
 
         self.route('GET', (), self.listJobs)
+        self.route('POST', (), self.createJob)
         self.route('GET', ('all',), self.listAllJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
@@ -72,6 +74,36 @@ class Job(Resource):
             user=user, offset=offset, limit=limit, types=types,
             statuses=statuses, sort=sort, currentUser=currentUser,
             parentJob=parent))
+
+    @filtermodel(model='job', plugin='jobs')
+    @access.token(scope=constants.REST_CREATE_JOB_TOKEN_SCOPE, required=True)
+    @autoDescribeRoute(
+        Description('Create a job model')
+        .param('title', '', required=True)
+        .param('type', '', required=True)
+        .modelParam('parentId', 'ID of the parent job.', model='job',
+                    plugin='jobs', level=AccessType.ADMIN,
+                    destName='parentJob', paramType='query', required=False)
+        .param('public', '', required=False, dataType='boolean', default=False)
+        .param('handler', '', required=False, dataType='string')
+        .jsonParam('args', 'Job arguments', required=False, requireArray=True)
+        .jsonParam('kwargs', 'Job keyword arguments', required=False,
+                   requireObject=True)
+        .jsonParam('otherFields', 'Other fields specific to the job handler',
+                   requireObject=True, required=False)
+    )
+    def createJob(self, title, type, parentJob, public, handler, args, kwargs,
+                  otherFields, params):
+        return self.model('job', 'jobs').createJob(
+            title=title,
+            type=type,
+            public=public,
+            handler=handler,
+            user=self.getCurrentUser(),
+            args=args,
+            kwargs=kwargs,
+            parentJob=parentJob,
+            otherFields=otherFields)
 
     @access.admin
     @filtermodel(model='job', plugin='jobs')

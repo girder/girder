@@ -1,8 +1,8 @@
-import Panel from './Panel';
-import ControlWidget from './ControlWidget';
-
 import controlsPanel from '../templates/controlsPanel.pug';
 import '../stylesheets/controlsPanel.styl';
+
+import Panel from './Panel';
+import ControlWidget from './ControlWidget';
 
 var ControlsPanel = Panel.extend({
     initialize: function (settings) {

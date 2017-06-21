@@ -1,8 +1,6 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import WidgetCollection from '../collections/WidgetCollection';
-import ControlsPanel from './ControlsPanel';
 import View from 'girder/views/View';
 import FolderModel from 'girder/models/FolderModel';
 import ItemModel from 'girder/models/ItemModel';
@@ -12,6 +10,9 @@ import { renderMarkdown } from 'girder/misc';
 
 import template from '../templates/taskRun.pug';
 import '../stylesheets/taskRun.styl';
+import WidgetCollection from '../collections/WidgetCollection';
+
+import ControlsPanel from './ControlsPanel';
 
 const TaskRunView = View.extend({
     events: {

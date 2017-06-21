@@ -1,4 +1,4 @@
-export default {
+const timeChartConfig = {
     'width': 894,
     'height': 673,
     'padding': 'strict',
@@ -270,7 +270,7 @@ export default {
     'legends': [
         {
             'fill': 'timing',
-            'title': 'Timings',
+            'title': 'Status',
             'offset': -3,
             'properties': {
                 'title': {
@@ -287,3 +287,5 @@ export default {
         }
     ]
 };
+
+export default timeChartConfig;

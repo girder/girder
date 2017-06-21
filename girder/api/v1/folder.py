@@ -38,6 +38,7 @@ class Folder(Resource):
         self.route('GET', (':id', 'details'), self.getFolderDetails)
         self.route('GET', (':id', 'access'), self.getFolderAccess)
         self.route('GET', (':id', 'download'), self.downloadFolder)
+        self.route('GET', (':id', 'rootpath'), self.rootpath)
         self.route('POST', (), self.createFolder)
         self.route('PUT', (':id',), self.updateFolder)
         self.route('PUT', (':id', 'access'), self.updateFolderAccess)
@@ -213,21 +214,24 @@ class Folder(Resource):
         .param('name', 'Name of the folder.', strip=True)
         .param('description', 'Description for the folder.', required=False,
                default='', strip=True)
-        .param('public', "Whether the folder should be publicly visible. By "
-               "default, inherits the value from parent folder, or in the "
-               "case of user or collection parentType, defaults to False.",
+        .param('reuseExisting', 'Return existing folder if it exists rather than '
+               'creating a new one.', required=False,
+               dataType='boolean', default=False)
+        .param('public', 'Whether the folder should be publicly visible. By '
+               'default, inherits the value from parent folder, or in the '
+               'case of user or collection parentType, defaults to False.',
                required=False, dataType='boolean')
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
     )
-    def createFolder(self, public, parentType, parentId, name, description, params):
+    def createFolder(self, public, parentType, parentId, name, description, reuseExisting, params):
         user = self.getCurrentUser()
         parent = self.model(parentType).load(
             id=parentId, user=user, level=AccessType.WRITE, exc=True)
 
         return self.model('folder').createFolder(
             parent=parent, name=name, parentType=parentType, creator=user,
-            description=description, public=public)
+            description=description, public=public, reuseExisting=reuseExisting)
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='folder')
@@ -375,3 +379,13 @@ class Folder(Resource):
     )
     def deleteMetadata(self, folder, fields, params):
         return self.model('folder').deleteMetadata(folder, fields)
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Get the path to the root of the folder\'s hierarchy.')
+        .modelParam('id', model='folder', level=AccessType.READ)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Read access was denied for the folder.', 403)
+    )
+    def rootpath(self, folder, params):
+        return self.model('folder').parentsToRoot(folder, user=self.getCurrentUser())

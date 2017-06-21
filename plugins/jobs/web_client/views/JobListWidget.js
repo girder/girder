@@ -12,13 +12,13 @@ import { getCurrentUser } from 'girder/auth';
 import { SORT_DESC } from 'girder/constants';
 
 import JobCollection from '../collections/JobCollection';
-import JobListWidgetTemplate from '../templates/jobListWidget.pug';
-import JobListTemplate from '../templates/jobList.pug';
 import JobStatus from '../JobStatus';
+import JobListWidgetTemplate from '../templates/jobListWidget.pug';
+import '../stylesheets/jobListWidget.styl';
+import JobListTemplate from '../templates/jobList.pug';
+
 import CheckBoxMenu from './CheckBoxMenu';
 import JobGraphWidget from './JobGraphWidget';
-
-import '../stylesheets/jobListWidget.styl';
 
 var JobListWidget = View.extend({
     events: {
@@ -93,9 +93,7 @@ var JobListWidget = View.extend({
         this.collection.sortDir = settings.sortDir || SORT_DESC;
         this.collection.pageLimit = settings.pageLimit || this.collection.pageLimit;
 
-        this.collection
-            .on('g:changed', this._onDataChange, this)
-            .on('add', this._onDataChange, this);
+        this.listenTo(this.collection, 'update reset', this._onDataChange);
 
         this._fetchWithFilter();
 
@@ -111,8 +109,8 @@ var JobListWidget = View.extend({
             parentView: this
         });
 
-        eventStream.on('g:event.job_status', this._statusChange, this);
-        eventStream.on('g:event.job_created', this._jobCreated, this);
+        this.listenTo(eventStream, 'g:event.job_status', this._statusChange);
+        this.listenTo(eventStream, 'g:event.job_created', this._jobCreated);
 
         this.timingFilterWidget = new CheckBoxMenu({
             title: 'Phases',
@@ -126,7 +124,7 @@ var JobListWidget = View.extend({
             parentView: this
         });
 
-        this.typeFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
+        this.listenTo(this.typeFilterWidget, 'g:triggerCheckBoxMenuChanged', function (e) {
             this.typeFilter = _.keys(e).reduce((arr, key) => {
                 if (e[key]) {
                     arr.push(key);
@@ -134,7 +132,7 @@ var JobListWidget = View.extend({
                 return arr;
             }, []);
             this._fetchWithFilter();
-        }, this);
+        });
 
         this.statusFilterWidget = new CheckBoxMenu({
             title: 'Status',
@@ -143,7 +141,7 @@ var JobListWidget = View.extend({
         });
 
         let statusTextToStatusCode = {};
-        this.statusFilterWidget.on('g:triggerCheckBoxMenuChanged', function (e) {
+        this.listenTo(this.statusFilterWidget, 'g:triggerCheckBoxMenuChanged', function (e) {
             this.statusFilter = _.keys(e).reduce((arr, key) => {
                 if (e[key]) {
                     arr.push(parseInt(statusTextToStatusCode[key]));
@@ -151,19 +149,19 @@ var JobListWidget = View.extend({
                 return arr;
             }, []);
             this._fetchWithFilter();
-        }, this);
+        });
 
         restRequest({
             path: this.showAllJobs ? 'job/typeandstatus/all' : 'job/typeandstatus',
             method: 'GET'
-        }).done(result => {
+        }).done((result) => {
             var typesFilter = result.types.reduce((obj, type) => {
                 obj[type] = true;
                 return obj;
             }, {});
             this.typeFilterWidget.setItems(typesFilter);
 
-            var statusFilter = result.statuses.map(status => {
+            var statusFilter = result.statuses.map((status) => {
                 let statusText = JobStatus.text(status);
                 statusTextToStatusCode[statusText] = status;
                 return statusText;
@@ -188,14 +186,19 @@ var JobListWidget = View.extend({
     ], 'COLUMN_ALL'),
 
     render: function () {
-        this.$el.html(JobListWidgetTemplate($.extend({}, this, {
-            pageSize: this.collection.pageLimit
-        })));
+        this.$el.html(JobListWidgetTemplate({
+            currentView: this.currentView,
+            pageSize: this.collection.pageLimit,
+            pageSizes: this.pageSizes,
+            showFilters: this.showFilters,
+            showGraphs: this.showGraphs,
+            showPageSizeSelector: this.showPageSizeSelector
+        }));
 
         this.typeFilterWidget.setElement(this.$('.g-job-filter-container .type')).render();
         this.statusFilterWidget.setElement(this.$('.g-job-filter-container .status')).render();
 
-        this.$('a[data-toggle="tab"]').on('shown.bs.tab', e => {
+        this.$('a[data-toggle="tab"]').on('shown.bs.tab', (e) => {
             this.currentView = $(e.target).attr('name');
             if (this.userId) {
                 router.navigate(`jobs/user/${this.userId}/${this.currentView}`);
@@ -216,8 +219,7 @@ var JobListWidget = View.extend({
                 view: this.currentView,
                 timingFilter: this.timingFilter,
                 timingFilterWidget: this.timingFilterWidget
-            });
-            this.jobGraphWidget.render();
+            }).render();
         }
 
         this._renderData();
@@ -231,7 +233,12 @@ var JobListWidget = View.extend({
     },
 
     _renderData: function () {
-        if (!this.jobs.length) {
+        if (!this.$('.g-main-content').length) {
+            // Do nothing until render has been called
+            return;
+        }
+
+        if (this.collection.isEmpty()) {
             this.$('.g-main-content,.g-job-pagination').hide();
             this.$('.g-no-job-record').show();
             return;
@@ -242,7 +249,7 @@ var JobListWidget = View.extend({
 
         if (this.currentView === 'list') {
             this.$('.g-main-content').html(JobListTemplate({
-                jobs: this.jobs,
+                jobs: this.collection.toArray(),
                 showHeader: this.showHeader,
                 columns: this.columns,
                 columnEnum: this.columnEnum,
@@ -253,13 +260,9 @@ var JobListWidget = View.extend({
                 DATE_SECOND: DATE_SECOND,
                 jobCheckedStates: this.jobCheckedStates,
                 jobHighlightStates: this.jobHighlightStates,
-                allJobChecked: this.allJobChecked,
-                anyJobChecked: this.anyJobChecked
+                anyJobChecked: this.anyJobChecked,
+                allJobChecked: this.allJobChecked
             }));
-        }
-
-        if (this.currentView === 'timing-history' || this.currentView === 'time') {
-            this.jobGraphWidget.update(this.jobs);
         }
 
         if (this.showPaging) {
@@ -268,7 +271,7 @@ var JobListWidget = View.extend({
     },
 
     _statusChange: function (event) {
-        let job = _.find(this.jobs, job => job.get('_id') === event.data._id);
+        let job = this.collection.get(event.data._id);
         if (!job) {
             return;
         }

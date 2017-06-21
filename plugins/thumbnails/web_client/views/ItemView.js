@@ -5,9 +5,9 @@ import FileModel from 'girder/models/FileModel';
 import ItemView from 'girder/views/body/ItemView';
 import { wrap } from 'girder/utilities/PluginUtils';
 
-import FlowView from './FlowView';
-
 import ItemViewTemplate from '../templates/itemView.pug';
+
+import FlowView from './FlowView';
 
 // Show thumbnails on the item page
 wrap(ItemView, 'render', function (render) {

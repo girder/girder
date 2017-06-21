@@ -49,7 +49,7 @@ Once Girder is started via ``girder-server``, the server
 will reload itself whenever a Python file is modified.
 
 If you are doing front-end development, it's much faster to use a *watch* process to perform
-automatic fast rebuilds of your code whenever you make changes to source files. 
+automatic fast rebuilds of your code whenever you make changes to source files.
 
 If you are making changes to Girder's core web client, run the following watch command: ::
 
@@ -125,7 +125,7 @@ API specification programmatically, the JSON listing is served out of ``api/v1/d
 
 If you are working on the main Girder web client, either in core or extending it via
 plugins, there are a few conventions that should be followed. Namely, if you write
-code that instantiates new ``girder.View`` descendant objects, you should pass a
+code that instantiates new ``View`` descendant objects, you should pass a
 ``parentView`` property when constructing it. This will allow the child view to
 be cleaned up recursively when the parent view is destroyed. If you forget to set
 the ``parentView`` property when constructing the view, the view will still work as
@@ -133,7 +133,9 @@ expected, but a warning message will appear in the console to remind you. Exampl
 
 .. code-block:: javascript
 
-    MySubView = girder.View.extend({
+    import View from 'girder/views/View';
+
+    MySubView = View.extend({
        ...
     });
 
@@ -143,9 +145,9 @@ expected, but a warning message will appear in the console to remind you. Exampl
         parentView: this
     });
 
-If you use ``girder.View`` in custom Backbone apps and need to create a new root
+If you use ``View`` in custom Backbone apps and need to create a new root
 view object, set the ``parentView`` to ``null``. If you are using a Girder widget
-in a custom app that does not use the ``girder.View`` as the base object for
+in a custom app that does not use the ``View`` as the base object for
 its views, you should pass ``parentView: null`` and make sure to call
 ``destroy()`` on the view manually when it should be cleaned up.
 
@@ -170,7 +172,7 @@ tests, just: ::
     ctest
 
 There are many ways to filter tests when running CTest or run the tests in
-parallel. For example, this command will run tests with name matches regex **server_user** with verbose output. 
+parallel. For example, this command will run tests with name matches regex **server_user** with verbose output.
 More information about CTest can be found
 `here <http://www.cmake.org/cmake/help/v3.0/manual/ctest.1.html>`_. ::
 
@@ -243,6 +245,62 @@ Here ``ENABLEDPLUGINS`` ensures that my_plugin *and* the jobs plugin are loaded,
 
 You will find many useful methods for client side testing in the ``girderTest`` object
 defined at ``/clients/web/test/testUtils.js``.
+
+
+Initializing the Database for a Test
+------------------------------------
+
+When running tests in Girder, the database will initially be empty.  Often times, you want to be able to start the test with the database in a
+particular state.  To avoid repetitive initialization code, Girder provides a way to import a folder hierarchy from the file system
+using a simple initialization file.  This file is in YAML (or JSON) format and provides a list of objects to insert into the database
+before executing your test.  A typical example of this format is as follows
+
+.. code-block:: YAML
+
+    ---
+    users:
+      - login: 'admin'
+        password: 'password'
+        firstName: 'First'
+        lastName: 'Last'
+        email: 'admin@email.com'
+        admin: true
+        import: 'files/user'
+
+    collections:
+      - name: 'My collection'
+        public: true
+        creator: 'admin'
+        import: 'files/collection'
+
+This will create one admin user and a public collection owned by that user.  Both the generated user and collection objects
+will contain folders imported from the file system.  Relative paths provided by the ``import`` key will be resolved relative
+to the location of the YAML file on disk.  You can also describe the full hierarchy in the YAML file itself for more complicated
+use cases.  See the test spec in ``tests/cases/setup_database_test.yml`` for a more complete example.
+
+.. note::
+
+    When importing from a local path into a user or collection, files directly under that path are ignored because
+    items can be only inserted under folders.
+
+To use the initialization mechanism, you should add the YAML file next to your test file.  For example, if your test
+is defined in ``tests/cases/my_test.py``, then the initialization spec should go in ``tests/cases/my_test.yml``.  This
+file will be automatically detected and loaded before executing your test code.  This is true for both python and
+javascript tests added in core or inside plugins.
+
+The python module ``setup_database.py`` that generates the database can also be run standalone to help in development.  To use it,
+you should point girder to an empty database ::
+
+    GIRDER_MONGO_URI='mongodb://127.0.0.1:27017/mytest' python tests/setup_database.py tests/test_database/spec.yml
+
+You can browse the result in Girder by running ::
+
+    GIRDER_MONGO_URI='mongodb://127.0.0.1:27017/mytest' girder-server
+
+.. note::
+
+    The ``setup_database`` module is meant to provision fixures for tests **only**.  If you want to provision
+    a Girder instance for deployment, see the `Girder ansible client <https://github.com/girder/girder/tree/master/devops/ansible/roles/girder/library>`_.
 
 
 Ansible Testing

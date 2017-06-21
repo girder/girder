@@ -1,12 +1,4 @@
-/* globals girderTest, describe, expect, it, runs, waitsFor, girder, _ */
-
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/jobs/plugin.min.js'
-]);
-
-girderTest.importStylesheet(
-    '/static/built/plugins/jobs/plugin.min.css'
-);
+girderTest.importPlugin('jobs');
 
 girder.events.trigger('g:appload.before');
 var app = new girder.views.App({
@@ -22,37 +14,42 @@ $(function () {
                 return $('#g-app-body-container').length > 0;
             });
 
-            runs(function () {
-                var jobInfo = {
-                    _id: 'foo',
-                    title: 'My batch job',
-                    status: girder.plugins.jobs.JobStatus.INACTIVE,
-                    log: ['Hello world\n', 'goodbye world'],
-                    updated: '2015-01-12T12:00:12Z',
-                    created: '2015-01-12T12:00:00Z',
-                    when: '2015-01-12T12:00:00Z',
-                    timestamps: [{
-                        status: girder.plugins.jobs.JobStatus.QUEUED,
-                        time: '2015-01-12T12:00:02Z'
-                    }, {
-                        status: girder.plugins.jobs.JobStatus.RUNNING,
-                        time: '2015-01-12T12:00:03Z'
-                    }, {
-                        status: girder.plugins.jobs.JobStatus.SUCCESS,
-                        time: '2015-01-12T12:00:12Z'
-                    }]
-                };
+            var jobInfo = {
+                _id: 'foo',
+                title: 'My batch job',
+                status: girder.plugins.jobs.JobStatus.INACTIVE,
+                log: ['Hello world\n', 'goodbye world'],
+                updated: '2015-01-12T12:00:12Z',
+                created: '2015-01-12T12:00:00Z',
+                when: '2015-01-12T12:00:00Z',
+                timestamps: [{
+                    status: girder.plugins.jobs.JobStatus.QUEUED,
+                    time: '2015-01-12T12:00:02Z'
+                }, {
+                    status: girder.plugins.jobs.JobStatus.RUNNING,
+                    time: '2015-01-12T12:00:03Z'
+                }, {
+                    status: girder.plugins.jobs.JobStatus.SUCCESS,
+                    time: '2015-01-12T12:00:12Z'
+                }]
+            };
 
+            runs(function () {
                 // mock fetch to simulate fetching a job
-                var oldFetch = girder.plugins.jobs.models.JobModel.prototype.fetch;
-                girder.plugins.jobs.models.JobModel.prototype.fetch = function () {
+                spyOn(girder.plugins.jobs.models.JobModel.prototype, 'fetch').andCallFake(function () {
                     this.set(jobInfo);
                     this.trigger('g:fetched');
-                };
+                    return $.Deferred().resolve(jobInfo).promise();
+                });
 
-                girder.router.navigate('job/foo', { trigger: true });
-                girder.plugins.jobs.models.JobModel.prototype.fetch = oldFetch;
+                girder.router.navigate('job/foo', {trigger: true});
+            });
 
+            waitsFor(function () {
+                return $('.g-job-info-key').length > 0;
+            }, 'the JobDetailsWidget to finish rendering');
+
+            runs(function () {
                 expect($('.g-monospace-viewer[property="kwargs"]').length).toBe(0);
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe(jobInfo.log.join(''));
                 expect($('.g-job-info-value[property="_id"]').text()).toBe(jobInfo._id);
@@ -124,10 +121,24 @@ $(function () {
                 expect($('.g-monospace-viewer[property="log"]').text()).toBe(
                     'overwritten log<script type="text/javascript">xss probe!</script>');
             });
+
+            runs(function () {
+                girder.plugins.jobs.models.JobModel.prototype.fetch.andCallThrough();
+                // Return to the main page, since 'job/foo' isn't legal without mocking
+                girder.router.navigate('', {trigger: true});
+            });
+            girderTest.waitForLoad();
         });
     });
 
     describe('Unit test the job list widget.', function () {
+        // This spy must be attached to the prototype, since the instantiation of JobListWidget will
+        // bind and make calls to '_renderData' immediately
+        var renderDataSpy;
+        beforeEach(function () {
+            renderDataSpy = spyOn(girder.plugins.jobs.views.JobListWidget.prototype, '_renderData').andCallThrough();
+        });
+
         it('Show a job list widget.', function () {
             var jobs, rows, widget;
 
@@ -142,19 +153,27 @@ $(function () {
                     showGraphs: true,
                     showFilters: true,
                     showPageSizeSelector: true
-                }).render();
-
-                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+                });
             });
-
-            girderTest.waitForLoad();
+            waitsFor(function () {
+                // Wait for the pending fetch (causing the 2nd render) to complete, so it doesn't
+                // overwrite "widget.collection" after the synchronous "widget.collection.add"
+                // is made below
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
-                jobs = _.map([1, 2, 3], function (i) {
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+
+                jobs = _.map([
+                    girder.plugins.jobs.JobStatus.QUEUED,
+                    girder.plugins.jobs.JobStatus.RUNNING,
+                    girder.plugins.jobs.JobStatus.SUCCESS
+                ], function (status, i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
                         title: 'My batch job ' + i,
-                        status: i,
+                        status: status,
                         updated: '2015-01-12T12:00:0' + i,
                         created: '2015-01-12T12:00:0' + i,
                         when: '2015-01-12T12:00:0' + i
@@ -162,26 +181,25 @@ $(function () {
                 });
 
                 widget.collection.add(jobs);
-            });
 
-            waitsFor(function () {
-                return $('.g-jobs-list-table>tbody>tr').length === 3;
-            }, 'job list to auto-reload when collection is updated');
+                // job list should re-render when collection is updated
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(3);
+            });
 
             runs(function () {
                 // Make sure we are in reverse chronological order
                 rows = $('.g-jobs-list-table>tbody>tr');
-                expect($(rows[0]).text()).toContain('My batch job 3');
+                expect($(rows[0]).text()).toContain('My batch job 2');
                 expect($(rows[0]).text()).toContain('Success');
-                expect($(rows[1]).text()).toContain('My batch job 2');
+                expect($(rows[1]).text()).toContain('My batch job 1');
                 expect($(rows[1]).text()).toContain('Running');
-                expect($(rows[2]).text()).toContain('My batch job 1');
+                expect($(rows[2]).text()).toContain('My batch job 0');
                 expect($(rows[2]).text()).toContain('Queued');
 
                 // Simulate an SSE notification that changes a job status
                 girder.utilities.eventStream.trigger('g:event.job_status', {
                     data: _.extend({}, jobs[0].attributes, {
-                        status: 4
+                        status: girder.plugins.jobs.JobStatus.ERROR
                     })
                 });
             });
@@ -192,11 +210,13 @@ $(function () {
             }, 'Third row status change to Error');
 
             runs(function () {
+                // The data in this is meaningless, but this will trigger a new API fetch
+                renderDataSpy.reset();
                 girder.utilities.eventStream.trigger('g:event.job_created', {
                     data: {
                         _id: 'foo' + 4,
                         title: 'My batch job ' + 4,
-                        status: 4,
+                        status: girder.plugins.jobs.JobStatus.ERROR,
                         updated: '2015-01-12T12:00:0' + 4,
                         created: '2015-01-12T12:00:0' + 4,
                         when: '2015-01-12T12:00:0' + 4
@@ -205,8 +225,15 @@ $(function () {
             });
 
             waitsFor(function () {
-                return $('.g-no-job-record').is(':visible');
-            }, 'job list to auto-reload when job_created is triggered');
+                return renderDataSpy.wasCalled;
+            });
+
+            runs(function () {
+                // Since the server contains no actual jobs, once the API fetch completes, all of
+                // the previously-added local jobs will be blown away, and the local view will
+                // re-render to show no jobs
+                expect($('.g-no-job-record').is(':visible')).toBe(true);
+            });
         });
 
         it('Job list widget filter by status & type.', function () {
@@ -219,8 +246,13 @@ $(function () {
                     showGraphs: true,
                     showFilters: true,
                     showPageSizeSelector: true
-                }).render();
+                });
+            });
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
+            runs(function () {
                 expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
 
                 // programmatically set value
@@ -231,37 +263,21 @@ $(function () {
                 });
 
                 // one item should be unchecked
-                expect(
-                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
-                        return total + ($(input).is(':checked') ? 1 : 0);
-                    }, 0)
-                ).toBe(2);
+                expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(2);
 
                 widget.$('.g-job-filter-container .type .dropdown ul li input').first().click();
 
-                expect(
-                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
-                        return total + ($(input).is(':checked') ? 1 : 0);
-                    }, 0)
-                ).toBe(1);
+                expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(1);
 
                 widget.$('.g-job-filter-container .type .dropdown .g-job-checkall input').click();
 
                 // all should be checked after clicking Check all
-                expect(
-                    widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
-                        return total + ($(input).is(':checked') ? 1 : 0);
-                    }, 0)
-                ).toBe(3);
+                expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(3);
                 expect($('.g-job-filter-container .type .dropdown .g-job-checkall input').is(':checked')).toBe(true);
 
                 widget.$('.g-job-filter-container .status .dropdown .g-job-checkall input').click();
 
-                expect(
-                    widget.$('.g-job-filter-container .status .dropdown ul li input[type="checkbox"]').toArray().reduce(function (total, input) {
-                        return total + ($(input).is(':checked') ? 1 : 0);
-                    }, 0)
-                ).toBe(0);
+                expect(widget.$('.g-job-filter-container .status .dropdown ul li input[type="checkbox"]:checked').length).toBe(0);
 
                 widget.$('.g-page-size').val(50).trigger('change');
                 expect(widget.collection.pageLimit).toBe(50);
@@ -280,19 +296,24 @@ $(function () {
                     showGraphs: true,
                     showFilters: true,
                     showPageSizeSelector: true
-                }).render();
-
-                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+                });
             });
-
-            girderTest.waitForLoad();
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
-                jobs = _.map([1, 2, 3], function (i) {
+                expect($('.g-jobs-list-table>tbody>tr').length).toBe(0);
+
+                jobs = _.map([
+                    girder.plugins.jobs.JobStatus.QUEUED,
+                    girder.plugins.jobs.JobStatus.RUNNING,
+                    girder.plugins.jobs.JobStatus.SUCCESS
+                ], function (status, i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
                         title: 'My batch job ' + i,
-                        status: i,
+                        status: status,
                         updated: '2015-01-12T12:00:0' + i,
                         created: '2015-01-12T12:00:0' + i,
                         when: '2015-01-12T12:00:0' + i
@@ -318,7 +339,6 @@ $(function () {
 
         it('job list widget in all jobs mode', function () {
             var widget;
-
             runs(function () {
                 widget = new girder.plugins.jobs.views.JobListWidget({
                     el: $('#g-app-body-container'),
@@ -329,32 +349,14 @@ $(function () {
                     showFilters: true,
                     showPageSizeSelector: true
                 });
-
-                expect(widget.collection.resourceName).toEqual('job/all');
-
-                girderTest.logout('logout from admin')();
-
-                girderTest.createUser(
-                    'user1', 'user@email.com', 'Quota', 'User', 'testpassword')();
             });
-
-            girderTest.waitForLoad();
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
-                widget = new girder.plugins.jobs.views.JobListWidget({
-                    el: $('#g-app-body-container'),
-                    parentView: app,
-                    allJobsMode: true,
-                    showGraphs: true,
-                    showFilters: true,
-                    showPageSizeSelector: true
-                });
+                expect(widget.collection.resourceName).toEqual('job/all');
             });
-            girderTest.waitForLoad();
-
-            waitsFor(function () {
-                return widget.$('.g-jobs-list-table tr').length === 0;
-            }, 'no record show be shown');
         });
 
         it('job list cancellation', function () {
@@ -424,29 +426,30 @@ $(function () {
                     showGraphs: true,
                     showFilters: true,
                     showPageSizeSelector: true
-                }).render();
+                });
             });
-
-            girderTest.waitForLoad();
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
-                jobs = _.map(['one', 'two', 'three'], function (t, i) {
+                jobs = _.map(['one', 'two', 'three'], function (type, i) {
                     return new girder.plugins.jobs.models.JobModel({
                         _id: 'foo' + i,
                         title: 'My batch job ' + i,
-                        status: 4,
-                        type: t,
+                        status: girder.plugins.jobs.JobStatus.ERROR,
+                        type: type,
                         timestamps: [
                             {
-                                'status': 1,
+                                'status': girder.plugins.jobs.JobStatus.QUEUED,
                                 'time': '2017-03-10T18:31:59.008Z'
                             },
                             {
-                                'status': 2,
+                                'status': girder.plugins.jobs.JobStatus.RUNNING,
                                 'time': '2017-03-10T18:32:06.190Z'
                             },
                             {
-                                'status': 4,
+                                'status': girder.plugins.jobs.JobStatus.ERROR,
                                 'time': '2017-03-10T18:32:34.760Z'
                             }
                         ],
@@ -460,29 +463,29 @@ $(function () {
 
                 $('.g-jobs.nav.nav-tabs li a[name="timing-history"]').tab('show');
             });
-
             waitsFor(function () {
+                // Charts will render asynchronously with Vega
                 return widget.$('.g-jobs-graph svg .mark-rect.timing rect').length;
             }, 'timing history graph to render');
 
             runs(function () {
+                expect(widget.$('.g-jobs-graph svg .mark-rect.timing rect').length).toBe(6);
                 $('.g-jobs.nav.nav-tabs li a[name="time"]').tab('show');
             });
-
             waitsFor(function () {
                 return widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
             }, 'time graph to render');
 
             runs(function () {
+                expect(widget.$('.g-jobs-graph svg .mark-symbol.circle path').length).toBe(3);
                 $('.g-job-filter-container .timing .dropdown .g-job-checkall input').click();
             });
-
             waitsFor(function () {
                 return !widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;
             }, 'graph to clear');
         });
 
-        it('job list widget without graphs, filter, and page size selector', function () {
+        it('Instantiate without graphs, filter, and page size selector.', function () {
             var widget;
 
             runs(function () {
@@ -492,8 +495,9 @@ $(function () {
                     filter: {}
                 });
             });
-
-            girderTest.waitForLoad();
+            waitsFor(function () {
+                return renderDataSpy.callCount >= 2;
+            }, 'job list to finish initial loading');
 
             runs(function () {
                 expect(widget.$('.g-jobs.nav.nav-tabs').length).toBe(0);

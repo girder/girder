@@ -1,10 +1,4 @@
-/* global girder girderTest describe it expect Backbone beforeEach afterEach */
-
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/jobs/plugin.min.js',
-    '/clients/web/static/built/plugins/worker/plugin.min.js',
-    '/clients/web/static/built/plugins/item_tasks/plugin.min.js'
-]);
+girderTest.importPlugin('jobs', 'worker', 'item_tasks');
 
 girderTest.promise.done(function () {
     var itemTasks = girder.plugins.item_tasks;

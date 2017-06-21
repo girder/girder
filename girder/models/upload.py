@@ -141,7 +141,9 @@ class Upload(Model):
         assetstore = self.model('assetstore').load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
 
-        upload = self.save(adapter.uploadChunk(upload, chunk))
+        upload = adapter.uploadChunk(upload, chunk)
+        if '_id' in upload or upload['received'] != upload['size']:
+            upload = self.save(upload)
 
         # If upload is finished, we finalize it
         if upload['received'] == upload['size']:
@@ -228,7 +230,8 @@ class Upload(Model):
         events.trigger('model.file.finalizeUpload.before', event_document)
         file = self.model('file').save(file)
         events.trigger('model.file.finalizeUpload.after', event_document)
-        self.remove(upload)
+        if '_id' in upload:
+            self.remove(upload)
 
         # Add an async event for handlers that wish to process this file.
         eventParams = {
@@ -305,7 +308,8 @@ class Upload(Model):
         return self.save(upload)
 
     def createUpload(self, user, name, parentType, parent, size, mimeType=None,
-                     reference=None, assetstore=None, attachParent=False):
+                     reference=None, assetstore=None, attachParent=False,
+                     save=True):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent
@@ -335,6 +339,8 @@ class Upload(Model):
             appear as direct children of the parent, but are still associated
             with it.
         :type attachParent: boolean
+        :param save: if True, save the document after it is created.
+        :type save: boolean
         :returns: The upload document that was created.
         """
         assetstore = self.getTargetAssetstore(parentType, parent, assetstore)
@@ -370,7 +376,9 @@ class Upload(Model):
             upload['userId'] = None
 
         upload = adapter.initUpload(upload)
-        return self.save(upload)
+        if save:
+            upload = self.save(upload)
+        return upload
 
     def moveFileToAssetstore(self, file, user, assetstore, progress=noProgress):
         """
@@ -468,7 +476,8 @@ class Upload(Model):
             except ValidationException:
                 # this assetstore is currently unreachable, so skip it
                 pass
-        self.model('upload').remove(upload)
+        if '_id' in upload:
+            self.model('upload').remove(upload)
 
     def untrackedUploads(self, action='list', assetstoreId=None):
         """

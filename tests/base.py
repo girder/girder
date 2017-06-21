@@ -31,6 +31,7 @@ import six
 import sys
 import unittest
 import uuid
+import warnings
 
 from six import BytesIO
 from six.moves import urllib
@@ -41,6 +42,10 @@ from girder.models import getDbConnection
 from . import mock_smtp
 from . import mock_s3
 from . import mongo_replicaset
+
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', 'setup_database.*')
+    from . import setup_database
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 30000)
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 30001)
@@ -178,8 +183,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         We want to start with a clean database each time, so we drop the test
         database before each test. We then add an assetstore so the file model
         can be used without 500 errors.
-        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.  For
-                               any other value, use a filesystem assetstore.
+        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.
+            'gridfsrs' uses a GridFS assetstore with a replicaset, and
+            'gridfsshard' one with a sharding server.  For any other value, use
+            a filesystem assetstore.
         """
         self.assetstoreType = assetstoreType
         dropTestDatabase(dropModels=dropModels)
@@ -191,38 +198,48 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             # within test methods
             gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName
             dropGridFSDatabase(gridfsDbName)
-            self.assetstore = self.model('assetstore'). \
-                createGridFsAssetstore(name='Test', db=gridfsDbName)
+            self.assetstore = self.model('assetstore').createGridFsAssetstore(
+                name='Test', db=gridfsDbName)
         elif assetstoreType == 'gridfsrs':
             gridfsDbName = 'girder_test_%s_rs_assetstore_auto' % assetstoreName
-            mongo_replicaset.startMongoReplicaSet()
-            self.assetstore = self.model('assetstore'). \
-                createGridFsAssetstore(
+            self.replicaSetConfig = mongo_replicaset.makeConfig()
+            mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
+            self.assetstore = self.model('assetstore').createGridFsAssetstore(
                 name='Test', db=gridfsDbName,
                 mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
                 '127.0.0.1:27072', replicaset='replicaset')
+        elif assetstoreType == 'gridfsshard':
+            gridfsDbName = 'girder_test_%s_shard_assetstore_auto' % assetstoreName
+            self.replicaSetConfig = mongo_replicaset.makeConfig(
+                port=27073, shard=True, sharddb=None)
+            mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
+            self.assetstore = self.model('assetstore').createGridFsAssetstore(
+                name='Test', db=gridfsDbName,
+                mongohost='mongodb://127.0.0.1:27073', shard='auto')
         elif assetstoreType == 's3':
-            self.assetstore = self.model('assetstore'). \
-                createS3Assetstore(name='Test', bucket='bucketname',
-                                   accessKeyId='test', secret='test',
-                                   service=mockS3Server.service)
+            self.assetstore = self.model('assetstore').createS3Assetstore(
+                name='Test', bucket='bucketname', accessKeyId='test',
+                secret='test', service=mockS3Server.service)
         else:
             dropFsAssetstore(assetstorePath)
-            self.assetstore = self.model('assetstore'). \
-                createFilesystemAssetstore(name='Test', root=assetstorePath)
+            self.assetstore = self.model('assetstore').createFilesystemAssetstore(
+                name='Test', root=assetstorePath)
 
         addr = ':'.join(map(str, mockSmtp.address or ('localhost', 25)))
         self.model('setting').set(SettingKey.SMTP_HOST, addr)
         self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         self.model('setting').set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
+        if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
+            setup_database.main(os.environ['GIRDER_TEST_DATABASE_CONFIG'])
+
     def tearDown(self):
         """
         Stop any services that we started just for this test.
         """
         # If "self.setUp" is overridden, "self.assetstoreType" may not be set
-        if getattr(self, 'assetstoreType', None) == 'gridfsrs':
-            mongo_replicaset.stopMongoReplicaSet()
+        if getattr(self, 'assetstoreType', None) in ('gridfsrs', 'gridfsshard'):
+            mongo_replicaset.stopMongoReplicaSet(self.replicaSetConfig)
 
     def mockPluginDir(self, path):
         self._oldPluginDirFn = mockPluginDir(path)
@@ -260,6 +277,26 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
                 msg += 'Response body was:\n%s' % self.getBody(response)
 
             self.fail(msg)
+
+    def assertDictContains(self, expected, actual, msg=''):
+        """
+        Assert that an object is a subset of another.
+
+        This test will fail under the following conditions:
+
+            1. ``actual`` is not a dictionary.
+            2. ``expected`` contains a key not in ``actual``.
+            3. for any key in ``expected``, ``expected[key] != actual[key]``
+
+        :param test: The expected key/value pairs
+        :param actual: The actual object
+        :param msg: An optional message to include with test failures
+        """
+        self.assertIsInstance(actual, dict, msg + ' does not exist')
+        for k, v in six.iteritems(expected):
+            if k not in actual:
+                self.fail('%s expected key "%s"' % (msg, k))
+            self.assertEqual(v, actual[k])
 
     def assertHasKeys(self, obj, keys):
         """
@@ -605,8 +642,7 @@ class MultipartFormdataEncoder(object):
     """
     def __init__(self):
         self.boundary = uuid.uuid4().hex
-        self.contentType = \
-            'multipart/form-data; boundary=%s' % self.boundary
+        self.contentType = 'multipart/form-data; boundary=%s' % self.boundary
 
     @classmethod
     def u(cls, s):

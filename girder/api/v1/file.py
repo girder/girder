@@ -67,6 +67,12 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Start a new upload or create an empty or link file.')
+        .notes('Use POST /file/chunk to send the contents of the file.  '
+               'The data for the first chunk of the file can be included with '
+               'this query by sending it as the body of the request using an '
+               'appropriate content-type and with the other parameters as '
+               'part of the query string.  If the entire file is uploaded via '
+               'this call, the resulting file is returned.')
         .responseClass('Upload')
         .param('parentType', 'Type being uploaded into.', enum=['folder', 'item'])
         .param('parentId', 'The ID of the parent.')
@@ -109,7 +115,22 @@ class File(Resource):
                 self.requireAdmin(
                     user, message='You must be an admin to select a destination assetstore.')
                 assetstore = self.model('assetstore').load(assetstoreId)
+
+            chunk = None
+            if size > 0 and cherrypy.request.headers.get('Content-Length'):
+                ct = cherrypy.request.body.content_type.value
+                if (ct not in cherrypy.request.body.processors and
+                        ct.split('/', 1)[0] not in cherrypy.request.body.processors):
+                    chunk = RequestBodyStream(cherrypy.request.body)
+            if chunk is not None and chunk.getSize() <= 0:
+                chunk = None
+
             try:
+                # TODO: This can be made more efficient by adding
+                #    save=chunk is None
+                # to the createUpload call parameters.  However, since this is
+                # a breaking change, that should be deferred until a major
+                # version upgrade.
                 upload = self.model('upload').createUpload(
                     user=user, name=name, parentType=parentType, parent=parent, size=size,
                     mimeType=mimeType, reference=reference, assetstore=assetstore)
@@ -119,6 +140,9 @@ class File(Resource):
                         'Failed to create upload.', 'girder.api.v1.file.create-upload-failed')
                 raise
             if upload['size'] > 0:
+                if chunk:
+                    return self.model('upload').handleChunk(upload, chunk, filter=True, user=user)
+
                 return upload
             else:
                 return self.model('file').filter(
@@ -179,6 +203,12 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Upload a chunk of a file.')
+        .notes('The data for the chunk should be sent as the body of the '
+               'request using an appropriate content-type and with the other '
+               'parameters as part of the query string.  Alternately, the '
+               'data can be sent as a file in the "chunk" field in multipart '
+               'form data.  Multipart uploads are much less efficient and '
+               'their use is deprecated.')
         .modelParam('uploadId', paramType='formData')
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
                paramType='formData')

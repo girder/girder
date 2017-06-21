@@ -9,7 +9,7 @@ machine:
     JASMINE_TIMEOUT: 15000
     DEBIAN_FRONTEND: noninteractive
   node:
-    version: 5.12
+    version: 6
   post:
     - pyenv global 2.7.11
     - if [ "$CIRCLE_NODE_INDEX" -eq 1 ] ; then pyenv global 3.4.4 ; fi
@@ -22,7 +22,7 @@ dependencies:
     - ./scripts/install_cmake.sh
     - npm install -g npm
     - npm config set progress false
-    - npm update; npm prune
+    - npm update --no-save
     - set -o pipefail; pyenv exec pip install -U pip setuptools | cat
     - set -o pipefail; pyenv exec pip install -r requirements-dev.txt -e .[plugins,sftp] -e clients/python | cat
     - pyenv rehash

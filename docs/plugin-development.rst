@@ -909,7 +909,20 @@ Testing Client-Side Code
 Web client components may also be tested, using the
 `Jasmine 1.3 test framework <https://jasmine.github.io/1.3/introduction>`_.
 
-For example, the cats plugin would define tests in a ``plugin_tests/catSpec.js`` file.
+At the start of a plugin client test file, the built plugin files must be explicitly loaded,
+typically with the ``girderTest.importPlugin`` function.
+
+.. note:: Plugin dependency resolution will not take place when loading built plugin files in the
+          test environment. If your plugin has dependencies on other Girder plugins, you should
+          make multiple calls to ``girderTest.importPlugin``, loading any dependant plugins in
+          topologically sorted order, before loading your plugin with ``girderTest.importPlugin``
+          last.
+
+For example, the cats plugin would define tests in a ``plugin_tests/catSpec.js`` file, like:
+
+.. code-block:: javascript
+
+    girderTest.importPlugin('cats');
 
 Using External Data Artifacts
 *****************************

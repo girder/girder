@@ -2,6 +2,7 @@ import FolderModel from 'girder/models/FolderModel';
 import View from 'girder/views/View';
 import UploadWidget from 'girder/views/widgets/UploadWidget';
 import { setCurrentToken } from 'girder/auth';
+
 import template from '../templates/authorizedUpload.pug';
 import '../stylesheets/authorizedUpload.styl';
 

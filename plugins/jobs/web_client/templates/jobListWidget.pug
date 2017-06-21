@@ -3,7 +3,7 @@ if showFilters
     span Page size
     select.g-page-size
       each val in pageSizes
-        option(selected=val==pageSize)= val
+        option(selected=val===pageSize)= val
 
 if showPageSizeSelector
   .g-job-filter-container.clearfix
@@ -12,15 +12,15 @@ if showPageSizeSelector
 
 if showGraphs
   ul.g-jobs.nav.nav-tabs
-    li(class=(currentView=='list'?'active':''))
+    li(class=(currentView==='list' ? 'active' : ''))
       a(data-toggle="tab", name="list")
         i.icon-th-list
         |  List
-    li(class=(currentView=='timing-history'?'active':''))
+    li(class=(currentView==='timing-history' ? 'active' : ''))
       a(data-toggle="tab", name="timing-history")
         i.icon-chart-bar
         |  Timing history
-    li(class=(currentView=='time'?'active':''))
+    li(class=(currentView==='time' ? 'active' : ''))
       a(data-toggle="tab", name="time")
         i.icon-chart-line
         |  Time series

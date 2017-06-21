@@ -535,47 +535,39 @@ class Folder(AccessControlledModel):
         # Validate and save the folder
         return self.save(folder)
 
-    def parentsToRoot(self, folder, curPath=None, user=None, force=False,
-                      level=AccessType.READ):
+    def parentsToRoot(self, folder, curPath=None, user=None, force=False, level=AccessType.READ):
         """
         Get the path to traverse to a root of the hierarchy.
 
         :param folder: The folder whose root to find
         :type folder: dict
-        :returns: an ordered list of dictionaries from root to the current
-                  folder
+        :returns: an ordered list of dictionaries from root to the current folder
         """
-        if not curPath:
-            curPath = []
-
+        curPath = curPath or []
         curParentId = folder['parentId']
         curParentType = folder['parentCollection']
-        if curParentType == 'user' or curParentType == 'collection':
+
+        if curParentType in ('user', 'collection'):
             curParentObject = self.model(curParentType).load(
                 curParentId, user=user, level=level, force=force)
 
-            if not force:
-                parentFiltered = \
-                    self.model(curParentType).filter(curParentObject, user)
-            else:
+            if force:
                 parentFiltered = curParentObject
-
-            return [{'type': curParentType,
-                     'object': parentFiltered}] + curPath
-        else:
-            curParentObject = self.load(
-                curParentId, user=user, level=level, force=force)
-
-            if not force:
-                curPath = \
-                    [{'type': curParentType,
-                      'object': self.filter(curParentObject, user)}] + curPath
             else:
-                curPath = [{'type': curParentType,
-                            'object': curParentObject}] + curPath
+                parentFiltered = self.model(curParentType).filter(curParentObject, user)
 
-            return self.parentsToRoot(curParentObject, curPath, user=user,
-                                      force=force)
+            return [{
+                'type': curParentType,
+                'object': parentFiltered
+            }] + curPath
+        else:
+            curParentObject = self.load(curParentId, user=user, level=level, force=force)
+            curPath = [{
+                'type': curParentType,
+                'object': curParentObject if force else self.filter(curParentObject, user)
+            }] + curPath
+
+            return self.parentsToRoot(curParentObject, curPath, user=user, force=force)
 
     def countItems(self, folder):
         """

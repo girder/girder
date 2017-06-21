@@ -6,27 +6,6 @@ Deploy
 There are many ways to deploy Girder into production. Here is a set of guides on
 how to deploy Girder to several different platforms.
 
-Heroku
-------
-
-This guide assumes you have a Heroku account and have installed the Heroku
-toolbelt.
-
-Girder contains the requisite Procfile, buildpacks, and other configuration to
-be deployed on `Heroku <https://www.heroku.com>`_. To deploy Girder to your Heroku
-space, run the following commands. We recommend doing this on your own fork of
-Girder to keep any customization separate. ::
-
-    $ cd /path/to/girder/tree
-    $ heroku apps:create your_apps_name_here
-    $ heroku config:add BUILDPACK_URL=https://github.com/ddollar/heroku-buildpack-multi.git
-    $ heroku addons:add mongolab
-    $ git remote add heroku git@heroku.com:your_apps_name_here.git
-    $ git push heroku
-    $ heroku open
-
-You should now see your Girder instance running on Heroku. Congratulations!
-
 Reverse Proxy
 -------------
 
@@ -84,6 +63,22 @@ And under the containing ``server`` block, make sure to add the following rule:
         client_max_body_size 500M;
         # ... elided configuration
     }
+
+WSGI
+----
+
+Girder also comes with a callable WSGI application that can be run with WSGI servers
+like `uWSGI`.
+
+A simple example of running Girder with ``uwsgi`` instead of CherryPy's built in HTTP server
+would be::
+  
+  uwsgi --lazy --http :8080 --module girder.wsgi --check-static clients/web
+
+.. seealso::
+   
+   `CherryPy documentation describing how to deploy under WSGI <http://docs.cherrypy.org/en/latest/deploy.html#wsgi-servers>`_
+
 
 Girder Settings
 +++++++++++++++

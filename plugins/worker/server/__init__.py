@@ -101,6 +101,9 @@ def schedule(event):
 
         task = job.get('celeryTaskName', 'girder_worker.run')
 
+        # Set the job status to queued
+        ModelImporter.model('job', 'jobs').updateJob(job, status=JobStatus.QUEUED)
+
         # Send the task to celery
         asyncResult = getCeleryApp().send_task(
             task, job['args'], job['kwargs'], queue=job.get('celeryQueue'), headers={
@@ -108,8 +111,8 @@ def schedule(event):
                 'apiUrl': getWorkerApiUrl()
             })
 
-        # Set the job status to queued and record the task ID from celery.
-        ModelImporter.model('job', 'jobs').updateJob(job, status=JobStatus.QUEUED, otherFields={
+        # Record the task ID from celery.
+        ModelImporter.model('job', 'jobs').updateJob(job, otherFields={
             'celeryTaskId': asyncResult.task_id
         })
 

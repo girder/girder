@@ -311,7 +311,7 @@ module.exports = function (grunt) {
             webpackHelper = require(webpackHelperFile);
         } else {
             grunt.verbose.writeln('  >> No webpack helper file found.');
-            webpackHelper = x => x;
+            webpackHelper = (x) => x;
         }
 
         // Configure the output file; default to 'plugin.min.js' - Girder loads
@@ -429,7 +429,7 @@ module.exports = function (grunt) {
                             filename: `${output}.min.css`,
                             allChunks: true
                         })
-                    ].concat(_.map(deps, dep => {
+                    ].concat(_.map(deps, (dep) => {
                         // This dynamically links the current plugin against its
                         // dependencies' bundles so they can share code.
                         return new webpack.DllReferencePlugin({

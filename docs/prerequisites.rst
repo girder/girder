@@ -6,7 +6,7 @@ The following software packages are required to be installed on your system:
 * `Python 2.7 or 3.4 <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
-* `Node.js <http://nodejs.org/>`_
+* `Node.js 6.5+ <http://nodejs.org/>`_
 * `curl <http://curl.haxx.se/>`_
 * `zlib <http://www.zlib.net/>`_
 * `libjpeg <http://libjpeg.sourceforge.net/>`_
@@ -26,6 +26,17 @@ See the specific instructions for your platform below.
 .. warning:: Some Girder plugins do not support Python 3 at this time due to
    third party library dependencies. Namely, the HDFS Assetstore plugin and the
    Metadata Extractor plugin will only be available in a Python 2.7 environment.
+
+.. note:: It's recommended to get the latest version of the npm package manager, and Girder currently
+   requires at least version 3.10 of npm. To upgrade to the latest npm, after installing Node.js,
+   run:
+
+   .. code-block:: bash
+
+      npm install -g npm
+
+   This may need to be run as root using ``sudo``.
+
 
 * :ref:`debian-ubuntu`
 * :ref:`centos-fedora-rhel`
@@ -91,12 +102,6 @@ Install Node.js and NPM using APT: ::
 
     sudo apt-get install nodejs
 
-.. note:: It's recommended to get the latest version of the npm package manager, and Girder currently
-   requires at least version 3 of npm. To upgrade to the latest npm, run: ::
-
-      npm install -g npm
-
-   This may need to be run as root using ``sudo``.
 
 .. _centos-fedora-rhel:
 

@@ -180,14 +180,9 @@ var HierarchyWidget = View.extend({
                 }, this);
 
         if (this.parentModel.resourceName === 'folder') {
-            this._initFolderViewSubwidgets();
-        } else {
-            this.itemCount = 0;
-        }
-
-        if (this.parentModel.resourceName === 'folder') {
             this._fetchToRoot(this.parentModel);
         } else {
+            this.itemCount = 0;
             this.render();
         }
         events.on('g:login', () => {
@@ -212,30 +207,33 @@ var HierarchyWidget = View.extend({
      * is a folder type.
      */
     _initFolderViewSubwidgets: function () {
-        this.itemListView = new ItemListWidget({
-            itemFilter: this._itemFilter,
-            folderId: this.parentModel.get('_id'),
-            public: this.parentModel.get('public'),
-            accessLevel: this.parentModel.getAccessLevel(),
-            checkboxes: this._checkboxes,
-            downloadLinks: this._downloadLinks,
-            viewLinks: this._viewLinks,
-            showSizes: this._showSizes,
-            parentView: this
-        });
-        this.itemListView.on('g:itemClicked', this._onItemClick, this)
-            .off('g:checkboxesChanged')
-            .on('g:checkboxesChanged', this.updateChecked, this)
-            .off('g:changed').on('g:changed', function () {
+        if (!this.itemListView) {
+            this.itemListView = new ItemListWidget({
+                itemFilter: this._itemFilter,
+                folderId: this.parentModel.id,
+                public: this.parentModel.get('public'),
+                accessLevel: this.parentModel.getAccessLevel(),
+                checkboxes: this._checkboxes,
+                downloadLinks: this._downloadLinks,
+                viewLinks: this._viewLinks,
+                showSizes: this._showSizes,
+                parentView: this
+            });
+            this.listenTo(this.itemListView, 'g:itemClicked', this._onItemClick);
+            this.listenTo(this.itemListView, 'g:checkboxesChanged', this.updateChecked);
+            this.listenTo(this.itemListView, 'g:changed', () => {
                 this.itemCount = this.itemListView.collection.length;
                 this._childCountCheck();
-            }, this);
+            });
+        }
 
-        this.metadataWidget = new MetadataWidget({
-            item: this.parentModel,
-            parentView: this,
-            accessLevel: this.parentModel.getAccessLevel()
-        });
+        if (!this.metadataWidget) {
+            this.metadataWidget = new MetadataWidget({
+                item: this.parentModel,
+                parentView: this,
+                accessLevel: this.parentModel.getAccessLevel()
+            });
+        }
     },
 
     _setRoute: function () {
@@ -251,25 +249,11 @@ var HierarchyWidget = View.extend({
     },
 
     _fetchToRoot: function (folder) {
-        var parentId = folder.get('parentId');
-        var parentType = folder.get('parentCollection');
-        var modelName = getModelClassByName(parentType);
-        if (allModels[modelName]) {
-            var parent = new allModels[modelName]();
-            parent.set({
-                _id: parentId
-            }).once('g:fetched', function () {
-                this.breadcrumbs.push(parent);
-                if (parentType === 'folder') {
-                    this._fetchToRoot(parent);
-                } else {
-                    this.breadcrumbs.reverse();
-                    this.render();
-                }
-            }, this).fetch();
-        } else {
-            throw new Error('No such model: ' + modelName);
-        }
+        folder.getRootPath().done((path) => {
+            const breadcrumbs = path.map((r) => new allModels[getModelClassByName(r.type)](r.object));
+            this.breadcrumbs.unshift(...breadcrumbs);
+            this.render();
+        });
     },
 
     render: function () {
@@ -768,7 +752,6 @@ var HierarchyWidget = View.extend({
             _.each(items, function (cid) {
                 var item = this.itemListView.collection.get(cid);
                 resources.item.push(item.id);
-                return true;
             }, this);
         }
         _.each(resources, function (list, key) {

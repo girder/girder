@@ -1,0 +1,91 @@
+---
+users:
+  # a typical admin user
+  - login: 'admin'
+    password: 'password'
+    firstName: 'First'
+    lastName: 'Last'
+    email: 'admin@email.com'
+    admin: true
+    import: 'setup_database_test/admin'
+
+  # a user with default folders
+  - login: 'defaultFolders'
+    password: 'defaultFolders'
+    firstName: 'User'
+    lastName: 'One'
+    email: 'user1@email.com'
+    admin: false
+    defaultFolders: true
+    public: false
+    folders:
+      # test that folders can be added manually as well
+      - name: 'Additional folder'
+        public: true
+
+  # a user with a imported folders
+  - login: 'importedFolders'
+    password: 'user2password'
+    firstName: 'User'
+    lastName: 'Two'
+    email: 'user2@email.com'
+    admin: false
+    import: 'setup_database_test/user2'
+
+  # a user with a folder created by a different user
+  - login: 'creatorTest'
+    password: 'creatorTest'
+    firstName: 'User'
+    lastName: 'Three'
+    email: 'user3@email.com'
+    admin: false
+    folders:
+      - name: 'Created by admin'
+        public: true
+        creator: 'admin'
+
+
+collections:
+  # create a collection with nested folders described manually
+  - name: 'Public Collection'
+    creator: 'admin'
+    description: 'This is an example collection'
+    public: true
+    folders:
+      - name: 'Folder 1'
+        description: 'This is a public folder'
+        public: true
+        items:
+          - name: 'Item 1'
+            description: 'This is an item'
+            files:
+              - name: 'File1.txt'
+                path: 'setup_database_test/publicCollection/file.txt'
+              - name: 'File2.txt'
+                path: 'setup_database_test/publicCollection/file.txt'
+                mimeType: 'application/json'
+
+        folders:
+          - name: 'Private folder'
+            description: 'Private folder in a public folder'
+            creator: 'defaultFolders'
+            public: False
+            items:
+              - name: 'Item in private folder'
+
+
+      - name: 'Folder 2'
+        description: 'This is a private folder'
+        public: false
+
+  # create a collection with imported folders
+  - name: 'Imported collection'
+    creator: 'admin'
+    import: 'setup_database_test/importedCollection'
+
+  # create a collection to test importing to a folder
+  - name: 'Imported folder collection'
+    creator: 'admin'
+    folders:
+      - name: 'Imported folder'
+        import: 'setup_database_test/importedCollection'

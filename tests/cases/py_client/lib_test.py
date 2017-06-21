@@ -24,7 +24,6 @@ import mock
 import os
 import shutil
 import six
-import time
 from six import StringIO
 import hashlib
 import httmock
@@ -382,7 +381,7 @@ class PythonClientTestCase(base.TestCase):
         def processEvent(event):
             eventList.append(event.info)
 
-        events.bind('data.process', 'lib_test', processEvent)
+        events.bind('model.file.finalizeUpload.after', 'lib_test', processEvent)
 
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         size = os.path.getsize(path)
@@ -390,21 +389,13 @@ class PythonClientTestCase(base.TestCase):
             self.client.uploadFile(
                 self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
                 reference='test1_reference')
-
-        starttime = time.time()
-        while (not events.daemon.eventQueue.empty() and
-                time.time() - starttime < 5):
-            time.sleep(0.05)
         self.assertEqual(len(eventList), 1)
-        self.assertEqual(eventList[0]['reference'], 'test1_reference')
+        self.assertEqual(eventList[0]['upload']['reference'], 'test1_reference')
 
         self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
                                      reference='test2_reference')
-        while (not events.daemon.eventQueue.empty() and
-                time.time() - starttime < 5):
-            time.sleep(0.05)
         self.assertEqual(len(eventList), 2)
-        self.assertEqual(eventList[1]['reference'], 'test2_reference')
+        self.assertEqual(eventList[1]['upload']['reference'], 'test2_reference')
         self.assertNotEqual(eventList[0]['file']['_id'],
                             eventList[1]['file']['_id'])
 
@@ -414,11 +405,8 @@ class PythonClientTestCase(base.TestCase):
         size = os.path.getsize(path)
         self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
                                      reference='test3_reference')
-        while (not events.daemon.eventQueue.empty() and
-                time.time() - starttime < 5):
-            time.sleep(0.05)
         self.assertEqual(len(eventList), 3)
-        self.assertEqual(eventList[2]['reference'], 'test3_reference')
+        self.assertEqual(eventList[2]['upload']['reference'], 'test3_reference')
         self.assertNotEqual(eventList[0]['file']['_id'],
                             eventList[2]['file']['_id'])
         self.assertEqual(eventList[1]['file']['_id'],
@@ -437,6 +425,14 @@ class PythonClientTestCase(base.TestCase):
 
         file = self.client.uploadFileToItem(item['_id'], testPath)
         self.assertEqual(file['mimeType'], 'text/plain')
+
+        # Test uploading to a folder
+        self.client.uploadFileToFolder(
+            str(self.publicFolder['_id']), path, reference='test4_reference')
+        self.assertEqual(len(eventList), 6)
+        self.assertEqual(eventList[-1]['upload']['reference'], 'test4_reference')
+        self.assertNotEqual(eventList[2]['file']['_id'],
+                            eventList[-1]['file']['_id'])
 
     def testUploadContentWithMultipart(self):
         with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
@@ -491,7 +487,7 @@ class PythonClientTestCase(base.TestCase):
         girder_client.DEFAULT_PAGE_LIMIT = old
 
     def testDownloadInline(self):
-        # Creating item
+        # Create item
         item = self.client.createItem(self.publicFolder['_id'],
                                       'SomethingMoreUnique')
         # Upload file to item
@@ -554,6 +550,25 @@ class PythonClientTestCase(base.TestCase):
             client.downloadFile(file['_id'], obj)
             self.assertTrue(obj.getvalue().endswith(expected))
             self.assertEqual(len(hits), 2)
+
+    def testDownloadFail(self):
+        # Create item
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'SomethingMostUnique')
+        # Upload file to item
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        file = self.client.uploadFileToItem(item['_id'], path)
+
+        obj = six.BytesIO()
+
+        @httmock.urlmatch(path=r'.*/file/.+/download$')
+        def mock(url, request):
+            return httmock.response(500, 'error', request=request)
+
+        # Attempt to download file to object stream, should raise HttpError
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.HttpError):
+                self.client.downloadFile(file['_id'], obj)
 
     def testAddMetadataToItem(self):
         item = self.client.createItem(self.publicFolder['_id'],
@@ -713,6 +728,12 @@ class PythonClientTestCase(base.TestCase):
         uploadedFile = self.client.uploadFileToItem(item['_id'], path, filename='g1')
 
         self.assertEqual(uploadedFile['name'], 'g1')
+
+    def _testUploadFileToFolder(self):
+        path = os.path.join(self.libTestDir, 'sub1', 'f1')
+        uploadedFile = self.client.uploadFileToFolder(
+            self.publicFolder['_id'], path, filename='g2')
+        self.assertEqual(uploadedFile['name'], 'g2')
 
     def testGetServerVersion(self):
 

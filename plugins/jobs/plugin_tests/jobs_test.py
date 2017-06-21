@@ -33,8 +33,8 @@ def setUpModule():
     base.enabledPlugins.append('jobs')
     base.startServer()
 
-    global JobStatus
-    from girder.plugins.jobs.constants import JobStatus
+    global JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
+    from girder.plugins.jobs.constants import JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
 
 
 def tearDownModule():
@@ -625,7 +625,23 @@ class JobsTestCase(base.TestCase):
         # Should return an empty list
         self.assertEquals(len(resp2.json), 0)
 
-    def testJobStateTransitions(self):
+    def testCreateJobRest(self):
+
+        resp = self.request('/job', method='POST',
+                            user=self.users[0],
+                            params={'title': 'job', 'type': 'job'})
+        # If user does not have the necessary token status is 403
+        self.assertStatus(resp, 403)
+
+        token = self.model('token').createToken(scope=REST_CREATE_JOB_TOKEN_SCOPE)
+
+        resp2 = self.request('/job', method='POST',
+                             token=token,
+                             params={'title': 'job', 'type': 'job'})
+        # If user has the necessary token status is 200
+        self.assertStatus(resp2, 200)
+
+	def testJobStateTransitions(self):
         jobModel = self.model('job', 'jobs')
         job = jobModel.createJob(
             title='user 0 job', type='t1', user=self.users[0], public=False)
@@ -645,3 +661,4 @@ class JobsTestCase(base.TestCase):
             jobModel.updateJob(job, status=JobStatus.RUNNING)
         with self.assertRaises(ValidationException):
             jobModel.updateJob(job, status=JobStatus.INACTIVE)
+

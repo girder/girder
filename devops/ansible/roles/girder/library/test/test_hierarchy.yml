@@ -6,11 +6,11 @@
       girder:
         port: 8080
         user:
-          firstName: "Chris"
-          lastName: "Kotfila"
+          firstName: "John"
+          lastName: "Doe"
           login: "admin"
           password: "letmein"
-          email: "chris.kotfila@kitware.com"
+          email: "john.doe@test.com"
           admin: yes
         state: present
 
@@ -30,10 +30,10 @@
         password: "letmein"
         user:
           firstName: "Alice"
-          lastName: "Test"
+          lastName: "Doe"
           login: "alice"
           password: "letmein"
-          email: "alice.test@kitware.com"
+          email: "alice.doe@test.com"
           folders:
             - name: "Public"
             - name: "Private"
@@ -99,10 +99,10 @@
         password: "letmein"
         user:
           firstName: "Bill"
-          lastName: "Test"
+          lastName: "Doe"
           login: "bill"
           password: "letmein"
-          email: "bill.test@kitware.com"
+          email: "bill.doe@test.com"
         state: present
 
     # Create an 'chris' user
@@ -113,10 +113,10 @@
         password: "letmein"
         user:
           firstName: "Chris"
-          lastName: "Test"
+          lastName: "Doe"
           login: "chris"
           password: "letmein"
-          email: "chris.test@kitware.com"
+          email: "chris.doe@test.com"
         state: present
 
     - name: Create a test group with users
@@ -390,10 +390,10 @@
         password: "letmein"
         user:
           firstName: "Alice"
-          lastName: "Test"
+          lastName: "Doe"
           login: "alice"
           password: "letmein"
-          email: "alice.test@kitware.com"
+          email: "alice.doe@test.com"
         state: absent
 
     - name: Remove 'bill' User
@@ -403,10 +403,10 @@
         password: "letmein"
         user:
           firstName: "Bill"
-          lastName: "Test"
+          lastName: "Doe"
           login: "bill"
           password: "letmein"
-          email: "bill.test@kitware.com"
+          email: "bill.doe@test.com"
         state: absent
 
     - name: Remove 'chris' User
@@ -416,8 +416,8 @@
         password: "letmein"
         user:
           firstName: "Chris"
-          lastName: "Test"
+          lastName: "Doe"
           login: "chris"
           password: "letmein"
-          email: "chris.test@kitware.com"
+          email: "chris.doe@test.com"
         state: absent

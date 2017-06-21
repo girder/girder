@@ -1,9 +1,7 @@
 import ctk_cli
 import itertools
-import os
 
 from girder.models.model_base import ValidationException
-from girder.plugins.worker import constants
 
 _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'boolean': 'boolean',
@@ -126,8 +124,8 @@ def parseSlicerCliXml(fd):
         name = param.flag or param.longflag
         info['outputs'].append(ioSpec(name, param))
         info['args'] += [
-            param.flag or param.longflag,
-            os.path.join(constants.DOCKER_DATA_VOLUME, name)
+            name,
+            '$output{%s}' % name
         ]
 
     for param in inputArgs:
@@ -136,6 +134,6 @@ def parseSlicerCliXml(fd):
 
     for param in outputArgs:
         info['outputs'].append(ioSpec(param.name, param))
-        info['args'].append(os.path.join(constants.DOCKER_DATA_VOLUME, param.name))
+        info['args'].append('$output{%s}' % param.name)
 
     return info
