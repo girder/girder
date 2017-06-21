@@ -6,7 +6,7 @@ import View from 'girder/views/View';
 import router from 'girder/router';
 import events from 'girder/events';
 import { restRequest } from 'girder/rest';
-import { defineFlags, formatDate, DATE_SECOND } from 'girder/misc';
+import { defineFlags, formatDate, DATE_SECOND, _whenAll } from 'girder/misc';
 import eventStream from 'girder/utilities/EventStream';
 import { getCurrentUser } from 'girder/auth';
 import { SORT_DESC } from 'girder/constants';
@@ -44,7 +44,7 @@ var JobListWidget = View.extend({
         },
         'change input.g-job-checkbox-all': function (e) {
             if ($(e.target).is(':checked')) {
-                this.jobs.forEach(job => { this.jobCheckedStates[job.id] = true; });
+                this.jobs.forEach((job) => { this.jobCheckedStates[job.id] = true; });
             } else {
                 this.jobCheckedStates = {};
             }
@@ -75,10 +75,10 @@ var JobListWidget = View.extend({
             get: () => this.collection.toArray()
         });
         Object.defineProperty(this, 'anyJobChecked', {
-            get: () => Object.keys(this.jobCheckedStates).find(key => this.jobCheckedStates[key])
+            get: () => Object.keys(this.jobCheckedStates).find((key) => this.jobCheckedStates[key])
         });
         Object.defineProperty(this, 'allJobChecked', {
-            get: () => !this.jobs.find(job => !this.jobCheckedStates[job.id])
+            get: () => !this.jobs.find((job) => !this.jobCheckedStates[job.id])
         });
 
         this.jobGraphWidget = null;
@@ -284,11 +284,12 @@ var JobListWidget = View.extend({
         this._fetchWithFilter()
             .then(() => {
                 this.trySetHighlightRecord(event.data._id);
+                return null;
             });
     },
 
     trySetHighlightRecord: function (jobId) {
-        if (this.jobs.find(job => job.id === jobId)) {
+        if (this.jobs.find((job) => job.id === jobId)) {
             this.jobHighlightStates[jobId] = true;
             this._renderData();
             setTimeout(() => {
@@ -315,18 +316,18 @@ var JobListWidget = View.extend({
     },
 
     _cancelJobs: function () {
-        Promise.all(
+        _whenAll(
             Object.keys(this.jobCheckedStates)
-                .filter(jobId => {
-                    var status = this.jobs.find(job => job.id === jobId).get('status');
+                .filter((jobId) => {
+                    var status = this.jobs.find((job) => job.id === jobId).get('status');
                     return [JobStatus.CANCELED, JobStatus.SUCCESS, JobStatus.ERROR].indexOf(status) === -1;
                 })
-                .map(jobId => Promise.resolve(restRequest({
+                .map((jobId) => restRequest({
                     path: `job/${jobId}/cancel`,
                     type: 'PUT',
                     error: null
-                })))
-        ).then(results => {
+                }))
+        ).then((results) => {
             if (!results.length) {
                 return;
             }
@@ -336,6 +337,7 @@ var JobListWidget = View.extend({
                 type: 'info',
                 timeout: 4000
             });
+            return null;
         });
     }
 });

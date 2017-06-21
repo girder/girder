@@ -65,17 +65,16 @@ $(function () {
 
                 function toHex(c) {
                     var hex = parseInt(c, 10).toString(16);
-                    return hex.length == 1 ? '0' + hex : hex;
+                    return hex.length === 1 ? '0' + hex : hex;
                 }
 
                 function rgbToHex(rgb) {
                     rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-                    print
                     return '#' + toHex(rgb[1]) + toHex(rgb[2]) + toHex(rgb[3]);
                 }
 
                 var backgroundColor = $('.g-timeline-point')[3].style.getPropertyValue('background-color');
-                backgroundColor = rgbToHex(backgroundColor)
+                backgroundColor = rgbToHex(backgroundColor);
                 var successColor = girder.plugins.jobs.JobStatus.color(girder.plugins.jobs.JobStatus.SUCCESS);
                 expect(backgroundColor).toBe(successColor);
 
