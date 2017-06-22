@@ -161,8 +161,8 @@ level.
 Download Statistics
 -------------------
 
-This plugin tracks and records file download activity. The recorded information,
-downloads started, downloads completed, and total requests made, is stored on the
+This plugin tracks and records file download activity. The recorded information
+(downloads started, downloads completed, and total requests made) is stored on the
 file model: :: 
 
     file['downloadStatistics']['started']

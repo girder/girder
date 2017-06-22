@@ -113,7 +113,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                                            info={'file': file, 'redirect': False})
                     return downloadGenerator
                 else:
-                    # With our current assetstores (June 2017), this case should not be reached. 
+                    # With our current assetstores (June 2017), this case should not be reached.
                     return fileDownload
             except cherrypy.HTTPRedirect:
                 events.trigger('model.file.download.after', info={'file': file, 'redirect': True})
