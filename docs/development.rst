@@ -397,6 +397,27 @@ to the latest released version, except when:
    exceptions. However, attempts should still be made to maintain API
    compatibility via monkey patching, wrapper classes, etc.
 
+Modifying core web client libraries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Web client libraries in Girder core are managed via `npm <https://www.npmjs.com/>`_.
+When a new npm package is required, or an existing package is upgraded, the following
+should be done:
+
+1. Update ``dependencies`` or ``devDependencies`` in ``package.json`` to add a new
+   *abstract* specifier for the package:
+  * Packages that are bundled into the web client should generally use the
+    `tilde range <https://www.npmjs.com/package/semver#tilde-ranges-123-12-1>`_
+    to specify versions.
+  * Packages that are part of the build or testing process should generally use the
+    `caret range <https://www.npmjs.com/package/semver#caret-ranges-123-025-004>`_
+    to specify versions.
+2. Run from the root Girder directory:
+
+   .. code-block:: bash
+
+       npm update
+
+3. Commit the updated ``package.json`` and ``package-lock.json`` files.
 
 Creating a new release
 ----------------------
