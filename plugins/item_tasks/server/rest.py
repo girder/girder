@@ -34,16 +34,43 @@ class ItemTask(Resource):
     @autoDescribeRoute(
         Description('List all available tasks that can be executed.')
         .pagingParams(defaultSort='name')
+        .param('minFileInputs', 'Search tasks by minimum number of file inputs.', required=False,
+               dataType='int', default=0)
+        .param('maxFileInputs', 'Search tasks by minimum number of file inputs.', required=False,
+               dataType='int')
     )
     @filtermodel(model='item')
-    def listTasks(self, limit, offset, sort, params):
+    def listTasks(self, limit, offset, sort, minFileInputs, maxFileInputs, params):
         cursor = self.model('item').find({
             'meta.isItemTask': {'$exists': True}
         }, sort=sort)
 
-        return list(self.model('item').filterResultsByPermission(
+        filteredResults = list(self.model('item').filterResultsByPermission(
             cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
             flags=constants.ACCESS_FLAG_EXECUTE_TASK))
+
+        # Return list if no min and max are specified
+        if not minFileInputs and not maxFileInputs:
+            return filteredResults
+
+        # Check item metadata for file input type
+        finalResults = []
+        for item in filteredResults:
+            fileCount = 0
+            try:
+                for _input in item['meta']['itemTaskSpec']['inputs']:
+                    if _input['type'] == 'file':
+                        fileCount += 1
+
+                if maxFileInputs:
+                    if fileCount >= minFileInputs and fileCount <= maxFileInputs:
+                        finalResults.append(item)
+                else:
+                    if fileCount >= minFileInputs:
+                        finalResults.append(item)
+            except KeyError:
+                continue
+        return finalResults
 
     def _validateTask(self, item):
         """
