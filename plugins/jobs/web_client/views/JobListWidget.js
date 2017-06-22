@@ -319,8 +319,8 @@ var JobListWidget = View.extend({
         _whenAll(
             Object.keys(this.jobCheckedStates)
                 .filter((jobId) => {
-                    var status = this.jobs.find((job) => job.id === jobId).get('status');
-                    return [JobStatus.CANCELED, JobStatus.SUCCESS, JobStatus.ERROR].indexOf(status) === -1;
+                    var jobModel = this.jobs.find((job) => job.id === jobId);
+                    return JobStatus.isCancelable(jobModel);
                 })
                 .map((jobId) => restRequest({
                     path: `job/${jobId}/cancel`,

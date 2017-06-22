@@ -16,9 +16,9 @@ ol.breadcrumb
   .g-job-status-badge(status=statusText.toLowerCase(), style=`color: ${textColor}; background-color: ${color};`)
     i(class=JobStatus.icon(job.get('status')))
     |  #{statusText}
-  if [JobStatus.CANCELED, JobStatus.SUCCESS, JobStatus.ERROR].indexOf(job.get('status')) === -1
+  if JobStatus.isCancelable(job)
     button.g-job-cancel.btn.btn-default.btn-sm(type="button")
-      i.icon-cancel 
+      i.icon-cancel
       | Cancel
 if job.get('timestamps') && job.get('timestamps').length
   .g-field-container

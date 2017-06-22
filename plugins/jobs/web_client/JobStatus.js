@@ -30,6 +30,10 @@ var JobStatus = {
         return this._map[status].textColor;
     },
 
+    isCancelable: function (job) {
+      return false;
+    },
+
     /**
      * Convert this status text into a value appropriate for an HTML class name.
      */
