@@ -43,7 +43,8 @@ class CustomJobStatus(object):
     PUSHING_OUTPUT = 823
     CANCELING = 824
 
-    valid_transitions = {
+    # valid transitions for worker scheduled jobs
+    valid_worker_transitions = {
         JobStatus.QUEUED: [JobStatus.INACTIVE],
         JobStatus.RUNNING: [JobStatus.QUEUED],
         FETCHING_INPUT: [JobStatus.RUNNING],
@@ -59,6 +60,16 @@ class CustomJobStatus(object):
         JobStatus.SUCCESS: [JobStatus.RUNNING, PUSHING_OUTPUT]
     }
 
+    # valid transitions for celery scheduled jobs
+    valid_celery_transitions = {
+        JobStatus.QUEUED: [JobStatus.INACTIVE],
+        CANCELING: [JobStatus.INACTIVE, JobStatus.QUEUED],
+        JobStatus.CANCELED: [CANCELING, JobStatus.QUEUED, JobStatus.RUNNING],
+        JobStatus.RUNNING: [JobStatus.INACTIVE, JobStatus.QUEUED],
+        JobStatus.ERROR: [JobStatus.QUEUED, JobStatus.RUNNING],
+        JobStatus.SUCCESS: [JobStatus.RUNNING]
+    }
+
     @classmethod
     def isValid(cls, status):
         return status in (
@@ -70,8 +81,12 @@ class CustomJobStatus(object):
         )
 
     @classmethod
-    def validTransitions(cls, status):
-        return cls.valid_transitions.get(status)
+    def validTransitionsWorker(cls, status):
+        return cls.valid_worker_transitions.get(status)
+
+    @classmethod
+    def validTransitionsCelery(cls, status):
+        return cls.valid_celery_transitions.get(status)
 
 
 def getCeleryApp():
@@ -124,7 +139,7 @@ def cancel(event):
     handler field set to "worker_handler".
     """
     job = event.info
-    if job['handler'] == 'worker_handler':
+    if job['handler'] in ['worker_handler', 'celery_handler']:
         # Stop event propagation and prevent default, we are using a custom state
         event.stopPropagation().preventDefault()
 
@@ -177,8 +192,11 @@ def validateJobStatus(event):
 def validTransitions(event):
     """Allow our custom job transitions."""
     if event.info['job']['handler'] == 'worker_handler':
-            states = CustomJobStatus.validTransitions(event.info['status'])
-            event.preventDefault().addResponse(states)
+        states = CustomJobStatus.validTransitionsWorker(event.info['status'])
+    elif event.info['job']['handler'] == 'celery_handler':
+        states = CustomJobStatus.validTransitionsCelery(event.info['status'])
+
+    event.preventDefault().addResponse(states)
 
 
 def load(info):
