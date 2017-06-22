@@ -351,7 +351,7 @@ class TasksTest(base.TestCase):
                 'folder/%s/item_task_slicer_cli_xml' % folder['_id']))
             params = job['kwargs']['outputs']['_stdout']['params']
             self.assertEqual(params['image'], 'johndoe/foo:v5')
-            self.assertEqual(params['args'], "['--foo', 'bar']")
+            self.assertEqual(params['args'], '["--foo", "bar"]')
             self.assertEqual(params['pullImage'], True)
             token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
 
