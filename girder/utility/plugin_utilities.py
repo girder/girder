@@ -204,44 +204,43 @@ def loadPlugin(name, root, appconf, apiRoot=None):
 
     moduleName = '.'.join((ROOT_PLUGINS_PACKAGE, name))
 
-    if moduleName not in sys.modules:
-        fp = None
-        try:
-            # @todo this query is run for every plugin that's loaded
-            setting = model_importer.ModelImporter().model('setting')
-            routeTable = setting.get(SettingKey.ROUTE_TABLE)
+    fp = None
+    try:
+        # @todo this query is run for every plugin that's loaded
+        setting = model_importer.ModelImporter().model('setting')
+        routeTable = setting.get(SettingKey.ROUTE_TABLE)
 
-            info = {
-                'name': name,
-                'config': appconf,
-                'serverRoot': root,
-                'serverRootPath': routeTable[GIRDER_ROUTE_ID],
-                'apiRoot': apiRoot,
-                'staticRoot': routeTable[GIRDER_STATIC_ROUTE_ID],
-                'pluginRootDir': os.path.abspath(pluginDir)
-            }
+        info = {
+            'name': name,
+            'config': appconf,
+            'serverRoot': root,
+            'serverRootPath': routeTable[GIRDER_ROUTE_ID],
+            'apiRoot': apiRoot,
+            'staticRoot': routeTable[GIRDER_STATIC_ROUTE_ID],
+            'pluginRootDir': os.path.abspath(pluginDir)
+        }
 
-            if pluginLoadMethod is None:
-                fp, pathname, description = imp.find_module(
-                    'server', [pluginDir]
-                )
-                module = imp.load_module(moduleName, fp, pathname, description)
-                module.PLUGIN_ROOT_DIR = pluginDir
-                girder.plugins.__dict__[name] = module
-                pluginLoadMethod = getattr(module, 'load', None)
+        if pluginLoadMethod is None:
+            fp, pathname, description = imp.find_module(
+                'server', [pluginDir]
+            )
+            module = imp.load_module(moduleName, fp, pathname, description)
+            module.PLUGIN_ROOT_DIR = pluginDir
+            girder.plugins.__dict__[name] = module
+            pluginLoadMethod = getattr(module, 'load', None)
 
-            if pluginLoadMethod is not None:
-                sys.modules[moduleName] = module
-                pluginLoadMethod(info)
+        if pluginLoadMethod is not None:
+            sys.modules[moduleName] = module
+            pluginLoadMethod(info)
 
-            root, appconf, apiRoot = (
-                info['serverRoot'], info['config'], info['apiRoot'])
+        root, appconf, apiRoot = (
+            info['serverRoot'], info['config'], info['apiRoot'])
 
-        finally:
-            if fp:
-                fp.close()
+    finally:
+        if fp:
+            fp.close()
 
-        return root, appconf, apiRoot
+    return root, appconf, apiRoot
 
 
 def getPluginDir():
