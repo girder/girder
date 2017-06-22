@@ -399,6 +399,10 @@ class Job(AccessControlledModel):
                 'job': job
             })
 
+        # We don't want todo this until we know the update was successful
+        if status is not None:
+            self._createUpdateStatusNotification(now, user, job)
+
         return job
 
     def _updateLog(self, job, log, overwrite, now, notify, user, updates):
@@ -415,6 +419,15 @@ class Job(AccessControlledModel):
                     'overwrite': overwrite,
                     'text': log
                 }, user=user, expires=expires)
+
+    def _createUpdateStatusNotification(self, now, user, job):
+        expires = now + datetime.timedelta(seconds=30)
+        filtered = self.filter(job, user)
+        filtered.pop('kwargs', None)
+        filtered.pop('log', None)
+        self.model('notification').createNotification(type='job_status',
+                                                      data=filtered, user=user,
+                                                      expires=expires)
 
     def _updateStatus(self, job, status, now, notify, user, query, updates):
         """Helper for updating job progress information."""
@@ -447,14 +460,6 @@ class Job(AccessControlledModel):
             }
             job['timestamps'].append(ts)
             updates['$push']['timestamps'] = ts
-
-            if notify and user:
-                expires = now + datetime.timedelta(seconds=30)
-                filtered = self.filter(job, user)
-                filtered.pop('kwargs', None)
-                filtered.pop('log', None)
-                self.model('notification').createNotification(
-                    type='job_status', data=filtered, user=user, expires=expires)
 
     def _updateProgress(self, job, total, current, message, notify, user, updates):
         """Helper for updating job progress information."""
