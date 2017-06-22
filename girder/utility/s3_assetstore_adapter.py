@@ -152,11 +152,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         else:
             try:
                 bucket = conn.get_bucket(bucket_name=doc['bucket'],
-                                         validate=True)
+                                         validate=False)
+                bucket.get_all_keys(maxkeys=0)
                 testKey = boto.s3.key.Key(
                     bucket=bucket, name='/'.join(
                         filter(None, (doc['prefix'], 'test'))))
                 testKey.set_contents_from_string('')
+                testKey.delete()
             except Exception:
                 logger.exception('S3 assetstore validation exception')
                 raise ValidationException('Unable to write into bucket "%s".' %
