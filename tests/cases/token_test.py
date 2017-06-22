@@ -23,6 +23,8 @@ from .. import base
 from girder.constants import TokenScope
 from girder.models.token import genToken
 from girder.models.model_base import AccessException
+from girder.utility.model_importer import ModelImporter
+import pytest
 
 
 def setUpModule():
@@ -33,16 +35,40 @@ def tearDownModule():
     base.stopServer()
 
 
+def testCryptographicSecurity():
+    # Make sure we are not using the normal random to generate tokens
+    random.seed(1)
+    token1 = genToken()
+    random.seed(1)
+    token2 = genToken()
+
+    assert token1 != token2
+
+
+def testHasScope():
+    scope = TokenScope.DATA_READ
+    tokenModel = ModelImporter.model('token')
+    token = tokenModel.createToken(scope=scope)
+
+    # If token is None should return False
+    assert not tokenModel.hasScope(None, scope)
+
+    # If scope is None should return True
+    assert tokenModel.hasScope(token, None)
+
+
+def testRequireScope():
+    scope = TokenScope.DATA_OWN
+    anotherScope = TokenScope.SETTINGS_READ
+    tokenModel = ModelImporter.model('token')
+    token = tokenModel.createToken(scope=scope)
+
+    # If specified scope does not exist raise an error
+    with pytest.raises(AccessException):
+        tokenModel.requireScope(token, anotherScope)
+
+
 class TokensTestCase(base.TestCase):
-
-    def testCryptographicSecurity(self):
-        # Make sure we are not using the normal random to generate tokens
-        random.seed(1)
-        token1 = genToken()
-        random.seed(1)
-        token2 = genToken()
-
-        self.assertNotEqual(token1, token2)
 
     def testGetAndDeleteSession(self):
         resp = self.request(path='/token/session', method='GET')
@@ -52,22 +78,22 @@ class TokensTestCase(base.TestCase):
         resp = self.request(path='/token/session', method='GET')
         self.assertStatusOk(resp)
         token2 = resp.json['token']
-        self.assertNotEqual(token, token2)
+        assert token != token2
         # If we ask for another token, passing in the first one, we should get
         # the first one back
         resp = self.request(path='/token/session', method='GET', token=token)
         self.assertStatusOk(resp)
         token2 = resp.json['token']
-        self.assertEqual(token, token2)
+        assert token == token2
         # If we ask about the current token without passing one, we should get
         # null
         resp = self.request(path='/token/current', method='GET')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, None)
+        assert resp.json is None
         # With a token, we get the token document in the response
         resp = self.request(path='/token/current', method='GET', token=token)
         self.assertStatusOk(resp)
-        self.assertEqual(token, resp.json['_id'])
+        assert token == resp.json['_id']
         # Trying to delete a token without specifying one results in an error
         resp = self.request(path='/token/session', method='DELETE')
         self.assertStatus(resp, 401)
@@ -77,24 +103,3 @@ class TokensTestCase(base.TestCase):
         # Now the token is gone, so it should fail
         resp = self.request(path='/token/session', method='DELETE', token=token)
         self.assertStatus(resp, 401)
-
-    def testHasScope(self):
-        scope = TokenScope.DATA_READ
-        tokenModel = self.model('token')
-        token = tokenModel.createToken(scope=scope)
-
-        # If token is None should return False
-        self.assertFalse(tokenModel.hasScope(None, scope))
-
-        # If scope is None should return True
-        self.assertTrue(tokenModel.hasScope(token, None))
-
-    def testRequireScope(self):
-        scope = TokenScope.DATA_OWN
-        anotherScope = TokenScope.SETTINGS_READ
-        tokenModel = self.model('token')
-        token = tokenModel.createToken(scope=scope)
-
-        # If specified scope does not exist raise an error
-        with self.assertRaises(AccessException):
-            tokenModel.requireScope(token, anotherScope)
