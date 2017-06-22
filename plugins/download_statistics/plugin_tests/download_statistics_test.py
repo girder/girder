@@ -47,13 +47,11 @@ class DownloadStatisticsTestCase(base.TestCase):
                  'admin': True}
         self.admin = self.model('user').createUser(**admin)
 
-        folders = self.model('folder').childFolders(parent=self.admin, parentType='user',
-                                                    user=self.admin)
-
-        for folder in folders:
-            if folder['public'] is True:
-                self.publicFolder = folder
-
+        self.publicFolder = self.model('folder').findOne({
+            'name': 'Public',
+            'parentId': self.admin['_id'],
+            'parentCollection': 'user'
+        })
         self.filesDir = os.path.join(ROOT_DIR, 'plugins', 'download_statistics',
                                      'plugin_tests', 'files')
 
@@ -62,14 +60,18 @@ class DownloadStatisticsTestCase(base.TestCase):
         path = '/item/%s/download' % str(itemId)
         resp = self.request(path, user=self.admin, isJson=False)
         self.assertStatusOk(resp)
-        self.getBody(resp)
+        # iterate through generator to trigger download events
+        for data in resp.body:
+            data
 
     def _downloadFile(self, fileId):
         # Download file through REST api
         path = '/file/%s/download' % str(fileId)
         resp = self.request(path, user=self.admin, isJson=False)
         self.assertStatusOk(resp)
-        self.getBody(resp)
+        # iterate through generator to trigger download events
+        for data in resp.body:
+            data
 
     def _checkDownloadsStarted(self, fileId, count):
         # Test downloadsStarted is equal to count
@@ -78,16 +80,26 @@ class DownloadStatisticsTestCase(base.TestCase):
                          'Started Downloads count inaccurate')
 
     def _checkDownloadsRequested(self, fileId, count):
-        # Test downloadsStarted is equal to count
+        # Test downloadsRequested is equal to count
         file = self.model('file').load(fileId, force=True)
         self.assertEqual(file['downloadStatistics']['requested'], count,
                          'Requested Downloads count inaccurate')
 
     def _checkDownloadsCompleted(self, fileId, count):
-        # Test downloadsStarted is equal to count
+        # Test downloadsCompleted is equal to count
         file = self.model('file').load(fileId, force=True)
         self.assertEqual(file['downloadStatistics']['completed'], count,
                          'Completed downloads count inaccurate')
+
+    def _checkDownloadStatisticFields(self, fileId):
+        path = '/file/' + str(fileId)
+        resp = self.request(path, user=self.admin, isJson=True)
+        self.assertStatusOk(resp)
+        data = resp.json
+        self.assertTrue(data['downloadStatistics'])
+        self.assertTrue(data['downloadStatistics']['completed'])
+        self.assertTrue(data['downloadStatistics']['requested'])
+        self.assertTrue(data['downloadStatistics']['started'])
 
     def testItemAndFileDownload(self):
         # Create item
@@ -102,6 +114,8 @@ class DownloadStatisticsTestCase(base.TestCase):
             self.model('upload').uploadFromFile(fp, os.path.getsize(file1Path),
                                                 'txt1.txt', parentType='item',
                                                 parent=item, user=self.admin)
+
+        with open(file2Path, 'rb') as fp:
             self.model('upload').uploadFromFile(fp, os.path.getsize(file2Path),
                                                 'txt2.txt', parentType='item',
                                                 parent=item, user=self.admin)
@@ -117,3 +131,4 @@ class DownloadStatisticsTestCase(base.TestCase):
             self._checkDownloadsStarted(file['_id'], 10)
             self._checkDownloadsRequested(file['_id'], 10)
             self._checkDownloadsCompleted(file['_id'], 10)
+            self._checkDownloadStatisticFields(file['_id'])

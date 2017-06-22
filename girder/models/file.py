@@ -94,6 +94,10 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type contentDisposition: str or None
         :type extraParameters: str or None
         """
+        if offset is 0:
+            events.trigger('model.file.download.before', info={'file': file})
+        else:
+            events.trigger('model.file.download.during', info={'file': file})
         if file.get('assetstoreId'):
             try:
                 fileDownload = self.getAssetstoreAdapter(file).downloadFile(
@@ -105,17 +109,18 @@ class File(acl_mixin.AccessControlMixin, Model):
                         for data in fileDownload():
                             yield data
                         if endByte is None or endByte >= file['size']:
-                            events.trigger('download.complete', info={'file': file,
-                                                                      'redirect': False})
+                            events.trigger('model.file.download.after',
+                                           info={'file': file, 'redirect': False})
                     return downloadGenerator
                 else:
+                    # With our current assetstores (June 2017), this case should not be reached. 
                     return fileDownload
-            except cherrypy.HTTPRedirect as e:
-                events.trigger('download.complete', info={'file': file, 'redirect': True})
-                raise e
+            except cherrypy.HTTPRedirect:
+                events.trigger('model.file.download.after', info={'file': file, 'redirect': True})
+                raise
         elif file.get('linkUrl'):
             if headers:
-                events.trigger('download.complete', info={'file': file, 'redirect': True})
+                events.trigger('model.file.download.after', info={'file': file, 'redirect': True})
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
             else:
                 endByte = endByte or len(file['linkUrl'])
@@ -123,7 +128,8 @@ class File(acl_mixin.AccessControlMixin, Model):
                 def stream():
                     yield file['linkUrl'][offset:endByte]
                     if endByte >= len(file['linkUrl']):
-                        events.trigger('download.complete', info={'file': file, 'redirect': False})
+                        events.trigger('model.file.download.after',
+                                       info={'file': file, 'redirect': False})
                 return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')
