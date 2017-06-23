@@ -108,7 +108,7 @@ class StreamToLogger:
     def write(self, buf):
         if not self.logger._girderLogHandlerOutput:
             self.logger._girderLogHandlerOutput = True
-            _originalStdOut.write(buf)
+            self.stream.write(buf)
             for line in buf.rstrip().splitlines():
                 self.logger.log(self.level, line.rstrip())
             self.logger._girderLogHandlerOutput = False
@@ -203,9 +203,6 @@ def _setupLogger():
     ih.setFormatter(fmt)
     logger.addHandler(ih)
 
-    sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
-    sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
-
     # Log http accesses to the screen and/or the info log.
     accessLog = logCfg.get('log_access', 'screen')
     if not isinstance(accessLog, (tuple, list, set)):
@@ -219,6 +216,12 @@ def _setupLogger():
 
 
 logger = _setupLogger()
+
+
+def logStdoutStderr():
+    if _originalStdOut == sys.stdout:
+        sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
+        sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
 
 
 def logprint(*args, **kwargs):
