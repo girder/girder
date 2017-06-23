@@ -56,7 +56,7 @@ $(function () {
                 expect($('.g-job-info-value[property="title"]').text()).toBe(jobInfo.title);
                 expect($('.g-job-info-value[property="when"]').text()).toContain('January 12, 2015');
                 expect($('.g-job-status-badge').text()).toContain('Inactive');
-                expect($('button.g-job-cancel').length).toBe(1);
+                expect($('button.g-job-cancel').length).toBe(0);
 
                 expect($('.g-timeline-segment').length).toBe(3);
                 expect($('.g-timeline-point').length).toBe(4);
@@ -87,7 +87,6 @@ $(function () {
                 });
 
                 expect($('.g-job-status-badge').text()).toContain('Success');
-                expect($('button.g-job-cancel').length).toBe(0);
 
                 // Make sure view change only happens for the currently viewed job
                 girder.utilities.eventStream.trigger('g:event.job_status', {
