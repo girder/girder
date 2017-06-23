@@ -22,6 +22,7 @@ if(RUN_CORE_TESTS)
   add_eslint_test(test_specs clients/web/test)
   add_eslint_test(swagger clients/web/static/girder-swagger.js)
   add_eslint_test(web_external clients/web-external)
+  add_eslint_test(jquery_client clients/jquery)
 
   add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
   add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
