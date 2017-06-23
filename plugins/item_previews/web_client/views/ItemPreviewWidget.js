@@ -10,7 +10,7 @@ import '../stylesheets/itemPreviewWidget.styl';
 
 /**
  * The Item Preview widget shows a preview of items under a given folder.
- * For now, this only support json and images file types.
+ * For now, this only supports json and images file types.
  */
 var ItemPreviewWidget = View.extend({
     events: {
@@ -22,7 +22,8 @@ var ItemPreviewWidget = View.extend({
 
     initialize: function (settings) {
         this._isSupportedItem = this._isSupportedItem.bind(this);
-        this.debouncedAddMoreItem = _.debounce(this.addMoreItem, 100);
+        this.debouncedaddMoreItems = _.debounce(this.addMoreItems, 100);
+        this.onScroll = _.debounce(this.onScroll, 100);
 
         this.initialized = false;
 
@@ -38,12 +39,13 @@ var ItemPreviewWidget = View.extend({
             this.supportedItems = this.collection.toJSON().filter(this._isSupportedItem);
             if (this.supportedItems.length !== 0 &&
                 (this.isNotFull() || this.isNearBottom())) {
-                this.debouncedAddMoreItem();
+                this.debouncedaddMoreItems();
             }
         });
     },
 
     _MAX_JSON_SIZE: 2e6 /* bytes */,
+    _MAX_IMAGE_SIZE: 2e7 /* bytes */,
     _LOAD_BATCH_SIZE: 2,
 
     _isSupportedItem: function (item) {
@@ -60,28 +62,28 @@ var ItemPreviewWidget = View.extend({
 
     setElement: function ($el) {
         this.initialized = false;
-        View.prototype.setElement.apply(this, arguments);
+        return View.prototype.setElement.apply(this, arguments);
     },
 
     render: function () {
         if (!this.initialized) {
             this.initialized = true;
             this.renderedIndex = 0;
-            this.$el.html(ItemPreviewWidgetTemplate(this));
+            this.$el.html(ItemPreviewWidgetTemplate());
             this.$('.g-widget-item-previews-container').on('scroll', (e) => this.onScroll(e));
-            this.debouncedAddMoreItem();
+            this.debouncedaddMoreItems();
         }
     },
 
     isNotFull: function () {
-        return this.$('.g-widget-item-prevews-wrapper').height() <= this.$('.g-widget-item-previews-container').height();
+        return this.$('.g-widget-item-previews-wrapper').height() <= this.$('.g-widget-item-previews-container').height();
     },
 
     allItemAdded: function () {
-        return this.renderedIndex === this.supportedItems.length;
+        return this.renderedIndex >= this.supportedItems.length;
     },
 
-    addMoreItem: function () {
+    addMoreItems: function () {
         this.addingMoreItems = true;
         var items = this.supportedItems.slice(this.renderedIndex, this.renderedIndex + this._LOAD_BATCH_SIZE);
         this.renderedIndex = Math.min(this.renderedIndex + this._LOAD_BATCH_SIZE, this.supportedItems.length);
@@ -90,13 +92,13 @@ var ItemPreviewWidget = View.extend({
             return;
         }
 
-        var $container = this.$('.g-widget-item-prevews-wrapper');
+        var $container = this.$('.g-widget-item-previews-wrapper');
         _whenAll(items.map((item) => {
             return restRequest({
                 path: `item/${item._id}/files`
             }).then((files) => {
                 return _whenAll(files.map((file) => {
-                    return this.tryGetFileContent(file, file.mimeType, 'file');
+                    return this.tryGetFileContent(file, file.mimeType);
                 }));
             });
         })).then((results) => {
@@ -109,13 +111,14 @@ var ItemPreviewWidget = View.extend({
                     }));
                 }
             });
-            this.addingMoreItems = false;
 
             // In case the container is not fully filled add more items
             if (!this.allItemAdded() && this.isNotFull()) {
-                this.addMoreItem();
+                this.addMoreItems();
             }
             return undefined;
+        }).always(() => {
+            this.addingMoreItems = false;
         });
     },
 
@@ -125,21 +128,22 @@ var ItemPreviewWidget = View.extend({
     },
 
     onScroll: function (e) {
-        if (this.isNearBottom()) {
-            if (!this.addingMoreItems && !this.allItemAdded()) {
-                this.addMoreItem();
-            }
+        if (this.isNearBottom() && !this.addingMoreItems && !this.allItemAdded()) {
+            this.addMoreItems();
         }
     },
 
-    tryGetFileContent: function (file, contentType, type) {
+    tryGetFileContent: function (file, contentType) {
         if (this._isJSONItem(file.name) && contentType === 'application/octet-stream') {
             if (file.size > this._MAX_JSON_SIZE) {
-                return $.Defrred().resolve(null).promise();
+                return $.Deferred().resolve(null).promise();
             }
-            return this.getJsonContent(`${type}/${file._id}/download`);
+            return this.getJsonContent(`file/${file._id}/download`);
         } else if (this._isImageItem(contentType)) {
-            return this.getImageContent(`${type}/${file._id}/download`);
+            if (file.size > this._MAX_IMAGE_SIZE) {
+                return $.Deferred().resolve(null).promise();
+            }
+            return this.getImageContent(`file/${file._id}/download`);
         }
     },
 
