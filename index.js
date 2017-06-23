@@ -21,14 +21,14 @@ module.exports = {
       "named": "never"
     }],
     "backbone/collection-model": "error",
-    "backbone/defaults-on-top": "error",
+    "backbone/defaults-on-top": ["error", ["resourceName", "url", "urlRoot"]],
     "backbone/event-scope": "off",
     "backbone/events-on-top": ["error", ["tagName", "className"]],
     "backbone/events-sort": "off",
     "backbone/initialize-on-top": ["error", {
       View: ["tagName", "className", "events"],
-      Model: ["defaults", "url", "urlRoot"],
-      Collection: ["model", "url"]
+      Model: ["resourceName", "url", "urlRoot", "defaults"],
+      Collection: ["model", "resourceName", "url"]
     }],
     "backbone/model-defaults": "off",
     "backbone/no-changed-set": "error",
