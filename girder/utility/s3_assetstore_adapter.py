@@ -63,7 +63,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 raise ValidationException(
                     'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
         params = makeBotoConnectParams(doc['accessKeyId'], doc['secret'], doc['service'])
-        conn = botoResource(params)
+        conn = botoS3(params, api='resource')
         if doc.get('readOnly'):
             # TODO(zach) readonly support
             try:
@@ -133,7 +133,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'key': key
         }
 
-        conn = botoClient(self.connectParams)
+        conn = botoS3(self.connectParams)
 
         if chunked:
             # TODO chunked
@@ -218,7 +218,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return upload
 
     def _getBucket(self, validate=True):
-        conn = botoResource(self.assetstore['botoConnect'])
+        conn = botoS3(self.assetstore['botoConnect'], api='resource')
         bucket = conn.lookup(bucket_name=self.assetstore['bucket'], validate=validate)
 
         if not bucket:
@@ -350,7 +350,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if file['size'] > 0:
                 if contentDisposition == 'inline':
                     params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
-                url = botoClient(self.connectParams).generate_presigned_url(
+                url = botoS3(self.connectParams).generate_presigned_url(
                     ClientMethod='get_object', Params=params)
                 raise cherrypy.HTTPRedirect(url)
             else:
@@ -362,7 +362,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         else:
             def stream():
                 if file['size'] > 0:
-                    url = botoClient(self.connectParams).generate_presigned_url(
+                    url = botoS3(self.connectParams).generate_presigned_url(
                         ClientMethod='get_object', Params=params)
                     pipe = requests.get(url, stream=True)
                     for chunk in pipe.iter_content(chunk_size=BUF_LEN):
@@ -562,21 +562,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return False
 
 
-def botoResource(connectParams):
+def botoS3(connectParams, api='client'):
     """
-    Connect to the S3 server, throwing an appropriate exception if we fail.
-    :param connectParams: a dictionary of parameters to use in the connection.
-    :returns: the boto connection object.
-    """
-    try:
-        return boto3.resource('s3', **connectParams)
-    except Exception:
-        logger.exception('S3 assetstore validation exception')
-        raise ValidationException('Unable to connect to S3 assetstore')
+    Get a connection to the S3 server using the given connection params.
 
-def botoClient(connectParams):
+    :param connectParams: Kwargs to pass to the API constructor.
+    :type connectParams: dict
+    :param api: Which boto3 s3 interface to use: 'client' or 'resource'.
+    :type api: str
+    """
     try:
-        return boto3.client('s3', **connectParams)
+        return getattr(boto3, api)('s3', **connectParams)
     except Exception:
         logger.exception('S3 assetstore validation exception')
         raise ValidationException('Unable to connect to S3 assetstore')
@@ -596,10 +592,7 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
     params = {
         'aws_access_key_id': accessKeyId,
         'aws_secret_access_key': secret,
-        'config': botocore.client.Config(
-            #s3={'addressing_style': 'path'},  TODO I think this is the default
-            signature_version='s3v4'
-        )
+        'config': botocore.client.Config(signature_version='s3v4')
     }
 
     if service:
@@ -613,7 +606,7 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
 
 
 def _deleteFileImpl(event):
-    botoClient(event.info['connectParams']).delete_object(
+    botoS3(event.info['connectParams']).delete_object(
         Bucket=event.info['bucket'], Key=event.info['key'])
 
 
