@@ -83,7 +83,7 @@ function(add_python_test case)
   set(_options BIND_SERVER PY2_ONLY RUN_SERIAL)
   set(_args DBNAME PLUGIN SUBMODULE TEST_FILE)
   set(_multival_args RESOURCE_LOCKS TIMEOUT EXTERNAL_DATA REQUIRED_FILES COVERAGE_PATHS
-                     ENVIRONMENT SETUP_DATABASE)
+                     ENVIRONMENT SETUP_DATABASE PYTEST_ARGS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   if(fn_PY2_ONLY AND PYTHON_VERSION MATCHES "^3")
@@ -134,7 +134,7 @@ function(add_python_test case)
     add_test(
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_EXECUTABLE}" -m pytest -v ${test_file}
+      COMMAND "${PYTHON_EXECUTABLE}" -m pytest -v ${fn_PYTEST_ARGS} ${test_file}
     )
   endif()
 
