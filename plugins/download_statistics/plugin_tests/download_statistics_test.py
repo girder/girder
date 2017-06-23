@@ -19,6 +19,7 @@
 
 
 import os
+import json
 
 from tests import base
 from girder.constants import ROOT_DIR
@@ -132,3 +133,61 @@ class DownloadStatisticsTestCase(base.TestCase):
             self._checkDownloadsRequested(file['_id'], 10)
             self._checkDownloadsCompleted(file['_id'], 10)
             self._checkDownloadStatisticFields(file['_id'])
+
+    def testCollectionDownload(self):
+        # Create collection
+        collection = self.model('collection').createCollection('collection1', public=True)
+        # Create folder in collection
+        folder = self.model('folder').createFolder(collection, 'folder1',
+                                                   parentType='collection',
+                                                   public=True, )
+        # Create item in folder
+        item = self.model('item').createItem('item1', self.admin, folder)
+
+        # Path to test files
+        file1Path = os.path.join(self.filesDir, 'txt1.txt')
+        file2Path = os.path.join(self.filesDir, 'txt2.txt')
+
+        file1 = ''
+        file2 = ''
+
+        # Upload files to item
+        with open(file1Path, 'rb') as fp:
+            file1 = self.model('upload').uploadFromFile(fp, os.path.getsize(file1Path),
+                                                        'txt1.txt', parentType='item',
+                                                        parent=item, user=self.admin)
+
+        with open(file2Path, 'rb') as fp:
+            file2 = self.model('upload').uploadFromFile(fp, os.path.getsize(file2Path),
+                                                        'txt2.txt', mimeType='image/jpeg',
+                                                        parentType='item', parent=item,
+                                                        user=self.admin)
+
+        # Download entire collection
+        path = '/collection/%s/download' % collection['_id']
+        resp = self.request(path, user=self.admin, isJson=False)
+
+        # iterate through generator to trigger download events
+        for data in resp.body:
+            data
+
+        # Download collection filtered by mime type
+        path = '/collection/%s/download' % collection['_id']
+        resp = self.request(path, user=self.admin, isJson=False, method='GET',
+                            params={
+                                'id': collection['_id'],
+                                'mimeFilter': json.dumps(['image/jpeg'])
+                            })
+
+        # iterate through generator to trigger download events
+        for data in resp.body:
+            data
+
+        self._checkDownloadsStarted(file1['_id'], 1)
+        self._checkDownloadsRequested(file1['_id'], 1)
+        self._checkDownloadsCompleted(file1['_id'], 1)
+
+        # File 2 should have been downloaded twice since it is the required mime type
+        self._checkDownloadsStarted(file2['_id'], 2)
+        self._checkDownloadsRequested(file2['_id'], 2)
+        self._checkDownloadsCompleted(file2['_id'], 2)
