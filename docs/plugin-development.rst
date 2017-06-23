@@ -965,18 +965,18 @@ template files with ``add_puglint_test``. For example:
 
     add_standard_plugin_tests(NO_CLIENT)
     add_eslint_test(js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
-        ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/cats/.eslintrc")
+        ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/cats/.eslintrc.json")
     add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
 
 You can `configure ESLint <http://eslint.org/docs/user-guide/configuring.html>`_ inside your
-``.eslintrc`` file however you choose.  For example, to extend Girder's own configuration to add
-a new global variable ``cats`` and stop requiring semicolons to terminate statements, you can put
-the following in your ``.eslintrc``:
+``.eslintrc.json`` file however you choose.  For example, to extend Girder's own configuration to
+add a new global variable ``cats`` and stop requiring semicolons to terminate statements, you can
+put the following in your ``.eslintrc.json``:
 
 .. code-block:: javascript
 
     {
-        "extends": "../../.eslintrc",
+        "extends": "../../.eslintrc.json",
         "globals": {
             "cats": true
         },

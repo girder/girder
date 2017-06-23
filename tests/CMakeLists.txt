@@ -167,7 +167,7 @@ macro(add_standard_plugin_tests)
       add_web_client_test(${_clientTestName} "${_clientTestFile}" PLUGIN ${_pluginName})
     endforeach()
     add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests"
-      ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc")
+      ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc.json")
   endif()
 endmacro()
 

@@ -45,7 +45,7 @@ function(add_eslint_test name input)
   if(fn_ESLINT_CONFIG_FILE)
     set(config_file "${fn_ESLINT_CONFIG_FILE}")
   else()
-    set(config_file "${PROJECT_SOURCE_DIR}/.eslintrc")
+    set(config_file "${PROJECT_SOURCE_DIR}/.eslintrc.json")
   endif()
 
   add_test(
