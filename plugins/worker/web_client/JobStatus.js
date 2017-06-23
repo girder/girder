@@ -34,17 +34,16 @@ JobStatus.registerStatus({
 });
 
 const jobPluginIsCancelable = JobStatus.isCancelable;
-JobStatus.isCancelable = function(job) {
-  const handler = job.get('handler');
-  if (handler === 'worker_handler') {
-    return [JobStatus.CANCELED, JobStatus.WORKER_CANCELING,
-      JobStatus.SUCCESS, JobStatus.ERROR].indexOf(job.get('status')) === -1;
-  }
-  else if (handler === 'celery_handler') {
-    // Currently celery_handler jobs can't be cancelled in the running state
-    return [JobStatus.RUNNING, JobStatus.CANCELED, JobStatus.WORKER_CANCELING,
-      JobStatus.SUCCESS, JobStatus.ERROR].indexOf(job.get('status')) === -1;
-  }
+JobStatus.isCancelable = function (job) {
+    const handler = job.get('handler');
+    if (handler === 'worker_handler') {
+        return [JobStatus.CANCELED, JobStatus.WORKER_CANCELING,
+            JobStatus.SUCCESS, JobStatus.ERROR].indexOf(job.get('status')) === -1;
+    } else if (handler === 'celery_handler') {
+        // Currently celery_handler jobs can't be cancelled in the running state
+        return [JobStatus.RUNNING, JobStatus.CANCELED, JobStatus.WORKER_CANCELING,
+            JobStatus.SUCCESS, JobStatus.ERROR].indexOf(job.get('status')) === -1;
+    }
 
-  return jobPluginIsCancelable(job);
-}
+    return jobPluginIsCancelable(job);
+};
