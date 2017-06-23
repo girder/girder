@@ -63,7 +63,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 raise ValidationException(
                     'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
         params = makeBotoConnectParams(doc['accessKeyId'], doc['secret'], doc['service'])
-        conn = botoS3(params, api='resource')
+        conn = _botoS3(params, api='resource')
         if doc.get('readOnly'):
             # TODO(zach) readonly support
             try:
@@ -87,9 +87,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return doc
 
     def __init__(self, assetstore):
-        """
-        :param assetstore: The assetstore to act on.
-        """
         super(S3AssetstoreAdapter, self).__init__(assetstore)
         if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):
             self.connectParams = makeBotoConnectParams(
@@ -112,55 +109,45 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if upload['size'] <= 0:
             return upload
 
-        # collapse consecutive spaces in the filename into a single space
-        # this is due to a bug in S3 that does not properly handle filenames
-        # with multiple spaces in a row, resulting in a SignatureDoesNotMatch error
-        # TODO(zach) test multiple consecutive spaces in filename
-        # upload['name'] = re.sub('\s+', ' ', upload['name'])
-
         uid = uuid.uuid4().hex
         key = '/'.join(filter(
             None, (self.assetstore.get('prefix', ''), uid[:2], uid[2:4], uid)))
         path = '/%s/%s' % (self.assetstore['bucket'], key)
-
         chunked = upload['size'] > self.CHUNK_LEN
-
+        client = _botoS3(self.connectParams)
+        headers = self._getRequestHeaders(upload)
+        params = {
+            'Bucket': self.assetstore['bucket'],
+            'Key': key,
+            'ACL': headers['x-amz-acl'],
+            'ContentDisposition': headers['Content-Disposition'],
+            'ContentType': headers['Content-Type'],
+            'Metadata': {
+                'uploader-id': headers['x-amz-meta-uploader-id'],
+                'uploader-ip': headers['x-amz-meta-uploader-ip']
+            }
+        }
+        requestInfo = {
+            'headers': headers,
+            'method': 'PUT'
+        }
         upload['behavior'] = 's3'
         upload['s3'] = {
             'chunked': chunked,
             'chunkLength': self.CHUNK_LEN,
             'relpath': path,
-            'key': key
+            'key': key,
+            'request': requestInfo
         }
 
-        conn = botoS3(self.connectParams)
-
         if chunked:
-            # TODO chunked
-            upload['s3']['request'] = {'method': 'POST'}
-            alsoSignHeaders = {}
-            queryParams = {'uploads': None}
+            method = 'create_multipart_upload'
+            requestInfo['method'] = 'POST'
         else:
-            headers = self._getRequestHeaders(upload)
-            url = conn.generate_presigned_url(
-                ClientMethod='put_object', Params={
-                    'Bucket': self.assetstore['bucket'],
-                    'Key': key,
-                    'ACL': headers['x-amz-acl'],
-                    'ContentLength': upload['size'],
-                    'ContentDisposition': headers['Content-Disposition'],
-                    'ContentType': headers['Content-Type'],
-                    'Metadata': {
-                        'uploader-id': headers['x-amz-meta-uploader-id'],
-                        'uploader-ip': headers['x-amz-meta-uploader-ip']
-                    }
-                })
-            upload['s3']['request'] = {
-                'method': 'PUT',
-                'url': url,
-                'headers': headers
-            }
+            method = 'put_object'
+            params['ContentLength'] = upload['size']
 
+        requestInfo['url'] = client.generate_presigned_url(ClientMethod=method, Params=params)
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -197,16 +184,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if length <= 0:
             raise ValidationException('Invalid chunk length %d.' % length)
 
-        queryParams = {
-            'partNumber': info['partNumber'],
-            'uploadId': info['s3UploadId']
-        }
-
-        url = self._botoGenerateUrl(
-            method='PUT', key=upload['s3']['key'], queryParams=queryParams,
-            headers={
-                'Content-Length': length
-            })
+        client = _botoS3(self.connectParams)
+        url = client.generate_presigned_url(ClientMethod='upload_part', Params={
+            'Bucket': self.assetstore['bucket'],
+            'Key': upload['s3']['key'],
+            'ContentLength': info['contentLength'],
+            'UploadId': info['s3UploadId'],
+            'PartNumber': info['partNumber']
+        })
 
         upload['s3']['uploadId'] = info['s3UploadId']
         upload['s3']['partNumber'] = info['partNumber']
@@ -217,21 +202,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return upload
 
-    def _getBucket(self, validate=True):
-        conn = botoS3(self.assetstore['botoConnect'], api='resource')
-        bucket = conn.lookup(bucket_name=self.assetstore['bucket'], validate=validate)
-
-        if not bucket:
-            raise Exception('Could not connect to S3 bucket.')
-
-        return bucket
-
     def _proxiedUploadChunk(self, upload, chunk):
         """
         Clients that do not support direct-to-S3 upload behavior will go through
         this method by sending the chunk data as they normally would for other
         assetstore types. Girder will send the data to S3 on behalf of the client.
         """
+        # TODO(zach) proxied upload chunk
         bucket = self._getBucket()
 
         if upload['s3']['chunked']:
@@ -292,12 +269,23 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         if upload['s3']['chunked']:
             raise ValidationException(
-                'You should not call requestOffset on a chunked direct-to-S3 '
-                'upload.')
+                'You should not call requestOffset on a chunked direct-to-S3 upload.')
 
         headers = self._getRequestHeaders(upload)
-        url = self._botoGenerateUrl(method='PUT', key=upload['s3']['key'],
-                                    headers=headers)
+        client = _botoS3(self.connectParams)
+        url = client.generate_presigned_url(ClientMethod='put_object', Params={
+            'Bucket': self.assetstore['bucket'],
+            'Key': upload['s3']['key'],
+            'ACL': headers['x-amz-acl'],
+            'ContentDisposition': headers['Content-Disposition'],
+            'ContentLength': upload['size'],
+            'ContentType': headers['Content-Type'],
+            'Metadata': {
+                'uploader-id': headers['x-amz-meta-uploader-id'],
+                'uploader-ip': headers['x-amz-meta-uploader-ip']
+            }
+        })
+
         return {
             'method': 'PUT',
             'url': url,
@@ -315,21 +303,25 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if upload['s3']['chunked']:
             if upload['received'] > 0:
                 # We proxied the data to S3
+                # TODO(zach)
+                resource = _botoS3(self.connectParams, api='resource')
                 bucket = self._getBucket()
                 mp = boto.s3.multipart.MultiPartUpload(bucket)
                 mp.id = upload['s3']['uploadId']
                 mp.key_name = upload['s3']['keyName']
                 mp.complete_upload()
             else:
-                queryParams = {'uploadId': upload['s3']['uploadId']}
-                headers = {'Content-Type': 'text/plain;charset=UTF-8'}
-                url = self._botoGenerateUrl(
-                    method='POST', key=upload['s3']['key'], headers=headers,
-                    queryParams=queryParams)
+                client = _botoS3(self.connectParams)
+                url = client.generate_presigned_url(
+                    ClientMethod='complete_multipart_upload', Params={
+                        'Bucket': self.assetstore['bucket'],
+                        'Key': upload['s3']['key'],
+                        'UploadId': upload['s3']['uploadId']
+                    })
                 file['s3FinalizeRequest'] = {
                     'method': 'POST',
                     'url': url,
-                    'headers': headers
+                    'headers': {'Content-Type': 'text/plain;charset=UTF-8'}
                 }
                 file['additionalFinalizeKeys'] = ('s3FinalizeRequest',)
         return file
@@ -350,7 +342,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if file['size'] > 0:
                 if contentDisposition == 'inline':
                     params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
-                url = botoS3(self.connectParams).generate_presigned_url(
+                url = _botoS3(self.connectParams).generate_presigned_url(
                     ClientMethod='get_object', Params=params)
                 raise cherrypy.HTTPRedirect(url)
             else:
@@ -362,7 +354,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         else:
             def stream():
                 if file['size'] > 0:
-                    url = botoS3(self.connectParams).generate_presigned_url(
+                    url = _botoS3(self.connectParams).generate_presigned_url(
                         ClientMethod='get_object', Params=params)
                     pipe = requests.get(url, stream=True)
                     for chunk in pipe.iter_content(chunk_size=BUF_LEN):
@@ -562,7 +554,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return False
 
 
-def botoS3(connectParams, api='client'):
+def _botoS3(connectParams, api='client'):
     """
     Get a connection to the S3 server using the given connection params.
 
@@ -606,7 +598,7 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
 
 
 def _deleteFileImpl(event):
-    botoS3(event.info['connectParams']).delete_object(
+    _botoS3(event.info['connectParams']).delete_object(
         Bucket=event.info['bucket'], Key=event.info['key'])
 
 
