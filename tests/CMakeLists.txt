@@ -44,7 +44,11 @@ if(RUN_CORE_TESTS)
   add_python_test(hash_state)
   add_python_test(install)
   add_python_test(item)
-  add_python_test(logging_config)
+
+  # Logging tests do special capturing of stdout/stderr, disable the default
+  # pytest capturing.
+  # Note: when this test is switched to pytest, the capsys fixture can be used.
+  add_python_test(logging_config PYTEST_ARGS "--capture=no")
   add_python_test(mail)
   add_python_test(model)
   add_python_test(routetable)
