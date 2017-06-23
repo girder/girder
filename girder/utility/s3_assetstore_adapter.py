@@ -429,7 +429,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             matching = self.model('file').find(q, limit=2, fields=[])
             if matching.count(True) == 1:
                 events.daemon.trigger('_s3_assetstore_delete_file', {
-                    'botoConnect': self.assetstore.get('botoConnect', {}),
+                    'connectParams': self.connectParams,
                     'bucket': self.assetstore['bucket'],
                     'key': file['s3Key']
                 })
@@ -613,16 +613,8 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
 
 
 def _deleteFileImpl(event):
-    """
-    Uses boto to delete the key.
-    """
-    info = event.info
-    conn = botoResource(info.get('botoConnect', {}))
-    bucket = conn.lookup(bucket_name=info['bucket'], validate=False)
-    key = bucket.get_key(info['key'], validate=True)
-    if key:
-        bucket.delete_key(key)
+    botoClient(event.info['connectParams']).delete_object(
+        Bucket=event.info['bucket'], Key=event.info['key'])
 
 
-events.bind('_s3_assetstore_delete_file', '_s3_assetstore_delete_file',
-            _deleteFileImpl)
+events.bind('_s3_assetstore_delete_file', '_s3_assetstore_delete_file', _deleteFileImpl)
