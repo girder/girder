@@ -1,3 +1,4 @@
+/* global girder */
 $(function () {
     girder.apiRoot = '/girder/api/v1';
     girder.router.enabled(false);
@@ -27,20 +28,20 @@ $(function () {
     });
 
     girder.events.on('g:login', function () {
-        console.log("g:login");
+        console.log('g:login');
         if (girder.currentUser) {
-            $("#login").addClass("hidden");
-            $("#register").addClass("hidden");
-            $("#name").removeClass("hidden");
-            $("#logout").removeClass("hidden");
-            $("#name").text(girder.currentUser.get('firstName') + " " + girder.currentUser.get('lastName'));
+            $('#login').addClass('hidden');
+            $('#register').addClass('hidden');
+            $('#name').removeClass('hidden');
+            $('#logout').removeClass('hidden');
+            $('#name').text(girder.currentUser.get('firstName') + ' ' + girder.currentUser.get('lastName'));
 
             // Do anything else you'd like to do on login.
         } else {
-            $("#login").removeClass("hidden");
-            $("#register").removeClass("hidden");
-            $("#name").addClass("hidden");
-            $("#logout").addClass("hidden");
+            $('#login').removeClass('hidden');
+            $('#register').removeClass('hidden');
+            $('#name').addClass('hidden');
+            $('#logout').addClass('hidden');
 
             // Do anything else you'd like to do on logout.
         }
