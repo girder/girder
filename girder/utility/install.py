@@ -155,7 +155,7 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
         ))
         raise Exception('npm executable not found')
 
-    npmInstall = [npm, 'install', '--unsafe-perm']
+    npmInstall = [npm, 'install', '--unsafe-perm', '--no-save']
     if not dev:
         npmInstall.append('--production')
 

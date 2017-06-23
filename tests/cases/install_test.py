@@ -239,7 +239,8 @@ class InstallTestCase(base.TestCase):
 
             self.assertEqual(len(p.mock_calls), 2)
             self.assertEqual(
-                list(p.mock_calls[0][1][0]), ['npm', 'install', '--unsafe-perm', '--production'])
+                list(p.mock_calls[0][1][0]),
+                ['npm', 'install', '--unsafe-perm', '--no-save', '--production'])
             self.assertEqual(
                 list(p.mock_calls[1][1][0]),
                 ['npm', 'run', 'build', '--',
