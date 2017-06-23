@@ -17,8 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
-import boto
-import boto.s3.connection
+import boto3
+import botocore
 import cherrypy
 import json
 import re
@@ -31,72 +31,6 @@ from girder.models.model_base import GirderException, ValidationException
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
-boto.config.add_section('s3')
-boto.config.set('s3', 'use-sigv4', 'True')
-
-
-def authv4_determine_region_name(self, *args, **kwargs):
-    """
-    The boto method auth.S3HmacAuthV4Handler.determine_region_name fails when
-    the url is an IP address or localhost.  For testing, we need to have this
-    succeed.  This wraps the boto function and, if it fails, adds a fall-back
-    value.
-    """
-    try:
-        result = authv4_orig_determine_region_name(self, *args, **kwargs)
-    except UnboundLocalError:
-        result = 'us-east-1'
-    return result
-
-
-def required_auth_capability_wrapper(fun):
-    def wrapper(self, *args, **kwargs):
-        if self.anon:
-            return ['anon']
-        else:
-            return fun(self, *args, **kwargs)
-    return wrapper
-
-
-authv4_orig_determine_region_name = \
-    boto.auth.S3HmacAuthV4Handler.determine_region_name
-boto.auth.S3HmacAuthV4Handler.determine_region_name = \
-    authv4_determine_region_name
-boto.s3.connection.S3Connection._required_auth_capability = \
-    required_auth_capability_wrapper(
-        boto.s3.connection.S3Connection._required_auth_capability)
-
-
-def _generate_url_sigv4(self, expires_in, method, bucket='', key='',
-                        headers=None, response_headers=None, version_id=None,
-                        iso_date=None, params=None):
-    """
-    The version of this method in boto.s3.connection.S3Connection does not
-    support signing custom query parameters, which is necessary for presigning
-    multipart upload requests. This implementation does, but should go away
-    once https://github.com/boto/boto/pull/3322 is merged and released.
-    """
-    path = self.calling_format.build_path_base(bucket, key)
-    auth_path = self.calling_format.build_auth_path(bucket, key)
-    host = self.calling_format.build_host(self.server_name(), bucket)
-
-    if host.endswith(':443'):
-        host = host[:-4]
-
-    if params is None:
-        params = {}
-
-    if version_id is not None:
-        params['VersionId'] = version_id
-
-    if response_headers is not None:
-        params.update(response_headers)
-
-    http_request = self.build_base_http_request(
-        method, path, auth_path, headers=headers, host=host, params=params)
-
-    return self._auth_handler.presign(http_request, expires_in,
-                                      iso_date=iso_date)
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -120,47 +54,35 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         doc['prefix'] = doc['prefix'].strip('/')
         if not doc.get('bucket'):
             raise ValidationException('Bucket must not be empty.', 'bucket')
-        if not doc.get('readOnly'):
-            if not doc.get('secret'):
-                raise ValidationException(
-                    'Secret key must not be empty.', 'secret')
-            if not doc.get('accessKeyId'):
-                raise ValidationException(
-                    'Access key ID must not be empty.', 'accessKeyId')
-        # construct a set of connection parameters based on the keys and the
-        # service
+
+        # construct a set of connection parameters based on the keys and the service
         if 'service' not in doc:
             doc['service'] = ''
         if doc['service'] != '':
-            service = re.match("^((https?)://)?([^:/]+)(:([0-9]+))?$",
-                               doc['service'])
-            if not service:
+            if not re.match('^((https?)://)?([^:/]+)(:([0-9]+))?$', doc['service']):
                 raise ValidationException(
-                    'The service must of the form [http[s]://](host domain)'
-                    '[:(port)].', 'service')
-        doc['botoConnect'] = makeBotoConnectParams(
-            doc['accessKeyId'], doc['secret'], doc['service'])
-        # Make sure we can write into the given bucket using boto
-        conn = botoConnectS3(doc['botoConnect'])
+                    'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
+        params = makeBotoConnectParams(doc['accessKeyId'], doc['secret'], doc['service'])
+        conn = botoResource(params)
         if doc.get('readOnly'):
+            # TODO(zach) readonly support
             try:
                 conn.get_bucket(bucket_name=doc['bucket'], validate=True)
             except Exception:
                 logger.exception('S3 assetstore validation exception')
-                raise ValidationException('Unable to connect to bucket "%s".' %
-                                          doc['bucket'], 'bucket')
+                raise ValidationException(
+                    'Unable to connect to bucket "%s".' % doc['bucket'], 'bucket')
         else:
+            # Make sure we can write into the given bucket using boto
             try:
-                bucket = conn.get_bucket(bucket_name=doc['bucket'],
-                                         validate=True)
-                testKey = boto.s3.key.Key(
-                    bucket=bucket, name='/'.join(
-                        filter(None, (doc['prefix'], 'test'))))
-                testKey.set_contents_from_string('')
+                testKey = conn.Object(
+                    bucket_name=doc['bucket'], key='/'.join(filter(None, (doc['prefix'], 'test'))))
+                testKey.put(Body=b'')
+                testKey.delete()
             except Exception:
                 logger.exception('S3 assetstore validation exception')
-                raise ValidationException('Unable to write into bucket "%s".' %
-                                          doc['bucket'], 'bucket')
+                raise ValidationException(
+                    'Unable to write into bucket "%s".' % doc['bucket'], 'bucket')
 
         return doc
 
@@ -170,7 +92,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         super(S3AssetstoreAdapter, self).__init__(assetstore)
         if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):
-            self.assetstore['botoConnect'] = makeBotoConnectParams(
+            self.connectParams = makeBotoConnectParams(
                 self.assetstore['accessKeyId'], self.assetstore['secret'],
                 self.assetstore['service'])
 
@@ -192,15 +114,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         # collapse consecutive spaces in the filename into a single space
         # this is due to a bug in S3 that does not properly handle filenames
-        # with multiple spaces in a row, resulting in a SignatureDoesNotMatch
-        # error
-        upload['name'] = re.sub('\s+', ' ', upload['name'])
+        # with multiple spaces in a row, resulting in a SignatureDoesNotMatch error
+        # TODO(zach) test multiple consecutive spaces in filename
+        # upload['name'] = re.sub('\s+', ' ', upload['name'])
 
         uid = uuid.uuid4().hex
-        key = '/'.join(filter(None, (self.assetstore.get('prefix', ''),
-                       uid[0:2], uid[2:4], uid)))
+        key = '/'.join(filter(
+            None, (self.assetstore.get('prefix', ''), uid[:2], uid[2:4], uid)))
         path = '/%s/%s' % (self.assetstore['bucket'], key)
-        headers = self._getRequestHeaders(upload)
 
         chunked = upload['size'] > self.CHUNK_LEN
 
@@ -212,22 +133,34 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'key': key
         }
 
+        conn = botoClient(self.connectParams)
+
         if chunked:
+            # TODO chunked
             upload['s3']['request'] = {'method': 'POST'}
             alsoSignHeaders = {}
             queryParams = {'uploads': None}
         else:
-            upload['s3']['request'] = {'method': 'PUT'}
-            alsoSignHeaders = {
-                'Content-Length': upload['size']
+            headers = self._getRequestHeaders(upload)
+            url = conn.generate_presigned_url(
+                ClientMethod='put_object', Params={
+                    'Bucket': self.assetstore['bucket'],
+                    'Key': key,
+                    'ACL': headers['x-amz-acl'],
+                    'ContentLength': upload['size'],
+                    'ContentDisposition': headers['Content-Disposition'],
+                    'ContentType': headers['Content-Type'],
+                    'Metadata': {
+                        'uploader-id': headers['x-amz-meta-uploader-id'],
+                        'uploader-ip': headers['x-amz-meta-uploader-ip']
+                    }
+                })
+            upload['s3']['request'] = {
+                'method': 'PUT',
+                'url': url,
+                'headers': headers
             }
-            queryParams = None
-        url = self._botoGenerateUrl(
-            method=upload['s3']['request']['method'], key=key,
-            headers=dict(headers, **alsoSignHeaders), queryParams=queryParams,
-            chunkedUpload=chunked)
-        upload['s3']['request']['url'] = url
-        upload['s3']['request']['headers'] = headers
+
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -285,9 +218,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return upload
 
     def _getBucket(self, validate=True):
-        conn = botoConnectS3(self.assetstore['botoConnect'])
-        bucket = conn.lookup(bucket_name=self.assetstore['bucket'],
-                             validate=validate)
+        conn = botoResource(self.assetstore['botoConnect'])
+        bucket = conn.lookup(bucket_name=self.assetstore['bucket'], validate=validate)
 
         if not bucket:
             raise Exception('Could not connect to S3 bucket.')
@@ -409,23 +341,16 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         e.g. when downloading as part of a zip stream, we connect to S3 and
         pipe the bytes from S3 through the server to the user agent.
         """
-        if self.assetstore.get('botoConnect', {}).get('anon') is True:
-            urlFn = self._anonDownloadUrl
-        else:
-            urlFn = self._botoGenerateUrl
-
         if headers:
             if file['size'] > 0:
-                queryParams = {}
+                params = {
+                    'Bucket': self.assetstore['bucket'],
+                    'Key': file['s3Key']
+                }
                 if contentDisposition == 'inline':
-                    # Tell S3 to set Content-Disposition response header,
-                    # though AWS only will set the response header for
-                    # non-anonymous connections.
-                    # Girder sets the Content-Disposition for files uploaded
-                    # to S3 to be 'attachment; filename="{}"' by default.
-                    queryParams['response-content-disposition'] = \
-                        'inline; filename="%s"' % file['name']
-                url = urlFn(key=file['s3Key'], queryParams=queryParams)
+                    params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
+                url = botoClient(self.connectParams).generate_presigned_url(
+                    ClientMethod='get_object', Params=params)
                 raise cherrypy.HTTPRedirect(url)
             else:
                 self.setContentHeaders(file, 0, 0)
@@ -512,6 +437,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         them accordingly on the S3 key so that the file downloads with the
         correct name and content type.
         """
+        # TODO(zach) update file mimetype
         if file.get('imported'):
             return
 
@@ -632,90 +558,22 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     return True
         return False
 
-    def _botoGenerateUrl(self, key, method='GET', headers=None,
-                         queryParams=None, chunkedUpload=False):
-        """
-        Generate a URL to communicate with the S3 server.  This leverages the
-        boto generate_url method, but has additional parameters to compensate
-        for that methods lack of exposing query parameters.
 
-        :param method: one of 'GET', 'PUT', 'POST', or 'DELETE'.
-        :param key: the name of the S3 key to use.
-        :param headers: if present, a dictionary of headers to encode in the
-                        request.
-        :param queryParams: if present, parameters to add to the query.
-        :type queryParams: dict
-        :param chunkedUpload: if True, this is a chunked upload and it may need
-                              to be adjusted for moto calls.
-        :returns: a url that can be sent with the headers to the S3 server.
-        """
-        conn = botoConnectS3(self.assetstore.get('botoConnect', {}))
-
-        url = _generate_url_sigv4(
-            conn, expires_in=self.HMAC_TTL, method=method,
-            bucket=self.assetstore['bucket'], key=key, headers=headers,
-            params=queryParams)
-        # Moto doesn't work with https, so convert to http if we are testing on
-        # localhost, and multipart uploads require a very specific testing url
-        config = self.assetstore.get('botoConnect', {})
-        if (not config.get('is_secure', True) and
-                config.get('host') == '127.0.0.1'):
-            if url.startswith('https://'):
-                url = 'http' + url[5:]
-            if chunkedUpload:
-                url = url.split('?')[0] + '?uploads'
-
-        return url
-
-    def _anonDownloadUrl(self, key, **kwargs):
-        """
-        Generate and return an anonymous download URL for the given key. This
-        is necessary as a workaround for a limitation of boto's generate_url,
-        documented here: https://github.com/boto/boto/issues/1540
-
-        S3 GET Requests lack the ability to specify response headers for
-        anonymous authentication, and there is no way to sign anonymous download
-        URLs, so we cannot display public anonymous resources inline.
-        """
-        if self.assetstore['service']:
-            return '/'.join((
-                self.assetstore['service'], self.assetstore['bucket'],
-                key.lstrip('/')))
-        else:
-            service = 'https://%s.s3.amazonaws.com' % self.assetstore['bucket']
-            return '/'.join((service, key.lstrip('/')))
-
-
-class BotoCallingFormat(boto.s3.connection.OrdinaryCallingFormat):
-    # By subclassing boto's calling format, we can pass upload parameters along
-    # with the key and get it to do the work of creating urls for us.  The only
-    # difference between boto's OrdinaryCallingFormat and this is that we don't
-    # urllib.quote the key
-    def build_auth_path(self, bucket, key=''):
-        path = ''
-        if bucket:
-            path = '/' + bucket
-        return path + '/' + key
-
-    def build_path_base(self, bucket, key=''):
-        path_base = '/'
-        if bucket:
-            path_base += bucket + '/'
-        return path_base + key
-
-
-def botoConnectS3(connectParams):
+def botoResource(connectParams):
     """
     Connect to the S3 server, throwing an appropriate exception if we fail.
     :param connectParams: a dictionary of parameters to use in the connection.
     :returns: the boto connection object.
     """
-    if 'anon' not in connectParams or not connectParams['anon']:
-        connectParams = connectParams.copy()
-        connectParams['calling_format'] = BotoCallingFormat()
-
     try:
-        return boto.connect_s3(**connectParams)
+        return boto3.resource('s3', **connectParams)
+    except Exception:
+        logger.exception('S3 assetstore validation exception')
+        raise ValidationException('Unable to connect to S3 assetstore')
+
+def botoClient(connectParams):
+    try:
+        return boto3.client('s3', **connectParams)
     except Exception:
         logger.exception('S3 assetstore validation exception')
         raise ValidationException('Unable to connect to S3 assetstore')
@@ -727,32 +585,28 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
 
     :param accessKeyId: the S3 access key ID
     :param secret: the S3 secret key
-    :param service: the name of the service in the form
-                    [http[s]://](host domain)[:(port)].
+    :param service: alternate service URL
     :returns: boto connection parameter dictionary.
     """
-    if accessKeyId and secret:
-        connect = {
-            'aws_access_key_id': accessKeyId,
-            'aws_secret_access_key': secret,
-            }
-    else:
-        connect = {
-            'anon': True
-        }
+    accessKeyId = accessKeyId or None
+    secret = secret or None
+    params = {
+        'aws_access_key_id': accessKeyId,
+        'aws_secret_access_key': secret,
+        'config': botocore.client.Config(
+            #s3={'addressing_style': 'path'},  TODO I think this is the default
+            signature_version='s3v4'
+        )
+    }
 
     if service:
-        service = re.match("^((https?)://)?([^:/]+)(:([0-9]+))?$", service)
-        if service.groups()[1] == 'http':
-            connect['is_secure'] = False
-        connect['host'] = service.groups()[2]
-        if service.groups()[4] is not None:
-            connect['port'] = int(service.groups()[4])
-    else:
-        # If we are using sigv4, we MUST specify a host for boto.  If no
-        # service is specified by the user, use the default used in boto
-        connect['host'] = boto.config.get('s3', 'host', 's3.amazonaws.com')
-    return connect
+        serviceRe = re.match('^((https?)://)?([^:/]+)(:([0-9]+))?$', service)
+        if serviceRe.groups()[1] == 'http':
+            params['use_ssl'] = False
+        params['endpoint_url'] = service
+
+    # TODO(zach) region parameter? Might not be necessary
+    return params
 
 
 def _deleteFileImpl(event):
@@ -760,7 +614,7 @@ def _deleteFileImpl(event):
     Uses boto to delete the key.
     """
     info = event.info
-    conn = botoConnectS3(info.get('botoConnect', {}))
+    conn = botoResource(info.get('botoConnect', {}))
     bucket = conn.lookup(bucket_name=info['bucket'], validate=False)
     key = bucket.get_key(info['key'], validate=True)
     if key:

@@ -30,7 +30,7 @@ from girder.utility import assetstore_utilities
 
 from .. import base
 from .. import mongo_replicaset
-from girder.utility.s3_assetstore_adapter import botoConnectS3
+from girder.utility.s3_assetstore_adapter import botoResource
 
 
 Chunk1, Chunk2 = ('hello ', 'world')
@@ -496,7 +496,7 @@ class UploadTestCase(base.TestCase):
         self.assetstore = assetstore
         self._testUpload()
         # make an untracked upload to test that we can find and clear it
-        conn = botoConnectS3(base.mockS3Server.botoConnect)
+        conn = botoResource(base.mockS3Server.botoConnect)
         bucket = conn.lookup(bucket_name='bucketname', validate=True)
         bucket.initiate_multipart_upload('testprefix/abandoned_upload')
         resp = self.request(path='/system/uploads', method='GET',

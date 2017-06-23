@@ -29,7 +29,7 @@ import time
 import moto.server
 import moto.s3
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, \
-    botoConnectS3, S3AssetstoreAdapter
+    botoResource, S3AssetstoreAdapter
 from six.moves import range
 
 _startPort = 31100
@@ -45,7 +45,7 @@ def createBucket(botoConnect, bucketName):
     :type bucket: str
     :returns: a boto bucket.
     """
-    conn = botoConnectS3(botoConnect)
+    conn = botoResource(botoConnect)
     bucket = conn.lookup(bucket_name=bucketName, validate=True)
     # if found, return
     if bucket is not None:
