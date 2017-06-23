@@ -334,8 +334,8 @@ class JobsTestCase(base.TestCase):
         job = self.model('job', 'jobs').load(job['_id'], force=True)
         self.assertEqual(len(messages), 3)
         creationNotify = messages[0]
-        statusNotify = messages[1]
-        progressNotify = messages[2]
+        progressNotify = messages[1]
+        statusNotify = messages[2]
 
         self.assertEqual(creationNotify['type'], 'job_created')
         self.assertEqual(creationNotify['data']['_id'], str(job['_id']))

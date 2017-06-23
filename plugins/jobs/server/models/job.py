@@ -368,10 +368,17 @@ class Job(AccessControlledModel):
             '$set': {}
         }
 
+        statusChanged = False
         if log is not None:
             self._updateLog(job, log, overwrite, now, notify, user, updates)
         if status is not None:
-            self._updateStatus(job, status, now, notify, user, query, updates)
+            try:
+                status = int(status)
+            except ValueError:
+                # Allow non int states
+                pass
+            statusChanged = status != job['status']
+            self._updateStatus(job, status, now, query, updates)
         if progressMessage is not None or progressCurrent is not None or progressTotal is not None:
             self._updateProgress(
                 job, progressTotal, progressCurrent, progressMessage, notify, user, updates)
@@ -400,7 +407,7 @@ class Job(AccessControlledModel):
             })
 
         # We don't want todo this until we know the update was successful
-        if status is not None:
+        if statusChanged and user is not None and notify:
             self._createUpdateStatusNotification(now, user, job)
 
         return job
@@ -429,14 +436,8 @@ class Job(AccessControlledModel):
                                                       data=filtered, user=user,
                                                       expires=expires)
 
-    def _updateStatus(self, job, status, now, notify, user, query, updates):
+    def _updateStatus(self, job, status, now, query, updates):
         """Helper for updating job progress information."""
-        try:
-            status = int(status)
-        except ValueError:
-            # Allow non int states
-            pass
-
         self._validateStatus(status)
 
         if status != job['status']:
