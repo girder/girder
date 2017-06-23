@@ -187,6 +187,3 @@ In your JavaScript, perform callbacks such as the following:
         girder.currentUser = new girder.models.UserModel(resp.user);
         girder.events.trigger('g:login');
     });
-
-You can find an example minimal application using Girder's login and register
-dialogs in the source tree at **/clients/web-external**.
