@@ -341,12 +341,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         e.g. when downloading as part of a zip stream, we connect to S3 and
         pipe the bytes from S3 through the server to the user agent.
         """
+        params = {
+            'Bucket': self.assetstore['bucket'],
+            'Key': file['s3Key']
+        }
+
         if headers:
             if file['size'] > 0:
-                params = {
-                    'Bucket': self.assetstore['bucket'],
-                    'Key': file['s3Key']
-                }
                 if contentDisposition == 'inline':
                     params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
                 url = botoClient(self.connectParams).generate_presigned_url(
@@ -361,7 +362,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         else:
             def stream():
                 if file['size'] > 0:
-                    pipe = requests.get(urlFn(key=file['s3Key']), stream=True)
+                    url = botoClient(self.connectParams).generate_presigned_url(
+                        ClientMethod='get_object', Params=params)
+                    pipe = requests.get(url, stream=True)
                     for chunk in pipe.iter_content(chunk_size=BUF_LEN):
                         if chunk:
                             yield chunk
