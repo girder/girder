@@ -34,24 +34,17 @@ Using Girder JavaScript Utilities and Views
 Including the JavaScript
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Use the following to include the Girder libraries in your web application,
-assuming Girder is hosted at ``/girder``:
-
-.. code-block:: html
-
-    <script src="/girder/static/built/girder_lib.min.js"></script>
-    <script src="/girder/static/built/girder_app.min.js"></script>
-
-.. note::
-   ``girder_app.min.js`` is just a light wrapper file that exposes the ``window.girder``
-   namespace for use in external applications that are not built using webpack.
-
+All Girder code is packaged within ES6 modules, and may be directly included in other web
+applications via
+`imports <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import>`_.
+The `Webpack <https://webpack.js.org/>`_ tool is recommended as a way to resolve imports and build
+deployable applications.
 
 Extending Girder's Backbone application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Girder defines a main application class at ``girder.views.App``.  This object is responsible
-for bootstraping the application, setting up the overall layout, and responding
+Girder defines a main application class, ``App``.  This object is responsible
+for bootstrapping the application, setting up the overall layout, and responding
 to global events like ``g:login`` and ``g:navigateTo``.  Developers can choose
 to derive their own application from this class to use the functionality that
 it provides.  For example, the following derivation would modify the normal
@@ -59,56 +52,63 @@ application bootstrapping
 
 .. code-block:: javascript
 
-   // set the path where girder's API is mounted
-   girder.apiRoot = '/girder/api/v1';
+    import Backbone from 'backbone';
 
-   var App = girder.views.App.extend({
-      start: function () {
+    import { setCurrentUser } from 'girder/auth';
+    import UserModel from 'girder/models/UserModel';
+    import { setApiRoot } from 'girder/rest';
+    import router from 'girder/router';
+    import eventStream from 'girder/utilities/EventStream';
+    import App from 'girder/views/App';
 
-         // disable girder's router
-         girder.router.enabled(false);
+    // set the path where girder's API is mounted
+    setApiRoot('/girder/api/v1');
 
-         // call the super method
-         return girder.view.App.prototype.start.call(this, {
-             fetch: false,  // disable automatic fetching of the user model
-             history: false,// disable initialization of Backbone's router
-             render: false  // disable automatic rendering on start
-         }).done(() => {
+    var MyApp = App.extend({
+        start: function () {
+            // disable girder's router
+            router.enabled(false);
 
-            // set the current user somehow
-            girder.currentUser = new girder.models.UserModel({...});
-            girder.utilities.eventStream.open();
+            // call the super method
+            return App.prototype.start.call(this, {
+                fetch: false,   // disable automatic fetching of the user model
+                history: false, // disable initialization of Backbone's router
+                render: false   // disable automatic rendering on start
+            }).done(() => {
+                // set the current user somehow
+                setCurrentUser(new UserModel({...}));
+                eventStream.open();
 
-            // replace the header with a customized class
-            this.headerView = new MyHeaderView({parentView: this});
+                // replace the header with a customized class
+                this.headerView = new MyHeaderView({parentView: this});
 
-            // render the main page
-            this.render();
+                // render the main page
+                this.render();
 
-            // start up the router with the `pushState` option enabled
-            Backbone.history.start({pushState: true});
-         });
-      }
-   });
+                // start up the router with the `pushState` option enabled
+                Backbone.history.start({pushState: true});
+            });
+        }
+    });
 
-   // initialize the application without starting it
-   var app = new App({start: false});
+    // initialize the application without starting it
+    var app = new MyApp({start: false});
 
-   // start your application after the page loads
-   $(function () {
-      app.start();
-   });
+    // start your application after the page loads
+    $(function () {
+        app.start();
+    });
 
 Other methods that one may need to override include the following:
 
 ``bindGirderEvents``
-   Bind handlers to the global ``girder.events`` object.
+   Bind handlers to the global ``events`` object.
 
 ``render``
    Render (or re-render) the entire page.
 
 .. note::
-   ``girder.router.enabled(false)`` must be set to false to disable URL routing
+   ``router.enabled(false)`` must be set to false to disable URL routing
    behavior specific to the full Girder web application.
 
 Using Girder Register and Login UI
@@ -135,58 +135,63 @@ In your JavaScript, perform callbacks such as the following:
 
 .. code-block:: javascript
 
+    import { getCurrentUser, setCurrentUser } from 'girder/auth';
+    import events from 'girder/events';
+    import UserModel from 'girder/models/UserModel';
+    import { restRequest } from 'girder/rest';
+    import LoginView from 'girder/views/layout/LoginView';
+    import RegisterView from 'girder/views/layout/RegisterView';
+
     $('#login').click(function () {
-        var loginView = new girder.views.LoginView({
+        var loginView = new LoginView({
             el: $('#dialog-container')
         });
         loginView.render();
     });
 
     $('#register').click(function () {
-        var registerView = new girder.views.RegisterView({
+        var registerView = new RegisterView({
             el: $('#dialog-container')
         });
         registerView.render();
     });
 
     $('#logout').click(function () {
-        girder.restRequest({
+        restRequest({
             path: 'user/authentication',
             type: 'DELETE'
         }).done(function () {
-            girder.currentUser = null;
-            girder.events.trigger('g:login');
+            setCurrentUser(null);
+            events.trigger('g:login');
         });
     });
 
-    girder.events.on('g:login', function () {
-        console.log("g:login");
-        if (girder.currentUser) {
-            $("#login").addClass("hidden");
-            $("#register").addClass("hidden");
-            $("#name").removeClass("hidden");
-            $("#logout").removeClass("hidden");
-            $("#name").text(girder.currentUser.get('firstName') + " " + girder.currentUser.get('lastName'));
+    events.on('g:login', function () {
+        console.log('g:login');
+        var currentUser = getCurrentUser();
+        if (currentUser) {
+            $('#login').addClass('hidden');
+            $('#register').addClass('hidden');
+            $('#name').removeClass('hidden');
+            $('#logout').removeClass('hidden');
+            $('#name').text(currentUser.get('firstName') + ' ' + currentUser.get('lastName'));
 
             // Do anything else you'd like to do on login.
         } else {
-            $("#login").removeClass("hidden");
-            $("#register").removeClass("hidden");
-            $("#name").addClass("hidden");
-            $("#logout").addClass("hidden");
+            $('#login').removeClass('hidden');
+            $('#register').removeClass('hidden');
+            $('#name').addClass('hidden');
+            $('#logout').addClass('hidden');
 
             // Do anything else you'd like to do on logout.
         }
     });
 
     // Check for who is logged in initially
-    girder.restRequest({
+    restRequest({
         path: 'user/authentication',
         error: null
     }).done(function (resp) {
-        girder.currentUser = new girder.models.UserModel(resp.user);
-        girder.events.trigger('g:login');
+        setCurrentUser(UserModel(resp.user));
+        events.trigger('g:login');
     });
-
-You can find an example minimal application using Girder's login and register
-dialogs in the source tree at **/clients/web-external**.
