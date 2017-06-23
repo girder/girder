@@ -307,6 +307,10 @@ Create an environment to deploy code to: ::
 At this point running ``eb open my-env-name`` should open a functioning Girder instance
 in your browser. Additionally, running ``eb terminate`` will terminate the newly created environment.
 
+.. note:: The pre-packaged configurations work with Amazon CloudWatch for aggregating log streams
+	  across many application servers. For this to work, the EC2 instances will need the proper
+	  policy attached to write to CloudWatch.
+
 .. seealso::
 
    It may be useful when deploying to AWS to make use of the built-in Girder support
