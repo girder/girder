@@ -432,24 +432,24 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         them accordingly on the S3 key so that the file downloads with the
         correct name and content type.
         """
-        # TODO(zach) update file mimetype
         if file.get('imported'):
             return
 
-        bucket = self._getBucket()
-        key = bucket.get_key(file['s3Key'], validate=True)
-
-        if not key:
+        client = _botoS3(self.connectParams)
+        bucket = self.assetstore['bucket']
+        try:
+            key = client.head_object(Bucket=bucket, Key=file['s3Key'])
+        except botocore.exceptions.ClientError:
             return
 
         disp = 'attachment; filename="%s"' % file['name']
         mime = file.get('mimeType') or ''
 
-        if key.content_type != mime or key.content_disposition != disp:
-            key.set_remote_metadata(metadata_plus={
-                'Content-Type': mime,
-                'Content-Disposition': disp.encode('utf8')
-            }, metadata_minus=[], preserve_acl=True)
+        if key['ContentType'] != mime or key['ContentDisposition'] != disp:
+            client.copy_object(
+                Bucket=bucket, Key=file['s3Key'], Metadata=key['Metadata'],
+                CopySource={'Bucket': bucket, 'Key': file['s3Key']}, ContentDisposition=disp,
+                ContentType=mime, MetadataDirective='REPLACE')
 
     def cancelUpload(self, upload):
         """
