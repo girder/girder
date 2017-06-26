@@ -63,11 +63,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 raise ValidationException(
                     'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
         params = makeBotoConnectParams(doc['accessKeyId'], doc['secret'], doc['service'])
-        conn = _botoS3(params, api='resource')
+        client = _botoS3(params)
         if doc.get('readOnly'):
-            # TODO(zach) readonly support
             try:
-                conn.get_bucket(bucket_name=doc['bucket'], validate=True)
+                client.head_bucket(Bucket=doc['bucket'])
             except Exception:
                 logger.exception('S3 assetstore validation exception')
                 raise ValidationException(
@@ -75,10 +74,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         else:
             # Make sure we can write into the given bucket using boto
             try:
-                testKey = conn.Object(
-                    bucket_name=doc['bucket'], key='/'.join(filter(None, (doc['prefix'], 'test'))))
-                testKey.put(Body=b'')
-                testKey.delete()
+                key = '/'.join(filter(None, (doc['prefix'], 'girder_test')))
+                client.put_object(Bucket=doc['bucket'], Key=key, Body=b'')
+                client.delete_object(Bucket=doc['bucket'], Key=key)
             except Exception:
                 logger.exception('S3 assetstore validation exception')
                 raise ValidationException(
@@ -188,7 +186,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         url = client.generate_presigned_url(ClientMethod='upload_part', Params={
             'Bucket': self.assetstore['bucket'],
             'Key': upload['s3']['key'],
-            'ContentLength': info['contentLength'],
+            'ContentLength': length,
             'UploadId': info['s3UploadId'],
             'PartNumber': info['partNumber']
         })
@@ -208,34 +206,39 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         this method by sending the chunk data as they normally would for other
         assetstore types. Girder will send the data to S3 on behalf of the client.
         """
-        # TODO(zach) proxied upload chunk
-        bucket = self._getBucket()
+        client = _botoS3(self.connectParams)
 
         if upload['s3']['chunked']:
             if 'uploadId' not in upload['s3']:
-                # Initiate a new multipart upload
-                mp = bucket.initiate_multipart_upload(
-                    upload['s3']['key'],
-                    headers=self._getRequestHeaders(upload))
-                upload['s3']['uploadId'] = mp.id
-                upload['s3']['keyName'] = mp.key_name
+                # Initiate a new multipart upload if this is the first chunk
+                disp = 'attachment; filename="%s"' % upload['name']
+                mime = upload.get('mimeType', '')
+                mp = client.create_multipart_upload(
+                    Bucket=self.assetstore['bucket'], Key=upload['s3']['key'],
+                    ACL='private', ContentDisposition=disp, ContentType=mime,
+                    Metadata={
+                        'uploader-id': str(upload['userId']),
+                        'uploader-ip': str(cherrypy.request.remote.ip)
+                    })
+                upload['s3']['uploadId'] = mp['UploadId']
+                upload['s3']['keyName'] = mp['Key']
                 upload['s3']['partNumber'] = 0
 
             upload['s3']['partNumber'] += 1
-
-            s3Info = upload['s3']
             size = chunk.getSize()
-
-            queryParams = {
-                'partNumber': s3Info['partNumber'],
-                'uploadId': s3Info['uploadId']
-            }
             headers = {
                 'Content-Length': str(size)
             }
 
-            url = self._botoGenerateUrl(
-                method='PUT', key=s3Info['key'], queryParams=queryParams, headers=headers)
+            # We can't just call upload_part directly because they require a
+            # seekable file object, and ours isn't.
+            url = client.generate_presigned_url(ClientMethod='upload_part', Params={
+                'Bucket': self.assetstore['bucket'],
+                'Key': upload['s3']['key'],
+                'ContentLength': size,
+                'UploadId': upload['s3']['uploadId'],
+                'PartNumber': upload['s3']['partNumber']
+            })
 
             resp = requests.request(method='PUT', url=url, data=chunk, headers=headers)
             if resp.status_code not in (200, 201):
@@ -301,17 +304,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         file['s3Key'] = upload['s3']['key']
 
         if upload['s3']['chunked']:
+            client = _botoS3(self.connectParams)
+
             if upload['received'] > 0:
                 # We proxied the data to S3
-                # TODO(zach)
-                resource = _botoS3(self.connectParams, api='resource')
-                bucket = self._getBucket()
-                mp = boto.s3.multipart.MultiPartUpload(bucket)
-                mp.id = upload['s3']['uploadId']
-                mp.key_name = upload['s3']['keyName']
-                mp.complete_upload()
+                client.complete_multipart_upload(
+                    Bucket=self.assetstore['bucket'], Key=upload['s3']['keyName'],
+                    UploadId=upload['s3']['uploadId'])
             else:
-                client = _botoS3(self.connectParams)
                 url = client.generate_presigned_url(
                     ClientMethod='complete_multipart_upload', Params={
                         'Bucket': self.assetstore['bucket'],
@@ -455,41 +455,28 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Delete the temporary files associated with a given upload.
         """
-        if 's3' not in upload:
+        if 'key' not in upload.get('s3', {}):
             return
-        if 'key' not in upload['s3']:
-            return
+        bucket = self.assetstore['bucket']
+        key = upload['s3']['key']
 
-        bucket = self._getBucket()
-        if bucket:
-            key = bucket.get_key(upload['s3']['key'], validate=True)
-            if key:
-                bucket.delete_key(key)
-            # check if this is an abandoned multipart upload
-            if 's3' in upload and 'uploadId' in upload['s3'] and 'key' in upload['s3']:
-                getParams = {}
-                while True:
-                    try:
-                        multipartUploads = bucket.get_all_multipart_uploads(**getParams)
-                    except boto.exception.S3ResponseError:
-                        break
-                    if not len(multipartUploads):
-                        break
-                    for multipartUpload in multipartUploads:
-                        if (multipartUpload.id == upload['s3']['uploadId'] and
-                                multipartUpload.key_name == upload['s3']['key']):
-                            multipartUpload.cancel_upload()
-                    if not multipartUploads.is_truncated:
-                        break
-                    getParams['key_marker'] = multipartUploads.next_key_marker
-                    getParams['upload_id_marker'] = multipartUploads.next_upload_id_marker
+        client = _botoS3(self.connectParams)
+        client.delete_object(Bucket=bucket, Key=key)
+
+        # check if this is an abandoned multipart upload
+        if 'uploadId' in upload['s3']:
+            try:
+                client.abort_multipart_upload(
+                    Bucket=bucket, Key=key, UploadId=upload['s3']['uploadId'])
+            except botocore.exceptions.ClientError:
+                pass
 
     def untrackedUploads(self, knownUploads=None, delete=False):
         """
         List and optionally discard uploads that are in the assetstore but not
         in the known list.
-        :param knownUploads: a list of upload dictionaries of all known
-                             incomplete uploads.
+
+        :param knownUploads: a list of upload dictionaries of all known incomplete uploads.
         :type knownUploads: list
         :param delete: if True, delete any unknown uploads.
         :type delete: bool
@@ -506,65 +493,65 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if knownUploads is None:
             knownUploads = []
 
-        bucket = self._getBucket()
-        if not bucket:
-            return []
-        getParams = {}
+        bucket = self.assetstore['bucket']
+        getParams = {'Bucket': bucket}
+        client = _botoS3(self.connectParams)
+
         while True:
-            try:
-                multipartUploads = bucket.get_all_multipart_uploads(**getParams)
-            except boto.exception.S3ResponseError:
+            multipartUploads = client.list_multipart_uploads(**getParams)
+            if not multipartUploads.get('Uploads'):
                 break
-            if not len(multipartUploads):
-                break
-            for multipartUpload in multipartUploads:
-                if self._uploadIsKnown(multipartUpload, knownUploads):
+            for upload in multipartUploads['Uploads']:
+                if self._uploadIsKnown(upload, knownUploads):
                     continue
                 # don't include uploads with a different prefix; this allows a
                 # single bucket to handle multiple assetstores and us to only
                 # clean up the one we are in.  We could further validate that
                 # the key name was of the format /(prefix)/../../(id)
-                if not multipartUpload.key_name.startswith(prefix):
+                if not upload['Key'].startswith(prefix):
                     continue
-                unknown = {'s3': {'uploadId': multipartUpload.id,
-                                  'key': multipartUpload.key_name}}
-                untrackedList.append(unknown)
+                untrackedList.append({
+                    's3': {
+                        'uploadId': upload['UploadId'],
+                        'key': upload['Key'],
+                        'created': upload['Initiated']
+                    }
+                })
                 if delete:
-                    multipartUpload.cancel_upload()
-            if not multipartUploads.is_truncated:
+                    client.abort_multipart_upload(
+                        Bucket=bucket, Key=upload['Key'], UploadId=upload['UploadId'])
+            if not multipartUploads['IsTruncated']:
                 break
-            getParams['key_marker'] = multipartUploads.next_key_marker
-            getParams['upload_id_marker'] = multipartUploads.next_upload_id_marker
+            getParams['KeyMarker'] = multipartUploads['NextKeyMarker']
+            getParams['UploadIdMarker'] = multipartUploads['NextUploadIdMarker']
         return untrackedList
 
     def _uploadIsKnown(self, multipartUpload, knownUploads):
         """
-        Check if a multipartUpload as returned by boto is in our list of known
-        uploads.
+        Check if a multipartUpload as returned by boto is in our list of known uploads.
+
         :param multipartUpload: an upload entry from get_all_multipart_uploads.
         :param knownUploads: a list of our known uploads.
-        :results: TRue if the upload is known.
+        :results: Whether the upload is known
         """
         for upload in knownUploads:
             if ('s3' in upload and 'uploadId' in upload['s3'] and
                     'key' in upload['s3']):
-                if (multipartUpload.id == upload['s3']['uploadId'] and
-                        multipartUpload.key_name == upload['s3']['key']):
+                if (multipartUpload['UploadId'] == upload['s3']['uploadId'] and
+                        multipartUpload['Key'] == upload['s3']['key']):
                     return True
         return False
 
 
-def _botoS3(connectParams, api='client'):
+def _botoS3(connectParams):
     """
     Get a connection to the S3 server using the given connection params.
 
-    :param connectParams: Kwargs to pass to the API constructor.
+    :param connectParams: Kwargs to pass to the client constructor.
     :type connectParams: dict
-    :param api: Which boto3 s3 interface to use: 'client' or 'resource'.
-    :type api: str
     """
     try:
-        return getattr(boto3, api)('s3', **connectParams)
+        return boto3.client('s3', **connectParams)
     except Exception:
         logger.exception('S3 assetstore validation exception')
         raise ValidationException('Unable to connect to S3 assetstore')

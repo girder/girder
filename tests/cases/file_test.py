@@ -798,7 +798,7 @@ class FileTestCase(base.TestCase):
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
 
-    @moto.mock_s3bucket_path
+    #@moto.mock_s3
     def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
         mock_s3.createBucket(botoParams, 'b')
@@ -1013,7 +1013,5 @@ class FileTestCase(base.TestCase):
             self.assertTrue(self.finalizeUploadBeforeCalled)
             self.assertTrue(self.finalizeUploadAfterCalled)
 
-            events.unbind('model.file.finalizeUpload.before',
-                          '_testFinalizeUploadBefore')
-            events.unbind('model.file.finalizeUpload.after',
-                          '_testFinalizeUploadAfter')
+            events.unbind('model.file.finalizeUpload.before', '_testFinalizeUploadBefore')
+            events.unbind('model.file.finalizeUpload.after', '_testFinalizeUploadAfter')
