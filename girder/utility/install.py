@@ -155,7 +155,7 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
         ))
         raise Exception('npm executable not found')
 
-    npmInstall = [npm, 'install', '--unsafe-perm']
+    npmInstall = [npm, 'install', '--unsafe-perm', '--no-save']
     if not dev:
         npmInstall.append('--production')
 
@@ -304,10 +304,10 @@ def main():
 
     plugin.add_argument('--dev', action='store_true',
                         dest='development',
-                        help='Install development dependencies')
+                        help='Install development dependencies.')
 
     plugin.add_argument('--npm', default='npm',
-                        help='specify the full path to the npm executable.')
+                        help='Override the full path to the npm executable.')
 
     plugin.add_argument('plugin', nargs='+',
                         help='Paths of plugins to install.')
@@ -316,30 +316,33 @@ def main():
 
     web.add_argument('--dev', action='store_true',
                      dest='development',
-                     help='Install client development dependencies')
+                     help='Build Girder in development mode.')
 
     web.add_argument('--npm', default='npm',
-                     help='specify the full path to the npm executable.')
+                     help='Override the full path to the npm executable.')
 
     web.add_argument('--watch', action='store_true',
-                     help='watch for changes and rebuild girder core library in dev mode')
+                     help='Watch Girder\'s core, automatically rebuilding in development mode when '
+                          'it changes.')
 
     web.add_argument('--watch-plugin', default='',
-                     help='watch for changes and rebuild a specific plugin in dev mode')
+                     help='Watch a plugin, automatically rebuilding in development mode when it '
+                          'changes.')
 
     web.add_argument('--plugin-prefix', default='plugin',
-                     help='prefix of the generated plugin bundle')
+                     help='When watching a plugin, watch this output bundle name. Defaults to '
+                          '"plugin".')
 
     pluginGroup = web.add_mutually_exclusive_group()
 
     pluginGroup.add_argument('--all-plugins', action='store_true',
-                             help='build all available plugins rather than just enabled ones')
+                             help='Build all available plugins, rather than just enabled ones.')
 
     pluginGroup.add_argument('--plugins', default=None,
-                             help='comma-separated list of plugins to build')
+                             help='A comma-separated list of plugins to build.')
 
     pluginGroup.add_argument('--no-plugins', action='store_true',
-                             help='build only the girder web with no additional plugins')
+                             help='Build only Girder\'s core, with no additional plugins.')
 
     web.set_defaults(func=install_web)
 
