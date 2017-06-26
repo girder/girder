@@ -23,6 +23,7 @@ import io
 import json
 import moto
 import os
+import requests
 import shutil
 import zipfile
 
@@ -798,7 +799,7 @@ class FileTestCase(base.TestCase):
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
 
-    #@moto.mock_s3
+    @moto.mock_s3
     def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
         mock_s3.createBucket(botoParams, 'b')
@@ -956,6 +957,7 @@ class FileTestCase(base.TestCase):
 
         file = resp.json
 
+        self.assertEqual(file['_modelType'], 'file')
         self.assertHasKeys(file, ['itemId'])
         self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
         self.assertEqual(file['name'], 'hello.txt')

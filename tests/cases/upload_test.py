@@ -162,10 +162,10 @@ class UploadTestCase(base.TestCase):
             params={'uploadId': upload['_id']})
         self.assertStatusOk(resp)
         if 's3FinalizeRequest' in resp.json:
-            xml = b'<CompleteMultipartUpload>'
+            xml = '<CompleteMultipartUpload>'
             for i, tag in enumerate(etags, 1):
-                xml += b'<Part><PartNumber>%d</PartNumber><ETag>%s</ETag></Part>' % (i, tag)
-            xml += b'</CompleteMultipartUpload>'
+                xml += '<Part><PartNumber>%d</PartNumber><ETag>%s</ETag></Part>' % (i, tag)
+            xml += '</CompleteMultipartUpload>'
             _send_s3_request(resp.json['s3FinalizeRequest'], data=xml)
         return upload
 

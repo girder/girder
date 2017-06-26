@@ -309,8 +309,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if upload['received'] > 0:
                 # We proxied the data to S3
                 client.complete_multipart_upload(
-                    Bucket=self.assetstore['bucket'], Key=upload['s3']['keyName'],
-                    UploadId=upload['s3']['uploadId'])
+                    Bucket=self.assetstore['bucket'], Key=file['s3Key'],
+                    UploadId=upload['s3']['uploadId'], MultipartUpload={})
             else:
                 url = client.generate_presigned_url(
                     ClientMethod='complete_multipart_upload', Params={
