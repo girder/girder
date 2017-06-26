@@ -163,9 +163,9 @@ function(add_web_client_test case specFile)
   endif()
 
   add_test(
-      NAME ${testname}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v "${test_module}"
+    NAME ${testname}
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v "${test_module}"
   )
 
   # Catch view leaks and report them as test failures.
@@ -201,7 +201,7 @@ function(add_web_client_test case specFile)
 
   if(fn_SETUP_MODULES)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
-        "SETUP_MODULES=${fn_SETUP_MODULES}"
+      "SETUP_MODULES=${fn_SETUP_MODULES}"
     )
   endif()
 
@@ -211,13 +211,13 @@ function(add_web_client_test case specFile)
 
   if(fn_BASEURL)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
-        "BASEURL=${fn_BASEURL}"
+      "BASEURL=${fn_BASEURL}"
     )
   endif()
 
   if (NOT fn_NOCOVERAGE)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
-        "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${case}.cvg"
+      "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${case}.cvg"
     )
     set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
     set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
