@@ -337,7 +337,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(
             item['description'],
             u'**Description**: Detects positions of PET/CT pocket phantoms in PET image.\n\n'
-            u'**Author(s)**: D\u017eenan Zuki\u0107\n\n**Version**: 1.0\n\n'
+            u'**Author(s)**: Girder Developers\n\n**Version**: 1.0\n\n'
             u'**License**: Apache 2.0\n\n**Acknowledgements**: *none*\n\n'
             u'*This description was auto-generated from the Slicer CLI XML specification.*'
         )
@@ -407,7 +407,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(
             item['description'],
             u'**Description**: Detects positions of PET/CT pocket phantoms in PET image.\n\n'
-            u'**Author(s)**: D\u017eenan Zuki\u0107\n\n**Version**: 1.0\n\n'
+            u'**Author(s)**: Girder Developers\n\n**Version**: 1.0\n\n'
             u'**License**: Apache 2.0\n\n**Acknowledgements**: *none*\n\n'
             u'*This description was auto-generated from the Slicer CLI XML specification.*'
         )
