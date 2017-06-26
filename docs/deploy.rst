@@ -72,11 +72,11 @@ like `uWSGI`.
 
 A simple example of running Girder with ``uwsgi`` instead of CherryPy's built in HTTP server
 would be::
-  
+
   uwsgi --lazy --http :8080 --module girder.wsgi --check-static clients/web
 
 .. seealso::
-   
+
    `CherryPy documentation describing how to deploy under WSGI <http://docs.cherrypy.org/en/latest/deploy.html#wsgi-servers>`_
 
 
