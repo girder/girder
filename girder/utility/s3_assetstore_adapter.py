@@ -333,76 +333,81 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         e.g. when downloading as part of a zip stream, we connect to S3 and
         pipe the bytes from S3 through the server to the user agent.
         """
+        if file['size'] <= 0:
+            if headers:
+                self.setContentHeaders(file, 0, 0)
+
+            def stream():
+                yield ''
+            return stream
+
         params = {
             'Bucket': self.assetstore['bucket'],
             'Key': file['s3Key']
         }
 
-        if headers:
-            if file['size'] > 0:
-                if contentDisposition == 'inline':
-                    params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
-                url = _botoS3(self.connectParams).generate_presigned_url(
-                    ClientMethod='get_object', Params=params)
-                raise cherrypy.HTTPRedirect(url)
-            else:
-                self.setContentHeaders(file, 0, 0)
+        if contentDisposition == 'inline' and not file.get('imported'):
+            params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
 
-                def stream():
-                    yield ''
-                return stream
+        url = _botoS3(self.connectParams).generate_presigned_url(
+            ClientMethod='get_object', Params=params)
+
+        if headers:
+            raise cherrypy.HTTPRedirect(url)
         else:
             def stream():
-                if file['size'] > 0:
-                    url = _botoS3(self.connectParams).generate_presigned_url(
-                        ClientMethod='get_object', Params=params)
-                    pipe = requests.get(url, stream=True)
-                    for chunk in pipe.iter_content(chunk_size=BUF_LEN):
-                        if chunk:
-                            yield chunk
-                else:
-                    yield ''
+                pipe = requests.get(url, stream=True)
+                for chunk in pipe.iter_content(chunk_size=BUF_LEN):
+                    if chunk:
+                        yield chunk
             return stream
 
-    def importData(self, parent, parentType, params, progress, user, bucket=None, **kwargs):
+    def importData(self, parent, parentType, params, progress, user, client=None, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
 
         if importPath and not importPath.endswith('/'):
             importPath += '/'
 
-        if bucket is None:
-            bucket = self._getBucket()
+        client = client or _botoS3(self.connectParams)
+        bucket = self.assetstore['bucket']
+        resp = client.list_objects(Bucket=bucket, Prefix=importPath, Delimiter='/')
 
-        for obj in bucket.list(importPath, '/'):
+        # Start with objects
+        for obj in resp.get('Contents', []):
             if progress:
-                progress.update(message=obj.name)
+                progress.update(message=obj['Key'])
 
-            if isinstance(obj, boto.s3.prefix.Prefix):
-                name = obj.name.rstrip('/').rsplit('/', 1)[-1]
-                folder = self.model('folder').createFolder(
-                    parent=parent, name=name, parentType=parentType,
-                    creator=user, reuseExisting=True)
-                self.importData(parent=folder, parentType='folder', params={
-                    'importPath': obj.name
-                }, progress=progress, user=user, bucket=bucket, **kwargs)
-            elif isinstance(obj, boto.s3.key.Key):
-                name = obj.name.rsplit('/', 1)[-1]
-                if not name:
-                    continue
+            name = obj['Key'].rsplit('/', 1)[-1]
+            if not name:
+                continue
 
-                if parentType != 'folder':
-                    raise ValidationException(
-                        'Keys cannot be imported directly underneath a %s.' % parentType)
+            if parentType != 'folder':
+                raise ValidationException(
+                    'Keys cannot be imported directly underneath a %s.' % parentType)
 
-                if self.shouldImportFile(obj.name, params):
-                    item = self.model('item').createItem(
-                        name=name, creator=user, folder=parent, reuseExisting=True)
-                    file = self.model('file').createFile(
-                        name=name, creator=user, item=item, reuseExisting=True,
-                        assetstore=self.assetstore, mimeType=None, size=obj.size)
-                    file['s3Key'] = obj.name
-                    file['imported'] = True
-                    self.model('file').save(file)
+            if self.shouldImportFile(obj['Key'], params):
+                item = self.model('item').createItem(
+                    name=name, creator=user, folder=parent, reuseExisting=True)
+                file = self.model('file').createFile(
+                    name=name, creator=user, item=item, reuseExisting=True,
+                    assetstore=self.assetstore, mimeType=None, size=obj['Size'])
+                file['s3Key'] = obj['Key']
+                file['imported'] = True
+                self.model('file').save(file)
+
+        # Now recurse into subdirectories
+        for obj in resp.get('CommonPrefixes', []):
+            if progress:
+                progress.update(message=obj['Prefix'])
+
+            name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
+
+            folder = self.model('folder').createFolder(
+                parent=parent, name=name, parentType=parentType, creator=user,
+                reuseExisting=True)
+            self.importData(parent=folder, parentType='folder', params={
+                'importPath': obj['Prefix']
+            }, progress=progress, user=user, client=client, **kwargs)
 
     def deleteFile(self, file):
         """
@@ -566,13 +571,16 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
     :param service: alternate service URL
     :returns: boto connection parameter dictionary.
     """
-    accessKeyId = accessKeyId or None
-    secret = secret or None
-    params = {
-        'aws_access_key_id': accessKeyId,
-        'aws_secret_access_key': secret,
-        'config': botocore.client.Config(signature_version='s3v4')
-    }
+    if accessKeyId and secret:
+        params = {
+            'aws_access_key_id': accessKeyId,
+            'aws_secret_access_key': secret,
+            'config': botocore.client.Config(signature_version='s3v4')
+        }
+    else:
+        params = {
+            'config': botocore.client.Config(signature_version=botocore.UNSIGNED)
+        }
 
     if service:
         serviceRe = re.match('^((https?)://)?([^:/]+)(:([0-9]+))?$', service)

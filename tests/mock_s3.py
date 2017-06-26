@@ -38,14 +38,16 @@ _maxTries = 100
 def createBucket(botoConnect, bucketName):
     """
     Create a bucket if it doesn't already exist.
+
     :param botoConnect: connection parameters to pass to use with boto.
     :type botoConnect: dict
     :param bucketName: the bucket name
     :type bucket: str
-    :returns: a boto bucket.
+    :returns: the client object
     """
     client = boto3.client('s3', **botoConnect)
-    return client.create_bucket(ACL='private', Bucket=bucketName)
+    client.create_bucket(ACL='private', Bucket=bucketName)
+    return client
 
 
 def startMockS3Server():

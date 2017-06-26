@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import botocore
 import httmock
 import inspect
 import io
@@ -25,7 +26,6 @@ import mock
 import moto
 import os
 import six
-import sys
 import time
 import zipfile
 
@@ -39,9 +39,7 @@ from girder.utility import path as path_util
 
 
 def setUpModule():
-    # We want to test the paths to the actual amazon S3 server, so we use
-    # direct mocking rather than a local S3 server.
-    base.startServer(mockS3=False)
+    base.startServer()
 
 
 def tearDownModule():
@@ -492,7 +490,7 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
         self.assertStatusOk(resp)
 
-    @moto.mock_s3bucket_path
+    @moto.mock_s3
     def testS3AssetstoreAdapter(self):
         # Delete the default assetstore
         self.model('assetstore').remove(self.assetstore)
@@ -532,22 +530,19 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         del params['service']
 
-        # Create a bucket (mocked using moto), so that we can create an
-        # assetstore in it
-        botoParams = makeBotoConnectParams(params['accessKeyId'],
-                                           params['secret'])
-        bucket = mock_s3.createBucket(botoParams, 'bucketname')
+        # Create a bucket (mocked using moto), so that we can create an assetstore in it
+        botoParams = makeBotoConnectParams(params['accessKeyId'], params['secret'])
+        client = mock_s3.createBucket(botoParams, 'bucketname')
 
         # Create an assetstore
         resp = self.request(path='/assetstore', method='POST', user=self.admin, params=params)
         self.assertStatusOk(resp)
         assetstore = self.model('assetstore').load(resp.json['_id'])
 
-        # Set the assetstore to current.  This is really to test the edit
-        # assetstore code.
+        # Set the assetstore to current.  This is really to test the edit assetstore code.
         params['current'] = True
-        resp = self.request(path='/assetstore/%s' % assetstore['_id'],
-                            method='PUT', user=self.admin, params=params)
+        resp = self.request(
+            path='/assetstore/%s' % assetstore['_id'], method='PUT', user=self.admin, params=params)
         self.assertStatusOk(resp)
 
         # Test init for a single-chunk upload
@@ -650,13 +645,13 @@ class AssetstoreTestCase(base.TestCase):
         self.assertFalse('s3' in resp.json)
 
         # Test download for an empty file
-        resp = self.request(path='/file/%s/download' % emptyFile['_id'],
-                            user=self.admin, method='GET', isJson=False)
+        resp = self.request(
+            path='/file/%s/download' % emptyFile['_id'], user=self.admin, method='GET',
+            isJson=False)
         self.assertStatusOk(resp)
         self.assertEqual(self.getBody(resp), '')
         self.assertEqual(resp.headers['Content-Length'], 0)
-        self.assertEqual(resp.headers['Content-Disposition'],
-                         'attachment; filename="My File.txt"')
+        self.assertEqual(resp.headers['Content-Disposition'], 'attachment; filename="My File.txt"')
 
         # Test download of a non-empty file
         resp = self.request(path='/file/%s/download' % largeFile['_id'],
@@ -667,8 +662,7 @@ class AssetstoreTestCase(base.TestCase):
         # Test download of a non-empty file, with Content-Disposition=inline.
         # Expect the special S3 header response-content-disposition.
         params = {'contentDisposition': 'inline'}
-        inlineRegex = r'response-content-disposition=' + \
-                      'inline%3B\+filename%3D%22My\+File.txt%22'
+        inlineRegex = r'response-content-disposition=inline%3B%20filename%3D%22My%20File.txt%22'
         resp = self.request(
             path='/file/%s/download' % largeFile['_id'], user=self.admin, method='GET',
             isJson=False, params=params)
@@ -694,6 +688,9 @@ class AssetstoreTestCase(base.TestCase):
 
             extracted = zip.read('Public/My File.txt')
             self.assertEqual(extracted, b'dummy file contents')
+
+        # Create a "test" key for importing
+        client.put_object(Bucket='bucketname', Key='foo/bar/test', Body=b'')
 
         # Attempt to import item directly into user; should fail
         resp = self.request(
@@ -751,8 +748,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(item['name'], 'test')
         self.assertEqual(item['size'], 0)
 
-        resp = self.request('/item/%s/files' % str(item['_id']),
-                            user=self.admin)
+        resp = self.request('/item/%s/files' % item['_id'], user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertFalse('imported' in resp.json[0])
@@ -762,7 +758,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertFalse('relpath' in file)
         self.assertEqual(file['size'], 0)
         self.assertEqual(file['assetstoreId'], assetstore['_id'])
-        self.assertTrue(bucket.get_key('/foo/bar/test') is not None)
+        self.assertTrue(client.get_object(Bucket='bucketname', Key='foo/bar/test') is not None)
 
         # Deleting an imported file should not delete it from S3
         with mock.patch('girder.events.daemon.trigger') as daemon:
@@ -770,53 +766,36 @@ class AssetstoreTestCase(base.TestCase):
             self.assertStatusOk(resp)
             self.assertEqual(len(daemon.mock_calls), 0)
 
-        # Create the file key in the moto s3 store so that we can test that it
-        # gets deleted.
+        # Create the file key in the moto s3 store so that we can test that it gets deleted.
         file = self.model('file').load(largeFile['_id'], user=self.admin)
-        bucket.initiate_multipart_upload(file['s3Key'])
-        key = bucket.new_key(file['s3Key'])
-        key.set_contents_from_string("test")
+        client.create_multipart_upload(Bucket='bucketname', Key=file['s3Key'])
+        client.put_object(Bucket='bucketname', Key=file['s3Key'], Body=b'test')
 
         # Test delete for a non-empty file
         resp = self.request(path='/file/%s' % largeFile['_id'], user=self.admin, method='DELETE')
         self.assertStatusOk(resp)
 
         # The file should be gone now
-        resp = self.request(path='/file/%s/download' % largeFile['_id'],
-                            user=self.admin, method='GET', isJson=False)
+        resp = self.request(
+            path='/file/%s/download' % largeFile['_id'], user=self.admin, isJson=False)
         self.assertStatus(resp, 400)
         # The actual delete may still be in the event queue, so we want to
         # check the S3 bucket directly.
         startTime = time.time()
         while True:
-            if bucket.get_key(file['s3Key']) is None:
+            try:
+                client.get_object(Bucket='bucketname', Key=file['s3Key'])
+            except botocore.exceptions.ClientError:
                 break
             if time.time()-startTime > 15:
                 break  # give up and fail
             time.sleep(0.1)
-        self.assertIsNone(bucket.get_key(file['s3Key']))
+        with self.assertRaises(botocore.exceptions.ClientError):
+            client.get_object(Bucket='bucketname', Key=file['s3Key'])
 
         resp = self.request(
             path='/folder/%s' % parentFolder['_id'], method='DELETE', user=self.admin)
         self.assertStatusOk(resp)
-
-        # Set the assetstore to read only, attempt to delete it
-        assetstore['readOnly'] = True
-        assetstore = self.model('assetstore').save(assetstore)
-
-        def fn(*args, **kwargs):
-            raise Exception('get_all_multipart_uploads should not be called')
-
-        # Must mock globally (too tricky to get a direct mock.patch)
-        old = sys.modules['boto.s3.bucket'].Bucket.get_all_multipart_uploads
-        sys.modules['boto.s3.bucket'].Bucket.get_all_multipart_uploads = fn
-
-        try:
-            resp = self.request(
-                path='/assetstore/%s' % assetstore['_id'], method='DELETE', user=self.admin)
-            self.assertStatusOk(resp)
-        finally:
-            sys.modules['boto.s3.bucket'].Bucket.get_all_multipart_uploads = old
 
     def testMoveBetweenAssetstores(self):
         folder = six.next(self.model('folder').childFolders(

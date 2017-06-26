@@ -23,7 +23,6 @@ import io
 import json
 import moto
 import os
-import requests
 import shutil
 import zipfile
 
@@ -199,14 +198,14 @@ class FileTestCase(base.TestCase):
         self.assertStatus(resp, 400)
 
         # Request offset from server (simulate a resume event)
-        resp = self.request(path='/file/offset', method='GET', user=self.user,
-                            params={'uploadId': uploadId})
+        resp = self.request(
+            path='/file/offset', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
 
         # Trying to send too many bytes should fail
         currentOffset = resp.json['offset']
         fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        files = [('chunk', name, "extra_"+chunk2+"_bytes")]
+        files = [('chunk', name, 'extra_'+chunk2+'_bytes')]
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
@@ -216,8 +215,8 @@ class FileTestCase(base.TestCase):
         })
 
         # The offset should not have changed
-        resp = self.request(path='/file/offset', method='GET', user=self.user,
-                            params={'uploadId': uploadId})
+        resp = self.request(
+            path='/file/offset', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['offset'], currentOffset)
 
