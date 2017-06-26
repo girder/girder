@@ -21,7 +21,7 @@
 DOCKER_DATA_VOLUME = '/mnt/girder_worker/data'
 
 # The path that will be mounted in docker containers for utility scripts
-DOCKER_SCRIPTS_VOUME = '/mnt/girder_worker/scripts'
+DOCKER_SCRIPTS_VOLUME = '/mnt/girder_worker/scripts'
 
 
 # Settings where plugin information is stored
