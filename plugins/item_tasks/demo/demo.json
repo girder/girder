@@ -1,149 +1,203 @@
 [
-  {
-    "name": "item_tasks widget types demo",
-    "description": "A simple demonstration showing how to work with item_tasks control widgets",
-    "mode": "docker",
-    "pull_image": false,
-    "container_args": [
-      "demo",
-      "$input{color_input}",
-      "$input{range_input}",
-      "$input{number_input}",
-      "$input{boolean_input}",
-      "$input{string_input}",
-      "$input{integer_input}",
-      "$input{number_vector_input}",
-      "$input{string_vector_input}",
-      "$input{number_choice_input}",
-      "$input{string_choice_input}",
-      "$input{number_multi_choice_input}",
-      "$input{string_multi_choice_input}",
-      "$input{file_input}",
-      "/mnt/girder_worker/data/file_output"
-    ],
-    "inputs": [
-      {
-        "id": "color_input",
-        "name": "Color input",
-        "description": "Provide a color value",
-        "type": "color",
-        "default": {
-          "data": "#1234EF"
-        }
-      }, {
-        "id": "range_input",
-        "name": "Slider input",
-        "description": "Provide a number within a range",
-        "type": "range",
-        "default": {
-          "data": 5
-        },
-        "min": 0,
-        "max": 15,
-        "step": 0.1
-      }, {
-        "id": "number_input",
-        "name": "Number input",
-        "description": "Provide a number between 0 and 1",
-        "type": "number",
-        "default": {
-          "data": 0.5
-        },
-        "min": 0,
-        "max": 1,
-        "step": 0.01
-      }, {
-        "id": "boolean_input",
-        "name": "Boolean input",
-        "description": "Enable or disable a flag",
-        "type": "boolean",
-        "default": {
-          "data": true
-        }
-      }, {
-        "id": "string_input",
-        "name": "String input",
-        "description": "Provide a string value",
-        "type": "string",
-        "default": {
-          "data": "default value"
-        }
-      }, {
-        "id": "integer_input",
-        "name": "Integer input",
-        "description": "Provide an integer",
-        "type": "integer",
-        "default": {
-          "data": 3
-        }
-      }, {
-        "id": "number_vector_input",
-        "name": "Number list input",
-        "description": "Provide a comma-separated list of numbers",
-        "type": "number-vector",
-        "default": {
-          "data": [1, 2, 3]
-        }
-      }, {
-        "id": "string_vector_input",
-        "name": "String list input",
-        "description": "Provide a comma-separated list of strings",
-        "type": "string-vector",
-        "default": {
-          "data": ["one", "two", "three"]
-        }
-      }, {
-        "id": "number_choice_input",
-        "name": "Number choice input",
-        "description": "Choose a number",
-        "type": "number-enumeration",
-        "values": [0, 1, 3.14, 2.72, 1.62, 1.41],
-        "default": {
-          "data": 3.14
-        }
-      }, {
-        "id": "string_choice_input",
-        "name": "String choice input",
-        "description": "Choose a string",
-        "type": "string-enumeration",
-        "values": ["red", "green", "blue", "cyan", "yellow", "magenta"],
-        "default": {
-          "data": "green"
-        }
-      }, {
-        "id": "number_multi_choice_input",
-        "name": "Multiple number choice input",
-        "description": "Choose some numbers",
-        "type": "number-enumeration-multiple",
-        "values": [0, 1, 3.14, 2.72, 1.62, 1.41],
-        "default": {
-          "data": [3.14, 1.62]
-        }
-      }, {
-        "id": "string_multi_choice_input",
-        "name": "Multiple string choice input",
-        "description": "Choose some strings",
-        "type": "string-enumeration-multiple",
-        "values": ["red", "green", "blue", "cyan", "yellow", "magenta"],
-        "default": {
-          "data": ["green", "yellow"]
-        }
-      }, {
-        "id": "file_input",
-        "name": "Item input",
-        "description": "Choose an existing item that will be used by the task",
-        "type": "file",
-        "target": "filepath"
-      }
-    ],
-    "outputs": [
-      {
-        "id": "file_output",
-        "name": "Item output",
-        "description": "Choose a directory and name for an output item",
-        "type": "new-file",
-        "target": "filepath"
-      }
-    ]
-  }
+    {
+        "name": "item_tasks widget types demo",
+        "description": "A simple demonstration showing how to work with item_tasks control widgets",
+        "mode": "docker",
+        "pull_image": false,
+        "container_args": [
+            "demo",
+            "$input{color_input}",
+            "$input{range_input}",
+            "$input{number_input}",
+            "$input{boolean_input}",
+            "$input{string_input}",
+            "$input{integer_input}",
+            "$input{number_vector_input}",
+            "$input{string_vector_input}",
+            "$input{number_choice_input}",
+            "$input{string_choice_input}",
+            "$input{number_multi_choice_input}",
+            "$input{string_multi_choice_input}",
+            "$input{file_input}",
+            "/mnt/girder_worker/data/file_output"
+        ],
+        "inputs": [
+            {
+                "id": "color_input",
+                "name": "Color input",
+                "description": "Provide a color value",
+                "type": "color",
+                "default": {
+                    "data": "#1234EF"
+                }
+            },
+            {
+                "id": "range_input",
+                "name": "Slider input",
+                "description": "Provide a number within a range",
+                "type": "range",
+                "default": {
+                    "data": 5
+                },
+                "min": 0,
+                "max": 15,
+                "step": 0.1
+            },
+            {
+                "id": "number_input",
+                "name": "Number input",
+                "description": "Provide a number between 0 and 1",
+                "type": "number",
+                "default": {
+                    "data": 0.5
+                },
+                "min": 0,
+                "max": 1,
+                "step": 0.01
+            },
+            {
+                "id": "boolean_input",
+                "name": "Boolean input",
+                "description": "Enable or disable a flag",
+                "type": "boolean",
+                "default": {
+                    "data": true
+                }
+            },
+            {
+                "id": "string_input",
+                "name": "String input",
+                "description": "Provide a string value",
+                "type": "string",
+                "default": {
+                    "data": "default value"
+                }
+            },
+            {
+                "id": "integer_input",
+                "name": "Integer input",
+                "description": "Provide an integer",
+                "type": "integer",
+                "default": {
+                    "data": 3
+                }
+            },
+            {
+                "id": "number_vector_input",
+                "name": "Number list input",
+                "description": "Provide a comma-separated list of numbers",
+                "type": "number-vector",
+                "default": {
+                    "data": [
+                        1,
+                        2,
+                        3
+                    ]
+                }
+            },
+            {
+                "id": "string_vector_input",
+                "name": "String list input",
+                "description": "Provide a comma-separated list of strings",
+                "type": "string-vector",
+                "default": {
+                    "data": [
+                        "one",
+                        "two",
+                        "three"
+                    ]
+                }
+            },
+            {
+                "id": "number_choice_input",
+                "name": "Number choice input",
+                "description": "Choose a number",
+                "type": "number-enumeration",
+                "values": [
+                    0,
+                    1,
+                    3.14,
+                    2.72,
+                    1.62,
+                    1.41
+                ],
+                "default": {
+                    "data": 3.14
+                }
+            },
+            {
+                "id": "string_choice_input",
+                "name": "String choice input",
+                "description": "Choose a string",
+                "type": "string-enumeration",
+                "values": [
+                    "red",
+                    "green",
+                    "blue",
+                    "cyan",
+                    "yellow",
+                    "magenta"
+                ],
+                "default": {
+                    "data": "green"
+                }
+            },
+            {
+                "id": "number_multi_choice_input",
+                "name": "Multiple number choice input",
+                "description": "Choose some numbers",
+                "type": "number-enumeration-multiple",
+                "values": [
+                    0,
+                    1,
+                    3.14,
+                    2.72,
+                    1.62,
+                    1.41
+                ],
+                "default": {
+                    "data": [
+                        3.14,
+                        1.62
+                    ]
+                }
+            },
+            {
+                "id": "string_multi_choice_input",
+                "name": "Multiple string choice input",
+                "description": "Choose some strings",
+                "type": "string-enumeration-multiple",
+                "values": [
+                    "red",
+                    "green",
+                    "blue",
+                    "cyan",
+                    "yellow",
+                    "magenta"
+                ],
+                "default": {
+                    "data": [
+                        "green",
+                        "yellow"
+                    ]
+                }
+            },
+            {
+                "id": "file_input",
+                "name": "Item input",
+                "description": "Choose an existing item that will be used by the task",
+                "type": "file",
+                "target": "filepath"
+            }
+        ],
+        "outputs": [
+            {
+                "id": "file_output",
+                "name": "Item output",
+                "description": "Choose a directory and name for an output item",
+                "type": "new-file",
+                "target": "filepath"
+            }
+        ]
+    }
 ]
