@@ -51,10 +51,20 @@ class DownloadStatisticsTestCase(base.TestCase):
         self.filesDir = os.path.join(ROOT_DIR, 'plugins', 'download_statistics',
                                      'plugin_tests', 'files')
 
+    def _downloadFolder(self, folderId):
+        # Download folder through REST api
+        path = '/folder/%s/download' % str(folderId)
+        resp = self.request(path, isJson=False)
+        self.assertStatusOk(resp)
+
+        # Iterate through generator to trigger download events
+        for data in resp.body:
+            data
+
     def _downloadItem(self, itemId):
         # Download item through REST api
         path = '/item/%s/download' % str(itemId)
-        resp = self.request(path, user=self.admin, isJson=False)
+        resp = self.request(path, isJson=False)
         self.assertStatusOk(resp)
 
         # Iterate through generator to trigger download events
@@ -64,24 +74,58 @@ class DownloadStatisticsTestCase(base.TestCase):
     def _downloadFile(self, fileId):
         # Download file through REST api
         path = '/file/%s/download' % str(fileId)
-        resp = self.request(path, user=self.admin, isJson=False)
+        resp = self.request(path, isJson=False)
         self.assertStatusOk(resp)
 
         # Iterate through generator to trigger download events
         for data in resp.body:
             data
 
-    def _checkDownloadsCount(self, fileId, count):
+    def _checkDownloadsCount(self, fileId, started, requested, completed):
         # Downloads file info and asserts download statistics are accurate
-        path = '/file/' + str(fileId)
+        path = '/file/%s' % str(fileId)
         resp = self.request(path, isJson=True)
         self.assertStatusOk(resp)
         data = resp.json
 
         # The generator is never iterated as to not trigger additional events
-        self.assertEqual(data['downloadStatistics']['started'], count)
-        self.assertEqual(data['downloadStatistics']['requested'], count)
-        self.assertEqual(data['downloadStatistics']['completed'], count)
+        self.assertEqual(data['downloadStatistics']['started'], started)
+        self.assertEqual(data['downloadStatistics']['requested'], requested)
+        self.assertEqual(data['downloadStatistics']['completed'], completed)
+
+    def _downloadFileInTwoChunks(self, fileId):
+        # Adds 1 to downloads started, 2 to requested, and 1 to completed
+        # txt1.txt and txt2.txt each have a filesize of 5
+        path = '/file/%s/download' % str(fileId)
+        params = {
+            'offset': 0,
+            'endByte': 3
+        }
+        resp = self.request(path, method='GET', isJson=False, params=params)
+        # Iterate through generator to trigger download events
+        for data in resp.body:
+            data
+
+        params['offset'] = 3
+        params['endByte'] = 6
+        resp = self.request(path, method='GET', isJson=False, params=params)
+        # Iterate through generator to trigger download events
+        for data in resp.body:
+            data
+
+    def _downloadPartialFile(self, fileId):
+        # Adds 1 to downloads started and 4 to downloads requested
+        # txt1.txt and txt2.txt each have a filesize of 5
+        path = '/file/%s/download' % str(fileId)
+        for i in range(1, 5):
+            params = {
+                'offset': i-1,
+                'endByte': i
+            }
+            resp = self.request(path, method='GET', isJson=False, params=params)
+            # Iterate through generator to trigger download events
+            for data in resp.body:
+                data
 
     def testDownload(self):
         # Create collection
@@ -97,9 +141,6 @@ class DownloadStatisticsTestCase(base.TestCase):
         # Path to test files
         file1Path = os.path.join(self.filesDir, 'txt1.txt')
         file2Path = os.path.join(self.filesDir, 'txt2.txt')
-
-        file1 = ''
-        file2 = ''
 
         # Upload files to item
         with open(file1Path, 'rb') as fp:
@@ -119,6 +160,17 @@ class DownloadStatisticsTestCase(base.TestCase):
             self._downloadItem(item['_id'])
             self._downloadFile(file1['_id'])
             self._downloadFile(file2['_id'])
+
+        # Download each file 1 time by downloading parent folder
+        self._downloadFolder(folder['_id'])
+
+        # Download each file over 2 requests
+        self._downloadFileInTwoChunks(file1['_id'])
+        self._downloadFileInTwoChunks(file2['_id'])
+
+        # Download each file partially, adding 1 to start and 4 to requested
+        self._downloadPartialFile(file1['_id'])
+        self._downloadPartialFile(file2['_id'])
 
         # Download entire collection
         # Each file is downloaded 1 additional time
@@ -142,5 +194,5 @@ class DownloadStatisticsTestCase(base.TestCase):
         for data in resp.body:
             data
 
-        self._checkDownloadsCount(file1['_id'], 11)
-        self._checkDownloadsCount(file2['_id'], 12)
+        self._checkDownloadsCount(file1['_id'], 14, 18, 13)
+        self._checkDownloadsCount(file2['_id'], 15, 19, 14)

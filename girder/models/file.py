@@ -94,27 +94,17 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type contentDisposition: str or None
         :type extraParameters: str or None
         """
-        if offset is 0:
+        if offset == 0:
             events.trigger('model.file.download.before', info={'file': file})
         else:
             events.trigger('model.file.download.during', info={'file': file})
+
         if file.get('assetstoreId'):
             try:
-                fileDownload = self.getAssetstoreAdapter(file).downloadFile(
-                    file, offset=offset, headers=headers, endByte=endByte,
-                    contentDisposition=contentDisposition,
-                    extraParameters=extraParameters)
-                if inspect.isgeneratorfunction(fileDownload) or inspect.isgenerator(fileDownload):
-                    def downloadGenerator():
-                        for data in fileDownload():
-                            yield data
-                        if endByte is None or endByte >= file['size']:
-                            events.trigger('model.file.download.after',
-                                           info={'file': file, 'redirect': False})
-                    return downloadGenerator
-                else:
-                    # With our current assetstores (June 2017), this case should not be reached.
-                    return fileDownload
+                return self._handleAssetstoreDownload(file, offset=offset, headers=headers,
+                                                      endByte=endByte,
+                                                      contentDisposition=contentDisposition,
+                                                      extraParameters=extraParameters)
             except cherrypy.HTTPRedirect:
                 events.trigger('model.file.download.after', info={'file': file, 'redirect': True})
                 raise
@@ -133,6 +123,32 @@ class File(acl_mixin.AccessControlMixin, Model):
                 return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')
+
+    def _handleAssetstoreDownload(self, file, offset=0, headers=True, endByte=None,
+                                  contentDisposition=None, extraParameters=None):
+        fileDownload = self.getAssetstoreAdapter(file).downloadFile(
+            file, offset=offset, headers=headers, endByte=endByte,
+            contentDisposition=contentDisposition,
+            extraParameters=extraParameters)
+        if inspect.isgeneratorfunction(fileDownload) or inspect.isgenerator(fileDownload):
+            def downloadGenerator():
+                # Get generator object from function if necessary
+                if inspect.isgeneratorfunction(fileDownload):
+                    gen = fileDownload()
+                else:
+                    gen = fileDownload
+                for data in gen:
+                    yield data
+                if endByte is None or endByte >= file['size']:
+                    events.trigger('model.file.download.after',
+                                   info={'file': file, 'redirect': False})
+            return downloadGenerator
+        else:
+            # With our current assetstores (June 2017), this case should not be reached.
+            if endByte is None or endByte >= file['size']:
+                events.trigger('model.file.download.after',
+                               info={'file': file, 'redirect': False})
+            return fileDownload
 
     def validate(self, doc):
         if doc.get('assetstoreId') is None:
