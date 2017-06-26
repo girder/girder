@@ -95,7 +95,8 @@ var ItemPreviewWidget = View.extend({
         var $container = this.$('.g-widget-item-previews-wrapper');
         _whenAll(items.map((item) => {
             return restRequest({
-                path: `item/${item._id}/files`
+                path: `item/${item._id}/files`,
+                data: { limit: 5 }
             }).then((files) => {
                 return _whenAll(files.map((file) => {
                     return this.tryGetFileContent(file, file.mimeType);
