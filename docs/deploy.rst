@@ -286,7 +286,7 @@ Build Girder and its client-side assets locally: ::
 
 Create a requirements.txt for the Beanstalk application, overwriting the default Girder requirements.txt: ::
 
-  $ pip freeze | grep -v '^girder\|^awscli\|^awsebcli' > requirements.txt
+  $ pip freeze | grep -v 'girder\|^awscli\|^awsebcli' > requirements.txt
 
 Copy the pre-packaged configurations for Beanstalk into the current directory: ::
 
