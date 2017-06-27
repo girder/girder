@@ -20,7 +20,6 @@
 import cherrypy
 import datetime
 import six
-import inspect
 
 from .model_base import Model, ValidationException
 from girder import events
@@ -94,23 +93,31 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type contentDisposition: str or None
         :type extraParameters: str or None
         """
-        if offset == 0:
-            events.trigger('model.file.download.before', info={'file': file})
-        else:
-            events.trigger('model.file.download.during', info={'file': file})
+        info = {'file': file, 'startByte': offset, 'endByte': endByte}
+        events.trigger('model.file.download.request', info=info)
 
         if file.get('assetstoreId'):
             try:
-                return self._handleAssetstoreDownload(file, offset=offset, headers=headers,
-                                                      endByte=endByte,
-                                                      contentDisposition=contentDisposition,
-                                                      extraParameters=extraParameters)
+                fileDownload = self.getAssetstoreAdapter(file).downloadFile(
+                    file, offset=offset, headers=headers, endByte=endByte,
+                    contentDisposition=contentDisposition,
+                    extraParameters=extraParameters)
+
+                def downloadGenerator():
+                    for data in fileDownload():
+                        yield data
+                    if endByte is None or endByte >= file['size']:
+                        info['redirect'] = False
+                        events.trigger('model.file.download.complete', info=info)
+                return downloadGenerator
             except cherrypy.HTTPRedirect:
-                events.trigger('model.file.download.after', info={'file': file, 'redirect': True})
+                info['redirect'] = True
+                events.trigger('model.file.download.complete', info=info)
                 raise
         elif file.get('linkUrl'):
             if headers:
-                events.trigger('model.file.download.after', info={'file': file, 'redirect': True})
+                info['redirect'] = True
+                events.trigger('model.file.download.complete', info=info)
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
             else:
                 endByte = endByte or len(file['linkUrl'])
@@ -118,37 +125,11 @@ class File(acl_mixin.AccessControlMixin, Model):
                 def stream():
                     yield file['linkUrl'][offset:endByte]
                     if endByte >= len(file['linkUrl']):
-                        events.trigger('model.file.download.after',
-                                       info={'file': file, 'redirect': False})
+                        info['redirect'] = False
+                        events.trigger('model.file.download.complete', info=info)
                 return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')
-
-    def _handleAssetstoreDownload(self, file, offset=0, headers=True, endByte=None,
-                                  contentDisposition=None, extraParameters=None):
-        fileDownload = self.getAssetstoreAdapter(file).downloadFile(
-            file, offset=offset, headers=headers, endByte=endByte,
-            contentDisposition=contentDisposition,
-            extraParameters=extraParameters)
-        if inspect.isgeneratorfunction(fileDownload) or inspect.isgenerator(fileDownload):
-            def downloadGenerator():
-                # Get generator object from function if necessary
-                if inspect.isgeneratorfunction(fileDownload):
-                    gen = fileDownload()
-                else:
-                    gen = fileDownload
-                for data in gen:
-                    yield data
-                if endByte is None or endByte >= file['size']:
-                    events.trigger('model.file.download.after',
-                                   info={'file': file, 'redirect': False})
-            return downloadGenerator
-        else:
-            # With our current assetstores (June 2017), this case should not be reached.
-            if endByte is None or endByte >= file['size']:
-                events.trigger('model.file.download.after',
-                               info={'file': file, 'redirect': False})
-            return fileDownload
 
     def validate(self, doc):
         if doc.get('assetstoreId') is None:

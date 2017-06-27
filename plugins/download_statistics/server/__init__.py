@@ -23,14 +23,10 @@ from girder.constants import AccessType
 from girder.utility.model_importer import ModelImporter
 
 
-def downloadFileDuringEvent(event):
+def downloadFileRequestEvent(event):
+    if event.info['startByte'] == 0:
+        downloadFileStart(event.info['file']['_id'])
     downloadFileRequest(event.info['file']['_id'])
-
-
-def downloadFileStartEvent(event):
-    fileId = event.info['file']['_id']
-    downloadFileStart(fileId)
-    downloadFileRequest(fileId)
 
 
 def downloadFileCompleteEvent(event):
@@ -54,11 +50,9 @@ def downloadFileComplete(fileId):
 
 def load(info):
     # Bind REST events
-    events.bind('model.file.download.before', 'download_statistics',
-                downloadFileStartEvent)
-    events.bind('model.file.download.during', 'download_statistics',
-                downloadFileDuringEvent)
-    events.bind('model.file.download.after', 'download_statistics',
+    events.bind('model.file.download.request', 'download_statistics',
+                downloadFileRequestEvent)
+    events.bind('model.file.download.complete', 'download_statistics',
                 downloadFileCompleteEvent)
 
     # Add download count fields to file model
