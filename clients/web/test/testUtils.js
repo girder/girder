@@ -1168,7 +1168,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
  */
 (function () {
     var MAX_AJAX_LOG_SIZE = 20;
-    var i = 0;
+    var logIndex = 0;
     var ajaxCalls = [];
     var backboneAjax = Backbone.ajax;
 
@@ -1189,8 +1189,8 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
             opts: opts
         };
 
-        ajaxCalls[i] = record;
-        i = (i + 1) % MAX_AJAX_LOG_SIZE;
+        ajaxCalls[logIndex] = record;
+        logIndex = (logIndex + 1) % MAX_AJAX_LOG_SIZE;
 
         return backboneAjax(opts).done(
             function (data, textStatus) {
@@ -1205,13 +1205,10 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     };
 
     girderTest.ajaxLog = function (reset) {
-        var calls = [];
-        for (var idx = i, o = 0; o < ajaxCalls.length; idx++, o++) {
-            calls[o] = ajaxCalls[idx % ajaxCalls.length];
-        }
+        var calls = ajaxCalls.slice(logIndex, ajaxCalls.length).concat(ajaxCalls.slice(0, logIndex));
         if (reset) {
             ajaxCalls = [];
-            i = 0;
+            logIndex = 0;
         }
         return calls;
     };
