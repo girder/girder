@@ -99,36 +99,8 @@ class MockS3Server(threading.Thread):
 
     def run(self):
         """Start and run the mock S3 server."""
-        app = moto.server.DomainDispatcherApplication(_create_app, service='s3bucket_path')
+        app = moto.server.DomainDispatcherApplication(moto.server.create_backend_app, service='s3')
         moto.server.run_simple('0.0.0.0', self.port, app, threaded=True)
-
-
-def _create_app(service):
-    """
-    Create the S3 server using moto, altering the responses to allow CORS
-    requests.
-    :param service: the amazon service we wish to mimic.  This should probably
-                    be 's3bucket_path'.
-    """
-    app = moto.server.create_backend_app(service)
-
-    # I would have preferred to set the CORS for the bucket we have, but moto
-    # doesn't support that, so I have to add the values here.
-    @app.after_request
-    def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Methods',
-                             'HEAD, GET, PUT, POST, OPTIONS, DELETE')
-        response.headers.add(
-            'Access-Control-Allow-Headers',
-            'Content-Disposition,Content-Type,'
-            'x-amz-meta-authorized-length,x-amz-acl,x-amz-meta-uploader-ip,'
-            'x-amz-meta-uploader-id'
-            )
-        response.headers.add('Access-Control-Expose-Headers', 'ETag')
-        return response
-
-    return app
 
 
 if __name__ == '__main__':
