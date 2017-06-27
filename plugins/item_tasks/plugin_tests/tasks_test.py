@@ -162,11 +162,17 @@ class TasksTest(base.TestCase):
 
         # Test GET endpoint
         def testMinMax(expected, min=0, max=None):
-            resp = self.request(
-                '/item_task', params={
+            if max is None:
+                params = {
+                    'minFileInputs': min
+                    }
+            else:
+                params={
                     'minFileInputs': min,
                     'maxFileInputs': max
-                },
+                }
+            resp = self.request(
+                '/item_task', params=params,
                 user=self.admin)
             self.assertStatusOk(resp)
             self.assertEqual(len(resp.json), expected)
@@ -179,6 +185,8 @@ class TasksTest(base.TestCase):
         testMinMax(4, max=3)
         testMinMax(3, max=2)
         testMinMax(2, min=2, max=3)
+        testMinMax(4)
+        testMinMax(1, min=3)
 
     def testConfigureItemTaskFromJson(self):
         """

@@ -36,7 +36,7 @@ class ItemTask(Resource):
         .pagingParams(defaultSort='name')
         .param('minFileInputs', 'Search tasks by minimum number of file inputs.', required=False,
                dataType='int', default=0)
-        .param('maxFileInputs', 'Search tasks by minimum number of file inputs.', required=False,
+        .param('maxFileInputs', 'Search tasks by maximum number of file inputs.', required=False,
                dataType='int')
     )
     @filtermodel(model='item')
@@ -45,17 +45,15 @@ class ItemTask(Resource):
             'meta.isItemTask': {'$exists': True}
         }, sort=sort)
 
-        filteredResults = list(self.model('item').filterResultsByPermission(
+        if minFileInputs or maxFileInputs:
+            cursor = self._filterMinMaxFileInputs(cursor, minFileInputs, maxFileInputs)
+
+        return list(self.model('item').filterResultsByPermission(
             cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
             flags=constants.ACCESS_FLAG_EXECUTE_TASK))
 
-        # Return list if no min and max are specified
-        if not minFileInputs and not maxFileInputs:
-            return filteredResults
-
-        # Check item metadata for file input type
-        finalResults = []
-        for item in filteredResults:
+    def _filterMinMaxFileInputs(self, cursor, minFileInputs, maxFileInputs):
+        for item in cursor:
             fileCount = 0
             try:
                 for _input in item['meta']['itemTaskSpec']['inputs']:
@@ -64,13 +62,12 @@ class ItemTask(Resource):
 
                 if maxFileInputs:
                     if fileCount >= minFileInputs and fileCount <= maxFileInputs:
-                        finalResults.append(item)
+                        yield item
                 else:
                     if fileCount >= minFileInputs:
-                        finalResults.append(item)
+                        yield item
             except KeyError:
                 continue
-        return finalResults
 
     def _validateTask(self, item):
         """
