@@ -65,6 +65,7 @@ installReqs = [
     # https://github.com/cherrypy/cherrypy/issues/1662
     'CherryPy<11.1',
     'click',
+    'dogpile.cache',
     'filelock',
     'funcsigs ; python_version < \'3\'',
     'jsonschema',

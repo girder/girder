@@ -26,7 +26,7 @@ import posixpath
 import six
 
 import girder.events
-from girder import constants, logprint, __version__, logStdoutStderr
+from girder import constants, logprint, __version__, logStdoutStderr, _setupCache
 from girder.models.setting import Setting
 from girder.utility import plugin_utilities, config
 from . import webroot
@@ -152,6 +152,8 @@ def configureServer(test=False, plugins=None, curConfig=None):
     mode = curConfig['server']['mode'].lower()
     logprint.info('Running in mode: ' + mode)
     cherrypy.config['engine.autoreload.on'] = mode == 'development'
+
+    _setupCache()
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
