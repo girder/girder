@@ -494,7 +494,7 @@ class TasksTest(base.TestCase):
                 'name': 'StrictSorting'
             }],
             'outputs': [{
-                'description': 'Fiducual points, one for each detected sphere. '
+                'description': 'Fiducial points, one for each detected sphere. '
                                'Will be multiple of 3.',
                 'format': 'new-file',
                 'name': 'DetectedPoints',

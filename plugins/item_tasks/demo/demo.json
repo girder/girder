@@ -79,7 +79,7 @@
       }, {
         "id": "number_vector_input",
         "name": "Number list input",
-        "description": "Provide a comma-seperated list of numbers",
+        "description": "Provide a comma-separated list of numbers",
         "type": "number-vector",
         "default": {
           "data": [1, 2, 3]
@@ -87,7 +87,7 @@
       }, {
         "id": "string_vector_input",
         "name": "String list input",
-        "description": "Provide a comma-seperated list of strings",
+        "description": "Provide a comma-separated list of strings",
         "type": "string-vector",
         "default": {
           "data": ["one", "two", "three"]

@@ -84,7 +84,7 @@ function(add_web_client_test case specFile)
   # PLUGIN_DIR Alternate directory in which to look for plugins.
   # ASSETSTORE (assetstore type) : use the specified assetstore type when
   #     running the test.  Defaults to 'filesystem'
-  # WEBSECURITY (boolean) : if false, don't use CORS validatation.  Defaults to
+  # WEBSECURITY (boolean) : if false, don't use CORS validation.  Defaults to
   #     'true'
   # ENABLEDPLUGINS (list of plugins): A list of plugins to load. This overrides the
   # PLUGIN parameter, so if you intend to load PLUGIN it must be included in this

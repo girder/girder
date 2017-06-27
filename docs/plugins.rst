@@ -318,7 +318,7 @@ ready, which admins may approve or reject. The plugin provides a UI along with
 workflow management, notification, and permission support for these actions.
 
 The standard curation workflow works as follows, with any operations affecting
-privacy or permissions being applied to the folder and all of its descendent
+privacy or permissions being applied to the folder and all of its descendant
 folders.
 
 - Site admins can enable curation for any folder, which changes the folder to

@@ -81,7 +81,7 @@
       <longflag>DetectedPoints</longflag>
       <label>DetectedPoints</label>
       <channel>output</channel>
-      <description>Fiducual points, one for each detected sphere. Will be multiple of 3.</description>
+      <description>Fiducial points, one for each detected sphere. Will be multiple of 3.</description>
     </pointfile>
   </parameters>
 </executable>

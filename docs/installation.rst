@@ -91,7 +91,7 @@ support for the `celery_jobs` and `geospatial` plugins can be done like this: ::
 
    pip install girder[celery_jobs,geospatial]
 
-There is also an extra you can use to install the depencies for all bundled
+There is also an extra you can use to install the dependencies for all bundled
 plugins supported in the current python environment called ``plugins``: ::
 
    pip install girder[plugins]
