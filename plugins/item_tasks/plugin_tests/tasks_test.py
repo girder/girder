@@ -167,7 +167,7 @@ class TasksTest(base.TestCase):
                     'minFileInputs': min
                     }
             else:
-                params={
+                params = {
                     'minFileInputs': min,
                     'maxFileInputs': max
                 }
