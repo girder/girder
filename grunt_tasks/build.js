@@ -19,6 +19,7 @@ var path = require('path');
 var _ = require('underscore');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 
 var webpackGlobalConfig = require('./webpack.config.js');
 var paths = require('./webpack.paths.js');
@@ -107,6 +108,13 @@ module.exports = function (grunt) {
                     new ExtractTextPlugin({
                         filename: '[name].min.css',
                         allChunks: true
+                    }),
+                    new GoogleFontsPlugin({
+                        filename: 'googlefonts.css',
+                        fonts: [{
+                            family: 'Droid Sans',
+                            variants: ['regular', '700']
+                        }]
                     })
                 ]
             },

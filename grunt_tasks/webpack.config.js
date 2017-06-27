@@ -23,7 +23,6 @@ var path = require('path');
 
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 
 var paths = require('./webpack.paths.js');
 var es2015Preset = require.resolve('babel-preset-es2015');
@@ -70,14 +69,7 @@ module.exports = {
             'window.jQuery': 'jquery'
         }),
         // Disable writing the output file if a build error occurs
-        new webpack.NoEmitOnErrorsPlugin(),
-        new GoogleFontsPlugin({
-            filename: 'googlefonts.css',
-            fonts: [{
-                family: 'Droid Sans',
-                variants: ['regular', '700']
-            }]
-        })
+        new webpack.NoEmitOnErrorsPlugin()
     ],
     module: {
         rules: [
