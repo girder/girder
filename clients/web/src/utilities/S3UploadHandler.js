@@ -208,9 +208,7 @@ prototype._sendNextChunk = function () {
                 handler.trigger('g:upload.chunkSent', {
                     bytes: handler.payloadLength
                 });
-                // ETag gets sent wrapped in quotes, we must strip them
-                handler.eTagList[handler.chunkN] =
-                    xhr.getResponseHeader('ETag').replace(/"/g, '');
+                handler.eTagList[handler.chunkN] = xhr.getResponseHeader('ETag');
                 handler.startByte += handler.payloadLength;
                 handler.chunkN += 1;
 
