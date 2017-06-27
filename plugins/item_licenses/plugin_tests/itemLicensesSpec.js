@@ -1,5 +1,4 @@
 girderTest.importPlugin('item_licenses');
-
 girderTest.startApp();
 
 $(function () {

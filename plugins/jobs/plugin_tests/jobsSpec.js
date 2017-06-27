@@ -1,11 +1,10 @@
 girderTest.importPlugin('jobs');
+var app;
+girderTest.startApp()
+    .done(function (startedApp) {
+        app = startedApp;
+    });
 
-girder.events.trigger('g:appload.before');
-var app = new girder.views.App({
-    el: 'body',
-    parentView: null
-});
-girder.events.trigger('g:appload.after');
 
 $(function () {
     describe('Unit test the job detail widget.', function () {

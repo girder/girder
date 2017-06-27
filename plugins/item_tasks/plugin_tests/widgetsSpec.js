@@ -1,4 +1,6 @@
 girderTest.importPlugin('jobs', 'worker', 'item_tasks');
+// This is a unit test, so do not start the app
+
 
 girderTest.promise.done(function () {
     var itemTasks = girder.plugins.item_tasks;

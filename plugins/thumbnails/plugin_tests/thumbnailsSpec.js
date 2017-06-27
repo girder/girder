@@ -1,5 +1,4 @@
 girderTest.importPlugin('jobs', 'thumbnails');
-
 girderTest.startApp();
 
 $(function () {

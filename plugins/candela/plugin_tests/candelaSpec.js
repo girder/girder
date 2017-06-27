@@ -1,5 +1,4 @@
 girderTest.importPlugin('candela');
-
 girderTest.startApp();
 
 $(function () {

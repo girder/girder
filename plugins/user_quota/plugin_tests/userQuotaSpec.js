@@ -1,5 +1,4 @@
 girderTest.importPlugin('user_quota');
-
 girderTest.startApp();
 
 $(function () {

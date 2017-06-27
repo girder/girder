@@ -1,5 +1,4 @@
 girderTest.importPlugin('homepage');
-
 girderTest.startApp();
 
 function _goToHomepagePluginSettings() {

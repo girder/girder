@@ -1,3 +1,5 @@
+girderTest.startApp();
+
 /**
  * As of v1.9.9, phantomJS does not correctly support sending Blobs in XHRs,
  * and the FormData API is extremely limited (i.e. does not support anything
@@ -50,11 +52,6 @@ function _setMinimumChunkSize(minSize) {
         girderTest._redirect = url;
     };
 }());
-
-/**
- * Start the girder backbone app.
- */
-girderTest.startApp();
 
 describe('Create a data hierarchy', function () {
     it('register a user',

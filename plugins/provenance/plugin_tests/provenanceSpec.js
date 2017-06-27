@@ -1,5 +1,4 @@
 girderTest.importPlugin('provenance');
-
 girderTest.startApp();
 
 $(function () {

@@ -1,5 +1,4 @@
 girderTest.importPlugin('autojoin');
-
 girderTest.startApp();
 
 $(function () {

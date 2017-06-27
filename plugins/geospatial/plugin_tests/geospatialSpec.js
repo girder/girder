@@ -1,5 +1,4 @@
 girderTest.importPlugin('geospatial');
-
 girderTest.startApp();
 
 $(function () {
