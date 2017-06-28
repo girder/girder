@@ -32,7 +32,7 @@ class AutoJoinTest(base.TestCase):
         # set auto join rules
         rules = [
             {
-                'pattern': '@kitware.com',
+                'pattern': '@test.com',
                 'groupId': str(g1['_id']),
                 'level': AccessType.ADMIN
             },
@@ -58,9 +58,9 @@ class AutoJoinTest(base.TestCase):
         user1 = self.model('user').createUser(
             'user1', 'password', 'John', 'Doe', 'user1@example.com')
         user2 = self.model('user').createUser(
-            'user2', 'password', 'John', 'Doe', 'user2@kitware.com')
+            'user2', 'password', 'John', 'Doe', 'user2@test.com')
         user3 = self.model('user').createUser(
-            'user3', 'password', 'John', 'Doe', 'user3@kitware.co')
+            'user3', 'password', 'John', 'Doe', 'user3@test.co')
 
         # check correct groups were joined
         self.assertEqual(user1['groups'], [g2['_id'], g3['_id']])

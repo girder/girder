@@ -1,3 +1,5 @@
+/* eslint-disable import/first */
+
 import AssetstoreModel from 'girder/models/AssetstoreModel';
 import router from 'girder/router';
 import events from 'girder/events';

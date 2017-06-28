@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import _ from 'underscore';
 
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
@@ -174,7 +175,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 3000
             });
-        }, this)).error(_.bind(function (resp) {
+        }, this)).fail(_.bind(function (resp) {
             this.$('#g-oauth-provider-' + providerId + '-error-message').text(
                 resp.responseJSON.message);
         }, this));
@@ -182,4 +183,3 @@ var ConfigView = View.extend({
 });
 
 export default ConfigView;
-

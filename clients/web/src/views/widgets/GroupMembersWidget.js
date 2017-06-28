@@ -15,6 +15,7 @@ import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.pu
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';
+import 'bootstrap/js/transition';
 
 import 'girder/utilities/jquery/girderModal';
 
@@ -191,4 +192,3 @@ var GroupMembersWidget = View.extend({
 });
 
 export default GroupMembersWidget;
-

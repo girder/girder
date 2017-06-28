@@ -44,6 +44,7 @@ var AssetstoresView = View.extend({
 
     initialize: function (settings) {
         cancelRestRequests('fetch');
+        this.plots = [];
         this.assetstoreEdit = settings.assetstoreEdit || false;
         this.importableTypes = [
             AssetstoreType.FILESYSTEM,
@@ -61,11 +62,24 @@ var AssetstoresView = View.extend({
         }, this).fetch();
     },
 
+    destroy: function () {
+        this._destroyPlots();
+        View.prototype.destroy.call(this);
+    },
+
+    _destroyPlots: function () {
+        for (let plot of this.plots) {
+            plot.data('jqplot').destroy();
+        }
+        this.plots = [];
+    },
+
     render: function () {
         if (!getCurrentUser() || !getCurrentUser().get('admin')) {
             this.$el.text('Must be logged in as admin to view this page.');
             return;
         }
+        this._destroyPlots();
         this.$el.html(AssetstoresTemplate({
             assetstores: this.collection.toArray(),
             types: AssetstoreType,
@@ -104,7 +118,7 @@ var AssetstoresView = View.extend({
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(capacity.free) + ')', capacity.free]
         ];
-        $(el).jqplot([data], {
+        var plot = $(el).jqplot([data], {
             seriesDefaults: {
                 renderer: $.jqplot.PieRenderer,
                 rendererOptions: {
@@ -130,6 +144,7 @@ var AssetstoresView = View.extend({
             },
             gridPadding: {top: 10, right: 10, bottom: 10, left: 10}
         });
+        this.plots.push(plot);
     },
 
     setCurrentAssetstore: function (evt) {
@@ -219,4 +234,3 @@ var AssetstoresView = View.extend({
 });
 
 export default AssetstoresView;
-

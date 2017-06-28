@@ -1,3 +1,5 @@
+/* eslint-disable import/first */
+
 import _ from 'underscore';
 
 import router from 'girder/router';
@@ -124,16 +126,9 @@ router.route('item/:id', 'item', function (itemId, params) {
  * Plugins
  */
 import PluginsView from 'girder/views/body/PluginsView';
+import UsersView from 'girder/views/body/UsersView';
 router.route('plugins', 'plugins', function () {
-    // Fetch the plugin list
-    restRequest({
-        path: 'system/plugins',
-        type: 'GET'
-    }).done(_.bind(function (resp) {
-        events.trigger('g:navigateTo', PluginsView, resp);
-    }, this)).error(_.bind(function () {
-        events.trigger('g:navigateTo', UsersView);
-    }, this));
+    events.trigger('g:navigateTo', PluginsView);
 });
 
 /**
@@ -169,7 +164,7 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
             tab: 'password',
             temporary: token
         });
-    }, this)).error(_.bind(function () {
+    }, this)).fail(_.bind(function () {
         router.navigate('users', {trigger: true});
     }, this));
 });
@@ -195,7 +190,7 @@ router.route('useraccount/:id/verification/:token', 'accountVerify', function (i
             type: 'success',
             timeout: 4000
         });
-    }, this)).error(_.bind(function () {
+    }, this)).fail(_.bind(function () {
         events.trigger('g:navigateTo', FrontPageView);
         events.trigger('g:alert', {
             icon: 'cancel',
@@ -209,7 +204,6 @@ router.route('useraccount/:id/verification/:token', 'accountVerify', function (i
 /**
  * Users
  */
-import UsersView from 'girder/views/body/UsersView';
 router.route('users', 'users', function (params) {
     events.trigger('g:navigateTo', UsersView, params || {});
     events.trigger('g:highlightItem', 'UsersView');

@@ -7,6 +7,12 @@ if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
   set(MONGOD_EXECUTABLE "local mongod required")
 endif()
 
+# Test if mongos is present for tests that require it.
+find_program(MONGOS_EXECUTABLE mongod)
+if("${MONGOS_EXECUTABLE}" STREQUAL "MONGOS_EXECUTABLE-NOTFOUND")
+  set(MONGOS_EXECUTABLE "local mongos required")
+endif()
+
 python_tests_init()
 javascript_tests_init()
 
@@ -14,6 +20,8 @@ if(RUN_CORE_TESTS)
   add_eslint_test(grunt_main Gruntfile.js)
   add_eslint_test(grunt_modules grunt_tasks)
   add_eslint_test(test_specs clients/web/test)
+  add_eslint_test(swagger clients/web/static/girder-swagger.js)
+  add_eslint_test(jquery_client clients/jquery)
 
   add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
   add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
@@ -54,10 +62,11 @@ if(RUN_CORE_TESTS)
   add_python_test(system)
   add_python_test(token)
   # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
-  add_python_test(upload RUN_SERIAL REQUIRED_FILES "${MONGOD_EXECUTABLE}")
+  add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
   add_python_test(user)
   add_python_test(webroot)
   add_python_test(path_utilities)
+  add_python_test(setup_database)
 
   add_python_test(py_client.cli BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
   add_python_test(py_client.lib BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
@@ -65,10 +74,12 @@ if(RUN_CORE_TESTS)
   add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE filesystem)
   add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfs)
   add_web_client_test(data_gridfsrs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfsrs RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
+  add_web_client_test(data_gridfsshard "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfsshard RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/clients/web/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
     PLUGIN_DIR "${PROJECT_SOURCE_DIR}/tests/test_plugins"
     ENABLEDPLUGINS "bad_server"
+    RESOURCE_LOCKS replicaset
     )
   add_web_client_test(collection "${PROJECT_SOURCE_DIR}/clients/web/test/spec/collectionSpec.js")
   add_web_client_test(collection_base_class "${PROJECT_SOURCE_DIR}/clients/web/test/spec/collectionBaseClassSpec.js")
@@ -87,9 +98,6 @@ if(RUN_CORE_TESTS)
   add_web_client_test(browser "${PROJECT_SOURCE_DIR}/clients/web/test/spec/browserSpec.js")
   add_web_client_test(set_api "${PROJECT_SOURCE_DIR}/clients/web/test/spec/setApiSpec.js")
 
-  if (BUILD_JAVASCRIPT_TESTS)
-    set_property(TEST web_client_admin PROPERTY RUN_SERIAL ON)
-  endif()
   # Add tests for the local TestData module
   add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
   add_python_test(external_data_core
@@ -106,6 +114,64 @@ if(RUN_CORE_TESTS)
   include(DocumentationTests.cmake)
 endif()
 
+macro(add_standard_plugin_tests)
+  # Add a set of basic tests for a plugin.
+  # This will add:
+  #   * Server static analysis, if a server component exists.
+  #   * Client static analysis (for both Javascript and Pug), if a web_client component exists.
+  #   * Server plugin_tests and associated static analysis, if they exist.
+  #   * Client plugin_tests and associated static analysis, if they exist as "*Spec.js" files.
+  #
+  # Optional parameters:
+  #   * NO_SERVER: Never add server static analysis.
+  #   * NO_CLIENT: Never add client static analysis.
+  #   * NO_SERVER_TESTS: Never add server plugin_tests and associated static analysis.
+  #   * NO_CLIENT_TESTS: Never add client plugin_tests and associated static analysis.
+
+  set(_options NO_SERVER NO_CLIENT NO_SERVER_TESTS NO_CLIENT_TESTS)
+  set(_args "")
+  set(_multival_args "")
+  cmake_parse_arguments(_fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
+
+  set(_pluginDir "${CMAKE_CURRENT_LIST_DIR}")
+  get_filename_component(_pluginName "${CMAKE_CURRENT_LIST_DIR}" NAME)
+
+  # Server static analysis
+  if(IS_DIRECTORY "${_pluginDir}/server" AND (NOT _fn_NO_SERVER))
+    add_python_style_test(python_static_analysis_${_pluginName} "${_pluginDir}/server")
+  endif()
+
+  # Client static analysis
+  if(IS_DIRECTORY "${_pluginDir}/web_client" AND (NOT _fn_NO_CLIENT))
+    add_eslint_test(${_pluginName} "${_pluginDir}/web_client")
+    if(IS_DIRECTORY "${_pluginDir}/web_client/templates")
+      add_puglint_test(${_pluginName} "${_pluginDir}/web_client/templates")
+    endif()
+  endif()
+
+  # Server plugin_tests
+  file(GLOB _serverTests "${_pluginDir}/plugin_tests/*_test.py")
+  if (_serverTests AND (NOT _fn_NO_SERVER_TESTS))
+    foreach(_serverTestFile ${_serverTests})
+      get_filename_component(_serverTestFileName "${_serverTestFile}" NAME)
+      string(REGEX REPLACE "_test\\.py$" "" _serverTestName "${_serverTestFileName}")
+      add_python_test(${_serverTestName} PLUGIN ${_pluginName})
+    endforeach()
+    add_python_style_test(python_static_analysis_${_pluginName}_tests "${_pluginDir}/plugin_tests")
+  endif()
+
+  # Client plugin_tests
+  file(GLOB _clientTests "${_pluginDir}/plugin_tests/*Spec.js")
+  if (_clientTests AND (NOT _fn_NO_CLIENT_TESTS))
+    foreach(_clientTestFile ${_clientTests})
+      get_filename_component(_clientTestFileName "${_clientTestFile}" NAME)
+      string(REGEX REPLACE "Spec\\.js$" "" _clientTestName "${_clientTestFileName}")
+      add_web_client_test(${_clientTestName} "${_clientTestFile}" PLUGIN ${_pluginName})
+    endforeach()
+    add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests"
+      ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc.json")
+  endif()
+endmacro()
 
 # Use a macro instead of a function because web client tests actually write
 # into the parent scope to avoid port collisions.

@@ -74,7 +74,9 @@ function confirm(params) {
     }, params);
     $('#g-dialog-container').html(ConfirmDialogTemplate({
         params: params
-    })).girderModal(false);
+    })).girderModal(false).one('hidden.bs.modal', function () {
+        $('#g-confirm-button').off('click');
+    });
 
     var el = $('#g-dialog-container').find('.modal-body>p');
     if (params.escapedHtml) {
@@ -83,7 +85,7 @@ function confirm(params) {
         el.text(params.text);
     }
 
-    $('#g-confirm-button').unbind('click').click(function () {
+    $('#g-confirm-button').off('click').click(function () {
         $('#g-dialog-container').modal('hide');
         params.confirmCallback();
     });

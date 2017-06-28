@@ -2,7 +2,7 @@
  * Contains utility functions used in the Girder Jasmine tests.
  */
 
-var girderTest = girderTest || {};
+var girderTest = window.girderTest || {};
 
 window.alert = function (msg) {
     // We want to have no alerts in the code-base; alerts block phantomjs and
@@ -588,6 +588,9 @@ girderTest.waitForLoad = function (desc) {
         return !$('.modal').data('bs.modal').$backdrop;
     }, 'any modal dialog to be hidden' + desc);
     waitsFor(function () {
+        return !girder._inTransition;
+    }, 'transitions to finish');
+    waitsFor(function () {
         return girder.rest.numberOutstandingRestRequests() === 0;
     }, 'rest requests to finish' + desc);
     waitsFor(function () {
@@ -613,6 +616,9 @@ girderTest.waitForDialog = function (desc) {
             $('#g-dialog-container:visible').length > 0;
     }, 'a dialog to fully render' + desc);
     waitsFor(function () {
+        return !girder._inTransition;
+    }, 'dialog transitions to finish');
+    waitsFor(function () {
         return girder.rest.numberOutstandingRestRequests() === 0;
     }, 'dialog rest requests to finish' + desc);
 };
@@ -620,35 +626,21 @@ girderTest.waitForDialog = function (desc) {
 /**
  * Contains a promise that is resolved when all requested sources are loaded.
  */
-girderTest.promise = $.when();
+girderTest.promise = $.Deferred().resolve().promise();
 
 /**
- * Import a javascript file and.
+ * Import a javascript file.
  */
 girderTest.addScript = function (url) {
-    var defer = new $.Deferred();
-    girderTest.promise.then(function () {
-        $.getScript(url).done(function () {
-            defer.resolve();
+    girderTest.promise = girderTest.promise
+        .then(_.partial($.getScript, url))
+        .catch(function () {
+            throw 'Failed to load script: ' + url;
         });
-    });
-    girderTest.promise = defer.promise();
 };
 
 /**
- * An alias to addScript for backwards compatibility.
- */
-girderTest.addCoveredScript = girderTest.addScript;
-
-/**
- * Import a list of covered scripts. Order will be respected.
- */
-girderTest.addCoveredScripts = function (scripts) {
-    _.each(scripts, girderTest.addCoveredScript);
-};
-
-/**
- * Import a list of non-covered scripts. Order will be respected.
+ * Import a list of scripts. Order will be respected.
  */
 girderTest.addScripts = function (scripts) {
     _.each(scripts, girderTest.addScript);
@@ -663,6 +655,37 @@ girderTest.importStylesheet = function (css) {
         type: 'text/css',
         href: css
     }).appendTo('head');
+};
+
+/**
+ * Import the JS and CSS files for a plugin.
+ *
+ * @param {...string} pluginNames A plugin name. Multiple arguments may be passed, to import
+ *                                multiple plugins in order.
+ */
+girderTest.importPlugin = function (pluginName) {
+    _.each(arguments, function (pluginName) {
+        girderTest.addScript('/static/built/plugins/' + pluginName + '/plugin.min.js');
+        girderTest.importStylesheet('/static/built/plugins/' + pluginName + '/plugin.min.css');
+    });
+};
+
+/**
+ * An alias to addScript for backwards compatibility.
+ * @deprecated
+ */
+girderTest.addCoveredScript = function (url) {
+    console.warn('girderTest.addCoveredScript is deprecated, use girderTest.addScript instead');
+    girderTest.addScript(url);
+};
+
+/**
+ * An alias to addScripts for backwards compatibility.
+ * @deprecated
+ */
+girderTest.addCoveredScripts = function (scripts) {
+    console.warn('girderTest.addCoveredScripts is deprecated, use girderTest.addScripts instead');
+    girderTest.addScripts(scripts);
 };
 
 /**
@@ -747,7 +770,7 @@ girderTest.binaryUpload = function (path) {
             }
         }).done(function (resp) {
             file = resp;
-        }).error(function (resp) {
+        }).fail(function (resp) {
             console.log('Could not complete simulated upload of ' + path + ' to ' + folderId);
             console.log(resp.responseJSON.message);
         });
@@ -810,39 +833,42 @@ girderTest.getCallbackSuffix = function () {
 /* Upload tests require that we modify how xmlhttp requests are handled.  Check
  * that this has been done (but only do it once).
  */
-function _prepareTestUpload() {
-    if (girderTest._preparedTestUpload) {
-        return;
-    }
-    girderTest._uploadData = null;
-    /* used for resume testing */
-    girderTest._uploadDataExtra = 0;
-    girderTest.getCallbackSuffix();
+girderTest._prepareTestUpload = (function () {
+    var alreadyPrepared = false;
+    return function () {
+        if (alreadyPrepared) {
+            return;
+        }
 
-    (function (impl) {
-        XMLHttpRequest.prototype.send = function (data) {
-            if (data && data instanceof Blob) {
-                if (girderTest._uploadDataExtra) {
-                    /* Our mock S3 server will take extra data, so break it
-                     * by adding a faulty copy header.  This will throw an
-                     * error so we can test resumes. */
-                    this.setRequestHeader('x-amz-copy-source', 'bad_value');
-                }
-                if (girderTest._uploadData.length &&
-                    girderTest._uploadData.length === data.size &&
-                    !girderTest._uploadDataExtra) {
-                    data = girderTest._uploadData;
-                } else {
-                    data = new Array(
-                        data.size + 1 + girderTest._uploadDataExtra).join('-');
-                }
-            }
-            impl.call(this, data);
-        };
-    }(XMLHttpRequest.prototype.send));
+        girderTest._uploadData = null;
+        /* used for resume testing */
+        girderTest._uploadDataExtra = 0;
+        girderTest.getCallbackSuffix();
 
-    girderTest._preparedTestUpload = true;
-}
+        (function (impl) {
+            XMLHttpRequest.prototype.send = function (data) {
+                if (data && data instanceof Blob) {
+                    if (girderTest._uploadDataExtra) {
+                        /* Our mock S3 server will take extra data, so break it
+                         * by adding a faulty copy header.  This will throw an
+                         * error so we can test resumes. */
+                        this.setRequestHeader('x-amz-copy-source', 'bad_value');
+                    }
+                    if (girderTest._uploadData.length &&
+                        girderTest._uploadData.length === data.size && !girderTest._uploadDataExtra) {
+                        data = girderTest._uploadData;
+                    } else {
+                        data = new Array(
+                            data.size + 1 + girderTest._uploadDataExtra).join('-');
+                    }
+                }
+                impl.call(this, data);
+            };
+        }(XMLHttpRequest.prototype.send));
+
+        alreadyPrepared = true;
+    };
+})();
 
 girderTest.sendFile = function (uploadItem, selector) {
     // Incantation that causes the phantom environment to send us a File.
@@ -873,7 +899,7 @@ girderTest.sendFile = function (uploadItem, selector) {
 girderTest.testUpload = function (uploadItem, needResume, error) {
     var origLen;
 
-    _prepareTestUpload();
+    girderTest._prepareTestUpload();
 
     waitsFor(function () {
         return $('.g-upload-here-button').length > 0;
@@ -1028,10 +1054,10 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
         });
     }
 
-    _prepareTestUpload();
+    girderTest._prepareTestUpload();
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
     });
 
     waitsFor(function () {
@@ -1047,7 +1073,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to disappear');
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
     });
 
     waitsFor(function () {
@@ -1056,8 +1082,8 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
 
     runs(function () {
         /* Try dropping nothing */
-        $(selector).trigger($.Event('dragover', {originalEvent: {dataTransfer: {}}}));
-        $(selector).trigger($.Event('drop', {originalEvent: {dataTransfer: {files: []}}}));
+        $(selector).trigger($.Event('dragover', {originalEvent: $.Event('dragover', {dataTransfer: {}})}));
+        $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {dataTransfer: {files: []}})}));
     });
 
     waitsFor(function () {
@@ -1065,7 +1091,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to disappear');
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
     });
 
     waitsFor(function () {
@@ -1073,7 +1099,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to appear');
 
     runs(function () {
-        $(selector).trigger($.Event('drop', {originalEvent: {dataTransfer: {files: files}}}));
+        $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {dataTransfer: {files: files}})}));
     });
 };
 
@@ -1141,6 +1167,8 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
  * so we can print the log after a test failure.
  */
 (function () {
+    var MAX_AJAX_LOG_SIZE = 20;
+    var logIndex = 0;
     var ajaxCalls = [];
     var backboneAjax = Backbone.ajax;
 
@@ -1161,7 +1189,8 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
             opts: opts
         };
 
-        ajaxCalls.push(record);
+        ajaxCalls[logIndex] = record;
+        logIndex = (logIndex + 1) % MAX_AJAX_LOG_SIZE;
 
         return backboneAjax(opts).done(
             function (data, textStatus) {
@@ -1176,9 +1205,10 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     };
 
     girderTest.ajaxLog = function (reset) {
-        var calls = ajaxCalls;
+        var calls = ajaxCalls.slice(logIndex, ajaxCalls.length).concat(ajaxCalls.slice(0, logIndex));
         if (reset) {
             ajaxCalls = [];
+            logIndex = 0;
         }
         return calls;
     };
@@ -1204,29 +1234,55 @@ $(function () {
     });
     if (specs.length) {
         $.when.apply($, specs)
-            .then(function () {
+            .done(function () {
                 window.jasmine.getEnv().execute();
             });
     }
 });
 
 /**
- * Wait for all of the sources to load and then start the main girder application.
- * This will also delay the invocation of the jasmine test suite until after the
+ * Wait for all of the sources to load and then start the main Girder application.
+ * This will also delay the invocation of the Jasmine test suite until after the
  * application is running.  This method returns a promise that resolves with the
  * application object.
  */
 girderTest.startApp = function () {
-    var defer = new $.Deferred();
-    girderTest.promise.then(function () {
-        girder.events.trigger('g:appload.before');
-        var app = new girder.views.App({
-            el: 'body',
-            parentView: null
+    var app;
+    girderTest.promise = girderTest.promise
+        .then(function () {
+            /* Track bootstrap transitions.  This is largely a duplicate of the
+             * Bootstrap emulateTransitionEnd function, with the only change being
+             * our tracking of the transition.  This still relies on the browser
+             * possibly firing css transition end events, with this function as a
+             * fail-safe. */
+            $.fn.emulateTransitionEnd = function (duration) {
+                girder._inTransition = true;
+                var called = false;
+                var $el = this;
+                $(this).one('bsTransitionEnd', function () {
+                    called = true;
+                });
+                var callback = function () {
+                    if (!called) {
+                        $($el).trigger($.support.transition.end);
+                    }
+                    girder._inTransition = false;
+                };
+                setTimeout(callback, duration);
+                return this;
+            };
+
+            girder.events.trigger('g:appload.before');
+            app = new girder.views.App({
+                el: 'body',
+                parentView: null,
+                start: false
+            });
+            return app.start();
+        })
+        .then(function () {
+            girder.events.trigger('g:appload.after');
+            return app;
         });
-        girder.events.trigger('g:appload.after');
-        defer.resolve(app);
-    });
-    girderTest.promise = defer.promise();
     return girderTest.promise;
 };

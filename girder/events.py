@@ -107,6 +107,7 @@ class Event(object):
         :param response: The response value, which can be any type.
         """
         self.responses.append(response)
+        return self
 
 
 class ForegroundEventsDaemon(object):

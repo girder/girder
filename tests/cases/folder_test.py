@@ -233,6 +233,47 @@ class FolderTestCase(base.TestCase):
             })
         self.assertStatus(resp, 200)
 
+    def testReuseExisting(self):
+        self.ensureRequiredParams(
+            path='/folder', method='POST', required=['name', 'parentId'],
+            user=self.admin)
+
+        # Grab the default user folders
+        resp = self.request(
+            path='/folder', method='GET', user=self.admin, params={
+                'parentType': 'user',
+                'parentId': self.admin['_id'],
+                'sort': 'name',
+                'sortdir': 1
+            })
+        publicFolder = resp.json[1]
+
+        # Actually create subfolder under Public
+        newFolder = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' My public subfolder  ',
+                'parentId': publicFolder['_id']
+            })
+        self.assertStatusOk(newFolder)
+
+        # Try to create a folder with same name, reuseExisting flag not set
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' My public subfolder  ',
+                'parentId': publicFolder['_id']
+            })
+        self.assertValidationError(resp, 'name')
+
+        # Create folder with same name, reuseExisting flag set
+        reuseFolder = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' My public subfolder  ',
+                'parentId': publicFolder['_id'],
+                'reuseExisting': True
+            })
+        self.assertStatusOk(reuseFolder)
+        self.assertEqual(newFolder.json['_id'], reuseFolder.json['_id'])
+
     def testFolderMetadataCrud(self):
         """
         Test CRUD of metadata on folders

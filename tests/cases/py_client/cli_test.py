@@ -24,6 +24,7 @@ import os
 import shutil
 import sys
 import six
+import httmock
 
 from girder import config
 from tests import base
@@ -221,6 +222,17 @@ class PythonCliTestCase(base.TestCase):
         self.assertEqual(ret['exitVal'], 0)
         self.assertIn('Ignoring file hello.txt as it is blacklisted', ret['stdout'])
 
+        # Test with multiple files in a dry-run
+        ret = invokeCli([
+            'upload', str(self.publicFolder['_id']), '--parent-type=folder',
+            os.path.join(localDir, 'hello.txt'),
+            os.path.join(localDir, 'world.txt'), '--dry-run'],
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Uploading Item from hello.txt', ret['stdout'])
+        self.assertIn('Uploading Item from world.txt', ret['stdout'])
+
+        # Actually upload the test data
         ret = invokeCli(args, username='mylogin', password='password', useApiUrl=True)
         self.assertEqual(ret['exitVal'], 0)
         six.assertRegex(
@@ -255,6 +267,27 @@ class PythonCliTestCase(base.TestCase):
         ret = invokeCli(('download', '/user/mylogin/Public/testdata',
                          downloadDir), username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
+
+        # Test uploading with reference
+        queryList = []
+
+        @httmock.urlmatch(netloc='localhost', path='/api/v1/file$', method='POST')
+        def checkParams(url, request):
+            # Add query for every file upload request
+            queryList.append(six.moves.urllib.parse.parse_qs(url[3]))
+
+        with httmock.HTTMock(checkParams):
+            ret = invokeCli(
+                args + ['--reference', 'reference_string'], username='mylogin', password='password')
+
+        # Test if reference is sent with each file upload
+        fileList = os.listdir(localDir)
+        self.assertTrue(queryList)
+        self.assertTrue(fileList)
+        self.assertEqual(len(queryList), len(fileList))
+        for query in queryList:
+            self.assertIn('reference', query)
+            self.assertIn('reference_string', query['reference'])
 
         # Create a collection and subfolder
         resp = self.request('/collection', 'POST', user=self.user, params={

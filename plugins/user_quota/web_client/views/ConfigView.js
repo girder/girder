@@ -4,8 +4,8 @@ import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBread
 import View from 'girder/views/View';
 import events from 'girder/events';
 import { restRequest } from 'girder/rest';
-import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 
+import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 import ConfigViewTemplate from '../templates/configView.pug';
 
 var ConfigView = View.extend({
@@ -87,7 +87,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).error(_.bind(function (resp) {
+        }, this)).fail(_.bind(function (resp) {
             this.$('#g-user-quota-error-message').text(
                 resp.responseJSON.message
             );

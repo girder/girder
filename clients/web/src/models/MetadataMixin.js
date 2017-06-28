@@ -17,7 +17,7 @@ var MetadataMixin = {
             if (_.isFunction(successCallback)) {
                 successCallback();
             }
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             err.message = err.responseJSON.message;
             if (_.isFunction(errorCallback)) {
                 errorCallback(err);
@@ -50,12 +50,12 @@ var MetadataMixin = {
             data: JSON.stringify(key),
             type: 'DELETE',
             error: null
-        }).done(resp => {
+        }).done((resp) => {
             this.set(opts.field || 'meta', resp.meta);
             if (_.isFunction(successCallback)) {
                 successCallback();
             }
-        }).error(err => {
+        }).fail((err) => {
             err.message = err.responseJSON.message;
             if (_.isFunction(errorCallback)) {
                 errorCallback(err);
@@ -86,4 +86,3 @@ var MetadataMixin = {
 };
 
 export default MetadataMixin;
-

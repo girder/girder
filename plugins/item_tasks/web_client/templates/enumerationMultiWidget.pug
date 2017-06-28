@@ -1,6 +1,6 @@
 extends ./widget.pug
 
 block input
-  select.form-control(id=id, name=title, multiple='multiple', size=10)
+  select.form-control(id=id, name=title, multiple='multiple', size=Math.min(values.length, 10))
     each v in values
       option(selected=value.includes(v))= v

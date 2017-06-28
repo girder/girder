@@ -23,10 +23,16 @@
               input.input-sm#g-edit-gridfs-db.form-control(type="text", placeholder="Database name")
             .form-group
               label.control-label(for="g-edit-gridfs-mongohost") Mongo Host URI
-              input.input-sm#g-edit-gridfs-mongohost.form-control(type="text", placeholder="Mongo host uri (defaults to the main Girder database)")
+              input.input-sm#g-edit-gridfs-mongohost.form-control(
+                  type="text", placeholder="Mongo host uri (defaults to the main Girder database)",
+                  title="The URI is of the form mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]")
             .form-group
               label.control-label(for="g-edit-gridfs-replicaset") Replica Set
               input.input-sm#g-edit-gridfs-replicaset.form-control(type="text", placeholder="Replica set name (blank if not using a replica set)")
+            .checkbox
+              label(title="If the Mongo Host supports sharding, this requests that the database support sharding and shards the GridFS collection using an appropriate index.")
+                input#g-edit-gridfs-shard-auto(type="checkbox")
+                | Shard collection
           if assetstore.get('type') === types.S3
             .form-group
               label.control-label(for="g-edit-s3-bucket") S3 bucket name

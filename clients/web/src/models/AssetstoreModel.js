@@ -26,7 +26,7 @@ var AssetstoreModel = Model.extend({
             error: null
         }).done(_.bind(function (resp) {
             this.trigger('g:imported', resp);
-        }, this)).error(_.bind(function (resp) {
+        }, this)).fail(_.bind(function (resp) {
             this.trigger('g:error', resp);
         }, this));
     },

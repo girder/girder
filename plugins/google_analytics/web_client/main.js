@@ -33,6 +33,6 @@ events.on('g:hierarchy.route', function (args) {
     if (!/^\//.test(curRoute)) {
         curRoute = '/' + curRoute;
     }
-    /*global ga*/
+    /* global ga:false */
     ga('send', 'pageview', curRoute);
 });

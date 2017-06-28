@@ -6,8 +6,8 @@
     "npm": {
         "dependencies": {
             "daikon": "^1.2.15",
-            "kw-web-suite": "^2.0.1",
-            "vtk.js": "2.18.5"
+            "shader-loader": "1.3.0",
+            "vtk.js": "2.24.1"
         }
     }
 }

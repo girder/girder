@@ -21,7 +21,7 @@ var UserModel = Model.extend({
      */
     current: function () {
         fetchCurrentUser()
-            .then(_.bind(function (user) {
+            .done(_.bind(function (user) {
                 if (user) {
                     this.set(user);
                 } else {
@@ -97,7 +97,7 @@ var UserModel = Model.extend({
             error: null
         }).done(_.bind(function () {
             this.trigger('g:passwordChanged');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     },
@@ -115,11 +115,10 @@ var UserModel = Model.extend({
             error: null
         }).done(_.bind(function () {
             this.trigger('g:passwordChanged');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
     }
 });
 
 export default UserModel;
-

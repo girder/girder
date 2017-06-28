@@ -1,6 +1,6 @@
-import WidgetModel from '../models/WidgetModel';
-import WidgetCollection from '../collections/WidgetCollection';
-import ControlsPanel from './ControlsPanel';
+import $ from 'jquery';
+import _ from 'underscore';
+
 import View from 'girder/views/View';
 import FolderModel from 'girder/models/FolderModel';
 import ItemModel from 'girder/models/ItemModel';
@@ -10,6 +10,9 @@ import { renderMarkdown } from 'girder/misc';
 
 import template from '../templates/taskRun.pug';
 import '../stylesheets/taskRun.styl';
+import WidgetCollection from '../collections/WidgetCollection';
+
+import ControlsPanel from './ControlsPanel';
 
 const TaskRunView = View.extend({
     events: {
@@ -24,34 +27,17 @@ const TaskRunView = View.extend({
         this._outputWidgets = new WidgetCollection();
         this._initialValues = settings.initialValues || null;
 
-        const inputs = this._initialValues && this._initialValues.inputs || {};
-        const outputs = this._initialValues && this._initialValues.outputs || {};
+        const inputs = (this._initialValues && this._initialValues.inputs) || {};
+        const outputs = (this._initialValues && this._initialValues.outputs) || {};
 
         // Build all the widget models from the task IO spec
-        this._inputWidgets.add(this._inputs.map((input) => {
-            const info = this._getInputInfo(input, inputs);
-            return new WidgetModel({
-                type: input.type,
-                title: input.name || input.id,
-                id: input.id || input.name,
-                description: input.description || '',
-                values: input.values,
-                value: info.value,
-                fileName: info.fileName
-            });
-        }));
+        this._inputWidgets.add(
+            this._inputs.map((input) => this._setJobInfo(input, inputs))
+        );
 
-        this._outputWidgets.add(this._outputs.map((output) => {
-            const info = this._getOutputInfo(output, outputs);
-            return new WidgetModel({
-                type: output.type,
-                title: output.name || output.id,
-                id: output.id || output.name,
-                description: output.description || '',
-                value: info && info.value,
-                fileName: info && info.fileName
-            });
-        }));
+        this._outputWidgets.add(
+            this._outputs.map((output) => this._setJobInfo(output, outputs))
+        );
 
         this._inputsPanel = new ControlsPanel({
             title: 'Configure inputs',
@@ -66,41 +52,31 @@ const TaskRunView = View.extend({
         });
     },
 
-    _getInputInfo: function (input, inputs) {
-        const match = inputs[input.id || input.name];
-        if (match) {
-            if (match.data) {
-                return {
-                    value: match.data
-                };
-            } else if (match.mode === 'girder' && match.id) {
-                if (match.resource_type === 'item') {
-                    return {
-                        value: new ItemModel({
-                            _id: match.id,
-                            _modelType: 'item',
-                            name: match.fileName || match.id
-                        }),
-                        fileName: match.fileName || match.id
-                    };
-                }
-            }
+    /**
+     * Fill in values according to an existing job.
+     *
+     * @param {object} spec The task parameter spec
+     * @param {object} bindings The job parameter bindings
+     */
+    _setJobInfo: function (spec, bindings) {
+        const match = bindings[spec.id || spec.name] || {};
+        if (match.mode === 'girder' && match.resource_type === 'item') {
+            spec.value = new ItemModel({
+                _id: match.id,
+                _modelType: 'item',
+                name: match.fileName || match.id
+            });
+            spec.fileName = match.fileName || match.id;
+        } else if (match.mode === 'girder' && match.parent_type === 'folder') {
+            spec.value = new FolderModel({
+                _id: match.parent_id,
+                _modelType: 'folder'
+            });
+            spec.fileName = match.name || match.id;
+        } else if (_.has(match, 'data')) {
+            spec.value = match.data;
         }
-        return {
-            value: input.default && input.default.data
-        };
-    },
-
-    _getOutputInfo: function (output, outputs) {
-        const match = outputs[output.id || output.name];
-        if (match) {
-            if (match.mode === 'girder' && match.parent_type === 'folder') {
-                return {
-                    value: new FolderModel({_id: match.parent_id, _modelType: 'folder'}),
-                    fileName: match.name
-                };
-            }
-        }
+        return spec;
     },
 
     render: function () {
@@ -155,12 +131,12 @@ const TaskRunView = View.extend({
             return;
         }
         this.$('.g-validation-failed-message').empty();
-        $(e.currentTarget).attr('disabled', 'true').addClass('disabled');
+        $(e.currentTarget).girderEnable(false);
 
         const inputs = {}, outputs = {};
 
         const translate = (model) => {
-            const val = model.value();
+            let val = model.value();
 
             switch (model.get('type')) {
                 case 'image': // This is an input
@@ -185,9 +161,12 @@ const TaskRunView = View.extend({
                         name: model.get('fileName')
                     };
                 default:
+                    if (model.isVector()) {
+                        val = val.join(',');
+                    }
                     return {
                         mode: 'inline',
-                        data: model.value()
+                        data: val
                     };
             }
         };
@@ -209,8 +188,8 @@ const TaskRunView = View.extend({
             error: null
         }).done((resp) => {
             router.navigate(`job/${resp._id}`, {trigger: true});
-        }).error((resp) => {
-            $(e.currentTarget).attr('disabled', null).removeClass('disabled');
+        }).fail((resp) => {
+            $(e.currentTarget).girderEnable(true);
             this.$('.g-validation-failed-message').text('Error: ' + resp.responseJSON.message);
         });
     }

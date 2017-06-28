@@ -23,6 +23,10 @@ from girder.models.notification import ProgressState
 JOB_HANDLER_LOCAL = 'jobs._local'
 
 
+# Scope used allow RESTful creation of girder job models
+REST_CREATE_JOB_TOKEN_SCOPE = 'jobs.rest.create_job'
+
+
 # integer enum describing job states. Note, no order is implied.
 class JobStatus(object):
     INACTIVE = 0

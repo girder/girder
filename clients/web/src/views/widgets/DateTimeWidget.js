@@ -107,4 +107,3 @@ var DateTimeWidget = View.extend({
 });
 
 export default DateTimeWidget;
-

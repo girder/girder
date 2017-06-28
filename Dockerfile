@@ -1,5 +1,5 @@
 FROM node:6
-MAINTAINER Patrick Reynolds <patrick.reynolds@kitware.com>
+MAINTAINER Kitware, Inc. <kitware@kitware.com>
 
 EXPOSE 8080
 
@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -qy software-properties-common python-soft
     build-essential \
     git \
     libffi-dev \
+    libsasl2-dev \
+    libldap2-dev \
     libpython-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 

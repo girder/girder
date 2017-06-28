@@ -1,9 +1,7 @@
 import ctk_cli
 import itertools
-import os
 
 from girder.models.model_base import ValidationException
-from girder.plugins.worker import constants
 
 _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'boolean': 'boolean',
@@ -15,10 +13,10 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'float-vector': 'number_list',
     'double-vector': 'number_list',
     'string-vector': 'string_list',
-    'integer-enumeration': 'integer',
-    'float-enumeration': 'number',
-    'double-enumeration': 'number',
-    'string-enumeration': 'string',
+    'integer-enumeration': 'number-enumeration',
+    'float-enumeration': 'number-enumeration',
+    'double-enumeration': 'number-enumeration',
+    'string-enumeration': 'string-enumeration',
     'file': 'file',
     'directory': 'folder',
     'image': 'file',
@@ -103,6 +101,9 @@ def parseSlicerCliXml(fd):
             'format': typ
         }
 
+        if typ in ('string-enumeration', 'number-enumeration'):
+            spec['values'] = list(param.elements)
+
         if param.isExternalType():
             spec['target'] = 'filepath'
 
@@ -126,8 +127,8 @@ def parseSlicerCliXml(fd):
         name = param.flag or param.longflag
         info['outputs'].append(ioSpec(name, param))
         info['args'] += [
-            param.flag or param.longflag,
-            os.path.join(constants.DOCKER_DATA_VOLUME, name)
+            name,
+            '$output{%s}' % name
         ]
 
     for param in inputArgs:
@@ -136,6 +137,6 @@ def parseSlicerCliXml(fd):
 
     for param in outputArgs:
         info['outputs'].append(ioSpec(param.name, param))
-        info['args'].append(os.path.join(constants.DOCKER_DATA_VOLUME, param.name))
+        info['args'].append('$output{%s}' % param.name)
 
     return info

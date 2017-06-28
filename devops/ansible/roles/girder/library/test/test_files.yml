@@ -5,11 +5,11 @@
       girder:
         port: 8080
         user:
-          firstName: "Chris"
-          lastName: "Kotfila"
+          firstName: "John"
+          lastName: "Doe"
           login: "admin"
           password: "letmein"
-          email: "chris.kotfila@kitware.com"
+          email: "john.doe@test.com"
           admin: yes
         state: present
 

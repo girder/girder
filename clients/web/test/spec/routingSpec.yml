@@ -1,0 +1,22 @@
+users:
+  - login: 'admin'
+    email: 'admin@email.com'
+    firstName: 'Admin'
+    lastName: 'Admin'
+    password: 'adminpassword!'
+    folders:
+      - name: 'Private'
+        public: false
+        items:
+          - name: 'Link File'
+            files:
+              - name: 'Link File'
+                path: 'routingSpec.yml'
+
+collections:
+  - name: 'Test Collection'
+    description: 'Collection Description'
+    creator: 'admin'
+    folders:
+      - name: 'Private'
+        public: false

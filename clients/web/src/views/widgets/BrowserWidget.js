@@ -29,6 +29,7 @@ var BrowserWidget = View.extend({
      * @param {boolean} [showPreview=true] Show a preview of the current object id
      * @param {function} [validate] A validation function returning a string that is displayed on error
      * @param {object} [rootSelectorSettings] Settings passed to the root selector widget
+     * @param {boolean} [showMetadata=false] Show the metadata editor inside the hierarchy widget
      * @param {Model} [root] The default root model to pass to the hierarchy widget
      * @param {boolean} [selectItem=false] Adjust behavior to enable selecting items rather
      *   than folders. This will add a handler to the hierarchy widget responding to
@@ -56,6 +57,7 @@ var BrowserWidget = View.extend({
         this.root = settings.root;
         this.input = settings.input;
         this.selectItem = !!settings.selectItem;
+        this.showMetadata = !!settings.showMetadata;
         this._selected = null;
 
         // generate the root selection view and listen to it's events
@@ -75,7 +77,8 @@ var BrowserWidget = View.extend({
                 help: this.helpText,
                 preview: this.showPreview,
                 submit: this.submitText,
-                input: this.input
+                input: this.input,
+                selectItem: this.selectItem
             })
         ).girderModal(this);
         this._renderRootSelection();
@@ -111,7 +114,8 @@ var BrowserWidget = View.extend({
             routing: false,
             showActions: false,
             showItems: this.showItems,
-            onItemClick: _.bind(this._selectItem, this)
+            onItemClick: _.bind(this._selectItem, this),
+            showMetadata: this.showMetadata
         });
         this.listenTo(this._hierarchyView, 'g:setCurrentModel', this._selectModel);
         this._hierarchyView.setElement(this.$('.g-hierarchy-widget-container')).render();
@@ -125,7 +129,7 @@ var BrowserWidget = View.extend({
         this.$('.g-input-element').removeClass('has-error');
         this.$('#g-selected-model').val('');
         if (this._selected) {
-            this.$('#g-selected-model').val(this._selected.id);
+            this.$('#g-selected-model').val(this._selected.get('name'));
         }
     },
 

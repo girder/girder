@@ -1,3 +1,5 @@
+girderTest.startApp();
+
 /**
  * Intercept window.location.assign calls so we can test the behavior of,
  * e.g. download directives that occur from js.
@@ -7,11 +9,6 @@
         girderTest._redirect = url;
     };
 }());
-
-/**
- * Start the girder backbone app.
- */
-girderTest.startApp();
 
 describe('Test the model class', function () {
     var lastRequest, triggerRestError = false, requestCount = 0;
@@ -28,7 +25,7 @@ describe('Test the model class', function () {
             }
             // The jqXHR response of a rest request needs an error function
             resp.error = resp.fail;
-            return resp;
+            return resp.promise();
         });
     });
 
@@ -59,9 +56,9 @@ describe('Test the model class', function () {
         expect(model.get('count')).toBe(12);
         // test save
         model.resourceName = null;
-        model.save();
-        model.resourceName = 'sampleResource';
+        expect(model.save).toThrow();
         expect(requestCount).toBe(0);
+        model.resourceName = 'sampleResource';
         model.save();
         expect(requestCount).toBe(1);
         expect(lastRequest.type).toBe('POST');
@@ -79,9 +76,9 @@ describe('Test the model class', function () {
         // test fetch
         requestCount = 0;
         model.resourceName = null;
-        model.fetch();
-        model.resourceName = 'sampleResource';
+        expect(model.fetch).toThrow();
         expect(requestCount).toBe(0);
+        model.resourceName = 'sampleResource';
         model.fetch();
         expect(requestCount).toBe(1);
         expect(lastRequest.type).toBe(undefined);
@@ -122,9 +119,9 @@ describe('Test the model class', function () {
         // destroy
         requestCount = 0;
         model.resourceName = null;
-        model.destroy();
-        model.resourceName = 'sampleResource';
+        expect(model.destroy).toThrow();
         expect(requestCount).toBe(0);
+        model.resourceName = 'sampleResource';
         model.destroy();
         expect(requestCount).toBe(1);
         expect(lastRequest.type).toBe('DELETE');

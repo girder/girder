@@ -1,3 +1,5 @@
+girderTest.startApp();
+
 /**
  * As of v1.9.9, phantomJS does not correctly support sending Blobs in XHRs,
  * and the FormData API is extremely limited (i.e. does not support anything
@@ -50,11 +52,6 @@ function _setMinimumChunkSize(minSize) {
         girderTest._redirect = url;
     };
 }());
-
-/**
- * Start the girder backbone app.
- */
-girderTest.startApp();
 
 describe('Create a data hierarchy', function () {
     it('register a user',
@@ -798,7 +795,7 @@ describe('Create a data hierarchy', function () {
         var dropActiveSelector = '.g-dropzone-show:visible';
 
         runs(function () {
-            $(selector).trigger($.Event('dragenter', {originalEvent: {dataTransfer: {}}}));
+            $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
         });
 
         waitsFor(function () {
@@ -806,11 +803,11 @@ describe('Create a data hierarchy', function () {
         }, 'the drop bullseye to appear');
 
         runs(function () {
-            $(selector).trigger($.Event('drop', {originalEvent: {
+            $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {
                 dataTransfer: {
                     files: files,
                     items: items
-                }}}));
+                }})}));
         });
 
         waitsFor(function () {

@@ -21,6 +21,12 @@ import json
 import os
 import re
 import requests
+import six
+import threading
+from six.moves import range
+
+from girder import events
+from girder.utility import assetstore_utilities
 
 from .. import base
 from .. import mongo_replicaset
@@ -164,6 +170,55 @@ class UploadTestCase(base.TestCase):
             _send_s3_request(resp.json['s3FinalizeRequest'])
         return upload
 
+    def _uploadFileWithInitialChunk(self, name, partial=False, largeFile=False,
+                                    oneChunk=False):
+        """
+        Upload a file either completely or partially, sending the first chunk
+        with the initial POST.
+
+        :param name: the name of the file to upload.
+        :param partial: the number of steps to complete in the uploads: 1
+                        uploads 1 chunk.  False to complete the upload.
+        :param largeFile: if True, upload a file that is > 32Mb
+        :param oneChunk: if True, upload everything as one chunk.  Otherwise,
+            upload one chunk when creating the upload and one via the
+            file/chunk endpoint.
+        :returns: the upload record which includes the upload id.
+        """
+        if not largeFile:
+            chunk1 = Chunk1
+            chunk2 = Chunk2
+        else:
+            chunk1 = '-' * (1024 * 1024 * 32)
+            chunk2 = '-' * (1024 * 1024 * 1)
+        if oneChunk:
+            chunk1 += chunk2
+            chunk2 = ''
+        params = {
+            'parentType': 'folder',
+            'parentId': str(self.folder['_id']),
+            'name': name,
+            'size': len(chunk1) + len(chunk2),
+            'mimeType': 'text/plain',
+        }
+        resp = self.request(
+            path='/file', method='POST', user=self.user,
+            params=params, body=chunk1, type='text/plain')
+        self.assertStatusOk(resp)
+        if partial is not False:
+            return resp.json
+        if not oneChunk:
+            upload = resp.json
+            params = {'offset': len(chunk1), 'uploadId': upload['_id']}
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user,
+                params=params, body=chunk2, type='text/plain')
+            self.assertStatusOk(resp)
+        else:
+            upload = None
+        self.assertEqual(resp.json['_modelType'], 'file')
+        return upload
+
     def _testUpload(self):
         """
         Upload a file to the server and several partial files.  Test that we
@@ -248,8 +303,99 @@ class UploadTestCase(base.TestCase):
                             user=self.admin)
         self.assertEqual(resp.json, [])
 
+    def testUploadWithInitialChunk(self):
+        """
+        Upload a file to the server and several partial files.  Test that we
+        can delete a partial upload but not a completed upload. Test that we
+        can delete partial uploads that are older than a certain date.
+        """
+        self._uploadFileWithInitialChunk('upload1')
+        self._uploadFileWithInitialChunk('upload2', oneChunk=True)
+        # test uploading large files
+        self._uploadFileWithInitialChunk('upload3', largeFile=True)
+        partialUploads = []
+        for largeFile in (False, True):
+            for partial in range(1, 3):
+                partialUploads.append(self._uploadFileWithInitialChunk(
+                    'partial_upload_%d_%s' % (partial, str(largeFile)),
+                    partial, largeFile))
+        # check that a user cannot list partial uploads
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.user)
+        self.assertStatus(resp, 403)
+        # The admin user should see all of the partial uploads, but not the
+        # complete upload
+        resp = self.request(path='/system/uploads', method='GET',
+                            user=self.admin)
+        self.assertStatusOk(resp)
+        foundUploads = resp.json
+        self.assertEqual(len(foundUploads), len(partialUploads))
+        # Check that the upload model is saved when we are using one chunk
+        self._uploadWasSaved = 0
+
+        def trackUploads(*args, **kwargs):
+            self._uploadWasSaved += 1
+
+        events.bind('model.upload.save', 'uploadWithInitialChunk', trackUploads)
+        self._uploadFileWithInitialChunk('upload4', oneChunk=True)
+        # This can be changed to assertEqual if one chunk uploads aren't saved
+        self.assertGreater(self._uploadWasSaved, 0)
+        self._uploadWasSaved = 0
+        # But that it is saved when using multiple chunks
+        self._uploadFileWithInitialChunk('upload5')
+        self.assertGreater(self._uploadWasSaved, 0)
+        events.unbind('model.upload.save', 'uploadWithInitialChunk')
+
     def testFilesystemAssetstoreUpload(self):
         self._testUpload()
+        # Test that a delete during an upload still results in one file
+        adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
+        size = 101
+        data = six.BytesIO(b' ' * size)
+        files = []
+        files.append(self.model('upload').uploadFromFile(
+            data, size, 'progress', parentType='folder', parent=self.folder,
+            assetstore=self.assetstore))
+        fullPath0 = adapter.fullPath(files[0])
+        conditionRemoveDone = threading.Condition()
+        conditionInEvent = threading.Condition()
+
+        def waitForCondition(*args, **kwargs):
+            # Single that we are in the event and then wait to be told that
+            # the delete has occured before returning.
+            with conditionInEvent:
+                conditionInEvent.notify()
+            with conditionRemoveDone:
+                conditionRemoveDone.wait()
+
+        def uploadFileWithWait():
+            size = 101
+            data = six.BytesIO(b' ' * size)
+            files.append(self.model('upload').uploadFromFile(
+                data, size, 'progress', parentType='folder', parent=self.folder,
+                assetstore=self.assetstore))
+
+        events.bind('model.file.finalizeUpload.before', 'waitForCondition',
+                    waitForCondition)
+        # We create an upload that is bound to an event that waits during the
+        # finalizeUpload.before event so that the remove will be executed
+        # during this time.
+        with conditionInEvent:
+            t = threading.Thread(target=uploadFileWithWait)
+            t.start()
+            conditionInEvent.wait()
+        self.assertTrue(os.path.exists(fullPath0))
+        self.model('file').remove(files[0])
+        # We shouldn't actually remove the file here
+        self.assertTrue(os.path.exists(fullPath0))
+        with conditionRemoveDone:
+            conditionRemoveDone.notify()
+        t.join()
+
+        events.unbind('model.file.finalizeUpload.before', 'waitForCondition')
+        fullPath1 = adapter.fullPath(files[0])
+        self.assertEqual(fullPath0, fullPath1)
+        self.assertTrue(os.path.exists(fullPath1))
 
     def testGridFSAssetstoreUpload(self):
         # Clear any old DB data
@@ -266,7 +412,8 @@ class UploadTestCase(base.TestCase):
         if 'REPLICASET' in os.environ.get('EXTRADEBUG', '').split():
             verbose = 2
         # Starting the replica sets takes time (~25 seconds)
-        mongo_replicaset.startMongoReplicaSet(verbose=verbose)
+        rscfg = mongo_replicaset.makeConfig()
+        mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
         # Clear the assetstore database and create a GridFS assetstore
         self.model('assetstore').remove(self.model('assetstore').getCurrent())
         # When the mongo connection to one of the replica sets goes down, it
@@ -285,20 +432,54 @@ class UploadTestCase(base.TestCase):
         # 30 seconds to elect a new primary.  If we step down the current
         # primary before pausing it, then the new election will happen in 20
         # seconds.
-        mongo_replicaset.stepDownMongoReplicaSet(0)
+        mongo_replicaset.stepDownMongoReplicaSet(rscfg, 0)
         mongo_replicaset.waitForRSStatus(
-            mongo_replicaset.getMongoClient(0), status=[2, (1, 2), (1, 2)],
+            rscfg,
+            mongo_replicaset.getMongoClient(rscfg, 0),
+            status=[2, (1, 2), (1, 2)],
             verbose=verbose)
-        mongo_replicaset.pauseMongoReplicaSet([True], verbose=verbose)
+        mongo_replicaset.pauseMongoReplicaSet(rscfg, [True], verbose=verbose)
         self._uploadFile('rs_upload_1')
         # Have a different member of the replica set go offline and the first
         # come back.  This takes a long time, so I am disabling it
-        #  mongo_replicaset.pauseMongoReplicaSet([False, True], verbose=verbose)
+        #  mongo_replicaset.pauseMongoReplicaSet(rscfg, [False, True], verbose=verbose)
         #  self._uploadFile('rs_upload_2')
         # Have the set come back online and upload once more
-        mongo_replicaset.pauseMongoReplicaSet([False, False], verbose=verbose)
+        mongo_replicaset.pauseMongoReplicaSet(rscfg, [False, False], verbose=verbose)
         self._uploadFile('rs_upload_3')
-        mongo_replicaset.stopMongoReplicaSet()
+        mongo_replicaset.stopMongoReplicaSet(rscfg)
+
+    def testGridFSShardingAssetstoreUpload(self):
+        verbose = 0
+        if 'REPLICASET' in os.environ.get('EXTRADEBUG', '').split():
+            verbose = 2
+        # Starting the sharding service takes time
+        rscfg = mongo_replicaset.makeConfig(port=27073, shard=True, sharddb=None)
+        mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
+        # Clear the assetstore database and create a GridFS assetstore
+        self.model('assetstore').remove(self.model('assetstore').getCurrent())
+        self.assetstore = self.model('assetstore').createGridFsAssetstore(
+            name='Test', db='girder_assetstore_shard_upload_test',
+            mongohost='mongodb://127.0.0.1:27073', shard='auto')
+        self._testUpload()
+        # Verify that we have successfully sharded the collection
+        adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
+        stat = adapter.chunkColl.database.command('collstats', adapter.chunkColl.name)
+        self.assertTrue(bool(stat['sharded']))
+        # Although we have asked for multiple shards, the chunks may all be on
+        # one shard.  Make sure at least one shard is reported.
+        self.assertGreaterEqual(len(stat['shards']), 1)
+
+        # Asking for the same database again should also report sharding.  Use
+        # a slightly differt URI to ensure that the sharding is checked anew.
+        assetstore = self.model('assetstore').createGridFsAssetstore(
+            name='Test 2', db='girder_assetstore_shard_upload_test',
+            mongohost='mongodb://127.0.0.1:27073/?', shard='auto')
+        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        stat = adapter.chunkColl.database.command('collstats', adapter.chunkColl.name)
+        self.assertTrue(bool(stat['sharded']))
+
+        mongo_replicaset.stopMongoReplicaSet(rscfg)
 
     def testS3AssetstoreUpload(self):
         # Clear the assetstore database and create an S3 assetstore

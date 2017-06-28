@@ -29,6 +29,7 @@ var FileListWidget = View.extend({
             new FileInfoWidget({
                 el: $('#g-dialog-container'),
                 model: this.collection.get(cid),
+                parentItem: this.parentItem,
                 parentView: this
             }).render();
         },
@@ -157,4 +158,3 @@ var FileListWidget = View.extend({
 });
 
 export default FileListWidget;
-

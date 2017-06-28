@@ -1,8 +1,3 @@
-/* globals girderTest, runs, waitsFor, expect, describe, it */
-
-/**
- * Start the girder backbone app.
- */
 girderTest.startApp();
 
 function _setProgress(test, duration, resourceId, resourceName) {
@@ -16,7 +11,9 @@ function _setProgress(test, duration, resourceId, resourceName) {
      * : param resourceName: optional resource type that the progress notification
      *     is associated with.
      */
-    girder.rest.restRequest({path: 'webclienttest/progress', type: 'GET',
+    girder.rest.restRequest({
+        path: 'webclienttest/progress',
+        type: 'GET',
         data: {
             test: test,
             duration: duration,
@@ -124,8 +121,11 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'at least the first progress to be hidden');
 
         runs(function () {
-            girder.rest.restRequest({path: 'webclienttest/progress/stop',
-                type: 'PUT', async: false});
+            girder.rest.restRequest({
+                path: 'webclienttest/progress/stop',
+                type: 'PUT',
+                async: false
+            });
         });
     });
 });

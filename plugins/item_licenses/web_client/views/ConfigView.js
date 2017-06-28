@@ -78,7 +78,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 3000
             });
-        }, this)).error(_.bind(function (resp) {
+        }, this)).fail(_.bind(function (resp) {
             this.$('#g-item-licenses-error-message').text(
                 resp.responseJSON.message
             );

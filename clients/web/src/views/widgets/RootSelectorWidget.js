@@ -164,4 +164,3 @@ var RootSelectorWidget = View.extend({
 });
 
 export default RootSelectorWidget;
-

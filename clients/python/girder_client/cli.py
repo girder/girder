@@ -16,7 +16,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
 import click
 import sys
 import types
@@ -192,7 +191,8 @@ def _lookup_parent_type(client, object_id):
 
 
 def _CommonParameters(path_exists=False, path_writable=True,
-                      additional_parent_types=('collection', 'user'), path_default=None):
+                      additional_parent_types=('collection', 'user'),
+                      path_default=None, multiple_local=False):
     parent_types = ['folder'] + list(additional_parent_types)
     parent_type_cls = _HiddenOption
     parent_type_default = 'folder'
@@ -211,7 +211,9 @@ def _CommonParameters(path_exists=False, path_writable=True,
                 'local_folder',
                 type=click.Path(exists=path_exists, dir_okay=True,
                                 writable=path_writable, readable=True),
-                default=path_default
+                default=path_default,
+                nargs=1 if not multiple_local else -1,
+                required=multiple_local
             ),
         ]
         for decorator in reversed(decorators):
@@ -257,8 +259,11 @@ def _localsync(gc, parent_type, parent_id, local_folder):
 _short_help = 'Upload files to Girder'
 
 
-@main.command('upload', short_help=_short_help, help='%s\n\n%s' % (_short_help, _common_help))
-@_CommonParameters(path_exists=True, path_writable=False)
+@main.command('upload', short_help=_short_help, help='%s\n\n%s' % (
+    _short_help,
+    'PARENT_ID is the id of the Girder parent target and '
+    'LOCAL_FOLDER is one or more paths to local folders or files.'))
+@_CommonParameters(path_exists=True, path_writable=False, multiple_local=True)
 @click.option('--leaf-folders-as-items', is_flag=True,
               help='upload all files in leaf folders to a single Item named after the folder')
 @click.option('--reuse', is_flag=True,
@@ -267,15 +272,17 @@ _short_help = 'Upload files to Girder'
               help='will not write anything to Girder, only report what would happen')
 @click.option('--blacklist', default='',
               help='comma-separated list of filenames to ignore')
+@click.option('--reference', default=None,
+              help='optional reference to send along with the upload')
 @click.pass_obj
 def _upload(gc, parent_type, parent_id, local_folder,
-            leaf_folders_as_items, reuse, blacklist, dry_run):
+            leaf_folders_as_items, reuse, blacklist, dry_run, reference):
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
     gc.upload(
         local_folder, parent_id, parent_type,
         leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,
-        blacklist=blacklist.split(','), dryRun=dry_run)
+        blacklist=blacklist.split(','), dryRun=dry_run, reference=reference)
 
 
 if __name__ == '__main__':

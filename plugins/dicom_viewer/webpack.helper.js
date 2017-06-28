@@ -1,25 +1,26 @@
 module.exports = function (config) {
-    config.module.loaders.push({
-        test: /\.glsl$/,
-        loader: 'shader-loader',
-        include: [/node_modules(\/|\\)vtk\.js(\/|\\)/],
+    config.module.rules.push({
+        resource: {
+            test: /\.glsl$/,
+            include: [/node_modules(\/|\\)vtk\.js(\/|\\)/]
+        },
+        use: [
+            'shader-loader'
+        ]
     });
-    config.module.loaders.push({
-        test: /\.js$/,
-        include: [/node_modules(\/|\\)vtk\.js(\/|\\)/],
-        loaders: [{
-            loader: 'babel-loader',
-            query: {
-                presets: ['es2015', 'react']
+    config.module.rules.push({
+        resource: {
+            test: /\.js$/,
+            include: [/node_modules(\/|\\)vtk\.js(\/|\\)/]
+        },
+        use: [
+            {
+                loader: 'babel-loader',
+                options: {
+                    presets: ['es2015']
+                }
             }
-        }, {
-            loader: 'string-replace-loader',
-            query: {
-                multiple: [
-                    {search: /test\.onlyIfWebGL/g, replace: 'test'}
-                ]
-            }
-        }]
+        ]
     });
     return config;
 };

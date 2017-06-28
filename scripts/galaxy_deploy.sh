@@ -9,8 +9,15 @@ readonly SUBTREE_PREFIX="devops/ansible/roles/girder"
 readonly SUBTREE_DEST_REPO="git@github.com:$ANSIBLE_ROLE_GITHUB_ORG/$ANSIBLE_ROLE_GITHUB_REPO.git"
 readonly SUBTREE_DEST_BRANCH="master"
 
+# Make sure all git objects are accessible
+# This is useful in CI contexts where shallow clones are common
+git fetch --unshallow
+
 # Push any changes that have occurred
-git subtree push --prefix="$SUBTREE_PREFIX" "$SUBTREE_DEST_REPO" "$SUBTREE_DEST_BRANCH"
+git reset --hard
+git branch ansible-role-subtree
+git filter-branch --subdirectory-filter "$SUBTREE_PREFIX" ansible-role-subtree
+git push "$SUBTREE_DEST_REPO" ansible-role-subtree:"$SUBTREE_DEST_BRANCH"
 
 # Install ansible for ansible-galaxy
 pip install ansible

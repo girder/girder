@@ -1,5 +1,3 @@
-// girderTest.startApp();
-
 describe('Test the hierarchy browser modal', function () {
     var testEl;
     var requestArgs = [];
@@ -18,7 +16,7 @@ describe('Test the hierarchy browser modal', function () {
             if (onRestRequest) {
                 return onRestRequest.apply(this, arguments);
             }
-            return $.when(returnVal);
+            return $.Deferred().resolve(returnVal).promise();
         });
         transition = $.support.transition;
         $.support.transition = false;
@@ -33,28 +31,61 @@ describe('Test the hierarchy browser modal', function () {
     describe('root selection', function () {
         it('defaults', function () {
             returnVal = [];
-            var view = new girder.views.widgets.RootSelectorWidget({el: testEl, parentView: null});
-            view.render();
-            var select = view.$('select#g-root-selector');
-            expect(select.length).toBe(1);
-            expect(select.find('option:eq(0)').text()).toBe('Select a root...');
-            expect(select.find('optgroup[label="Collections"]').length).toBe(1);
-            expect(select.find('optgroup[label="Users"]').length).toBe(1);
+
+            var view;
+            runs(function () {
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null
+                });
+                // RootSelectorWidget will self-render, as soon as its initial 'fetch()' completes
+
+                // We should be able to attach a spy to 'view.render' without a race condition, as
+                // long as we do it before returning to the main event loop (where async results
+                // from 'fetch()' might already be pending)
+                spyOn(view, 'render').andCallThrough();
+            });
+
+            waitsFor(function () {
+                // 'view.render' will be called once for each of 'view.groups', and 'view.groups'
+                // has 2 collections here, so rendering should only be considered finished once all
+                // complete
+                return view.render.callCount >= 2;
+            });
+
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                expect(select.length).toBe(1);
+                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('optgroup[label="Collections"]').length).toBe(1);
+                expect(select.find('optgroup[label="Users"]').length).toBe(1);
+            });
         });
 
         it('display order', function () {
             returnVal = [];
-            var view = new girder.views.widgets.RootSelectorWidget({
-                el: testEl,
-                parentView: null,
-                display: ['Users']
+
+            var view;
+            runs(function () {
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null,
+                    display: ['Users']
+                });
+                spyOn(view, 'render').andCallThrough();
             });
-            view.render();
-            var select = view.$('select#g-root-selector');
-            expect(select.length).toBe(1);
-            expect(select.find('option:eq(0)').text()).toBe('Select a root...');
-            expect(select.find('optgroup[label="Collections"]').length).toBe(0);
-            expect(select.find('optgroup[label="Users"]').length).toBe(1);
+
+            waitsFor(function () {
+                return view.render.callCount >= 2;
+            });
+
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                expect(select.length).toBe(1);
+                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('optgroup[label="Collections"]').length).toBe(0);
+                expect(select.find('optgroup[label="Users"]').length).toBe(1);
+            });
         });
 
         it('user logged in', function () {
@@ -64,17 +95,27 @@ describe('Test the hierarchy browser modal', function () {
                 firstName: 'John',
                 lastName: 'Doe'
             }));
-
             returnVal = [];
-            var view = new girder.views.widgets.RootSelectorWidget({
-                el: testEl,
-                parentView: null
+
+            var view;
+            runs(function () {
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null
+                });
+                spyOn(view, 'render').andCallThrough();
             });
-            view.render();
-            var select = view.$('select#g-root-selector');
-            expect(select.length).toBe(1);
-            expect(select.find('option:eq(0)').text()).toBe('Select a root...');
-            expect(select.find('option[value="0"]').text()).toBe('Home');
+
+            waitsFor(function () {
+                return view.render.callCount >= 2;
+            });
+
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                expect(select.length).toBe(1);
+                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('option[value="0"]').text()).toBe('Home');
+            });
         });
 
         it('rerender on login', function () {
@@ -90,167 +131,260 @@ describe('Test the hierarchy browser modal', function () {
                     token: ''
                 }
             };
-            var view = new girder.views.widgets.RootSelectorWidget({
-                el: testEl,
-                parentView: null
-            });
-            view.render();
-
             onRestRequest = function (params) {
                 if (params.path === '/user/authentication') {
                     // The return value for the initial login call
-                    return $.when(user);
+                    return $.Deferred().resolve(user).promise();
                 }
 
                 // After login return an empty array for collection fetches
                 // on the RootSelector
-                return $.when([]);
+                return $.Deferred().resolve([]).promise();
             };
 
-            girder.auth.login('johndoe', 'password');
+            var view;
+            runs(function () {
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null
+                });
+                spyOn(view, 'render').andCallThrough();
+            });
 
-            var select = view.$('select#g-root-selector');
-            expect(select.length).toBe(1);
-            expect(select.find('option:eq(0)').text()).toBe('Select a root...');
-            expect(select.find('option[value="0"]').text()).toBe('Home');
+            waitsFor(function () {
+                return view.render.callCount >= 2;
+            });
+
+            runs(function () {
+                view.render.reset();
+                girder.auth.login('johndoe', 'password');
+            });
+
+            waitsFor(function () {
+                return view.render.callCount >= 2;
+            });
+
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                expect(select.length).toBe(1);
+                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('option[value="0"]').text()).toBe('Home');
+            });
         });
 
         it('custom optgroup', function () {
-            var col = new girder.collections.CollectionCollection();
+            var col;
+            var view;
 
-            returnVal = [];
-            var view = new girder.views.widgets.RootSelectorWidget({
-                el: testEl,
-                parentView: null,
-                groups: {
-                    Custom: col
-                },
-                display: ['Collections', 'Custom']
+            runs(function () {
+                returnVal = [];
+                col = new girder.collections.CollectionCollection();
+
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null,
+                    groups: {
+                        Custom: col
+                    },
+                    display: ['Collections', 'Custom']
+                });
+                spyOn(view, 'render').andCallThrough();
             });
-            view.render();
-            var select = view.$('select#g-root-selector');
-            expect(select.length).toBe(1);
-            expect(select.find('option:eq(0)').text()).toBe('Select a root...');
-            expect(select.find('optgroup:eq(0)').prop('label')).toBe('Collections');
-            expect(select.find('optgroup:eq(1)').prop('label')).toBe('Custom');
 
-            returnVal = [
-                {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
-                {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
-                {_id: '123', name: 'custom 3', _modelType: 'folder'}
-            ];
-            col.fetch();
+            waitsFor(function () {
+                return view.render.callCount >= 3;
+            });
 
-            select = view.$('select#g-root-selector');
-            var opt = select.find('optgroup[label="Custom"] > option[value="abc"]');
-            expect(opt.data('group')).toBe('Custom');
-            expect(opt.text()).toBe('custom 1');
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                expect(select.length).toBe(1);
+                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('optgroup:eq(0)').prop('label')).toBe('Collections');
+                expect(select.find('optgroup:eq(1)').prop('label')).toBe('Custom');
 
-            opt = select.find('optgroup[label="Custom"] > option[value="def"]');
-            expect(opt.data('group')).toBe('Custom');
-            expect(opt.text()).toBe('thelogin');
+                returnVal = [
+                    {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
+                    {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
+                    {_id: '123', name: 'custom 3', _modelType: 'folder'}
+                ];
+                view.render.reset();
+                col.fetch();
+            });
 
-            opt = select.find('optgroup[label="Custom"] > option[value="123"]');
-            expect(opt.data('group')).toBe('Custom');
-            expect(opt.text()).toBe('custom 3');
+            waitsFor(function () {
+                return view.render.callCount >= 1;
+            });
+
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                var opt = select.find('optgroup[label="Custom"] > option[value="abc"]');
+                expect(opt.data('group')).toBe('Custom');
+                expect(opt.text()).toBe('custom 1');
+
+                opt = select.find('optgroup[label="Custom"] > option[value="def"]');
+                expect(opt.data('group')).toBe('Custom');
+                expect(opt.text()).toBe('thelogin');
+
+                opt = select.find('optgroup[label="Custom"] > option[value="123"]');
+                expect(opt.data('group')).toBe('Custom');
+                expect(opt.text()).toBe('custom 3');
+            });
         });
 
         it('respond to user selection', function () {
-            returnVal = [
-                {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
-                {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
-                {_id: '123', name: 'custom 3', _modelType: 'folder'}
-            ];
-            var col = new girder.collections.CollectionCollection();
-            col.fetch();
+            var col;
+            var view;
 
-            returnVal = [];
-            var view = new girder.views.widgets.RootSelectorWidget({
-                el: testEl,
-                parentView: null,
-                groups: {
-                    Custom: col
-                },
-                display: ['Collections', 'Custom']
+            runs(function () {
+                returnVal = [
+                    {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
+                    {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
+                    {_id: '123', name: 'custom 3', _modelType: 'folder'}
+                ];
+                col = new girder.collections.CollectionCollection();
+                col.fetch();
             });
-            view.render();
-            var called = 0;
-            view.on('g:selected', function (evt) {
-                expect(evt.root.attributes).toEqual({
-                    _id: '123',
-                    name: 'custom 3',
-                    _modelType: 'folder'
+
+            waitsFor(function () {
+                return col.size() === 3;
+            });
+
+            runs(function () {
+                returnVal = [];
+
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null,
+                    groups: {
+                        Custom: col
+                    },
+                    display: ['Collections', 'Custom']
                 });
-                called += 1;
+                spyOn(view, 'render').andCallThrough();
             });
 
-            view.$('select').val('123').trigger('change');
-            expect(called).toBe(1);
+            waitsFor(function () {
+                return view.render.callCount >= 3;
+            });
+
+            runs(function () {
+                var called = 0;
+                view.on('g:selected', function (evt) {
+                    expect(evt.root.attributes).toEqual({
+                        _id: '123',
+                        name: 'custom 3',
+                        _modelType: 'folder'
+                    });
+                    called += 1;
+                });
+
+                view.$('select').val('123').trigger('change');
+                // Assume that the 'change' event propagates synchronously
+                expect(called).toBe(1);
+            });
         });
 
         it('respond to Home selection', function () {
+            var col;
+            var view;
             girder.auth.setCurrentUser(new girder.models.UserModel({
                 _id: '0',
                 login: 'johndoe',
                 firstName: 'John',
                 lastName: 'Doe'
             }));
-            returnVal = [
-                {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
-                {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
-                {_id: '123', name: 'custom 3', _modelType: 'folder'}
-            ];
-            var col = new girder.collections.CollectionCollection();
-            col.fetch();
 
-            returnVal = [];
-            var view = new girder.views.widgets.RootSelectorWidget({
-                el: testEl,
-                parentView: null,
-                groups: {
-                    Custom: col
-                },
-                display: ['Home', 'Collections', 'Custom']
+            runs(function () {
+                returnVal = [
+                    {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
+                    {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
+                    {_id: '123', name: 'custom 3', _modelType: 'folder'}
+                ];
+                col = new girder.collections.CollectionCollection();
+                col.fetch();
             });
-            view.render();
-            var called = 0;
-            view.on('g:selected', function (evt) {
-                expect(evt.root.attributes).toEqual({
-                    _id: '0',
-                    login: 'johndoe',
-                    firstName: 'John',
-                    lastName: 'Doe'
+
+            waitsFor(function () {
+                return col.size() === 3;
+            });
+
+            runs(function () {
+                returnVal = [];
+
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null,
+                    groups: {
+                        Custom: col
+                    },
+                    display: ['Home', 'Collections', 'Custom']
                 });
-                called += 1;
+                spyOn(view, 'render').andCallThrough();
             });
 
-            view.$('select').val('0').trigger('change');
-            expect(called).toBe(1);
+            waitsFor(function () {
+                return view.render.callCount >= 3;
+            });
+
+            runs(function () {
+                var called = 0;
+                view.on('g:selected', function (evt) {
+                    expect(evt.root.attributes).toEqual({
+                        _id: '0',
+                        login: 'johndoe',
+                        firstName: 'John',
+                        lastName: 'Doe'
+                    });
+                    called += 1;
+                });
+
+                view.$('select').val('0').trigger('change');
+                // Assume that the 'change' event propagates synchronously
+                expect(called).toBe(1);
+            });
         });
 
         it('preselected option', function () {
+            var col;
+            var view;
             returnVal = [
                 {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
                 {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
                 {_id: '123', name: 'custom 3', _modelType: 'folder'}
             ];
-            var col = new girder.collections.CollectionCollection();
-            col.fetch();
 
-            returnVal = [];
-            var view = new girder.views.widgets.RootSelectorWidget({
-                el: testEl,
-                parentView: null,
-                groups: {
-                    Custom: col
-                },
-                display: ['Collections', 'Custom'],
-                selected: col.models[2]
+            runs(function () {
+                col = new girder.collections.CollectionCollection();
+                col.fetch();
             });
-            view.render();
-            var select = view.$('select#g-root-selector');
-            expect(select.length).toBe(1);
-            expect(select.val()).toBe('123');
+
+            waitsFor(function () {
+                return col.size() === 3;
+            });
+
+            runs(function () {
+                returnVal = [];
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null,
+                    groups: {
+                        Custom: col
+                    },
+                    display: ['Collections', 'Custom'],
+                    selected: col.models[2]
+                });
+                spyOn(view, 'render').andCallThrough();
+            });
+
+            waitsFor(function () {
+                return view.render.callCount >= 3;
+            });
+
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                expect(select.length).toBe(1);
+                expect(select.val()).toBe('123');
+            });
         });
     });
 
@@ -342,6 +476,11 @@ describe('Test the hierarchy browser modal', function () {
                 lastName: 'Doe'
             }));
 
+            var folderModel = new girder.models.FolderModel({
+                _id: '1',
+                name: 'my folder'
+            });
+
             returnVal = [];
             view = new girder.views.widgets.BrowserWidget({
                 parentView: null,
@@ -359,12 +498,16 @@ describe('Test the hierarchy browser modal', function () {
 
             expect(hwSettings.parentModel).toBe(girder.auth.getCurrentUser());
             expect(view.$('g-hierarchy-widget-container').hasClass('hidden')).toBe(false);
-            expect(view.$('#g-selected-model').val()).toBe(girder.auth.getCurrentUser().id);
+            expect(view.$('#g-selected-model').val()).toBe('');
+
+            view._hierarchyView.parentModel = folderModel;
+            view._hierarchyView.trigger('g:setCurrentModel');
+            expect(view.$('#g-selected-model').val()).toBe(folderModel.get('name'));
 
             var ncalls = 0;
             view.on('g:saved', function (model) {
                 ncalls += 1;
-                expect(model.id).toBe(girder.auth.getCurrentUser().id);
+                expect(model.id).toBe(folderModel.id);
             });
 
             waitsFor(function () {
@@ -402,13 +545,18 @@ describe('Test the hierarchy browser modal', function () {
                 }
             }).render();
 
+            var itemModel = new girder.models.ItemModel({
+                _id: '1',
+                name: 'my item'
+            });
+
             waitsFor(function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
                 expect(view.selectedModel()).toBe(null);
                 view.$('#g-root-selector').val('0').trigger('change').trigger('select');
-                hwSettings.onItemClick({id: '1'});
+                hwSettings.onItemClick(itemModel);
                 expect(view.selectedModel().id).toBe('1');
             });
         });

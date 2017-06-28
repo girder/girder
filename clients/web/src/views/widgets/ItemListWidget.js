@@ -32,6 +32,7 @@ var ItemListWidget = View.extend({
         this._showSizes = (
           _.has(settings, 'showSizes') ? settings.showSizes : true);
         this.accessLevel = settings.accessLevel;
+        this.public = settings.public;
 
         new LoadingAnimation({
             el: this.$el,
@@ -57,6 +58,7 @@ var ItemListWidget = View.extend({
         this.checked = [];
         this.$el.html(ItemListTemplate({
             items: this.collection.toArray(),
+            isParentPublic: this.public,
             hasMore: this.collection.hasNextPage(),
             formatSize: formatSize,
             checkboxes: this._checkboxes,

@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import _ from 'underscore';
 
 import AssetstoresView from 'girder/views/body/AssetstoresView';

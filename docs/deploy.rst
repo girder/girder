@@ -6,27 +6,6 @@ Deploy
 There are many ways to deploy Girder into production. Here is a set of guides on
 how to deploy Girder to several different platforms.
 
-Heroku
-------
-
-This guide assumes you have a Heroku account and have installed the Heroku
-toolbelt.
-
-Girder contains the requisite Procfile, buildpacks, and other configuration to
-be deployed on `Heroku <https://www.heroku.com>`_. To deploy Girder to your Heroku
-space, run the following commands. We recommend doing this on your own fork of
-Girder to keep any customization separate. ::
-
-    $ cd /path/to/girder/tree
-    $ heroku apps:create your_apps_name_here
-    $ heroku config:add BUILDPACK_URL=https://github.com/ddollar/heroku-buildpack-multi.git
-    $ heroku addons:add mongolab
-    $ git remote add heroku git@heroku.com:your_apps_name_here.git
-    $ git push heroku
-    $ heroku open
-
-You should now see your Girder instance running on Heroku. Congratulations!
-
 Reverse Proxy
 -------------
 
@@ -84,6 +63,22 @@ And under the containing ``server`` block, make sure to add the following rule:
         client_max_body_size 500M;
         # ... elided configuration
     }
+
+WSGI
+----
+
+Girder also comes with a callable WSGI application that can be run with WSGI servers
+like `uWSGI`.
+
+A simple example of running Girder with ``uwsgi`` instead of CherryPy's built in HTTP server
+would be::
+
+  uwsgi --lazy --http :8080 --module girder.wsgi --check-static clients/web
+
+.. seealso::
+
+   `CherryPy documentation describing how to deploy under WSGI <http://docs.cherrypy.org/en/latest/deploy.html#wsgi-servers>`_
+
 
 Girder Settings
 +++++++++++++++
@@ -248,3 +243,75 @@ After everything starts, which may take a few minutes, you should be able
 to visit your Girder instance at ``http://X.X.X.X`` where ``X.X.X.X`` is the
 IP address in the container description above. Congratulations, you
 have a full Girder instance available on Google Container Engine!
+
+Elastic Beanstalk
+-----------------
+
+Girder comes with pre-packaged configurations for deploying onto Elastic Beanstalk's
+`Python platform <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html#concepts.platforms.python>`_
+(both 2.7 and 3.4).
+
+The configurations live within ``devops/beanstalk`` and are designed to be copied into your working Girder directory
+at deploy time.
+
+The following assumes you have a checked out copy of Girder (using git) and an existing MongoDB instance which
+can be accessed by your Beanstalk application.
+
+.. note:: It is **highly** recommended to perform the following steps in an isolated virtual
+	  environment using pip. For more see the documentation for `Virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
+
+From within the checked out copy of Girder, install and configure the CLI tools: ::
+
+  $ pip install awscli awsebcli
+  $ aws configure
+
+Initialize the Beanstalk application with a custom name. This is an interactive process
+that will ask various questions about your setup (see above for supported platforms): ::
+
+  $ eb init my-beanstalk-app
+
+Build Girder and its client-side assets locally: ::
+
+  $ pip install -e .[plugins]  # optionally build specific plugins
+  $ girder-install web --all-plugins  # optionally build specific plugins with --plugins
+
+.. seealso::
+
+   `Building specific plugins with pip <http://girder.readthedocs.io/en/latest/installation.html#installing-extra-dependencies-with-pip>`_.
+
+.. note:: Since Girder is unable to restart and load plugins in the Beanstalk environment,
+	  plugins may be enabled/disabled but will require a restart of Beanstalk application
+	  servers to take effect. Restarting application servers can be performed from the
+	  `Environment Management Console <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-console.html>`_.
+
+Create a requirements.txt for the Beanstalk application, overwriting the default Girder requirements.txt: ::
+
+  $ pip freeze | grep -v 'girder\|^awscli\|^awsebcli' > requirements.txt
+
+Copy the pre-packaged configurations for Beanstalk into the current directory: ::
+
+  $ cp -r devops/beanstalk/. .
+
+.. note:: These are just the default tested Beanstalk configurations. It's likely that these will have to
+	  be modified to suit individual deployments.
+
+Beanstalk deploys code based on commits, so create a git commit with the newly added configurations: ::
+
+  $ git add . && git commit -m "Add Beanstalk configurations"
+
+Create an environment to deploy code to: ::
+
+  $ eb create my-env-name --envvars \
+    GIRDER_CONFIG=/opt/python/current/app/girder.cfg,GIRDER_MONGO_URI=mongodb://my-mongo-uri:27017/girder
+
+At this point running ``eb open my-env-name`` should open a functioning Girder instance
+in your browser. Additionally, running ``eb terminate`` will terminate the newly created environment.
+
+.. note:: The pre-packaged configurations work with Amazon CloudWatch for aggregating log streams
+	  across many application servers. For this to work, the EC2 instances will need the proper
+	  policy attached to write to CloudWatch.
+
+.. seealso::
+
+   It may be useful when deploying to AWS to make use of the built-in Girder support
+   for `S3 Assetstores <http://girder.readthedocs.io/en/latest/user-guide.html#assetstores>`_.

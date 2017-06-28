@@ -20,7 +20,7 @@ function extendModel(Model, modelType) {
             }
         }).done(_.bind(function () {
             this.trigger('g:quotaPolicySaved');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
 
@@ -44,7 +44,7 @@ function extendModel(Model, modelType) {
             }).done(_.bind(function (resp) {
                 this.set('quotaPolicy', resp.quota);
                 this.fetch();
-            }, this)).error(_.bind(function (err) {
+            }, this)).fail(_.bind(function (err) {
                 this.trigger('g:error', err);
             }, this));
         } else {

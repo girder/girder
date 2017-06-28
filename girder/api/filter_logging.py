@@ -20,6 +20,7 @@
 import cherrypy
 import logging
 import re
+import time
 
 
 LoggingFilters = []
@@ -39,17 +40,21 @@ class RegexLoggingFilter(logging.Filter):
         for filter in LoggingFilters:
             if filter['re'].search(msg):
                 filter['count'] += 1
-                if (filter['frequency'] and
-                        filter['count'] >= filter['frequency']):
-                    record.msg += ' (%d similar messages)' % filter['count']
+                if ((filter['frequency'] and
+                        filter['count'] >= filter['frequency']) or
+                        (filter['duration'] and
+                         time.time() - filter.get('timestamp', 0) > filter['duration'])):
+                    if filter['count'] > 1:
+                        record.msg += ' (%d similar messages)' % filter['count']
                     filter['count'] = 0
+                    filter['timestamp'] = time.time()
                     return True
                 setattr(record, 'logging.filtered', False)
                 return False
         return True
 
 
-def addLoggingFilter(regex, frequency=None):
+def addLoggingFilter(regex, frequency=None, duration=None):
     """
     Add a regular expression to the logging filter.  If the regular expression
     matches a registered regex exactly, just update the frequency value.
@@ -61,9 +66,11 @@ def addLoggingFilter(regex, frequency=None):
         agnostic to the api_root.
     :param frequency: either None to never log matching log messages, or an
         integer, where one log message is emitted out of the specified number.
+    :param duration: either None to not log based on elapsed time, or a float
+        value of seconds between logging.
     """
     # Always make sure that cherrypy is using our logging filter class.  This
-    # is done as a singleton so that addFilter will not duplciate the filter.
+    # is done as a singleton so that addFilter will not duplicate the filter.
     # By doing this here, the import order doesn't matter, and additional
     # cherrypy handlers can be added after import, provided that
     # addLoggingFilter is called after the new logging handlers were added.
@@ -87,6 +94,7 @@ def addLoggingFilter(regex, frequency=None):
         }
         LoggingFilters.append(newFilter)
     newFilter['frequency'] = frequency
+    newFilter['duration'] = duration
 
 
 def removeLoggingFilter(regex):

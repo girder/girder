@@ -4,31 +4,121 @@ import tinycolor from 'tinycolor2';
 
 /**
  * A backbone model controlling the behavior and rendering of widgets.
+ * This model and the corresponding views provide UI elements to
+ * prompt the user for input.  Several different kinds of widgets
+ * are available:
+ *
+ * Primitive types:
+ *   * color:
+ *      a color picker
+ *   * range:
+ *      a slider for choosing a numeric value within some range
+ *   * number:
+ *      an input box that accepts arbitrary numbers
+ *   * boolean:
+ *      a checkbox
+ *   * string:
+ *      an input element that accepts arbitrary strings
+ *   * integer:
+ *      an input box that accepts integers
+ *   * number-vector:
+ *      an input box that accepts a comma seperated list of numbers
+ *   * string-vector:
+ *      an input box that accepts a comma seperated list of strings
+ *   * number-enumeration:
+ *      a select box containing numbers
+ *   * number-enumeration-multiple:
+ *      a multiselect box containing numbers
+ *   * string-enumeration:
+ *      a select box containing strings
+ *   * string-enumeration-multiple:
+ *      a multiselect box containing strings
+ *
+ * Girder models:
+ *   * file:
+ *      an input file (evaluates to an item id)
+ *   * directory:
+ *      an input folder (evaluates to a folder id)
+ *   * new-file:
+ *      an output file (contains an existing folder id and a
+ *      name that will be used for the new item.
+ *   * image:
+ *      an alias for the "file" type that expects the file
+ *      contents is an image (this is not validated)
+ *
+ * @param {object} [attrs]
+ * @param {string} [attrs.type]
+ *   The widget type.  See the list of supported types.
+ *
+ * @param {string} [attrs.title]
+ *   The label of the widget displayed to the user.  Falls back
+ *   to `attrs.name` or `attrs.id` if not provided.
+ *
+ * @param {string} [attrs.description]
+ *   A brief description of the parameter provided to the user.
+ *
+ * @param {object} [attrs.default]
+ *   The fallback value if attrs.value is not set.  Primitive
+ *   types expect this object to contain a "data" key whose
+ *   value is the default.
+ *
+ * @param {*} [attrs.value]
+ *   The current value of the widget.  Watch changes to this
+ *   attribute to respond to user selections.
+ *
+ * @param {array} [attrs.values]
+ *   The set of possible values for an enumerated type.  This
+ *   is used to fill in the options presented in a dropdown box.
+ *
+ * @param {number} [attrs.min]
+ *   The minimum value allowed for a numeric value.
+ *
+ * @param {number} [attrs.max]
+ *   The maximum value allowed for a numeric value.
+ *
+ * @param {number} [attrs.step]
+ *   The resolution of allowed numeric values.  This
+ *   value determines the "ticks" in the number slider.
+ *
+ * @param {string} [attrs.fileName]
+ *   For output files, this is the name used for the new file.
  */
 var WidgetModel = Backbone.Model.extend({
     /**
      * Sets initial model attributes with normalization.
      */
-    initialize: function (model) {
-        this.set(_.defaults(model || {}, this.defaults));
-    },
+    initialize: function (attrs) {
+        attrs = attrs || {};
 
-    defaults: {
-        type: '',          // The specific widget type
-        title: '',         // The label to display with the widget
-        description: '',   // The description to display with the widget
-        value: '',         // The current value of the widget
+        _.defaults(attrs, {
+            title: attrs.name || attrs.id,
+            id: attrs.name,
+            description: ''
+        });
 
-        values: []         // A list of possible values for enum types
+        if (!_.has(attrs, 'value') &&
+            _.has(attrs.default || {}, 'data')) {
+            attrs.value = attrs.default.data;
+        }
 
-        // optional attributes only used for certain widget types
         /*
-        parent: {},        // A parent girder model
-        path: [],          // The path of a girder model in a folder hierarchy
-        min: undefined,    // A minimum value
-        max: undefined,    // A maximum value
-        step: 1            // Discrete value intervals
-        */
+         * Integers are special numeric types where adjacent values differ
+         * by exactly 1.  Setting the "step" field to one, ensures that
+         * clicking the input element arrows increment or decrement the
+         * value by one.
+         */
+        if (attrs.type === 'integer') {
+            attrs.step = 1;
+
+            if (_.has(attrs, 'min')) {
+                /*
+                 * Ensure the minimum value is an integer for correct
+                 * validation and input element behavior.
+                 */
+                attrs.min = Math.ceil(attrs.min);
+            }
+        }
+        this.set(attrs);
     },
 
     /**
@@ -119,8 +209,7 @@ var WidgetModel = Backbone.Model.extend({
             return this._validateVector(model.value);
         } else if (model.type === 'new-file') {
             return this._validateGirderModel(model.value) ||
-                (!model.fileName || undefined) &&
-                'No file name provided';
+                (model.fileName ? undefined : 'No file name provided');
         } else if (this.isGirderModel()) {
             return this._validateGirderModel(model.value);
         }
@@ -135,8 +224,6 @@ var WidgetModel = Backbone.Model.extend({
         var out;
         if (this.isNumeric()) {
             out = this._validateNumeric(value);
-        } else if (this.isInteger()) {
-            out = this._validateInteger(value);
         }
         if (this.isEnumeration() && !_.contains(this.get('values'), this._normalizeValue(value))) {
             out = 'Invalid value choice';
@@ -197,34 +284,6 @@ var WidgetModel = Backbone.Model.extend({
     },
 
     /**
-     * Validate an integral value.
-     * @param {*} value The value to validate
-     * @returns {undefined|string} An error message or undefined
-     */
-    _validateInteger: function (value) {
-        var min = parseInt(this.get('min'));
-        var max = parseInt(this.get('max'));
-        var step = parseInt(this.get('step'));
-
-        // make sure it is a valid number
-        if (!isFinite(value)) {
-            return `Invalid integer "${value}"`;
-        }
-
-        // make sure it is in valid range
-        if (value < min || value > max) {
-            return `Value out of range [${min}, ${max}]]`;
-        }
-
-        // make sure value is approximately an integer number
-        // of "steps" larger than "min"
-        min = min || 0;
-        if ((value - min) % step) {
-            return `Value does not satisfy step "${step}"`;
-        }
-    },
-
-    /**
      * Validate a widget that selects a girder model.
      * @note This method is synchronous, so it cannot validate
      * the model on the server.
@@ -252,6 +311,7 @@ var WidgetModel = Backbone.Model.extend({
     isNumeric: function () {
         return _.contains([
             'range',
+            'integer',
             'number',
             'number-vector',
             'number-enumeration',

@@ -19,9 +19,7 @@
  * build system for installed girder packages.
  */
 module.exports = function (grunt) {
-    if (!grunt.config.get('isSourceBuild')) {
-        // If this is a package build rather than a source build, we skip the
-        // dev build tasks.
+    if (grunt.config.get('environment') !== 'dev') {
         return;
     }
 
@@ -32,6 +30,7 @@ module.exports = function (grunt) {
             test: {
                 files: {
                     'clients/web/static/built/testing/testing.min.js': [
+                        'node_modules/core-js/client/shim.js',
                         'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
                         'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js',
                         'clients/web/test/testUtils.js'
@@ -39,12 +38,19 @@ module.exports = function (grunt) {
                 }
             }
         },
+        copy: {
+            test: {
+                src: 'clients/web/test/lib/jasmine-1.3.1/jasmine.css',
+                dest: 'clients/web/static/built/testing/testing.min.css'
+            }
+        },
 
         default: {
             'test-env-html': {
-                dependencies: ['build']
+                dependencies: ['build', 'uglify:test', 'copy:test']
             },
-            'uglify:test': {}
+            'uglify:test': {},
+            'copy:test': {}
         }
     });
 
@@ -58,13 +64,15 @@ module.exports = function (grunt) {
         });
         fs.writeFileSync('clients/web/static/built/testing/testEnv.html', fn({
             cssFiles: [
-                '/clients/web/static/built/fontello/css/fontello.css',
-                '/clients/web/static/built/girder_lib.min.css',
-                '/clients/web/static/built/girder_app.min.css'
+                '/static/built/fontello/css/fontello.css',
+                '/static/built/girder_lib.min.css',
+                '/static/built/girder_app.min.css',
+                '/static/built/testing.min.css'
             ],
             jsFiles: [
-                '/clients/web/static/built/girder_lib.min.js',
-                '/clients/web/static/built/girder_app.min.js'
+                '/static/built/girder_lib.min.js',
+                '/static/built/girder_app.min.js',
+                '/static/built/testing/testing.min.js'
             ],
             staticRoot: '/static',
             apiRoot: '/api/v1'

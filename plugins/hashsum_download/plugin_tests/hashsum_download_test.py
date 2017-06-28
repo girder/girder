@@ -17,9 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-import six
 import hashlib
+import six
+import time
 
+from girder.models.model_base import ValidationException
 from tests import base
 
 
@@ -260,3 +262,65 @@ class HashsumDownloadTest(base.TestCase):
         resp = self.request(template % (self.privateFile['_id'], 'sha512'))
         self.assertStatus(resp, 401)
         six.assertRegex(self, resp.json['message'], '^Read access denied')
+
+    def testAutoComputeHashes(self):
+        from girder.plugins import hashsum_download
+        with self.assertRaises(ValidationException):
+            self.model('setting').set(hashsum_download.PluginSettings.AUTO_COMPUTE, 'bad')
+
+        old = hashsum_download.SUPPORTED_ALGORITHMS
+        hashsum_download.SUPPORTED_ALGORITHMS = {'sha512', 'sha256'}
+        self.model('setting').set(hashsum_download.PluginSettings.AUTO_COMPUTE, True)
+
+        file = self.model('upload').uploadFromFile(
+            obj=six.BytesIO(self.userData), size=len(self.userData), name='Another file',
+            parentType='folder', parent=self.privateFolder, user=self.user)
+
+        start = time.time()
+        while time.time() < start + 15:
+            file = self.model('file').load(file['_id'], force=True)
+            if 'sha256' in file:
+                break
+            time.sleep(0.2)
+
+        expected = hashlib.sha256()
+        expected.update(self.userData)
+        self.assertIn('sha256', file)
+        self.assertEqual(file['sha256'], expected.hexdigest())
+
+        expected = hashlib.sha512()
+        expected.update(self.userData)
+        self.assertIn('sha512', file)
+        self.assertEqual(file['sha512'], expected.hexdigest())
+
+        hashsum_download.SUPPORTED_ALGORITHMS = old
+
+    def testManualComputeHashes(self):
+        from girder.plugins import hashsum_download
+        self.model('setting').set(hashsum_download.PluginSettings.AUTO_COMPUTE, False)
+        old = hashsum_download.SUPPORTED_ALGORITHMS
+        hashsum_download.SUPPORTED_ALGORITHMS = {'sha512', 'sha256'}
+
+        self.assertNotIn('sha256', self.privateFile)
+
+        expected = hashlib.sha256()
+        expected.update(self.userData)
+
+        # Running the compute endpoint should only compute the missing ones
+        resp = self.request(
+            '/file/%s/hashsum' % self.privateFile['_id'], method='POST', user=self.user)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, {
+            'sha256': expected.hexdigest()
+        })
+
+        # Running again should be a no-op
+        resp = self.request(
+            '/file/%s/hashsum' % self.privateFile['_id'], method='POST', user=self.user)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, None)
+
+        file = self.model('file').load(self.privateFile['_id'], force=True)
+        self.assertEqual(file['sha256'], expected.hexdigest())
+
+        hashsum_download.SUPPORTED_ALGORITHMS = old

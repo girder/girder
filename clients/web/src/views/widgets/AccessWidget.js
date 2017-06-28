@@ -26,7 +26,7 @@ import 'girder/utilities/jquery/girderModal';
 var AccessWidget = View.extend({
     events: {
         'click button.g-save-access-list': function (e) {
-            $(e.currentTarget).attr('disabled', 'disabled');
+            $(e.currentTarget).girderEnable(false);
             this.saveAccessList();
         },
         'click .g-close-flags-popover': function (e) {
@@ -86,7 +86,7 @@ var AccessWidget = View.extend({
         $.when(
             flagListPromise,
             this.model.fetchAccess()
-        ).then(() => {
+        ).done(() => {
             this.render();
         });
     },
@@ -187,7 +187,7 @@ var AccessWidget = View.extend({
 
         // Re-binding popovers actually breaks them, so we make sure to
         // only bind ones that aren't already bound.
-        _.each(this.$('.g-action-manage-flags'), el => {
+        _.each(this.$('.g-action-manage-flags'), (el) => {
             if (!$(el).data('bs.popover')) {
                 $(el).popover({
                     trigger: 'manual',
@@ -208,7 +208,7 @@ var AccessWidget = View.extend({
 
         // Re-binding popovers actually breaks them, so we make sure to
         // only bind ones that aren't already bound.
-        _.each(this.$('.g-action-manage-public-flags'), el => {
+        _.each(this.$('.g-action-manage-public-flags'), (el) => {
             if (!$(el).data('bs.popover')) {
                 $(el).popover({
                     trigger: 'manual',
@@ -310,7 +310,7 @@ var AccessWidget = View.extend({
     saveAccessList: function () {
         var acList = this.getAccessList();
 
-        var publicFlags = _.map(this.$('.g-public-flag-checkbox:checked'), checkbox => {
+        var publicFlags = _.map(this.$('.g-public-flag-checkbox:checked'), (checkbox) => {
             return $(checkbox).attr('flag');
         });
 
@@ -353,9 +353,9 @@ var AccessWidget = View.extend({
                     $el.find('.g-access-col-right>select').val(),
                     10
                 ),
-                flags: _.map($el.find('.g-flag-checkbox:checked'), (checkbox) => {
-                    return $(checkbox).attr('flag');
-                })
+                flags: _.map($el.find('.g-flag-checkbox:checked'),
+                    (checkbox) => $(checkbox).attr('flag')
+                )
             });
         }, this);
 
@@ -369,9 +369,9 @@ var AccessWidget = View.extend({
                     $el.find('.g-access-col-right>select').val(),
                     10
                 ),
-                flags: _.map($el.find('.g-flag-checkbox:checked'), (checkbox) => {
-                    return $(checkbox).attr('flag');
-                })
+                flags: _.map($el.find('.g-flag-checkbox:checked'),
+                    (checkbox) => $(checkbox).attr('flag')
+                )
             });
         }, this);
 
@@ -399,24 +399,37 @@ var AccessWidget = View.extend({
         var el = $(e.currentTarget),
             type = el.attr('resourcetype'),
             id = el.attr('resourceid'),
-            flag = el.attr('flag');
+            flag = el.attr('flag'),
+            container = this.$(`.g-flags-popover-container[resourcetype='${type}'][resourceid='${id}']`);
 
         // Since we clicked in a cloned popover element, we must apply this
         // change within the original element as well.
-        this.$(`.g-flags-popover-container[resourcetype='${type}'][resourceid='${id}']`)
-            .find(`.g-flag-checkbox[flag="${flag}"]`)
+        container.find(`.g-flag-checkbox[flag="${flag}"]`)
             .attr('checked', el.is(':checked') ? 'checked' : null);
+        this._updateFlagCount(container, '.g-flag-checkbox');
     },
 
     _togglePublicAccessFlag: function (e) {
         var el = $(e.currentTarget),
-            flag = el.attr('flag');
+            flag = el.attr('flag'),
+            container = this.$('.g-public-flags-popover-container');
 
         // Since we clicked in a cloned popover element, we must apply this
         // change within the original element as well.
-        this.$('.g-public-flags-popover-container')
-            .find(`.g-public-flag-checkbox[flag="${flag}"]`)
+        container.find(`.g-public-flag-checkbox[flag="${flag}"]`)
             .attr('checked', el.is(':checked') ? 'checked' : null);
+        this._updateFlagCount(container, '.g-public-flag-checkbox');
+    },
+
+    _updateFlagCount: function (container, sel) {
+        const nChecked = container.find(`${sel}[checked="checked"]`).length;
+        const countEl = container.parent().find('.g-flag-count-indicator');
+        countEl.text(nChecked);
+        if (nChecked) {
+            countEl.removeClass('hide');
+        } else {
+            countEl.addClass('hide');
+        }
     }
 });
 

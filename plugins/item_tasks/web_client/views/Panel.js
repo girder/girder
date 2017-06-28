@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import View from 'girder/views/View';
 
 import panel from '../templates/panel.pug';
@@ -15,7 +17,7 @@ var Panel = View.extend({
     render: function () {
         this.$el.html(panel(this.spec));
 
-        // initialize collapseable elements
+        // initialize collapsible elements
         this.$('.g-panel-content').collapse({toggle: false});
     },
     expand: function () {

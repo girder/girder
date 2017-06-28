@@ -175,7 +175,7 @@ class Resource(BaseResource):
                    '"folder": [(folder id 1)]}.', requireObject=True)
         .param('includeMetadata', 'Include any metadata in JSON files in the '
                'archive.', required=False, dataType='boolean', default=False)
-        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
@@ -220,7 +220,7 @@ class Resource(BaseResource):
                    '(item id2)], "folder": [(folder id 1)]}.', requireObject=True)
         .param('progress', 'Whether to record progress on this task.',
                default=False, required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
@@ -312,7 +312,7 @@ class Resource(BaseResource):
         .param('parentId', 'Parent ID for the new parent of these resources.')
         .param('progress', 'Whether to record progress on this task.',
                required=False, default=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('Resource type not supported.')
         .errorResponse('No resources specified.')
@@ -352,7 +352,7 @@ class Resource(BaseResource):
         .param('parentId', 'Parent ID for the new parent of these resources.')
         .param('progress', 'Whether to record progress on this task.',
                required=False, default=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('Resource type not supported.')
         .errorResponse('No resources specified.')

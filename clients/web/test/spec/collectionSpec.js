@@ -1,6 +1,3 @@
-/**
- * Start the girder backbone app.
- */
 girderTest.startApp();
 
 describe('Test collection actions', function () {

@@ -99,13 +99,16 @@ class StreamToLogger:
         # flush, writeline, and others without having to enumerate them
         # individually.
         for key in dir(stream):
-            if key != 'write' and not key.startswith('_') and callable(getattr(stream, key)):
+            # It's possible for a file-like object to have name appear in dir(stream) but not
+            # actually be an attribute, thus using a default with getattr is required.
+            # See https://github.com/GrahamDumpleton/mod_wsgi/issues/184 for more.
+            if key != 'write' and not key.startswith('_') and callable(getattr(stream, key, None)):
                 setattr(self, key, getattr(stream, key))
 
     def write(self, buf):
         if not self.logger._girderLogHandlerOutput:
             self.logger._girderLogHandlerOutput = True
-            _originalStdOut.write(buf)
+            self.stream.write(buf)
             for line in buf.rstrip().splitlines():
                 self.logger.log(self.level, line.rstrip())
             self.logger._girderLogHandlerOutput = False
@@ -200,9 +203,6 @@ def _setupLogger():
     ih.setFormatter(fmt)
     logger.addHandler(ih)
 
-    sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
-    sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
-
     # Log http accesses to the screen and/or the info log.
     accessLog = logCfg.get('log_access', 'screen')
     if not isinstance(accessLog, (tuple, list, set)):
@@ -216,6 +216,12 @@ def _setupLogger():
 
 
 logger = _setupLogger()
+
+
+def logStdoutStderr():
+    if _originalStdOut == sys.stdout:
+        sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
+        sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
 
 
 def logprint(*args, **kwargs):

@@ -1,5 +1,5 @@
 {
-"name": "User and collection quotas and policies",
-"description": "Limits total file size stored for individual users and collections and can direct all files to a specific assetstore",
-"version": "1.0.0"
+    "name": "User and collection quotas and policies",
+    "description": "Limits total file size stored for individual users and collections and can direct all files to a specific assetstore",
+    "version": "1.0.0"
 }

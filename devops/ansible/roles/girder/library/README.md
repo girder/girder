@@ -22,11 +22,11 @@ The girder ansible module relies on the girder-client to do most of the heavy li
 - name: Create 'admin' User
   girder:
     user:
-      firstName: "Chris"
-      lastName: "Kotfila"
+      firstName: "John"
+      lastName: "Doe"
       login: "admin"
       password: "letmein"
-      email: "chris.kotfila@kitware.com"
+      email: "john.doe@test.com"
       admin: yes
     state: present
 ```
@@ -42,7 +42,7 @@ The girder ansible module relies on the girder-client to do most of the heavy li
       lastName: "Bar"
       login: "foobar"
       password: "foobarbaz"
-      email: "foo.bar@kitware.com"
+      email: "foo.bar@test.com"
       admin: yes
     state: present
 ```
@@ -90,7 +90,7 @@ To enable or disable all plugins you may pass the "*" argument.  This does not (
       - gravatar
     state: present
 ```
-**Note:** that the list of enabled plugins is now ```thumbnails```, ```jobs```, ```gravatar```. The 'plugins' task ensures that plugins are enabled or disabled, it does *not* define the complete list of enabled or disabled plugins. Additionally,  while the plugins are enabled they will not be active until the server is restarted. This should be achieved through another task (either through setting up girder as a system level task,  or through posting to system/restart). 
+**Note:** that the list of enabled plugins is now ```thumbnails```, ```jobs```, ```gravatar```. The 'plugins' task ensures that plugins are enabled or disabled, it does *not* define the complete list of enabled or disabled plugins. Additionally,  while the plugins are enabled they will not be active until the server is restarted. This should be achieved through another task (either through setting up girder as a system level task,  or through posting to system/restart).
 
 
 ### Filesystem Assetstore Tests

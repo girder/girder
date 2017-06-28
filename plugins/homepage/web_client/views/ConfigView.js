@@ -73,7 +73,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).error(_.bind(function (resp) {
+        }, this)).fail(_.bind(function (resp) {
             this.$('#g-homepage-error-message').text(
                 resp.responseJSON.message
             );

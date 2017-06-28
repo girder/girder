@@ -31,16 +31,32 @@ function sortTasks(obj) {
         })
         .flatten(true)
         .value();
-    return toposort.array(nodes, edges);
+    var sorted = toposort.array(nodes, edges);
+
+    // We need to ensure that the npm install task is run first.
+    // This is currently necessary because some external plugins
+    // don't specify any external tasks as dependencies.
+    var installIndex = _.indexOf(sorted, 'npm-install-plugins');
+    if (installIndex >= 0) {
+        sorted.splice(installIndex, 1);
+        sorted.splice(0, 0, 'npm-install-plugins');
+    }
+    return sorted;
 }
 
 module.exports = function (grunt) {
     var fs = require('fs');
     var isSourceBuild = fs.existsSync('girder/__init__.py');
+    var environment = grunt.option('env') || 'dev';
     require('colors');
+
+    if (['dev', 'prod'].indexOf(environment) === -1) {
+        grunt.fatal('The "env" argument must be either "dev" or "prod".');
+    }
 
     // Project configuration.
     grunt.config.init({
+        environment: environment,
         pkg: grunt.file.readJSON('package.json'),
         pluginDir: 'plugins',
         staticDir: 'clients/web/static',

@@ -76,4 +76,3 @@ var View = Backbone.View.extend({
 });
 
 export default View;
-

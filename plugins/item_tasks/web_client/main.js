@@ -1,6 +1,7 @@
+/* eslint-disable import/first, import/order */
+
 import $ from 'jquery';
 import _ from 'underscore';
-import './routes';
 
 import { getCurrentUser } from 'girder/auth';
 import { wrap } from 'girder/utilities/PluginUtils';
@@ -10,6 +11,8 @@ import ItemView from 'girder/views/body/ItemView';
 import { registerPluginNamespace } from 'girder/pluginUtils';
 import JobModel from 'girder_plugins/jobs/models/JobModel';
 import * as itemTasks from 'girder_plugins/item_tasks';
+
+import './routes';
 
 registerPluginNamespace('item_tasks', itemTasks);
 
@@ -36,7 +39,7 @@ wrap(ItemView, 'render', function (render) {
 
         if (this.model.get('createdByJob')) {
             var job = new JobModel({_id: this.model.get('createdByJob')});
-            job.fetch().done(() => {
+            job.fetch({ignoreError: true}).done(() => {
                 this.$('.g-item-info').append(itemInfoModTemplate({
                     job
                 }));
@@ -46,10 +49,10 @@ wrap(ItemView, 'render', function (render) {
     return render.call(this);
 });
 
-import ConfigureTaskDialog from './views/ConfigureTaskDialog';
+import ConfigureTasksDialog from './views/ConfigureTasksDialog';
 ItemView.prototype.events['click .g-configure-item-task'] = function () {
     if (!this.configureTaskDialog) {
-        this.configureTaskDialog = new ConfigureTaskDialog({
+        this.configureTaskDialog = new ConfigureTasksDialog({
             model: this.model,
             parentView: this,
             el: $('#g-dialog-container')
@@ -68,7 +71,6 @@ wrap(HierarchyWidget, 'render', function (render) {
     return this;
 });
 
-import ConfigureTasksDialog from './views/ConfigureTasksDialog';
 HierarchyWidget.prototype.events['click .g-create-docker-tasks'] = function () {
     if (!this.configureTasksDialog) {
         this.configureTasksDialog = new ConfigureTasksDialog({
@@ -81,9 +83,9 @@ HierarchyWidget.prototype.events['click .g-create-docker-tasks'] = function () {
 };
 
 // Show task inputs and outputs on job details view
+import JobDetailsWidget from 'girder_plugins/jobs/views/JobDetailsWidget';
 import JobDetailsInfoView from './views/JobDetailsInfoView';
-/* global girder */
-wrap(girder.plugins.jobs.views.JobDetailsWidget, 'render', function (render) {
+wrap(JobDetailsWidget, 'render', function (render) {
     render.call(this);
 
     if (this.job.has('itemTaskBindings')) {

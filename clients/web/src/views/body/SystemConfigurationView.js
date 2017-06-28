@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import _ from 'underscore';
 
 import AccessWidget from 'girder/views/widgets/AccessWidget';
@@ -13,6 +14,7 @@ import 'girder/stylesheets/body/systemConfig.styl';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/tooltip';
+import 'bootstrap/js/transition';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
 import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
 
@@ -23,7 +25,7 @@ var SystemConfigurationView = View.extend({
     events: {
         'submit .g-settings-form': function (event) {
             event.preventDefault();
-            this.$('.g-submit-settings').addClass('disabled');
+            this.$('.g-submit-settings').girderEnable(false);
             this.$('#g-settings-error-message').empty();
 
             this.$('#g-core-collection-create-policy').val(JSON.stringify(this._covertCollectionCreationPolicy()));
@@ -32,7 +34,7 @@ var SystemConfigurationView = View.extend({
                     return {
                         key: key,
                         value: _.object(_.map($('.g-core-route-table'), function (el) {
-                            return [$(el).data('webroot-name'), $(el).val()];
+                            return [$(el).data('webrootName'), $(el).val()];
                         }))
                     };
                 }
@@ -51,15 +53,15 @@ var SystemConfigurationView = View.extend({
                 },
                 error: null
             }).done(_.bind(function () {
-                this.$('.g-submit-settings').removeClass('disabled');
+                this.$('.g-submit-settings').girderEnable(true);
                 events.trigger('g:alert', {
                     icon: 'ok',
                     text: 'Settings saved.',
                     type: 'success',
                     timeout: 4000
                 });
-            }, this)).error(_.bind(function (resp) {
-                this.$('.g-submit-settings').removeClass('disabled');
+            }, this)).fail(_.bind(function (resp) {
+                this.$('.g-submit-settings').girderEnable(true);
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             }, this));
         },
@@ -178,7 +180,7 @@ var SystemConfigurationView = View.extend({
         if (this.$('.g-plugin-switch').bootstrapSwitch('state')) {
             settingValue = { open: this.$('.g-plugin-switch').bootstrapSwitch('state') };
             var accessList = this.accessWidget.getAccessList();
-            _.each(_.keys(accessList), key => {
+            _.each(_.keys(accessList), (key) => {
                 settingValue[key] = _.pluck(accessList[key], 'id');
             });
         } else {
@@ -190,4 +192,3 @@ var SystemConfigurationView = View.extend({
 });
 
 export default SystemConfigurationView;
-

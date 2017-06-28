@@ -1,14 +1,14 @@
+import $ from 'jquery';
 import _ from 'underscore';
 
 import View from 'girder/views/View';
 import { formatSize } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 import { handleOpen, handleClose } from 'girder/dialog';
-import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
-
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
+import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.pug';
 
 var QuotaPoliciesWidget = View.extend({
@@ -36,10 +36,23 @@ var QuotaPoliciesWidget = View.extend({
     initialize: function (settings) {
         this.model = settings.model;
         this.modelType = settings.modelType;
+        this.plots = [];
         this.model.off('g:quotaPolicyFetched').on('g:quotaPolicyFetched',
             function () {
                 this.render();
             }, this).fetchQuotaPolicy();
+    },
+
+    destroy: function () {
+        this._destroyPlots();
+        View.prototype.destroy.call(this);
+    },
+
+    _destroyPlots: function () {
+        for (let plot of this.plots) {
+            plot.data('jqplot').destroy();
+        }
+        this.plots = [];
     },
 
     _selectCustomQuota: function () {
@@ -66,7 +79,7 @@ var QuotaPoliciesWidget = View.extend({
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(free) + ')', free]
         ];
-        $(el).jqplot([data], {
+        var plot = $(el).jqplot([data], {
             seriesDefaults: {
                 renderer: $.jqplot.PieRenderer,
                 rendererOptions: {
@@ -92,6 +105,7 @@ var QuotaPoliciesWidget = View.extend({
             },
             gridPadding: {top: 10, right: 10, bottom: 10, left: 10}
         });
+        this.plots.push(plot);
     },
 
     capacityString: function () {
@@ -132,6 +146,7 @@ var QuotaPoliciesWidget = View.extend({
         } else {
             defaultQuotaString = formatSize(defaultQuota);
         }
+        this._destroyPlots();
         modal = this.$el.html(QuotaPoliciesWidgetTemplate({
             currentUser: currentUser,
             model: view.model,
@@ -149,6 +164,7 @@ var QuotaPoliciesWidget = View.extend({
             view.capacityChart(view, '.g-quota-capacity-chart');
         }).on('hidden.bs.modal', function () {
             handleClose('quota');
+            view.trigger('g:hidden');
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         view.$('#g-fileSizeQuota').focus();
