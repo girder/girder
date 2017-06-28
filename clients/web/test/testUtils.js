@@ -1167,6 +1167,8 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
  * so we can print the log after a test failure.
  */
 (function () {
+    var MAX_AJAX_LOG_SIZE = 20;
+    var logIndex = 0;
     var ajaxCalls = [];
     var backboneAjax = Backbone.ajax;
 
@@ -1187,7 +1189,8 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
             opts: opts
         };
 
-        ajaxCalls.push(record);
+        ajaxCalls[logIndex] = record;
+        logIndex = (logIndex + 1) % MAX_AJAX_LOG_SIZE;
 
         return backboneAjax(opts).done(
             function (data, textStatus) {
@@ -1202,9 +1205,10 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     };
 
     girderTest.ajaxLog = function (reset) {
-        var calls = ajaxCalls;
+        var calls = ajaxCalls.slice(logIndex, ajaxCalls.length).concat(ajaxCalls.slice(0, logIndex));
         if (reset) {
             ajaxCalls = [];
+            logIndex = 0;
         }
         return calls;
     };

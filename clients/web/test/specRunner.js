@@ -70,9 +70,9 @@ page.onConsoleMessage = function (msg) {
         if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === true) {
-            console.log('Dumping ajax trace:');
             console.log(page.evaluate(function () {
-                return JSON.stringify(girderTest.ajaxLog(true), null, '  ');
+                var log = girderTest.ajaxLog(true);
+                return 'XHR log (last ' + log.length + '):\n' + JSON.stringify(log, null, '  ');
             }));
         }
         return;
