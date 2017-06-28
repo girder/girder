@@ -635,4 +635,3 @@ Girder.
 You can also use the API to download the file based on the hash returned by the previous endpoint,
 with an endpoint ``/api/v1/file/hashsum/sha512/<file sha512 hash>/download``, where the sha512 hash
 comes from the specific file in Girder.
-

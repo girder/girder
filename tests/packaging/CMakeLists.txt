@@ -1,4 +1,3 @@
-
 find_program(VIRTUALENV_EXECUTABLE virtualenv)
 find_program(CURL_EXECUTABLE curl)
 find_program(GREP_EXECUTABLE grep)

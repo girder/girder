@@ -20,4 +20,3 @@ collections:
     folders:
       - name: 'Private'
         public: false
-
