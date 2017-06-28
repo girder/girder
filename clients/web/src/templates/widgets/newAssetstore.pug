@@ -101,7 +101,10 @@
             input.input-sm.form-control#g-new-s3-secret(type="text", placeholder="Secret access key")
           .form-group
             label.control-label(for="g-new-s3-service") Service
-            input.input-sm.form-control#g-new-s3-service(type="text", placeholder="Service name")
+            input.input-sm.form-control#g-new-s3-service(type="text", placeholder="default: s3.amazonaws.com")
+          .form-group
+            label.control-label(for="g-new-s3-region") Region
+            input.input-sm.form-control#g-new-s3-region(type="text", placeholder="default: us-east-1")
           .checkbox
             label
               input#g-new-s3-readonly(type="checkbox")

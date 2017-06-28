@@ -48,7 +48,10 @@
               input.input-sm#g-edit-s3-secret.form-control(type="text", placeholder="Secret access key")
             .form-group
               label.control-label(for="g-edit-s3-service") Service
-              input.input-sm#g-edit-s3-service.form-control(type="text", placeholder="Service name")
+              input.input-sm#g-edit-s3-service.form-control(type="text", placeholder="default: s3.amazonaws.com")
+            .form-group
+              label.control-label(for="g-edit-s3-region") Region
+              input.input-sm#g-edit-s3-region.form-control(type="text", placeholder="default: us-east-1")
             .checkbox
               label
                 input#g-edit-s3-readonly(type="checkbox")

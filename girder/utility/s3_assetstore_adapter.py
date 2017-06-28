@@ -62,7 +62,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if not re.match('^((https?)://)?([^:/]+)(:([0-9]+))?$', doc['service']):
                 raise ValidationException(
                     'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
-        params = makeBotoConnectParams(doc['accessKeyId'], doc['secret'], doc['service'])
+        params = makeBotoConnectParams(
+            doc['accessKeyId'], doc['secret'], doc['service'], doc.get('region'))
         client = _botoS3(params)
         if doc.get('readOnly'):
             try:
@@ -89,7 +90,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):
             self.connectParams = makeBotoConnectParams(
                 self.assetstore['accessKeyId'], self.assetstore['secret'],
-                self.assetstore['service'])
+                self.assetstore['service'], self.assetstore.get('region'))
 
     def _getRequestHeaders(self, upload):
         return {
@@ -569,24 +570,27 @@ def _botoS3(connectParams):
         raise ValidationException('Unable to connect to S3 assetstore')
 
 
-def makeBotoConnectParams(accessKeyId, secret, service=None):
+def makeBotoConnectParams(accessKeyId, secret, service=None, region=None):
     """
     Create a dictionary of values to pass to the boto connect_s3 function.
 
     :param accessKeyId: the S3 access key ID
     :param secret: the S3 secret key
     :param service: alternate service URL
+    :param region: the AWS region name of the bucket (if not "us-east-1")
     :returns: boto connection parameter dictionary.
     """
+    region = region or 'us-east-1'
     if accessKeyId and secret:
         params = {
             'aws_access_key_id': accessKeyId,
             'aws_secret_access_key': secret,
-            'config': botocore.client.Config(signature_version='s3v4')
+            'config': botocore.client.Config(signature_version='s3v4', region_name=region)
         }
     else:
         params = {
-            'config': botocore.client.Config(signature_version=botocore.UNSIGNED)
+            'config': botocore.client.Config(
+                signature_version=botocore.UNSIGNED, region_name=region)
         }
 
     if service:
@@ -595,7 +599,6 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
             params['use_ssl'] = False
         params['endpoint_url'] = service
 
-    # TODO(zach) region parameter? Might not be necessary
     return params
 
 
