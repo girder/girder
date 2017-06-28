@@ -50,7 +50,7 @@ class Thumbnail(Resource):
         .errorResponse(('Write access was denied on the attach destination.',
                         'Read access was denied on the file.'), 403)
     )
-    def createThumbnail(self, file, width, height, crop, attachToId, attachToType, params):
+    def createThumbnail(self, file, width, height, crop, attachToId, attachToType):
         user = self.getCurrentUser()
 
         self.model(attachToType).load(attachToId, user=user, level=AccessType.WRITE, exc=True)

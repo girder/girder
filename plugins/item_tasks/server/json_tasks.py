@@ -107,8 +107,8 @@ def runJsonTasksDescriptionForItem(self, item, image, taskName, setName, setDesc
            dataType='boolean', required=False, default=True),
     hide=True
 )
-def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDescription, pullImage,
-                              params):
+def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDescription,
+                              pullImage):
     self.model('token').requireScope(
         self.getCurrentToken(), 'item_task.set_task_spec.%s' % item['_id'])
 

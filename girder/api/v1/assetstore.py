@@ -47,7 +47,7 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def getAssetstore(self, assetstore, params):
+    def getAssetstore(self, assetstore):
         self.model('assetstore').addComputedInfo(assetstore)
         return assetstore
 
@@ -58,7 +58,7 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def find(self, limit, offset, sort, params):
+    def find(self, limit, offset, sort):
         return list(self.model('assetstore').list(offset=offset, limit=limit, sort=sort))
 
     @access.admin
@@ -96,7 +96,7 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403)
     )
     def createAssetstore(self, name, type, root, perms, db, mongohost, replicaset, shard, bucket,
-                         prefix, accessKeyId, secret, service, readOnly, params):
+                         prefix, accessKeyId, secret, service, readOnly):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
             return self.model('assetstore').createFilesystemAssetstore(
@@ -140,7 +140,7 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403)
     )
     def importData(self, assetstore, importPath, destinationId, destinationType, progress,
-                   leafFoldersAsItems, fileIncludeRegex, fileExcludeRegex, params):
+                   leafFoldersAsItems, fileIncludeRegex, fileExcludeRegex):
         user = self.getCurrentUser()
         parent = self.model(destinationType).load(
             destinationId, user=user, level=AccessType.ADMIN, exc=True)
@@ -238,7 +238,7 @@ class Assetstore(Resource):
                         'The assetstore is not empty.'))
         .errorResponse('You are not an administrator.', 403)
     )
-    def deleteAssetstore(self, assetstore, params):
+    def deleteAssetstore(self, assetstore):
         self.model('assetstore').remove(assetstore)
         return {'message': 'Deleted assetstore %s.' % assetstore['name']}
 
@@ -250,7 +250,7 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def getAssetstoreFiles(self, assetstore, limit, offset, sort, params):
+    def getAssetstoreFiles(self, assetstore, limit, offset, sort):
         return list(self.model('file').find(
             query={'assetstoreId': assetstore['_id']},
             offset=offset, limit=limit, sort=sort))
