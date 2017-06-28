@@ -56,17 +56,19 @@ class FileHandle(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def read(self, size):
+    def read(self, size=None):
         """
         Read *size* bytes from the file data.
 
         :param size: The number of bytes to read from the current position. The
             actual number returned could be less than this if the end of the
             file is reached. An empty response indicates that the file has been
-            completely consumed.
+            completely consumed.  If None, read to the end of the file.
         :type size: int
         :rtype: bytes
         """
+        if size is None:
+            size = self._file['size'] - self._pos
         data = six.BytesIO()
         length = 0
         for chunk in itertools.chain(self._prev, self._stream):

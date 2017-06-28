@@ -345,6 +345,15 @@ class FileTestCase(base.TestCase):
             buf = _readFile(handle)
             self.assertEqual(buf, contents[-2:])
 
+            # Read without a length parameter
+            handle.seek(0, os.SEEK_SET)
+            buf = handle.read()
+            self.assertEqual(buf, contents)
+
+            handle.seek(2, os.SEEK_END)
+            buf = handle.read()
+            self.assertEqual(buf, contents[-2:])
+
     def _testDownloadFolder(self):
         """
         Test downloading an entire folder as a zip file.
