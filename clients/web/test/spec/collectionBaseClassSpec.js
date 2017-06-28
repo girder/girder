@@ -1,3 +1,5 @@
+girderTest.startApp();
+
 function canary() {
     var isDone = false;
     var result = function done() {
@@ -15,11 +17,6 @@ function canary() {
 var failIfError = function (error) { expect(error).toBeUndefined(); };
 
 var reFiltered = /filterTest(\d+)/;
-
-/**
- * Start the girder backbone app.
- */
-girderTest.startApp();
 
 describe('Pre-test setup', function () {
     it('register a user (first is admin)',

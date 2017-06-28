@@ -1,5 +1,3 @@
-// girderTest.startApp();
-
 describe('Test the hierarchy browser modal', function () {
     var testEl;
     var requestArgs = [];

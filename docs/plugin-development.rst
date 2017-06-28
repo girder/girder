@@ -918,11 +918,28 @@ typically with the ``girderTest.importPlugin`` function.
           topologically sorted order, before loading your plugin with ``girderTest.importPlugin``
           last.
 
+If the plugin test requires an instance of the Girder client app to be running, it can be
+started with ``girderTest.startApp()`` immediately after plugins are imported. Plugin tests that
+perform only unit tests or standalone instantiation of views may be able to skip starting the Girder
+client app.
+
+Jasmine specs (defined with ``it``) are not run until the plugin (and app, if started) are fully
+loaded, so they should be defined directly inside a suite (defined with ``describe``) at the
+top-level.
+
 For example, the cats plugin would define tests in a ``plugin_tests/catSpec.js`` file, like:
 
 .. code-block:: javascript
 
     girderTest.importPlugin('cats');
+    girderTest.startApp();
+
+    describe("Test the cats plugin", function() {
+        it("tests some new functionality", function() {
+            ...
+        });
+    });
+
 
 Using External Data Artifacts
 *****************************
