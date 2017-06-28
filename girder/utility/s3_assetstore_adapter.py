@@ -572,9 +572,8 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
         }
 
     if service:
-        serviceRe = re.match('^((https?)://)?([^:/]+)(:([0-9]+))?$', service)
-        if serviceRe.groups()[1] == 'http':
-            params['use_ssl'] = False
+        if not service.startswith('http://') and not service.startswith('https://'):
+            service = 'https://' + service
         params['endpoint_url'] = service
 
     # TODO(zach) region parameter? Might not be necessary
