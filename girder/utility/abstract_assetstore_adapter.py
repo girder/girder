@@ -63,11 +63,12 @@ class FileHandle(object):
         :param size: The number of bytes to read from the current position. The
             actual number returned could be less than this if the end of the
             file is reached. An empty response indicates that the file has been
-            completely consumed.  If None, read to the end of the file.
+            completely consumed.  If None or negative, read to the end of the
+            file.
         :type size: int
         :rtype: bytes
         """
-        if size is None:
+        if size is None or size < 0:
             size = self._file['size'] - self._pos
         data = six.BytesIO()
         length = 0
