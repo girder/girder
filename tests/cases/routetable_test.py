@@ -49,7 +49,7 @@ class RouteTableTestCase(base.TestCase):
             'value': json.dumps({})
         }, method='PUT', user=self.admin)
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'Girder and static root must be routeable.')
+        self.assertEqual(resp.json['message'], 'Girder and static root must be routable.')
 
         # Test static not having a route
         resp = self.request('/system/setting', params={
@@ -57,7 +57,7 @@ class RouteTableTestCase(base.TestCase):
             'value': json.dumps({GIRDER_ROUTE_ID: '/'})
         }, method='PUT', user=self.admin)
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'Girder and static root must be routeable.')
+        self.assertEqual(resp.json['message'], 'Girder and static root must be routable.')
 
         # Test duplicate routes
         resp = self.request('/system/setting', params={

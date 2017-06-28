@@ -317,7 +317,7 @@ class Setting(Model):
         nonEmptyRoutes = [route for route in doc['value'].values() if route]
         for key in [GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID]:
             if key not in doc['value'] or not doc['value'][key]:
-                raise ValidationException('Girder and static root must be routeable.')
+                raise ValidationException('Girder and static root must be routable.')
 
         for key in doc['value']:
             if (key != GIRDER_STATIC_ROUTE_ID and doc['value'][key] and

@@ -5,15 +5,15 @@ get_filename_component(_pluginName "${CMAKE_CURRENT_LIST_DIR}" NAME)
 
 add_web_client_test(widgets "${_pluginDir}/plugin_tests/widgetsSpec.js" PLUGIN ${_pluginName})
 add_web_client_test(tasks "${_pluginDir}/plugin_tests/tasksSpec.js" PLUGIN ${_pluginName}
-    SETUP_MODULES "${_pluginDir}/plugin_tests/mock_worker.py")
+  SETUP_MODULES "${_pluginDir}/plugin_tests/mock_worker.py")
 
 # run this test serially to avoid event stream timeouts on CI
 if (BUILD_JAVASCRIPT_TESTS)
-    set_property(TEST web_client_item_tasks.tasks PROPERTY RUN_SERIAL ON)
+  set_property(TEST web_client_item_tasks.tasks PROPERTY RUN_SERIAL ON)
 endif()
 
 add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests/plugin_tests"
-    ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc.json")
+  ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc.json")
 
 if(ANSIBLE_TESTS)
   find_program(VAGRANT_EXECUTABLE vagrant)

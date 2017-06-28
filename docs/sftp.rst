@@ -23,4 +23,3 @@ not pass an explicit path to an RSA private key file, the service will look for 
 
 You can control the port on which the server binds by passing a ``-p <port>`` argument to the
 server CLI. The default port is 8022.
-

@@ -117,7 +117,7 @@ class InstallTestCase(base.TestCase):
             force=True, skip_requirements=True,
             plugin=[os.path.join(pluginRoot, 'has_deps')]))
 
-        # If bad path is given, should fail gracefuly
+        # If bad path is given, should fail gracefully
         with six.assertRaisesRegex(self, Exception, 'Invalid plugin directory'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 '/bad/install/path'
@@ -189,7 +189,7 @@ class InstallTestCase(base.TestCase):
             os.path.join(pluginRoot, 'has_grunt_deps')
         ]))
 
-        # If bad path is given, should fail gracefuly
+        # If bad path is given, should fail gracefully
         with six.assertRaisesRegex(self, Exception, 'Invalid plugin directory'):
             install.install_plugin(PluginOpts(force=True, plugin=[
                 '/bad/install/path'

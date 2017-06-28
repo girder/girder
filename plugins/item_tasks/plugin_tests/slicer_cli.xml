@@ -8,7 +8,7 @@
   </description>
   <version>1.0</version>
   <license>Apache 2.0</license>
-  <contributor>Dženan Zukić</contributor>
+  <contributor>Girder Developers</contributor>
   <acknowledgements>
   </acknowledgements>
   <parameters>
@@ -81,7 +81,7 @@
       <longflag>DetectedPoints</longflag>
       <label>DetectedPoints</label>
       <channel>output</channel>
-      <description>Fiducual points, one for each detected sphere. Will be multiple of 3.</description>
+      <description>Fiducial points, one for each detected sphere. Will be multiple of 3.</description>
     </pointfile>
   </parameters>
 </executable>

@@ -23,13 +23,13 @@ not be moved.  The following command will generate a new directory called
 
    virtualenv ~/girder_env
 
-Enter the virtual environment: 
+Enter the virtual environment:
 
 .. code-block:: none
 
    . ~/girder_env/bin/activate
-   
-The ``(girder_env)`` prepended to your prompt indicates you have *entered* 
+
+The ``(girder_env)`` prepended to your prompt indicates you have *entered*
 the virtual environment. Inside the virtual environment you can use ``pip``,
 ``python``, and any other python script installed in your path as usual.
 You can exit the virtual environment by running the shell function
@@ -91,7 +91,7 @@ support for the `celery_jobs` and `geospatial` plugins can be done like this: ::
 
    pip install girder[celery_jobs,geospatial]
 
-There is also an extra you can use to install the depencies for all bundled
+There is also an extra you can use to install the dependencies for all bundled
 plugins supported in the current python environment called ``plugins``: ::
 
    pip install girder[plugins]
