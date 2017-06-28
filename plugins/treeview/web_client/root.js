@@ -41,7 +41,7 @@ export default function (settings = {}) {
                 if (node.id === '#') {
                     cb(rootDocs);
                 } else {
-                    children(node.original).then(cb);
+                    children(node.original).then(cb); // eslint-disable-line promise/no-nesting
                 }
             };
         });

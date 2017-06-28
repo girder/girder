@@ -85,9 +85,9 @@ describe('builtin types', function () {
         var called = false;
         var failed = false;
         runs(function () {
-            func().then(function () {
+            func().done(function () {
                 called = true;
-            }, function () {
+            }).fail(function () {
                 console.log('failed');
                 failed = true;
             });
@@ -125,7 +125,7 @@ describe('builtin types', function () {
 
         asyncCall(function () {
             return treeview.types.load(doc)
-                .then(function (node) {
+                .done(function (node) {
                     expect(node.parent).toBe('#');
                     expect(node.children).toBe(true);
                     expect(node.text).toBe('Collections');
@@ -134,7 +134,7 @@ describe('builtin types', function () {
 
         asyncCall(function () {
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(parent).toBe(null);
                 });
         });
@@ -142,7 +142,7 @@ describe('builtin types', function () {
         asyncCall(function () {
             response = [];
             return treeview.types.children(doc)
-                .then(function (children) {
+                .done(function (children) {
                     expect(children).toEqual([]);
                     expect(lastRequest.path).toBe('collection');
                 });
@@ -157,7 +157,7 @@ describe('builtin types', function () {
 
         asyncCall(function () {
             return treeview.types.load(doc)
-                .then(function (node) {
+                .done(function (node) {
                     expect(node.parent).toBe('#');
                     expect(node.children).toBe(true);
                     expect(node.text).toBe('Users');
@@ -166,7 +166,7 @@ describe('builtin types', function () {
 
         asyncCall(function () {
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(parent).toBe(null);
                 });
         });
@@ -174,7 +174,7 @@ describe('builtin types', function () {
         asyncCall(function () {
             response = [];
             return treeview.types.children(doc)
-                .then(function (children) {
+                .done(function (children) {
                     expect(children).toEqual([]);
                     expect(lastRequest.path).toBe('user');
                 });
@@ -195,7 +195,7 @@ describe('builtin types', function () {
         asyncCall(function () {
             response = doc.model;
             return treeview.types.load(doc)
-                .then(function (node) {
+                .done(function (node) {
                     expect(node.parent).toBe('#');
                     expect(node.children).toBe(true);
                     expect(node.text).toBe('Home');
@@ -204,7 +204,7 @@ describe('builtin types', function () {
 
         asyncCall(function () {
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(parent).toBe(null);
                 });
         });
@@ -212,7 +212,7 @@ describe('builtin types', function () {
         asyncCall(function () {
             response = [];
             return treeview.types.children(doc)
-                .then(function (children) {
+                .done(function (children) {
                     expect(children).toEqual([]);
                     expect(lastRequest.path).toBe('folder');
                     expect(lastRequest.data.parentType).toBe('user');
@@ -235,7 +235,7 @@ describe('builtin types', function () {
         asyncCall(function () {
             response = doc.model;
             return treeview.types.load(doc)
-                .then(function (node) {
+                .done(function (node) {
                     expect(node.parent).toBe('#users');
                     expect(node.children).toBe(true);
                     expect(node.text).toBe('login');
@@ -244,7 +244,7 @@ describe('builtin types', function () {
 
         asyncCall(function () {
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(parent.type).toBe('users');
                 });
         });
@@ -252,7 +252,7 @@ describe('builtin types', function () {
         asyncCall(function () {
             response = [];
             return treeview.types.children(doc)
-                .then(function (children) {
+                .done(function (children) {
                     expect(children).toEqual([]);
                     expect(lastRequest.path).toBe('folder');
                     expect(lastRequest.data.parentType).toBe('user');
@@ -273,7 +273,7 @@ describe('builtin types', function () {
             });
 
             return treeview.types.load(doc)
-                .then(function (node) {
+                .done(function (node) {
                     expect(lastRequest.path).toBe('collection/' + doc.id);
                     expect(node.parent).toBe('#collections');
                     expect(node.children).toBe(true);
@@ -283,7 +283,7 @@ describe('builtin types', function () {
 
         asyncCall(function () {
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(parent.type).toBe('collections');
                 });
         });
@@ -291,7 +291,7 @@ describe('builtin types', function () {
         asyncCall(function () {
             response = [];
             return treeview.types.children(doc)
-                .then(function (children) {
+                .done(function (children) {
                     expect(children).toEqual([]);
                     expect(lastRequest.path).toBe('folder');
                     expect(lastRequest.data.parentType).toBe('collection');
@@ -321,7 +321,7 @@ describe('builtin types', function () {
             });
 
             return treeview.types.load(doc)
-                .then(function (node) {
+                .done(function (node) {
                     expect(lastRequest.path).toBe('folder/' + doc.id);
                     expect(node.parent).toBe('ca');
                     expect(node.children).toBe(true);
@@ -336,7 +336,7 @@ describe('builtin types', function () {
                 name: 'parent'
             };
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(lastRequest.path).toBe('collection/' + doc.model.parentId);
                     expect(parent.type).toBe('collection');
                 });
@@ -351,7 +351,7 @@ describe('builtin types', function () {
             doc.model.parentCollection = 'user';
 
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(lastRequest.path).toBe('user/' + doc.model.parentId);
                     expect(parent.type).toBe('user');
                 });
@@ -366,7 +366,7 @@ describe('builtin types', function () {
             doc.model.parentCollection = 'folder';
 
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(lastRequest.path).toBe('folder/' + doc.model.parentId);
                     expect(parent.type).toBe('folder');
                 });
@@ -394,7 +394,7 @@ describe('builtin types', function () {
             };
             response = [];
             return treeview.types.children(doc)
-                .then(function (children) {
+                .done(function (children) {
                     var child;
                     expect(children.length).toBe(2);
 
@@ -425,7 +425,7 @@ describe('builtin types', function () {
             response = _.extend({}, doc.model);
 
             return treeview.types.load(doc)
-                .then(function (node) {
+                .done(function (node) {
                     expect(lastRequest.path).toBe('item/' + doc.id);
                     expect(node.parent).toBe('folder');
                     expect(node.children).toBe(true);
@@ -440,7 +440,7 @@ describe('builtin types', function () {
                 name: 'parent'
             };
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(lastRequest.path).toBe('folder/' + doc.model.folderId);
                     expect(parent.type).toBe('folder');
                     expect(parent.id).toBe(doc.model.folderId);
@@ -450,7 +450,7 @@ describe('builtin types', function () {
         asyncCall(function () {
             response = [];
             return treeview.types.children(doc)
-                .then(function (children) {
+                .done(function (children) {
                     expect(children).toEqual([]);
                     expect(lastRequest.path).toBe('item/' + doc.id + '/files');
                 });
@@ -476,7 +476,7 @@ describe('builtin types', function () {
             response = _.extend({}, doc.model);
 
             return treeview.types.load(doc)
-                .then(function (node) {
+                .done(function (node) {
                     expect(lastRequest.path).toBe('file/' + doc.id);
                     expect(node.parent).toBe('item');
                     expect(!node.children).toBe(true);
@@ -491,7 +491,7 @@ describe('builtin types', function () {
                 name: 'parent'
             };
             return treeview.types.parent(doc)
-                .then(function (parent) {
+                .done(function (parent) {
                     expect(lastRequest.path).toBe('item/' + doc.model.itemId);
                     expect(parent.type).toBe('item');
                     expect(parent.id).toBe(doc.model.itemId);
@@ -500,7 +500,7 @@ describe('builtin types', function () {
 
         asyncCall(function () {
             return treeview.types.children(doc)
-                .then(function (children) {
+                .done(function (children) {
                     expect(children).toEqual([]);
                 });
         });
