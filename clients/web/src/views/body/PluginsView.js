@@ -58,6 +58,7 @@ var PluginsView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
+            this.cherrypyServer = settings.cherrypyServer || true;
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.failed = _.has(settings, 'failed') ? settings.failed : null;
@@ -128,7 +129,11 @@ var PluginsView = View.extend({
                   }
               }
               $('button.g-rebuild-and-restart').addClass('btn-danger');
-              $('.g-plugin-rebuild-restart-text').addClass('show');
+
+              if (view.cherrypyServer === true) {
+                  $('.g-plugin-rebuild-restart-text').addClass('show');
+              }
+
               view._updatePlugins();
           });
         this.$('.g-plugin-config-link').tooltip({
