@@ -25,14 +25,10 @@ var webpackGlobalConfig = require('./webpack.config.js');
 var paths = require('./webpack.paths.js');
 
 module.exports = function (grunt) {
-    var environment = grunt.option('env') || 'dev';
     var progress = !grunt.option('no-progress');
-
+    var environment = grunt.config.get('environment');
     var webpackConfig = _.extend({}, webpackGlobalConfig);
 
-    if (['dev', 'prod'].indexOf(environment) === -1) {
-        grunt.fatal('The "env" argument must be either "dev" or "prod".');
-    }
     var isDev = environment === 'dev';
     if (!process.env.BABEL_ENV) {
         process.env.BABEL_ENV = environment;

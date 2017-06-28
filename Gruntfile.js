@@ -47,10 +47,16 @@ function sortTasks(obj) {
 module.exports = function (grunt) {
     var fs = require('fs');
     var isSourceBuild = fs.existsSync('girder/__init__.py');
+    var environment = grunt.option('env') || 'dev';
     require('colors');
+
+    if (['dev', 'prod'].indexOf(environment) === -1) {
+        grunt.fatal('The "env" argument must be either "dev" or "prod".');
+    }
 
     // Project configuration.
     grunt.config.init({
+        environment: environment,
         pkg: grunt.file.readJSON('package.json'),
         pluginDir: 'plugins',
         staticDir: 'clients/web/static',
