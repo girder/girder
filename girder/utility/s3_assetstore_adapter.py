@@ -44,6 +44,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     HMAC_TTL = 120  # Number of seconds each signed message is valid
 
     @staticmethod
+    def _s3Client(connectParams):
+        try:
+            return boto3.client('s3', **connectParams)
+        except Exception:
+            logger.exception('S3 assetstore validation exception')
+            raise ValidationException('Unable to connect to S3 assetstore')
+
+    @staticmethod
     def validateInfo(doc):
         """
         Makes sure the root field is a valid absolute path and is writeable.
@@ -63,7 +71,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 raise ValidationException(
                     'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
         params = makeBotoConnectParams(doc['accessKeyId'], doc['secret'], doc['service'])
-        client = _botoS3(params)
+        client = S3AssetstoreAdapter._s3Client(params)
         if doc.get('readOnly'):
             try:
                 client.head_bucket(Bucket=doc['bucket'])
@@ -90,6 +98,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             self.connectParams = makeBotoConnectParams(
                 self.assetstore['accessKeyId'], self.assetstore['secret'],
                 self.assetstore['service'])
+            self.client = S3AssetstoreAdapter._s3Client(self.connectParams)
 
     def _getRequestHeaders(self, upload):
         return {
@@ -112,7 +121,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             None, (self.assetstore.get('prefix', ''), uid[:2], uid[2:4], uid)))
         path = '/%s/%s' % (self.assetstore['bucket'], key)
         chunked = upload['size'] > self.CHUNK_LEN
-        client = _botoS3(self.connectParams)
         headers = self._getRequestHeaders(upload)
         params = {
             'Bucket': self.assetstore['bucket'],
@@ -145,7 +153,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             method = 'put_object'
             params['ContentLength'] = upload['size']
 
-        requestInfo['url'] = client.generate_presigned_url(ClientMethod=method, Params=params)
+        requestInfo['url'] = self.client.generate_presigned_url(ClientMethod=method, Params=params)
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -182,8 +190,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if length <= 0:
             raise ValidationException('Invalid chunk length %d.' % length)
 
-        client = _botoS3(self.connectParams)
-        url = client.generate_presigned_url(ClientMethod='upload_part', Params={
+        url = self.client.generate_presigned_url(ClientMethod='upload_part', Params={
             'Bucket': self.assetstore['bucket'],
             'Key': upload['s3']['key'],
             'ContentLength': length,
@@ -206,14 +213,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         this method by sending the chunk data as they normally would for other
         assetstore types. Girder will send the data to S3 on behalf of the client.
         """
-        client = _botoS3(self.connectParams)
-
         if upload['s3']['chunked']:
             if 'uploadId' not in upload['s3']:
                 # Initiate a new multipart upload if this is the first chunk
                 disp = 'attachment; filename="%s"' % upload['name']
                 mime = upload.get('mimeType', '')
-                mp = client.create_multipart_upload(
+                mp = self.client.create_multipart_upload(
                     Bucket=self.assetstore['bucket'], Key=upload['s3']['key'],
                     ACL='private', ContentDisposition=disp, ContentType=mime,
                     Metadata={
@@ -232,7 +237,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             # We can't just call upload_part directly because they require a
             # seekable file object, and ours isn't.
-            url = client.generate_presigned_url(ClientMethod='upload_part', Params={
+            url = self.client.generate_presigned_url(ClientMethod='upload_part', Params={
                 'Bucket': self.assetstore['bucket'],
                 'Key': upload['s3']['key'],
                 'ContentLength': size,
@@ -275,8 +280,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'You should not call requestOffset on a chunked direct-to-S3 upload.')
 
         headers = self._getRequestHeaders(upload)
-        client = _botoS3(self.connectParams)
-        url = client.generate_presigned_url(ClientMethod='put_object', Params={
+        url = self.client.generate_presigned_url(ClientMethod='put_object', Params={
             'Bucket': self.assetstore['bucket'],
             'Key': upload['s3']['key'],
             'ACL': headers['x-amz-acl'],
@@ -304,22 +308,20 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         file['s3Key'] = upload['s3']['key']
 
         if upload['s3']['chunked']:
-            client = _botoS3(self.connectParams)
-
             if upload['received'] > 0:
                 # We proxied the data to S3
-                parts = client.list_parts(
+                parts = self.client.list_parts(
                     Bucket=self.assetstore['bucket'], Key=file['s3Key'],
                     UploadId=upload['s3']['uploadId'])
                 parts = [{
                     'ETag': part['ETag'],
                     'PartNumber': part['PartNumber']
                 } for part in parts.get('Parts', [])]
-                client.complete_multipart_upload(
+                self.client.complete_multipart_upload(
                     Bucket=self.assetstore['bucket'], Key=file['s3Key'],
                     UploadId=upload['s3']['uploadId'], MultipartUpload={'Parts': parts})
             else:
-                url = client.generate_presigned_url(
+                url = self.client.generate_presigned_url(
                     ClientMethod='complete_multipart_upload', Params={
                         'Bucket': self.assetstore['bucket'],
                         'Key': upload['s3']['key'],
@@ -356,8 +358,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if contentDisposition == 'inline' and not file.get('imported'):
             params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
 
-        url = _botoS3(self.connectParams).generate_presigned_url(
-            ClientMethod='get_object', Params=params)
+        url = self.client.generate_presigned_url(ClientMethod='get_object', Params=params)
 
         if headers:
             raise cherrypy.HTTPRedirect(url)
@@ -369,15 +370,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                         yield chunk
             return stream
 
-    def importData(self, parent, parentType, params, progress, user, client=None, **kwargs):
+    def importData(self, parent, parentType, params, progress, user, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
 
         if importPath and not importPath.endswith('/'):
             importPath += '/'
 
-        client = client or _botoS3(self.connectParams)
         bucket = self.assetstore['bucket']
-        resp = client.list_objects(Bucket=bucket, Prefix=importPath, Delimiter='/')
+        resp = self.client.list_objects(Bucket=bucket, Prefix=importPath, Delimiter='/')
 
         # Start with objects
         for obj in resp.get('Contents', []):
@@ -414,7 +414,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 reuseExisting=True)
             self.importData(parent=folder, parentType='folder', params={
                 'importPath': obj['Prefix']
-            }, progress=progress, user=user, client=client, **kwargs)
+            }, progress=progress, user=user, **kwargs)
 
     def deleteFile(self, file):
         """
@@ -433,7 +433,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             matching = self.model('file').find(q, limit=2, fields=[])
             if matching.count(True) == 1:
                 events.daemon.trigger('_s3_assetstore_delete_file', {
-                    'connectParams': self.connectParams,
+                    'client': self.client,
                     'bucket': self.assetstore['bucket'],
                     'key': file['s3Key']
                 })
@@ -447,10 +447,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if file.get('imported'):
             return
 
-        client = _botoS3(self.connectParams)
         bucket = self.assetstore['bucket']
         try:
-            key = client.head_object(Bucket=bucket, Key=file['s3Key'])
+            key = self.client.head_object(Bucket=bucket, Key=file['s3Key'])
         except botocore.exceptions.ClientError:
             return
 
@@ -458,7 +457,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         mime = file.get('mimeType') or ''
 
         if key['ContentType'] != mime or key['ContentDisposition'] != disp:
-            client.copy_object(
+            self.client.copy_object(
                 Bucket=bucket, Key=file['s3Key'], Metadata=key['Metadata'],
                 CopySource={'Bucket': bucket, 'Key': file['s3Key']}, ContentDisposition=disp,
                 ContentType=mime, MetadataDirective='REPLACE')
@@ -471,14 +470,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return
         bucket = self.assetstore['bucket']
         key = upload['s3']['key']
-
-        client = _botoS3(self.connectParams)
-        client.delete_object(Bucket=bucket, Key=key)
+        self.client.delete_object(Bucket=bucket, Key=key)
 
         # check if this is an abandoned multipart upload
         if 'uploadId' in upload['s3']:
             try:
-                client.abort_multipart_upload(
+                self.client.abort_multipart_upload(
                     Bucket=bucket, Key=key, UploadId=upload['s3']['uploadId'])
             except botocore.exceptions.ClientError:
                 pass
@@ -507,10 +504,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         bucket = self.assetstore['bucket']
         getParams = {'Bucket': bucket}
-        client = _botoS3(self.connectParams)
 
         while True:
-            multipartUploads = client.list_multipart_uploads(**getParams)
+            multipartUploads = self.client.list_multipart_uploads(**getParams)
             if not multipartUploads.get('Uploads'):
                 break
             for upload in multipartUploads['Uploads']:
@@ -530,7 +526,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     }
                 })
                 if delete:
-                    client.abort_multipart_upload(
+                    self.client.abort_multipart_upload(
                         Bucket=bucket, Key=upload['Key'], UploadId=upload['UploadId'])
             if not multipartUploads['IsTruncated']:
                 break
@@ -553,20 +549,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                         multipartUpload['Key'] == upload['s3']['key']):
                     return True
         return False
-
-
-def _botoS3(connectParams):
-    """
-    Get a connection to the S3 server using the given connection params.
-
-    :param connectParams: Kwargs to pass to the client constructor.
-    :type connectParams: dict
-    """
-    try:
-        return boto3.client('s3', **connectParams)
-    except Exception:
-        logger.exception('S3 assetstore validation exception')
-        raise ValidationException('Unable to connect to S3 assetstore')
 
 
 def makeBotoConnectParams(accessKeyId, secret, service=None):
@@ -600,8 +582,7 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
 
 
 def _deleteFileImpl(event):
-    _botoS3(event.info['connectParams']).delete_object(
-        Bucket=event.info['bucket'], Key=event.info['key'])
+    event.info['client'].delete_object(Bucket=event.info['bucket'], Key=event.info['key'])
 
 
 events.bind('_s3_assetstore_delete_file', '_s3_assetstore_delete_file', _deleteFileImpl)
