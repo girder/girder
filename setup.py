@@ -61,7 +61,7 @@ with open('README.rst') as f:
 
 install_reqs = [
     'bcrypt',
-    'boto',
+    'boto3',
     'CherryPy',
     'filelock',
     'jsonschema',
