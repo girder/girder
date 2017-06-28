@@ -93,8 +93,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type contentDisposition: str or None
         :type extraParameters: str or None
         """
-        info = {'file': file, 'startByte': offset, 'endByte': endByte}
-        events.trigger('model.file.download.request', info=info)
+        events.trigger('model.file.download.request', info={
+            'file': file, 'startByte': offset, 'endByte': endByte})
 
         if file.get('assetstoreId'):
             try:
@@ -107,17 +107,20 @@ class File(acl_mixin.AccessControlMixin, Model):
                     for data in fileDownload():
                         yield data
                     if endByte is None or endByte >= file['size']:
-                        info['redirect'] = False
-                        events.trigger('model.file.download.complete', info=info)
+                        events.trigger('model.file.download.complete', info={
+                            'file': file, 'startByte': offset,
+                            'endByte': endByte, 'redirect': False})
                 return downloadGenerator
             except cherrypy.HTTPRedirect:
-                info['redirect'] = True
-                events.trigger('model.file.download.complete', info=info)
+                events.trigger('model.file.download.complete', info={
+                    'file': file, 'startByte': offset, 'endByte':
+                    endByte, 'redirect': True})
                 raise
         elif file.get('linkUrl'):
             if headers:
-                info['redirect'] = True
-                events.trigger('model.file.download.complete', info=info)
+                events.trigger('model.file.download.complete', info={
+                    'file': file, 'startByte': offset, 'endByte':
+                    endByte, 'redirect': True})
                 raise cherrypy.HTTPRedirect(file['linkUrl'])
             else:
                 endByte = endByte or len(file['linkUrl'])
@@ -125,8 +128,9 @@ class File(acl_mixin.AccessControlMixin, Model):
                 def stream():
                     yield file['linkUrl'][offset:endByte]
                     if endByte >= len(file['linkUrl']):
-                        info['redirect'] = False
-                        events.trigger('model.file.download.complete', info=info)
+                        events.trigger('model.file.download.complete', info={
+                            'file': file, 'startByte': offset, 'endByte':
+                            endByte, 'redirect': False})
                 return stream
         else:  # pragma: no cover
             raise Exception('File has no known download mechanism.')
