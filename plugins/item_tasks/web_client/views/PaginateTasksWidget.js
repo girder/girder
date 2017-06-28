@@ -48,7 +48,6 @@ var PaginateTasksWidget = View.extend({
         }));
 
         this.paginateWidget.setElement(this.$('.g-task-pagination')).render();
-
         return this;
     }
 });

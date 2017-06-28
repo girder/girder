@@ -11,13 +11,13 @@ block input
 
     // different behavior for different types of inputs
     if type === 'file'
-      +input(title, type, id, name)(placeholder='Choose a file...', readonly=true)
+      +input(title, type, id, name)(placeholder='Choose an item...', readonly=true)
 
     else if type === 'directory'
       +input(title, type, id, name)(placeholder='Choose a folder...', readonly=true)
 
     else if type === 'new-file'
-      +input(title, type, id, fileName)(placeholder='Choose a file...', readonly=true)
+      +input(title, type, id, fileName)(placeholder='Choose an item...', readonly=true)
 
     span.input-group-btn
       button.btn.btn-default.g-select-file-button(type='button')
