@@ -65,3 +65,50 @@
       root: "{{ ansible_user_dir }}/assetstore"
       current: true
     state: present
+
+- name: Get Me
+  girder:
+    username: "girder"
+    password: "girder"
+    get:
+      path: "user/me"
+  register: token_ret
+
+- name: Get my public folder
+  girder:
+    username: "girder"
+    password: "girder"
+    get:
+      path: "folder"
+      parameters:
+        parentType: "user"
+        parentId: "{{ token_ret['gc_return']['_id'] }}"
+        text: "Public"
+  register: public_folder_ret
+
+- set_fact:
+    public_folder_id: "{{ public_folder_ret['gc_return'][0]['_id'] }}"
+
+- name: Load DockerHub images into item_tasks
+  girder:
+    username: "girder"
+    password: "girder"
+    post:
+      path: "item_task/{{ public_folder_id }}/json_description"
+      parameters:
+        image: "{{ item }}"
+  with_items: "{{ item_tasks_dockerhub_images }}"
+  register: job_return
+
+- name: Wait for Dockerhub images to be ingested successfully as item_tasks
+  girder:
+    username: 'girder'
+    password: 'girder'
+    get:
+      path: "job/{{ item['gc_return']['_id'] }}"
+  register: job_result
+  when: job_return
+  until: job_result['gc_return']['status'] == 3
+  retries: 5
+  delay: 10
+  with_items: "{{ job_return['results'] }}"

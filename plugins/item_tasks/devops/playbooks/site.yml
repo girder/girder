@@ -1,7 +1,7 @@
 - hosts: all
 
   vars:
-    girder_update: no
+    girder_update: yes
     girder_force: no
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
     girder_enabled_plugins:
@@ -14,6 +14,9 @@
     girder_worker_plugins:
       - docker
       - girder_io
+
+    # Images to pull/import into item_tasks (from Dockerhub)
+    item_tasks_dockerhub_images: []
 
   pre_tasks:
 
