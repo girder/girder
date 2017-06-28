@@ -60,7 +60,7 @@
         "webpack": "2.2.1"
     },
     "devDependencies": {
-        "babel-plugin-istanbul": "^2.0.1",
+        "babel-plugin-istanbul": "^4.1.4",
         "core-js": "^2.4.1",
         "esdoc": "^0.5.2",
         "eslint": "^3.19.0",
