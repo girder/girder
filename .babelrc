@@ -1,0 +1,10 @@
+{
+  "env": {
+    "cover": {
+      "plugins": [[
+        "babel-plugin-istanbul",
+        {"include": ["**/clients/web/src/**/*.js", "**/plugins/*/web_client/**/*.js"]}
+      ]],
+    }
+  }
+}
