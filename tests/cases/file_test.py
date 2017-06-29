@@ -341,16 +341,20 @@ class FileTestCase(base.TestCase):
             buf = _readFile(handle)
             self.assertEqual(buf, contents[4:])
 
-            handle.seek(2, os.SEEK_END)
+            handle.seek(-2, os.SEEK_END)
             buf = _readFile(handle)
             self.assertEqual(buf, contents[-2:])
+
+            handle.seek(2, os.SEEK_END)
+            buf = _readFile(handle)
+            self.assertEqual(buf, b'')
 
             # Read without a length parameter
             handle.seek(0, os.SEEK_SET)
             buf = handle.read()
             self.assertEqual(buf, contents)
 
-            handle.seek(2, os.SEEK_END)
+            handle.seek(-2, os.SEEK_END)
             buf = handle.read()
             self.assertEqual(buf, contents[-2:])
 
@@ -359,7 +363,7 @@ class FileTestCase(base.TestCase):
             buf = handle.read(-1)
             self.assertEqual(buf, contents)
 
-            handle.seek(2, os.SEEK_END)
+            handle.seek(-2, os.SEEK_END)
             buf = handle.read(-5)
             self.assertEqual(buf, contents[-2:])
 
@@ -370,7 +374,7 @@ class FileTestCase(base.TestCase):
                 self.assertRaises(GirderException, handle.read, 7)
                 handle.seek(0, os.SEEK_SET)
                 self.assertRaises(GirderException, handle.read)
-                handle.seek(2, os.SEEK_END)
+                handle.seek(-2, os.SEEK_END)
                 buf = handle.read()
                 self.assertEqual(buf, contents[-2:])
 
