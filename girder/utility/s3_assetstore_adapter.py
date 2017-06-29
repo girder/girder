@@ -552,21 +552,6 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return False
 
 
-<<<<<<< HEAD
-def _botoS3(connectParams):
-    """
-    Get a connection to the S3 server using the given connection params.
-
-    :param connectParams: Kwargs to pass to the client constructor.
-    :type connectParams: dict
-    """
-    try:
-        return boto3.client('s3', **connectParams)
-    except Exception:
-        logger.exception('S3 assetstore validation exception')
-        raise ValidationException('Unable to connect to S3 assetstore')
-
-
 def makeBotoConnectParams(accessKeyId, secret, service=None, region=None):
     """
     Create a dictionary of values to pass to the boto connect_s3 function.
