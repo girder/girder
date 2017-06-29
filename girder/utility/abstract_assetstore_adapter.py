@@ -21,7 +21,7 @@ import six
 
 from girder.api.rest import setResponseHeader
 from girder.constants import SettingKey
-from girder.models.model_base import ValidationException
+from girder.models.model_base import GirderException, ValidationException
 from girder.utility import progress, RequestBodyStream
 from .model_importer import ModelImporter
 
@@ -47,6 +47,9 @@ class FileHandle(object):
         self._file = file
         self._adapter = adapter
         self._pos = None
+        # If a read is requested that is longer than the specified size, raise
+        # an exception.  This prevents unbounded memory use.
+        self._maximumReadSize = 16 * 1024 * 1024
 
         self.seek(0)
 
@@ -70,6 +73,8 @@ class FileHandle(object):
         """
         if size is None or size < 0:
             size = self._file['size'] - self._pos
+        if size > self._maximumReadSize:
+            raise GirderException('Read exceeds maximum allowed size.')
         data = six.BytesIO()
         length = 0
         for chunk in itertools.chain(self._prev, self._stream):

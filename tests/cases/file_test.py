@@ -33,7 +33,7 @@ from .. import base, mock_s3
 from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
-from girder.models.model_base import AccessException
+from girder.models.model_base import AccessException, GirderException
 from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
@@ -354,7 +354,7 @@ class FileTestCase(base.TestCase):
             buf = handle.read()
             self.assertEqual(buf, contents[-2:])
 
-            # Read without a negative length parametera
+            # Read with a negative length parameter
             handle.seek(0, os.SEEK_SET)
             buf = handle.read(-1)
             self.assertEqual(buf, contents)
@@ -362,6 +362,17 @@ class FileTestCase(base.TestCase):
             handle.seek(2, os.SEEK_END)
             buf = handle.read(-5)
             self.assertEqual(buf, contents[-2:])
+
+            # Read too many bytes on files long enough to test
+            if len(contents) > 6:
+                handle._maximumReadSize = 6
+                handle.seek(0, os.SEEK_SET)
+                self.assertRaises(GirderException, handle.read, 7)
+                handle.seek(0, os.SEEK_SET)
+                self.assertRaises(GirderException, handle.read)
+                handle.seek(2, os.SEEK_END)
+                buf = handle.read()
+                self.assertEqual(buf, contents[-2:])
 
     def _testDownloadFolder(self):
         """
