@@ -111,7 +111,7 @@ class FileHandle(object):
         elif whence == os.SEEK_CUR:
             self._pos += offset
         elif whence == os.SEEK_END:
-            self._pos = max(self._file['size'] - offset, 0)
+            self._pos = max(self._file['size'] + offset, 0)
 
         if self._pos != oldPos:
             self._prev = []
