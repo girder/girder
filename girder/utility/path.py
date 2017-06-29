@@ -44,7 +44,7 @@ def encode(token):
 
 
 def decode(token):
-    """Unescape special characters in a token from a path representation.
+    """Un-escape special characters in a token from a path representation.
 
     :param str token: The token to decode
     :return: The decoded string

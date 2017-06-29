@@ -1,26 +1,26 @@
 [
-  {
-    "name": "Task 1",
-    "description": "Task 1 description",
-    "mode": "docker",
-    "inputs": [
-      {
-        "id": "dummy_input",
-        "name": "Dummy input",
-        "description": "Dummy input flag",
-        "type": "boolean",
-        "default": {
-          "data": true
-        }
-      }
-    ],
-    "outputs": []
-  },
-  {
-    "name": "Task 2",
-    "description": "Task 2 description",
-    "mode": "docker",
-    "inputs": [],
-    "outputs": []
-  }
+    {
+        "name": "Task 1",
+        "description": "Task 1 description",
+        "mode": "docker",
+        "inputs": [
+            {
+                "id": "dummy_input",
+                "name": "Dummy input",
+                "description": "Dummy input flag",
+                "type": "boolean",
+                "default": {
+                    "data": true
+                }
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "name": "Task 2",
+        "description": "Task 2 description",
+        "mode": "docker",
+        "inputs": [],
+        "outputs": []
+    }
 ]

@@ -17,7 +17,7 @@ Vagrant.configure("2") do |config|
   $script = <<SCRIPT
 if [ -f ~/vagrant_provisioned_date ]; then
     echo Already provisioned.
-else 
+else
 
 
 echo Starting provisioning.

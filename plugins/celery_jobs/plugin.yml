@@ -2,4 +2,4 @@ name: Celery jobs
 description: Schedules jobs for execution using celery.
 version: 1.0.0
 dependencies:
-    - jobs
+  - jobs

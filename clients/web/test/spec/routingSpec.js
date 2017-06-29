@@ -1,6 +1,3 @@
-/**
- * Start the girder backbone app.
- */
 girderTest.startApp();
 
 function _getFirstId(Collection, ids, key, fetchParamsFunc) {

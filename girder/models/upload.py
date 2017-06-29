@@ -255,7 +255,7 @@ class Upload(Model):
 
         :param modelType: the type of the resource that will be stored.
         :param resource: the resource to be stored.
-        :param assetstore: if specified, the prefered assetstore where the
+        :param assetstore: if specified, the preferred assetstore where the
             resource should be located.  This may be overridden.
         :returns: the selected assetstore.
         """

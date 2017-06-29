@@ -1,7 +1,7 @@
 This Vagrantfile creates a virtualbox with a mongo sharded server with two
 sharts each consisting of a three-server replica set.  This is organized as six
 six docker containers for the replica sets (three for each), three docker
-containers with the configuration servers, and one docker container with the 
+containers with the configuration servers, and one docker container with the
 shard handler.  The main server is exposed internally on port 27017 and is
 forwarded outside of the virtualbox on port 27050.
 

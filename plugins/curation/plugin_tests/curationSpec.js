@@ -1,5 +1,4 @@
 girderTest.importPlugin('curation');
-
 girderTest.startApp();
 
 function _goToCurationDialog() {

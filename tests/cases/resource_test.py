@@ -239,7 +239,7 @@ class ResourceTestCase(base.TestCase):
                     expected = expected.encode('utf8')
                 self.assertEqual(expected, zip.read(name))
         # Download the same resources again, this time triggering the large zip
-        # file creation (artifically forced).  We could do this naturally by
+        # file creation (artificially forced).  We could do this naturally by
         # downloading >65536 files, but that would make the test take several
         # minutes.
         girder.utility.ziputil.Z_FILECOUNT_LIMIT = 5

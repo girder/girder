@@ -1,3 +1,5 @@
+girderTest.startApp();
+
 /**
  * Intercept window.location.assign calls so we can test the behavior of,
  * e.g. download directives that occur from js.
@@ -7,11 +9,6 @@
         girderTest._redirect = url;
     };
 }());
-
-/**
- * Start the girder backbone app.
- */
-girderTest.startApp();
 
 describe('Test the model class', function () {
     var lastRequest, triggerRestError = false, requestCount = 0;

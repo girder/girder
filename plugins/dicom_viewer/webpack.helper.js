@@ -1,7 +1,7 @@
 module.exports = function (config) {
     config.module.rules.push({
         resource: {
-            test: /\.glsl$/,
+            test: /node_modules(\/|\\)vtk\.js(\/|\\).*.glsl$/,
             include: [/node_modules(\/|\\)vtk\.js(\/|\\)/]
         },
         use: [
@@ -10,7 +10,7 @@ module.exports = function (config) {
     });
     config.module.rules.push({
         resource: {
-            test: /\.js$/,
+            test: /node_modules(\/|\\)vtk\.js(\/|\\).*.js$/,
             include: [/node_modules(\/|\\)vtk\.js(\/|\\)/]
         },
         use: [
