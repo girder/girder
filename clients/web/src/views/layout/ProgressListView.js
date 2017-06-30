@@ -17,6 +17,9 @@ var ProgressListView = View.extend({
     initialize: function (settings) {
         this.eventStream = settings.eventStream;
         this.eventStream.on('g:event.progress', this._handleProgress, this);
+        // if the event stream disconnects, clear the progress so we don't have
+        // stale values lingering.
+        this.eventStream.on('g:eventStream.stop', this._clearProgress, this);
 
         // map progress IDs to widgets
         this._map = {};
@@ -49,6 +52,13 @@ var ProgressListView = View.extend({
             }, this).render();
         }
         this._onUpdate();
+    },
+
+    _clearProgress: function () {
+        _.each(this._map, (p, k) => {
+            delete this._map[p._id];
+            this._onUpdate();
+        });
     },
 
     _onUpdate: function () {

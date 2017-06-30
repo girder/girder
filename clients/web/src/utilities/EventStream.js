@@ -39,6 +39,7 @@ prototype._heartbeat = function () {
     if (this._eventSource) {
         window.clearTimeout(this._closeTimeout);
         this._closeTimeout = window.setTimeout(() => {
+            this.trigger('g:eventStream.stop');
             this._eventSource.close();
             this._eventSource = null;
         }, 5000);
@@ -93,12 +94,14 @@ prototype.open = function () {
         };
         this._stopHeartbeat = false;
         this._heartbeat();
+        stream.trigger('g:eventStream.start');
     } else {
         console.error('EventSource is not supported on this platform.');
     }
 };
 
 prototype.close = function () {
+    this.trigger('g:eventStream.close');
     this._stopHeartbeat = true;
     if (this._eventSource) {
         this._eventSource.close();

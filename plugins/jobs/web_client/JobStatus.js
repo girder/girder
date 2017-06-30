@@ -26,6 +26,10 @@ var JobStatus = {
         return this._map[status].color;
     },
 
+    finished: function (status) {
+        return this._map[status].finished;
+    },
+
     /**
      * Convert this status text into a value appropriate for an HTML class name.
      */
@@ -46,7 +50,8 @@ var JobStatus = {
             this._map[info.value] = {
                 text: info.text,
                 icon: info.icon,
-                color: info.color
+                color: info.color,
+                finished: !!info.finished
             };
         }, this);
     },
@@ -79,19 +84,22 @@ JobStatus.registerStatus({
         value: 3,
         text: 'Success',
         icon: 'icon-ok',
-        color: '#53b653'
+        color: '#53b653',
+        finished: true
     },
     ERROR: {
         value: 4,
         text: 'Error',
         icon: 'icon-cancel',
-        color: '#d44'
+        color: '#d44',
+        finished: true
     },
     CANCELED: {
         value: 5,
         text: 'Canceled',
         icon: 'icon-cancel',
-        color: '#545'
+        color: '#545',
+        finished: true
     }
 });
 

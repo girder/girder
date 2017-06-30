@@ -76,6 +76,7 @@ var JobListWidget = View.extend({
 
         this.listenTo(eventStream, 'g:event.job_status', this._statusChange);
         this.listenTo(eventStream, 'g:event.job_created', this._jobCreated);
+        this.listenTo(eventStream, 'g:eventStream.start', this._fetchWithFilter);
 
         this.timingFilterWidget = new CheckBoxMenu({
             title: 'Phases',
