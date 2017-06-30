@@ -6,6 +6,25 @@ girderTest.addCoveredScripts([
 
 girderTest.importStylesheet('/static/built/plugins/treeview/plugin.min.css');
 
+function asyncCall(func) {
+    var called = false;
+    var failed = false;
+    runs(function () {
+        func().done(function () {
+            called = true;
+        }).fail(function () {
+            console.log('failed');
+            failed = true;
+        });
+    });
+    waitsFor(function () {
+        if (failed) {
+            throw new Error('Promise was rejected');
+        }
+        return called;
+    });
+}
+
 var treeview;
 beforeEach(function () {
     treeview = girder.plugins.treeview;
@@ -74,31 +93,56 @@ describe('treeview type registry', function () {
         expect(treeview.types.unregister('notatype')).toBe(undefined);
         expect(treeview.types.unregister('testtype')).toBe(def);
     });
+
+    it('register requires a load method', function () {
+        expect(function () {
+            treeview.types.register('invalid');
+        }).toThrow();
+    });
+
+    it('node aliases', function () {
+        expect(treeview.types.unalias('aliased'))
+            .toBe(undefined);
+
+        treeview.types.alias('aliased', 'home');
+        expect(treeview.types.isAliased({'id': 'aliased'}))
+            .toBe(true);
+        expect(treeview.types.unalias('aliased'))
+            .toBe('home');
+
+        treeview.types.alias('#collections', 'home');
+        asyncCall(function () {
+            return treeview.types.load({id: '#collections', type: 'collections'})
+                .done(function (node) {
+                    expect(node.type).toBe('home');
+                });
+        });
+
+        asyncCall(function () {
+            var doc = {
+                type: 'collection',
+                id: 'collection',
+                node: {
+                    id: 'collection',
+                    name: 'collection'
+                }
+            };
+            return treeview.types.parent(doc)
+                .done(function (parent) {
+                    expect(parent.type).toBe('home');
+                });
+        });
+
+        runs(function () {
+            treeview.types.unalias('#collections');
+        });
+    });
 });
 
 describe('builtin types', function () {
     var lastRequest;
     var response;
     var onrequest;
-
-    function asyncCall(func) {
-        var called = false;
-        var failed = false;
-        runs(function () {
-            func().done(function () {
-                called = true;
-            }).fail(function () {
-                console.log('failed');
-                failed = true;
-            });
-        });
-        waitsFor(function () {
-            if (failed) {
-                throw new Error('Promise was rejected');
-            }
-            return called;
-        });
-    }
 
     beforeEach(function () {
         window.girderTreeViewRest = function (opts) {
@@ -122,6 +166,9 @@ describe('builtin types', function () {
             id: '#collections',
             type: 'collections'
         };
+
+        expect(treeview.builtin.collections.mutate(doc))
+            .toBe(doc);
 
         asyncCall(function () {
             return treeview.types.load(doc)
@@ -154,6 +201,9 @@ describe('builtin types', function () {
             id: '#users',
             type: 'users'
         };
+
+        expect(treeview.builtin.users.mutate(doc))
+            .toBe(doc);
 
         asyncCall(function () {
             return treeview.types.load(doc)
@@ -312,6 +362,20 @@ describe('builtin types', function () {
                 parentId: 'parent'
             }
         };
+
+        expect(function () {
+            treeview.types.parent({
+                id: 'folder',
+                type: 'folder',
+                model: {
+                    _id: 'folder',
+                    _modelType: 'folder',
+                    name: 'a',
+                    parentCollection: 'invalid',
+                    parentId: 'parent'
+                }
+            });
+        }).toThrow();
 
         asyncCall(function () {
             response = _.extend(doc, {
