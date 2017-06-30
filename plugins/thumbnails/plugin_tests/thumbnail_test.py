@@ -209,7 +209,7 @@ class ThumbnailsTestCase(base.TestCase):
         del params['width']
         params['attachToId'] = str(self.user['_id'])
 
-        resp = self.request( path='/thumbnail', method='POST', user=self.user, params=params)
+        resp = self.request(path='/thumbnail', method='POST', user=self.user, params=params)
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'You must specify a valid width, height, or both.')
 
@@ -227,7 +227,7 @@ class ThumbnailsTestCase(base.TestCase):
         self.assertEqual(len(self.user['_thumbnails']), 1)
         thumbnailId = self.user['_thumbnails'][0]
 
-        resp = self.request('/file/%s/download' % thumbnailId,isJson=False)
+        resp = self.request('/file/%s/download' % thumbnailId, isJson=False)
         data = self.getBody(resp, text=False)
         image = Image.open(six.BytesIO(data))
         self.assertEqual(image.size, (64, 64))
@@ -367,4 +367,4 @@ class ThumbnailsTestCase(base.TestCase):
         self.assertEqual(len(item['_thumbnails']), 1)
         file = self.model('file').load(item['_thumbnails'][0], force=True)
         with self.model('file').open(file) as fh:
-            self.assertEqual(fh.read(2), '\xff\xd8')  # jpeg magic number
+            self.assertEqual(fh.read(2), b'\xff\xd8')  # jpeg magic number
