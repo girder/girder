@@ -44,7 +44,7 @@ var JobListWidget = View.extend({
         },
         'change input.g-job-checkbox-all': function (e) {
             if ($(e.target).is(':checked')) {
-                this.jobs.forEach((job) => { this.jobCheckedStates[job.id] = true; });
+                this.collection.forEach((job) => { this.jobCheckedStates[job.id] = true; });
             } else {
                 this.jobCheckedStates = {};
             }
@@ -71,15 +71,6 @@ var JobListWidget = View.extend({
         }, {});
         this.jobCheckedStates = {};
         this.jobHighlightStates = {};
-        Object.defineProperty(this, 'jobs', {
-            get: () => this.collection.toArray()
-        });
-        Object.defineProperty(this, 'anyJobChecked', {
-            get: () => Object.keys(this.jobCheckedStates).find((key) => this.jobCheckedStates[key])
-        });
-        Object.defineProperty(this, 'allJobChecked', {
-            get: () => !this.jobs.find((job) => !this.jobCheckedStates[job.id])
-        });
 
         this.jobGraphWidget = null;
 
@@ -260,8 +251,8 @@ var JobListWidget = View.extend({
                 DATE_SECOND: DATE_SECOND,
                 jobCheckedStates: this.jobCheckedStates,
                 jobHighlightStates: this.jobHighlightStates,
-                anyJobChecked: this.anyJobChecked,
-                allJobChecked: this.allJobChecked
+                anyJobChecked: _.find(_.values(this.jobCheckedStates), (status) => status == true),
+                allJobChecked: this.collection.every((job) => this.jobCheckedStates[job.id])
             }));
         }
 
@@ -282,14 +273,13 @@ var JobListWidget = View.extend({
 
     _jobCreated: function (event) {
         this._fetchWithFilter()
-            .then(() => {
+            .done(() => {
                 this.trySetHighlightRecord(event.data._id);
-                return null;
             });
     },
 
     trySetHighlightRecord: function (jobId) {
-        if (this.jobs.find((job) => job.id === jobId)) {
+        if (this.collection.find((job) => job.id === jobId)) {
             this.jobHighlightStates[jobId] = true;
             this._renderData();
             setTimeout(() => {
@@ -319,7 +309,7 @@ var JobListWidget = View.extend({
         _whenAll(
             Object.keys(this.jobCheckedStates)
                 .filter((jobId) => {
-                    var jobModel = this.jobs.find((job) => job.id === jobId);
+                    var jobModel = this.collection.find((job) => job.id === jobId);
                     return JobStatus.isCancelable(jobModel);
                 })
                 .map((jobId) => restRequest({
@@ -327,7 +317,7 @@ var JobListWidget = View.extend({
                     type: 'PUT',
                     error: null
                 }))
-        ).then((results) => {
+        ).done((results) => {
             if (!results.length) {
                 return;
             }
@@ -337,7 +327,6 @@ var JobListWidget = View.extend({
                 type: 'info',
                 timeout: 4000
             });
-            return null;
         });
     }
 });

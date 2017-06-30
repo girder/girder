@@ -129,7 +129,7 @@ var JobDetailsWidget = View.extend({
             error: null
         }).done(_.bind(function () {
             console.log('success');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             console.log(err);
         }, this));
     }
