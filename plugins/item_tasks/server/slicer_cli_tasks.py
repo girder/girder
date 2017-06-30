@@ -10,7 +10,7 @@ from . import cli_parser, constants
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
 @filtermodel(model='job', plugin='jobs')
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Create an item task spec based on a docker image.')
     .notes('This operates on an existing item, turning it into an item task '
@@ -103,7 +103,7 @@ def runSlicerCliTasksDescriptionForItem(
 
 
 @access.token
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Set a task spec on an item from a Slicer CLI XML spec.')
     .modelParam('id', model='item', force=True)
@@ -142,7 +142,7 @@ def configureItemTaskFromSlicerCliXml(self, item, xml, setName, setDescription, 
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
 @filtermodel(model='job', plugin='jobs')
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Create item task specs based on a docker image.')
     .notes('This operates on an existing folder, adding item tasks '
@@ -209,7 +209,7 @@ def runSlicerCliTasksDescriptionForFolder(self, folder, image, args, pullImage, 
 
 
 @access.token
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Create item tasks under a folder using a list of Slicer CLI XML specs.')
     .modelParam('id', model='folder', force=True)

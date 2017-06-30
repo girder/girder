@@ -169,7 +169,7 @@ def _ldapAuth(event):
 
 
 @access.admin
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Test connection status to a LDAP server.')
     .notes('You must be an administrator to call this.')
