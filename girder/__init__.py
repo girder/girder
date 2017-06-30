@@ -284,6 +284,10 @@ def _setupCache():
 
         cache.configure_from_config(curConfig['cache'], 'cache.global.')
         requestCache.configure_from_config(curConfig['cache'], 'cache.request.')
+    else:
+        # Reset caches back to null cache (in the case of server teardown)
+        cache.configure(backend='dogpile.cache.null', replace_existing_backend=True)
+        requestCache.configure(backend='dogpile.cache.null', replace_existing_backend=True)
 
 
 # Expose common logging levels and colors as methods of logprint.
