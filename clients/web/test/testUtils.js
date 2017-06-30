@@ -1167,6 +1167,8 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
  * so we can print the log after a test failure.
  */
 (function () {
+    var MAX_AJAX_LOG_SIZE = 20;
+    var logIndex = 0;
     var ajaxCalls = [];
     var backboneAjax = Backbone.ajax;
 
@@ -1187,7 +1189,8 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
             opts: opts
         };
 
-        ajaxCalls.push(record);
+        ajaxCalls[logIndex] = record;
+        logIndex = (logIndex + 1) % MAX_AJAX_LOG_SIZE;
 
         return backboneAjax(opts).done(
             function (data, textStatus) {
@@ -1202,9 +1205,10 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     };
 
     girderTest.ajaxLog = function (reset) {
-        var calls = ajaxCalls;
+        var calls = ajaxCalls.slice(logIndex, ajaxCalls.length).concat(ajaxCalls.slice(0, logIndex));
         if (reset) {
             ajaxCalls = [];
+            logIndex = 0;
         }
         return calls;
     };
@@ -1237,47 +1241,48 @@ $(function () {
 });
 
 /**
- * Wait for all of the sources to load and then start the main girder application.
- * This will also delay the invocation of the jasmine test suite until after the
+ * Wait for all of the sources to load and then start the main Girder application.
+ * This will also delay the invocation of the Jasmine test suite until after the
  * application is running.  This method returns a promise that resolves with the
  * application object.
  */
 girderTest.startApp = function () {
-    var defer = new $.Deferred();
-    girderTest.promise.done(function () {
-        /* Track bootstrap transitions.  This is largely a duplicate of the
-         * Bootstrap emulateTransitionEnd function, with the only change being
-         * our tracking of the transition.  This still relies on the browser
-         * possibly firing css transition end events, with this function as a
-         * fail-safe. */
-        $.fn.emulateTransitionEnd = function (duration) {
-            girder._inTransition = true;
-            var called = false;
-            var $el = this;
-            $(this).one('bsTransitionEnd', function () { called = true; });
-            var callback = function () {
-                if (!called) {
-                    $($el).trigger($.support.transition.end);
-                }
-                girder._inTransition = false;
+    var app;
+    girderTest.promise = girderTest.promise
+        .then(function () {
+            /* Track bootstrap transitions.  This is largely a duplicate of the
+             * Bootstrap emulateTransitionEnd function, with the only change being
+             * our tracking of the transition.  This still relies on the browser
+             * possibly firing css transition end events, with this function as a
+             * fail-safe. */
+            $.fn.emulateTransitionEnd = function (duration) {
+                girder._inTransition = true;
+                var called = false;
+                var $el = this;
+                $(this).one('bsTransitionEnd', function () {
+                    called = true;
+                });
+                var callback = function () {
+                    if (!called) {
+                        $($el).trigger($.support.transition.end);
+                    }
+                    girder._inTransition = false;
+                };
+                setTimeout(callback, duration);
+                return this;
             };
-            setTimeout(callback, duration);
-            return this;
-        };
 
-        girder.events.trigger('g:appload.before');
-        var app = new girder.views.App({
-            el: 'body',
-            parentView: null,
-            start: false
-        });
-        app.start().done(function () {
+            girder.events.trigger('g:appload.before');
+            app = new girder.views.App({
+                el: 'body',
+                parentView: null,
+                start: false
+            });
+            return app.start();
+        })
+        .then(function () {
             girder.events.trigger('g:appload.after');
-            defer.resolve(app);
+            return app;
         });
-    }).fail(function () {
-        defer.reject.apply(defer, arguments);
-    });
-    girderTest.promise = defer.promise();
     return girderTest.promise;
 };

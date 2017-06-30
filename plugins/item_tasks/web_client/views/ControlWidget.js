@@ -44,7 +44,7 @@ var ControlWidget = View.extend({
         if (options && options.norender) {
             return this;
         }
-        this.$el.html(this.template()(this.model.attributes));  // eslint-disable-line backbone/no-view-model-attributes
+        this.$el.html(this.template()(this.model.toJSON()));
         this.$('.g-control-item[data-type="range"] input').slider();
         this.$('.g-control-item[data-type="color"] .input-group').colorpicker({});
 

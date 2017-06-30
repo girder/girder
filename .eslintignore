@@ -1,12 +1,4 @@
-**/node_modules/
-**/bower_component/
-docs/
-clients/jquery/
-clients/web-external/
-clients/web/lib/
+docs/_build/
 clients/web/dev/
-clients/web/static/
+clients/web/static/built/
 clients/web/test/lib/
-build/
-_build/
-clients/web/src/plugins.js

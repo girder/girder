@@ -193,31 +193,34 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = hash_state.restoreHex(upload['sha512state'], 'sha512')
 
-        # This bit of code will only do anything if there is a discrepancy
-        # between the received count of the upload record and the length of
-        # the file stored as chunks in the database. This code simply updates
-        # the sha512 state with the difference before reading the bytes sent
-        # from the user.
-        if self.requestOffset(upload) > upload['received']:
-            cursor = self.chunkColl.find({
-                'uuid': upload['chunkUuid'],
-                'n': {'$gte': upload['received'] // CHUNK_SIZE}
-            }, projection=['data']).sort('n', pymongo.ASCENDING)
-            for result in cursor:
-                checksum.update(result['data'])
-
-        cursor = self.chunkColl.find({
+        # TODO: when saving uploads is optional, we can conditionally try to
+        # fetch the last chunk.  Add these line before `lastChunk = ...`:
+        #   lastChunk = None
+        #   if '_id' in upload or upload['received'] != 0:
+        lastChunk = self.chunkColl.find_one({
             'uuid': upload['chunkUuid']
-        }, projection=['n']).sort('n', pymongo.DESCENDING).limit(1)
-        if cursor.count(True) == 0:
-            n = 0
-        else:
-            n = cursor[0]['n'] + 1
+        }, projection=['n'], sort=[('n', pymongo.DESCENDING)])
+        if lastChunk:
+            # This bit of code will only do anything if there is a discrepancy
+            # between the received count of the upload record and the length of
+            # the file stored as chunks in the database. This code updates the
+            # sha512 state with the difference before reading the bytes sent
+            # from the user.
+            if self.requestOffset(upload) > upload['received']:
+                # This isn't right -- the last received amount may not be a
+                # complete chunk.
+                cursor = self.chunkColl.find({
+                    'uuid': upload['chunkUuid'],
+                    'n': {'$gte': upload['received'] // CHUNK_SIZE}
+                }, projection=['data']).sort('n', pymongo.ASCENDING)
+                for result in cursor:
+                    checksum.update(result['data'])
+        n = lastChunk['n'] + 1 if lastChunk else 0
 
         size = 0
         startingN = n
 
-        while not upload['received']+size > upload['size']:
+        while upload['received']+size < upload['size']:
             data = chunk.read(CHUNK_SIZE)
             if not data:
                 break
@@ -263,14 +266,14 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         count because in testing mode we are uploading chunks that are smaller
         than the CHUNK_SIZE, which in practice will not work.
         """
-        cursor = self.chunkColl.find({
+        lastChunk = self.chunkColl.find_one({
             'uuid': upload['chunkUuid']
-        }, projection=['n']).sort('n', pymongo.DESCENDING).limit(1)
-        if cursor.count(True) == 0:
+        }, projection=['n'], sort=[('n', pymongo.DESCENDING)])
+
+        if lastChunk is None:
             offset = 0
         else:
-            offset = cursor[0]['n'] * CHUNK_SIZE
-
+            offset = lastChunk['n'] * CHUNK_SIZE
         return max(offset, upload['received'])
 
     def finalizeUpload(self, upload, file):
@@ -352,11 +355,16 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         }
         matching = self.model('file').find(q, limit=2, projection=[])
         if matching.count(True) == 1:
+            # If we can't reach the database, we return anyway.  A system check
+            # will be necessary to remove the abandoned file.  Since we already
+            # can handle that case, tell Mongo to use a 0 write concern -- we
+            # don't need to know that the chunks have been deleted, and this
+            # can be faster.
             try:
-                self.chunkColl.delete_many({'uuid': file['chunkUuid']})
+                self.chunkColl.with_options(
+                    write_concern=pymongo.WriteConcern(w=0)).delete_many(
+                        {'uuid': file['chunkUuid']})
             except pymongo.errors.AutoReconnect:
-                # we can't reach the database.  Go ahead and return; a system
-                # check will be necessary to remove the abandoned file
                 pass
 
     def cancelUpload(self, upload):

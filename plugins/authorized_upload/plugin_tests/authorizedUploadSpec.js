@@ -1,9 +1,7 @@
-var secureUrl = null;
-
 girderTest.importPlugin('authorized_upload');
-
 girderTest.startApp();
 
+var secureUrl = null;
 describe('Create an authorized upload.', function () {
     it('register a user', girderTest.createUser(
         'admin', 'admin@email.com', 'Admin', 'Admin', 'passwd'));

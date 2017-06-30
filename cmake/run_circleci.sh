@@ -7,15 +7,15 @@ export VIRTUALENV_EXECUTABLE=`pyenv which virtualenv`
 export PYTHON_EXECUTABLE=`pyenv which python`
 
 case $CIRCLE_NODE_INDEX in
-	0|1)
-		export TEST_GROUP=python
-		;;
-	2)
-		export TEST_GROUP=browser
-		;;
-	*)
-		echo "Invalid node index"
-		exit 0
+    0|1)
+        export TEST_GROUP=python
+        ;;
+    2)
+        export TEST_GROUP=browser
+        ;;
+    *)
+        echo "Invalid node index"
+        exit 0
 esac
 
 mkdir $HOME/build
@@ -27,7 +27,7 @@ pip install scikit-ci-addons==0.15.0
 mkdir ${CIRCLE_TEST_REPORTS}/CTest
 ci_addons ctest_junit_formatter $HOME/build > ${CIRCLE_TEST_REPORTS}/CTest/JUnit-${CIRCLE_NODE_INDEX}.xml || exit 1
 if [ -f $HOME/build/test_failed ] ; then
-	exit 1
+    exit 1
 fi
 
 mkdir -p $CIRCLE_ARTIFACTS/coverage/python $CIRCLE_ARTIFACTS/coverage/js

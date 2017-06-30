@@ -251,7 +251,7 @@ var JobListWidget = View.extend({
                 DATE_SECOND: DATE_SECOND,
                 jobCheckedStates: this.jobCheckedStates,
                 jobHighlightStates: this.jobHighlightStates,
-                anyJobChecked: _.find(_.values(this.jobCheckedStates), (status) => status == true),
+                anyJobChecked: _.find(_.values(this.jobCheckedStates), (status) => status === true),
                 allJobChecked: this.collection.every((job) => this.jobCheckedStates[job.id])
             }));
         }

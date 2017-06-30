@@ -1,5 +1,4 @@
 girderTest.importPlugin('jobs', 'worker', 'item_tasks');
-
 girderTest.startApp();
 
 describe('Create an item task', function () {

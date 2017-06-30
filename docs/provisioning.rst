@@ -2,8 +2,8 @@
 
 Provisioning
 ============
-Girder is packaged for provisioning through the popular IT automation tool Ansible. 
-    
+Girder is packaged for provisioning through the popular IT automation tool Ansible.
+
 Specifically, Girder is available as an Ansible role to be fetched through Ansible Galaxy.
 This allows for a user to point their own Ansible playbook at a number of servers and deploy
 Girder with a single command. Provided in Girder are a number of example playbooks to demonstrate

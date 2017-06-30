@@ -30,7 +30,7 @@ from girder.api import access
 class ResourceExt(Resource):
     @access.public
     @describeRoute(
-        Description('Run any search against a set of mongo collections.')
+        Description('Run any search against a set of MongoDB collections.')
         .notes('Results will be filtered by permissions.')
         .param('type', 'The name of the collection to search, e.g. "item".')
         .param('q', 'The search query as a JSON object.')

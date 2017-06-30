@@ -20,6 +20,8 @@ if(RUN_CORE_TESTS)
   add_eslint_test(grunt_main Gruntfile.js)
   add_eslint_test(grunt_modules grunt_tasks)
   add_eslint_test(test_specs clients/web/test)
+  add_eslint_test(swagger clients/web/static/girder-swagger.js)
+  add_eslint_test(jquery_client clients/jquery)
 
   add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
   add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
@@ -167,7 +169,7 @@ macro(add_standard_plugin_tests)
       add_web_client_test(${_clientTestName} "${_clientTestFile}" PLUGIN ${_pluginName})
     endforeach()
     add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests"
-      ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc")
+      ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc.json")
   endif()
 endmacro()
 
