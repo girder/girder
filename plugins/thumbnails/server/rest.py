@@ -21,6 +21,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import filtermodel, Resource, RestException
 from girder.constants import AccessType
+from . import utils
 
 
 class Thumbnail(Resource):
@@ -61,20 +62,4 @@ class Thumbnail(Resource):
         if not width and not height:
             raise RestException('You must specify a valid width, height, or both.')
 
-        kwargs = {
-            'width': width,
-            'height': height,
-            'fileId': str(file['_id']),
-            'crop': crop,
-            'attachToType': attachToType,
-            'attachToId': attachToId
-        }
-
-        job = self.model('job', 'jobs').createLocalJob(
-            title='Generate thumbnail for %s' % file['name'], user=user,
-            type='thumbnails.create', public=False, kwargs=kwargs,
-            module='girder.plugins.thumbnails.worker')
-
-        self.model('job', 'jobs').scheduleJob(job)
-
-        return job
+        return utils.scheduleThumbnailJob(file, attachToType, attachToId, user, width, height, crop)
