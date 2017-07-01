@@ -568,8 +568,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         if 'params' not in self._funNamedArgs and not self._funHasKwargs:
             kwargs.pop('params', None)
 
-    def __call__(self, fun):
-        funSignature = signature(fun)
+    def _inspectFunSignature(self, fun):
         self._funNamedArgs = set()
         self._funHasKwargs = False
         for funParam in six.viewvalues(signature(fun).parameters):
@@ -580,6 +579,9 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             elif funParam.kind == Parameter.VAR_KEYWORD:
                 # VAR_KEYWORD is the **kwargs parameter
                 self._funHasKwargs = True
+
+    def __call__(self, fun):
+        self._inspectFunSignature(fun)
 
         @six.wraps(fun)
         def wrapped(*args, **kwargs):

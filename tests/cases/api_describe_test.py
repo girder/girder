@@ -497,7 +497,7 @@ class ApiDescribeTestCase(base.TestCase):
             firstName='admin', lastName='admin', email='a@admin.com', login='admin',
             password='password')
         resp = self.request(
-          '/auto_describe/model_param_query', user=user, params={'userId': user['_id']})
+            '/auto_describe/model_param_query', user=user, params={'userId': user['_id']})
         self.assertStatusOk(resp)
 
         # Test requiredFlags in modelParam
