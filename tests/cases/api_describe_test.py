@@ -23,7 +23,7 @@ import six
 from .. import base
 
 from girder.api import access, describe, docs
-from girder.api.rest import Resource
+from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType, registerAccessFlag
 
 server = None
@@ -274,7 +274,7 @@ class ApiDescribeTestCase(base.TestCase):
                 describe.Description('body')
                 .param('body', '', required=False, paramType='body')
             )
-            def body(self, body, params):
+            def body(self, body):
                 testRuns.append({
                     'body': body
                 })
@@ -284,7 +284,7 @@ class ApiDescribeTestCase(base.TestCase):
                 describe.Description('json_body')
                 .jsonParam('json_body', '', required=False, paramType='body')
             )
-            def jsonBody(self, json_body, params):
+            def jsonBody(self, json_body):
                 testRuns.append({
                     'json_body': json_body
                 })
@@ -294,7 +294,7 @@ class ApiDescribeTestCase(base.TestCase):
                 describe.Description('json_body_required')
                 .jsonParam('json_body', '', required=True, requireObject=True, paramType='body')
             )
-            def jsonBodyRequired(self, json_body, params):
+            def jsonBodyRequired(self, json_body):
                 testRuns.append({
                     'json_body': json_body
                 })
@@ -304,7 +304,8 @@ class ApiDescribeTestCase(base.TestCase):
                 describe.Description('has_model_param_query')
                 .modelParam('userId', model='user', level=AccessType.READ, paramType='query')
             )
-            def hasModelQueryParam(self, user, params):
+            @filtermodel(model='user')
+            def hasModelQueryParam(self, user):
                 return user
 
             @access.public
@@ -313,7 +314,7 @@ class ApiDescribeTestCase(base.TestCase):
                 .modelParam('userId', model='user', level=AccessType.READ, paramType='query',
                             requiredFlags='my_flag')
             )
-            def hasModelParamFlags(self, user, params):
+            def hasModelParamFlags(self, user):
                 return user
 
             @access.public
@@ -324,7 +325,7 @@ class ApiDescribeTestCase(base.TestCase):
                     'required': ['foo', 'bar']
                 })
             )
-            def hasJsonSchema(self, obj, params):
+            def hasJsonSchema(self, obj):
                 return obj
 
             @access.public
@@ -492,10 +493,14 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'Invalid ObjectId: None')
 
-        # Test requiredFlags in modelParam
         user = self.model('user').createUser(
             firstName='admin', lastName='admin', email='a@admin.com', login='admin',
             password='password')
+        resp = self.request(
+          '/auto_describe/model_param_query', user=user, params={'userId': user['_id']})
+        self.assertStatusOk(resp)
+
+        # Test requiredFlags in modelParam
         resp = self.request('/auto_describe/model_param_flags', params={
             'userId': user['_id']
         })
