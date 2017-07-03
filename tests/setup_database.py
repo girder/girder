@@ -31,10 +31,6 @@ warnings.warn(
     'https://github.com/girder/girder/tree/master/devops/ansible/roles/girder/library'
 )
 
-#: A module level cache of created users
-users = {}
-userIds = {}
-
 #: A prefix for all relative file paths
 prefix = '.'
 
@@ -98,17 +94,21 @@ def addCreator(spec, parent=None):
     :param parent: The parent of current document
     :type parent: dict
     """
+    userModel = loadModel('user')
     if 'creator' in spec:
-        spec['creator'] = users[spec['creator'].lower()]
+        spec['creator'] = userModel.findOne({'login': spec['creator'].lower()}, force=True)
     elif parent is not None:
 
         if parent.get('_modelType') == 'user':
             # if the parent is a user, then use that as the creator
             # (users don't have creators)
             spec['creator'] = parent
-        else:
+        elif parent.get('creatorId'):
             # otherwise, use the creator of the parent
-            spec['creator'] = userIds[parent['creatorId']]
+            spec['creator'] = userModel.load(parent.get('creatorId'), force=True)
+    else:
+        # if all else fails, just use any user for the creator
+        spec['creator'] = userModel.findOne({}, force=True)
 
 
 def createUser(defaultFolders=False, **args):
@@ -134,8 +134,6 @@ def createUser(defaultFolders=False, **args):
     user = userModel.createUser(**args)
     if not defaultFolders:
         settingModel.unset(SettingKey.USER_DEFAULT_FOLDERS)
-    users[user['login']] = user
-    userIds[user['_id']] = user
     return user
 
 
