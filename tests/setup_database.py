@@ -265,8 +265,9 @@ def createDocument(type, node):
 
     # inject this document as the parent for all child specs
     for childType in children:
-        for childNode in children[childType]:
-            childNode['parent'] = doc
+        children[childType] = [
+            dict(parent=doc, **child) for child in children[childType]
+        ]
 
     return children
 
