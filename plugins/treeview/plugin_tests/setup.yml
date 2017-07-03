@@ -1,0 +1,122 @@
+---
+_all: &all
+  items:
+    - name: 'file.gif'
+      files:
+      - name: 'file.gif'
+        path: 'files/file.gif'
+    - name: 'file.jpg'
+      files:
+      - name: 'file.jpg'
+        path: 'files/file.jpg'
+    - name: 'file.png'
+      files:
+      - name: 'file.png'
+        path: 'files/file.png'
+    - name: 'file.tif'
+      files:
+      - name: 'file.tif'
+        path: 'files/file.tif'
+    - name: 'file.csv'
+      files:
+      - name: 'file.csv'
+        path: 'files/file.csv'
+    - name: 'file.json'
+      files:
+      - name: 'file.json'
+        path: 'files/file.json'
+    - name: 'file.txt'
+      files:
+      - name: 'file.txt'
+        path: 'files/file.txt'
+    - name: 'file.xml'
+      files:
+      - name: 'file.xml'
+        path: 'files/file.xml'
+
+_image: &image
+  items:
+    - name: 'file.gif'
+      files:
+      - name: 'file.gif'
+        path: 'files/file.gif'
+    - name: 'file.jpg'
+      files:
+      - name: 'file.jpg'
+        path: 'files/file.jpg'
+    - name: 'file.png'
+      files:
+      - name: 'file.png'
+        path: 'files/file.png'
+    - name: 'file.tif'
+      files:
+      - name: 'file.tif'
+        path: 'files/file.tif'
+
+_text: &text
+  items:
+    - name: 'file.csv'
+      files:
+      - name: 'file.csv'
+        path: 'files/file.csv'
+    - name: 'file.json'
+      files:
+      - name: 'file.json'
+        path: 'files/file.json'
+    - name: 'file.txt'
+      files:
+      - name: 'file.txt'
+        path: 'files/file.txt'
+    - name: 'file.xml'
+      files:
+      - name: 'file.xml'
+        path: 'files/file.xml'
+
+_common: &common
+  folders:
+  - name: 'Common'
+    folders:
+      - name: Images
+        <<: *image
+      - name: Text
+        <<: *text
+    <<: *all
+
+users:
+  # a typical admin user
+  - login: 'admin'
+    password: 'password'
+    firstName: 'First'
+    lastName: 'Last'
+    email: 'admin@email.com'
+    admin: true
+    <<: *common
+
+  # a user with a folder created by a different user
+  - login: 'user'
+    password: 'userpassword'
+    firstName: 'User'
+    lastName: 'Two'
+    email: 'user2@email.com'
+    admin: false
+    <<: *common
+
+
+collections:
+  - name: 'Collection 1'
+    creator: 'admin'
+    description: 'This is an collection 1'
+    public: true
+    <<: *common
+
+  - name: 'Collection 2'
+    creator: 'admin'
+    description: 'This is collection 2'
+    public: true
+    <<: *common
+
+  - name: 'Collection 3'
+    creator: 'admin'
+    description: 'This is collection 3'
+    public: false
+    <<: *common
