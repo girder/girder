@@ -32,7 +32,7 @@ describe('Test widgets that are not covered elsewhere', function () {
                               'adminpassword!'));
 
     it('test task progress widget', function () {
-        var errorCalled = 0, onMessageError = 0;
+        var errorCalled = 0, onMessageError = 0, stream;
 
         runs(function () {
             expect($('#g-app-progress-container:visible').length).toBe(0);
@@ -64,7 +64,7 @@ describe('Test widgets that are not covered elsewhere', function () {
                     onMessageError += 1;
                 }
             };
-            var stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
+            stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
             stream.on('g:error', function () { errorCalled += 1; });
             stream.on('g:event.progress', function () {
                 throw new Error('intentional error');
@@ -135,6 +135,10 @@ describe('Test widgets that are not covered elsewhere', function () {
                 async: false
             });
         });
+        runs(function () {
+            stream.off('g:error');
+            stream.off('g:event.progress');
+        }, 'turn off stream events');
     });
 });
 

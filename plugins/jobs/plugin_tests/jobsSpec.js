@@ -100,6 +100,19 @@ describe('Unit test the job detail widget.', function () {
 
             expect($('.g-monospace-viewer[property="log"]').text()).toBe(
                 'overwritten log<script type="text/javascript">xss probe!</script>');
+            // Test that if the event stream stops and starts, the status can
+            // be updated.
+            girder.utilities.eventStream.trigger('g:event.job_status', {
+                data: {
+                    _id: 'foo',
+                    status: girder.plugins.jobs.JobStatus.QUEUED
+                }
+            });
+            expect($('.g-job-status-badge').text()).toContain('Queued');
+            jobInfo.status = girder.plugins.jobs.JobStatus.ERROR;
+            // trigger event stream to start
+            girder.utilities.eventStream.trigger('g:eventStream.start', {});
+            expect($('.g-job-status-badge').text()).toContain('Error');
         });
 
         runs(function () {
@@ -108,6 +121,30 @@ describe('Unit test the job detail widget.', function () {
             girder.router.navigate('', {trigger: true});
         });
         girderTest.waitForLoad();
+    });
+    it('finished value', function () {
+        var jobs = _.map([
+            girder.plugins.jobs.JobStatus.QUEUED,
+            girder.plugins.jobs.JobStatus.RUNNING,
+            girder.plugins.jobs.JobStatus.ERROR,
+            girder.plugins.jobs.JobStatus.SUCCESS,
+            girder.plugins.jobs.JobStatus.CANCELED
+        ], function (status, i) {
+            return new girder.plugins.jobs.models.JobModel({
+                _id: 'foo' + i,
+                title: 'My batch job ' + i,
+                status: status,
+                updated: '2015-01-12T12:00:0' + i,
+                created: '2015-01-12T12:00:0' + i,
+                when: '2015-01-12T12:00:0' + i
+            });
+        });
+        var JobStatus = girder.plugins.jobs.JobStatus;
+        expect(JobStatus.finished(jobs[0].get('status'))).toBe(false);
+        expect(JobStatus.finished(jobs[1].get('status'))).toBe(false);
+        expect(JobStatus.finished(jobs[2].get('status'))).toBe(true);
+        expect(JobStatus.finished(jobs[3].get('status'))).toBe(true);
+        expect(JobStatus.finished(jobs[4].get('status'))).toBe(true);
     });
 });
 
