@@ -14,7 +14,11 @@ import jstree from '../jstree';
 const TreeView = View.extend({
     events: {
         'select_node.jstree': '_onSelect',
-        'state_ready.jstree': '_onLoad'
+        'state_ready.jstree': '_onLoad',
+        'before_open.jstree': '_triggerEvent',
+        'after_open.jstree': '_triggerEvent',
+        'after_close.jstree': '_triggerEvent',
+        'model.jstree': '_triggerEvent'
     },
 
     /**
@@ -145,6 +149,10 @@ const TreeView = View.extend({
     _onLoad() {
         this.loaded = true;
         this.trigger('g:treeview:load', this);
+    },
+
+    _triggerEvent(event) {
+        this.trigger(`g:jstree:${event.type}`, this, event);
     }
 });
 
