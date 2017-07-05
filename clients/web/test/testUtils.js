@@ -1278,10 +1278,11 @@ girderTest.startApp = function () {
                 parentView: null,
                 start: false
             });
+            girder.app = app;
             return app.start();
         })
         .then(function () {
-            girder.events.trigger('g:appload.after');
+            girder.events.trigger('g:appload.after', app);
             return app;
         });
     return girderTest.promise;
