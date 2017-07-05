@@ -121,6 +121,14 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'at least the first progress to be hidden');
 
         runs(function () {
+            girder.utilities.eventStream.settings._heartbeatTimeout = 1;
+        }, 'ask event stream to stop');
+        waitsFor(function () {
+            return $('.g-progress-widget-container').length === 0;
+        }, 'Progress to clear.');
+
+        runs(function () {
+            girder.utilities.eventStream.settings._heartbeatTimeout = 5000;
             girder.rest.restRequest({
                 path: 'webclienttest/progress/stop',
                 type: 'PUT',

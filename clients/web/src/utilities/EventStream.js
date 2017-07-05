@@ -16,7 +16,8 @@ var timestamp = null;
 function EventStream(settings) {
     var defaults = {
         timeout: null,
-        streamPath: '/notification/stream'
+        streamPath: '/notification/stream',
+        _heartbeatTimeout: 5000  // in milliseconds
     };
 
     this.settings = _.extend(defaults, settings);
@@ -29,7 +30,8 @@ var prototype = EventStream.prototype;
 /*
  * This method is used to kill the event stream socket when the girder tab is not
  * visible using window.requestAnimationFrame. It creates a dead man switch to
- * close the frame after 5 seconds if requestAnimationFrame is not called in that time.
+ * close the frame after _heartbeatTimeout milliseconds (default of 5 seconds)
+ * if requestAnimationFrame is not called in that time.
  */
 prototype._heartbeat = function () {
     if (!this._stopHeartbeat) {
@@ -42,7 +44,7 @@ prototype._heartbeat = function () {
             this.trigger('g:eventStream.stop');
             this._eventSource.close();
             this._eventSource = null;
-        }, 5000);
+        }, this.settings._heartbeatTimeout);
     } else {
         this.open();
     }

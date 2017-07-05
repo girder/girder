@@ -55,8 +55,10 @@ var ProgressListView = View.extend({
     },
 
     _clearProgress: function () {
-        _.each(this._map, (p, k) => {
-            delete this._map[p._id];
+        _.each(Object.keys(this._map), (key) => {
+            this._map[key].destroy();
+            this._map[key].remove();
+            delete this._map[key];
             this._onUpdate();
         });
     },
