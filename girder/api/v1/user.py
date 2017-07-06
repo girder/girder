@@ -61,7 +61,7 @@ class User(Resource):
         Description('List or search for users.')
         .responseClass('User', array=True)
         .param('text', "Pass this to perform a full text search for items.", required=False)
-        .pagingParams(defaultSort='lastName')
+        .pagingParams(defaultSort='lastName', linkHeader=True)
     )
     def find(self, text, limit, offset, sort, params):
         return list(self.model('user').search(

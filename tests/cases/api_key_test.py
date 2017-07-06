@@ -197,3 +197,6 @@ class ApiKeyTestCase(base.TestCase):
         self.assertStatusOk(resp)
         count = self.model('token').find(q).count()
         self.assertEqual(count, 0)
+
+    def testPagingHeaders(self):
+        self.runPagingTest('/api_key', user=self.user)

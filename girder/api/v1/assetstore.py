@@ -54,7 +54,7 @@ class Assetstore(Resource):
     @access.admin
     @autoDescribeRoute(
         Description('List assetstores.')
-        .pagingParams(defaultSort='name')
+        .pagingParams(defaultSort='name', linkHeader=True)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
@@ -246,7 +246,7 @@ class Assetstore(Resource):
     @autoDescribeRoute(
         Description('Get a list of files controlled by an assetstore.')
         .modelParam('id', model='assetstore')
-        .pagingParams(defaultSort='_id')
+        .pagingParams(defaultSort='_id', linkHeader=True)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )

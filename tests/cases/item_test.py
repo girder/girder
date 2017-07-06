@@ -742,3 +742,19 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item1['_id'], item3['_id'])
         self.assertEqual(item2['name'], 'to be reused (1)')
         self.assertEqual(item3['name'], 'to be reused')
+
+    def testItemPagingHeaders(self):
+        params = {
+            'folderId': self.publicFolder['_id']
+        }
+        for i in range(10):
+            self._createItem(self.publicFolder['_id'],
+                             'test_for_paging_%i' % i, '',
+                             self.users[0])
+        self.runPagingTest('/item', user=self.users[0], params=params, total=10)
+
+    def testFilesPagingHeaders(self):
+        curItem = self._createItem(self.publicFolder['_id'],
+                                   'test_for_paging', '',
+                                   self.users[0])
+        self.runPagingTest('/item/' + curItem['_id'] + '/files', user=self.users[0])

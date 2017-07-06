@@ -47,7 +47,7 @@ class Collection(Resource):
         Description('List or search for collections.')
         .responseClass('Collection', array=True)
         .param('text', 'Pass this to perform a text search for collections.', required=False)
-        .pagingParams(defaultSort='name')
+        .pagingParams(defaultSort='name', linkHeader=True)
     )
     def find(self, text, limit, offset, sort, params):
         user = self.getCurrentUser()

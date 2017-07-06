@@ -560,3 +560,6 @@ class GroupTestCase(base.TestCase):
                     else:
                         self.assertStatus(resp, 403)
         self.model('setting').unset(SettingKey.ADD_TO_GROUP_POLICY)
+
+    def testPagingHeaders(self):
+        self.runPagingTest('/group')
