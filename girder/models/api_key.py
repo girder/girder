@@ -55,9 +55,9 @@ class ApiKey(AccessControlledModel):
             # Ensure only registered scopes are being set
             admin = self.model('user').load(doc['userId'], force=True)['admin']
             scopes = TokenScope.scopeIds(admin)
-            unknown = set(doc['scope']) - scopes
-            if unknown:
-                raise ValidationException('Invalid scopes: %s.' % ','.join(unknown))
+            unknownScopes = set(doc['scope']) - scopes
+            if unknownScopes:
+                raise ValidationException('Invalid scopes: %s.' % ','.join(unknownScopes))
 
         # Deactivating an already existing token
         if '_id' in doc and not doc['active']:
