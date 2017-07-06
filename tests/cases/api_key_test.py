@@ -19,9 +19,11 @@
 
 import datetime
 import json
+import six
 
 from .. import base
 from girder.constants import SettingKey, TokenScope
+from girder.models.model_base import ValidationException
 
 
 def setUpModule():
@@ -192,8 +194,21 @@ class ApiKeyTestCase(base.TestCase):
         # Deleting the API key should delete the tokens made with it
         count = self.model('token').find(q).count()
         self.assertEqual(count, 1)
-        resp = self.request('/api_key/%s' % apiKey['_id'], method='DELETE',
-                            user=self.user)
+        resp = self.request('/api_key/%s' % apiKey['_id'], method='DELETE', user=self.user)
         self.assertStatusOk(resp)
         count = self.model('token').find(q).count()
         self.assertEqual(count, 0)
+
+    def testScopeValidation(self):
+        # Make sure normal user cannot request admin scopes
+        requestedScopes = [TokenScope.DATA_OWN, TokenScope.SETTINGS_READ]
+        msg = 'Invalid scopes: %s.$' % TokenScope.SETTINGS_READ
+
+        with six.assertRaisesRegex(self, ValidationException, msg):
+            self.model('api_key').createApiKey(user=self.user, name='', scope=requestedScopes)
+
+        # Make sure an unregistered scope cannot be set on an API key
+        requestedScopes = [TokenScope.DATA_OWN, TokenScope.SETTINGS_READ, 'nonsense']
+        msg = 'Invalid scopes: nonsense.$'
+        with six.assertRaisesRegex(self, ValidationException, msg):
+            self.model('api_key').createApiKey(user=self.admin, name='', scope=requestedScopes)
