@@ -102,7 +102,7 @@ var ItemPreviewWidget = View.extend({
                     return this.tryGetFileContent(file, file.mimeType);
                 }));
             });
-        })).then((results) => {
+        })).done((results) => {
             items.forEach((item, i) => {
                 var contents = results[i].filter((result) => result);
                 if (contents.length) {
@@ -117,7 +117,6 @@ var ItemPreviewWidget = View.extend({
             if (!this.allItemAdded() && this.isNotFull()) {
                 this.addMoreItems();
             }
-            return undefined;
         }).always(() => {
             this.addingMoreItems = false;
         });
