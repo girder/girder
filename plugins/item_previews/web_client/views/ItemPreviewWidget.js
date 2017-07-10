@@ -135,7 +135,7 @@ var ItemPreviewWidget = View.extend({
     },
 
     tryGetFileContent: function (file, contentType) {
-        if (this._isJSONItem(file.name) && contentType === 'application/octet-stream') {
+        if (this._isJSONItem(file.name)) {
             if (file.size > this._MAX_JSON_SIZE) {
                 return $.Deferred().resolve(null).promise();
             }
