@@ -160,6 +160,11 @@ const TaskRunView = View.extend({
                         parent_type: 'folder',
                         name: model.get('fileName')
                     };
+                case 'input-item-metadata':
+                    return {
+                        mode: 'girder',
+                        as_metadata_on_input: model.get('input_id')
+                    };
                 default:
                     if (model.isVector()) {
                         val = val.join(',');

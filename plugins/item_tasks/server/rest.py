@@ -118,7 +118,15 @@ class ItemTask(Resource):
 
         return transformed
 
-    def _transformOutputs(self, outputs, token, job):
+    def _addMetadata(self, spec, id, task):
+        for output in task.get('outputs', []):
+            if output.get('id') == id:
+                if 'metadata' in output:
+                    spec['metadata'] = output['metadata']
+                break
+
+
+    def _transformOutputs(self, outputs, token, job, task, inputs):
         """
         Validates and sanitizes the output bindings. If they are Girder outputs, adds
         the necessary token info. If the token does not allow DATA_WRITE, or if the user
@@ -132,16 +140,27 @@ class ItemTask(Resource):
                 if ptype not in {'item', 'folder'}:
                     raise ValidationException('Invalid output parent type: %s.' % ptype)
 
-                parent = self.model(ptype).load(
-                    v['parent_id'], level=AccessType.WRITE, user=self.getCurrentUser(), exc=True)
+                if 'as_metadata_on_input' in v:
+                    transformed[k] = {
+                        'mode': 'girder',
+                        'as_metadata': True,
+                        'api_url': utils.getWorkerApiUrl(),
+                        'token': token['_id'],
+                        'item_id': str(inputs[v['as_metadata_on_input']]['id']),
+                    }
+                else:
+                    parent = self.model(ptype).load(
+                        v['parent_id'], level=AccessType.WRITE, user=self.getCurrentUser(),
+                        exc=True)
 
-                transformed[k] = utils.girderOutputSpec(
-                    parent, parentType=ptype, token=token, name=v.get('name'), dataFormat='none',
-                    reference=json.dumps({
-                        'type': 'item_tasks.output',
-                        'id': k,
-                        'jobId': str(job['_id'])
-                    }))
+                    transformed[k] = utils.girderOutputSpec(
+                        parent, parentType=ptype, token=token, name=v.get('name'),
+                        dataFormat='none', reference=json.dumps({
+                            'type': 'item_tasks.output',
+                            'id': k,
+                            'jobId': str(job['_id'])
+                        }))
+                    self._addMetadata(transformed[k], k, task)
             else:
                 raise ValidationException('Invalid output mode: %s.' % v['mode'])
 
@@ -190,7 +209,7 @@ class ItemTask(Resource):
             'kwargs': {
                 'task': task,
                 'inputs': self._transformInputs(inputs, token),
-                'outputs': self._transformOutputs(outputs, token, job),
+                'outputs': self._transformOutputs(outputs, token, job, task, inputs),
                 'validate': False,
                 'auto_convert': False,
                 'cleanup': True

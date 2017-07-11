@@ -202,7 +202,7 @@ var WidgetModel = Backbone.Model.extend({
      */
     validate: function (model) {
         if (!_.contains(this.types, model.type)) {
-            return 'Invalid type, "' + model.type + '"';
+            //return 'Invalid type, "' + model.type + '"';
         }
 
         if (this.isVector()) {
@@ -408,7 +408,8 @@ var WidgetModel = Backbone.Model.extend({
         'file',
         'directory',
         'new-file',
-        'image'
+        'image',
+        'derived'
     ]
 });
 
