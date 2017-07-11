@@ -20,11 +20,11 @@
     <script type="text/javascript">
         $(function () {
             girder.events.trigger('g:appload.before');
-            new girder.views.App({
+            girder.app = new girder.views.App({
                 el: 'body',
                 parentView: null
             }).render();
-            girder.events.trigger('g:appload.after');
+            girder.events.trigger('g:appload.after', girder.app);
         });
     </script>
     % for plugin in pluginJs:

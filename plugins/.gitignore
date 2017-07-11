@@ -6,6 +6,7 @@
 !celery_jobs/
 !curation/
 !dicom_viewer/
+!download_statistics/
 !geospatial/
 !google_analytics/
 !gravatar/

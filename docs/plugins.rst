@@ -158,6 +158,18 @@ If there is a match, the user is added to the group with the specified access
 level.
 
 
+Download Statistics
+-------------------
+
+This plugin tracks and records file download activity. The recorded information
+(downloads started, downloads completed, and total requests made) is stored on the
+file model: :: 
+
+    file['downloadStatistics']['started']
+    file['downloadStatistics']['requested']
+    file['downloadStatistics']['completed']
+
+
 DICOM Viewer
 ------------
 
