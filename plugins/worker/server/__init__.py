@@ -157,7 +157,7 @@ def cancel(event):
             ModelImporter.model('job', 'jobs').updateJob(job, status=CustomJobStatus.CANCELING)
 
             # Send the revoke request.
-            asyncResult = AsyncResult(celeryTaskId)
+            asyncResult = AsyncResult(celeryTaskId, app=getCeleryApp())
             asyncResult.revoke()
 
 
