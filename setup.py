@@ -103,7 +103,7 @@ if sys.version_info[0] == 2:
             'hachoir-parser'
         ]
     })
-if sys.version_info[0:2] <= (3, 5):
+if sys.version_info[0:2] < (3, 5):
     install_reqs.append('funcsigs')
 
 extras_reqs['sftp'] = ['paramiko']
