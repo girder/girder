@@ -132,6 +132,7 @@ def schedule(event):
         # Stop event propagation since we have taken care of scheduling.
         event.stopPropagation()
 
+
 def cancel(event):
     """
     This is bound to the "jobs.cancel" event, and will be triggered any time
