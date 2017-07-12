@@ -112,9 +112,6 @@ def schedule(event):
     """
     job = event.info
     if job['handler'] == 'worker_handler':
-        # Stop event propagation since we have taken care of scheduling.
-        event.stopPropagation()
-
         task = job.get('celeryTaskName', 'girder_worker.run')
 
         # Set the job status to queued
@@ -132,6 +129,8 @@ def schedule(event):
             'celeryTaskId': asyncResult.task_id
         })
 
+        # Stop event propagation since we have taken care of scheduling.
+        event.stopPropagation()
 
 def cancel(event):
     """
