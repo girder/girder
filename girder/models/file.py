@@ -195,29 +195,36 @@ class File(acl_mixin.AccessControlMixin, Model):
         elif parentType == 'item':
             item = parent
 
+        existing = None
         if reuseExisting:
             existing = self.findOne({
                 'itemId': item['_id'],
                 'name': name
             })
-            if existing:
-                return existing
 
-        file = {
-            'created': datetime.datetime.utcnow(),
-            'itemId': item['_id'],
+        if existing:
+            file = existing
+        else:
+            file = {
+                'created': datetime.datetime.utcnow(),
+                'itemId': item['_id'],
+                'assetstoreId': None,
+                'name': name
+            }
+
+        file.update({
             'creatorId': creator['_id'],
-            'assetstoreId': None,
-            'name': name,
             'mimeType': mimeType,
             'linkUrl': url
-        }
-
+        })
         if size is not None:
             file['size'] = int(size)
 
         try:
-            file = self.save(file)
+            if existing:
+                file = self.updateFile(file)
+            else:
+                file = self.save(file)
             return file
         except ValidationException:
             if parentType == 'folder':
