@@ -202,7 +202,7 @@ class WorkerTestCase(base.TestCase):
             jobModel.scheduleJob(job)
             jobModel.cancelJob(job)
 
-            asyncResult.assert_called_with('fake_id')
+            asyncResult.assert_called_with('fake_id', app=mock.ANY)
             # Check we called revoke
             asyncResult.return_value.revoke.assert_called_once()
             job = jobModel.load(job['_id'], force=True)
