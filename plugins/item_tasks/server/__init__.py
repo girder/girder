@@ -12,6 +12,7 @@ from .json_tasks import createItemTasksFromJson, configureItemTaskFromJson, \
     runJsonTasksDescriptionForFolder, runJsonTasksDescriptionForItem
 from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, createItemTasksFromSlicerCliXml, \
     runSlicerCliTasksDescriptionForFolder, runSlicerCliTasksDescriptionForItem
+from python_tasks import describeGWTaskItem
 
 
 def _onJobSave(event):
@@ -93,6 +94,8 @@ def load(info):
                                runJsonTasksDescriptionForItem)
     info['apiRoot'].item.route('PUT', (':id', 'item_task_json_specs'),
                                configureItemTaskFromJson)
+    info['apiRoot'].item.route('POST', (':id', 'item_task_girder_worker'),
+                               describeGWTaskItem)
 
     info['apiRoot'].folder.route('POST', (':id', 'item_task_slicer_cli_description'),
                                  runSlicerCliTasksDescriptionForFolder)
