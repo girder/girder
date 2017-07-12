@@ -64,7 +64,8 @@ class CustomJobStatus(object):
     valid_celery_transitions = {
         JobStatus.QUEUED: [JobStatus.INACTIVE],
         CANCELING: [JobStatus.INACTIVE, JobStatus.QUEUED],
-        JobStatus.CANCELED: [CANCELING, JobStatus.QUEUED, JobStatus.RUNNING],
+        JobStatus.CANCELED: [CANCELING, JobStatus.INACTIVE, JobStatus.QUEUED,
+                             JobStatus.RUNNING],
         JobStatus.RUNNING: [JobStatus.INACTIVE, JobStatus.QUEUED],
         JobStatus.ERROR: [JobStatus.QUEUED, JobStatus.RUNNING],
         JobStatus.SUCCESS: [JobStatus.RUNNING]
