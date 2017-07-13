@@ -162,21 +162,11 @@ class TasksTest(base.TestCase):
 
         # Test GET endpoint
         def testMinMax(expected, min=None, max=None):
-            if min is None and max is None:
-                params = {}
-            elif min is None:
-                params = {
-                    'maxFileInputs': max
-                }
-            elif max is None:
-                params = {
-                    'minFileInputs': min
-                }
-            else:
-                params = {
-                    'minFileInputs': min,
-                    'maxFileInputs': max
-                }
+            params = {}
+            if min is not None:
+                params['minFileInputs'] = min
+            if max is not None:
+                params['maxFileInputs'] = max
             resp = self.request(
                 '/item_task', params=params,
                 user=self.admin)
@@ -188,7 +178,7 @@ class TasksTest(base.TestCase):
         createTask('item3', '2 File Task')
         createTask('item4', '3 File Task')
         testMinMax(1, min=1, max=1)
-        testMinMax(4, min=0, max=3)
+        testMinMax(4, max=3)
         testMinMax(3, min=0, max=2)
         testMinMax(2, min=2, max=3)
         testMinMax(4)

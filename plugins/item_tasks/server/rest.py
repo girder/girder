@@ -35,7 +35,7 @@ class ItemTask(Resource):
         Description('List all available tasks that can be executed.')
         .pagingParams(defaultSort='name')
         .param('minFileInputs', 'Filter tasks by minimum number of file inputs.', required=False,
-               dataType='int',)
+               dataType='int')
         .param('maxFileInputs', 'Filter tasks by maximum number of file inputs.', required=False,
                dataType='int')
     )
