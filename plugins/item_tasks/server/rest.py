@@ -34,9 +34,9 @@ class ItemTask(Resource):
     @autoDescribeRoute(
         Description('List all available tasks that can be executed.')
         .pagingParams(defaultSort='name')
-        .param('minFileInputs', 'Search tasks by minimum number of file inputs.', required=False,
-               dataType='int', default=0)
-        .param('maxFileInputs', 'Search tasks by maximum number of file inputs.', required=False,
+        .param('minFileInputs', 'Filter tasks by minimum number of file inputs.', required=False,
+               dataType='int',)
+        .param('maxFileInputs', 'Filter tasks by maximum number of file inputs.', required=False,
                dataType='int')
     )
     @filtermodel(model='item')
@@ -45,7 +45,7 @@ class ItemTask(Resource):
             'meta.isItemTask': {'$exists': True}
         }, sort=sort)
 
-        if minFileInputs or maxFileInputs:
+        if minFileInputs is not None or maxFileInputs is not None:
             cursor = self._filterMinMaxFileInputs(cursor, minFileInputs, maxFileInputs)
 
         return list(self.model('item').filterResultsByPermission(
@@ -54,20 +54,17 @@ class ItemTask(Resource):
 
     def _filterMinMaxFileInputs(self, cursor, minFileInputs, maxFileInputs):
         for item in cursor:
-            fileCount = 0
-            try:
-                for _input in item['meta']['itemTaskSpec']['inputs']:
-                    if _input['type'] == 'file':
-                        fileCount += 1
+            fileCount = sum(
+                input['type'] == 'file'
+                for input in
+                item['meta']['itemTaskSpec'].get('inputs', []))
 
-                if maxFileInputs:
-                    if fileCount >= minFileInputs and fileCount <= maxFileInputs:
-                        yield item
-                else:
-                    if fileCount >= minFileInputs:
-                        yield item
-            except KeyError:
+            if minFileInputs is not None and fileCount < minFileInputs:
                 continue
+            elif maxFileInputs is not None and fileCount > maxFileInputs:
+                continue
+            else:
+                yield item
 
     def _validateTask(self, item):
         """
