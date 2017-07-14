@@ -151,7 +151,7 @@ module.exports = function (grunt) {
      * for each plugin.  For cases (3) and (4), the dependency lists are aggregated
      * and installed in a single invocation for all plugins.  This is done for two
      * reasons: it reduces the number of time `npm install` is executed (which is
-     * slow) and it eliminates the problem of autoprunning the `node_modules`
+     * slow) and it eliminates the problem of autopruning the `node_modules`
      * directory by npm@5.
      *
      * @param {string} pluginName

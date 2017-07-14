@@ -164,6 +164,9 @@ class RequestBodyStream(object):
     def __iter__(self):
         return self
 
+    def __len__(self):
+        return self.getSize()
+
     def next(self):
         data = self.read(self._ITER_CHUNK_LEN)
         if not data:

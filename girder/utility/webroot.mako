@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${title}</title>
-    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Droid+Sans:normal,bold">
+    <link rel="stylesheet" href="${staticRoot}/built/googlefonts.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/fontello.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/animation.css">
     <link rel="stylesheet" href="${staticRoot}/built/girder_lib.min.css">
@@ -20,11 +20,11 @@
     <script type="text/javascript">
         $(function () {
             girder.events.trigger('g:appload.before');
-            new girder.views.App({
+            girder.app = new girder.views.App({
                 el: 'body',
                 parentView: null
             }).render();
-            girder.events.trigger('g:appload.after');
+            girder.events.trigger('g:appload.after', girder.app);
         });
     </script>
     % for plugin in pluginJs:

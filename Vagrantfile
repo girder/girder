@@ -32,7 +32,7 @@ Vagrant.configure("2") do |config|
   client_testing = ENV["ANSIBLE_CLIENT_TESTING"] || false
   bind_node_modules = (ENV.fetch("BIND_NODE_MODULES", "true") != "false" && !client_testing && !ENV["ANSIBLE_TESTING"])
 
-  if bind_node_modules 
+  if bind_node_modules
     $script = <<SCRIPT
 mkdir -p /home/vagrant/girder/node_modules
 chown vagrant:vagrant /home/vagrant/girder/node_modules

@@ -21,7 +21,7 @@ import six
 
 from girder.api.rest import setResponseHeader
 from girder.constants import SettingKey
-from girder.models.model_base import ValidationException
+from girder.models.model_base import GirderException, ValidationException
 from girder.utility import progress, RequestBodyStream
 from .model_importer import ModelImporter
 
@@ -47,6 +47,9 @@ class FileHandle(object):
         self._file = file
         self._adapter = adapter
         self._pos = None
+        # If a read is requested that is longer than the specified size, raise
+        # an exception.  This prevents unbounded memory use.
+        self._maximumReadSize = 16 * 1024 * 1024
 
         self.seek(0)
 
@@ -56,17 +59,22 @@ class FileHandle(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def read(self, size):
+    def read(self, size=None):
         """
         Read *size* bytes from the file data.
 
         :param size: The number of bytes to read from the current position. The
             actual number returned could be less than this if the end of the
             file is reached. An empty response indicates that the file has been
-            completely consumed.
+            completely consumed.  If None or negative, read to the end of the
+            file.
         :type size: int
         :rtype: bytes
         """
+        if size is None or size < 0:
+            size = self._file['size'] - self._pos
+        if size > self._maximumReadSize:
+            raise GirderException('Read exceeds maximum allowed size.')
         data = six.BytesIO()
         length = 0
         for chunk in itertools.chain(self._prev, self._stream):
@@ -103,7 +111,7 @@ class FileHandle(object):
         elif whence == os.SEEK_CUR:
             self._pos += offset
         elif whence == os.SEEK_END:
-            self._pos = max(self._file['size'] - offset, 0)
+            self._pos = max(self._file['size'] + offset, 0)
 
         if self._pos != oldPos:
             self._prev = []
@@ -243,9 +251,10 @@ class AbstractAssetstoreAdapter(ModelImporter):
                      contentDisposition=None, extraParameters=None, **kwargs):
         """
         This method is in charge of returning a value to the RESTful endpoint
-        that can be used to download the file. This can return a generator
-        function that streams the file directly, or can modify the response
-        headers and perform a redirect and return None, for example.
+        that can be used to download the file. This should either return a
+        generator function that yields the bytes of the file (which will stream
+        the file directly), or modify the response headers and raise a
+        `cherrypy.HTTPRedirect`.
 
         :param file: The file document being downloaded.
         :type file: dict

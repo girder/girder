@@ -19,9 +19,7 @@
  * build system for installed girder packages.
  */
 module.exports = function (grunt) {
-    if (!grunt.config.get('isSourceBuild')) {
-        // If this is a package build rather than a source build, we skip the
-        // dev build tasks.
+    if (grunt.config.get('environment') !== 'dev') {
         return;
     }
 

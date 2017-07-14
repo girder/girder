@@ -158,6 +158,18 @@ If there is a match, the user is added to the group with the specified access
 level.
 
 
+Download Statistics
+-------------------
+
+This plugin tracks and records file download activity. The recorded information
+(downloads started, downloads completed, and total requests made) is stored on the
+file model: :: 
+
+    file['downloadStatistics']['started']
+    file['downloadStatistics']['requested']
+    file['downloadStatistics']['completed']
+
+
 DICOM Viewer
 ------------
 
@@ -318,7 +330,7 @@ ready, which admins may approve or reject. The plugin provides a UI along with
 workflow management, notification, and permission support for these actions.
 
 The standard curation workflow works as follows, with any operations affecting
-privacy or permissions being applied to the folder and all of its descendent
+privacy or permissions being applied to the folder and all of its descendant
 folders.
 
 - Site admins can enable curation for any folder, which changes the folder to
@@ -635,4 +647,3 @@ Girder.
 You can also use the API to download the file based on the hash returned by the previous endpoint,
 with an endpoint ``/api/v1/file/hashsum/sha512/<file sha512 hash>/download``, where the sha512 hash
 comes from the specific file in Girder.
-

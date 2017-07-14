@@ -1,6 +1,3 @@
-/**
- * Start the girder backbone app.
- */
 girderTest.startApp();
 
 describe('Create an admin and non-admin user', function () {
@@ -460,39 +457,8 @@ describe('Test the assetstore page', function () {
         });
 
         waitsFor(function () {
-            return $('.g-folder-list-entry').text().indexOf('prefix') !== -1;
+            return $('.g-empty-parent-message').length > 0;
         }, 'user folders to show');
-
-        runs(function () {
-            _.each($('.g-folder-list-link'), function (link) {
-                if ($(link).text() === 'prefix') {
-                    $(link).click();
-                }
-            });
-        });
-
-        waitsFor(function () {
-            return $('.g-item-list-link').text().indexOf('test') !== -1;
-        }, 'item to appear in the hierarchy widget');
-
-        runs(function () {
-            $('.g-item-list-link').click();
-        });
-
-        waitsFor(function () {
-            return $('.g-file-list-link').length === 1;
-        }, 'item page to render');
-
-        // Delete the containing folder so we can delete the assetstore
-        runs(function () {
-            privateFolder.on('g:deleted', function () {
-                privateFolder = null;
-            }).destroy();
-        });
-
-        waitsFor(function () {
-            return privateFolder === null;
-        }, 'private folder to be deleted');
 
         runs(function () {
             window.location = '#assetstores';

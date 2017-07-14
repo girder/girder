@@ -17,11 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-import boto
+import boto3
 import httmock
 import io
 import json
-import mock
 import moto
 import os
 import shutil
@@ -33,7 +32,7 @@ from .. import base, mock_s3
 from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
-from girder.models.model_base import AccessException
+from girder.models.model_base import AccessException, GirderException
 from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
@@ -199,14 +198,14 @@ class FileTestCase(base.TestCase):
         self.assertStatus(resp, 400)
 
         # Request offset from server (simulate a resume event)
-        resp = self.request(path='/file/offset', method='GET', user=self.user,
-                            params={'uploadId': uploadId})
+        resp = self.request(
+            path='/file/offset', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
 
         # Trying to send too many bytes should fail
         currentOffset = resp.json['offset']
         fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        files = [('chunk', name, "extra_"+chunk2+"_bytes")]
+        files = [('chunk', name, 'extra_'+chunk2+'_bytes')]
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatus(resp, 400)
@@ -216,8 +215,8 @@ class FileTestCase(base.TestCase):
         })
 
         # The offset should not have changed
-        resp = self.request(path='/file/offset', method='GET', user=self.user,
-                            params={'uploadId': uploadId})
+        resp = self.request(
+            path='/file/offset', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['offset'], currentOffset)
 
@@ -341,9 +340,42 @@ class FileTestCase(base.TestCase):
             buf = _readFile(handle)
             self.assertEqual(buf, contents[4:])
 
-            handle.seek(2, os.SEEK_END)
+            handle.seek(-2, os.SEEK_END)
             buf = _readFile(handle)
             self.assertEqual(buf, contents[-2:])
+
+            handle.seek(2, os.SEEK_END)
+            buf = _readFile(handle)
+            self.assertEqual(buf, b'')
+
+            # Read without a length parameter
+            handle.seek(0, os.SEEK_SET)
+            buf = handle.read()
+            self.assertEqual(buf, contents)
+
+            handle.seek(-2, os.SEEK_END)
+            buf = handle.read()
+            self.assertEqual(buf, contents[-2:])
+
+            # Read with a negative length parameter
+            handle.seek(0, os.SEEK_SET)
+            buf = handle.read(-1)
+            self.assertEqual(buf, contents)
+
+            handle.seek(-2, os.SEEK_END)
+            buf = handle.read(-5)
+            self.assertEqual(buf, contents[-2:])
+
+            # Read too many bytes on files long enough to test
+            if len(contents) > 6:
+                handle._maximumReadSize = 6
+                handle.seek(0, os.SEEK_SET)
+                self.assertRaises(GirderException, handle.read, 7)
+                handle.seek(0, os.SEEK_SET)
+                self.assertRaises(GirderException, handle.read)
+                handle.seek(-2, os.SEEK_END)
+                buf = handle.read()
+                self.assertEqual(buf, contents[-2:])
 
     def _testDownloadFolder(self):
         """
@@ -799,10 +831,10 @@ class FileTestCase(base.TestCase):
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
 
-    @moto.mock_s3bucket_path
+    @moto.mock_s3
     def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
-        bucket = mock_s3.createBucket(botoParams, 'b')
+        mock_s3.createBucket(botoParams, 'b')
 
         self.model('assetstore').remove(self.model('assetstore').getCurrent())
         assetstore = self.model('assetstore').createS3Assetstore(
@@ -861,8 +893,8 @@ class FileTestCase(base.TestCase):
 
             # Actually set the key in moto
             self.assertEqual(url.path[:3], '/b/')
-            key = boto.s3.key.Key(bucket=bucket, name=url.path[3:])
-            key.set_contents_from_string(body)
+            client = boto3.client('s3')
+            client.put_object(Bucket='b', Key=url.path[3:], Body=body)
 
             return {
                 'status_code': 200
@@ -871,7 +903,7 @@ class FileTestCase(base.TestCase):
         # Trying to send too many bytes should fail
         currentOffset = resp.json['offset']
         fields = [('offset', resp.json['offset']), ('uploadId', uploadId)]
-        files = [('chunk', 'hello.txt', "extra_"+chunk2+"_bytes")]
+        files = [('chunk', 'hello.txt', 'extra_'+chunk2+'_bytes')]
         with httmock.HTTMock(mockChunkUpload):
             resp = self.multipartRequest(
                 path='/file/chunk', user=self.user, fields=fields, files=files)
@@ -902,23 +934,16 @@ class FileTestCase(base.TestCase):
         self.assertEqual(file['name'], 'hello.txt')
         self.assertEqual(file['size'], len(chunk1 + chunk2))
 
-        # Make sure metadata is updated in S3 when file info changes
-        # (moto API doesn't cover this at all, so we manually mock.)
-        with mock.patch('boto.s3.key.Key.set_remote_metadata') as m:
-            self.request(
-                '/file/%s' % str(file['_id']), method='PUT', params={
-                    'mimeType': 'application/csv',
-                    'name': 'new name'
-                }, user=self.user)
-            self.assertEqual(len(m.mock_calls), 1)
-            self.assertEqual(m.mock_calls[0][2], {
-                'metadata_plus': {
-                    'Content-Type': 'application/csv',
-                    'Content-Disposition': b'attachment; filename="new name"'
-                },
-                'metadata_minus': [],
-                'preserve_acl': True
-            })
+        resp = self.request('/file/%s' % file['_id'], method='PUT', params={
+            'mimeType': 'application/csv',
+            'name': 'new name'
+        }, user=self.user)
+        self.assertStatusOk(resp)
+
+        # Make sure our metadata got updated in S3
+        obj = boto3.client('s3').get_object(Bucket='b', Key=file['s3Key'])
+        self.assertEqual(obj['ContentDisposition'], 'attachment; filename="new name"')
+        self.assertEqual(obj['ContentType'], 'application/csv')
 
         # Enable testing of multi-chunk proxied upload
         S3AssetstoreAdapter.CHUNK_LEN = 5
@@ -964,6 +989,7 @@ class FileTestCase(base.TestCase):
 
         file = resp.json
 
+        self.assertEqual(file['_modelType'], 'file')
         self.assertHasKeys(file, ['itemId'])
         self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
         self.assertEqual(file['name'], 'hello.txt')
@@ -1021,7 +1047,5 @@ class FileTestCase(base.TestCase):
             self.assertTrue(self.finalizeUploadBeforeCalled)
             self.assertTrue(self.finalizeUploadAfterCalled)
 
-            events.unbind('model.file.finalizeUpload.before',
-                          '_testFinalizeUploadBefore')
-            events.unbind('model.file.finalizeUpload.after',
-                          '_testFinalizeUploadAfter')
+            events.unbind('model.file.finalizeUpload.before', '_testFinalizeUploadBefore')
+            events.unbind('model.file.finalizeUpload.after', '_testFinalizeUploadAfter')

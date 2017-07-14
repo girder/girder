@@ -291,7 +291,7 @@ class QuotaPolicy(Resource):
             resource = self.model(model).load(id=resourceId, force=True)
         if model in ('user', 'collection') and resource:
             # Ensure the base resource has a quota field so we can use the
-            # default quota if apropriate
+            # default quota if appropriate
             if QUOTA_FIELD not in resource:
                 resource[QUOTA_FIELD] = {}
         if not resource or QUOTA_FIELD not in resource:

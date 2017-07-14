@@ -20,7 +20,7 @@
 import datetime
 
 from .model_base import AccessControlledModel, ValidationException
-from girder.constants import AccessType, SettingKey
+from girder.constants import AccessType, SettingKey, TokenScope
 from girder.utility import genToken
 
 
@@ -50,8 +50,14 @@ class ApiKey(AccessControlledModel):
             if not isinstance(doc['scope'], (list, tuple)):
                 raise ValidationException('Scope must be a list, or None.')
             if not doc['scope']:
-                raise ValidationException(
-                    'Custom scope list must not be empty.')
+                raise ValidationException('Custom scope list must not be empty.')
+
+            # Ensure only registered scopes are being set
+            admin = self.model('user').load(doc['userId'], force=True)['admin']
+            scopes = TokenScope.scopeIds(admin)
+            unknownScopes = set(doc['scope']) - scopes
+            if unknownScopes:
+                raise ValidationException('Invalid scopes: %s.' % ','.join(unknownScopes))
 
         # Deactivating an already existing token
         if '_id' in doc and not doc['active']:
@@ -108,8 +114,7 @@ class ApiKey(AccessControlledModel):
             'active': active
         }
 
-        return self.setUserAccess(
-            apiKey, user, level=AccessType.ADMIN, save=True)
+        return self.setUserAccess(apiKey, user, level=AccessType.ADMIN, save=True)
 
     def createToken(self, key, days=None):
         """

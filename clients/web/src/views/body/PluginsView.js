@@ -30,8 +30,7 @@ var PluginsView = View.extend({
         },
         'click .g-rebuild-and-restart': function (e) {
             confirm({
-                text: `Are you sure you want to rebuild web code and restart 
-                the server? This will interrupt all running tasks for all users.`,
+                text: `Are you sure you want to rebuild web code and restart the server? This will interrupt all running tasks for all users.`,
                 yesText: 'Restart',
                 confirmCallback: function () {
                     $(e.currentTarget).girderEnable(false);
