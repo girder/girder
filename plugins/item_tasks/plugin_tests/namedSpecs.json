@@ -1,86 +1,86 @@
 [
-  {
-    "name": "Task 1",
-    "description": "Task 1 description",
-    "mode": "docker",
-    "inputs": [
-      {
-        "id": "dummy_input",
-        "name": "Dummy input",
-        "description": "Dummy input flag",
-        "type": "boolean",
-        "default": {
-          "data": true
-        }
-      }
-    ],
-    "outputs": []
-  },
-  {
-    "name": "Task 2",
-    "description": "Task 2 description",
-    "mode": "docker",
-    "inputs": [],
-    "outputs": []
-  },
-  {
-    "name": "1 File Task",
-    "description": "1 File Task description",
-    "mode": "docker",
-    "inputs": [
-      {
-        "description": "",
-        "required": true,
-        "target": "filepath",
-        "type": "file"
-      }
-    ],
-    "outputs": []
-  },
-  {
-    "name": "2 File Task",
-    "description": "2 File Task description",
-    "mode": "docker",
-    "inputs": [
-      {
-        "description": "",
-        "required": true,
-        "target": "filepath",
-        "type": "file"
-      },
-      {
-        "description": "",
-        "required": true,
-        "target": "filepath",
-        "type": "file"
-      }
-    ],
-    "outputs": []
-  },
-  {
-    "name": "3 File Task",
-    "description": "3 File Task description",
-    "mode": "docker",
-    "inputs": [
-      {
-        "description": "",
-        "required": true,
-        "target": "filepath",
-        "type": "file"
-      },
-      {
-        "description": "",
-        "required": true,
-        "target": "filepath",
-        "type": "file"
-      },
-      {
-        "description": "",
-        "required": true,
-        "target": "filepath",
-        "type": "file"
-      }
-    ],
-    "outputs": []
-  }
+    {
+        "name": "Task 1",
+        "description": "Task 1 description",
+        "mode": "docker",
+        "inputs": [
+            {
+                "id": "dummy_input",
+                "name": "Dummy input",
+                "description": "Dummy input flag",
+                "type": "boolean",
+                "default": {
+                    "data": true
+                }
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "name": "Task 2",
+        "description": "Task 2 description",
+        "mode": "docker",
+        "inputs": [],
+        "outputs": []
+    },
+    {
+        "name": "1 File Task",
+        "description": "1 File Task description",
+        "mode": "docker",
+        "inputs": [
+            {
+                "description": "",
+                "required": true,
+                "target": "filepath",
+                "type": "file"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "name": "2 File Task",
+        "description": "2 File Task description",
+        "mode": "docker",
+        "inputs": [
+            {
+                "description": "",
+                "required": true,
+                "target": "filepath",
+                "type": "file"
+            },
+            {
+                "description": "",
+                "required": true,
+                "target": "filepath",
+                "type": "file"
+            }
+        ],
+        "outputs": []
+    },
+    {
+        "name": "3 File Task",
+        "description": "3 File Task description",
+        "mode": "docker",
+        "inputs": [
+            {
+                "description": "",
+                "required": true,
+                "target": "filepath",
+                "type": "file"
+            },
+            {
+                "description": "",
+                "required": true,
+                "target": "filepath",
+                "type": "file"
+            },
+            {
+                "description": "",
+                "required": true,
+                "target": "filepath",
+                "type": "file"
+            }
+        ],
+        "outputs": []
+    }
 ]
