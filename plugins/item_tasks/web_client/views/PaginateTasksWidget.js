@@ -7,7 +7,7 @@ import '../stylesheets/paginateTasksWidget.styl';
 
 var PaginateTasksWidget = View.extend({
     events: {
-        'click .g-execute-task-link': function(event) {
+        'click .g-execute-task-link': function (event) {
             let taskId = $(event.currentTarget).data('taskId');
 
             this.trigger('g:selected', {
