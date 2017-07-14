@@ -36,7 +36,7 @@ class ItemTask(Resource):
         .pagingParams(defaultSort='name')
     )
     @filtermodel(model='item')
-    def listTasks(self, limit, offset, sort, params):
+    def listTasks(self, limit, offset, sort):
         cursor = self.model('item').find({
             'meta.isItemTask': {'$exists': True}
         }, sort=sort)
@@ -161,7 +161,7 @@ class ItemTask(Resource):
         .jsonParam('outputs', 'The output bindings for the task.', required=False,
                    requireObject=True)
     )
-    def executeTask(self, item, jobTitle, includeJobInfo, inputs, outputs, params):
+    def executeTask(self, item, jobTitle, includeJobInfo, inputs, outputs):
         user = self.getCurrentUser()
         if jobTitle is None:
             jobTitle = item['name']

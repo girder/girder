@@ -40,7 +40,7 @@ class Token(Resource):
         Description('Retrieve the current session information.')
         .responseClass('Token')
     )
-    def currentSession(self, params):
+    def currentSession(self):
         return self.getCurrentToken()
 
     @access.public
@@ -49,7 +49,7 @@ class Token(Resource):
         .notes('If you are logged in, this will return a token associated with that login.')
         .responseClass('Token')
     )
-    def getSession(self, params):
+    def getSession(self):
         token = self.getCurrentToken()
 
         # Only create and send new cookie if token isn't valid or will expire soon
@@ -67,7 +67,7 @@ class Token(Resource):
         .responseClass('Token')
         .notes('Attempts to delete your authentication cookie.')
     )
-    def deleteSession(self, params):
+    def deleteSession(self):
         token = self.getCurrentToken()
         if token:
             self.model('token').remove(token)
@@ -78,5 +78,5 @@ class Token(Resource):
     @autoDescribeRoute(
         Description('List all token scopes available in the system.')
     )
-    def listScopes(self, params):
+    def listScopes(self):
         return TokenScope.listScopes()
