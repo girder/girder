@@ -43,7 +43,7 @@ class ApiKey(Resource):
         .pagingParams(defaultSort='name')
         .errorResponse()
     )
-    def listKeys(self, userId, limit, offset, sort, params):
+    def listKeys(self, userId, limit, offset, sort):
         user = self.getCurrentUser()
 
         if userId not in {None, str(user['_id'])}:
@@ -64,7 +64,7 @@ class ApiKey(Resource):
                dataType='boolean', default=True)
         .errorResponse()
     )
-    def createKey(self, name, scope, tokenDuration, active, params):
+    def createKey(self, name, scope, tokenDuration, active):
         return self.model('api_key').createApiKey(
             user=self.getCurrentUser(), name=name, scope=scope, days=tokenDuration, active=active)
 
@@ -83,7 +83,7 @@ class ApiKey(Resource):
                dataType='boolean')
         .errorResponse()
     )
-    def updateKey(self, apiKey, name, scope, tokenDuration, active, params):
+    def updateKey(self, apiKey, name, scope, tokenDuration, active):
         if active is not None:
             apiKey['active'] = active
         if name is not None:
@@ -102,7 +102,7 @@ class ApiKey(Resource):
                     level=AccessType.ADMIN, destName='apiKey')
         .errorResponse()
     )
-    def deleteKey(self, apiKey, params):
+    def deleteKey(self, apiKey):
         self.model('api_key').remove(apiKey)
         return {'message': 'Deleted API key %s.' % apiKey['name']}
 
@@ -114,7 +114,7 @@ class ApiKey(Resource):
                required=False, dataType='float')
         .errorResponse()
     )
-    def createToken(self, key, duration, params):
+    def createToken(self, key, duration):
         user, token = self.model('api_key').createToken(key, days=duration)
 
         # Return the same structure as a normal user login, except do not

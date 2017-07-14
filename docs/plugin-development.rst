@@ -159,7 +159,7 @@ example:
         .param('id', 'The item ID', paramType='path')
         .param('cat', 'The cat value.', required=False)
         .errorResponse())
-    def myHandler(id, cat, params):
+    def myHandler(id, cat):
         return {
            'itemId': id,
            'cat': cat
@@ -173,10 +173,10 @@ and type coercion for you, with the benefit of ensuring that the documentation o
 the endpoint inputs matches their actual behavior. Documented parameters will be
 sent to the method as kwargs (so the order you declare them in the header doesn't matter).
 Any additional parameters that were passed but not listed in the ``Description`` object
-will be contained in the ``params`` kwarg as a dictionary. The validation of required
-parameters, coercion to the correct data type, and setting default values is all
-handled automatically for you based on the parameter descriptions in the ``Description``
-object passed. Two special methods of the ``Description`` object can be used for
+will be contained in the ``params`` kwarg as a dictionary, if that parameter is present. The
+validation of required parameters, coercion to the correct data type, and setting default
+values is all handled automatically for you based on the parameter descriptions in the
+``Description`` object passed. Two special methods of the ``Description`` object can be used for
 additional behavior control: :py:func:`girder.api.describe.Description.modelParam` and
 :py:func:`girder.api.describe.Description.jsonParam`.
 

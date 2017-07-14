@@ -54,8 +54,7 @@ class Job(Resource):
         .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
         .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
     )
-    def listJobs(self, userId, parentJob, types, statuses, limit, offset, sort,
-                 params):
+    def listJobs(self, userId, parentJob, types, statuses, limit, offset, sort):
         currentUser = self.getCurrentUser()
         if not userId:
             user = currentUser
@@ -91,8 +90,7 @@ class Job(Resource):
         .jsonParam('otherFields', 'Other fields specific to the job handler',
                    requireObject=True, required=False)
     )
-    def createJob(self, title, type, parentJob, public, handler, args, kwargs,
-                  otherFields, params):
+    def createJob(self, title, type, parentJob, public, handler, args, kwargs, otherFields):
         return self.model('job', 'jobs').createJob(
             title=title,
             type=type,
@@ -112,7 +110,7 @@ class Job(Resource):
         .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
         .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
     )
-    def listAllJobs(self, types, statuses, limit, offset, sort, params):
+    def listAllJobs(self, types, statuses, limit, offset, sort):
         currentUser = self.getCurrentUser()
         return list(self.model('job', 'jobs').list(
             user='all', offset=offset, limit=limit, types=types,
@@ -127,7 +125,7 @@ class Job(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the job.', 403)
     )
-    def getJob(self, job, params):
+    def getJob(self, job):
         return job
 
     @access.token
@@ -160,7 +158,7 @@ class Job(Resource):
         .errorResponse('Write access was denied for the job.', 403)
     )
     def updateJob(self, job, log, overwrite, notify, status, progressTotal, progressCurrent,
-                  progressMessage, params):
+                  progressMessage):
         user = self.getCurrentUser()
         if user:
             self.model('job', 'jobs').requireAccess(
@@ -180,7 +178,7 @@ class Job(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the job.', 403)
     )
-    def deleteJob(self, job, params):
+    def deleteJob(self, job):
         self.model('job', 'jobs').remove(job)
 
     @access.admin
@@ -188,13 +186,13 @@ class Job(Resource):
         Description('Get types and statuses of all jobs')
         .errorResponse('Admin access was denied for the job.', 403)
     )
-    def allJobsTypesAndStatuses(self, params):
+    def allJobsTypesAndStatuses(self):
         return self.model('job', 'jobs').getAllTypesAndStatuses(user='all')
 
     @access.user
     @autoDescribeRoute(
         Description('Get types and statuses of jobs of current user')
     )
-    def jobsTypesAndStatuses(self, params):
+    def jobsTypesAndStatuses(self):
         currentUser = self.getCurrentUser()
         return self.model('job', 'jobs').getAllTypesAndStatuses(user=currentUser)

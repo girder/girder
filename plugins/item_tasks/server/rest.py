@@ -182,7 +182,7 @@ class ItemTask(Resource):
         .jsonParam('outputs', 'The output bindings for the task.', required=False,
                    requireObject=True)
     )
-    def executeTask(self, item, jobTitle, includeJobInfo, inputs, outputs, params):
+    def executeTask(self, item, jobTitle, includeJobInfo, inputs, outputs):
         user = self.getCurrentUser()
         if jobTitle is None:
             jobTitle = item['name']

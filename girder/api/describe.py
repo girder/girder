@@ -19,7 +19,10 @@
 
 import bson.json_util
 import dateutil.parser
-import inspect
+try:
+    from inspect import signature, Parameter
+except ImportError:
+    from funcsigs import signature, Parameter
 import jsonschema
 import os
 import six
@@ -545,16 +548,40 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         :type kwargs: dict
         :param val: The value of the argument to set
         """
-        if name in fun._fnArgs or fun._fnKeywds is not None:
+        if name in self._funNamedArgs or self._funHasKwargs:
             kwargs[name] = val
             kwargs['params'].pop(name, None)
         else:
             kwargs['params'][name] = val
 
+    def _mungeKwargs(self, kwargs, fun):
+        """
+        Performs final modifications to the kwargs passed into the wrapped function.
+        Combines the sort/sortdir params appropriately for consumption by the model
+        layer, and only passes the "params" catch-all dict if there is a corresponding
+        kwarg for it in the wrapped function.
+        """
+        if self.description.hasPagingParams and 'sort' in kwargs:
+            sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
+            kwargs['sort'] = [(kwargs['sort'], sortdir)]
+
+        if 'params' not in self._funNamedArgs and not self._funHasKwargs:
+            kwargs.pop('params', None)
+
+    def _inspectFunSignature(self, fun):
+        self._funNamedArgs = set()
+        self._funHasKwargs = False
+        for funParam in six.viewvalues(signature(fun).parameters):
+            if funParam.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}:
+                # POSITIONAL_OR_KEYWORD are basic positional parameters
+                # KEYWORD_ONLY are named parameters that appear after a * in Python 3
+                self._funNamedArgs.add(funParam.name)
+            elif funParam.kind == Parameter.VAR_KEYWORD:
+                # VAR_KEYWORD is the **kwargs parameter
+                self._funHasKwargs = True
+
     def __call__(self, fun):
-        fnInfo = inspect.getargspec(fun)
-        fun._fnArgs = set(fnInfo.args)
-        fun._fnKeywds = fnInfo.keywords
+        self._inspectFunSignature(fun)
 
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
@@ -605,9 +632,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     else:
                         self._passArg(fun, kwargs, name, None)
 
-            if self.description.hasPagingParams and 'sort' in kwargs:
-                sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
-                kwargs['sort'] = [(kwargs['sort'], sortdir)]
+            self._mungeKwargs(kwargs, fun)
 
             return fun(*args, **kwargs)
 
