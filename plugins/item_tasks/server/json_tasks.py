@@ -8,7 +8,7 @@ from . import constants
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
 @filtermodel(model='job', plugin='jobs')
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Create item task spec based on a task in a docker image.')
     .notes('This operates on an existing item, turning it into an item task '
@@ -90,7 +90,7 @@ def runJsonTasksDescriptionForItem(self, item, image, taskName, setName, setDesc
 
 
 @access.token
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Set a task spec on an item from a JSON specification.')
     .modelParam('id', model='item', force=True)
@@ -137,7 +137,7 @@ def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDes
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
 @filtermodel(model='job', plugin='jobs')
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Create item task specs based on a docker image.')
     .notes('This operates on an existing folder, adding item tasks '
@@ -199,7 +199,7 @@ def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
 
 
 @access.token
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Create item tasks under a folder using a list of JSON specifications.')
     .modelParam('id', model='folder', force=True)

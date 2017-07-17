@@ -115,7 +115,7 @@ route for ``GET /item/:id/cat`` to the system,
     from girder.api.rest import boundHandler
 
     @access.public
-    @boundHandler()
+    @boundHandler
     def myHandler(self, id, params):
         self.requireParams('cat', params)
 

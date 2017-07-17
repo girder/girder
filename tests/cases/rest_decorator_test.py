@@ -70,24 +70,25 @@ class TestEndpointDecoratorException(base.TestCase):
         self.assertEqual(obj['type'], 'internal')
 
     def testBoundHandlerDecorator(self):
+        user = self.model('user').createUser('tester', 'password', 'Test', 'User', 'test@test.com')
 
-        resp = self.request('/collection/unbound/default/noargs', params={
+        resp = self.request('/collection/unbound/default/noargs', user=user, params={
             'val': False
         })
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, True)
 
-        resp = self.request('/collection/unbound/default', params={
+        resp = self.request('/collection/unbound/default', user=user, params={
             'val': False
         })
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, True)
 
-        resp = self.request('/collection/unbound/explicit')
+        resp = self.request('/collection/unbound/explicit', user=user)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, {
             'name': 'collection',
-            'user': None
+            'userLogin': 'tester'
         })
 
     def testRawResponse(self):

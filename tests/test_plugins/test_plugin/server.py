@@ -22,10 +22,11 @@ from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import boundHandler, rawResponse, Resource, setResponseHeader
 from girder.api.v1.collection import Collection
+from girder.constants import TokenScope
 from girder.utility.server import staticFile
 
 
-@access.public
+@access.user(scope=TokenScope.ANONYMOUS_SESSION)
 @boundHandler
 @describeRoute(None)
 def unboundHandlerDefaultNoArgs(self, params):
@@ -33,7 +34,7 @@ def unboundHandlerDefaultNoArgs(self, params):
     return not self.boolParam('val', params)
 
 
-@access.public
+@access.user(scope=TokenScope.ANONYMOUS_SESSION)
 @boundHandler()
 @describeRoute(None)
 def unboundHandlerDefault(self, params):
@@ -41,12 +42,13 @@ def unboundHandlerDefault(self, params):
     return not self.boolParam('val', params)
 
 
-@access.public
+@access.user(scope=TokenScope.ANONYMOUS_SESSION)
 @boundHandler(Collection())
 @describeRoute(None)
 def unboundHandlerExplicit(self, params):
+    currentUser = self.getCurrentUser()
     return {
-        'user': self.getCurrentUser(),
+        'userLogin': currentUser['login'] if currentUser else None,
         'name': self.resourceName
     }
 

@@ -26,7 +26,7 @@ from .constants import PluginSettings
 
 
 @access.user
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Get list of item licenses.')
     .param('default', 'Whether to return the default list of item licenses.',
