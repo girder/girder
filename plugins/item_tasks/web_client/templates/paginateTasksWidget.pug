@@ -1,8 +1,16 @@
+mixin name-and-description(task)
+  h4.list-group-item-heading.g-execute-task-link-header= task.name()
+  .list-group-item-text.g-execute-task-link-body= task.get('description')
+
 .g-task-list-header
   .g-task-pagination
 
 .list-group.g-task-list-container
   each task in tasks
-    .list-group-item.g-execute-task-link(data-task-id=task.id)
-      h4.list-group-item-heading.g-execute-task-link-header= task.name()
-      .list-group-item-text.g-execute-task-link-body= task.get('description')
+    if hyperlink
+      a.list-group-item.g-execute-task-link(
+        href=`#item_task/${task.id}/run`, data-task-id=task.id)
+        +name-and-description(task)
+    else
+      .list-group-item.g-execute-task-link(data-task-id=task.id)
+        +name-and-description(task)
