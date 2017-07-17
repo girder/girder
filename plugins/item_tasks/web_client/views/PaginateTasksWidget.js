@@ -15,13 +15,14 @@ var PaginateTasksWidget = View.extend({
         }
     },
     /**
-     * @param [settings.hyperlink=false] Whether to create a link that will navigate
-     * the user to the specific task's run page. The g:selected event is triggered
+     * @param [settings.hyperlinkCallback=false] A callback function, which if provided,
+     * takes a single task argument (of an item_task model) and returns a string
+     * of a URL to be used as the task link href. The g:selected event is triggered
      * either way with the taskId passed as a parameter.
      */
     initialize: function (settings) {
         this.collection = new ItemTaskCollection();
-        this.hyperlink = settings.hyperlink || false;
+        this.hyperlinkCallback = settings.hyperlinkCallback || false;
 
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
@@ -37,7 +38,7 @@ var PaginateTasksWidget = View.extend({
     render: function () {
         this.$el.html(template({
             tasks: this.collection.toArray(),
-            hyperlink: this.hyperlink
+            hyperlinkCallback: this.hyperlinkCallback
         }));
 
         this.paginateWidget.setElement(this.$('.g-task-pagination')).render();

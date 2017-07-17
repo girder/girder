@@ -7,9 +7,9 @@ mixin name-and-description(task)
 
 .list-group.g-task-list-container
   each task in tasks
-    if hyperlink
+    if hyperlinkCallback
       a.list-group-item.g-execute-task-link(
-        href=`#item_task/${task.id}/run`, data-task-id=task.id)
+        href=hyperlinkCallback(task), data-task-id=task.id)
         +name-and-description(task)
     else
       .list-group-item.g-execute-task-link(data-task-id=task.id)
