@@ -735,8 +735,13 @@ class Folder(AccessControlledModel):
             name = srcFolder['name']
         if description is None:
             description = srcFolder['description']
-        if public == 'original':
-            public = srcFolder.get('public', None)
+        if public is not None and isinstance(public, six.string_types):
+            if public == 'original':
+                public = srcFolder.get('public', None)
+            elif public.lower() == 'true':
+                public = True
+            elif public.lower() == 'false':
+                public = False
         newFolder = self.createFolder(
             parentType=parentType, parent=parent, name=name,
             description=description, public=public, creator=creator,
