@@ -15,14 +15,14 @@ var PaginateTasksWidget = View.extend({
         }
     },
     /**
-     * @param [settings.hyperlinkCallback=false] A callback function, which if provided,
+     * @param [settings.hyperlinkCallback=null] A callback function, which if provided,
      * takes a single task argument (of an item_task model) and returns a string
      * of a URL to be used as the task link href. The g:selected event is triggered
      * either way with the taskId passed as a parameter.
      */
     initialize: function (settings) {
         this.collection = new ItemTaskCollection();
-        this.hyperlinkCallback = settings.hyperlinkCallback || false;
+        this.hyperlinkCallback = settings.hyperlinkCallback || null;
 
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
