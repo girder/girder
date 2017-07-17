@@ -9,8 +9,8 @@ var TaskListView = View.extend({
             el: this.$el,
             parentView: this
         }).once('g:selected', function (params) {
-            let taskId = params.taskId;
-            router.navigate('item_task/' + taskId + '/run', {trigger: true});
+            const taskId = params.taskId;
+            router.navigate(`item_task/${taskId}/run`, {trigger: true});
         });
     }
 });
