@@ -12,7 +12,7 @@ var TaskListView = View.extend({
                 return `#item_task/${task.id}/run`;
             }
         }).once('g:selected', function (params) {
-            const taskId = params.taskId;
+            const taskId = params.task.id;
             router.navigate(`item_task/${taskId}/run`, {trigger: true});
         });
     }

@@ -9,8 +9,9 @@ var PaginateTasksWidget = View.extend({
     events: {
         'click .g-execute-task-link': function (event) {
             const taskId = $(event.currentTarget).data('taskId');
+            const task = this.collection.findWhere({_id: taskId});
             this.trigger('g:selected', {
-                taskId: taskId
+                task: task
             });
         }
     },
