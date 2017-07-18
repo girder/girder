@@ -23,12 +23,12 @@ const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 
-const isTrue = (str) => !!str && str.toLowerCase() !== 'false' && str !== '0';
+const isTrue = (str) => !!str && !['false', 'off', '0'].includes(str.toString().toLowerCase());
 
 module.exports = function (grunt) {
     // Get and validate options
-    const progress = !grunt.option('no-progress');
-    const isWatch = grunt.option('watch');
+    const progress = !isTrue(grunt.option('no-progress'));
+    const isWatch = isTrue(grunt.option('watch'));
     const pollingWatch = isTrue(process.env.WATCH_USEPOLLING);
     // Force environment to 'dev' if in watch mode
     const environment = isWatch ? 'dev' : grunt.config.get('environment');
