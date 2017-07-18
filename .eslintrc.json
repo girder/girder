@@ -1,3 +1,6 @@
 {
-    "extends": "girder"
+    "extends": "girder",
+    "rules": {
+        "quotes": ["error", "single", {"avoidEscape": true, "allowTemplateLiterals": true}]
+    }
 }
