@@ -164,18 +164,6 @@ module.exports = function (grunt) {
                 ]
             }
         },
-        // The grunt-contrib-watch task can be used with webpack, as described here:
-        // https://github.com/webpack/webpack-with-common-libs/blob/master/Gruntfile.js
-        // BUT it is A LOT SLOWER than using the built-in watch options in grunt-webpack
-        watch: {
-            warn: {
-                files: [],
-                tasks: 'warnWatch',
-                options: {
-                    atBegin: true
-                }
-            }
-        },
         default: {
             build: {
                 dependencies: ['version-info']
@@ -189,9 +177,4 @@ module.exports = function (grunt) {
         'webpack:core_lib',
         'webpack:core_app'
     ]);
-
-    // Warn about not using grunt-contrib-watch, use webpack:watch or grunt --watch instead
-    grunt.registerTask('warnWatch', function () {
-        grunt.log.warn('WARNING: the "watch" task will not build; run grunt --watch'.yellow);
-    });
 };
