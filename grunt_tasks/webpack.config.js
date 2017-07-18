@@ -234,5 +234,8 @@ module.exports = {
         modules: false,
         reasons: false,
         timings: false
+    },
+    watchOptions: {
+        ignored: /node_modules/
     }
 };

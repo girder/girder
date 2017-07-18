@@ -21,10 +21,13 @@ const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 
+const isTrue = (str) => !!str && str.toLowerCase() !== 'false' && str !== '0';
+
 module.exports = function (grunt) {
     // Get and validate options
     const progress = !grunt.option('no-progress');
     const isWatch = grunt.option('watch');
+    const pollingWatch = isTrue(process.env.WATCH_USEPOLLING);
     // Force environment to 'dev' if in watch mode
     const environment = isWatch ? 'dev' : grunt.config.get('environment');
 
@@ -55,6 +58,16 @@ module.exports = function (grunt) {
             // When "watch" is enabled for webpack, grunt-webpack will intelligently set its own
             // options for "keepalive" and "failOnError"
             webpackConfig.watch = true;
+            if (pollingWatch) {
+                // For Girder's current number of files, 500ms is a reasonable polling interval to
+                // keep CPU utilization from going too high, particularly in a VM (where this
+                // option is most likely to be used)
+                webpackConfig.watchOptions.poll = 500;
+                // Chokidar is used internally for almost all file polling, so enable it globally
+                // for other packages to potentially benefit too
+                process.env.CHOKIDAR_USEPOLLING = 'TRUE';
+                process.env.CHOKIDAR_INTERVAL = '500';
+            }
         }
     } else {
         // "devtool" is off by default
