@@ -434,6 +434,40 @@ class PythonClientTestCase(base.TestCase):
         self.assertNotEqual(eventList[2]['file']['_id'],
                             eventList[-1]['file']['_id'])
 
+    def testUploadFileToFolder(self):
+        filepath = os.path.join(self.libTestDir, 'sub0', 'f')
+
+        stream_filename = 'uploaded_from_stream'
+        disk_filename = 'uploaded_from_disk'
+
+        # upload filepath as a stream and as a local file, and assert the end result is the same
+        with open(filepath, 'rb') as infile:
+            infile.seek(0, os.SEEK_END)
+            size = infile.tell()
+            infile.seek(0)
+
+            self.client.uploadStreamToFolder(str(self.publicFolder['_id']), infile, stream_filename,
+                                             size, mimeType='text/plain')
+
+        self.client.uploadFileToFolder(str(self.publicFolder['_id']), filepath,
+                                       filename=disk_filename)
+
+        stream_item = six.next(self.client.listItem(str(self.publicFolder['_id']),
+                                                    name=stream_filename))
+        disk_item = six.next(self.client.listItem(str(self.publicFolder['_id']),
+                                                  name=disk_filename))
+
+        # assert names and sizes are correct
+        self.assertEqual(stream_filename, stream_item['name'])
+        self.assertEqual(size, stream_item['size'])
+        self.assertEqual(disk_filename, disk_item['name'])
+        self.assertEqual(size, disk_item['size'])
+
+        # assert every other field (besides unique ones) are identical
+        unique_attrs = ('_id', 'name', 'created', 'updated')
+        self.assertEqual({k: v for (k, v) in six.viewitems(stream_item) if k not in unique_attrs},
+                         {k: v for (k, v) in six.viewitems(disk_item) if k not in unique_attrs})
+
     def testUploadContentWithMultipart(self):
         with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
             self._testUploadContent()

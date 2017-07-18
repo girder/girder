@@ -883,6 +883,45 @@ class GirderClient(object):
         with open(filepath, 'rb') as f:
             return self._uploadContents(obj, f, filesize, progressCallback=progressCallback)
 
+    def uploadStreamToFolder(self, folderId, stream, filename, size, reference=None, mimeType=None,
+                             progressCallback=None):
+        """
+        Uploads a file-like object to a folder, creating a new item in the process. If
+        the file has 0 bytes, no uploading will be performed, and no item will
+        be created.
+
+        :param folderId: ID of parent folder for file.
+        :param stream: Readable stream object.
+        :param filename: Filename used for Girder only.
+        :param size: The length of the file. This must be exactly equal to the
+            total number of bytes that will be read from ``stream``, otherwise
+            the upload will fail.
+        :param reference: optional reference to send along with the upload.
+        :param mimeType: MIME type for the file.
+        :param progressCallback: If passed, will be called after each chunk
+            with progress information. It passes a single positional argument
+            to the callable which is a dict of information about progress.
+        """
+        params = {
+            'parentType': 'folder',
+            'parentId': folderId,
+            'name': filename,
+            'size': size,
+            'mimeType': mimeType
+        }
+
+        if reference:
+            params['reference'] = reference
+
+        obj = self.post('file', params)
+
+        if '_id' not in obj:
+            raise Exception(
+                'After creating an upload token for a new file, expected '
+                'an object with an id. Got instead: ' + json.dumps(obj))
+
+        return self._uploadContents(obj, stream, size, progressCallback=progressCallback)
+
     def uploadFileToFolder(self, folderId, filepath, reference=None, mimeType=None, filename=None,
                            progressCallback=None):
         """
@@ -916,23 +955,9 @@ class GirderClient(object):
             # Attempt to guess MIME type if not passed explicitly
             mimeType, _ = mimetypes.guess_type(filepath)
 
-        params = {
-            'parentType': 'folder',
-            'parentId': folderId,
-            'name': filename,
-            'size': filesize,
-            'mimeType': mimeType
-        }
-        if reference:
-            params['reference'] = reference
-        obj = self.post('file', params)
-        if '_id' not in obj:
-            raise Exception(
-                'After creating an upload token for a new file, expected '
-                'an object with an id. Got instead: ' + json.dumps(obj))
-
         with open(filepath, 'rb') as f:
-            return self._uploadContents(obj, f, filesize, progressCallback=progressCallback)
+            return self.uploadStreamToFolder(folderId, f, filename, filesize, reference, mimeType,
+                                             progressCallback)
 
     def _uploadContents(self, uploadObj, stream, size, progressCallback=None):
         """
