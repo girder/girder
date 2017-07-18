@@ -19,11 +19,12 @@ var PaginateTasksWidget = View.extend({
      * takes a single task argument (of an item_task model) and returns a string
      * of a URL to be used as the task link href. The g:selected event is triggered
      * either way with the taskId passed as a parameter.
+     * @param params Any additional parameters to be passed with the fetch request.
      */
     initialize: function (settings) {
-        this.collection = new ItemTaskCollection();
         this.hyperlinkCallback = settings.hyperlinkCallback || null;
-
+        this.params = settings.fetchParams;
+        this.collection = new ItemTaskCollection();
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
             parentView: this.parentView
@@ -32,7 +33,7 @@ var PaginateTasksWidget = View.extend({
         this.listenTo(this.collection, 'g:changed', () => {
             this.render();
         });
-        this.collection.fetch();
+        this.collection.fetch(this.params);
     },
 
     render: function () {

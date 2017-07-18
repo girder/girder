@@ -10,6 +10,9 @@ var TaskListView = View.extend({
             parentView: this,
             hyperlinkCallback: function (task) {
                 return `#item_task/${task.id}/run`;
+            },
+            fetchParams: {
+                limit: 2
             }
         }).once('g:selected', function (params) {
             const taskId = params.taskId;
