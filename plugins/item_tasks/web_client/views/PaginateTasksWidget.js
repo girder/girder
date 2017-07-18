@@ -15,11 +15,11 @@ var PaginateTasksWidget = View.extend({
         }
     },
     /**
-     * @param [settings.itemUrlFunc=null] A callback function, which if provided,
-     * takes a single item_task model argument and returns a string URL to be used
-     * as the task link href.
-     * @param [settings.collection] An optional ItemTaskCollection for the widget
-     * to display. If no collection is provided, a new ItemTaskCollection is used.
+     * @param {Function} [settings.itemUrlFunc] A callback function, which if provided,
+     *        will be called with a single ItemModel argument and should return a string
+     *        URL to be used as the task link href.
+     * @param {ItemTaskCollection} [settings.collection] An ItemTaskCollection for the widget
+     *        to display. If no collection is provided, a new ItemTaskCollection is used.
      */
     initialize: function (settings) {
         this.itemUrlFunc = settings.itemUrlFunc || null;
