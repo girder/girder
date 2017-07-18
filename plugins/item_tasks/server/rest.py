@@ -34,16 +34,37 @@ class ItemTask(Resource):
     @autoDescribeRoute(
         Description('List all available tasks that can be executed.')
         .pagingParams(defaultSort='name')
+        .param('minFileInputs', 'Filter tasks by minimum number of file inputs.', required=False,
+               dataType='int')
+        .param('maxFileInputs', 'Filter tasks by maximum number of file inputs.', required=False,
+               dataType='int')
     )
     @filtermodel(model='item')
-    def listTasks(self, limit, offset, sort):
+    def listTasks(self, limit, offset, sort, minFileInputs, maxFileInputs, params):
         cursor = self.model('item').find({
             'meta.isItemTask': {'$exists': True}
         }, sort=sort)
 
+        if minFileInputs is not None or maxFileInputs is not None:
+            cursor = self._filterMinMaxFileInputs(cursor, minFileInputs, maxFileInputs)
+
         return list(self.model('item').filterResultsByPermission(
             cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
             flags=constants.ACCESS_FLAG_EXECUTE_TASK))
+
+    def _filterMinMaxFileInputs(self, cursor, minFileInputs, maxFileInputs):
+        for item in cursor:
+            fileCount = sum(
+                input['type'] == 'file'
+                for input in
+                item['meta']['itemTaskSpec'].get('inputs', []))
+
+            if minFileInputs is not None and fileCount < minFileInputs:
+                continue
+            elif maxFileInputs is not None and fileCount > maxFileInputs:
+                continue
+            else:
+                yield item
 
     def _validateTask(self, item):
         """
