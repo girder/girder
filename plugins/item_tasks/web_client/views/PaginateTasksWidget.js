@@ -15,14 +15,13 @@ var PaginateTasksWidget = View.extend({
         }
     },
     /**
-     * @param [settings.hyperlinkCallback=null] A callback function, which if provided,
-     * takes a single task argument (of an item_task model) and returns a string
-     * of a URL to be used as the task link href. The g:selected event is triggered
-     * either way with the taskId passed as a parameter.
-     * @param params Any additional parameters to be passed with the fetch request.
+     * @param [settings.itemUrlFunc=null] A callback function, which if provided,
+     * takes a single item_task model argument and returns a string URL to be used
+     * as the task link href.
+     * @param [settings.params={}] Any additional parameters to be passed with the fetch request.
      */
     initialize: function (settings) {
-        this.hyperlinkCallback = settings.hyperlinkCallback || null;
+        this.itemUrlFunc = settings.itemUrlFunc || null;
         this.params = settings.fetchParams || {};
         this.collection = new ItemTaskCollection();
         this.paginateWidget = new PaginateWidget({
@@ -39,7 +38,7 @@ var PaginateTasksWidget = View.extend({
     render: function () {
         this.$el.html(template({
             tasks: this.collection.toArray(),
-            hyperlinkCallback: this.hyperlinkCallback
+            itemUrlFunc: this.itemUrlFunc
         }));
 
         this.paginateWidget.setElement(this.$('.g-task-pagination')).render();

@@ -8,7 +8,7 @@ var TaskListView = View.extend({
         this.paginateWidget = new PaginateTasksWidget({
             el: this.$el,
             parentView: this,
-            hyperlinkCallback: function (task) {
+            itemUrlFunc: (task) => {
                 return `#item_task/${task.id}/run`;
             }
         }).once('g:selected', function (params) {
