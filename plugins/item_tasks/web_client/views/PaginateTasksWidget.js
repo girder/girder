@@ -18,12 +18,12 @@ var PaginateTasksWidget = View.extend({
      * @param [settings.itemUrlFunc=null] A callback function, which if provided,
      * takes a single item_task model argument and returns a string URL to be used
      * as the task link href.
-     * @param [settings.params={}] Any additional parameters to be passed with the fetch request.
+     * @param [settings.collection] An optional ItemTaskCollection for the widget
+     * to display. If no collection is provided, a new ItemTaskCollection is used.
      */
     initialize: function (settings) {
         this.itemUrlFunc = settings.itemUrlFunc || null;
-        this.params = settings.fetchParams || {};
-        this.collection = new ItemTaskCollection();
+        this.collection = settings.collection || new ItemTaskCollection();
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
             parentView: this.parentView
@@ -32,7 +32,12 @@ var PaginateTasksWidget = View.extend({
         this.listenTo(this.collection, 'g:changed', () => {
             this.render();
         });
-        this.collection.fetch(this.params);
+
+        if (settings.collection) {
+            this.render();
+        } else {
+            this.collection.fetch(this.params);
+        }
     },
 
     render: function () {
