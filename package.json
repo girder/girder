@@ -76,11 +76,9 @@
         "istanbul": "1.1.0-alpha.1",
         "phantomjs-prebuilt": "^2.1.13",
         "pug-lint": "^2.4.0",
-        "stylint": "^1.5.9",
-        "webpack-dev-server": "^2.1.0-beta.0"
+        "stylint": "^1.5.9"
     },
     "scripts": {
-        "postinstall": "node scripts/postNpmInstall.js",
         "build": "grunt init && NODE_PATH=$PWD/node_modules grunt",
         "watch": "NODE_PATH=$PWD/node_modules grunt --watch",
         "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts clients/web/test && pug-lint clients/web/src/templates",
