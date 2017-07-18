@@ -23,7 +23,7 @@ var PaginateTasksWidget = View.extend({
      */
     initialize: function (settings) {
         this.hyperlinkCallback = settings.hyperlinkCallback || null;
-        this.params = settings.fetchParams;
+        this.params = settings.fetchParams || {};
         this.collection = new ItemTaskCollection();
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
