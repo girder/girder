@@ -35,10 +35,7 @@ ul.g-account-tabs.nav.nav-tabs
         if getCurrentUser().get('admin')
           .form-group
             label(for="g-admin") User is site admin
-            if user.get('admin')
-              input.input-sm-form-control#g-admin(type="checkbox", checked)
-            else
-              input.input-sm-form-control#g-admin(type="checkbox")
+            input#g-admin.input-sm-form-control(type="checkbox", checked=user.get('admin'))
         button.btn.btn-default.btn-sm(type="submit")
           i.icon-edit
           | Save
