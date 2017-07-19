@@ -14,40 +14,44 @@
  * limitations under the License.
  */
 
-var path = require('path');
+const path = require('path');
+const process = require('process');
 
-var _ = require('underscore');
-var webpack = require('webpack');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var GoogleFontsPlugin = require('google-fonts-webpack-plugin');
-
-var webpackGlobalConfig = require('./webpack.config.js');
-var paths = require('./webpack.paths.js');
+const webpack = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 
 module.exports = function (grunt) {
-    var progress = !grunt.option('no-progress');
-    var environment = grunt.config.get('environment');
-    var webpackConfig = _.extend({}, webpackGlobalConfig);
+    // Get and validate options
+    const progress = !grunt.option('no-progress');
+    const environment = grunt.config.get('environment');
+    const isWatch = grunt.option('watch');
 
-    var isDev = environment === 'dev';
+    // Set some environment variables
     if (!process.env.BABEL_ENV) {
+        // https://babeljs.io/docs/usage/babelrc/#env-option
         process.env.BABEL_ENV = environment;
     }
     if (!process.env.NODE_ENV) {
+        // https://stackoverflow.com/a/16979503
         process.env.NODE_ENV = environment;
     }
-    var isWatch = grunt.option('watch');
+
+    // Load the global webpack config
+    const webpackConfig = require('./webpack.config.js');
 
     // Extend the global webpack config options with environment-specific changes
-    if (isDev) {
+    if (environment === 'dev') {
         webpackConfig.devtool = 'source-map';
         webpackConfig.cache = true;
-        webpackConfig.plugins.push(new webpack.LoaderOptionsPlugin({
-            minimize: false,
-            debug: true
-        }));
+        webpackConfig.plugins = webpackConfig.plugins.concat([
+            new webpack.LoaderOptionsPlugin({
+                minimize: false,
+                debug: true
+            })
+        ]);
     } else {
-        webpackConfig.devtool = false;
+        // "devtool" is off by default
         webpackConfig.cache = false;
         webpackConfig.plugins = webpackConfig.plugins.concat([
             // https://github.com/webpack/webpack/issues/283
@@ -68,26 +72,20 @@ module.exports = function (grunt) {
             })
         ]);
     }
+    if (isWatch) {
+        // When "watch" is enabled for webpack, grunt-webpack will intelligently set its own options
+        // for "keepalive" and "failOnError"
+        webpackConfig.watch = true;
+    }
 
-    // https://github.com/webpack/grunt-webpack
-    var gruntWebpackConfig = {
-        stats: {
-            children: false,
-            colors: true,
-            modules: false,
-            reasons: false,
-            errorDetails: true
-        },
-        progress: progress,    // show progress
-        failOnError: !isWatch, // report error to grunt if webpack find errors; set to false if
-        watch: isWatch,        // use webpack's watcher (you need to keep the grunt process alive)
-        keepalive: isWatch,    // don't finish the grunt task (in combination with the watch option)
-        inline: false          // embed the webpack-dev-server runtime into the bundle (default false)
-    };
+    // Add extra config options for grunt-webpack
+    webpackConfig.progress = progress;
 
-    var config = {
+    const paths = require('./webpack.paths.js');
+
+    grunt.config.merge({
         webpack: {
-            options: _.extend({}, webpackConfig, gruntWebpackConfig),
+            options: webpackConfig,
             core_lib: {
                 entry: {
                     girder_lib: [paths.web_src]
@@ -147,7 +145,7 @@ module.exports = function (grunt) {
                 dependencies: ['version-info']
             }
         }
-    };
+    });
 
     // Need an alias that can be used as a dependency (for testing). It will then trigger dev or
     // prod based on options passed
@@ -160,6 +158,4 @@ module.exports = function (grunt) {
     grunt.registerTask('warnWatch', function () {
         grunt.log.warn('WARNING: the "watch" task will not build; run grunt --watch'.yellow);
     });
-
-    grunt.config.merge(config);
 };
