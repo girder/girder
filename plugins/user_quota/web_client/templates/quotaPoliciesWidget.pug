@@ -28,7 +28,7 @@
                 input#g-customQuota(type="radio", name="defaultQuota",
                     value="False", checked=(quotaPolicy.useQuotaDefault === false))
                 | Use a specific quota:
-            input.input-sm#g-sizeValue.g-sizeValue.form-control(type="text",
+            input#g-sizeValue.input-sm.g-sizeValue.form-control(type="text",
                 value=sizeValue ? sizeValue : '',
                 placeholder="Maximum allowed size of all files, or blank for no limit")
             select#g-sizeUnits.form-control.input-sm.g-sizeUnits

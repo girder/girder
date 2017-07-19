@@ -14,17 +14,17 @@
 form.g-filesystem-import-form
   .form-group
     label(for="g-filesystem-import-path") Import path (absolute path to directory or file)
-    input.form-control.input-sm#g-filesystem-import-path(type="text")
+    input#g-filesystem-import-path.form-control.input-sm(type="text")
   .form-group
     label(for="g-filesystem-import-dest-type") Destination type
-    select.form-control#g-filesystem-import-dest-type
+    select#g-filesystem-import-dest-type.form-control
       option(value="folder") Folder
       option(value="user") User
       option(value="collection") Collection
   .form-group
     label(for="g-filesystem-import-dest-id") Destination ID
     .input-group.input-group-sm
-      input.form-control.input-sm#g-filesystem-import-dest-id(
+      input#g-filesystem-import-dest-id.form-control.input-sm(
           type="text",
           placeholder="Existing folder, user, or collection ID to use as the destination")
       .input-group-btn
@@ -32,7 +32,7 @@ form.g-filesystem-import-form
           i.icon-folder-open
   .form-group
     label(for="g-filesystem-import-leaf-items") Leaf Folders as Items
-    select.form-control#g-filesystem-import-leaf-items
+    select#g-filesystem-import-leaf-items.form-control
       option(value="false") False
       option(value="true") True
   .g-validation-failed-message
