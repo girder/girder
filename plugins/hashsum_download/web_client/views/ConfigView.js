@@ -13,7 +13,7 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'hashsum_download.auto_compute',
-                value: this.$('#hashsum-download-auto-compute').is(':checked')
+                value: this.$('#g-hashsum-download-auto-compute').is(':checked')
             }]);
         }
     },

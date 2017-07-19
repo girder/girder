@@ -16,7 +16,7 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'google_analytics.tracking_id',
-                value: this.$('#google_analytics.tracking_id').val().trim()
+                value: this.$('#g-google-analytics-tracking-id').val().trim()
             }]);
         }
     },
@@ -29,7 +29,7 @@ var ConfigView = View.extend({
             }
         }).done(_.bind(function (resp) {
             this.render();
-            this.$('#google_analytics.tracking_id').val(
+            this.$('#g-google-analytics-tracking-id').val(
                 resp['google_analytics.tracking_id']
             );
         }, this));
