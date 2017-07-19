@@ -20,6 +20,10 @@ module.exports = {
       "anonymous": "always",
       "named": "never"
     }],
+    "quotes": ["error", "single", {
+      "avoidEscape": true,
+      "allowTemplateLiterals": true
+    }]
     "backbone/collection-model": "error",
     "backbone/defaults-on-top": ["error", ["resourceName", "url", "urlRoot"]],
     "backbone/event-scope": "off",
