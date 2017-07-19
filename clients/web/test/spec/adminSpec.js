@@ -53,7 +53,7 @@ describe('Test the settings page', function () {
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to settings page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         waitsFor(function () {
@@ -190,7 +190,7 @@ describe('Test the assetstore page', function () {
         it('Create, switch to, and delete a ' + assetstore + ' assetstore', function () {
             /* create the assetstore */
             runs(function () {
-                $("[data-target='#" + tab + "']").click();
+                $('[data-target="#' + tab + '"]').click();
             });
             waitsFor(function () {
                 return $('#' + tab + ' .g-new-assetstore-submit:visible').length > 0;
@@ -288,7 +288,7 @@ describe('Test the assetstore page', function () {
 
             /* navigate away and back */
             runs(function () {
-                $("a.g-nav-link[g-target='admin']").click();
+                $('a.g-nav-link[g-target="admin"]').click();
             });
             waitsFor(function () {
                 return $('.g-assetstore-config').length > 0;
@@ -477,11 +477,11 @@ describe('Test the assetstore page', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         waitsFor(function () {
@@ -570,7 +570,7 @@ describe('Test the plugins page', function () {
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to plugins page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
         waitsFor(function () {
             return $('.g-plugins-config').length > 0;
@@ -637,7 +637,7 @@ describe('Test the plugins page', function () {
     });
     it('Go away and back to plugins page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
         waitsFor(function () {
             return $('.g-plugins-config').length > 0;
