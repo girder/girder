@@ -17,6 +17,8 @@
 const path = require('path');
 const process = require('process');
 
+const _ = require('underscore');
+const extendify = require('extendify');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
@@ -43,26 +45,42 @@ module.exports = function (grunt) {
 
     // Load the global webpack config
     const webpackConfig = require('./webpack.config.js');
+    const updateWebpackConfig = _.partial(
+        extendify({
+            inPlace: true,
+            isDeep: false,
+            arrays: 'concat'
+        }),
+        webpackConfig
+    );
 
     // Extend the global webpack config options with environment-specific changes
     if (environment === 'dev') {
-        webpackConfig.devtool = 'source-map';
-        webpackConfig.cache = true;
-        webpackConfig.plugins = webpackConfig.plugins.concat([
-            new webpack.LoaderOptionsPlugin({
-                minimize: false,
-                debug: true
-            })
-        ]);
+        updateWebpackConfig({
+            devtool: 'source-map',
+            cache: true,
+            plugins: [
+                new webpack.LoaderOptionsPlugin({
+                    minimize: false,
+                    debug: true
+                })
+            ]
+        });
         if (isWatch) {
-            // When "watch" is enabled for webpack, grunt-webpack will intelligently set its own
-            // options for "keepalive" and "failOnError"
-            webpackConfig.watch = true;
+            updateWebpackConfig({
+                watch: true
+                // When "watch" is enabled for webpack, grunt-webpack will intelligently set its own
+                // options for "keepalive" and "failOnError"
+            });
             if (pollingWatch) {
-                // For Girder's current number of files, 500ms is a reasonable polling interval to
-                // keep CPU utilization from going too high, particularly in a VM (where this
-                // option is most likely to be used)
-                webpackConfig.watchOptions.poll = 500;
+                updateWebpackConfig({
+                    watchOptions: {
+                        // For Girder's current number of files, 500ms is a reasonable polling
+                        // interval to keep CPU utilization from going too high, particularly in a
+                        // VM (where this option is most likely to be used)
+                        poll: 500
+                    }
+                });
                 // Chokidar is used internally for almost all file polling, so enable it globally
                 // for other packages to potentially benefit too
                 process.env.CHOKIDAR_USEPOLLING = 'TRUE';
@@ -70,30 +88,34 @@ module.exports = function (grunt) {
             }
         }
     } else {
-        // "devtool" is off by default
-        webpackConfig.cache = false;
-        webpackConfig.plugins = webpackConfig.plugins.concat([
-            // https://github.com/webpack/webpack/issues/283
-            // https://github.com/webpack/webpack/issues/2061#issuecomment-228932941
-            // https://gist.github.com/sokra/27b24881210b56bbaff7#loader-options--minimize
-            // but unclear and confusing as to how far it has been implemented
-            new webpack.LoaderOptionsPlugin({
-                minimize: true,
-                debug: false
-            }),
-            new webpack.optimize.UglifyJsPlugin({
-                compress: {
-                    warnings: false
-                },
-                output: {
-                    comments: false
-                }
-            })
-        ]);
+        updateWebpackConfig({
+            // "devtool" is off by default
+            cache: false,
+            plugins: [
+                // https://github.com/webpack/webpack/issues/283
+                // https://github.com/webpack/webpack/issues/2061#issuecomment-228932941
+                // https://gist.github.com/sokra/27b24881210b56bbaff7#loader-options--minimize
+                // but unclear and confusing as to how far it has been implemented
+                new webpack.LoaderOptionsPlugin({
+                    minimize: true,
+                    debug: false
+                }),
+                new webpack.optimize.UglifyJsPlugin({
+                    compress: {
+                        warnings: false
+                    },
+                    output: {
+                        comments: false
+                    }
+                })
+            ]
+        });
     }
 
     // Add extra config options for grunt-webpack
-    webpackConfig.progress = progress;
+    updateWebpackConfig({
+        progress: progress
+    });
 
     const paths = require('./webpack.paths.js');
 
