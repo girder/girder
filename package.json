@@ -1,6 +1,6 @@
 {
   "name": "eslint-config-girder",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "ESLint configuration for girder",
   "homepage": "https://girder.readthedocs.org",
   "bugs": {
