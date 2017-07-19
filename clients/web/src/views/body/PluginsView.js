@@ -57,6 +57,8 @@ var PluginsView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
+            this.cherrypyServer = (_.has(settings, 'cherrypyServer')
+                                   ? settings.cherrypyServer : true);
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.failed = _.has(settings, 'failed') ? settings.failed : null;
@@ -127,7 +129,22 @@ var PluginsView = View.extend({
                   }
               }
               $('button.g-rebuild-and-restart').addClass('btn-danger');
-              $('.g-plugin-rebuild-restart-text').addClass('show');
+
+              if (view.cherrypyServer) {
+                  $('.g-plugin-rebuild-restart-text').addClass('show');
+              }
+
+              if (!view.cherrypyServer && !_.has(view, 'displayedCherrypyNotification')) {
+                  view.displayedCherrypyNotification = true;
+
+                  events.trigger('g:alert', {
+                      text: `Enabling and disabling plugins might not take effect until the system administrator has restarted Girder.`,
+                      type: 'info',
+                      timeout: 5000,
+                      icon: 'info'
+                  });
+              }
+
               view._updatePlugins();
           });
         this.$('.g-plugin-config-link').tooltip({
