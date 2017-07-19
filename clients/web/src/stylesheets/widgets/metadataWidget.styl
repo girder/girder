@@ -23,21 +23,21 @@
   font-weight bold
   width 30%
 
-.g-widget-metadata-key span.small
-  float right
+  span.small
+    float right
 
 .g-widget-metadata-value
   width 60%
 
-.g-widget-metadata-value pre
-  padding 0px
-  font-size 14px
-  color #777
-  background-color transparent
-  border none
-  max-height 320px
-  overflow auto
-  margin-bottom 0
+  pre
+    padding 0
+    font-size 14px
+    color #777
+    background-color transparent
+    border none
+    max-height 320px
+    overflow auto
+    margin-bottom 0
 
 .g-json-editor
   width 54%
@@ -48,39 +48,41 @@
   margin-left 5px
   margin-right 5px
 
+  .ace_editor, textarea
+    height 400px !important
+
+  .ace_content * // @stylint ignore
+    font-family monospace !important
+
 .jsoneditor
   border 2px solid #e3e3e3
 
-.jsoneditor .menu
-  background-color #fbfbfb
-  border-bottom 1px solid #f0f0f0
+  .menu
+    background-color #fbfbfb
+    border-bottom 1px solid #f0f0f0
 
-.jsoneditor .menu button
-  background #fbfbfb url("~jsoneditor/dist/img/jsoneditor-icons.png")
-  border 1px solid #f0f0f0
+    button
+      background #fbfbfb url("~jsoneditor/dist/img/jsoneditor-icons.png")
+      border 1px solid #f0f0f0
 
-.jsoneditor .menu button:disabled
-  background #fbfbfb url("~jsoneditor/dist/img/jsoneditor-icons.png")
-  border 1px solid #f0f0f0
+      :disabled
+        background #fbfbfb url("~jsoneditor/dist/img/jsoneditor-icons.png")
+        border 1px solid #f0f0f0
 
-.jsoneditor .search .frame
-  border 1px solid #f0f0f0
+    button:hover, button:focus
+      background-color #f0f0f0
 
-.g-json-editor .ace_editor, .g-json-editor textarea
-  height 400px !important
+    .search
+      button
+        border none
+        background-color transparent
 
-.g-json-editor .ace_content *
-  font-family monospace !important
-
-.jsoneditor .menu button:hover, .jsoneditor .menu button:focus
-  background-color #f0f0f0
+  .search
+    .frame
+      border 1px solid #f0f0f0
 
 .jsoneditor-contextmenu ul li .selected
   background-color #eaebea
-
-.jsoneditor .menu .search button
-  border none
-  background-color transparent
 
 button.g-widget-metadata-add-button
   float right

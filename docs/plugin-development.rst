@@ -976,7 +976,7 @@ However, plugin developers can also choose to extend or even entirely override t
 To do this, you only need to provide a path to a custom ESLint configuration file, using the
 ``ESLINT_CONFIG_FILE`` option to ``add_eslint_test``. Of course, since ``add_standard_plugin_tests``
 should be prevented from adding these tests, static analysis should also be manually added to PugJS
-template files with ``add_puglint_test``. For example:
+template files with ``add_puglint_test`` and ``add_stylint_test``. For example:
 
 .. code-block:: cmake
 
@@ -984,6 +984,7 @@ template files with ``add_puglint_test``. For example:
     add_eslint_test(js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
         ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/cats/.eslintrc.json")
     add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
+    add_stylint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/stylesheets")
 
 You can `configure ESLint <http://eslint.org/docs/user-guide/configuring.html>`_ inside your
 ``.eslintrc.json`` file however you choose.  For example, to extend Girder's own configuration to
