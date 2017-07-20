@@ -27,7 +27,7 @@ const CandelaParametersView = View.extend({
         this._columns = ['(none)'].concat(columns);
         this._multiColumns = this._columns.slice(1);
         this._numericColumns = ['(none)'].concat(
-            this._columns.filter((d) => this._data.__types__[d] === 'number'));
+            this._columns.filter((d) => ['number', 'integer', 'date'].indexOf(this._data.__types__[d]) >= 0));
         this._multiNumericColumns = this._numericColumns.slice(1);
         this.render();
     },
@@ -87,9 +87,9 @@ const CandelaParametersView = View.extend({
                 if (_.isArray(input.domain)) {
                     values = input.domain;
                     if (input.type === 'string') {
-                        value = input.domain[0];
+                        value = input.default === undefined ? input.domain[0] : input.default;
                     } else {
-                        value = [];
+                        value = input.default === undefined ? [] : input.default;
                     }
                 } else {
                     let numeric = !input.domain.fieldTypes.includes('string');
