@@ -164,7 +164,8 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         return doc
 
-    def createLinkFile(self, name, parent, parentType, url, creator, size=None, mimeType=None):
+    def createLinkFile(self, name, parent, parentType, url, creator, size=None,
+                       mimeType=None, reuseExisting=False):
         """
         Create a file that is a link to a URL, rather than something we maintain
         in an assetstore.
@@ -182,29 +183,48 @@ class File(acl_mixin.AccessControlMixin, Model):
         :type size: int
         :param mimeType: The mimeType of the file. (optional)
         :type mimeType: str
+        :param reuseExisting: If a file with the same name already exists in
+            this location, return it rather than creating a new file.
+        :type reuseExisting: bool
         """
+
         if parentType == 'folder':
             # Create a new item with the name of the file.
             item = self.model('item').createItem(
-                name=name, creator=creator, folder=parent)
+                name=name, creator=creator, folder=parent, reuseExisting=reuseExisting)
         elif parentType == 'item':
             item = parent
 
-        file = {
-            'created': datetime.datetime.utcnow(),
-            'itemId': item['_id'],
+        existing = None
+        if reuseExisting:
+            existing = self.findOne({
+                'itemId': item['_id'],
+                'name': name
+            })
+
+        if existing:
+            file = existing
+        else:
+            file = {
+                'created': datetime.datetime.utcnow(),
+                'itemId': item['_id'],
+                'assetstoreId': None,
+                'name': name
+            }
+
+        file.update({
             'creatorId': creator['_id'],
-            'assetstoreId': None,
-            'name': name,
             'mimeType': mimeType,
             'linkUrl': url
-        }
-
+        })
         if size is not None:
             file['size'] = int(size)
 
         try:
-            file = self.save(file)
+            if existing:
+                file = self.updateFile(file)
+            else:
+                file = self.save(file)
             return file
         except ValidationException:
             if parentType == 'folder':
