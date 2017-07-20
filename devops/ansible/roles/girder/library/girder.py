@@ -330,6 +330,10 @@ options:
                     - A list of folder options
                     - Specified by the 'folder' option to the girder module
                     - (see 'folder:')
+            public:
+                required: false
+                description:
+                    - Set to true if the collection is public or false if private
             access:
                 required: false
                 description:
@@ -370,13 +374,17 @@ options:
             parentId:
                 required: true
                 description:
-                    - The ID of the parent collection
+                    - The ID of the parent collection/folder/user
             folders:
                 required: false
                 description:
                     - A list of folder options
                     - Specified by the 'folder' option to the girder module
                     - (see 'folder:')
+            public:
+                required: false
+                description:
+                    - Set to true if the folder is public or false if private
             access:
                 required: false
                 description:
@@ -942,10 +950,15 @@ class Resource(object):
         if _id in self.resources:
             current = self.resources[_id]
             # if body is a subset of current we don't actually need to update
-            if set(body.items()) <= set(current.items()):
-                return current
-            else:
-                return self.__apply(_id, self.client.put, body, **kwargs)
+            try:
+                if set(body.items()) <= set(
+                        {k: v for k, v in current.items() if k in body}.items()):
+                    return current
+            except TypeError:
+                # If a current value is unhashable, we throw a TypeError, but
+                # should still update it.
+                pass
+            return self.__apply(_id, self.client.put, body, **kwargs)
         else:
             raise Exception("{} does not exist!".format(_id))
 
