@@ -739,7 +739,7 @@ class Folder(AccessControlledModel):
             if public == 'original':
                 public = srcFolder.get('public', None)
             else:
-                public = self.boolParam('public', params)
+                public = public == 'true'
         newFolder = self.createFolder(
             parentType=parentType, parent=parent, name=name,
             description=description, public=public, creator=creator,
