@@ -54,7 +54,6 @@ class InstallWithOptions(install):
                     os.path.join(dest, 'clients', 'web', 'src', 'assets'))
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
-        self.mergeDir('scripts', dest)
 
 with open('README.rst') as f:
     readme = f.read()
