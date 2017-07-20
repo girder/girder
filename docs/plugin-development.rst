@@ -807,10 +807,11 @@ application as you need.
 JavaScript events
 *****************
 
-The JavaScript client handles events from both the server and client-specific
-code.  The server events originate on the server and can be monitored by both
-the server's python code and the client's JavaScript code.  The client events
-are solely within the web client, and do not get transmitted to the server.
+The JavaScript client handles notifications from the server and Backbone events
+in client-specific code.  The server notifications originate on the server and
+can be monitored by both the server's Python code and the client's JavaScript
+code.  The client Backbone events are solely within the web client, and do not
+get transmitted to the server.
 
 If the connection to the server is interrupted, the client will not receive
 server events.  Periodically, the client will attempt to reconnect to the
@@ -820,10 +821,10 @@ for server events will be stopped to prevent excessive resource use.  When the
 browser's tab regains focus, the client will once again receive server events.
 
 When the connection to the server's event stream is interrupted, a
-``g:eventStream.stop`` event is triggered.  When the server is once more
-sending events, it first sends a ``g:eventStream.start`` event.  Clients can
-listen to these events and refresh necessary components to ensure that data is
-current.
+``g:eventStream.stop`` Backbone event is triggered on the ``EventStream``
+object.  When the server is once more sending events, it first sends a
+``g:eventStream.start`` event.  Clients can listen to these events and refresh
+necessary components to ensure that data is current.
 
 Setting an empty layout for a route
 ***********************************

@@ -66,19 +66,22 @@ JobStatus.registerStatus({
         value: 0,
         text: 'Inactive',
         icon: 'icon-pause',
-        color: '#ccc'
+        color: '#ccc',
+        finished: false
     },
     QUEUED: {
         value: 1,
         text: 'Queued',
         icon: 'icon-ellipsis',
-        color: '#dbc345'
+        color: '#dbc345',
+        finished: false
     },
     RUNNING: {
         value: 2,
         text: 'Running',
         icon: 'icon-spin3 animate-spin',
-        color: '#6666d5'
+        color: '#6666d5',
+        finished: false
     },
     SUCCESS: {
         value: 3,
