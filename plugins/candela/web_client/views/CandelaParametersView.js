@@ -50,18 +50,16 @@ const CandelaParametersView = View.extend({
         this._inputWidgets.add(new WidgetModel({
             type: 'integer',
             title: 'Width',
-            description: 'The visualization width in pixels.',
             id: 'width',
             min: 0,
-            value: 800
+            value: 400
         }));
         this._inputWidgets.add(new WidgetModel({
             type: 'integer',
             title: 'Height',
-            description: 'The visualization height in pixels.',
             id: 'height',
             min: 0,
-            value: 800
+            value: 400
         }));
 
         // Build all the widget models from the vis spec
@@ -165,8 +163,9 @@ const CandelaParametersView = View.extend({
         });
         inputs.data = this._data;
 
-        this.$('.g-candela-vis')[0].style.width = inputs.width + 'px';
-        this.$('.g-candela-vis')[0].style.height = inputs.height + 'px';
+        if (this.vis && this.vis.destroy) {
+            this.vis.destroy();
+        }
         let vis = new this._component(this.$('.g-candela-vis')[0], inputs);
         vis.render();
     }
