@@ -309,7 +309,7 @@ class Folder(Resource):
                "default, inherits the value from parent folder, or in the case "
                "of user or collection parentType, defaults to False. If "
                "'original', use the value of the original folder.",
-               required=False, enum=[True, False, 'original'])
+               required=False, enum=['true', 'false', 'original'])
         .param('progress', 'Whether to record progress on this task.',
                required=False, dataType='boolean', default=False)
         .errorResponse(('A parameter was invalid.',

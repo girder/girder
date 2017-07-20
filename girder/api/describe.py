@@ -750,6 +750,6 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
             raise RestException('Invalid value for %s: "%s". Allowed values: %s.' % (
-                name, value, ', '.join(descParam['enum'])))
+                name, value, ', '.join(str(v) for v in descParam['enum'])))
 
         return value
