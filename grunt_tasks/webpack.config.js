@@ -106,7 +106,10 @@ module.exports = {
                             options: {
                                 // The 'resolve url' option is not well-documented, but was
                                 // added at https://github.com/shama/stylus-loader/pull/6
-                                'resolve url': true
+                                'resolve url': true,
+                                import: [
+                                    '~nib/index.styl'
+                                ]
                             }
                         }
                     ],
