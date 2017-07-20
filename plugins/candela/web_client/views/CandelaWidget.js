@@ -22,7 +22,9 @@ var CandelaWidget = View.extend({
         this._components = [];
         for (let component in candela.components) {
             if (candela.components.hasOwnProperty(component)) {
-                this._components.push(component);
+                if (candela.components[component].options) {
+                    this._components.push(component);
+                }
             }
         }
 
