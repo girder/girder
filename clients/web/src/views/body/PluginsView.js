@@ -117,36 +117,36 @@ var PluginsView = View.extend({
 
         var view = this;
         this.$('.g-plugin-switch').bootstrapSwitch()
-          .off('switchChange.bootstrapSwitch')
-          .on('switchChange.bootstrapSwitch', function (event, state) {
-              var plugin = $(event.currentTarget).attr('key');
-              if (state === true) {
-                  view.enabled.push(plugin);
-              } else {
-                  var idx;
-                  while ((idx = view.enabled.indexOf(plugin)) >= 0) {
-                      view.enabled.splice(idx, 1);
-                  }
-              }
-              $('button.g-rebuild-and-restart').addClass('btn-danger');
+            .off('switchChange.bootstrapSwitch')
+            .on('switchChange.bootstrapSwitch', function (event, state) {
+                var plugin = $(event.currentTarget).attr('key');
+                if (state === true) {
+                    view.enabled.push(plugin);
+                } else {
+                    var idx;
+                    while ((idx = view.enabled.indexOf(plugin)) >= 0) {
+                        view.enabled.splice(idx, 1);
+                    }
+                }
+                $('button.g-rebuild-and-restart').addClass('btn-danger');
 
-              if (view.cherrypyServer) {
-                  $('.g-plugin-rebuild-restart-text').addClass('show');
-              }
+                if (view.cherrypyServer) {
+                    $('.g-plugin-rebuild-restart-text').addClass('show');
+                }
 
-              if (!view.cherrypyServer && !_.has(view, 'displayedCherrypyNotification')) {
-                  view.displayedCherrypyNotification = true;
+                if (!view.cherrypyServer && !_.has(view, 'displayedCherrypyNotification')) {
+                    view.displayedCherrypyNotification = true;
 
-                  events.trigger('g:alert', {
-                      text: `Enabling and disabling plugins might not take effect until the system administrator has restarted Girder.`,
-                      type: 'info',
-                      timeout: 5000,
-                      icon: 'info'
-                  });
-              }
+                    events.trigger('g:alert', {
+                        text: `Enabling and disabling plugins might not take effect until the system administrator has restarted Girder.`,
+                        type: 'info',
+                        timeout: 5000,
+                        icon: 'info'
+                    });
+                }
 
-              view._updatePlugins();
-          });
+                view._updatePlugins();
+            });
         this.$('.g-plugin-config-link').tooltip({
             container: this.$el,
             animation: false,
