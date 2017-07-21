@@ -14,7 +14,7 @@ import '../stylesheets/selectTaskView.styl';
 /**
  * A dialog for creating tasks from a specific item.
  */
-var SelectTaskView = View.extend({
+var SelectSingleFileTaskWidget = View.extend({
     events: {
         'submit #g-select-task-form': function (e) {
             e.preventDefault();
@@ -65,4 +65,4 @@ var SelectTaskView = View.extend({
     }
 });
 
-export default SelectTaskView;
+export default SelectSingleFileTaskWidget;

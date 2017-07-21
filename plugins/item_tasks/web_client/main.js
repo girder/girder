@@ -64,9 +64,9 @@ ItemView.prototype.events['click .g-configure-item-task'] = function () {
 };
 
 // "Select Task" button in Actions drop down menu
-import SelectTaskView from './views/SelectTaskView';
+import SelectSingleFileTaskWidget from './views/SelectSingleFileTaskWidget';
 ItemView.prototype.events['click a.g-select-item-task'] = function (e) {
-    new SelectTaskView({
+    new SelectSingleFileTaskWidget({
         el: $('#g-dialog-container'),
         parentView: this,
         item: this.model
