@@ -37,7 +37,7 @@ var JobDetailsWidget = View.extend({
         });
 
         this.listenTo(eventStream, 'g:eventStream.start', function (event) {
-            var status = this.job.get('status');
+            const status = this.job.get('status');
             if (!JobStatus.finished(status)) {
                 this.job.fetch().done(() => { this.render(); });
             }

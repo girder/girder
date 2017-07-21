@@ -51,7 +51,7 @@ var JobStatus = {
                 text: info.text,
                 icon: info.icon,
                 color: info.color,
-                finished: !!info.finished
+                finished: _.has(info, 'finished') ? info.finished : false
             };
         }, this);
     },

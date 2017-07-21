@@ -55,7 +55,7 @@ var ProgressListView = View.extend({
     },
 
     _clearProgress: function () {
-        var needsUpdate = !_.isEmpty(this._map);
+        const needsUpdate = !_.isEmpty(this._map);
         _.each(this._map, (progressWidget, progressId) => {
             progressWidget.destroy();
             progressWidget.remove();
