@@ -127,10 +127,10 @@ var PluginsView = View.extend({
                         this.enabled.splice(idx, 1);
                     }
                 }
-                $('button.g-rebuild-and-restart').addClass('btn-danger');
+                this.$('button.g-rebuild-and-restart').addClass('btn-danger');
 
                 if (this.cherrypyServer) {
-                    $('.g-plugin-rebuild-restart-text').addClass('show');
+                    this.$('.g-plugin-rebuild-restart-text').addClass('show');
                 }
 
                 if (!this.cherrypyServer && !_.has(this, 'displayedCherrypyNotification')) {
