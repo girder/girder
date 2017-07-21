@@ -115,27 +115,26 @@ var PluginsView = View.extend({
             allPlugins: this._sortPlugins(this.allPlugins)
         }));
 
-        var view = this;
         this.$('.g-plugin-switch').bootstrapSwitch()
             .off('switchChange.bootstrapSwitch')
-            .on('switchChange.bootstrapSwitch', function (event, state) {
+            .on('switchChange.bootstrapSwitch', (event, state) => {
                 var plugin = $(event.currentTarget).attr('key');
                 if (state === true) {
-                    view.enabled.push(plugin);
+                    this.enabled.push(plugin);
                 } else {
                     var idx;
-                    while ((idx = view.enabled.indexOf(plugin)) >= 0) {
-                        view.enabled.splice(idx, 1);
+                    while ((idx = this.enabled.indexOf(plugin)) >= 0) {
+                        this.enabled.splice(idx, 1);
                     }
                 }
                 $('button.g-rebuild-and-restart').addClass('btn-danger');
 
-                if (view.cherrypyServer) {
+                if (this.cherrypyServer) {
                     $('.g-plugin-rebuild-restart-text').addClass('show');
                 }
 
-                if (!view.cherrypyServer && !_.has(view, 'displayedCherrypyNotification')) {
-                    view.displayedCherrypyNotification = true;
+                if (!this.cherrypyServer && !_.has(this, 'displayedCherrypyNotification')) {
+                    this.displayedCherrypyNotification = true;
 
                     events.trigger('g:alert', {
                         text: `Enabling and disabling plugins might not take effect until the system administrator has restarted Girder.`,
@@ -145,7 +144,7 @@ var PluginsView = View.extend({
                     });
                 }
 
-                view._updatePlugins();
+                this._updatePlugins();
             });
         this.$('.g-plugin-config-link').tooltip({
             container: this.$el,
