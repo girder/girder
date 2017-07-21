@@ -21,10 +21,9 @@ var SelectTaskView = View.extend({
             this.$('.g-submit-select-task').girderEnable(false);
             this.$el.modal('hide');
 
-            console.log(this.task.id);
             this.trigger('g:selected', {
-                taskId: this.task.id,
-                itemId: this.item.id
+                task: this.task,
+                item: this.item
             });
         }
     },
@@ -36,7 +35,7 @@ var SelectTaskView = View.extend({
         this.paginateTasksWidget = new PaginateTasksWidget({
             parentView: this,
             collection: this.collection
-        }).on('g:selected', this.pickTask, this);
+        }).on('g:selected', this._pickTask, this);
         this.collection.fetch({
             minFileInput: 1,
             maxFileInput: 1
@@ -56,7 +55,7 @@ var SelectTaskView = View.extend({
         return this;
     },
 
-    pickTask: function (params) {
+    _pickTask: function (params) {
         this.task = params.task;
         this.$('.g-submit-select-task').girderEnable(true);
 

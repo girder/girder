@@ -1,3 +1,3 @@
 .g-selected-task
-  h4.list-group-item-heading.g-execute-task-link-header= task.name()
-  .list-group-item-text.g-execute-task-link-body= task.get('description')
+  h4.selected-task-name= task.name()
+  .selected-task-description= task.get('description')

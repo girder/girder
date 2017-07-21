@@ -37,7 +37,7 @@ var PaginateTasksWidget = View.extend({
         if (settings.collection) {
             this.render();
         } else {
-            this.collection.fetch(this.params);
+            this.collection.fetch();
         }
     },
 

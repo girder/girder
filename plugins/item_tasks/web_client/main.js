@@ -71,10 +71,10 @@ ItemView.prototype.events['click a.g-select-item-task'] = function (e) {
         parentView: this,
         item: this.model
     }).once('g:selected', function (params) {
-        let itemId = params.itemId;
-        let taskId = params.taskId;
+        let item = params.item;
+        let task = params.task;
 
-        router.navigate('item_task/' + taskId + '/run?itemId=' + itemId, {trigger: true});
+        router.navigate(`item_task/${task.id}/run?itemId=${item.id}`, {trigger: true});
     }, this).render();
 };
 
