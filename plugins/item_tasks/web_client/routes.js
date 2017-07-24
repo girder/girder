@@ -63,6 +63,6 @@ router.route('item_task/:id/run', (id, params) => {
             renderNow: true
         });
     }).fail(() => {
-        router.navigate('item_tasks', {trigger: true});
+        router.navigate('item_tasks', {trigger: true, replace: true});
     });
 });
