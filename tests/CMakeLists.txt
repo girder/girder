@@ -97,6 +97,7 @@ if(RUN_CORE_TESTS)
   add_web_client_test(swagger "${PROJECT_SOURCE_DIR}/clients/web/test/spec/swaggerSpec.js" BASEURL "/api/v1")
   add_web_client_test(browser "${PROJECT_SOURCE_DIR}/clients/web/test/spec/browserSpec.js")
   add_web_client_test(set_api "${PROJECT_SOURCE_DIR}/clients/web/test/spec/setApiSpec.js")
+  add_web_client_test(utilities "${PROJECT_SOURCE_DIR}/clients/web/test/spec/utilitiesSpec.js")
 
   # Add tests for the local TestData module
   add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
