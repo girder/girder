@@ -1,10 +1,10 @@
 .g-task-list-header
   .g-task-pagination
 
-.list-group.g-task-list-container
+.g-list-group.g-task-list-container
   each task in tasks
-    a.list-group-item.g-execute-task-link(
+    a.g-list-group-item.g-execute-task-link(
         href=itemUrlFunc && itemUrlFunc(task),
         data-task-id=task.id)
-      h4.list-group-item-heading.g-execute-task-link-header= task.name()
-      .list-group-item-text.g-execute-task-link-body= task.get('description')
+      h4.g-list-group-item-heading.g-execute-task-link-header= task.name()
+      .g-list-group-item-text.g-execute-task-link-body= task.get('description')
