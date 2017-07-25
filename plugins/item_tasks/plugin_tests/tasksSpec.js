@@ -34,7 +34,7 @@ describe('Create an item task', function () {
         });
 
         waitsFor(function () {
-            return $('.g-item-list-link').text().indexOf('task placeholder') !== -1;
+            return $('.g-item-list-link:contains("task placeholder")').length > 0;
         }, 'item to appear in the list');
     });
 });
@@ -119,7 +119,7 @@ describe('Run the item task', function () {
         });
 
         waitsFor(function () {
-            return $('.modal-dialog .g-folder-list-link').text().indexOf('tasks') !== -1;
+            return $('.modal-dialog .g-folder-list-link:contains("tasks")').length > 0;
         }, 'hierarchy widget to update for input root');
 
         runs(function () {
@@ -329,7 +329,7 @@ describe('Run task on item from item view', function () {
         });
 
         waitsFor(function () {
-            return $('.g-item-list-link').text().indexOf('item placeholder') !== -1;
+            return $('.g-item-list-link:contains("item placeholder")').length > 0;
         }, 'item to appear in the list');
     });
 
@@ -400,7 +400,7 @@ describe('Auto-configure the demo JSON task', function () {
         });
 
         waitsFor(function () {
-            return $('.g-item-list-link').text().indexOf('task placeholder') !== -1;
+            return $('.g-item-list-link:contains("task placeholder")').length > 0;
         }, 'item to appear in the list');
     });
 
@@ -503,7 +503,7 @@ describe('Navigate to the demo task', function () {
         });
 
         waitsFor(function () {
-            return $('.modal-dialog .g-folder-list-link').text().indexOf('tasks') !== -1;
+            return $('.modal-dialog .g-folder-list-link:contains("tasks")').length > 0;
         }, 'hierarchy widget to update for input root');
 
         runs(function () {
