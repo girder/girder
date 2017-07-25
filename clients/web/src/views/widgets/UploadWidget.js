@@ -146,18 +146,17 @@ var UploadWidget = View.extend({
         if (this.modal) {
             this.$el.html(UploadWidgetTemplate(templateParams));
 
-            var base = this;
             var dialogid;
             if (this.parentType === 'file') {
                 dialogid = this.parent.get('_id');
             }
 
-            this.$el.girderModal(this).on('hidden.bs.modal', function () {
+            this.$el.girderModal(this).on('hidden.bs.modal', () => {
                 /* If we are showing the resume option, we have a partial upload
                  * that should be deleted, since the user has no way to get back
                  * to it. */
-                if ($('.g-resume-upload').length && base.currentFile) {
-                    base.currentFile.abortUpload();
+                if ($('.g-resume-upload').length && this.currentFile) {
+                    this.currentFile.abortUpload();
                 }
                 handleClose('upload', undefined, dialogid);
             });

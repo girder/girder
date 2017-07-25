@@ -44,7 +44,6 @@ var EditGroupWidget = View.extend({
     },
 
     render: function () {
-        var view = this;
         var pub = this.model ? this.model.get('public') : false;
         var groupAddAllowed;
         var addToGroupPolicy = this.model ? this.model.get('_addToGroupPolicy') : null;
@@ -61,26 +60,26 @@ var EditGroupWidget = View.extend({
             addToGroupPolicy: addToGroupPolicy,
             groupAddAllowed: groupAddAllowed,
             addAllowed: this.model ? this.model.get('addAllowed') : false
-        })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-name').focus();
-            if (view.model) {
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('#g-name').focus();
+            if (this.model) {
                 handleOpen('edit');
             } else {
                 handleOpen('create');
             }
-        }).on('hidden.bs.modal', function () {
-            if (view.create) {
+        }).on('hidden.bs.modal', () => {
+            if (this.create) {
                 handleClose('create');
             } else {
                 handleClose('edit');
             }
-        }).on('ready.girder.modal', function () {
-            if (view.model) {
-                view.$('#g-name').val(view.model.get('name'));
-                view.$('#g-description').val(view.model.get('description'));
-                view.create = false;
+        }).on('ready.girder.modal', () => {
+            if (this.model) {
+                this.$('#g-name').val(this.model.get('name'));
+                this.$('#g-description').val(this.model.get('description'));
+                this.create = false;
             } else {
-                view.create = true;
+                this.create = true;
             }
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));

@@ -64,11 +64,10 @@ var LoginView = View.extend({
     },
 
     render: function () {
-        var view = this;
         this.$el.html(LoginDialogTemplate()).girderModal(this)
-            .on('shown.bs.modal', function () {
-                view.$('#g-login').focus();
-            }).on('hidden.bs.modal', function () {
+            .on('shown.bs.modal', () => {
+                this.$('#g-login').focus();
+            }).on('hidden.bs.modal', () => {
                 handleClose('login', {replace: true});
             });
 

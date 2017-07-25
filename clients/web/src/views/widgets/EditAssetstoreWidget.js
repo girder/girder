@@ -50,17 +50,16 @@ var EditAssetstoreWidget = View.extend({
     fieldsMap: {},
 
     render: function () {
-        var view = this;
         var modal = this.$el.html(EditAssetstoreWidgetTemplate({
-            assetstore: view.model,
+            assetstore: this.model,
             types: AssetstoreType
-        })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-edit-name').focus();
-            handleOpen('assetstoreedit', undefined, view.model.get('id'));
-            view.$('#g-edit-name').val(view.model.get('name'));
-            view.fieldsMap[view.model.get('type')].set.call(view);
-        }).on('hidden.bs.modal', function () {
-            handleClose('assetstoreedit', undefined, view.model.get('id'));
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('#g-edit-name').focus();
+            handleOpen('assetstoreedit', undefined, this.model.get('id'));
+            this.$('#g-edit-name').val(this.model.get('name'));
+            this.fieldsMap[this.model.get('type')].set.call(this);
+        }).on('hidden.bs.modal', () => {
+            handleClose('assetstoreedit', undefined, this.model.get('id'));
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         return this;

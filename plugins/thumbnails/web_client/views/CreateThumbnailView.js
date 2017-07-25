@@ -75,12 +75,11 @@ var CreateThumbnailView = View.extend({
     },
 
     render: function () {
-        var view = this;
         this.$el.html(CreateThumbnailViewDialogTemplate({
             file: this.file,
             item: this.item
-        })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-thumbnail-width').focus();
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('#g-thumbnail-width').focus();
         });
 
         this.$('#g-thumbnail-width').focus();

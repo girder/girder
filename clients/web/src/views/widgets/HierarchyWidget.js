@@ -579,7 +579,6 @@ var HierarchyWidget = View.extend({
      * Prompt the user to delete the currently checked items.
      */
     deleteCheckedDialog: function () {
-        var view = this;
         var folders = this.folderListView.checked;
         var items;
         if (this.itemListView && this.itemListView.checked.length) {
@@ -592,8 +591,8 @@ var HierarchyWidget = View.extend({
                   desc + ')?',
 
             yesText: 'Delete',
-            confirmCallback: function () {
-                var resources = view._getCheckedResourceParam();
+            confirmCallback: () => {
+                var resources = this._getCheckedResourceParam();
                 /* Content on DELETE requests is somewhat oddly supported (I
                  * can't get it to work under jasmine/phantom), so override the
                  * method. */
@@ -602,15 +601,15 @@ var HierarchyWidget = View.extend({
                     type: 'POST',
                     data: {resources: resources, progress: true},
                     headers: {'X-HTTP-Method-Override': 'DELETE'}
-                }).done(function () {
-                    if (items && items.length && view.parentModel.has('nItems')) {
-                        view.parentModel.increment('nItems', -items.length);
+                }).done(() => {
+                    if (items && items.length && this.parentModel.has('nItems')) {
+                        this.parentModel.increment('nItems', -items.length);
                     }
-                    if (folders.length && view.parentModel.has('nFolders')) {
-                        view.parentModel.increment('nFolders', -folders.length);
+                    if (folders.length && this.parentModel.has('nFolders')) {
+                        this.parentModel.increment('nFolders', -folders.length);
                     }
 
-                    view.setCurrentModel(view.parentModel, {setRoute: false});
+                    this.setCurrentModel(this.parentModel, {setRoute: false});
                 });
             }
         };
