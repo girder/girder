@@ -37,8 +37,8 @@ var SelectSingleFileTaskWidget = View.extend({
             collection: this.collection
         }).on('g:selected', this._pickTask, this);
         this.collection.fetch({
-            minFileInput: 1,
-            maxFileInput: 1
+            minFileInputs: 1,
+            maxFileInputs: 1
         });
     },
 
