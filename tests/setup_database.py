@@ -110,6 +110,12 @@ def addCreator(spec, parent=None):
         # if all else fails, just use any user for the creator
         spec['creator'] = userModel.findOne({}, force=True)
 
+        if spec['creator'] is None:
+            raise Exception('At least one user must be provided in the spec')
+
+    if spec.get('creator') is None:
+        raise Exception('Could not find the requested creator')
+
 
 def createUser(defaultFolders=False, **args):
     """Create a user document from a user spec.
