@@ -239,6 +239,7 @@ describe('Auto-configure the JSON item task folder', function () {
         girderTest.waitForDialog();
 
         runs(function () {
+            // loads specs.json
             $('.modal-dialog .g-configure-docker-image').val('me/my_image:latest');
             $('.modal-dialog button.btn.btn-success[type="submit"]').click();
         });
@@ -278,6 +279,94 @@ describe('Navigate to the new JSON task', function () {
             expect($('.g-task-description-container').text()).toContain(
                 'Task 1 description');
             expect($('.g-inputs-container').length).toBe(0);
+        });
+    });
+});
+
+describe('Run task on item from item view', function () {
+    it('navigate to collections', function () {
+        runs(function () {
+            $('ul.g-global-nav .g-nav-link[g-target="collections"]').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-collection-list-entry').length > 0;
+        }, 'collection list to appear');
+    });
+    it('navigate to folders', function () {
+        runs(function () {
+            // Select the second collection, "task test"
+            $('.g-collection-link').filter(function () {
+                return $(this).text() === 'task test';
+            }).click();
+        });
+
+        waitsFor(function () {
+            return $('.g-folder-list-entry').length > 0;
+        }, 'folder list to appear');
+    });
+
+    it('navigate to items', function () {
+        runs(function() {
+            $('.g-folder-list-link:contains("tasks")').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-item-list-entry').length > 0;
+        }, 'item list to appear');
+    });
+
+    it('create item', function () {
+        runs(function () {
+            $('.g-folder-actions-menu .g-create-item').click();
+        });
+
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('.modal-dialog #g-name').val('item placeholder');
+            $('.modal-dialog .g-save-item').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-item-list-link').text().indexOf('item placeholder') !== -1;
+        }, 'item to appear in the list');
+    });
+
+    it('select item', function () {
+        runs(function () {
+            $('.g-item-list-link').filter(function () {
+                return $(this).text() === 'item placeholder';
+            }).click();
+        });
+
+        girderTest.waitForLoad();
+    });
+
+    it('run task on item from modal', function () {
+        runs(function () {
+            $('.g-item-actions-menu .g-select-item-task').click();
+        });
+
+        girderTest.waitForDialog();
+
+        waitsFor(function () {
+            return $('.g-list-group-item').length > 0;
+        }, 'tasks to load in widget');
+
+        runs(function () {
+            $('.g-list-group-item.g-execute-task-link').filter(function () {
+                return $('h4', this).text() === 'me/my_image:latest 1';
+            }).click();
+
+            expect($('.selected-task-name').text()).toBe('me/my_image:latest 1');
+            $('.g-submit-select-task').click();
+        });
+
+        girderTest.waitForLoad();
+
+        runs(function () {
+            expect($('#testData').attr('value')).toBe('item placeholder');
         });
     });
 });
