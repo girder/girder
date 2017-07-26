@@ -1,49 +1,20 @@
 Installation
 ============
 
-Before you install, see the :doc:`prerequisites` guide to make sure you
-have all required system packages installed.
+Before you install, see the :doc:`prerequisites <prerequisites>` guide to make sure you have all required system
+dependencies installed.
 
-Creating a virtual environment
-------------------------------
+Activate the virtual environment
+--------------------------------
 
-While not strictly required, it is recommended to install Girder within
-its own `virtual environment <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_
-to isolate its dependencies from other python packages.  To generate a new
-virtual environment, first install/update the ``virtualenv`` and ``pip``
-packages ::
+If you're :ref:`using a virtual environment <virtualenv-install>` for Girder (which is recommended), remember to
+activate it with:
 
-   sudo pip install -U virtualenv pip
+.. code-block:: bash
 
-Now create a virtual environment using the
-`virtualenv command <http://virtualenv.readthedocs.org/en/latest/userguide.html>`_.
-You can place the virtual environment directory wherever you want, but it should
-not be moved.  The following command will generate a new directory called
-``girder_env`` in your home directory: ::
+   source girder_env/bin/activate
 
-   virtualenv ~/girder_env
-
-Enter the virtual environment:
-
-.. code-block:: none
-
-   . ~/girder_env/bin/activate
-
-The ``(girder_env)`` prepended to your prompt indicates you have *entered*
-the virtual environment. Inside the virtual environment you can use ``pip``,
-``python``, and any other python script installed in your path as usual.
-You can exit the virtual environment by running the shell function
-``deactivate``.  The shell variable ``VIRTUAL_ENV`` will also list the
-absolute path to the current virtual environment.  Entering a virtual
-environment only persists for your current shell, so you must source
-the activation script again whenever you wish to enter within a
-new shell session.  Users and developers needing to work on several virtual
-environments should consider using other packages that help manage them such as
-`virtualenvwrapper <http://virtualenvwrapper.readthedocs.org/en/latest/index.html>`_,
-`autoenv <https://github.com/kennethreitz/autoenv>`_,
-`pyenv-virtualenv <https://github.com/yyuu/pyenv-virtualenv>`_, or
-`pyenv-virtualenvwrapper <https://github.com/yyuu/pyenv-virtualenvwrapper>`_.
-
+Replace ``girder_env`` with the path to your virtual environment, as appropriate.
 
 Sources
 -------
@@ -54,10 +25,10 @@ Installing from pypi gives you the latest distributed version. Installing from g
 more suitable for development or to have a specific commit, or to use the latest Girder
 features before they are released in official packages.
 
-Install from pypi
+Install from PyPI
 +++++++++++++++++
 
-To install the Girder distribution from the python package index, simply run ::
+To install the Girder distribution from the Python package index, simply run ::
 
     pip install girder
 
@@ -65,7 +36,7 @@ This will install the core Girder server as a site package in your system
 or virtual environment. At this point, you might want to check the
 :doc:`configuration <configuration>` to change your plugin and logging
 paths.  In order to use the web interface, you must also install the web client
-libraries. Girder installs a python script that will automatically build and
+libraries. Girder installs a Python script that will automatically build and
 install these libraries for you. Just run the following command: ::
 
    girder-install web
@@ -82,21 +53,21 @@ section: :ref:`run-girder`.
 Installing extra dependencies with pip
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-Girder comes bundled with a number of :doc:`plugins` that require extra python
+Girder comes bundled with a number of :doc:`plugins` that require extra Python
 dependencies in order to use.  By default, none of these dependencies will be
 installed; however, you can tell pip to install them using pip's
-"`extras`_ " syntax.  Each girder plugin requiring extra python dependencies
+"`extras`_ " syntax.  Each girder plugin requiring extra Python dependencies
 can be specified during the pip install.  For example, installing girder with
 support for the `celery_jobs` and `geospatial` plugins can be done like this: ::
 
    pip install girder[celery_jobs,geospatial]
 
 There is also an extra you can use to install the dependencies for all bundled
-plugins supported in the current python environment called ``plugins``: ::
+plugins supported in the current Python environment called ``plugins``: ::
 
    pip install girder[plugins]
 
-.. warning:: Not all plugins are available in every python version and platform.
+.. warning:: Not all plugins are available in every Python version and platform.
    Specifying a plugin for in an unsupported environment will raise an error.
 
 .. _extras: https://packaging.python.org/en/latest/installing/#installing-setuptools-extras
@@ -145,15 +116,11 @@ the Javascript and CSS files needed to run the web client application.
 Run
 ---
 
-To run the server, first make sure the Mongo daemon is running. To manually start it, run: ::
-
-    mongod &
-
-Then to run Girder itself, just use the following command: ::
+To run Girder, just use the following command: ::
 
     girder serve
 
-Then open http://localhost:8080/ in your web browser, and you should see the application.
+Then, open http://localhost:8080/ in your web browser, and you should see the application.
 
 Initial Setup
 -------------
