@@ -132,40 +132,37 @@ def _getLdapUser(attrs, server):
 
 def _ldapAuth(event):
     login, password = event.info['login'], event.info['password']
-
-    # TODO cache LDAP servers list setting
     servers = ModelImporter.model('setting').get(PluginSettings.LDAP_SERVERS)
 
     for server in servers:
-        # ldap requires a uri complete with protocol.
-        # Append one if the user did not specify.
-        conn = ldap.initialize(server['uri'])
-        conn.set_option(ldap.OPT_TIMEOUT, _CONNECT_TIMEOUT)
-        conn.set_option(ldap.OPT_NETWORK_TIMEOUT, _CONNECT_TIMEOUT)
-
         try:
+            # ldap requires a uri complete with protocol.
+            # Append one if the user did not specify.
+            conn = ldap.initialize(server['uri'])
+            conn.set_option(ldap.OPT_TIMEOUT, _CONNECT_TIMEOUT)
+            conn.set_option(ldap.OPT_NETWORK_TIMEOUT, _CONNECT_TIMEOUT)
             conn.bind_s(server['bindName'], server['password'], ldap.AUTH_SIMPLE)
+
+            searchStr = '%s=%s' % (server['searchField'], login)
+            results = conn.search_s(server['baseDn'], ldap.SCOPE_ONELEVEL, searchStr, _LDAP_ATTRS)
+
+            if results:
+                entry, attrs = results[0]
+                dn = attrs['distinguishedName'][0].decode('utf8')
+                try:
+                    conn.bind_s(dn, password, ldap.AUTH_SIMPLE)
+                except ldap.LDAPError:
+                    # Try other LDAP servers or fall back to core auth
+                    continue
+                finally:
+                    conn.unbind_s()
+
+                user = _getLdapUser(attrs, server)
+                if user:
+                    event.stopPropagation().preventDefault().addResponse(user)
         except ldap.LDAPError:
-            logger.exception('LDAP connection failed (%s).' % server['uri'])
+            logger.exception('LDAP connection exception (%s).' % server['uri'])
             continue
-
-        searchStr = '%s=%s' % (server['searchField'], login)
-        results = conn.search_s(server['baseDn'], ldap.SCOPE_ONELEVEL, searchStr, _LDAP_ATTRS)
-
-        if results:
-            entry, attrs = results[0]
-            dn = attrs['distinguishedName'][0].decode('utf8')
-            try:
-                conn.bind_s(dn, password, ldap.AUTH_SIMPLE)
-            except ldap.LDAPError:
-                # Try other LDAP servers or fall back to core auth
-                continue
-            finally:
-                conn.unbind_s()
-
-            user = _getLdapUser(attrs, server)
-            if user:
-                event.stopPropagation().preventDefault().addResponse(user)
 
 
 @access.admin
