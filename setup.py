@@ -54,7 +54,6 @@ class InstallWithOptions(install):
                     os.path.join(dest, 'clients', 'web', 'src', 'assets'))
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
-        self.mergeDir('scripts', dest)
 
 with open('README.rst') as f:
     readme = f.read()
@@ -103,6 +102,8 @@ if sys.version_info[0] == 2:
             'hachoir-parser'
         ]
     })
+if sys.version_info[0:2] < (3, 5):
+    install_reqs.append('funcsigs')
 
 extras_reqs['sftp'] = ['paramiko']
 

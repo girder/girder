@@ -115,7 +115,7 @@ route for ``GET /item/:id/cat`` to the system,
     from girder.api.rest import boundHandler
 
     @access.public
-    @boundHandler()
+    @boundHandler
     def myHandler(self, id, params):
         self.requireParams('cat', params)
 
@@ -159,7 +159,7 @@ example:
         .param('id', 'The item ID', paramType='path')
         .param('cat', 'The cat value.', required=False)
         .errorResponse())
-    def myHandler(id, cat, params):
+    def myHandler(id, cat):
         return {
            'itemId': id,
            'cat': cat
@@ -173,10 +173,10 @@ and type coercion for you, with the benefit of ensuring that the documentation o
 the endpoint inputs matches their actual behavior. Documented parameters will be
 sent to the method as kwargs (so the order you declare them in the header doesn't matter).
 Any additional parameters that were passed but not listed in the ``Description`` object
-will be contained in the ``params`` kwarg as a dictionary. The validation of required
-parameters, coercion to the correct data type, and setting default values is all
-handled automatically for you based on the parameter descriptions in the ``Description``
-object passed. Two special methods of the ``Description`` object can be used for
+will be contained in the ``params`` kwarg as a dictionary, if that parameter is present. The
+validation of required parameters, coercion to the correct data type, and setting default
+values is all handled automatically for you based on the parameter descriptions in the
+``Description`` object passed. Two special methods of the ``Description`` object can be used for
 additional behavior control: :py:func:`girder.api.describe.Description.modelParam` and
 :py:func:`girder.api.describe.Description.jsonParam`.
 
@@ -804,6 +804,28 @@ This demonstrates one simple use case for client plugins, but using these same
 techniques, you should be able to do almost anything to change the core
 application as you need.
 
+JavaScript events
+*****************
+
+The JavaScript client handles notifications from the server and Backbone events
+in client-specific code.  The server notifications originate on the server and
+can be monitored by both the server's Python code and the client's JavaScript
+code.  The client Backbone events are solely within the web client, and do not
+get transmitted to the server.
+
+If the connection to the server is interrupted, the client will not receive
+server events.  Periodically, the client will attempt to reconnect to the
+server to resume handling events.  Similarly, if client's browser tab is placed
+in the background for a long enough period of time, the connection that listens
+for server events will be stopped to prevent excessive resource use.  When the
+browser's tab regains focus, the client will once again receive server events.
+
+When the connection to the server's event stream is interrupted, a
+``g:eventStream.stop`` Backbone event is triggered on the ``EventStream``
+object.  When the server is once more sending events, it first sends a
+``g:eventStream.start`` event.  Clients can listen to these events and refresh
+necessary components to ensure that data is current.
+
 Setting an empty layout for a route
 ***********************************
 
@@ -976,7 +998,7 @@ However, plugin developers can also choose to extend or even entirely override t
 To do this, you only need to provide a path to a custom ESLint configuration file, using the
 ``ESLINT_CONFIG_FILE`` option to ``add_eslint_test``. Of course, since ``add_standard_plugin_tests``
 should be prevented from adding these tests, static analysis should also be manually added to PugJS
-template files with ``add_puglint_test``. For example:
+template files with ``add_puglint_test`` and ``add_stylint_test``. For example:
 
 .. code-block:: cmake
 
@@ -984,6 +1006,7 @@ template files with ``add_puglint_test``. For example:
     add_eslint_test(js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
         ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/cats/.eslintrc.json")
     add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
+    add_stylint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/stylesheets")
 
 You can `configure ESLint <http://eslint.org/docs/user-guide/configuring.html>`_ inside your
 ``.eslintrc.json`` file however you choose.  For example, to extend Girder's own configuration to

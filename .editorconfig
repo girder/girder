@@ -13,7 +13,7 @@ indent_size = 2
 [*.js]
 indent_size = 4
 
-[*.json]
+[{*.json,.pug-lintrc,.stylintrc}]
 indent_size = 4
 
 [Makefile]

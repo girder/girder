@@ -108,6 +108,7 @@ var BrowserWidget = View.extend({
         }
         this.$('.g-wait-for-root').removeClass('hidden');
         this._hierarchyView = new HierarchyWidget({
+            el: this.$('.g-hierarchy-widget-container'),
             parentView: this,
             parentModel: this.root,
             checkboxes: false,
@@ -118,7 +119,6 @@ var BrowserWidget = View.extend({
             showMetadata: this.showMetadata
         });
         this.listenTo(this._hierarchyView, 'g:setCurrentModel', this._selectModel);
-        this._hierarchyView.setElement(this.$('.g-hierarchy-widget-container')).render();
         this._selectModel();
     },
 

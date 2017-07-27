@@ -1247,7 +1247,6 @@ $(function () {
  * application object.
  */
 girderTest.startApp = function () {
-    var app;
     girderTest.promise = girderTest.promise
         .then(function () {
             /* Track bootstrap transitions.  This is largely a duplicate of the
@@ -1273,16 +1272,16 @@ girderTest.startApp = function () {
             };
 
             girder.events.trigger('g:appload.before');
-            app = new girder.views.App({
+            girder.app = new girder.views.App({
                 el: 'body',
                 parentView: null,
                 start: false
             });
-            return app.start();
+            return girder.app.start();
         })
         .then(function () {
-            girder.events.trigger('g:appload.after');
-            return app;
+            girder.events.trigger('g:appload.after', girder.app);
+            return girder.app;
         });
     return girderTest.promise;
 };

@@ -71,7 +71,8 @@ class LogFormatter(logging.Formatter):
 
     def format(self, record, *args, **kwargs):
         if hasattr(record, 'name') and hasattr(record, 'message'):
-            if record.name.startswith('cherrypy.access'):
+            if (record.name.startswith('cherrypy.access') or
+                    record.name.startswith('cherrypy.error')):
                 return record.message
         return super(LogFormatter, self).format(record, *args, **kwargs)
 
@@ -190,6 +191,8 @@ def _setupLogger():
         eh._girderLogHandler = 'error'
         eh.setFormatter(fmt)
         logger.addHandler(eh)
+        # Record cherrypy errors in our logs, too
+        cherrypy.log.error_log.addHandler(eh)
     else:
         infoMaxLevel = logging.CRITICAL
 
@@ -202,6 +205,8 @@ def _setupLogger():
     ih._girderLogHandler = 'info'
     ih.setFormatter(fmt)
     logger.addHandler(ih)
+    # Record cherrypy errors in our logs, too
+    cherrypy.log.error_log.addHandler(ih)
 
     # Log http accesses to the screen and/or the info log.
     accessLog = logCfg.get('log_access', 'screen')

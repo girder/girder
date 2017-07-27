@@ -26,13 +26,13 @@ from .constants import PluginSettings
 
 
 @access.user
-@boundHandler()
+@boundHandler
 @autoDescribeRoute(
     Description('Get list of item licenses.')
     .param('default', 'Whether to return the default list of item licenses.',
            required=False, dataType='boolean', default=False)
 )
-def getLicenses(self, default, params):
+def getLicenses(self, default):
     if default:
         licenses = SettingDefault.defaults[PluginSettings.LICENSES]
     else:

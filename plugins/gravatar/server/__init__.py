@@ -58,7 +58,7 @@ def computeBaseUrl(user):
     .param('size', 'Size in pixels for the image (default=64).', required=False,
            dataType='int', default=64)
 )
-def getGravatar(user, size, params):
+def getGravatar(user, size):
     if not user.get('gravatar_baseUrl'):
         # the save hook will cause the gravatar base URL to be computed
         user = ModelImporter.model('user').save(user)

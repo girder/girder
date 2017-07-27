@@ -24,7 +24,7 @@ EditAssetstoreWidget.prototype.fieldsMap.hdfs = {
         return {
             hdfsHost: this.$('#g-edit-hdfs-host').val(),
             hdfsPort: this.$('#g-edit-hdfs-port').val(),
-            webHdfsPort: this.$('#g-edit-webhdfs-port').val(),
+            webHdfsPort: this.$('#g-edit-hdfs-webhdfs-port').val(),
             hdfsPath: this.$('#g-edit-hdfs-path').val(),
             hdfsUser: this.$('#g-edit-hdfs-user').val()
         };
@@ -33,7 +33,7 @@ EditAssetstoreWidget.prototype.fieldsMap.hdfs = {
         var hdfsInfo = this.model.get('hdfs');
         this.$('#g-edit-hdfs-host').val(hdfsInfo.host);
         this.$('#g-edit-hdfs-port').val(hdfsInfo.port);
-        this.$('#g-edit-webhdfs-port').val(hdfsInfo.webHdfsPort);
+        this.$('#g-edit-hdfs-webhdfs-port').val(hdfsInfo.webHdfsPort);
         this.$('#g-edit-hdfs-path').val(hdfsInfo.path);
         this.$('#g-edit-hdfs-user').val(hdfsInfo.user);
     }

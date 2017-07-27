@@ -61,7 +61,7 @@ class File(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
-    def getFile(self, file, params):
+    def getFile(self, file):
         return file
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -91,7 +91,7 @@ class File(Resource):
         .errorResponse('Failed to create upload.', 500)
     )
     def initUpload(self, parentType, parentId, name, size, mimeType, linkUrl, reference,
-                   assetstoreId, params):
+                   assetstoreId):
         """
         Before any bytes of the actual file are sent, a request should be made
         to initialize the upload. This creates the temporary record of the
@@ -160,7 +160,7 @@ class File(Resource):
                         'Not enough bytes have been uploaded.'))
         .errorResponse('You are not the user who initiated the upload.', 403)
     )
-    def finalizeUpload(self, upload, params):
+    def finalizeUpload(self, upload):
         user = self.getCurrentUser()
 
         if upload['userId'] != user['_id']:
@@ -184,7 +184,7 @@ class File(Resource):
         .modelParam('uploadId', paramType='formData')
         .errorResponse("The ID was invalid, or the offset did not match the server's record.")
     )
-    def requestOffset(self, upload, params):
+    def requestOffset(self, upload):
         """
         This should be called when resuming an interrupted upload. It will
         report the offset into the upload that should be used to resume.
@@ -283,7 +283,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
-    def download(self, file, offset, endByte, contentDisposition, extraParameters, params):
+    def download(self, file, offset, endByte, contentDisposition, extraParameters):
         """
         Defers to the underlying assetstore adapter to stream a file out.
         Requires read permission on the folder that contains the file's item.
@@ -325,7 +325,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
-    def deleteFile(self, file, params):
+    def deleteFile(self, file):
         self.model('file').remove(file)
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -335,7 +335,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('You lack permission to cancel this upload.', 403)
     )
-    def cancelUpload(self, upload, params):
+    def cancelUpload(self, upload):
         user = self.getCurrentUser()
 
         if upload['userId'] != user['_id'] and not user['admin']:
@@ -354,7 +354,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
-    def updateFile(self, file, name, mimeType, params):
+    def updateFile(self, file, name, mimeType):
         if name is not None:
             file['name'] = name
         if mimeType is not None:
@@ -375,7 +375,7 @@ class File(Resource):
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.')
     )
-    def updateFileContents(self, file, size, reference, assetstoreId, params):
+    def updateFileContents(self, file, size, reference, assetstoreId):
         user = self.getCurrentUser()
 
         assetstore = None
@@ -401,7 +401,7 @@ class File(Resource):
         .param('progress', 'Controls whether progress notifications will be sent.',
                dataType='boolean', default=False, required=False)
     )
-    def moveFileToAssetstore(self, file, assetstore, progress, params):
+    def moveFileToAssetstore(self, file, assetstore, progress):
         user = self.getCurrentUser()
         title = 'Moving file "%s" to assetstore "%s"' % (file['name'], assetstore['name'])
 
@@ -417,5 +417,5 @@ class File(Resource):
         .modelParam('itemId', description='The ID of the item to copy the file to.',
                     level=AccessType.WRITE, paramType='formData')
     )
-    def copy(self, file, item, params):
+    def copy(self, file, item):
         return self.model('file').copyFile(file, self.getCurrentUser(), item=item)

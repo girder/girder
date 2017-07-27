@@ -7,11 +7,11 @@
       .modal-body
         .form-group
           label.control-label(for="g-name") Name
-          input.input-sm#g-name.form-control(
+          input#g-name.input-sm.form-control(
             type="text", placeholder="Enter file name", value=file.name())
         .form-group
           label.control-label(for="g-mimetype") MIME type
-          input.input-sm#g-mimetype.form-control(
+          input#g-mimetype.input-sm.form-control(
             type="text", placeholder="Enter MIME type", value=file.get('mimeType'))
         .g-validation-failed-message
       .modal-footer

@@ -66,7 +66,7 @@ class HashedFile(File):
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
-    def downloadKeyFile(self, file, algo, params):
+    def downloadKeyFile(self, file, algo):
         self._validateAlgo(algo)
 
         if algo not in file:
@@ -107,7 +107,7 @@ class HashedFile(File):
         .errorResponse()
         .errorResponse('Write access was denied on the file.', 403)
     )
-    def computeHashes(self, file, progress, params):
+    def computeHashes(self, file, progress):
         with ProgressContext(
                 progress, title='Computing hash: %s' % file['name'], total=file['size'],
                 user=self.getCurrentUser()) as pc:

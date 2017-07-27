@@ -24,13 +24,14 @@ var QuotaPoliciesWidget = View.extend({
                 fallbackAssetstore: this.$('#g-fallbackAssetstore').val()
             };
             fields.fileSizeQuota = valueAndUnitsToSize(
-                this.$('#g-sizeValue').val(), this.$('#g-sizeUnits').val());
+                this.$('#g-user-quota-size-value').val(),
+                this.$('#g-user-quota-size-units').val());
             this.updateQuotaPolicies(fields);
             this.$('button.g-save-policies').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
         },
-        'input #g-sizeValue': '_selectCustomQuota',
-        'change #g-sizeUnits': '_selectCustomQuota'
+        'input #g-user-quota-size-value': '_selectCustomQuota',
+        'change #g-user-quota-size-units': '_selectCustomQuota'
     },
 
     initialize: function (settings) {

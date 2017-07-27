@@ -16,7 +16,10 @@ var ProgressListView = View.extend({
 
     initialize: function (settings) {
         this.eventStream = settings.eventStream;
-        this.eventStream.on('g:event.progress', this._handleProgress, this);
+        this.listenTo(this.eventStream, 'g:event.progress', this._handleProgress, this);
+        // if the event stream disconnects, clear the progress so we don't have
+        // stale values lingering.
+        this.listenTo(this.eventStream, 'g:eventStream.stop', this._clearProgress, this);
 
         // map progress IDs to widgets
         this._map = {};
@@ -51,12 +54,20 @@ var ProgressListView = View.extend({
         this._onUpdate();
     },
 
-    _onUpdate: function () {
-        if (_.isEmpty(this._map)) {
-            this.$el.hide();
-        } else {
-            this.$el.show();
+    _clearProgress: function () {
+        const needsUpdate = !_.isEmpty(this._map);
+        _.each(this._map, (progressWidget, progressId) => {
+            progressWidget.destroy();
+            progressWidget.remove();
+            delete this._map[progressId];
+        });
+        if (needsUpdate) {
+            this._onUpdate();
         }
+    },
+
+    _onUpdate: function () {
+        this.$el.toggle(!_.isEmpty(this._map));
     }
 });
 
