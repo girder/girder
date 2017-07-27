@@ -23,6 +23,7 @@ from girder import events
 from girder.constants import AccessType, AssetstoreType, TokenScope
 from girder.api import access
 from girder.utility.progress import ProgressContext
+from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
 
 class Assetstore(Resource):
@@ -92,11 +93,13 @@ class Assetstore(Resource):
                'Do not include the bucket name here.', required=False, default='')
         .param('readOnly', 'If this assetstore is read-only, set this to true.',
                required=False, dataType='boolean', default=False)
+        .param('region', 'The AWS region to which the S3 bucket belongs.', required=False,
+               default=DEFAULT_REGION)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def createAssetstore(self, name, type, root, perms, db, mongohost, replicaset, shard, bucket,
-                         prefix, accessKeyId, secret, service, readOnly):
+                         prefix, accessKeyId, secret, service, readOnly, region):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
             return self.model('assetstore').createFilesystemAssetstore(
@@ -109,7 +112,7 @@ class Assetstore(Resource):
             self.requireParams({'bucket': bucket})
             return self.model('assetstore').createS3Assetstore(
                 name=name, bucket=bucket, prefix=prefix, secret=secret,
-                accessKeyId=accessKeyId, service=service, readOnly=readOnly)
+                accessKeyId=accessKeyId, service=service, readOnly=readOnly, region=region)
         else:
             raise RestException('Invalid type parameter')
 
@@ -179,12 +182,15 @@ class Assetstore(Resource):
                'Do not include the bucket name here.', required=False, default='')
         .param('readOnly', 'If this assetstore is read-only, set this to true.',
                required=False, dataType='boolean')
+        .param('region', 'The AWS region to which the S3 bucket belongs.', required=False,
+               default=DEFAULT_REGION)
         .param('current', 'Whether this is the current assetstore', dataType='boolean')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def updateAssetstore(self, assetstore, name, root, perms, db, mongohost, replicaset, shard,
-                         bucket, prefix, accessKeyId, secret, service, readOnly, current, params):
+                         bucket, prefix, accessKeyId, secret, service, readOnly, region, current,
+                         params):
         assetstore['name'] = name
         assetstore['current'] = current
 
@@ -213,6 +219,7 @@ class Assetstore(Resource):
             assetstore['accessKeyId'] = accessKeyId
             assetstore['secret'] = secret
             assetstore['service'] = service
+            assetstore['region'] = region
             if readOnly is not None:
                 assetstore['readOnly'] = readOnly
         else:
@@ -222,7 +229,7 @@ class Assetstore(Resource):
                     name=name, current=current, readOnly=readOnly, root=root, perms=perms,
                     db=db, mongohost=mongohost, replicaset=replicaset, shard=shard, bucket=bucket,
                     prefix=prefix, accessKeyId=accessKeyId, secret=secret, service=service,
-                    **params
+                    region=region, **params
                 )
             })
             if event.defaultPrevented:
