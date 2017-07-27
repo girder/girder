@@ -1,16 +1,16 @@
 .g-config-breadcrumb-container
 form#g-celery-jobs-config-form(role="form")
   .form-group
-    label.control-label(for="celery_jobs_broker") Broker URL
-    input.input-sm.form-control#celery_jobs_broker(
+    label.control-label(for="g-celery-jobs-broker") Broker URL
+    input#g-celery-jobs-broker.input-sm.form-control(
       type="text", placeholder="Celery broker URL")
   .form-group
-    label.control-label(for="celery_jobs_app_main") Celery app main name
-    input.input-sm.form-control#celery_jobs_app_main(
+    label.control-label(for="g-celery-jobs-app-main") Celery app main name
+    input#g-celery-jobs-app-main.input-sm.form-control(
       type="text", placeholder="Celery app main name")
   .form-group
-    label.control-label Celery user ID
-    input.input-sm.form-control#celery_jobs_user_id(type="text")
+    label.control-label(for="g-celery-jobs-user-id") Celery user ID
+    input#g-celery-jobs-user-id.input-sm.form-control(type="text")
     .g-celery-user-select-container
 
   p#g-celery-jobs-error-message.g-validation-failed-message

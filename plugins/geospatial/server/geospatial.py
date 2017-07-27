@@ -55,7 +55,7 @@ class GeospatialItem(Resource):
         .notes("All GeoJSON features must contain a property named 'name' from"
                " which the name of each created item is taken.")
     )
-    def create(self, folder, geoJSON, params):
+    def create(self, folder, geoJSON):
         try:
             GeoJSON.to_instance(geoJSON, strict=True)
         except ValueError:
@@ -119,7 +119,7 @@ class GeospatialItem(Resource):
         .pagingParams(defaultSort='lowerName')
         .errorResponse()
     )
-    def find(self, q, limit, offset, sort, params):
+    def find(self, q, limit, offset, sort):
         return self._find(q, limit, offset, sort)
 
     @access.public
@@ -130,7 +130,7 @@ class GeospatialItem(Resource):
         .pagingParams(defaultSort='lowerName')
         .errorResponse()
     )
-    def intersects(self, field, geometry, limit, offset, sort, params):
+    def intersects(self, field, geometry, limit, offset, sort):
         try:
             GeoJSON.to_instance(geometry, strict=True)
         except (TypeError, ValueError):
@@ -178,8 +178,7 @@ class GeospatialItem(Resource):
         .notes("Field on which to search be indexed by a 2dsphere index."
                " Anonymous users may not use 'ensureIndex' to create such an index.")
     )
-    def near(self, field, geometry, maxDistance, minDistance, ensureIndex, limit,
-             offset, sort, params):
+    def near(self, field, geometry, maxDistance, minDistance, ensureIndex, limit, offset, sort):
         condition = {
             '$geometry': self._getGeometry(geometry)
         }
@@ -235,7 +234,7 @@ class GeospatialItem(Resource):
         .notes("Either parameter 'geometry' or both parameters 'center' "
                " and 'radius' are required.")
     )
-    def within(self, field, geometry, center, radius, limit, offset, sort, params):
+    def within(self, field, geometry, center, radius, limit, offset, sort):
         if geometry is not None:
             try:
                 GeoJSON.to_instance(geometry, strict=True)
@@ -292,7 +291,7 @@ class GeospatialItem(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
-    def getGeospatial(self, item, params):
+    def getGeospatial(self, item):
         return self._filter(item)
 
     @access.user
@@ -308,7 +307,7 @@ class GeospatialItem(Resource):
         .errorResponse('Geospatial field did not contain valid GeoJSON.')
         .errorResponse('Write access was denied for the item.', 403)
     )
-    def setGeospatial(self, item, geospatial, params):
+    def setGeospatial(self, item, geospatial):
         for k, v in six.viewitems(geospatial):
             if '.' in k or k[0] == '$':
                 raise RestException('Geospatial key name %s must not contain a'

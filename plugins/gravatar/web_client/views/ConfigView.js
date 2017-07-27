@@ -15,7 +15,7 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'gravatar.default_image',
-                value: this.$('#gravatar.default_image').val().trim()
+                value: this.$('#g-gravatar-default-image').val().trim()
             }]);
         }
     },
@@ -29,7 +29,7 @@ var ConfigView = View.extend({
             }
         }).done(_.bind(function (resp) {
             this.render();
-            this.$('#gravatar.default_image').val(
+            this.$('#g-gravatar-default-image').val(
                 resp['gravatar.default_image']
             );
         }, this));

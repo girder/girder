@@ -56,7 +56,7 @@ class Item(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
-    def find(self, folderId, text, name, limit, offset, sort, params):
+    def find(self, folderId, text, name, limit, offset, sort):
         """
         Get a list of items with given search parameters. Currently accepted
         search modes are:
@@ -98,7 +98,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
-    def getItem(self, item, params):
+    def getItem(self, item):
         return item
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -116,7 +116,7 @@ class Item(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
-    def createItem(self, folder, name, description, reuseExisting, params):
+    def createItem(self, folder, name, description, reuseExisting):
         return self.model('item').createItem(
             folder=folder, name=name, creator=self.getCurrentUser(), description=description,
             reuseExisting=reuseExisting)
@@ -134,7 +134,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item or folder.', 403)
     )
-    def updateItem(self, item, name, description, folder, params):
+    def updateItem(self, item, name, description, folder):
         if name is not None:
             item['name'] = name
         if description is not None:
@@ -163,7 +163,7 @@ class Item(Resource):
                         'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the item.', 403)
     )
-    def setMetadata(self, item, metadata, allowNull, params):
+    def setMetadata(self, item, metadata, allowNull):
         return self.model('item').setMetadata(item, metadata, allowNull=allowNull)
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -186,7 +186,7 @@ class Item(Resource):
                         'Metadata key name was invalid.'))
         .errorResponse('Write access was denied for the item.', 403)
     )
-    def deleteMetadata(self, item, fields, params):
+    def deleteMetadata(self, item, fields):
         return self.model('item').deleteMetadata(item, fields)
 
     def _downloadMultifileItem(self, item, user):
@@ -213,7 +213,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
-    def getFiles(self, item, limit, offset, sort, params):
+    def getFiles(self, item, limit, offset, sort):
         return list(self.model('item').childFiles(
             item=item, limit=limit, offset=offset, sort=sort))
 
@@ -237,7 +237,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
-    def download(self, item, offset, format, contentDisposition, extraParameters, params):
+    def download(self, item, offset, format, contentDisposition, extraParameters):
         user = self.getCurrentUser()
         files = list(self.model('item').childFiles(item=item, limit=2))
         if format not in (None, '', 'zip'):
@@ -259,7 +259,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item.', 403)
     )
-    def deleteItem(self, item, params):
+    def deleteItem(self, item):
         self.model('item').remove(item)
         return {'message': 'Deleted item %s.' % item['name']}
 
@@ -270,7 +270,7 @@ class Item(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
-    def rootpath(self, item, params):
+    def rootpath(self, item):
         return self.model('item').parentsToRoot(item, self.getCurrentUser())
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -290,7 +290,7 @@ class Item(Resource):
         .errorResponse('Read access was denied on the original item.\n\n'
                        'Write access was denied on the parent folder.', 403)
     )
-    def copyItem(self, item, folder, name, description, params):
+    def copyItem(self, item, folder, name, description):
         user = self.getCurrentUser()
 
         if folder is None:

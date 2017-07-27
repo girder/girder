@@ -17,13 +17,13 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'celery_jobs.broker_url',
-                value: this.$('#celery_jobs_broker').val().trim()
+                value: this.$('#g-celery-jobs-broker').val().trim()
             }, {
                 key: 'celery_jobs.app_main',
-                value: this.$('#celery_jobs_app_main').val().trim()
+                value: this.$('#g-celery-jobs-app-main').val().trim()
             }, {
                 key: 'celery_jobs.celery_user_id',
-                value: this.$('#celery_jobs_user_id').val().trim()
+                value: this.$('#g-celery-jobs-user-id').val().trim()
             }]);
         }
     },
@@ -40,9 +40,9 @@ var ConfigView = View.extend({
             }
         }).done(_.bind(function (resp) {
             this.render();
-            this.$('#celery_jobs_broker').val(resp['celery_jobs.broker_url']);
-            this.$('#celery_jobs_app_main').val(resp['celery_jobs.app_main']);
-            this.$('#celery_jobs_user_id').val(resp['celery_jobs.celery_user_id']);
+            this.$('#g-celery-jobs-broker').val(resp['celery_jobs.broker_url']);
+            this.$('#g-celery-jobs-app-main').val(resp['celery_jobs.app_main']);
+            this.$('#g-celery-jobs-user-id').val(resp['celery_jobs.celery_user_id']);
         }, this));
     },
 
@@ -69,7 +69,7 @@ var ConfigView = View.extend({
 
     _setCeleryUser: function (user) {
         this.searchWidget.resetState();
-        this.$('#celery_jobs_user_id').val(user.id);
+        this.$('#g-celery-jobs-user-id').val(user.id);
     },
 
     _saveSettings: function (settings) {

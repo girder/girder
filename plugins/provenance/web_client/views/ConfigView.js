@@ -15,7 +15,7 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'provenance.resources',
-                value: this.$('#provenance.resources').val().trim()
+                value: this.$('#g-provenance-resources').val().trim()
             }]);
         }
     },
@@ -28,7 +28,7 @@ var ConfigView = View.extend({
             }
         }).done(_.bind(function (resp) {
             this.render();
-            this.$('#provenance.resources').val(
+            this.$('#g-provenance-resources').val(
                 resp['provenance.resources']
             );
         }, this));

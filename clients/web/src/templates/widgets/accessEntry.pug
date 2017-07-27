@@ -16,7 +16,7 @@ div(class=`g-${type}-access-entry`, resourceid=entry.id)
       if !noAccessFlag && _.keys(flagList).length
         a.g-action-manage-flags(title="Access flags")
           i.g-flag-icon.icon-flag
-            .g-flag-count-indicator(class=(entry.flags && entry.flags.length ? null : "hide"))= entry.flags.length
+            .g-flag-count-indicator(class=(entry.flags && entry.flags.length ? null : "hide"))= (entry.flags || []).length
         .g-flags-popover-container.hide(resourcetype=type, resourceid=entry.id, title="Access flags")
           each flag, key in flagList
             - var checked = _.contains(entry.flags, key) ? 'checked' : null;

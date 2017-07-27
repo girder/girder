@@ -1,17 +1,15 @@
 /**
  * Place global styles in this file.
  */
-@import '~nib/index.styl'
 
-*:not(i)
-  font-family 'Droid Sans',sans-serif
+body
+  // Override the default font from Bootstrap
+  font-family "Droid Sans", sans-serif !important
+  padding 0
+  word-wrap break-word
 
 i
   font-smoothing antialiased
-
-body
-  padding 0
-  word-wrap break-word
 
 a
   cursor pointer
@@ -39,7 +37,7 @@ ul.dropdown-menu
       margin-right 3px
 
 .panel-heading
-  padding 10px 10px
+  padding 10px
 
 .panel-title
   font-size 15px
@@ -76,7 +74,7 @@ ul.dropdown-menu
   border-radius 0
 
 .modal-backdrop.in
-  opacity .35
+  opacity 0.35
 
 /* By default bootstrap only applies form-inline rules at >=768px width */
 .form-inline .form-group

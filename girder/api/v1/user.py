@@ -63,7 +63,7 @@ class User(Resource):
         .param('text', "Pass this to perform a full text search for items.", required=False)
         .pagingParams(defaultSort='lastName')
     )
-    def find(self, text, limit, offset, sort, params):
+    def find(self, text, limit, offset, sort):
         return list(self.model('user').search(
             text=text, user=self.getCurrentUser(), offset=offset, limit=limit, sort=sort))
 
@@ -76,7 +76,7 @@ class User(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to see this user.', 403)
     )
-    def getUser(self, user, params):
+    def getUser(self, user):
         return user
 
     @access.public(scope=TokenScope.USER_INFO_READ)
@@ -85,7 +85,7 @@ class User(Resource):
         Description('Retrieve the currently logged-in user information.')
         .responseClass('User')
     )
-    def getMe(self, params):
+    def getMe(self):
         return self.getCurrentUser()
 
     @access.public
@@ -96,7 +96,7 @@ class User(Resource):
         .errorResponse('Missing Authorization header.', 401)
         .errorResponse('Invalid login or password.', 403)
     )
-    def login(self, params):
+    def login(self):
         user, token = self.getCurrentUser(returnToken=True)
 
         # Only create and send new cookie if user isn't already sending a valid one.
@@ -138,7 +138,7 @@ class User(Resource):
         .responseClass('Token')
         .notes('Attempts to delete your authentication cookie.')
     )
-    def logout(self, params):
+    def logout(self):
         token = self.getCurrentToken()
         if token:
             self.model('token').remove(token)
@@ -160,7 +160,7 @@ class User(Resource):
         .errorResponse('A parameter was invalid, or the specified login or'
                        ' email already exists in the system.')
     )
-    def createUser(self, login, email, firstName, lastName, password, admin, params):
+    def createUser(self, login, email, firstName, lastName, password, admin):
         currentUser = self.getCurrentUser()
 
         regPolicy = self.model('setting').get(SettingKey.REGISTRATION_POLICY)
@@ -192,7 +192,7 @@ class User(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to delete this user.', 403)
     )
-    def deleteUser(self, user, params):
+    def deleteUser(self, user):
         self.model('user').remove(user)
         return {'message': 'Deleted user %s.' % user['login']}
 
@@ -212,7 +212,7 @@ class User(Resource):
         .errorResponse(('You do not have write access for this user.',
                         'Must be an admin to create an admin.'), 403)
     )
-    def updateUser(self, user, firstName, lastName, email, admin, status, params):
+    def updateUser(self, user, firstName, lastName, email, admin, status):
         user['firstName'] = firstName
         user['lastName'] = lastName
         user['email'] = email
@@ -244,7 +244,7 @@ class User(Resource):
         .errorResponse('You are not an administrator.', 403)
         .errorResponse('The new password is invalid.')
     )
-    def changeUserPassword(self, user, password, params):
+    def changeUserPassword(self, user, password):
         self.model('user').setPassword(user, password)
         return {'message': 'Password changed.'}
 
@@ -257,7 +257,7 @@ class User(Resource):
                         'Your old password is incorrect.'), 401)
         .errorResponse('Your new password is invalid.')
     )
-    def changePassword(self, old, new, params):
+    def changePassword(self, old, new):
         user = self.getCurrentUser()
         token = None
 
@@ -288,7 +288,7 @@ class User(Resource):
         .param('email', 'Your email address.', strip=True)
         .errorResponse('That email does not exist in the system.')
     )
-    def resetPassword(self, email, params):
+    def resetPassword(self, email):
         user = self.model('user').findOne({'email': email.lower()})
         if user is None:
             raise RestException('That email is not registered.')
@@ -309,7 +309,7 @@ class User(Resource):
         .param('email', 'Your email address.', strip=True)
         .errorResponse('That email does not exist in the system.')
     )
-    def generateTemporaryPassword(self, email, params):
+    def generateTemporaryPassword(self, email):
         user = self.model('user').findOne({'email': email.lower()})
 
         if not user:
@@ -337,7 +337,7 @@ class User(Resource):
         .param('token', 'The token to check.')
         .errorResponse('The token does not grant temporary access to the specified user.', 401)
     )
-    def checkTemporaryPassword(self, user, token, params):
+    def checkTemporaryPassword(self, user, token):
         token = self.model('token').load(
             token, user=user, level=AccessType.ADMIN, objectId=False, exc=True)
         delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
@@ -368,7 +368,7 @@ class User(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the user.', 403)
     )
-    def getUserDetails(self, user, params):
+    def getUserDetails(self, user):
         return {
             'nFolders': self.model('user').countFolders(
                 user, filterUser=self.getCurrentUser(), level=AccessType.READ)
@@ -381,7 +381,7 @@ class User(Resource):
         .param('token', 'The token to check.')
         .errorResponse('The token is invalid or expired.', 401)
     )
-    def verifyEmail(self, user, token, params):
+    def verifyEmail(self, user, token):
         token = self.model('token').load(
             token, user=user, level=AccessType.ADMIN, objectId=False, exc=True)
         delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
@@ -418,7 +418,7 @@ class User(Resource):
         .param('login', 'Your login or email address.', strip=True)
         .errorResponse('That login is not registered.', 401)
     )
-    def sendVerificationEmail(self, login, params):
+    def sendVerificationEmail(self, login):
         loginField = 'email' if '@' in login else 'login'
         user = self.model('user').findOne({loginField: login.lower()})
 

@@ -695,3 +695,9 @@ class FolderTestCase(base.TestCase):
                 'parentType': 'folder',
                 'parentId': str(subFolder['_id'])})
         self.assertStatusOk(resp)
+
+        # Test copying with public set to False
+        resp = self.request(
+            path='/folder/%s/copy' % subFolder['_id'], method='POST',
+            user=self.admin, params={'public': 'false', 'progress': True})
+        self.assertStatusOk(resp)

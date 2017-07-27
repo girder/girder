@@ -251,9 +251,10 @@ class AbstractAssetstoreAdapter(ModelImporter):
                      contentDisposition=None, extraParameters=None, **kwargs):
         """
         This method is in charge of returning a value to the RESTful endpoint
-        that can be used to download the file. This can return a generator
-        function that streams the file directly, or can modify the response
-        headers and perform a redirect and return None, for example.
+        that can be used to download the file. This should either return a
+        generator function that yields the bytes of the file (which will stream
+        the file directly), or modify the response headers and raise a
+        `cherrypy.HTTPRedirect`.
 
         :param file: The file document being downloaded.
         :type file: dict

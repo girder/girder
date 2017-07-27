@@ -31,8 +31,8 @@ from . import docs
 from girder import events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
 from girder.models.model_base import AccessException, GirderException, ValidationException
+from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
 from girder.utility.model_importer import ModelImporter
-from girder.utility import toBool, config, JsonEncoder
 from six.moves import range, urllib
 
 # Arbitrary buffer length for stream-reading request bodies
@@ -1066,21 +1066,24 @@ class Resource(ModelImporter):
         """
         return getCurrentUser(returnToken)
 
-    def sendAuthTokenCookie(self, user, scope=None):
+    def sendAuthTokenCookie(self, user=None, scope=None, token=None, days=None):
         """
         Helper method to send the authentication cookie
         """
         setting = self.model('setting')
-        days = float(setting.get(SettingKey.COOKIE_LIFETIME))
-        secure = setting.get(SettingKey.SECURE_COOKIE)
-        token = self.model('token').createToken(user, days=days, scope=scope)
+
+        if days is None:
+            days = float(setting.get(SettingKey.COOKIE_LIFETIME))
+
+        if token is None:
+            token = self.model('token').createToken(user, days=days, scope=scope)
 
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = str(token['_id'])
         cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = int(days * 3600 * 24)
 
-        if secure:
+        if setting.get(SettingKey.SECURE_COOKIE):
             cookie['girderToken']['secure'] = True
 
         return token
@@ -1161,7 +1164,8 @@ class Resource(ModelImporter):
 _sharedContext = Resource()
 
 
-class boundHandler(object):  # noqa: class name
+@optionalArgumentDecorator
+def boundHandler(fun, ctx=None):
     """
     This decorator allows unbound functions to be conveniently added as route
     handlers to existing :py:class:`girder.api.rest.Resource` instances.
@@ -1173,28 +1177,19 @@ class boundHandler(object):  # noqa: class name
     Plugins that add new routes to existing API resources are encouraged to use
     this to gain access to bound convenience methods like ``self.model``,
     ``self.boolParam``, ``self.requireParams``, etc.
+
+    :param fun: A REST endpoint.
+    :type fun: callable
+    :param ctx: A Resource instance, to be bound to ``fun``.
+    :type ctx: Resource or None
     """
-    def __init__(self, ctx=None):
+    if ctx is None:
+        ctx = _sharedContext
+    elif not isinstance(ctx, Resource):
+        raise Exception('ctx in boundhandler must be an instance of Resource.')
 
-        if ctx is None or isinstance(ctx, Resource):  # Used with arguments
-            self.ctx = ctx or _sharedContext
-            self.func = None
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        return fun(ctx, *args, **kwargs)
 
-        elif callable(ctx):  # Used as a raw decorator
-            self.ctx = _sharedContext
-            self.func = ctx
-        else:
-            raise Exception('ctx in boundhandler must be an instance of '
-                            'Resource or a function to be wrapped')
-
-    def __call__(self, *args, **kwargs):
-        if self.func is not None:  # Used as a raw decorator
-            return self.func(self.ctx, *args, **kwargs)
-
-        else:  # Used with arguments
-            fn = args[0]
-
-            @six.wraps(fn)
-            def wrapped(*fargs, **fkwargs):
-                return fn(self.ctx, *fargs, **fkwargs)
-            return wrapped
+    return wrapped
