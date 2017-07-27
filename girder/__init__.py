@@ -29,7 +29,7 @@ import traceback
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor, VERSION
 from girder.utility import config, mkdir
 
-__version__ = '2.2.0'
+__version__ = '2.3.0'
 __license__ = 'Apache 2.0'
 
 
