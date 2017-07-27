@@ -48,6 +48,10 @@
   .g-item-updated.g-info-list-entry
     i.icon-clock
     | Updated on #{formatDate(item.get('updated'), DATE_SECOND)}
+  .g-item-info-line.g-info-list-entry(property="id")
+    i.icon-share
+    span Unique ID:
+      span.g-bold-part #{item.id}
 
 .g-item-metadata
 
