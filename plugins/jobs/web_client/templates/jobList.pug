@@ -5,14 +5,14 @@ table.g-jobs-list-table
         if columns & columnEnum.COLUMN_ACTION_CHECKBOX
           th
             .dropdown.check-menu-dropdown
-                button.btn.btn-sm.btn-default.dropdown-toggle.g-job-check-menu-button(data-toggle="dropdown", disabled=!anyJobChecked)
-                  input.g-job-checkbox-all(type="checkbox", checked=allJobChecked)
-                  i.icon-down-dir
-                ul.dropdown-menu
-                  li
-                    a.g-jobs-list-cancel
-                      i.icon-cancel
-                      | Cancel
+              button.btn.btn-sm.btn-default.dropdown-toggle.g-job-check-menu-button(data-toggle="dropdown", disabled=!anyJobChecked)
+                input.g-job-checkbox-all(type="checkbox", checked=allJobChecked)
+                i.icon-down-dir
+              ul.dropdown-menu
+                li
+                  a.g-jobs-list-cancel
+                    i.icon-cancel
+                    | Cancel
         if columns & columnEnum.COLUMN_STATUS_ICON
           th
         if columns & columnEnum.COLUMN_TITLE
