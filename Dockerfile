@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -qy software-properties-common python-soft
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
+RUN npm install -g npm
 
 WORKDIR /girder
 COPY girder /girder/girder
