@@ -63,6 +63,17 @@ With ``watch`` option, *sourcemaps* will be generated, which helps debugging fro
 When you want to end the watch process, press Ctrl+C (or however you would normally terminate a
 process in your terminal).
 
+Girder Shell
+^^^^^^^^^^^^
+
+To test various functionality in a typical REPL (Python, IPython, etc) some bootstrapping
+is required to configure the Girder server. This sets up an "embedded" server, meaning no TCP ports
+are actually bound but requests can still be performed via Python. Bootstrapping the server
+involves running ``girder.utility.server.configureServer`` with the plugins to be enabled.
+
+Girder provides a utility script for entering into a shell with the server preconfigured. Once
+Girder is installed the script can be run using ``girder-shell`` which optionally takes a comma
+separated list of plugins to enable.
 
 Utilities
 ---------
