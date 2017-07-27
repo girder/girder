@@ -1,0 +1,6 @@
+#g-plugin-config-breadcrumb
+div!= renderMarkdown(description)
+form#g-plugin-config-form
+  .g-plugin-config-settings
+  #g-plugin-config-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type='submit', value='Save')

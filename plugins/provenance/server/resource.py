@@ -63,15 +63,9 @@ class ResourceExt(Resource):
                 return
         else:
             return
-        resources = self.model('setting').get(
-            constants.PluginSettings.PROVENANCE_RESOURCES)
-        if resources:
-            resources = resources.replace(',', ' ').strip().split()
-        else:
-            resources = []
+        resources = self.model('setting').get(constants.PluginSettings.PROVENANCE_RESOURCES)
+        resources = resources.replace(',', ' ').strip().split()
         resources = dict.fromkeys(resources)
-        # Always include item
-        resources['item'] = None
         # Exclude resources that should never have provenance
         for disallowedResource in ('model_base', 'notification', 'password',
                                    'token'):

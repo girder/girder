@@ -1,0 +1,10 @@
+-
+  const placeholderText = setting.has('placeholderText') ?
+    setting.get('placeholderText') :
+    `default: ${setting.get('default')}`;
+  const domId = `g-${setting.get('key').replace(/[._]/g, '-')}`;
+.g-plugin-setting-container.form-group
+  label.control-label(for=domId)= setting.get('label')
+  input.input-sm.form-control(id=domId, type='text', placeholder=placeholderText)
+  if setting.has('description')
+    div!= renderMarkdown(setting.get('description'))
