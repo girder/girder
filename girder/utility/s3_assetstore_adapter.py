@@ -31,6 +31,7 @@ from girder.models.model_base import GirderException, ValidationException
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
+DEFAULT_REGION = 'us-east-1'
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -562,7 +563,7 @@ def makeBotoConnectParams(accessKeyId, secret, service=None, region=None):
     :param region: the AWS region name of the bucket (if not "us-east-1")
     :returns: boto connection parameter dictionary.
     """
-    region = region or 'us-east-1'
+    region = region or DEFAULT_REGION
     if accessKeyId and secret:
         params = {
             'aws_access_key_id': accessKeyId,

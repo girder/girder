@@ -23,6 +23,7 @@ from girder import events
 from girder.constants import AccessType, AssetstoreType, TokenScope
 from girder.api import access
 from girder.utility.progress import ProgressContext
+from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
 
 class Assetstore(Resource):
@@ -92,8 +93,8 @@ class Assetstore(Resource):
                'Do not include the bucket name here.', required=False, default='')
         .param('readOnly', 'If this assetstore is read-only, set this to true.',
                required=False, dataType='boolean', default=False)
-        .param('region', 'The AWS region to which the S3 bucket belongs, if not in "us-east-1".',
-               required=False)
+        .param('region', 'The AWS region to which the S3 bucket belongs.', required=False,
+               default=DEFAULT_REGION)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
@@ -181,8 +182,8 @@ class Assetstore(Resource):
                'Do not include the bucket name here.', required=False, default='')
         .param('readOnly', 'If this assetstore is read-only, set this to true.',
                required=False, dataType='boolean')
-        .param('region', 'The AWS region to which the S3 bucket belongs, if not in "us-east-1".',
-               required=False)
+        .param('region', 'The AWS region to which the S3 bucket belongs.', required=False,
+               default=DEFAULT_REGION)
         .param('current', 'Whether this is the current assetstore', dataType='boolean')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
