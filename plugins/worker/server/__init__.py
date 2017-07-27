@@ -46,7 +46,7 @@ class CustomJobStatus(object):
     # valid transitions for worker scheduled jobs
     valid_worker_transitions = {
         JobStatus.QUEUED: [JobStatus.INACTIVE],
-        JobStatus.RUNNING: [JobStatus.QUEUED],
+        JobStatus.RUNNING: [JobStatus.QUEUED, FETCHING_INPUT],
         FETCHING_INPUT: [JobStatus.RUNNING],
         CONVERTING_INPUT: [JobStatus.RUNNING, FETCHING_INPUT],
         CONVERTING_OUTPUT: [JobStatus.RUNNING],
