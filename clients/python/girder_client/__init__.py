@@ -33,7 +33,7 @@ import tempfile
 from contextlib import contextmanager
 from requests_toolbelt import MultipartEncoder
 
-__version__ = '2.2.1'
+__version__ = '2.3.0'
 __license__ = 'Apache 2.0'
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
