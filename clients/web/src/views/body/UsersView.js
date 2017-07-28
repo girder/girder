@@ -47,9 +47,9 @@ var UsersView = View.extend({
             collection: this.collection,
             parentView: this,
             fields: {
-              lastName: 'Last Name',
-              created: 'Creation Date',
-              size: 'Used Space'
+                lastName: 'Last Name',
+                created: 'Creation Date',
+                size: 'Used Space'
             }
         });
 

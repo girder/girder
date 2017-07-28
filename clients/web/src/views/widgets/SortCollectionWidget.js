@@ -18,12 +18,12 @@ var SortCollectionWidget = View.extend({
         },
         'click a.g-sort-order-button': function (event) {
             if (this.collection.sortDir === SORT_ASC) {
-              this.collection.sortDir = SORT_DESC;
+                this.collection.sortDir = SORT_DESC;
             } else {
-              this.collection.sortDir = SORT_ASC;
+                this.collection.sortDir = SORT_ASC;
             }
             this.collection.fetch({}, true);
-        },
+        }
     },
 
     initialize: function (settings) {
@@ -40,9 +40,9 @@ var SortCollectionWidget = View.extend({
             fields: this.fields
         }));
         if (this.collection.sortDir === SORT_ASC) {
-          this.$('.g-down').addClass('hide');
+            this.$('.g-down').addClass('hide');
         } else {
-          this.$('.g-up').addClass('hide');
+            this.$('.g-up').addClass('hide');
         }
         return this;
     }
