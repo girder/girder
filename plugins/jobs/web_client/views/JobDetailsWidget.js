@@ -5,6 +5,7 @@ import TimelineWidget from 'girder/views/widgets/TimelineWidget';
 import View from 'girder/views/View';
 import eventStream from 'girder/utilities/EventStream';
 import { formatDate, DATE_SECOND } from 'girder/misc';
+import events from 'girder/events';
 
 import JobDetailsWidgetTemplate from '../templates/jobDetailsWidget.pug';
 import JobStatus from '../JobStatus';
@@ -135,9 +136,19 @@ var JobDetailsWidget = View.extend({
             type: 'PUT',
             error: null
         }).done(_.bind(function () {
-            console.log('success');
+            events.trigger('g:alert', {
+                    icon: 'ok',
+                    text: 'Job successfully canceled.',
+                    type: 'success',
+                    timeout: 4000
+                });
         }, this)).fail(_.bind(function (err) {
-            console.log(err);
+            events.trigger('g:alert', {
+                    icon: 'cancel',
+                    text: err,
+                    type: 'danger',
+                    timeout: 4000
+                });
         }, this));
     }
 });
