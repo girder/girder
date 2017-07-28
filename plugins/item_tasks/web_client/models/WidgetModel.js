@@ -395,6 +395,13 @@ var WidgetModel = Backbone.Model.extend({
     },
 
     /**
+     * True if the value represents an item stored in girder.
+     */
+    isItem: function () {
+        return this.get('type') === 'item';
+    },
+
+    /**
      * Get a normalized representation of the widget's value.
      */
     value: function () {
@@ -418,6 +425,7 @@ var WidgetModel = Backbone.Model.extend({
         'string-enumeration',
         'string-enumeration-multiple',
         'file',
+        'item',
         'directory',
         'new-file',
         'new-folder',

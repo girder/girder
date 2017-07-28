@@ -16,6 +16,9 @@ var WidgetCollection = Backbone.Collection.extend({
             // https://github.com/DigitalSlideArchive/slicer/blob/9e5112ab3444ad8c699d70452a5fe4a74ebbc778/server/__init__.py#L44-L46
             switch (m.get('type')) {
                 case 'file':
+                    params[m.id + '_girderFileId'] = m.value().id;
+                    break;
+                case 'item':
                     params[m.id + '_girderItemId'] = m.value().id;
                     break;
                 case 'new-file':

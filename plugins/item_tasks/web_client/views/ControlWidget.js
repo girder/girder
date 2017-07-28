@@ -6,6 +6,8 @@ import events from 'girder/events';
 import BrowserWidget from 'girder/views/widgets/BrowserWidget';
 import { getCurrentUser } from 'girder/auth';
 
+import ItemSelectorWidget from './ItemSelectorWidget';
+
 import booleanWidget from '../templates/booleanWidget.pug';
 import colorWidget from '../templates/colorWidget.pug';
 import enumerationWidget from '../templates/enumerationWidget.pug';
@@ -125,6 +127,9 @@ var ControlWidget = View.extend({
         file: {
             template: fileWidget
         },
+        item: {
+            template: fileWidget
+        },
         image: {
             template: fileWidget
         },
@@ -201,6 +206,16 @@ var ControlWidget = View.extend({
             showItems = true;
             title = 'Select an item';
             help = 'Click on an item to select it, then click "Save"';
+
+            var modal = new ItemSelectorWidget({
+                el: $('#g-dialog-container'),
+                parentView: this,
+                model: this.model
+            });
+            modal.once('g:saved', () => {
+                modal.$el.modal('hide');
+            }).render();
+            return;
         }
 
         if (type === 'directory') {
