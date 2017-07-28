@@ -6,8 +6,8 @@ import SortCollectionWidgetTemplate from 'girder/templates/widgets/sortCollectio
 import 'bootstrap/js/dropdown';
 
 /**
- * This widget is used to provide a consistent widget for iterating amongst
- * pages of a Collection.
+ * This widget is used to provide a consistent widget for sorting
+ * pages of a Collection by a choosen field.
  */
 var SortCollectionWidget = View.extend({
     events: {
@@ -40,11 +40,9 @@ var SortCollectionWidget = View.extend({
             fields: this.fields
         }));
         if (this.collection.sortDir === SORT_ASC) {
-          //this.$('.g-up').removeClass('hide');
           this.$('.g-down').addClass('hide');
         } else {
           this.$('.g-up').addClass('hide');
-          //this.$('.g-down').removeClass('hide');
         }
         return this;
     }
