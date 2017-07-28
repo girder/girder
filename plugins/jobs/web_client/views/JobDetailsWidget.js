@@ -137,18 +137,18 @@ var JobDetailsWidget = View.extend({
             error: null
         }).done(_.bind(function () {
             events.trigger('g:alert', {
-                    icon: 'ok',
-                    text: 'Job successfully canceled.',
-                    type: 'success',
-                    timeout: 4000
-                });
+                icon: 'ok',
+                text: 'Job successfully canceled.',
+                type: 'success',
+                timeout: 4000
+            });
         }, this)).fail(_.bind(function (err) {
             events.trigger('g:alert', {
-                    icon: 'cancel',
-                    text: err,
-                    type: 'danger',
-                    timeout: 4000
-                });
+                icon: 'cancel',
+                text: err,
+                type: 'danger',
+                timeout: 4000
+            });
         }, this));
     }
 });
