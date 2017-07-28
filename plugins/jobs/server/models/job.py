@@ -395,10 +395,10 @@ class Job(AccessControlledModel):
             job['updated'] = now
             updates['$set']['updated'] = now
 
-            update_result = self.update(query, update=updates, multi=False)
+            updateResult = self.update(query, update=updates, multi=False)
             # If our query didn't match anything then our state transition
             # was not valid. So raise an exception
-            if update_result.matched_count != 1:
+            if updateResult.matched_count != 1:
                 job = self.load(job['_id'], force=True)
                 msg = 'Invalid state transition to \'%s\', Current state is \'%s\'.' % (
                     status, job['status'])
