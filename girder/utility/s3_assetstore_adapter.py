@@ -72,7 +72,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 raise ValidationException(
                     'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
         params = makeBotoConnectParams(
-            doc['accessKeyId'], doc['secret'], doc['service'], doc.get('region'))
+            doc['accessKeyId'], doc['secret'], doc['service'], doc.get('region'),
+            doc.get('inferCredentials'))
         client = S3AssetstoreAdapter._s3Client(params)
         if doc.get('readOnly'):
             try:
@@ -99,7 +100,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):
             self.connectParams = makeBotoConnectParams(
                 self.assetstore['accessKeyId'], self.assetstore['secret'],
-                self.assetstore['service'], self.assetstore.get('region'))
+                self.assetstore['service'], self.assetstore.get('region'),
+                self.assetstore.get('inferCredentials'))
             self.client = S3AssetstoreAdapter._s3Client(self.connectParams)
 
     def _getRequestHeaders(self, upload):
@@ -553,7 +555,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return False
 
 
-def makeBotoConnectParams(accessKeyId, secret, service=None, region=None):
+def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferCredentials=False):
     """
     Create a dictionary of values to pass to the boto connect_s3 function.
 
@@ -561,16 +563,26 @@ def makeBotoConnectParams(accessKeyId, secret, service=None, region=None):
     :param secret: the S3 secret key
     :param service: alternate service URL
     :param region: the AWS region name of the bucket (if not "us-east-1")
+    :param inferCredentials: Whether or not Boto should infer the credentials
+        without directly using accessKeyId and secret.
     :returns: boto connection parameter dictionary.
     """
     region = region or DEFAULT_REGION
-    if accessKeyId and secret:
+    if inferCredentials:
+        # Look up credentials through Boto's fallback mechanism, see:
+        # http://boto3.readthedocs.io/en/latest/guide/configuration.html#configuring-credentials
+        params = {
+            'config': botocore.client.Config(signature_version='s3v4', region_name=region)
+        }
+    elif accessKeyId and secret:
+        # Use explicitly passed credentials
         params = {
             'aws_access_key_id': accessKeyId,
             'aws_secret_access_key': secret,
             'config': botocore.client.Config(signature_version='s3v4', region_name=region)
         }
     else:
+        # Anonymous access
         params = {
             'config': botocore.client.Config(
                 signature_version=botocore.UNSIGNED, region_name=region)
