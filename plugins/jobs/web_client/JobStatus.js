@@ -62,7 +62,7 @@ var JobStatus = {
                 finished: _.has(info, 'finished') ? info.finished : false
             };
 
-            if ('textColor' in info) {
+            if (_.has(info, 'textColor')) {
                 statusInfo.textColor = info.textColor;
             }
 
