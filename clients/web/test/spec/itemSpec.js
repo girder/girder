@@ -107,6 +107,7 @@ function _addItemToFolder(folder) {
     runs(function () {
         expect($('.g-item-name').text()).toBe('Test Item Name');
         expect($('.g-item-description').text().trim()).toBe('Test Item Description');
+        expect($('.g-item-id').text()).toBeDefined();
     });
 }
 
