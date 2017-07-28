@@ -94,9 +94,6 @@ function _addItemToFolder(folder) {
 
     runs(function () {
         expect($('li.g-item-list-entry').attr('public')).toBe(isPublic);
-    });
-
-    runs(function () {
         $('a.g-item-list-link:contains(Test Item Name)').click();
     });
 
@@ -107,6 +104,7 @@ function _addItemToFolder(folder) {
     runs(function () {
         expect($('.g-item-name').text()).toBe('Test Item Name');
         expect($('.g-item-description').text().trim()).toBe('Test Item Description');
+        expect($('.g-item-id').text()).toMatch(/[a-f0-9]{24}/);
     });
 }
 
