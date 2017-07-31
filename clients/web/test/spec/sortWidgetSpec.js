@@ -3,8 +3,6 @@ girderTest.startApp();
 var registeredUsers = [];
 
 describe('Sort user list', function () {
-    var users = new girder.collections.UserCollection();
-
     it('register a user (first is admin)',
         girderTest.createUser('admin',
                               'admin@email.com',
@@ -22,7 +20,7 @@ describe('Sort user list', function () {
                               'password!',
                               registeredUsers));
     it('logout', girderTest.logout());
-    
+
     it('register third user',
         girderTest.createUser('nonadmin2',
                               'nonadmin2@email.com',
@@ -60,7 +58,7 @@ describe('Sort user list', function () {
             expect($('a.g-collection-sort-link:contains("Creation Date")').length).toBe(1);
             $('a.g-collection-sort-link:contains("Creation Date")').click();
         });
-        
+
         waitsFor(function () {
             // FIXME: the condition here should be: wait for re-render of collection,
             //   but I don't know how to express that...
