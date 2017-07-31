@@ -1,4 +1,6 @@
-from girder_worker.describe import get_registered_function
+from girder_worker.app import app
+from girder_worker import describe
+from girder_worker.entrypoint import import_all_includes
 
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
@@ -20,7 +22,7 @@ from . import constants
 def describeGWTaskItem(self, item, params):
     taskName = params['taskName']
     try:
-        func = get_registered_function(taskName)
+        func = describe.get_registered_function(taskName)
     except KeyError:
         raise RestException('Unknown task "%s"' % taskName)
 
@@ -38,9 +40,26 @@ def describeGWTaskItem(self, item, params):
 
 
 def runGirderWorkerTask(taskName, inputs, outputs={}):
-    try:
-        func = get_registered_function(taskName)
-    except KeyError:
+    import_all_includes()
+    tasks = app.tasks
+
+    if taskName not in tasks:
         raise RestException('Unknown task "%s"' % taskName)
 
-    return func.call_item_task(inputs, outputs)
+    task = tasks[taskName]
+    try:
+        describe.describe_function(task.run)
+    except describe.MissingDescriptionException:
+        raise RestException('"%s" is not a girder_worker decorated task' % taskName)
+
+    try:
+        args, kwargs = describe.parse_inputs(task.run, inputs)
+    except describe.MissingInputException as e:
+        raise RestException(str(e))
+
+    try:
+        result = task.delay(*args, **kwargs)
+    except Exception:
+        raise RestException(str(e))
+
+    return result.job

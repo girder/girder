@@ -213,8 +213,7 @@ class ItemTask(Resource):
         task, handler = self._validateTask(item)
 
         if task.get('mode') == 'girder_worker':
-            runGirderWorkerTask(item['meta']['itemTaskImport'], inputs)
-            return
+            return runGirderWorkerTask(item['meta']['itemTaskImport'], inputs)
 
         jobModel = self.model('job', 'jobs')
         jobModel = Job()
