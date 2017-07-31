@@ -1,19 +1,13 @@
 girderTest.startApp();
 
-/**
- * Intercept window.location.assign calls so we can test the behavior of,
- * e.g. download directives that occur from js.
- */
-(function () {
-    window.location.assign = function (url) {
-        girderTest._redirect = url;
-    };
-}());
-
 describe('Test the model class', function () {
     var lastRequest, triggerRestError = false, requestCount = 0;
 
     beforeEach(function () {
+        // Intercept window.location.assign calls so we can test the behavior of e.g. download
+        // directives that occur from js.
+        spyOn(window.location, 'assign');
+
         girder.rest.mockRestRequest(function (opts) {
             requestCount += 1;
             lastRequest = opts;
@@ -108,13 +102,14 @@ describe('Test the model class', function () {
         expect(model.downloadUrl()).toBe(girder.rest.apiRoot + '/sampleResource/' + id + '/download');
         expect(model.downloadUrl({foo: 'bar'})).toBe(girder.rest.apiRoot + '/sampleResource/' + id + '/download?foo=bar');
         // test download
+        window.location.assign.reset();
         model.download();
         waitsFor(function () {
-            return girderTest._redirect !== null;
+            return window.location.assign.wasCalled;
         }, 'redirect to the resource download URL');
         runs(function () {
-            expect(/^http:\/\/.*\/api\/v1\/sampleResource\/.+\/download$/.test(
-                girderTest._redirect)).toBe(true);
+            expect(window.location.assign)
+                .toHaveBeenCalledWith(/^http:\/\/.*\/api\/v1\/sampleResource\/.+\/download$/);
         });
         // destroy
         requestCount = 0;
