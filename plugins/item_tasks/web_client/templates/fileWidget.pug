@@ -13,6 +13,9 @@ block input
     if type === 'file' || type === 'image'
       +input(title, type, id, name)(placeholder='Choose an item...', readonly=true)
 
+    if type === 'item'
+      +input(title, type, id, name)(placeholder='Choose an item...', readonly=true)
+
     else if type === 'directory'
       +input(title, type, id, name)(placeholder='Choose a folder...', readonly=true)
 

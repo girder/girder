@@ -202,7 +202,7 @@ var ControlWidget = View.extend({
             return isValid.promise();
         };
         // Customize the browser widget according the argument type
-        if (type === 'file' || type === 'image') {
+        if (type === 'item' || type === 'file' || type === 'image') {
             showItems = true;
             title = 'Select an item';
             help = 'Click on an item to select it, then click "Save"';
@@ -267,7 +267,7 @@ var ControlWidget = View.extend({
             preview = false;
         }
 
-        var modal = new BrowserWidget({
+        var browserModal = new BrowserWidget({
             el: $('#g-dialog-container'),
             parentView: this,
             showItems: showItems,
@@ -279,7 +279,7 @@ var ControlWidget = View.extend({
             showPreview: preview,
             validate: validate
         });
-        modal.once('g:saved', (model, inputValue) => {
+        browserModal.once('g:saved', (model, inputValue) => {
             lastParent = modal.root;
             modal.$el.modal('hide');
             this.model.set({

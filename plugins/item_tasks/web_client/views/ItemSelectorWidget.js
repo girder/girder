@@ -2,6 +2,7 @@ import _ from 'underscore';
 
 import { getCurrentUser } from 'girder/auth';
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
+import RootSelectorWidget from 'girder/views/widgets/RootSelectorWidget';
 import View from 'girder/views/View';
 import ItemModel from 'girder/models/ItemModel';
 import FileModel from 'girder/models/FileModel';
@@ -18,13 +19,45 @@ var ItemSelectorWidget = View.extend({
         if (!this.model) {
             this.model = new ItemModel();
         }
-        this.rootPath = settings.rootPath || getCurrentUser();
+        this.root = settings.root || getCurrentUser();
+
+        this._rootSelectionView = new RootSelectorWidget(_.extend({
+            parentView: this
+        }, settings.rootSelectorSettings));
+        this.listenTo(this._rootSelectionView, 'g:selected', function (event) {
+            this.root = event.root;
+            this._renderHierarchyView();
+        });
     },
 
     render: function () {
+        this.$el.html(
+            itemSelectorWidget(this.model.attributes)  // eslint-disable-line backbone/no-view-model-attributes
+        ).girderModal(this);
+
+        this._renderRootSelection();
+        return this;
+    },
+
+    _renderRootSelection: function () {
+        this._rootSelectionView.setElement(this.$('.g-hierarchy-root-container')).render();
+        this._renderHierarchyView();
+    },
+
+    _renderHierarchyView: function () {
+        if (this._hierarchyView) {
+            this.stopListening(this._hierarchyView);
+            this._hierarchyView.off();
+            this.$('.g-hierarchy-widget-container').empty();
+        }
+        if (!this.root) {
+            return;
+        }
+        this.$('.g-wait-for-root').removeClass('hidden');
         this._hierarchyView = new HierarchyWidget({
+            el: this.$('.g-hierarchy-widget-container'),
             parentView: this,
-            parentModel: this.rootPath,
+            parentModel: this.root,
             checkboxes: false,
             routing: false,
             showActions: false,
@@ -33,15 +66,7 @@ var ItemSelectorWidget = View.extend({
             viewLinks: false,
             onItemClick: _.bind(this._selectItem, this)
         });
-
-        this.$el.html(
-            itemSelectorWidget(this.model.attributes)  // eslint-disable-line backbone/no-view-model-attributes
-        ).girderModal(this);
-
-        this._hierarchyView.setElement(this.$('.g-hierarchy-widget')).render();
-        return this;
     },
-
     /**
      * Get the currently displayed path in the hierarchy view.
      */
@@ -72,7 +97,7 @@ var ItemSelectorWidget = View.extend({
                 restRequest({path: '/item/' + item.id + '/files', data: {limit: 1}}).done((resp) => {
                     if (!resp.length) {
                         this.$('.g-modal-error').removeClass('hidden')
-                            .text('Please select a item with at least one file.');
+                            .text('Please select an item with at least one file.');
                         return;
                     }
                     file = new FileModel({_id: resp[0]._id});
