@@ -527,7 +527,8 @@ var HierarchyWidget = View.extend({
                     downloadLinks: this._downloadLinks,
                     viewLinks: this._viewLinks,
                     itemFilter: this._itemFilter,
-                    showSizes: this._showSizes
+                    showSizes: this._showSizes,
+                    public: this.parentModel.get('public')
                 });
             } else {
                 this._initFolderViewSubwidgets();
