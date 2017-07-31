@@ -54,6 +54,10 @@
               input#g-edit-s3-region.input-sm.form-control(type="text", placeholder="Region")
             .checkbox
               label
+                input#g-edit-s3-infercredentials(type="checkbox")
+                | Infer Credentials
+            .checkbox
+              label
                 input#g-edit-s3-readonly(type="checkbox")
                 | Read only
         if assetstore.get('hasFiles')

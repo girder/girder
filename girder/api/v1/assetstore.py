@@ -95,11 +95,14 @@ class Assetstore(Resource):
                required=False, dataType='boolean', default=False)
         .param('region', 'The AWS region to which the S3 bucket belongs.', required=False,
                default=DEFAULT_REGION)
+        .param('inferCredentials', 'The credentials for connecting to S3 will be inferred '
+               'by Boto rather than explicitly passed. Inferring credentials will '
+               'ignore accessKeyId and secret.', dataType='boolean', required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def createAssetstore(self, name, type, root, perms, db, mongohost, replicaset, shard, bucket,
-                         prefix, accessKeyId, secret, service, readOnly, region):
+                         prefix, accessKeyId, secret, service, readOnly, region, inferCredentials):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
             return self.model('assetstore').createFilesystemAssetstore(
@@ -112,7 +115,8 @@ class Assetstore(Resource):
             self.requireParams({'bucket': bucket})
             return self.model('assetstore').createS3Assetstore(
                 name=name, bucket=bucket, prefix=prefix, secret=secret,
-                accessKeyId=accessKeyId, service=service, readOnly=readOnly, region=region)
+                accessKeyId=accessKeyId, service=service, readOnly=readOnly, region=region,
+                inferCredentials=inferCredentials)
         else:
             raise RestException('Invalid type parameter')
 
@@ -185,12 +189,15 @@ class Assetstore(Resource):
         .param('region', 'The AWS region to which the S3 bucket belongs.', required=False,
                default=DEFAULT_REGION)
         .param('current', 'Whether this is the current assetstore', dataType='boolean')
+        .param('inferCredentials', 'The credentials for connecting to S3 will be inferred '
+               'by Boto rather than explicitly passed. Inferring credentials will '
+               'ignore accessKeyId and secret.', dataType='boolean', required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def updateAssetstore(self, assetstore, name, root, perms, db, mongohost, replicaset, shard,
                          bucket, prefix, accessKeyId, secret, service, readOnly, region, current,
-                         params):
+                         inferCredentials, params):
         assetstore['name'] = name
         assetstore['current'] = current
 
@@ -220,6 +227,7 @@ class Assetstore(Resource):
             assetstore['secret'] = secret
             assetstore['service'] = service
             assetstore['region'] = region
+            assetstore['inferCredentials'] = inferCredentials
             if readOnly is not None:
                 assetstore['readOnly'] = readOnly
         else:
