@@ -55,7 +55,6 @@ describe('Sort user list', function () {
 
         runs(function () {
             expect($('a.g-collection-sort-link').text()).toBe('Last NameCreation DateUsed Space');
-            expect($('a.g-collection-sort-link:contains("Creation Date")').length).toBe(1);
             $('a.g-collection-sort-link:contains("Creation Date")').click();
         });
 
