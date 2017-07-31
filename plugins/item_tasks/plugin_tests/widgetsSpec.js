@@ -373,7 +373,7 @@ describe('control widget view', function () {
     it('range', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'range',
                 title: 'Title',
@@ -396,7 +396,7 @@ describe('control widget view', function () {
     it('number', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'number',
                 title: 'Title',
@@ -425,7 +425,7 @@ describe('control widget view', function () {
     it('boolean', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'boolean',
                 title: 'Title',
@@ -445,7 +445,7 @@ describe('control widget view', function () {
     it('string', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'string',
                 title: 'Title',
@@ -466,7 +466,7 @@ describe('control widget view', function () {
     it('color', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'color',
                 title: 'Title',
@@ -490,7 +490,7 @@ describe('control widget view', function () {
     it('string-vector', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'string-vector',
                 title: 'Title',
@@ -510,7 +510,7 @@ describe('control widget view', function () {
     it('number-vector', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'number-vector',
                 title: 'Title',
@@ -530,7 +530,7 @@ describe('control widget view', function () {
     it('string-enumeration', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'string-enumeration',
                 title: 'Title',
@@ -555,7 +555,7 @@ describe('control widget view', function () {
     it('number-enumeration', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'number-enumeration',
                 title: 'Title',
@@ -588,7 +588,7 @@ describe('control widget view', function () {
 
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'file',
                 title: 'Title',
@@ -621,7 +621,7 @@ describe('control widget view', function () {
         hProto.render = function () {};
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'new-file',
                 title: 'Title',
@@ -647,7 +647,7 @@ describe('control widget view', function () {
     it('invalid', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'invalid',
                 title: 'Title',
@@ -667,7 +667,7 @@ describe('control widget view', function () {
         it('g:itemTaskWidgetSet', function () {
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,
-                el: $el.get(0),
+                el: $el,
                 model: new itemTasks.models.WidgetModel({
                     type: 'number',
                     title: 'Title',
@@ -686,7 +686,7 @@ describe('control widget view', function () {
 
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,
-                el: $el.get(0),
+                el: $el,
                 model: new itemTasks.models.WidgetModel({
                     type: 'number',
                     title: 'Title',
@@ -717,7 +717,7 @@ describe('control widget view', function () {
 
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,
-                el: $el.get(0),
+                el: $el,
                 model: new itemTasks.models.WidgetModel({
                     type: 'number',
                     title: 'Title',
@@ -748,7 +748,7 @@ describe('control widget view', function () {
 
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,
-                el: $el.get(0),
+                el: $el,
                 model: new itemTasks.models.WidgetModel({
                     type: 'number',
                     title: 'Title',
