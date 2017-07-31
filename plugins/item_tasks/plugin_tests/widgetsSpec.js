@@ -344,6 +344,7 @@ describe('widget collection', function () {
             {type: 'string-enumeration', id: 'string-enumeration', values: ['a'], value: 'a'},
             {type: 'number-enumeration', id: 'number-enumeration', values: [1], value: '1'},
             {type: 'file', id: 'file', value: new Backbone.Model({id: 'a'})},
+            {type: 'item', id: 'item', value: new Backbone.Model({id: 'aa'})},
             {type: 'new-file', id: 'new-file', value: new Backbone.Model({name: 'a', folderId: 'b'})},
             {type: 'image', id: 'image', value: new Backbone.Model({id: 'c'})}
         ]);
@@ -358,7 +359,8 @@ describe('widget collection', function () {
             'number-vector': '[1,2,3]',
             'string-enumeration': '"a"',
             'number-enumeration': '1',
-            'file_girderItemId': 'a',
+            'file_girderFileId': 'a',
+            'item_girderItemId': 'aa',
             'new-file_girderFolderId': 'b',
             'new-file_name': 'a',
             'image_girderFileId': 'c'
