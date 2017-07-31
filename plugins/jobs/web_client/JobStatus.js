@@ -26,6 +26,12 @@ var JobStatus = {
         return this._map[status].color;
     },
 
+    textColor: function (status) {
+        return this._map[status].textColor;
+    },
+
+    isCancelable: _.constant(false),
+
     finished: function (status) {
         return this._map[status].finished;
     },
@@ -47,12 +53,20 @@ var JobStatus = {
     registerStatus: function (status) {
         _.each(status, function (info, name) {
             this[name] = info.value;
-            this._map[info.value] = {
+
+            let statusInfo = {
                 text: info.text,
                 icon: info.icon,
                 color: info.color,
+                textColor: 'white',
                 finished: _.has(info, 'finished') ? info.finished : false
             };
+
+            if (_.has(info, 'textColor')) {
+                statusInfo.textColor = info.textColor;
+            }
+
+            this._map[info.value] = statusInfo;
         }, this);
     },
 
@@ -67,6 +81,7 @@ JobStatus.registerStatus({
         text: 'Inactive',
         icon: 'icon-pause',
         color: '#ccc',
+        textColor: '#555',
         finished: false
     },
     QUEUED: {

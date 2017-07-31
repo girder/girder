@@ -25,16 +25,17 @@ from tests import base
 JobStatus = None
 utils = None
 worker = None
+CustomJobStatus = None
 
 
 def setUpModule():
     base.enabledPlugins.append('worker')
     base.startServer()
 
-    global JobStatus, utils, worker
+    global JobStatus, utils, worker, CustomJobStatus
     from girder.plugins.jobs.constants import JobStatus
     from girder.plugins import worker
-    from girder.plugins.worker import utils
+    from girder.plugins.worker import utils, CustomJobStatus
 
 
 def tearDownModule():
@@ -173,3 +174,36 @@ class WorkerTestCase(base.TestCase):
                 'some_other.task', job['args'], job['kwargs']))
             self.assertIn('queue', sendTaskCalls[0][2])
             self.assertEqual(sendTaskCalls[0][2]['queue'], 'my_other_q')
+
+    def testWorkerCancel(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(
+            title='title', type='foo', handler='worker_handler',
+            user=self.admin, public=False, args=(), kwargs={})
+
+        job['kwargs'] = {
+            'jobInfo': utils.jobInfoSpec(job),
+            'inputs': [
+                utils.girderInputSpec(self.adminFolder, resourceType='folder')
+            ],
+            'outputs': [
+                utils.girderOutputSpec(self.adminFolder, token=self.adminToken)
+            ]
+        }
+        job = jobModel.save(job)
+        self.assertEqual(job['status'], JobStatus.INACTIVE)
+
+        # Schedule the job, make sure it is sent to celery
+        with mock.patch('celery.Celery') as celeryMock, \
+                mock.patch('girder.plugins.worker.AsyncResult') as asyncResult:
+            instance = celeryMock.return_value
+            instance.send_task.return_value = FakeAsyncResult()
+
+            jobModel.scheduleJob(job)
+            jobModel.cancelJob(job)
+
+            asyncResult.assert_called_with('fake_id', app=mock.ANY)
+            # Check we called revoke
+            asyncResult.return_value.revoke.assert_called_once()
+            job = jobModel.load(job['_id'], force=True)
+            self.assertEqual(job['status'], CustomJobStatus.CANCELING)

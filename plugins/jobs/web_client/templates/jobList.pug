@@ -2,6 +2,17 @@ table.g-jobs-list-table
   if showHeader
     thead
       tr
+        if columns & columnEnum.COLUMN_ACTION_CHECKBOX
+          th
+            .dropdown.check-menu-dropdown
+              button.btn.btn-sm.btn-default.dropdown-toggle.g-job-check-menu-button(data-toggle="dropdown", disabled=!anyJobChecked)
+                input.g-job-checkbox-all(type="checkbox", checked=allJobChecked)
+                i.icon-down-dir
+              ul.dropdown-menu
+                li
+                  a.g-jobs-list-cancel
+                    i.icon-cancel
+                    | Cancel
         if columns & columnEnum.COLUMN_STATUS_ICON
           th
         if columns & columnEnum.COLUMN_TITLE
@@ -15,9 +26,12 @@ table.g-jobs-list-table
 
   tbody
     each job in jobs
-      tr(g-job-id=job.id)
+      tr(g-job-id=job.id, class=jobHighlightStates[job.id]?"g-highlight":"")
+        if columns & columnEnum.COLUMN_ACTION_CHECKBOX
+          td
+            input.g-job-checkbox(type="checkbox", checked=jobCheckedStates[job.id])
         if columns & columnEnum.COLUMN_STATUS_ICON
-          td.g-status-icon-container(status=job.get('status'))
+          td(style='color: ' + JobStatus.color(job.get('status')))
             i(class=JobStatus.icon(job.get('status')))
         if columns & columnEnum.COLUMN_TITLE
           if triggerJobClick

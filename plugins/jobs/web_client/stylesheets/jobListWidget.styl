@@ -1,3 +1,17 @@
+@import "~nib/index.styl"
+
+.check-menu-dropdown
+  position relative
+  width 20px
+  left -2px
+
+  .g-job-check-menu-button
+    padding 2px 1px 0 2px
+
+    i
+      position relative
+      top -3px
+
 .g-jobs-list-table
   width 100%
 
@@ -14,18 +28,6 @@
 
     &.g-highlight
       background-color #f1db74
-
-  td.g-status-icon-container
-    &[status="0"]
-      color #777
-    &[status="1"]
-      color #d28a0a
-    &[status="3"]
-      color #4c4
-    &[status="4"]
-      color #c44
-    &[status="5"]
-      color #777
 
 .g-job-list-header
   padding-bottom 10px

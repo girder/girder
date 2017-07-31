@@ -53,12 +53,27 @@ describe('Unit test the job detail widget.', function () {
             expect($('.g-job-info-value[property="title"]').text()).toBe(jobInfo.title);
             expect($('.g-job-info-value[property="when"]').text()).toContain('January 12, 2015');
             expect($('.g-job-status-badge').text()).toContain('Inactive');
+            expect($('button.g-job-cancel').length).toBe(0);
 
             expect($('.g-timeline-segment').length).toBe(3);
             expect($('.g-timeline-point').length).toBe(4);
             expect($('.g-timeline-start-label').text()).toBe('0 s');
             expect($('.g-timeline-end-label').text()).toBe('12 s');
-            expect($('.g-timeline-point')[3].className).toContain('g-job-color-success');
+
+            function toHex(c) {
+                var hex = parseInt(c, 10).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }
+
+            function rgbToHex(rgb) {
+                rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                return '#' + toHex(rgb[1]) + toHex(rgb[2]) + toHex(rgb[3]);
+            }
+
+            var backgroundColor = $('.g-timeline-point')[3].style.getPropertyValue('background-color');
+            backgroundColor = rgbToHex(backgroundColor);
+            var successColor = girder.plugins.jobs.JobStatus.color(girder.plugins.jobs.JobStatus.SUCCESS);
+            expect(backgroundColor).toBe(successColor);
 
             // Make sure view change happens when notification is sent for this job
             girder.utilities.eventStream.trigger('g:event.job_status', {
@@ -373,6 +388,63 @@ describe('Unit test the job list widget.', function () {
 
         runs(function () {
             expect(widget.collection.resourceName).toEqual('job/all');
+        });
+    });
+
+    it('job list cancellation', function () {
+        var jobs, widget;
+
+        runs(function () {
+            widget = new girder.plugins.jobs.views.JobListWidget({
+                el: $('#g-app-body-container'),
+                parentView: app,
+                filter: {},
+                triggerJobClick: true,
+                showGraphs: true,
+                showFilters: true,
+                showPageSizeSelector: true
+            }).render();
+        });
+
+        girderTest.waitForLoad();
+
+        runs(function () {
+            jobs = _.map([1, 2, 3], function (i) {
+                return new girder.plugins.jobs.models.JobModel({
+                    _id: 'foo' + i,
+                    title: 'My batch job ' + i,
+                    status: i,
+                    updated: '2015-01-12T12:00:0' + i,
+                    created: '2015-01-12T12:00:0' + i,
+                    when: '2015-01-12T12:00:0' + i
+                });
+            });
+
+            widget.collection.add(jobs);
+        });
+
+        waitsFor(function () {
+            return $('.g-jobs-list-table>tbody>tr').length === 3;
+        }, 'job list to auto-reload when collection is updated');
+
+        runs(function () {
+            // button is disabled when no job is checked
+            expect(widget.$('.g-job-check-menu-button').is(':disabled')).toBe(true);
+
+            widget.$('input:checkbox:not(:checked).g-job-checkbox').click();
+            widget.$('input:checkbox:not(:checked).g-job-checkbox').click();
+            widget.$('input:checkbox:not(:checked).g-job-checkbox').click();
+
+            expect(widget.$('.g-job-check-menu-button').is(':disabled')).toBe(false);
+            expect(widget.$('.g-job-checkbox-all').is(':checked')).toBe(true);
+            widget.$('.g-job-checkbox-all').click();
+
+            expect(widget.$('input:checkbox:not(:checked).g-job-checkbox').length).toBe(3);
+
+            widget.$('.g-job-checkbox-all').click();
+            expect(widget.$('input:checkbox:not(:checked).g-job-checkbox').length).toBe(0);
+
+            widget.$('.g-jobs-list-cancel').click();
         });
     });
 
