@@ -1,15 +1,15 @@
 import View from 'girder/views/View';
-
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/utilities/jquery/girderModal';
 
 import PaginateTasksWidget from './PaginateTasksWidget';
+
 import ItemTaskCollection from '../collections/ItemTaskCollection';
-
-import SelectTaskViewDialogTemplate from '../templates/selectTaskViewDialog.pug';
-import selectTaskViewDescriptionTemplate from '../templates/selectTaskViewTargetDescription.pug';
-
-import '../stylesheets/selectTaskView.styl';
+import SelectSingleFileTaskWidgetTemplate from
+'../templates/selectSingleFileTaskWidget.pug';
+import SelectSingleFileTaskWidgetSelectedTemplate
+from '../templates/selectSingleFileTaskWidgetSelected.pug';
+import '../stylesheets/selectTaskWidget.styl';
 
 /**
  * A dialog for creating tasks from a specific item.
@@ -44,7 +44,7 @@ var SelectSingleFileTaskWidget = View.extend({
 
     render: function () {
         this.$el
-            .html(SelectTaskViewDialogTemplate({
+            .html(SelectSingleFileTaskWidgetTemplate({
                 item: this.item
             }))
             .girderModal(this);
@@ -59,7 +59,7 @@ var SelectSingleFileTaskWidget = View.extend({
         this.task = params.task;
         this.$('.g-submit-select-task').girderEnable(true);
 
-        this.$('.g-target-result-container').html(selectTaskViewDescriptionTemplate({
+        this.$('.g-target-result-container').html(SelectSingleFileTaskWidgetSelectedTemplate({
             task: this.task
         }));
     }
