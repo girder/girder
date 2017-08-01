@@ -353,7 +353,7 @@ describe('Run task on item from item view', function () {
         runs(function () {
             $('.g-list-group-item.g-execute-task-link:contains("me/my_image:latest 1")').click();
 
-            expect($('.selected-task-name').text()).toBe('me/my_image:latest 1');
+            expect($('.g-selected-task-name').text()).toBe('me/my_image:latest 1');
             $('.g-submit-select-task').click();
         });
 

@@ -5,10 +5,8 @@ import 'girder/utilities/jquery/girderModal';
 import PaginateTasksWidget from './PaginateTasksWidget';
 
 import ItemTaskCollection from '../collections/ItemTaskCollection';
-import SelectSingleFileTaskWidgetTemplate from
-'../templates/selectSingleFileTaskWidget.pug';
-import SelectSingleFileTaskWidgetSelectedTemplate
-from '../templates/selectSingleFileTaskWidgetSelected.pug';
+import SelectSingleFileTaskWidgetTemplate from '../templates/selectSingleFileTaskWidget.pug';
+import SelectSingleFileTaskWidgetSelectedTemplate from '../templates/selectSingleFileTaskWidgetSelected.pug';
 import '../stylesheets/selectTaskWidget.styl';
 
 /**
