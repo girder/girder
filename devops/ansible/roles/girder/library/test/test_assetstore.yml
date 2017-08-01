@@ -191,8 +191,20 @@
     ############
     # S3 Assetstore tests
     #
-
-    # Untested!
+    # Storing credentials in ~/.aws/credentials using 'aws config' should
+    # allow credentials to be inferred.
+    # - name: Create S3 assetstore
+    #   girder:
+    #     port: 8080
+    #     username: "admin"
+    #     password: "letmein"
+    #     assetstore:
+    #       name: "Temp S3 Assetstore"
+    #       type: "s3"
+    #       bucket: "bucket-name"
+    #       inferCredentials: true
+    #     state: present
+    #   register: ret
 
     ############
     # HDFS Assetstore tests
