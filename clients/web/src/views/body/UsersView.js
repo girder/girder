@@ -4,6 +4,7 @@ import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import RegisterView from 'girder/views/layout/RegisterView';
 import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import SortCollectionWidget from 'girder/views/widgets/SortCollectionWidget';
 import UserCollection from 'girder/collections/UserCollection';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
@@ -42,6 +43,16 @@ var UsersView = View.extend({
             parentView: this
         });
 
+        this.sortCollectionWidget = new SortCollectionWidget({
+            collection: this.collection,
+            parentView: this,
+            fields: {
+                lastName: 'Last Name',
+                created: 'Creation Date',
+                size: 'Used Space'
+            }
+        });
+
         this.searchWidget = new SearchFieldWidget({
             placeholder: 'Search users...',
             types: ['user'],
@@ -63,6 +74,7 @@ var UsersView = View.extend({
         }));
 
         this.paginateWidget.setElement(this.$('.g-user-pagination')).render();
+        this.sortCollectionWidget.setElement(this.$('.g-user-sort')).render();
         this.searchWidget.setElement(this.$('.g-users-search-container')).render();
 
         if (this.register) {
