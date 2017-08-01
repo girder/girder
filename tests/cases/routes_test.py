@@ -98,9 +98,8 @@ class RoutesTestCase(base.TestCase):
         self.assertEqual(registeredHandler(foo=42), {'foo': 42})
 
         # Now remove the route
-        dummy.removeRoute('DUMMY', (':id', 'dummy'), dummy.handler)
-        self.assertRaises(RestException, dummy.handleRoute, 'DUMMY',
-                          ('guid', 'dummy'), {})
+        dummy.removeRoute('DUMMY', (':id', 'dummy'))
+        self.assertRaises(RestException, dummy.handleRoute, 'DUMMY', ('guid', 'dummy'), {})
 
     def testCORS(self):
         testServer.root.api.v1.dummy = DummyResource()

@@ -104,8 +104,7 @@ class ResourceExt(Resource):
                               'provenance')
                 if hasattr(self.loadInfo['apiRoot'], oldresource):
                     getattr(self.loadInfo['apiRoot'], oldresource).removeRoute(
-                        'GET', (':id', 'provenance'),
-                        self.getGetHandler(oldresource))
+                        'GET', (':id', 'provenance'))
                 del self.boundResources[oldresource]
 
     def getGetHandler(self, resource):

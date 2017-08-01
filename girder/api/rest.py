@@ -776,21 +776,25 @@ class Resource(ModelImporter):
         :type route: tuple[str]
         :param handler: The method called for the route; this is necessary to
                         remove the documentation.
-        :type handler: function
+        .. deprecated :: 2.3.0
+        :type handler: Function
         :param resource: the name of the resource at the root of this route.
         """
         self._ensureInit()
+
         nLengthRoutes = self._routes[method.lower()][len(route)]
-        for i in range(len(nLengthRoutes)):
-            if nLengthRoutes[i][0] == route:
+        for i, (registeredRoute, registeredHandler) in enumerate(nLengthRoutes):
+            if registeredRoute == route:
+                handler = registeredHandler
                 del nLengthRoutes[i]
                 break
+
         # Remove the api doc
-        if resource is None and hasattr(self, 'resourceName'):
-            resource = self.resourceName
-        elif resource is None:
-            resource = handler.__module__.rsplit('.', 1)[-1]
-        if handler and getattr(handler, 'description', None) is not None:
+        if resource is None:
+            resource = self.resourceName \
+                if hasattr(self, 'resourceName') \
+                else handler.__module__.rsplit('.', 1)[-1]
+        if getattr(handler, 'description', None) is not None:
             docs.removeRouteDocs(
                 resource=resource, route=route, method=method,
                 info=handler.description.asDict(), handler=handler)
