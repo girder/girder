@@ -43,17 +43,13 @@ function _setMinimumChunkSize(minSize) {
     });
 }
 
-/**
- * Intercept window.location.assign calls so we can test the behavior of,
- * e.g. download directives that occur from js.
- */
-(function () {
-    window.location.assign = function (url) {
-        girderTest._redirect = url;
-    };
-}());
-
 describe('Create a data hierarchy', function () {
+    beforeEach(function () {
+        // Intercept window.location.assign calls so we can test the behavior of e.g. download
+        // directives that occur from js.
+        spyOn(window.location, 'assign');
+    });
+
     it('register a user',
         girderTest.createUser('johndoe',
                               'john.doe@email.com',
@@ -181,17 +177,17 @@ describe('Create a data hierarchy', function () {
         }, 'the item page to display the file list');
 
         runs(function () {
-            girderTest._redirect = null;
+            window.location.assign.reset();
             window.location.assign($('a.g-file-list-link').attr('href'));
         });
 
         waitsFor(function () {
-            return girderTest._redirect !== null;
+            return window.location.assign.wasCalled;
         }, 'redirect to the file download URL');
 
         runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download$/.test(
-                girderTest._redirect)).toBe(true);
+            expect(window.location.assign)
+                .toHaveBeenCalledWith(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download$/);
         });
     });
 
@@ -321,15 +317,15 @@ describe('Create a data hierarchy', function () {
             return $('.g-download-folder:visible').length === 1;
         }, 'the folder down action to appear');
         runs(function () {
-            girderTest._redirect = null;
+            window.location.assign.reset();
             window.location.assign($('a.g-download-folder').attr('href'));
         });
         waitsFor(function () {
-            return girderTest._redirect !== null;
+            return window.location.assign.wasCalled;
         }, 'redirect to the resource download URL');
         runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download$/.test(
-                girderTest._redirect)).toBe(true);
+            expect(window.location.assign)
+                .toHaveBeenCalledWith(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download$/);
         });
     });
 
