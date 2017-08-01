@@ -178,9 +178,9 @@ page.onLoadFinished = function (status) {
                 girderTest.promise.done(function () {
                     // Allow Jasmine to compare RegExp using toEqual, toHaveBeenCalledWith, etc.
                     jasmine.getEnv().addEqualityTester(function (a, b) {
-                        if (a instanceof RegExp) {
+                        if (a instanceof RegExp && jasmine.isString_(b)) {
                             return a.test(b);
-                        } else if (b instanceof RegExp) {
+                        } else if (b instanceof RegExp && jasmine.isString_(a)) {
                             return b.test(a);
                         }
                         return jasmine.undefined;
