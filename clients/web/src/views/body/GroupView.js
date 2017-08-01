@@ -167,7 +167,7 @@ var GroupView = View.extend({
             this.invitees.on('g:changed', () => {
                 this._renderInvitesWidget();
                 this.updatePendingStatus();
-            }).fetch();
+            }, this).fetch();
         }
 
         this._updateRolesLists();

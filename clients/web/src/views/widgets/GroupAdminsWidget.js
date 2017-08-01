@@ -30,7 +30,7 @@ var GroupAdminsWidget = View.extend({
                     var user = new UserModel({_id: userid});
                     this.model.off('g:promoted').on('g:promoted', () => {
                         this.trigger('g:moderatorAdded');
-                    }).promoteUser(user, AccessType.WRITE);
+                    }, this).promoteUser(user, AccessType.WRITE);
                 }
             });
         },

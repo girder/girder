@@ -102,7 +102,7 @@ var ItemView = View.extend({
                         type: 'danger',
                         timeout: 4000
                     });
-                }).destroy();
+                }, this).destroy();
             }
         });
     },
