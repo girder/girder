@@ -667,7 +667,7 @@ Each type needs to be installed differently due to how node manages external pac
           "name": "MY_PLUGIN",
           "grunt": {
               "dependencies": {
-                  "grunt-shell": ">=0.2.1"
+                  "grunt-contrib-concat": ">=1.0.1"
               }
           }
       }
