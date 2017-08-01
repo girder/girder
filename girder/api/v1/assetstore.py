@@ -217,9 +217,7 @@ class Assetstore(Resource):
                 assetstore['shard'] = shard
         elif assetstore['type'] == AssetstoreType.S3:
             self.requireParams({
-                'bucket': bucket,
-                'accessKeyId': accessKeyId,
-                'secret': secret
+                'bucket': bucket
             })
             assetstore['bucket'] = bucket
             assetstore['prefix'] = prefix

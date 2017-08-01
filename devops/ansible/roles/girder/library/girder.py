@@ -33,6 +33,10 @@ try:
 except ImportError:
     HAS_GIRDER_CLIENT = False
 
+try:
+    from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
+except ImportError:
+    DEFAULT_REGION = 'us-east-1'
 
 __version__ = "0.3.0"
 
@@ -233,18 +237,18 @@ options:
                            - The S3 bucket to store data in
 
                    prefix:
-                       required: true
+                       required: false
                        description:
                            - Optional path prefix within the bucket under which
                              files will be stored
 
                    accessKeyId:
-                       required: true
+                       required: false
                        description:
                            - the AWS access key ID to use for authentication
 
                    secret:
-                       required: true
+                       required: false
                        description:
                            - the AWS secret key to use for authentication
 
@@ -256,6 +260,14 @@ options:
                            - This can be used to specify a protocol and port
                              -  use the form [http[s]://](host domain)[:(port)]
                            - Do not include the bucket name here
+
+                   region:
+                       required: false
+                       default: us-east
+
+                   inferCredentials:
+                       required: false
+                       default: false
 
               options (hdfs) (EXPERIMENTAL):
                    host:
@@ -1666,10 +1678,10 @@ class GirderClientModule(GirderClient):
                    replicaset='', bucket=None, prefix='', accessKeyId=None,
                    secret=None, service='s3.amazonaws.com', host=None,
                    port=None, path=None, user=None, webHdfsPort=None,
-                   dbtype=None, dburi=None,
-                   readOnly=False, current=False):
+                   dbtype=None, dburi=None, readOnly=False, current=False,
+                   region=DEFAULT_REGION, inferCredentials=False):
 
-            # Fail if somehow we have an asset type not in assetstore_types
+        # Fail if somehow we have an asset type not in assetstore_types
         if type not in self.assetstore_types.keys():
             self.fail("assetstore type %s is not implemented!" % type)
 
@@ -1684,11 +1696,7 @@ class GirderClientModule(GirderClient):
                        'replicaset': replicaset},
             "s3": {'name': name,
                    'type': self.assetstore_types[type],
-                   'bucket': bucket,
-                   'prefix': prefix,
-                   'accessKeyId': accessKeyId,
-                   'secret': secret,
-                   'service': service},
+                   'bucket': bucket},
             'hdfs': {'name': name,
                      'type': self.assetstore_types[type],
                      'host': host,
@@ -1712,6 +1720,12 @@ class GirderClientModule(GirderClient):
         # Set optional arguments in the hash
         argument_hash[type]['readOnly'] = readOnly
         argument_hash[type]['current'] = current
+        argument_hash[type]['prefix'] = prefix
+        argument_hash[type]['accessKeyId'] = accessKeyId
+        argument_hash[type]['secret'] = secret
+        argument_hash[type]['service'] = service
+        argument_hash[type]['region'] = region
+        argument_hash[type]['inferCredentials'] = inferCredentials
 
         ret = []
         # Get the current assetstores
@@ -1739,7 +1753,8 @@ class GirderClientModule(GirderClient):
                 updateable = ["root", "mongohost", "replicaset", "bucket",
                               "prefix", "db", "accessKeyId", "secret",
                               "service", "host", "port", "path", "user",
-                              "webHdfsPort", "current", "dbtype", "dburi"]
+                              "webHdfsPort", "current", "dbtype", "dburi",
+                              "region", "inferCredentials"]
 
                 # tuples of (key,  value) for fields that can be updated
                 # in the assetstore
