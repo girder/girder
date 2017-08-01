@@ -795,6 +795,22 @@ class Resource(ModelImporter):
                 resource=resource, route=route, method=method,
                 info=handler.description.asDict(), handler=handler)
 
+    def getRouteHandler(self, method, route):
+        """
+        Get the handler method for a given method and route.
+
+        :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
+        :type method: str
+        :param route: The route, as a list of path params relative to the
+                      resource root, exactly as it was passed to the ``route`` method.
+        :type route: tuple[str]
+        :returns: The handler method for the route.
+        :rtype: Function
+        """
+        for registeredRoute, registeredHandler in self._routes[method.lower()][len(route)]:
+            if registeredRoute == route:
+                return registeredHandler
+
     def _shouldInsertRoute(self, a, b):
         """
         Return bool representing whether route a should go before b. Checks by

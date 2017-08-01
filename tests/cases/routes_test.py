@@ -90,6 +90,13 @@ class RoutesTestCase(base.TestCase):
         dummy.route('DUMMY', (':id', 'dummy'), dummy.handler)
         r = dummy.handleRoute('DUMMY', ('guid', 'dummy'), {})
         self.assertEqual(r, {'id': 'guid', 'params': {}})
+
+        registeredHandler = dummy.getRouteHandler('DUMMY', (':id', 'dummy'))
+        # The handler method cannot be compared directly with `is`, but its name and behavior can be
+        # examined
+        self.assertEqual(registeredHandler.__name__, dummy.handler.__name__)
+        self.assertEqual(registeredHandler(foo=42), {'foo': 42})
+
         # Now remove the route
         dummy.removeRoute('DUMMY', (':id', 'dummy'), dummy.handler)
         self.assertRaises(RestException, dummy.handleRoute, 'DUMMY',
