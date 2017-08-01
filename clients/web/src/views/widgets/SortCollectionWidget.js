@@ -12,8 +12,8 @@ import 'bootstrap/js/dropdown';
 var SortCollectionWidget = View.extend({
     events: {
         'click a.g-collection-sort-link': function (event) {
-            var cid = $(event.currentTarget).attr('g-sort');
-            this.collection.sortField = cid;
+            var sortField = $(event.currentTarget).attr('g-sort');
+            this.collection.sortField = sortField;
             this.collection.fetch({}, true);
         },
         'click a.g-sort-order-button': function (event) {
