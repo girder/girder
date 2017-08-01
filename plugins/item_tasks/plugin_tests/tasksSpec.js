@@ -296,9 +296,7 @@ describe('Run task on item from item view', function () {
     it('navigate to folders', function () {
         runs(function () {
             // Select the second collection, "task test"
-            $('.g-collection-link').filter(function () {
-                return $(this).text() === 'task test';
-            }).click();
+            $('.g-collection-link:contains("task test")').click();
         });
 
         waitsFor(function () {
@@ -324,20 +322,18 @@ describe('Run task on item from item view', function () {
         girderTest.waitForDialog();
 
         runs(function () {
-            $('.modal-dialog #g-name').val('item placeholder');
+            $('.modal-dialog #g-name').val('Test input item');
             $('.modal-dialog .g-save-item').click();
         });
 
         waitsFor(function () {
-            return $('.g-item-list-link:contains("item placeholder")').length > 0;
+            return $('.g-item-list-link:contains("Test input item")').length > 0;
         }, 'item to appear in the list');
     });
 
     it('select item', function () {
         runs(function () {
-            $('.g-item-list-link').filter(function () {
-                return $(this).text() === 'item placeholder';
-            }).click();
+            $('.g-item-list-link:contains("Test input item")').click();
         });
 
         girderTest.waitForLoad();
@@ -355,9 +351,7 @@ describe('Run task on item from item view', function () {
         }, 'tasks to load in widget');
 
         runs(function () {
-            $('.g-list-group-item.g-execute-task-link').filter(function () {
-                return $('h4', this).text() === 'me/my_image:latest 1';
-            }).click();
+            $('.g-list-group-item.g-execute-task-link:contains("me/my_image:latest 1")').click();
 
             expect($('.selected-task-name').text()).toBe('me/my_image:latest 1');
             $('.g-submit-select-task').click();
@@ -366,7 +360,10 @@ describe('Run task on item from item view', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            expect($('#testData').attr('value')).toBe('item placeholder');
+            // Expect to be on Run task page.
+            expect($('.g-body-title').text()).toBe('Run task me/my_image:latest 1');
+            // Expect file input field to be preselected to 'Test input item'.
+            expect($('#testData').attr('value')).toBe('Test input item');
         });
     });
 });
