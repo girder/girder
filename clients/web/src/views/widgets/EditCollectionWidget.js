@@ -47,31 +47,30 @@ var EditCollectionWidget = View.extend({
     },
 
     render: function () {
-        var view = this;
         var modal = this.$el.html(EditCollectionWidgetTemplate({
-            collection: view.model
-        })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-name').focus();
-        }).on('hidden.bs.modal', function () {
-            if (view.create) {
+            collection: this.model
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('#g-name').focus();
+        }).on('hidden.bs.modal', () => {
+            if (this.create) {
                 handleClose('create');
             } else {
                 handleClose('edit');
             }
-        }).on('ready.girder.modal', function () {
-            if (view.model) {
-                view.$('#g-name').val(view.model.get('name'));
-                view.$('#g-description').val(view.model.get('description'));
-                view.create = false;
+        }).on('ready.girder.modal', () => {
+            if (this.model) {
+                this.$('#g-name').val(this.model.get('name'));
+                this.$('#g-description').val(this.model.get('description'));
+                this.create = false;
             } else {
-                view.create = true;
+                this.create = true;
             }
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         this.descriptionEditor.setElement(this.$('.g-description-editor-container')).render();
         this.$('#g-name').focus();
 
-        if (view.model) {
+        if (this.model) {
             handleOpen('edit');
         } else {
             handleOpen('create');

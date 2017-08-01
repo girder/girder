@@ -87,7 +87,6 @@ var GroupMembersWidget = View.extend({
         },
 
         'click a.g-group-member-remove': function (e) {
-            var view = this;
             var user = this.membersColl.get(
                 $(e.currentTarget).parents('li').attr('cid')
             );
@@ -96,8 +95,8 @@ var GroupMembersWidget = View.extend({
                 text: 'Are you sure you want to remove <b> ' + _.escape(user.name()) +
                     '</b> from this group?',
                 escapedHtml: true,
-                confirmCallback: function () {
-                    view.trigger('g:removeMember', user);
+                confirmCallback: () => {
+                    this.trigger('g:removeMember', user);
                 }
             });
         },

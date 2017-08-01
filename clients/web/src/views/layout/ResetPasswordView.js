@@ -50,11 +50,10 @@ var ResetPasswordView = View.extend({
     },
 
     render: function () {
-        var view = this;
         this.$el.html(ResetPasswordDialogTemplate(
-        )).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-email').focus();
-        }).on('hidden.bs.modal', function () {
+        )).girderModal(this).on('shown.bs.modal', () => {
+            this.$('#g-email').focus();
+        }).on('hidden.bs.modal', () => {
             handleClose('resetpassword', {replace: true});
         });
         this.$('#g-email').focus();

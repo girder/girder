@@ -46,11 +46,10 @@ prototype._xhrProgress = function (event) {
 
 prototype.execute = function () {
     var s3Info = this.params.upload.s3;
-    var handler = this;
 
     var xhr = new XMLHttpRequest();
     xhr.open(s3Info.request.method, s3Info.request.url);
-    _.each(s3Info.request.headers, function (v, k) {
+    _.each(s3Info.request.headers, (v, k) => {
         xhr.setRequestHeader(k, v);
     });
 
@@ -58,22 +57,22 @@ prototype.execute = function () {
         this._multiChunkUpload(xhr);
     } else {
         this.payloadLength = this.params.file.size;
-        xhr.onload = function () {
+        xhr.onload = () => {
             if (xhr.status === 200) {
-                handler.trigger('g:upload.chunkSent', {
-                    bytes: handler.payloadLength
+                this.trigger('g:upload.chunkSent', {
+                    bytes: this.payloadLength
                 });
 
                 restRequest({
                     path: 'file/completion',
                     type: 'POST',
                     data: {
-                        uploadId: handler.params.upload._id
+                        uploadId: this.params.upload._id
                     },
                     error: null
-                }).done(_.bind(function (resp) {
+                }).done((resp) => {
                     this.trigger('g:upload.complete', resp);
-                }, handler)).fail(_.bind(function (resp) {
+                }).fail((resp) => {
                     var msg;
 
                     if (resp.status === 0) {
@@ -84,21 +83,20 @@ prototype.execute = function () {
                     this.trigger('g:upload.error', {
                         message: msg
                     });
-                }, handler));
+                });
             } else {
-                handler.trigger('g:upload.error', {
-                    message: 'Error occurred uploading to S3 (' +
-                        xhr.status + ').'
+                this.trigger('g:upload.error', {
+                    message: 'Error occurred uploading to S3 (' + xhr.status + ').'
                 });
             }
         };
 
-        xhr.upload.addEventListener('progress', function (event) {
-            handler._xhrProgress(event);
+        xhr.upload.addEventListener('progress', (event) => {
+            this._xhrProgress(event);
         });
 
-        xhr.addEventListener('error', function (event) {
-            handler.trigger('g:upload.error', {
+        xhr.addEventListener('error', (event) => {
+            this.trigger('g:upload.error', {
                 message: 'Error occurred uploading to S3.',
                 event: event
             });
@@ -122,10 +120,10 @@ prototype.resume = function () {
             uploadId: this.params.upload._id
         },
         error: null
-    }).done(_.bind(function (resp) {
+    }).done((resp) => {
         this.params.upload.s3.request = resp;
         this.execute();
-    }, this)).fail(_.bind(function (resp) {
+    }).fail((resp) => {
         var msg;
 
         if (resp.status === 0) {
@@ -136,7 +134,7 @@ prototype.resume = function () {
         this.trigger('g:upload.error', {
             message: msg
         });
-    }, this));
+    });
 };
 
 /**
@@ -144,26 +142,24 @@ prototype.resume = function () {
  * should be uploaded using the S3 multipart protocol.
  */
 prototype._multiChunkUpload = function (xhr) {
-    var handler = this;
     this.eTagList = {};
     this.startByte = 0;
     this.chunkN = 1;
 
-    xhr.onload = function () {
+    xhr.onload = () => {
         if (xhr.status === 200) {
-            handler.s3UploadId =
-                xhr.responseText.match(/<UploadId>(.*)<\/UploadId>/).pop();
-            handler._sendNextChunk();
+            this.s3UploadId = xhr.responseText.match(/<UploadId>(.*)<\/UploadId>/).pop();
+            this._sendNextChunk();
         } else {
-            handler.trigger('g:upload.error', {
+            this.trigger('g:upload.error', {
                 message: 'Error while initializing multichunk S3 upload.',
                 event: event
             });
         }
     };
 
-    xhr.addEventListener('error', function (event) {
-        handler.trigger('g:upload.error', {
+    xhr.addEventListener('error', (event) => {
+        this.trigger('g:upload.error', {
             message: 'Error occurred uploading to S3.',
             event: event
         });
@@ -197,51 +193,49 @@ prototype._sendNextChunk = function () {
             uploadId: this.params.upload._id
         },
         error: null
-    }).done(_.bind(function (resp) {
+    }).done((resp) => {
         // Send the chunk to S3
-        var handler = this;
         var xhr = new XMLHttpRequest();
         xhr.open(resp.s3.request.method, resp.s3.request.url);
 
-        xhr.onload = function () {
+        xhr.onload = () => {
             if (xhr.status === 200) {
-                handler.trigger('g:upload.chunkSent', {
-                    bytes: handler.payloadLength
+                this.trigger('g:upload.chunkSent', {
+                    bytes: this.payloadLength
                 });
-                handler.eTagList[handler.chunkN] = xhr.getResponseHeader('ETag');
-                handler.startByte += handler.payloadLength;
-                handler.chunkN += 1;
+                this.eTagList[this.chunkN] = xhr.getResponseHeader('ETag');
+                this.startByte += this.payloadLength;
+                this.chunkN += 1;
 
-                if (handler.startByte < handler.params.file.size) {
-                    handler._sendNextChunk();
+                if (this.startByte < this.params.file.size) {
+                    this._sendNextChunk();
                 } else {
-                    handler._finalizeMultiChunkUpload();
+                    this._finalizeMultiChunkUpload();
                 }
             } else {
-                handler.trigger('g:upload.error', {
-                    message: 'Error occurred uploading to S3 (' +
-                        xhr.status + ').'
+                this.trigger('g:upload.error', {
+                    message: 'Error occurred uploading to S3 (' + xhr.status + ').'
                 });
             }
         };
 
-        xhr.upload.addEventListener('progress', function (event) {
-            handler._xhrProgress(event);
+        xhr.upload.addEventListener('progress', (event) => {
+            this._xhrProgress(event);
         });
 
-        xhr.addEventListener('error', function (event) {
-            handler.trigger('g:upload.error', {
+        xhr.addEventListener('error', (event) => {
+            this.trigger('g:upload.error', {
                 message: 'Error occurred uploading to S3.',
                 event: event
             });
         });
 
         xhr.send(data);
-    }, this)).fail(_.bind(function () {
+    }).fail(() => {
         this.trigger('g:upload.error', {
             message: 'Error getting signed chunk request from Girder.'
         });
-    }, this));
+    });
 };
 
 /**
@@ -256,13 +250,12 @@ prototype._finalizeMultiChunkUpload = function () {
             uploadId: this.params.upload._id
         },
         error: null
-    }).done(_.bind(function (resp) {
+    }).done((resp) => {
         // Create the XML document that will be the request body to S3
-        var handler = this;
         var doc = document.implementation.createDocument(null, null, null);
         var root = doc.createElement('CompleteMultipartUpload');
 
-        _.each(this.eTagList, function (etag, partNumber) {
+        _.each(this.eTagList, (etag, partNumber) => {
             var partEl = doc.createElement('Part');
             var partNumberEl = doc.createElement('PartNumber');
             var etagEl = doc.createElement('ETag');
@@ -279,24 +272,23 @@ prototype._finalizeMultiChunkUpload = function () {
 
         xhr.open(req.method, req.url);
 
-        _.each(req.headers, function (v, k) {
+        _.each(req.headers, (v, k) => {
             xhr.setRequestHeader(k, v);
         });
 
-        xhr.onload = function () {
+        xhr.onload = () => {
             if (xhr.status === 200) {
                 delete resp.s3FinalizeRequest;
-                handler.trigger('g:upload.complete', resp);
+                this.trigger('g:upload.complete', resp);
             } else {
-                handler.trigger('g:upload.error', {
-                    message: 'Error occurred uploading to S3 (' +
-                        xhr.status + ').'
+                this.trigger('g:upload.error', {
+                    message: 'Error occurred uploading to S3 (' + xhr.status + ').'
                 });
             }
         };
 
         xhr.send(new window.XMLSerializer().serializeToString(root));
-    }, this)).fail(_.bind(function (resp) {
+    }).fail((resp) => {
         var msg;
 
         if (resp.status === 0) {
@@ -307,5 +299,5 @@ prototype._finalizeMultiChunkUpload = function () {
         this.trigger('g:upload.error', {
             message: msg
         });
-    }, this));
+    });
 };

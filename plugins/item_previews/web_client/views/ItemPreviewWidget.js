@@ -56,24 +56,22 @@ var ItemPreviewWidget = View.extend({
     render: function () {
         var supportedItems = this.collection.filter(this._isSupportedItem.bind(this));
 
-        var view = this;
-
-        view.$el.html(ItemPreviewWidgetTemplate({
+        this.$el.html(ItemPreviewWidgetTemplate({
             items: supportedItems,
-            wrapPreviews: view.wrapPreviews,
+            wrapPreviews: this.wrapPreviews,
             hasMore: this.collection.hasNextPage(),
             isImageItem: this._isImageItem,
             isJSONItem: this._isJSONItem
         }));
 
         // Render any JSON files.
-        supportedItems.filter(this._isJSONItem).forEach(function (item) {
+        supportedItems.filter(this._isJSONItem).forEach((item) => {
             var id = item.get('_id');
 
             // Don't process JSON files that are too big to preview.
             var size = item.get('size');
             if (size > this._MAX_JSON_SIZE) {
-                return view.$('.json[data-id="' + id + '"]').text('JSON too big to preview.');
+                return this.$('.json[data-id="' + id + '"]').text('JSON too big to preview.');
             }
 
             // Ajax request the JSON files to display them.
@@ -81,9 +79,9 @@ var ItemPreviewWidget = View.extend({
                 path: 'item/' + id + '/download',
                 type: 'GET',
                 error: null // don't do default error behavior (validation may fail)
-            }).done(function (resp) {
-                view.$('.json[data-id="' + id + '"]').text(JSON.stringify(resp, null, '\t'));
-            }).fail(function (err) {
+            }).done((resp) => {
+                this.$('.json[data-id="' + id + '"]').text(JSON.stringify(resp, null, '\t'));
+            }).fail((err) => {
                 console.error('Could not preview item', err);
             });
         });
