@@ -1,5 +1,5 @@
 {
-    "name": "@girder/core",
+    "name": "girder",
     "version": "2.3.0-alpha.3",
     "description": "Extensible data management platform",
     "homepage": "https://girder.readthedocs.org",
