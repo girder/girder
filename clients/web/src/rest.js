@@ -52,6 +52,16 @@ function getStaticRoot() {
 function setStaticRoot(root) {
     // Strip trailing slash
     staticRoot = root.replace(/\/$/, '');
+    // publicPath would normally be set in the Webpack config file, but is not known at compile
+    // time.
+    __webpack_public_path__ = `${getStaticRoot()}/built/`; // eslint-disable-line no-undef, camelcase
+    // Note that in theory, an ES6-style import of a file asset that occurred earlier in the import
+    // resolution sequence than this module could fail to have its publicPath set at all, but the
+    // typical style rules for ordering ES6-style imports ensure that this module will be loaded
+    // very early in the import sequence. However, if App startup code modifies the staticRoot, then
+    // any ES6-style imports will probably have the incorrect path. Ultimately though, most file
+    // asset imports will occur in Pug files via require-style imports, which happen at runtime, so
+    // they will always succeed.
 }
 
 // Initialize the API and static roots (at JS load time)
