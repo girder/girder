@@ -1,6 +1,6 @@
 {
     "name": "girder",
-    "version": "2.3.0",
+    "version": "2.3.0-alpha.1",
     "description": "High-performance data management platform",
     "homepage": "https://girder.readthedocs.org",
     "bugs": {
@@ -84,5 +84,6 @@
         "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts clients/web/test && pug-lint clients/web/src/templates",
         "docs": "grunt docs",
         "esdoc": "esdoc"
-    }
+    },
+    "main": "clients/web/src/index.js"
 }
