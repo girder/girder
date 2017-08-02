@@ -1,7 +1,7 @@
 {
     "name": "girder",
-    "version": "2.3.0-alpha.1",
-    "description": "High-performance data management platform",
+    "version": "2.3.0-alpha.2",
+    "description": "Extensible data management platform",
     "homepage": "https://girder.readthedocs.org",
     "bugs": {
         "url": "https://github.com/girder/girder/issues"
@@ -85,5 +85,11 @@
         "docs": "grunt docs",
         "esdoc": "esdoc"
     },
-    "main": "clients/web/src/index.js"
+    "files": [
+        "clients/web/src/"
+    ],
+    "main": "clients/web/src/index.js",
+    "directories": {
+        "lib": "./clients/web/src"
+    }
 }
