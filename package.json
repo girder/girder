@@ -77,10 +77,9 @@
         "esdoc": "esdoc"
     },
     "files": [
-        "clients/web/src/"
-    ],
-    "main": "clients/web/src/index.js",
-    "directories": {
-        "lib": "./clients/web/src"
-    }
+        "Gruntfile.js",
+        "clients/web/src/",
+        "clients/web/static/",
+        "grunt_tasks/"
+    ]
 }
