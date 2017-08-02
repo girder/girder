@@ -14,7 +14,7 @@ from girder.plugins.worker import utils
 from . import constants
 from .json_tasks import createItemTasksFromJson, runJsonTasksDescriptionForFolder
 from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, runSlicerCliTasksDescriptionForItem
-from .python_tasks import runGirderWorkerTask
+from .celery_tasks import runGirderWorkerTask
 
 
 class ItemTask(Resource):
