@@ -3,7 +3,7 @@ import $ from 'jquery';
 import router from 'girder/router';
 import versionInfo from 'girder/version';
 import View from 'girder/views/View';
-import { cancelRestRequests, getApiRoot, getStaticRoot } from 'girder/rest';
+import { cancelRestRequests, getApiRoot } from 'girder/rest';
 import events from 'girder/events';
 import { getCurrentUser } from 'girder/auth';
 
@@ -45,7 +45,6 @@ var FrontPageView = View.extend({
     render: function () {
         this.$el.html(FrontPageTemplate({
             apiRoot: getApiRoot(),
-            staticRoot: getStaticRoot(),
             currentUser: getCurrentUser(),
             versionInfo: versionInfo
         }));
