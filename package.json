@@ -47,6 +47,7 @@
         "stylus-loader": "^3.0.1",
         "swagger-ui": "~2.2.10",
         "toposort": "^1.0.3",
+        "underscore": "^1.8.3",
         "url-loader": "^0.5.9",
         "webpack": "^2.7.0"
     },
