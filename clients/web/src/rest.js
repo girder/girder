@@ -5,27 +5,64 @@ import Backbone from 'backbone';
 import events from 'girder/events';
 import { getCurrentToken, cookie } from 'girder/auth';
 
-var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin) || '/api/v1';
-var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin) || '/static';
+let apiRoot;
+let staticRoot;
 var uploadHandlers = {};
 var uploadChunkSize = 1024 * 1024 * 64; // 64MB
 
 /**
- * Set the root path to the API.
+ * Get the root path to the API.
  *
- * @param root The full root path for the API.
+ * This may be an absolute path, or a path relative to the application root. It will never include
+ * a trailing slash.
+ *
+ * @returns {string}
  */
-function setApiRoot(root) {
-    apiRoot = root;
+function getApiRoot() {
+    return apiRoot;
 }
 
-/** Set the root path to the static content.
+/**
+ * Set the root path to the API.
  *
- * @param root The full root path for the static content.
+ * @param {string} root The root path for the API.
+ */
+function setApiRoot(root) {
+    // Strip trailing slash
+    apiRoot = root.replace(/\/$/, '');
+}
+
+/**
+ * Get the root path to the static content.
+ *
+ * This may be an absolute path, or a path relative to the application root. It will never include
+ * a trailing slash.
+ *
+ * @returns {string}
+ */
+function getStaticRoot() {
+    return staticRoot;
+}
+
+/**
+ * Set the root path to the static content.
+ *
+ * @param {string} root The root path for the static content.
  */
 function setStaticRoot(root) {
-    staticRoot = root;
+    // Strip trailing slash
+    staticRoot = root.replace(/\/$/, '');
 }
+
+// Initialize the API and static roots (at JS load time)
+// This could be overridden when the App is started, but we need sensible defaults so models, etc.
+// can be easily used without having to start an App or explicitly set these values
+setApiRoot(
+    $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin) || '/api/v1'
+);
+setStaticRoot(
+    $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin) || '/static'
+);
 
 /**
  * Make a request to the REST API. Bind a "done" handler to the return
@@ -206,7 +243,9 @@ function setUploadChunkSize(val) {
 export {
     apiRoot,
     staticRoot,
+    getApiRoot,
     setApiRoot,
+    getStaticRoot,
     setStaticRoot,
     uploadHandlers,
     restRequest,
