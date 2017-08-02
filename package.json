@@ -80,7 +80,6 @@
     },
     "files": [
         "Gruntfile.js",
-        "clients/web/src/",
         "clients/web/static/",
         "grunt_tasks/"
     ]

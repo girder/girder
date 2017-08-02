@@ -484,9 +484,8 @@ recommended process for generating a new release is described here.
 
         python setup.py sdist upload
 
-10. Publish new packages on npm.
+10. Publish the new girder source package on npm.
 
-        npm publish
         cd clients/web/src && npm publish
 
 .. _releasepythonclientpackage:
