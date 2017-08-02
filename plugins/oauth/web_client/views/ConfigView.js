@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
-import { apiRoot, restRequest } from 'girder/rest';
+import { getApiRoot, restRequest } from 'girder/rest';
 import events from 'girder/events';
 
 import ConfigViewTemplate from '../templates/configView.pug';
@@ -118,10 +118,10 @@ var ConfigView = View.extend({
 
     render: function () {
         var origin = window.location.protocol + '//' + window.location.host,
-            _apiRoot = apiRoot;
+            _apiRoot = getApiRoot();
 
-        if (apiRoot.substring(0, 1) !== '/') {
-            _apiRoot = '/' + apiRoot;
+        if (_apiRoot.substring(0, 1) !== '/') {
+            _apiRoot = '/' + _apiRoot;
         }
 
         this.$el.html(ConfigViewTemplate({

@@ -12,7 +12,7 @@ import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
 
-import { restRequest, apiRoot } from 'girder/rest';
+import { restRequest, getApiRoot } from 'girder/rest';
 import View from 'girder/views/View';
 
 import ViewTemplate from '../templates/view.pug';
@@ -160,7 +160,7 @@ var DicomView = View.extend({
             this.xhr.abort();
         }
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', apiRoot + '/file/' + file._id + '/download', true);
+        xhr.open('GET', `${getApiRoot()}/file/${file._id}/download`, true);
         xhr.responseType = 'arraybuffer';
         xhr.onload = _.bind(function (event) {
             try {

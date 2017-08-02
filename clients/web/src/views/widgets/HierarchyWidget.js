@@ -20,7 +20,7 @@ import { AccessType } from 'girder/constants';
 import { confirm, handleClose } from 'girder/dialog';
 import events from 'girder/events';
 import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/misc';
-import { restRequest, apiRoot } from 'girder/rest';
+import { restRequest, getApiRoot } from 'girder/rest';
 
 import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.pug';
 import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.pug';
@@ -766,7 +766,7 @@ var HierarchyWidget = View.extend({
     },
 
     downloadChecked: function () {
-        var url = apiRoot + '/resource/download';
+        var url = getApiRoot() + '/resource/download';
         var resources = this._getCheckedResourceParam();
         var data = {resources: resources};
 

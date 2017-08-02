@@ -1,5 +1,5 @@
 import View from 'girder/views/View';
-import { apiRoot } from 'girder/rest';
+import { getApiRoot } from 'girder/rest';
 
 import LayoutFooterTemplate from 'girder/templates/layout/layoutFooter.pug';
 
@@ -11,7 +11,7 @@ import 'girder/stylesheets/layout/footer.styl';
 var LayoutFooterView = View.extend({
     render: function () {
         this.$el.html(LayoutFooterTemplate({
-            apiRoot: apiRoot
+            apiRoot: getApiRoot()
         }));
         return this;
     }

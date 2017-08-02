@@ -139,7 +139,7 @@ function __restRequest(opts) {
     if (opts.path.substring(0, 1) !== '/') {
         opts.path = '/' + opts.path;
     }
-    opts.url = apiRoot + opts.path;
+    opts.url = getApiRoot() + opts.path;
 
     opts = _.extend(defaults, opts);
 
@@ -241,8 +241,8 @@ function setUploadChunkSize(val) {
 }
 
 export {
-    apiRoot,
-    staticRoot,
+    apiRoot, // deprecated
+    staticRoot, // deprecated
     getApiRoot,
     setApiRoot,
     getStaticRoot,
