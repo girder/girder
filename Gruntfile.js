@@ -61,9 +61,7 @@ module.exports = function (grunt) {
         pluginDir: 'plugins',
         staticDir: 'clients/web/static',
         isSourceBuild: isSourceBuild,
-        default: {
-            setup: {}
-        }
+        default: {}
     });
 
     if (isSourceBuild) {
@@ -96,19 +94,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-zip');
     grunt.loadNpmTasks('grunt-file-creator');
     grunt.loadNpmTasks('grunt-webpack');
-
-    // This task should be run once manually at install time.
-    grunt.registerTask('setup', 'Initial install/setup tasks', function () {
-        // If the local config file doesn't exist, we make it
-        var confDir = grunt.config.get('girderDir') + '/conf';
-        if (!fs.existsSync(confDir + '/girder.local.cfg')) {
-            fs.writeFileSync(
-                confDir + '/girder.local.cfg',
-                fs.readFileSync(confDir + '/girder.dist.cfg')
-            );
-            console.log('Created local config file.');
-        }
-    });
 
     /**
      * Load `default` target by topologically sorting the tasks given by keys the config object.
