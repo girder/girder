@@ -45,11 +45,6 @@ var CandelaWidget = View.extend({
     },
 
     render: function () {
-        let cleanup = function () {
-            this.$('.g-item-candela')
-                .remove();
-        };
-
         let parser = null;
         let name = this.item.get('name').toLowerCase();
         if (name.endsWith('.csv')) {
@@ -57,7 +52,7 @@ var CandelaWidget = View.extend({
         } else if (name.endsWith('.tsv') || name.endsWith('.tab')) {
             parser = datalib.tsv;
         } else {
-            cleanup();
+            this.$('.g-item-candela').remove();
             return;
         }
 
