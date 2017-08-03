@@ -193,12 +193,13 @@ def validateJobStatus(event):
 
 def validTransitions(event):
     """Allow our custom job transitions."""
+    states = None
     if event.info['job']['handler'] == 'worker_handler':
         states = CustomJobStatus.validTransitionsWorker(event.info['status'])
     elif event.info['job']['handler'] == 'celery_handler':
         states = CustomJobStatus.validTransitionsCelery(event.info['status'])
-
-    event.preventDefault().addResponse(states)
+    if states is not None:
+        event.preventDefault().addResponse(states)
 
 
 def load(info):
