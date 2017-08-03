@@ -791,9 +791,7 @@ class Resource(ModelImporter):
 
         # Remove the api doc
         if resource is None:
-            resource = self.resourceName \
-                if hasattr(self, 'resourceName') \
-                else handler.__module__.rsplit('.', 1)[-1]
+            resource = getattr(self, 'resourceName', handler.__module__.rsplit('.', 1)[-1])
         if getattr(handler, 'description', None) is not None:
             docs.removeRouteDocs(
                 resource=resource, route=route, method=method,
