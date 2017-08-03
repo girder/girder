@@ -63,7 +63,7 @@ const CandelaParametersView = View.extend({
         }));
 
         // Build all the widget models from the vis spec
-        this._component.options.forEach((input) => {
+        _.each(this._component.options, (input) => {
             if (input.type === 'number') {
                 this._inputWidgets.add(new WidgetModel({
                     type: 'number',

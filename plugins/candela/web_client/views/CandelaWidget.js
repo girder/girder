@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import _ from 'underscore';
 
 import View from 'girder/views/View';
 import events from 'girder/events';
@@ -82,31 +83,24 @@ var CandelaWidget = View.extend({
 
             // Vega has issues with empty-string fields and fields with dots, so rename those.
             let rename = [];
-            for (let key in data.__types__) {
-                if (data.__types__.hasOwnProperty(key)) {
-                    if (key === '') {
-                        rename.push({from: '', to: 'id'});
-                    } else if (key.indexOf('.') >= 0) {
-                        rename.push({from: key, to: key.replace(/\./g, '_')});
-                    }
+            _.each(data.__types__, (value, key) => {
+                if (key === '') {
+                    rename.push({from: '', to: 'id'});
+                } else if (key.indexOf('.') >= 0) {
+                    rename.push({from: key, to: key.replace(/\./g, '_')});
                 }
-            }
+            });
 
-            rename.forEach((d) => {
+            _.each(rename, (d) => {
                 data.__types__[d.to] = data.__types__[d.from];
                 delete data.__types__[d.from];
-                data.forEach((row) => {
+                _.each(data, (row) => {
                     row[d.to] = row[d.from];
                     delete row[d.from];
                 });
             });
 
-            let columns = [];
-            for (let key in data.__types__) {
-                if (data.__types__.hasOwnProperty(key)) {
-                    columns.push(key);
-                }
-            }
+            let columns = _.keys(data.__types__);
             this.parametersView.setData(data, columns);
             this.updateComponent();
         });
