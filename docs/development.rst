@@ -445,7 +445,7 @@ are stored as releases inside the official
 `github repository <https://github.com/girder/girder/releases>`_. The
 recommended process for generating a new release is described here.
 
-1.  From the target commit, set the desired version number in ``package.json``
+1.  From the target commit, set the desired version number in ``package.json``, ``clients/web/src/package.json``,
     and ``girder/__init__.py``. Create a new commit and note the SHA; this will
     become the release tag.
 
@@ -483,6 +483,10 @@ recommended process for generating a new release is described here.
 9.  Finally, upload the release to PyPI with the following command: ::
 
         python setup.py sdist upload
+
+10. Publish the new girder source package on npm.
+
+        cd clients/web/src && npm publish
 
 .. _releasepythonclientpackage:
 
