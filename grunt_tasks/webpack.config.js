@@ -34,7 +34,8 @@ function fileLoader() {
     return {
         loader: 'file-loader',
         options: {
-            name: 'assets/[name]-[hash:8].[ext]'
+            name: '[name]-[hash:8].[ext]',
+            outputPath: 'assets/'
         }
     };
 }
