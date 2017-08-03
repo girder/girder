@@ -7,33 +7,47 @@
     girder_use_systemd: '{{ (ansible_os_family == "RedHat" and ansible_distribution_major_version == "7") or
                             (ansible_os_family == "Debian" and ansible_distribution_release != "trusty") }}'
 
-- name: Install service
-  template:
-    src: "daemon/upstart.girder.conf.j2"
-    dest: "/etc/init/girder.conf"
+
+# Setup upstart service
+- block:
+    - name: Install service
+      template:
+        src: "daemon/upstart.girder.conf.j2"
+        dest: "/etc/init/girder.conf"
+
+    - name: (Re)start service
+      service:
+        name: girder
+        state: restarted
+      when: girder_start
+
+    - name: Enable/Disable Girder service on boot
+      service:
+        name: girder
+        enabled: "{{ girder_enabled }}"
   become: yes
   become_user: root
   when: girder_use_upstart
 
-- name: Install service
-  template:
-    src: "daemon/girder.service.j2"
-    dest: "/etc/systemd/system/girder.service"
+# Setup systemd service
+- block:
+    - name: Install service
+      template:
+        src: "daemon/girder.service.j2"
+        dest: "/etc/systemd/system/girder.service"
+
+    - name: (Re)start service
+      systemd:
+        name: girder
+        daemon_reload: yes
+        state: restarted
+      when: girder_start
+
+    - name: Enable/Disable Girder service on boot
+      systemd:
+        name: girder
+        daemon_reload: yes
+        enabled: "{{ girder_enabled }}"
   become: yes
   become_user: root
   when: girder_use_systemd
-
-- name: (Re)start service
-  service:
-    name: girder
-    state: restarted
-  become: yes
-  become_user: root
-  when: girder_start
-
-- name: Enable/Disable Girder service on boot
-  service:
-    name: girder
-    enabled: "{{ girder_enabled }}"
-  become: yes
-  become_user: root
