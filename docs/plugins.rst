@@ -651,8 +651,8 @@ comes from the specific file in Girder.
 Candela Visualization
 ---------------------
 The Candela Visualization plugin uses the `Candela library <http://candela.readthedocs.io/>`_ to
-render table files directly in Girder. To use it, simply upload a CSV file as an item, then set the
-Candela visualization type and options.
+render table files directly in Girder. To use it, simply upload a CSV or TSV file as an item,
+then set the Candela visualization type and options.
 
 Vega Visualization
 ------------------
