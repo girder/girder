@@ -29,6 +29,7 @@ Role Variables
 | girder_enabled             | no       | yes          | Whether to enable the installed service (requires `girder_daemonize`).                                                                                              |
 | girder_plugins             | no       | []           | List of paths to external plugins to install.                                                                                                                       |
 | girder_web_extra_args      | no       | none         | Any additional arguments to pass to `girder-install web`. Passing `--all-plugins` can be useful if your environment doesn't have access to Mongo at provision time. |
+| girder_user                | no       | $SSH_USER    | The (already existing) user to run Girder under, this defaults to `ansible_user_id` which is typically the user Ansible is running under.                           |
 
 Generated Facts
 ---------------

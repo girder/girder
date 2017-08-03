@@ -3,8 +3,8 @@ Description=Girder
 After=network.target
 
 [Service]
-User={{ ansible_user_id }}
-Group={{ ansible_user_id }}
+User={{ girder_user | default(ansible_user_id) }}
+Group={{ girder_user | default(ansible_user_id) }}
 WorkingDirectory={{ girder_path }}
 Restart=always
 {% if girder_virtualenv is defined %}
