@@ -808,13 +808,13 @@ class Resource(ModelImporter):
         :type route: tuple[str]
         :returns: The handler method for the route.
         :rtype: Function
-        :raises: `RestException`, when no route can be matched.
+        :raises: `Exception`, when no route can be found.
         """
         for registeredRoute, registeredHandler in self._routes[method.lower()][len(route)]:
             if registeredRoute == route:
                 return registeredHandler
         else:
-            raise RestException('Could not find route "%s %s"' % (method.upper(), '/'.join(route)))
+            raise Exception('Could not find route "%s %s"' % (method.upper(), '/'.join(route)))
 
     def _shouldInsertRoute(self, a, b):
         """
