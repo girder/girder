@@ -42,6 +42,13 @@ def tearDownModule():
     base.stopServer()
 
 
+def local_job(job):
+    from girder.utility.model_importer import ModelImporter
+
+    ModelImporter.model('job', 'jobs').updateJob(job, log='job running', status=JobStatus.RUNNING)
+    ModelImporter.model('job', 'jobs').updateJob(job, log='job ran', status=JobStatus.SUCCESS)
+
+
 class FakeAsyncResult(object):
     def __init__(self):
         self.task_id = 'fake_id'
@@ -207,3 +214,15 @@ class WorkerTestCase(base.TestCase):
             asyncResult.return_value.revoke.assert_called_once()
             job = jobModel.load(job['_id'], force=True)
             self.assertEqual(job['status'], CustomJobStatus.CANCELING)
+
+    def testLocalJob(self):
+        # Make sure local jobs still work
+        job = self.model('job', 'jobs').createLocalJob(
+            title='local', type='local', user=self.users[0],
+            module='plugin_tests.worker_test', function='local_job')
+
+        self.model('job', 'jobs').scheduleJob(job)
+
+        job = self.model('job', 'jobs').load(job['_id'], force=True,
+                                             includeLog=True)
+        self.assertIn('job ran', job['log'])
