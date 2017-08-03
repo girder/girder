@@ -30,7 +30,7 @@ function(add_eslint_test name input)
   endif()
 
   if (NOT ESLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
+    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   set(_args ESLINT_IGNORE_FILE ESLINT_CONFIG_FILE)
@@ -62,7 +62,7 @@ function(add_puglint_test name path)
   endif()
 
   if (NOT PUGLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
+    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   add_test(
@@ -79,7 +79,7 @@ function(add_stylint_test name path)
   endif()
 
   if (NOT STYLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable STYLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
+    message(FATAL_ERROR "CMake variable STYLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   add_test(

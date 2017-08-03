@@ -1,6 +1,7 @@
 {
-    "name": "Vega file visualizer",
-    "description": "Render Vega visualizations in the file info page.",
+    "name": "Vega Visualization",
+    "description": "Render Vega visualizations in the item page.",
+    "url": "http://girder.readthedocs.io/en/latest/plugins.html#vega-visualization",
     "version": "1.0.0",
     "npm": {
         "dependencies": {

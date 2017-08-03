@@ -163,7 +163,7 @@ Download Statistics
 
 This plugin tracks and records file download activity. The recorded information
 (downloads started, downloads completed, and total requests made) is stored on the
-file model: :: 
+file model: ::
 
     file['downloadStatistics']['started']
     file['downloadStatistics']['requested']
@@ -647,3 +647,16 @@ Girder.
 You can also use the API to download the file based on the hash returned by the previous endpoint,
 with an endpoint ``/api/v1/file/hashsum/sha512/<file sha512 hash>/download``, where the sha512 hash
 comes from the specific file in Girder.
+
+Candela Visualization
+---------------------
+The Candela Visualization plugin uses the `Candela library <http://candela.readthedocs.io/>`_ to
+render table files directly in Girder. To use it, simply upload a CSV file as an item, then set the
+Candela visualization type and options.
+
+Vega Visualization
+------------------
+The Vega plugin uses the `Vega library <http://trifacta.github.io/vega>`_ to render Vega-formatted
+JSON objects directly in the Girder application. To use it, simply upload the JSON file as an item,
+and then set a "vega: true" metadata field on the item. The visualization will then be rendered
+directly in the item view.
