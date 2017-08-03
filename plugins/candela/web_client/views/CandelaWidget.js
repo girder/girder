@@ -19,14 +19,7 @@ var CandelaWidget = View.extend({
     initialize: function (settings) {
         this.item = settings.item;
         this.accessLevel = settings.accessLevel;
-        this._components = [];
-        for (let component in candela.components) {
-            if (candela.components.hasOwnProperty(component)) {
-                if (candela.components[component].options) {
-                    this._components.push(component);
-                }
-            }
-        }
+        this._components = _.keys(_.pick(candela.components, (comp) => comp.options));
 
         this.listenTo(this.item, 'change', function () {
             this.render();
@@ -62,14 +55,13 @@ var CandelaWidget = View.extend({
         this.parametersView.setElement($('.g-item-candela-parameters'));
         parser(this.item.downloadUrl(), (error, data) => {
             if (error) {
-                let info = {
+                events.trigger('g:alert', {
                     text: 'An error occurred while attempting to read and ' +
                           'parse the data file. Details have been logged in the console.',
                     type: 'danger',
                     timeout: 5000,
                     icon: 'attention'
-                };
-                events.trigger('g:alert', info);
+                });
                 console.error(error);
                 return;
             }

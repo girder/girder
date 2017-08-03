@@ -24,10 +24,12 @@ const CandelaParametersView = View.extend({
 
     setData: function (data, columns) {
         this._data = data;
-        this._columns = ['(none)'].concat(columns);
-        this._multiColumns = this._columns.slice(1);
-        this._numericColumns = ['(none)'].concat(
-            this._columns.filter((d) => ['number', 'integer', 'date'].indexOf(this._data.__types__[d]) >= 0));
+        this._columns = ['(none)', ...columns];
+        this._multiColumns = columns;
+        this._numericColumns = ['(none)', ...columns.filter((column) => {
+            const columnType = this._data.__types__[column];
+            return _.contains(['number', 'integer', 'date'], columnType);
+        })];
         this._multiNumericColumns = this._numericColumns.slice(1);
         this.render();
     },
