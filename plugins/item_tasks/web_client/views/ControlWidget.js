@@ -183,109 +183,13 @@ var ControlWidget = View.extend({
      * input element.
      */
     _selectFile: function () {
-        var showItems = false,
-            input = false,
-            preview = true,
-            validate = () => {
-                return $.Deferred().resolve().promise();
-            },
-            type = this.model.get('type'),
-            title, help;
-
-        let validationPromise = function (condition, message) {
-            let isValid = $.Deferred();
-            if (!condition) {
-                isValid.reject(message);
-            } else {
-                isValid.resolve();
-            }
-            return isValid.promise();
-        };
-        // Customize the browser widget according the argument type
-        if (type === 'item' || type === 'file' || type === 'image') {
-            showItems = true;
-            title = 'Select an item';
-            help = 'Click on an item to select it, then click "Save"';
-
-            var modal = new ItemSelectorWidget({
-                el: $('#g-dialog-container'),
-                parentView: this,
-                model: this.model
-            });
-            modal.once('g:saved', () => {
-                modal.$el.modal('hide');
-            }).render();
-            return;
-        }
-
-        if (type === 'directory') {
-            title = 'Select a folder';
-            help = 'Browse to a directory to select it, then click "Save"';
-        }
-
-        if (type === 'new-folder') {
-            title = 'Create a new folder';
-            help = 'Browse to a path, enter a name, then click "Save"';
-            input = {
-                label: 'Name',
-                placeholder: 'Choose a name for the new folder',
-                validate: (val) => {
-                    // validation on the "new item name"
-                    return validationPromise(val, 'Please provide a folder name.');
-                },
-                default: this.model.get('fileName')
-            };
-            // validation on the parent model
-            validate = (model) => {
-                let type = model.get('_modelType');
-                let condition = _.contains(['folder', 'collection', 'user'], type);
-                let message = 'Invalid parent type, please choose a collection, folder, or user.';
-                return validationPromise(condition, message);
-            };
-            preview = false;
-        }
-
-        if (type === 'new-file') {
-            title = 'Create a new item';
-            help = 'Browse to a path, enter a name, then click "Save"';
-            input = {
-                label: 'Name',
-                placeholder: 'Choose a name for the new item',
-                validate: (val) => {
-                    // validation on the "new folder name"
-                    return validationPromise(val, 'Please provide an item name.');
-                },
-                default: this.model.get('fileName')
-            };
-            // validation on the parent model
-            validate = (model) => {
-                let type = model.get('_modelType');
-                let condition = type === 'folder';
-                let message = 'Invalid parent type, please choose a folder.';
-                return validationPromise(condition, message);
-            };
-            preview = false;
-        }
-
-        var browserModal = new BrowserWidget({
+        var modal = new ItemSelectorWidget({
             el: $('#g-dialog-container'),
             parentView: this,
-            showItems: showItems,
-            selectItem: showItems,
-            root: lastParent || getCurrentUser(),
-            titleText: title,
-            helpText: help,
-            input: input,
-            showPreview: preview,
-            validate: validate
+            model: this.model
         });
-        browserModal.once('g:saved', (model, inputValue) => {
-            lastParent = modal.root;
+        modal.once('g:saved', () => {
             modal.$el.modal('hide');
-            this.model.set({
-                value: model,
-                fileName: inputValue || model.name()
-            });
         }).render();
     }
 });
