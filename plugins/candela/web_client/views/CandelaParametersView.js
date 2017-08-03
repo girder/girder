@@ -166,6 +166,7 @@ const CandelaParametersView = View.extend({
         if (this.vis && this.vis.destroy) {
             this.vis.destroy();
         }
+        this.$('.g-candela-vis').empty();
         let vis = new this._component(this.$('.g-candela-vis')[0], inputs);
         vis.render();
     }
