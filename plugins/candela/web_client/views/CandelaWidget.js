@@ -50,11 +50,6 @@ var CandelaWidget = View.extend({
                 .remove();
         };
 
-        if (this.accessLevel < AccessType.READ) {
-            cleanup();
-            return;
-        }
-
         let parser = null;
         let name = this.item.get('name').toLowerCase();
         if (name.endsWith('.csv')) {
@@ -91,19 +86,19 @@ var CandelaWidget = View.extend({
             for (let key in data.__types__) {
                 if (data.__types__.hasOwnProperty(key)) {
                     if (key === '') {
-                        rename.push(['', 'id']);
+                        rename.push({from: '', to: 'id'});
                     } else if (key.indexOf('.') >= 0) {
-                        rename.push([key, key.replace(/\./g, '_')]);
+                        rename.push({from: key, to: key.replace(/\./g, '_')});
                     }
                 }
             }
 
             rename.forEach((d) => {
-                data.__types__[d[1]] = data.__types__[d[0]];
-                delete data.__types__[d[0]];
+                data.__types__[d.to] = data.__types__[d.from];
+                delete data.__types__[d.from];
                 data.forEach((row) => {
-                    row[d[1]] = row[d[0]];
-                    delete row[d[0]];
+                    row[d.to] = row[d.from];
+                    delete row[d.from];
                 });
             });
 
