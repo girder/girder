@@ -15,7 +15,7 @@
  */
 
 /**
- * This function takes an object like `grunt.config.get('init')` and
+ * This function takes an object like `grunt.config.get('default')` and
  * returns a topologically sorted array of tasks.
  */
 function sortTasks(obj) {
@@ -61,10 +61,9 @@ module.exports = function (grunt) {
         pluginDir: 'plugins',
         staticDir: 'clients/web/static',
         isSourceBuild: isSourceBuild,
-        init: {
+        default: {
             setup: {}
-        },
-        default: {}
+        }
     });
 
     if (isSourceBuild) {
@@ -112,10 +111,10 @@ module.exports = function (grunt) {
     });
 
     /**
-     * Load `default` and `init` targets by topologically sorting the
-     * tasks given by keys the config object.  As in:
+     * Load `default` target by topologically sorting the tasks given by keys the config object.
+     * As in:
      * {
-     *   'init': {
+     *   'default': {
      *     'copy:a': {}
      *     'uglify:a': {
      *       'dependencies': ['copy:a']
@@ -123,8 +122,7 @@ module.exports = function (grunt) {
      *   }
      * }
      *
-     * The init task will run `copy:a` followed by `uglify:a`.
+     * The 'default' task will run `copy:a` followed by `uglify:a`.
      */
-    grunt.registerTask('init', sortTasks(grunt.config.get('init')));
     grunt.registerTask('default', sortTasks(grunt.config.get('default')));
 };
