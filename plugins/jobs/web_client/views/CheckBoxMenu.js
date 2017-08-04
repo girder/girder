@@ -43,6 +43,7 @@ var CheckBoxMenu = View.extend({
             title: this.params.title
         }));
         this._renderContent();
+        return this;
     },
 
     setItems: function (items) {

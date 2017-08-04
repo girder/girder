@@ -41,10 +41,10 @@ const CandelaParametersView = View.extend({
 
     render: function () {
         if (!this._data) {
-            return;
+            return this;
         }
         if (!this._component) {
-            return;
+            return this;
         }
 
         this._inputWidgets.reset();
@@ -125,6 +125,8 @@ const CandelaParametersView = View.extend({
         this.$el.html(template());
 
         this._inputsPanel.setElement(this.$('.g-candela-inputs-container')).render();
+
+        return this;
     },
 
     /**

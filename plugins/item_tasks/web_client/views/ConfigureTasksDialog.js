@@ -64,6 +64,8 @@ var ConfigureTasksDialog = View.extend({
             .on('hide.bs.tab', (e) => {
                 this.$('.g-validation-failed-message').text('');
             });
+
+        return this;
     },
 
     _submitJson: function () {

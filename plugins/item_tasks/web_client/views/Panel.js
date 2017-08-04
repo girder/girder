@@ -19,6 +19,8 @@ var Panel = View.extend({
 
         // initialize collapsible elements
         this.$('.g-panel-content').collapse({toggle: false});
+
+        return this;
     },
     expand: function () {
         this.$('.icon-down-open').attr('class', 'icon-up-open');

@@ -19,6 +19,7 @@ var FileInfoWidget = View.extend({
             formatDate: formatDate,
             DATE_SECOND: DATE_SECOND
         })).girderModal(this);
+        return this;
     }
 });
 

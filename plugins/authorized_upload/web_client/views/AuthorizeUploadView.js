@@ -30,6 +30,7 @@ var AuthorizeUploadView = View.extend({
         this.$el.html(template({
             folder: this.folder
         }));
+        return this;
     }
 });
 

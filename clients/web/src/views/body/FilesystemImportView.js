@@ -55,6 +55,8 @@ var FilesystemImportView = View.extend({
         this.$el.html(FilesystemImportTemplate({
             assetstore: this.assetstore
         }));
+
+        return this;
     },
 
     _openBrowser: function () {
