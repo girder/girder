@@ -10,14 +10,9 @@ describe('Test the candela UI.', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
             $('.g-user-text>a:first').click();
-        });
-        girderTest.waitForLoad();
-
-        runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(1);
             $('a.g-my-folders').click();
         });
-        girderTest.waitForLoad();
 
         waitsFor(function () {
             return $('a.g-folder-list-link').length === 2;
