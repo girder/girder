@@ -15,6 +15,6 @@ script
     {% if girder_virtualenv is defined %}
     . "{{ girder_virtualenv }}/bin/activate" && python -m girder
     {% else %}
-    exec python -m girder
+    exec "{{ girder_python | default(ansible_python.executable) }}" -m girder
     {% endif %}
 end script

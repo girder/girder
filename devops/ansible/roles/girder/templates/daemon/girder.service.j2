@@ -10,7 +10,7 @@ Restart=always
 {% if girder_virtualenv is defined %}
 ExecStart={{ girder_virtualenv }}/bin/python -m girder
 {% else %}
-ExecStart={{ ansible_python.executable }} -m girder
+ExecStart={{ girder_python | default(ansible_python.executable) }} -m girder
 {% endif %}
 
 {% if girder_hardened %}

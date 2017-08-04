@@ -1,42 +1,65 @@
 ---
 
-- name: Install Girder system dependencies
-  apt:
-    name: "{{ item }}"
+- block:
+    - name: Install Girder system dependencies
+      apt:
+        name: "{{ item }}"
+      with_items:
+        - curl
+        - git
+        - libffi-dev
+        - build-essential
+        - libjpeg-dev
+        - libssl-dev
+        - zlib1g-dev
+        # Needed for LDAP plugin
+        - libsasl2-dev
+        - libldap2-dev
+
+    # Python dev headers are only installed if the user hasn't specified a python executable
+    - name: Install Python development headers
+      apt:
+        name: python2.7-dev
+      when: girder_python is not defined
+
+    # Pip is only installed via the package manager if an existing pip wasn't defined
+    # *and* a custom python wasn't defined. If a custom Python is defined the user
+    # is expected to have installed their own development headers and pip.
+    - name: Install pip
+      apt:
+        name: python-pip
+      when: girder_python is not defined and girder_pip is not defined
   become: yes
   become_user: root
-  with_items:
-    - curl
-    - git
-    - libffi-dev
-    - build-essential
-    - python2.7-dev
-    - python-pip
-    - libjpeg-dev
-    - libssl-dev
-    - zlib1g-dev
-    # Needed for LDAP plugin
-    - libsasl2-dev
-    - libldap2-dev
   when: ansible_os_family == "Debian"
 
-- name: Install Girder system dependencies
-  yum:
-    name: "{{ item }}"
+- block:
+    - name: Install Girder system dependencies
+      yum:
+        name: "{{ item }}"
+      with_items:
+        - curl
+        - gcc-c++
+        - git
+        - libffi-devel
+        - make
+        - openssl-devel
+        - libjpeg-turbo-devel
+        - zlib-devel
+        - openldap-devel
+
+    - name: Install Python development headers
+      yum:
+        name: python-devel
+      when: girder_python is not defined
+
+    - name: Install pip
+      yum:
+        name: python2-pip
+      when: girder_python is not defined and girder_pip is not defined
+
   become: yes
   become_user: root
-  with_items:
-    - curl
-    - gcc-c++
-    - git
-    - libffi-devel
-    - make
-    - openssl-devel
-    - libjpeg-turbo-devel
-    - zlib-devel
-    - python2-pip
-    - python-devel
-    - openldap-devel
   when: ansible_os_family == "RedHat"
 
 - name: Download Girder
