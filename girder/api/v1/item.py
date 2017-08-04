@@ -113,13 +113,18 @@ class Item(Resource):
                default='', strip=True)
         .param('reuseExisting', 'Return existing item (by name) if it exists.',
                required=False, dataType='boolean', default=False)
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='form', requireObject=True, required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
-    def createItem(self, folder, name, description, reuseExisting):
-        return self.model('item').createItem(
+    def createItem(self, folder, name, description, reuseExisting, metadata):
+        newItem = self.model('item').createItem(
             folder=folder, name=name, creator=self.getCurrentUser(), description=description,
             reuseExisting=reuseExisting)
+        if metadata:
+            newItem = self.model('item').setMetadata(newItem, metadata)
+        return newItem
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='item')

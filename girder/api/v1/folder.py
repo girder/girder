@@ -221,17 +221,23 @@ class Folder(Resource):
                'default, inherits the value from parent folder, or in the '
                'case of user or collection parentType, defaults to False.',
                required=False, dataType='boolean')
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='form', requireObject=True, required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
     )
-    def createFolder(self, public, parentType, parentId, name, description, reuseExisting):
+    def createFolder(self, public, parentType, parentId, name, description,
+                     reuseExisting, metadata):
         user = self.getCurrentUser()
         parent = self.model(parentType).load(
             id=parentId, user=user, level=AccessType.WRITE, exc=True)
 
-        return self.model('folder').createFolder(
+        newFolder = self.model('folder').createFolder(
             parent=parent, name=name, parentType=parentType, creator=user,
             description=description, public=public, reuseExisting=reuseExisting)
+        if metadata:
+            newFolder = self.model('folder').setMetadata(newFolder, metadata)
+        return newFolder
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='folder')

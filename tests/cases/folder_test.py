@@ -274,6 +274,43 @@ class FolderTestCase(base.TestCase):
         self.assertStatusOk(reuseFolder)
         self.assertEqual(newFolder.json['_id'], reuseFolder.json['_id'])
 
+    def testFolderMetadataWithPost(self):
+        resp = self.request(
+            path='/folder', method='GET', user=self.admin, params={
+                'parentType': 'user',
+                'parentId': self.admin['_id'],
+                'sort': 'name',
+                'sortdir': 1
+            })
+        self.assertStatusOk(resp)
+        publicFolder = resp.json[1]
+
+        # Actually create subfolder under Public
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' My public subfolder  ',
+                'parentId': publicFolder['_id'],
+                'metadata': 'invalid json'
+            })
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'],
+            'Parameter metadata must be valid JSON.')
+
+        metadata = {
+            'foo': 'bar',
+            'test': 2
+        }
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': ' My public subfolder with meta',
+                'parentId': publicFolder['_id'],
+                'metadata': json.dumps(metadata)}
+        )
+        folder = resp.json
+        self.assertEqual(folder['meta']['foo'], metadata['foo'])
+        self.assertEqual(folder['meta']['test'], metadata['test'])
+
     def testFolderMetadataCrud(self):
         """
         Test CRUD of metadata on folders
