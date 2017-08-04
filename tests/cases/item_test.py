@@ -336,7 +336,7 @@ class ItemTestCase(base.TestCase):
         item = self.model('item').load(item['_id'])
         self.assertEqual(item, None)
 
-    def testItemMetadataPost(self):
+    def testItemMetadataDirect(self):
         params = {
             'name': 'item with metadata via POST',
             'description': ' a description ',
@@ -358,8 +358,24 @@ class ItemTestCase(base.TestCase):
         resp = self.request(
             path='/item', method='POST', params=params, user=self.users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['meta']['foo'], metadata['foo'])
-        self.assertEqual(resp.json['meta']['test'], metadata['test'])
+        item = resp.json
+        self.assertEqual(item['meta']['foo'], metadata['foo'])
+        self.assertEqual(item['meta']['test'], metadata['test'])
+
+        metadata = {
+            'foo': None,
+            'test': 3,
+            'bar': 'baz'
+        }
+        resp = self.request(
+            path='/item/{_id}'.format(**item), method='PUT',
+            user=self.users[0], params={'metadata': json.dumps(metadata)}
+        )
+        self.assertStatusOk(resp)
+        item = resp.json
+        self.assertNotHasKeys(item['meta'], ['foo'])
+        self.assertEqual(item['meta']['test'], metadata['test'])
+        self.assertEqual(item['meta']['bar'], metadata['bar'])
 
     def testItemMetadataCrud(self):
         """

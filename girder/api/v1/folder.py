@@ -151,10 +151,12 @@ class Folder(Resource):
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'], strip=True)
         .param('parentId', 'Parent ID for the new parent of this folder.', required=False)
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='form', requireObject=True, required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the folder or its new parent object.', 403)
     )
-    def updateFolder(self, folder, name, description, parentType, parentId):
+    def updateFolder(self, folder, name, description, parentType, parentId, metadata):
         user = self.getCurrentUser()
         if name is not None:
             folder['name'] = name
@@ -162,6 +164,8 @@ class Folder(Resource):
             folder['description'] = description
 
         folder = self.model('folder').updateFolder(folder)
+        if metadata:
+            folder = self.model('folder').setMetadata(folder, metadata)
 
         if parentType and parentId:
             parent = self.model(parentType).load(

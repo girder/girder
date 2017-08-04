@@ -136,10 +136,12 @@ class Item(Resource):
         .param('description', 'Description for the item.', required=False)
         .modelParam('folderId', 'Pass this to move the item to a new folder.',
                     required=False, paramType='query', level=AccessType.WRITE)
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='form', requireObject=True, required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item or folder.', 403)
     )
-    def updateItem(self, item, name, description, folder):
+    def updateItem(self, item, name, description, folder, metadata):
         if name is not None:
             item['name'] = name
         if description is not None:
@@ -149,6 +151,9 @@ class Item(Resource):
 
         if folder and folder['_id'] != item['folderId']:
             self.model('item').move(item, folder)
+
+        if metadata:
+            item = self.model('item').setMetadata(item, metadata)
 
         return item
 

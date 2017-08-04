@@ -274,7 +274,7 @@ class FolderTestCase(base.TestCase):
         self.assertStatusOk(reuseFolder)
         self.assertEqual(newFolder.json['_id'], reuseFolder.json['_id'])
 
-    def testFolderMetadataWithPost(self):
+    def testFolderMetadataDirect(self):
         resp = self.request(
             path='/folder', method='GET', user=self.admin, params={
                 'parentType': 'user',
@@ -307,9 +307,25 @@ class FolderTestCase(base.TestCase):
                 'parentId': publicFolder['_id'],
                 'metadata': json.dumps(metadata)}
         )
+        self.assertStatusOk(resp)
         folder = resp.json
         self.assertEqual(folder['meta']['foo'], metadata['foo'])
         self.assertEqual(folder['meta']['test'], metadata['test'])
+
+        metadata = {
+            'foo': None,
+            'test': 3,
+            'bar': 'baz'
+        }
+        resp = self.request(
+            path='/folder/{_id}'.format(**folder), method='PUT',
+            user=self.admin, params={'metadata': json.dumps(metadata)}
+        )
+        self.assertStatusOk(resp)
+        folder = resp.json
+        self.assertNotHasKeys(folder['meta'], ['foo'])
+        self.assertEqual(folder['meta']['test'], metadata['test'])
+        self.assertEqual(folder['meta']['bar'], metadata['bar'])
 
     def testFolderMetadataCrud(self):
         """
