@@ -5,27 +5,74 @@ import Backbone from 'backbone';
 import events from 'girder/events';
 import { getCurrentToken, cookie } from 'girder/auth';
 
-var apiRoot = $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin) || '/api/v1';
-var staticRoot = $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin) || '/static';
+let apiRoot;
+let staticRoot;
 var uploadHandlers = {};
 var uploadChunkSize = 1024 * 1024 * 64; // 64MB
 
 /**
- * Set the root path to the API.
+ * Get the root path to the API.
  *
- * @param root The full root path for the API.
+ * This may be an absolute path, or a path relative to the application root. It will never include
+ * a trailing slash.
+ *
+ * @returns {string}
  */
-function setApiRoot(root) {
-    apiRoot = root;
+function getApiRoot() {
+    return apiRoot;
 }
 
-/** Set the root path to the static content.
+/**
+ * Set the root path to the API.
  *
- * @param root The full root path for the static content.
+ * @param {string} root The root path for the API.
+ */
+function setApiRoot(root) {
+    // Strip trailing slash
+    apiRoot = root.replace(/\/$/, '');
+}
+
+/**
+ * Get the root path to the static content.
+ *
+ * This may be an absolute path, or a path relative to the application root. It will never include
+ * a trailing slash.
+ *
+ * @returns {string}
+ */
+function getStaticRoot() {
+    return staticRoot;
+}
+
+/**
+ * Set the root path to the static content.
+ *
+ * @param {string} root The root path for the static content.
  */
 function setStaticRoot(root) {
-    staticRoot = root;
+    // Strip trailing slash
+    staticRoot = root.replace(/\/$/, '');
+    // publicPath would normally be set in the Webpack config file, but is not known at compile
+    // time.
+    __webpack_public_path__ = `${getStaticRoot()}/built/`; // eslint-disable-line no-undef, camelcase
+    // Note that in theory, an ES6-style import of a file asset that occurred earlier in the import
+    // resolution sequence than this module could fail to have its publicPath set at all, but the
+    // typical style rules for ordering ES6-style imports ensure that this module will be loaded
+    // very early in the import sequence. However, if App startup code modifies the staticRoot, then
+    // any ES6-style imports will probably have the incorrect path. Ultimately though, most file
+    // asset imports will occur in Pug files via require-style imports, which happen at runtime, so
+    // they will always succeed.
 }
+
+// Initialize the API and static roots (at JS load time)
+// This could be overridden when the App is started, but we need sensible defaults so models, etc.
+// can be easily used without having to start an App or explicitly set these values
+setApiRoot(
+    $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin) || '/api/v1'
+);
+setStaticRoot(
+    $('#g-global-info-staticroot').text().replace('%HOST%', window.location.origin) || '/static'
+);
 
 /**
  * Make a request to the REST API. Bind a "done" handler to the return
@@ -102,7 +149,7 @@ function __restRequest(opts) {
     if (opts.path.substring(0, 1) !== '/') {
         opts.path = '/' + opts.path;
     }
-    opts.url = apiRoot + opts.path;
+    opts.url = getApiRoot() + opts.path;
 
     opts = _.extend(defaults, opts);
 
@@ -204,9 +251,11 @@ function setUploadChunkSize(val) {
 }
 
 export {
-    apiRoot,
-    staticRoot,
+    apiRoot, // deprecated
+    staticRoot, // deprecated
+    getApiRoot,
     setApiRoot,
+    getStaticRoot,
     setStaticRoot,
     uploadHandlers,
     restRequest,

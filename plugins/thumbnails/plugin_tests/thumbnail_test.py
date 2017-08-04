@@ -71,8 +71,7 @@ class ThumbnailsTestCase(base.TestCase):
         events.unbind('thumbnails.create', 'test')
 
     def testThumbnailCreation(self):
-        path = os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'img',
-                            'Girder_Mark.png')
+        path = os.path.join(ROOT_DIR, 'clients', 'web', 'src', 'assets', 'Girder_Mark.png')
         with open(path, 'rb') as file:
             data = file.read()
 
@@ -301,8 +300,7 @@ class ThumbnailsTestCase(base.TestCase):
             event.preventDefault()
 
         events.bind('thumbnails.create', 'test', override)
-        path = os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'img',
-                            'Girder_Mark.png')
+        path = os.path.join(ROOT_DIR, 'clients', 'web', 'src', 'assets', 'Girder_Mark.png')
         with open(path, 'rb') as file:
             data = file.read()
 

@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { restRequest, apiRoot } from 'girder/rest';
+import { restRequest, getApiRoot } from 'girder/rest';
 
 /**
  * All models should descend from this base model, which provides a number
@@ -123,8 +123,7 @@ var Model = Backbone.Model.extend({
      *    query string.
      */
     downloadUrl: function (params) {
-        var url = apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
-            this.get('_id') + '/download';
+        let url = `${getApiRoot()}/${this.altUrl || this.resourceName}/${this.id}/download`;
 
         if (params) {
             url += '?' + $.param(params);

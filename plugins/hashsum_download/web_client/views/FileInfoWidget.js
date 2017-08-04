@@ -1,5 +1,5 @@
 import FileInfoWidget from 'girder/views/widgets/FileInfoWidget';
-import { apiRoot, restRequest } from 'girder/rest';
+import { getApiRoot, restRequest } from 'girder/rest';
 import { AccessType } from 'girder/constants';
 import { wrap } from 'girder/utilities/PluginUtils';
 
@@ -8,7 +8,7 @@ import template from '../templates/hashsumDownloadFileInfoWidget.pug';
 import '../stylesheets/hashsumDownloadFileInfoWidget.styl';
 
 var keyfileUrl = function (id, algo) {
-    return `${apiRoot}/file/${id}/hashsum_file/${algo}`;
+    return `${getApiRoot()}/file/${id}/hashsum_file/${algo}`;
 };
 
 wrap(FileInfoWidget, 'render', function (render) {
