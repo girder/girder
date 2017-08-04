@@ -19,6 +19,10 @@ describe('Test the candela UI.', function () {
         });
         girderTest.waitForLoad();
 
+        waitsFor(function () {
+            return $('a.g-folder-list-link').length === 2;
+        }, 'Public and Private folders to appear');
+
         runs(function () {
             $('a.g-folder-list-link:last').click();
         });
