@@ -1,6 +1,12 @@
 API Documentation
 =================
 
+API index
+---------
+
+* :ref:`genindex`
+* :ref:`modindex`
+
 .. _restapi:
 
 RESTful API

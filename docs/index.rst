@@ -26,11 +26,18 @@ Girder: a data management platform
 What is Girder?
 ---------------
 
-Girder is a free and open source web-based **data management platform** developed by
+Girder is a libre open source web-based **data management platform** developed by
 `Kitware <http://www.kitware.com/>`_ as part of the
 `Resonant data and analytics ecosystem <http://resonant.kitware.com/>`_. What does
 that mean? Girder is both a standalone application and a platform for building new web
-services. It's meant to enable quick and easy construction of web applications
+services.
+
+For an overview of the concepts present in Girder, we recommend checking out the :doc:`user-guide`.
+
+Why Girder?
+-----------
+
+Girder as a platform is meant to enable quick and easy construction of web applications
 that have some or all of the following requirements:
 
 * **Data organization and dissemination**
@@ -46,7 +53,7 @@ that have some or all of the following requirements:
     Girder also includes everything needed for pluggable user management and
     authentication out of the box and adheres to best practices in web security.
     The system can be configured to securely store credentials itself, or defer
-    to third-party authentication services such as OAuth or LDAP.
+    to third-party authentication services such as OAuth or LDAP/Active Directory.
 
 * **Authorization management**
     Girder supports a simple access control scheme that allows both user-based
@@ -54,43 +61,30 @@ that have some or all of the following requirements:
     has undergone rigorous security audits and has extensive automated testing
     to exercise authorization behavior and ensure correctness.
 
-For an overview of the concepts present in Girder, we recommend checking out the :doc:`user-guide`.
+* **Offline analytics / data processing**
+    Many users of Girders also deploy its companion offline processing tool,
+    `Girder Worker <http://girder-worker.readthedocs.io/en/latest/>`_. Using the worker,
+    you can run batch analytics on data hosted in Girder using python scripts
+    or arbitrary Docker images, with real-time job monitoring, logging, and statistics
+    integrated into the Girder interface.
 
-Girder is published under the Apache 2.0 License. Its source code can be found at
-https://github.com/girder/girder.
+Its true value, though, is in **extensibility and flexibility**; its plugin system provides
+almost unlimited power to add new capabilities to the system, or alter existing mechanisms
+through easy-to-use modes of extension, which are documented in our various :doc:`tutorials`.
 
-The architecture
-----------------
+Organization of these docs
+--------------------------
 
-Girder's server-side architecture is focused around the construction of RESTful
-web APIs to afford minimal coupling between the backend services and the
-frontend clients. This decoupling allows multiple clients all to use the same
-server-side interface. While Girder does contain its own single-page javascript
-web application, the system can be used by any HTTP-capable client, either inside
-or outside of the web browser environment. Girder can even be run without its
-front-end application present at all, only serving the web API routes.
+These docs are roughly divided by intended task and target audience.
 
-The web API is mostly used to interact with resources that are represented by **models**
-in the system. Models internally interact with a Mongo database to store and
-retrieve persistent records. The models contain methods for creating, changing,
-retrieving, and deleting those records. The core Girder model
-types are described in the :ref:`concepts` section of the user guide.
-
-The primary method of customizing and extending Girder is via the development of
-**plugins**, the process of which is described in the :doc:`plugin-development`
-section of this documentation. Plugins can, for example, add new REST routes,
-modify or remove existing ones, serve up a different web application from the server
-root, hook into model lifecycle events or specific API calls, override authentication
-behavior to support new authentication services or protocols, add a new backend
-storage engine for file storage, or even interact with a completely different DBMS
-to persist system records -- the extent to which plugins are allowed to modify and
-extend the core system behavior is nearly limitless.
-
-Plugins are self-contained in their own directory within the Girder source tree.
-Therefore they can reside in their own separate source repository, and are installed
-by simply copying the plugin source tree under an existing Girder installation's
-`plugins` directory. The Girder repository contains several generally
-useful plugins out of the box, which are described in the :doc:`plugins` section.
+* If you are a **Developer** wanting to build your own Girder plugins, you should start by
+  following the :doc:`development-install`. After you get you development environment
+  set up, browse the :doc:`tutorials` to learn about and see examples of common patterns
+  of how to extend and modify the Girder platform to meet your specific needs.
+* If you are an **Administrator** attempting to deploy your own instance of Girder into
+  production, check out the :doc:`deploy`.
+* If you are a **User** of Girder and just want to learn about the fundamentals of the
+  system and how to use it, check out the :doc:`user-guide`.
 
 
 Table of contents
@@ -99,13 +93,6 @@ Table of contents
 .. toctree::
    :maxdepth: 2
 
-   admin-docs
-   user-docs
+   installation
+   user-guide
    developer-docs
-   plugins
-
-API index
----------
-
-* :ref:`genindex`
-* :ref:`modindex`
