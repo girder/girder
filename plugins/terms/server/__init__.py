@@ -18,6 +18,7 @@
 ###############################################################################
 
 import base64
+import datetime
 import hashlib
 
 from girder import events
@@ -53,7 +54,12 @@ def acceptCollectionTerms(self, collection, termsHash):
 
     ModelImporter.model('user').update(
         {'_id': self.getCurrentUser()['_id']},
-        {'$set': {'terms.collection.%s' % collection['_id']: termsHash}}
+        {'$set': {
+            'terms.collection.%s' % collection['_id']: {
+                'hash': termsHash,
+                'accepted': datetime.datetime.now()
+            }
+        }}
     )
 
 

@@ -135,13 +135,10 @@ class TermsTest(base.TestCase):
         # Check that the user has accepted the terms
         resp = self.request('/user/me', method='GET', user=self.creatorUser)
         self.assertStatusOk(resp)
-        self.assertDictContainsSubset({
-            'terms': {
-                'collection': {
-                    termsCollectionId: 'gargTz1mz476PQf9oUVbtob7OS3ban/3aHqOdLgcHA0='
-                }
-            }},
-            resp.json)
+        self.assertDictContainsSubset(
+            {'hash': 'gargTz1mz476PQf9oUVbtob7OS3ban/3aHqOdLgcHA0='},
+            resp.json.get('terms', {}).get('collection', {}).get(termsCollectionId, {})
+        )
 
         # Ensure that other users cannot read term acceptances
         resp = self.request('/user/%s' % self.creatorUser['_id'], method='GET')

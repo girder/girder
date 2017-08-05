@@ -17,8 +17,11 @@ CollectionModel.prototype.currentUserHasAcceptedTerms = function () {
     const currentUser = getCurrentUser();
     if (currentUser) {
         const userAcceptedTerms = currentUser.get('terms');
-        return userAcceptedTerms && userAcceptedTerms.collection &&
-            (userAcceptedTerms.collection[this.id] === termsHash);
+        // Lodash's _.get would be nice here
+        return userAcceptedTerms &&
+            userAcceptedTerms.collection &&
+            userAcceptedTerms.collection[this.id] &&
+            (userAcceptedTerms.collection[this.id].hash === termsHash);
     } else {
         const storageKey = `terms.collection.${this.id}`;
         return (window.localStorage.getItem(storageKey) === termsHash) ||
