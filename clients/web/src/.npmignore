@@ -1,1 +1,2 @@
-_prepublish.js
+.npmignore
+/_prepublish.js
