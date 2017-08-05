@@ -1,6 +1,6 @@
 {
     "name": "girder",
-    "version": "2.3.0",
+    "version": "2.3.1-alpha.0",
     "description": "Extensible data management platform",
     "homepage": "https://girder.readthedocs.org",
     "bugs": {
@@ -24,5 +24,8 @@
         "swagger-ui": "~2.2.10",
         "underscore": "~1.8.3"
     },
-    "main": "./index.js"
+    "main": "./index.js",
+    "scripts": {
+        "prepublish": "node _prepublish.js"
+    }
 }
