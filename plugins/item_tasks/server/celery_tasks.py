@@ -1,6 +1,8 @@
+import six
+
 from girder_worker.app import app
+from girder_worker.entrypoint import import_all_includes, get_extension_tasks
 from girder_worker import describe
-from girder_worker.entrypoint import import_all_includes
 
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
@@ -24,21 +26,61 @@ from . import constants
            'description of the CLI.', dataType='boolean', required=False, default=True)
 )
 def describeCeleryTaskItem(self, item, taskName, setName, setDescription, params):
-    try:
-        func = describe.get_registered_function(taskName)
-    except KeyError:
+    import_all_includes()
+    func = app.tasks.get(taskName)
+    if not func:
         raise RestException('Unknown task "%s"' % taskName)
+    return describeItemTaskFromFunction(func, item, taskName, setName, setDescription)
 
+
+@access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
+@boundHandler
+@autoDescribeRoute(
+    Description('Create item task specs for every function in a module.')
+    .notes('This operates on an existing folder, adding item tasks '
+           'for every function decorated with girder_worker.describe '
+           'decorators.')
+    .modelParam('id', 'The ID of the folder that the task specs will be added to.',
+                model='folder', level=AccessType.WRITE)
+    .param('extension', 'A girder_worker entry_point name containing tasks',
+           required=True, strip=True)
+)
+def celeryTaskDescriptionForFolder(self, folder, extension, params):
+    import_all_includes()
     try:
-        description = func.describe()
+        tasks = get_extension_tasks(extension, celery_only=True)
+    except KeyError:
+        raise RestException('Unknown girder_worker extension')
+
+    user = self.getCurrentUser()
+    itemModel = self.model('item')
+    items = []
+    for name, func in six.iteritems(tasks):
+        desc = describe.describe_function(func)
+        item = itemModel.createItem(
+            name=desc['name'],
+            creator=user,
+            folder=folder,
+            description=desc.get('description', ''),
+            reuseExisting=True
+        )
+
+        items.append(describeItemTaskFromFunction(func, item, name))
+    return items
+
+
+@boundHandler
+def describeItemTaskFromFunction(self, func, item, importName, setName=True, setDescription=True):
+    try:
+        description = describe.describe_function(func)
     except Exception:
-        raise RestException('Could not get description for "%s"' % taskName)
+        raise RestException('Could not get a task description')
 
     item = self.model('item').setMetadata(item, {
         'isItemTask': True,
         'itemTaskName': description['name'],
         'itemTaskSpec': description,
-        'itemTaskImport': taskName
+        'itemTaskImport': importName
     })
 
     if setName:
@@ -51,21 +93,6 @@ def describeCeleryTaskItem(self, item, taskName, setName, setDescription, params
         self.model('item').save(item)
 
     return item
-
-
-@access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
-@boundHandler
-@autoDescribeRoute(
-    Description('Create item task specs for every function in a module.')
-    .notes('This operates on an existing folder, adding item tasks '
-           'for every function decorated with girder_worker.describe '
-           'decorators.')
-    .modelParam('id', 'The ID of the folder that the task specs will be added to.',
-                model='folder', level=AccessType.WRITE)
-    .param('module', 'A python module path containing task functions', required=True, strip=True)
-)
-def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
-    pass
 
 
 def runGirderWorkerTask(taskName, inputs, outputs={}):

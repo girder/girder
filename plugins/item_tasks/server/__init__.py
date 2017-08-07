@@ -12,7 +12,7 @@ from .json_tasks import createItemTasksFromJson, configureItemTaskFromJson, \
     runJsonTasksDescriptionForFolder, runJsonTasksDescriptionForItem
 from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, createItemTasksFromSlicerCliXml, \
     runSlicerCliTasksDescriptionForFolder, runSlicerCliTasksDescriptionForItem
-from celery_tasks import describeCeleryTaskItem
+from celery_tasks import describeCeleryTaskItem, celeryTaskDescriptionForFolder
 
 
 def _onJobSave(event):
@@ -105,3 +105,5 @@ def load(info):
                                  runJsonTasksDescriptionForFolder)
     info['apiRoot'].folder.route('POST', (':id', 'item_task_json_specs'),
                                  createItemTasksFromJson)
+    info['apiRoot'].folder.route('POST', (':id', 'item_task_celery'),
+                                 celeryTaskDescriptionForFolder)
