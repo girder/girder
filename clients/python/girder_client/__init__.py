@@ -187,7 +187,7 @@ class GirderClient(object):
             return "https"
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
-                 cacheSettings=None, progressReporterCls=None):
+                 cacheSettings=None, progressReporterCls=None, verify=None):
         """
         Construct a new GirderClient object, given a host name and port number,
         as well as a username and password which will be used in all requests
@@ -215,10 +215,15 @@ class GirderClient(object):
             a class attribute `reportProgress` set to True (It can conveniently be
             initialized using `sys.stdout.isatty()`).
             This defaults to :class:`_NoopProgressReporter`.
+        :param verify: This parameter is passed through to all underlying requests for
+            SSL verification. You can set it to a path to a CA file or directory, or
+            set it to False to disable verification.
         """
         self.host = None
         self.scheme = None
         self.port = None
+        self.verify = verify
+
         if apiUrl is None:
             if not apiRoot:
                 apiRoot = self.DEFAULT_API_ROOT
@@ -476,7 +481,8 @@ class GirderClient(object):
             _headers.update(headers)
 
         result = f(
-            url, params=parameters, data=data, files=files, json=json, headers=_headers)
+            url, params=parameters, data=data, files=files, json=json, headers=_headers,
+            verify=self.verify)
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in (200, 201):
