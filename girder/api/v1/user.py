@@ -202,8 +202,7 @@ class User(Resource):
         Description('Get the number of users.')
     )
     def getUsersDetails(self):
-        userModelCollection = self.model('user').collection
-        nUsers = userModelCollection.count()
+        nUsers = self.model('user').find().count()
         return {'nUsers': nUsers}
 
     @access.user

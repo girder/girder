@@ -862,12 +862,19 @@ class UserTestCase(base.TestCase):
         Test that the user count is correct.
         """
         # Create an admin user
-        self.model('user').createUser(
+        admin = self.model('user').createUser(
             firstName='Admin', lastName='Admin', login='admin',
             email='admin@admin.com', password='adminadmin')
-        # Create two other users
-        self.model('user').createUser('user1', 'passwd1', 'tst1', 'usr1', 'user1@user.com')
-        self.model('user').createUser('user2', 'passwd2', 'tst2', 'usr2', 'user2@user.com')
-        resp = self.request(path='/user/details', method='GET')
+        # Create a couple of users
+        users = [self.model('user').createUser(
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            for num in [0, 1]]
+        resp = self.request(path='/user/details', user=admin, method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nUsers'], 3)
+        # test for a no-admin user
+        resp = self.request(path='/user/details', user=users[0], method='GET')
+        self.assertStatus(resp, 403)
+        # test for a no-user
+        resp = self.request(path='/user/details', method='GET')
+        self.assertStatus(resp, 401)
