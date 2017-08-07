@@ -134,7 +134,7 @@ var ControlWidget = View.extend({
         'new-file': {
             template: fileWidget
         },
-        'new-directory': {
+        'new-folder': {
             template: fileWidget
         }
     },
@@ -194,7 +194,7 @@ var ControlWidget = View.extend({
             help = 'Browse to a directory to select it, then click "Save"';
         }
 
-        if (type === 'new-directory') {
+        if (type === 'new-folder') {
             title = 'Create a new folder';
             help = 'Browse to a path, enter a name, then click "Save"';
             input = {

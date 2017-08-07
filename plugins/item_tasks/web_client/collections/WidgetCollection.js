@@ -22,7 +22,7 @@ var WidgetCollection = Backbone.Collection.extend({
                     params[m.id + '_girderFolderId'] = m.value().get('folderId');
                     params[m.id + '_name'] = m.value().get('name');
                     break;
-                case 'new-directory':
+                case 'new-folder':
                     params[m.id + '_girderFolderId'] = m.value().get('folderId');
                     params[m.id + '_name'] = m.value().get('name');
                     break;
