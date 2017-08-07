@@ -857,20 +857,17 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['itemId'], itemId)
 
-    def testNumberUser(self):
+    def testUsersDetails(self):
         """
-        Make sure display number of user is correct
+        Test that the user count is correct.
         """
         # Create an admin user
         self.model('user').createUser(
             firstName='Admin', lastName='Admin', login='admin',
             email='admin@admin.com', password='adminadmin')
-        # Create an user1 and user2
-        self.model('user').createUser('user1', 'passwd1', 'tst1', 'usr1',
-                                      'user1@user.com')
-        self.model('user').createUser('user2', 'passwd2', 'tst2', 'usr2',
-                                      'user2@user.com')
-        # Make sure we get a 200 when trying to count users 
+        # Create two other users
+        self.model('user').createUser('user1', 'passwd1', 'tst1', 'usr1', 'user1@user.com')
+        self.model('user').createUser('user2', 'passwd2', 'tst2', 'usr2', 'user2@user.com')
         resp = self.request(path='/user/details', method='GET')
-        self.assertStatus(resp, 200)
-        self.assertEqual(resp.json['nUsers'], "3")
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nUsers'], 3)
