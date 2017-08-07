@@ -856,3 +856,21 @@ class UserTestCase(base.TestCase):
             path='/file/chunk', user=pvt, fields=fields, files=files)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['itemId'], itemId)
+
+    def testNumberUser(self):
+        """
+        Make sure display number of user is correct
+        """
+        # Create an admin user
+        self.model('user').createUser(
+            firstName='Admin', lastName='Admin', login='admin',
+            email='admin@admin.com', password='adminadmin')
+        # Create an user1 and user2
+        self.model('user').createUser('user1', 'passwd1', 'tst1', 'usr1',
+                                      'user1@user.com')
+        self.model('user').createUser('user2', 'passwd2', 'tst2', 'usr2',
+                                      'user2@user.com')
+        # Make sure we get a 200 when trying to count users 
+        resp = self.request(path='/user/details', method='GET')
+        self.assertStatus(resp, 200)
+        self.assertEqual(resp.json['nUsers'], "3")

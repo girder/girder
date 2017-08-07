@@ -43,6 +43,7 @@ class User(Resource):
         self.route('GET', ('authentication',), self.login)
         self.route('GET', (':id',), self.getUser)
         self.route('GET', (':id', 'details'), self.getUserDetails)
+        self.route('GET', ('details',), self.getUserNumber)
         self.route('POST', (), self.createUser)
         self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
@@ -195,6 +196,15 @@ class User(Resource):
     def deleteUser(self, user):
         self.model('user').remove(user)
         return {'message': 'Deleted user %s.' % user['login']}
+
+    @autoDescribeRoute(
+        Description('Get the number of users.')
+    )
+    def getUserNumber(self):
+        userModelCollection = self.model('user').collection
+        nUsers = userModelCollection.count()
+        return {'nUsers': nUsers}
+
 
     @access.user
     @filtermodel(model='user')
