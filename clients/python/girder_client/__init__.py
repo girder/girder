@@ -336,12 +336,12 @@ class GirderClient(object):
             url = self.urlBase + 'user/authentication'
             authResponse = self._requestFunc('get')(url, auth=(username, password))
 
-            if authResponse.status_code == 404:
-                raise HttpError(404, authResponse.text, url, 'GET')
+            if authResponse.status_code in (401, 403):
+                raise AuthenticationError()
+            elif not authResponse.ok:
+                raise HttpError(authResponse.status_code, authResponse.text, url, 'GET')
 
             resp = authResponse.json()
-            if 'authToken' not in resp:
-                raise AuthenticationError()
 
             self.setToken(resp['authToken']['token'])
 
@@ -484,7 +484,6 @@ class GirderClient(object):
                 return result.json()
             else:
                 return result
-        # TODO handle 300-level status (follow redirect?)
         else:
             raise HttpError(
                 status=result.status_code, url=result.url, method=method, text=result.text)

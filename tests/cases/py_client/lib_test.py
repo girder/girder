@@ -110,6 +110,34 @@ class PythonClientTestCase(base.TestCase):
 
             return folders[0]
 
+    def testAuthenticateRaisesHttpError(self):
+        # Test non "OK" responses throw HttpError
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(500, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.HttpError):
+                self.client.authenticate(self.user['login'], self.password)
+
+    def testAuthenticateRaisesAuthenticationError(self):
+        # Test 401/403 raise AuthenticationError
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(401, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.AuthenticationError):
+                self.client.authenticate(self.user['login'], self.password)
+
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(403, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.AuthenticationError):
+                self.client.authenticate(self.user['login'], self.password)
+
     def testRestCore(self):
         self.assertTrue(self.user['admin'])
 
