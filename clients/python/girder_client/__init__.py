@@ -76,12 +76,16 @@ class IncorrectUploadLengthError(RuntimeError):
         self.upload = upload
 
 
-class HttpError(Exception):
+class HttpError(requests.HTTPError):
     """
     Raised if the server returns an error status code from a request.
+    @deprecated This will be removed in a future release of Girder. Raisers of this
+    exception should instead raise requests.HTTPError manually or through another mechanism
+    such as requests.Response.raise_for_status.
     """
-    def __init__(self, status, text, url, method):
-        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url))
+    def __init__(self, status, text, url, method, response=None):
+        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url),
+                                        response=response)
         self.status = status
         self.responseText = text
         self.url = url
