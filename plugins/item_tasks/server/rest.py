@@ -14,7 +14,7 @@ from girder.plugins.worker import utils
 from . import constants
 from .json_tasks import createItemTasksFromJson, runJsonTasksDescriptionForFolder
 from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, runSlicerCliTasksDescriptionForItem
-from .celery_tasks import runGirderWorkerTask
+from .celery_tasks import runGirderWorkerTask, listGirderWorkerExtensions
 
 
 class ItemTask(Resource):
@@ -25,6 +25,8 @@ class ItemTask(Resource):
 
         self.route('GET', (), self.listTasks)
         self.route('POST', (':id', 'execution'), self.executeTask)
+        self.route('GET', ('extensions',), listGirderWorkerExtensions)
+
         # Deprecated in favor of POST /item/:id/item_task_slicer_cli_description
         self.route('POST', (':id', 'slicer_cli_description'), runSlicerCliTasksDescriptionForItem)
         # Deprecated in favor of PUT /item/:id/item_task_slicer_cli_xml

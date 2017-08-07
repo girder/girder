@@ -1,7 +1,7 @@
 import six
 
 from girder_worker.app import app
-from girder_worker.entrypoint import import_all_includes, get_extension_tasks
+from girder_worker.entrypoint import import_all_includes, get_extension_tasks, get_extensions
 from girder_worker import describe
 
 from girder.api import access
@@ -9,6 +9,15 @@ from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import boundHandler, RestException
 from girder.constants import AccessType
 from . import constants
+
+
+@access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
+@boundHandler()
+@autoDescribeRoute(
+    Description('List girder_worker extensions installed on the server.')
+)
+def listGirderWorkerExtensions(self):
+    return sorted(get_extensions())
 
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)

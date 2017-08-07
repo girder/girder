@@ -61,17 +61,21 @@ var ConfigureTasksDialog = View.extend({
             currentModulePath = meta.itemTaskImport;
         }
 
-        this.$el.html(template({
-            model: this.model,
-            isFolder: this.isFolder,
-            currentImage: currentImage,
-            currentTaskName: currentTaskName,
-            currentSlicerCliArgs,
-            currentModulePath
-        })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('input:first').focus();
+        restRequest({
+            url: 'item_task/extensions'
+        }).done((extensions) => {
+            this.$el.html(template({
+                model: this.model,
+                isFolder: this.isFolder,
+                currentImage: currentImage,
+                currentTaskName: currentTaskName,
+                currentSlicerCliArgs,
+                currentModulePath,
+                extensions
+            })).girderModal(this).on('shown.bs.modal', () => {
+                this.$('input:first').focus();
+            });
         });
-;
 
         // Clear validation error message when switching tabs
         this.$('a[data-toggle="tab"]')

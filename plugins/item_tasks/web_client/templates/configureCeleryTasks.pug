@@ -6,7 +6,9 @@ if isFolder
     via the worker.
   .form-group
     label Girder worker extension
-    input.g-celery-import-path.form-control.input-sm(name="celery-import-path")
+    select.form-control.g-worker-extension
+      for extension in extensions
+        option(value=extension) #{extension}
 else
   p.
     Running this will retrieve the task specification from a decorated python function
