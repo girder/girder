@@ -21,14 +21,14 @@
           li.g-configure-slicer-cli-task-tab
             a(href="#g-configure-slicer-cli-task-tab-content", data-toggle="tab") Slicer CLI
           li.g-configure-python-task-tab
-            a(href="#g-configure-python-task-tab-content", data-toggle="tab") Python
+            a(href="#g-configure-celery-task-tab-content", data-toggle="tab") Celery
         .tab-content
           #g-configure-json-tasks-tab-content.tab-pane.active
             include configureJsonTasks.pug
           #g-configure-slicer-cli-task-tab-content.tab-pane
             include configureSlicerCliTasks.pug
-          #g-configure-python-task-tab-content.tab-pane
-            include configurePythonTasks.pug
+          #g-configure-celery-task-tab-content.tab-pane
+            include configureCeleryTasks.pug
         .g-validation-failed-message
       .modal-footer
         a.btn.btn-default(data-dismiss="modal") Close
