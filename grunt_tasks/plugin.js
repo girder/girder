@@ -495,7 +495,6 @@ module.exports = function (grunt) {
                     path.resolve(dir, config.grunt.file || 'Gruntfile.js')
                 )(grunt);
             } catch (e) {
-                // the error can be safely ignored when doing `grunt init`
                 // otherwise a default task will most likely fail later on
                 // write out a warning to help the developers debug errors
                 grunt.log.writeln((

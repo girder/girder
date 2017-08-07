@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
+const fs = require('fs');
+
+require('colors');
+const toposort = require('toposort');
+const _ = require('underscore');
+
 /**
- * This function takes an object like `grunt.config.get('init')` and
+ * This function takes an object like `grunt.config.get('default')` and
  * returns a topologically sorted array of tasks.
  */
 function sortTasks(obj) {
-    var toposort = require('toposort');
-    var _ = require('underscore');
     var nodes = _.keys(obj);
     var edges = _(obj).chain()
         .pairs()
@@ -45,10 +49,8 @@ function sortTasks(obj) {
 }
 
 module.exports = function (grunt) {
-    var fs = require('fs');
     var isSourceBuild = fs.existsSync('girder/__init__.py');
     var environment = grunt.option('env') || 'dev';
-    require('colors');
 
     if (['dev', 'prod'].indexOf(environment) === -1) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');
@@ -61,9 +63,6 @@ module.exports = function (grunt) {
         pluginDir: 'plugins',
         staticDir: 'clients/web/static',
         isSourceBuild: isSourceBuild,
-        init: {
-            setup: {}
-        },
         default: {}
     });
 
@@ -98,24 +97,21 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-file-creator');
     grunt.loadNpmTasks('grunt-webpack');
 
-    // This task should be run once manually at install time.
-    grunt.registerTask('setup', 'Initial install/setup tasks', function () {
-        // If the local config file doesn't exist, we make it
-        var confDir = grunt.config.get('girderDir') + '/conf';
-        if (!fs.existsSync(confDir + '/girder.local.cfg')) {
-            fs.writeFileSync(
-                confDir + '/girder.local.cfg',
-                fs.readFileSync(confDir + '/girder.dist.cfg')
-            );
-            console.log('Created local config file.');
-        }
+    /**
+     * This task is noop that exists for backwards compatibility in case any plugins rely
+     * on its existence.
+     * @deprecated: remove in v3
+     */
+    grunt.registerTask('init', 'This task is deprecated, in favor of "default".', _.constant(true));
+    grunt.config.merge({
+        default: grunt.config.get('init')
     });
 
     /**
-     * Load `default` and `init` targets by topologically sorting the
-     * tasks given by keys the config object.  As in:
+     * Load `default` target by topologically sorting the tasks given by keys the config object.
+     * As in:
      * {
-     *   'init': {
+     *   'default': {
      *     'copy:a': {}
      *     'uglify:a': {
      *       'dependencies': ['copy:a']
@@ -123,8 +119,7 @@ module.exports = function (grunt) {
      *   }
      * }
      *
-     * The init task will run `copy:a` followed by `uglify:a`.
+     * The 'default' task will run `copy:a` followed by `uglify:a`.
      */
-    grunt.registerTask('init', sortTasks(grunt.config.get('init')));
     grunt.registerTask('default', sortTasks(grunt.config.get('default')));
 };
