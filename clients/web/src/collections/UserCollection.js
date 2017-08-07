@@ -1,5 +1,6 @@
 import Collection from 'girder/collections/Collection';
 import UserModel from 'girder/models/UserModel';
+import { restRequest } from 'girder/rest';
 
 var UserCollection = Collection.extend({
     resourceName: 'user',
@@ -8,6 +9,15 @@ var UserCollection = Collection.extend({
     // Override default sort field
     sortField: 'lastName',
     secondarySortField: 'firstName'
+}, {
+    getUsersCount: function () {
+        return restRequest({
+            path: 'user/details'
+        })
+            .then((resp) => {
+                return resp['nUsers'];
+            });
+    }
 });
 
 export default UserCollection;

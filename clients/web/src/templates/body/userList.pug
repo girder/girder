@@ -7,6 +7,9 @@
     button.g-user-create-button.btn.btn-sm.btn-default
       i.icon-plus-squared
       |  Create user
+    i.icon-male
+      span.badge
+        | #{getUsersCount}
 
 each user in users
   .g-user-list-entry
