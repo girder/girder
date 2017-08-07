@@ -287,6 +287,7 @@ var HierarchyWidget = View.extend({
             this._initFolderViewSubwidgets();
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
             this.metadataWidget.setItem(this.parentModel);
+            this.metadataWidget.accessLevel = this.parentModel.getAccessLevel();
             if (this._showMetadata) {
                 this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
             }
@@ -528,7 +529,8 @@ var HierarchyWidget = View.extend({
                     viewLinks: this._viewLinks,
                     itemFilter: this._itemFilter,
                     showSizes: this._showSizes,
-                    public: this.parentModel.get('public')
+                    public: this.parentModel.get('public'),
+                    accessLevel: this.parentModel.getAccessLevel()
                 });
             } else {
                 this._initFolderViewSubwidgets();
