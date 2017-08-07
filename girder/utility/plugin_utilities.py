@@ -68,9 +68,9 @@ def _recordPluginFailureInfo(plugin, traceback):
 def _clearPluginFailureInfo(plugin):
     """
     If a plugin loaded, clear any failure information that may have been set by
-    an earlier failed attempy.
+    an earlier failed attempt.
 
-    :param plugin: The name of the plugin that laoded.
+    :param plugin: The name of the plugin that loaded.
     :type plugin: str
     """
     _pluginFailureInfo.pop(plugin, None)
@@ -308,8 +308,8 @@ def findEntryPointPlugins(allPlugins):
                             'ERROR: Plugin "%s": plugin.yml is not valid '
                             'YAML.' % entry_point.name)
         except (ImportError, SystemError):
-            # Fall throw and just try to load the entry point below.  If there
-            # is still an error, we'll log it there.
+            # Fall through and just try to load the entry point below.  If
+            # there is still an error, we'll log it there.
             pass
         if data == {}:
             try:
