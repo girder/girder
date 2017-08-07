@@ -305,7 +305,7 @@ var WidgetModel = Backbone.Model.extend({
             return 'Value must be a folder';
         } else if (this.get('type') === 'new-file' && type !== 'folder') {
             return 'Value must be a folder';
-        } else if (this.get('type') === 'new-directory' && type !== 'folder') {
+        } else if (this.get('type') === 'new-folder' && !_.contains(['folder', 'collection', 'user'], type)) {
             return 'Value must be a folder';
         }
     },

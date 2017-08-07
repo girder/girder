@@ -211,7 +211,7 @@ var ControlWidget = View.extend({
             // validation on the parent model
             validate = (model) => {
                 var type = model.get('_modelType');
-                if (type !== 'folder') {
+                if (!_.contains(['folder', 'collection', 'user'], type)) {
                     return 'Invalid parent type, please choose a folder.';
                 }
             };
