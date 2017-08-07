@@ -133,6 +133,9 @@ var ControlWidget = View.extend({
         },
         'new-file': {
             template: fileWidget
+        },
+        'new-directory': {
+            template: fileWidget
         }
     },
 
@@ -191,6 +194,30 @@ var ControlWidget = View.extend({
             help = 'Browse to a directory to select it, then click "Save"';
         }
 
+        if (type === 'new-directory') {
+            title = 'Create a new folder';
+            help = 'Browse to a path, enter a name, then click "Save"';
+            input = {
+                label: 'Name',
+                placeholder: 'Choose a name for the new folder',
+                validate: (val) => {
+                    // validation on the "new item name"
+                    if (!val) {
+                        return 'Please provide an folder name.';
+                    }
+                },
+                default: this.model.get('fileName')
+            };
+            // validation on the parent model
+            validate = (model) => {
+                var type = model.get('_modelType');
+                if (type !== 'folder') {
+                    return 'Invalid parent type, please choose a folder.';
+                }
+            };
+            preview = false;
+        }
+
         if (type === 'new-file') {
             title = 'Create a new item';
             help = 'Browse to a path, enter a name, then click "Save"';
@@ -198,7 +225,7 @@ var ControlWidget = View.extend({
                 label: 'Name',
                 placeholder: 'Choose a name for the new item',
                 validate: (val) => {
-                    // validation on the "new item name"
+                    // validation on the "new folder name"
                     if (!val) {
                         return 'Please provide an item name.';
                     }

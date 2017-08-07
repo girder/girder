@@ -19,6 +19,9 @@ block input
     else if type === 'new-file'
       +input(title, type, id, fileName)(placeholder='Choose a file...', readonly=true)
 
+    else if type === 'new-directory'
+      +input(title, type, id, fileName)(placeholder='Choose a folder...', readonly=true)
+
     span.input-group-btn
       button.btn.btn-default.g-select-file-button(type='button')
         i.icon-folder-open

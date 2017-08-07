@@ -160,6 +160,13 @@ const TaskRunView = View.extend({
                         parent_type: 'folder',
                         name: model.get('fileName')
                     };
+                case 'new-directory': // This is an output
+                    return {
+                        mode: 'girder',
+                        parent_id: val.id,
+                        parent_type: val.parentType,
+                        name: model.get('fileName')
+                    };
                 default:
                     if (model.isVector()) {
                         val = val.join(',');

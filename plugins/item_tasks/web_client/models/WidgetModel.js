@@ -42,6 +42,9 @@ import tinycolor from 'tinycolor2';
  *   * new-file:
  *      an output file (contains an existing folder id and a
  *      name that will be used for the new item.
+ *   * new-directory:
+ *      an output folder (contains a folder id and a
+ *      name that will be used for the new folder.
  *   * image:
  *      an alias for the "file" type that expects the file
  *      contents is an image (this is not validated)
@@ -302,6 +305,8 @@ var WidgetModel = Backbone.Model.extend({
             return 'Value must be a folder';
         } else if (this.get('type') === 'new-file' && type !== 'folder') {
             return 'Value must be a folder';
+        } else if (this.get('type') === 'new-directory' && type !== 'folder') {
+            return 'Value must be a folder';
         }
     },
 
@@ -370,7 +375,7 @@ var WidgetModel = Backbone.Model.extend({
      */
     isGirderModel: function () {
         return _.contains(
-            ['directory', 'file', 'new-file', 'image'],
+            ['directory', 'new-directory', 'file', 'new-file', 'image'],
             this.get('type')
         );
     },
@@ -408,6 +413,7 @@ var WidgetModel = Backbone.Model.extend({
         'file',
         'directory',
         'new-file',
+        'new-directory',
         'image'
     ]
 });
