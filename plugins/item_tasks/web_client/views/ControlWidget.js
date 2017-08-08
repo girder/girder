@@ -203,7 +203,7 @@ var ControlWidget = View.extend({
                 validate: (val) => {
                     // validation on the "new item name"
                     if (!val) {
-                        return 'Please provide an folder name.';
+                        return 'Please provide a folder name.';
                     }
                 },
                 default: this.model.get('fileName')
@@ -212,7 +212,7 @@ var ControlWidget = View.extend({
             validate = (model) => {
                 var type = model.get('_modelType');
                 if (!_.contains(['folder', 'collection', 'user'], type)) {
-                    return 'Invalid parent type, please choose a folder.';
+                    return 'Invalid parent type, please choose a collection, folder, or user.';
                 }
             };
             preview = false;
