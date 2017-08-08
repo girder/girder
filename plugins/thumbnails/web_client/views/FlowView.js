@@ -57,6 +57,8 @@ var FlowView = View.extend({
         }, function () {
             $('.g-thumbnail-actions-container', this).removeClass('g-show');
         });
+
+        return this;
     }
 });
 

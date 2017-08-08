@@ -63,6 +63,8 @@ var HierarchyBreadcrumbView = View.extend({
             current: active,
             descriptionText: descriptionText
         }));
+
+        return this;
     }
 });
 

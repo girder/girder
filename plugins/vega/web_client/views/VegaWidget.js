@@ -40,6 +40,8 @@ var VegaWidget = View.extend({
             $('.g-item-vega')
                 .remove();
         }
+
+        return this;
     }
 });
 

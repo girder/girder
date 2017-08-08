@@ -46,7 +46,7 @@ var CandelaWidget = View.extend({
             parser = datalib.tsv;
         } else {
             this.$('.g-item-candela').remove();
-            return;
+            return this;
         }
 
         this.$el.html(CandelaWidgetTemplate({
@@ -91,6 +91,8 @@ var CandelaWidget = View.extend({
             this.parametersView.setData(data, columns);
             this.updateComponent();
         });
+
+        return this;
     }
 });
 

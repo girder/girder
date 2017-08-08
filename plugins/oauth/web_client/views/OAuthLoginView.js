@@ -36,7 +36,7 @@ var OAuthLoginView = View.extend({
 
     render: function () {
         if (this.providers === null) {
-            return;
+            return this;
         }
 
         var buttons = [];
@@ -58,6 +58,8 @@ var OAuthLoginView = View.extend({
                 buttons: buttons
             }));
         }
+
+        return this;
     },
 
     _buttons: {

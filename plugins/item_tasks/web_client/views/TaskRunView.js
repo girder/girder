@@ -97,6 +97,8 @@ const TaskRunView = View.extend({
         if (hasOutputs) {
             this._outputsPanel.setElement(this.$('.g-outputs-container')).render();
         }
+
+        return this;
     },
 
     /**
