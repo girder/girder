@@ -104,7 +104,7 @@ def describeItemTaskFromFunction(self, func, item, importName, setName=True, set
     return item
 
 
-def runGirderWorkerTask(taskName, inputs, outputs={}):
+def runCeleryTask(taskName, inputs, outputs={}):
     import_all_includes()
     tasks = app.tasks
 

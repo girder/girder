@@ -3,6 +3,9 @@ import mock
 import os
 import time
 
+from girder_worker.app import app
+from girder_worker.describe import argument, types
+
 from girder.constants import AccessType
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -699,3 +702,175 @@ class TasksTest(base.TestCase):
 
         self.assertEqual(
             job['itemTaskBindings']['outputs']['--DetectedPoints']['itemId'], file['itemId'])
+
+    def testListExtensions(self):
+        with mock.patch('girder.plugins.item_tasks.celery_tasks.get_extensions',
+                        return_value=['c', 'f', 'a', 'b']):
+            resp = self.request('/item_task/extensions', user=self.admin)
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json, ['a', 'b', 'c', 'f'])
+
+            resp = self.request('/item_task/extensions', user=self.user)
+            self.assertStatus(resp, 403)
+
+    def createCeleryItemTask(self, user, params=None):
+        spec = {
+            'name': 'test function',
+            'description': 'test description',
+            'mode': 'girder_worker',
+            'inputs': [{
+                'id': 'n',
+                'name': 'n',
+                'type': 'integer'
+            }]
+        }
+        params = params or {}
+        params['taskName'] = 'task'
+
+        item = self.model('item').createItem(
+            name='temp', creator=self.admin, folder=self.privateFolder)
+
+        app.tasks['task'] = lambda n: None
+        with mock.patch('girder.plugins.item_tasks.celery_tasks.describe.describe_function',
+                        return_value=spec):
+            resp = self.request(
+                '/item/%s/item_task_celery' % item['_id'],
+                method='POST',
+                params=params,
+                user=user
+            )
+        return resp
+
+    def testConfigureCeleryTaskItemDefaults(self):
+        resp = self.createCeleryItemTask(self.admin)
+
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'test function')
+        self.assertEqual(resp.json['description'], 'test description')
+
+        meta = resp.json['meta']
+        self.assertEqual(meta['itemTaskImport'], 'task')
+
+    def testConfigureCeleryTaskPermissions(self):
+        resp = self.createCeleryItemTask(self.user)
+        self.assertStatus(resp, 403)
+
+    def testConfigureCeleryTaskItemNoRename(self):
+        resp = self.createCeleryItemTask(self.admin, {'setName': False})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'temp')
+        self.assertEqual(resp.json['description'], 'test description')
+
+    def testConfigureCeleryTaskItemNoRedescribe(self):
+        resp = self.createCeleryItemTask(self.admin, {'setDescription': False})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['name'], 'test function')
+        self.assertEqual(resp.json['description'], '')
+
+    def testConfigureCeleryTaskUnknownTask(self):
+        item = self.model('item').createItem(
+            name='temp', creator=self.admin, folder=self.privateFolder)
+        resp = self.request(
+            '/item/%s/item_task_celery' % item['_id'],
+            method='POST',
+            params={'taskName': 'not a valid task'},
+            user=self.admin
+        )
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Unknown task "not a valid task"')
+
+    def testConfigureCeleryTaskInvalidTask(self):
+        item = self.model('item').createItem(
+            name='temp', creator=self.admin, folder=self.privateFolder)
+        app.tasks['task'] = lambda n: None
+        resp = self.request(
+            '/item/%s/item_task_celery' % item['_id'],
+            method='POST',
+            params={'taskName': 'task'},
+            user=self.admin
+        )
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Could not get a task description')
+
+    def testConfigureCeleryTaskFolder(self):
+        folder = self.model('folder').createFolder(
+            self.privateFolder, name='tasks', creator=self.admin)
+
+        spec = {
+            'name': 'test function',
+            'description': 'test description',
+            'mode': 'girder_worker',
+            'inputs': [{
+                'id': 'n',
+                'name': 'n',
+                'type': 'integer'
+            }]
+        }
+
+        app.tasks['task'] = lambda n: None
+        with mock.patch(
+            'girder.plugins.item_tasks.celery_tasks.describe.describe_function',
+                return_value=spec):
+
+            with mock.patch(
+                'girder.plugins.item_tasks.celery_tasks.get_extension_tasks',
+                    return_value={'task': app.tasks['task']}):
+
+                resp = self.request(
+                    '/folder/%s/item_task_celery' % folder['_id'],
+                    method='POST',
+                    params={'extension': 'ext'},
+                    user=self.admin
+                )
+
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+
+        task = resp.json[0]
+        self.assertEqual(task['name'], 'test function')
+        meta = task['meta']
+        self.assertEqual(meta['itemTaskImport'], 'task')
+
+        resp = self.request(
+            '/folder/%s/item_task_celery' % folder['_id'],
+            method='POST',
+            params={'extension': 'ext'},
+            user=self.user
+        )
+        self.assertStatus(resp, 403)
+
+    def testConfigureCeleryTaskUnknownExtension(self):
+        folder = self.model('folder').createFolder(
+            self.privateFolder, name='tasks', creator=self.admin)
+
+        resp = self.request(
+            '/folder/%s/item_task_celery' % folder['_id'],
+            method='POST',
+            params={'extension': 'not a valid extension'},
+            user=self.admin
+        )
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Unknown girder_worker extension')
+
+    def testExecuteCeleryTask(self):
+        item = self.createCeleryItemTask(self.admin).json
+
+        @app.task
+        @argument('n', types.Number)
+        def echo_number(n):
+            return n
+
+        app.tasks['task'] = echo_number
+        inputs = json.dumps({'n': {'mode': 'inline', 'data': 10.0}})
+        return_val = mock.Mock()
+        return_val.job = {}
+
+        with mock.patch.object(echo_number, 'delay', return_value=return_val) as delay:
+            resp = self.request(
+                '/item_task/%s/execution' % item['_id'],
+                method='POST',
+                params={'inputs': inputs},
+                user=self.admin
+            )
+            self.assertStatusOk(resp)
+            delay.assert_called_with(n=10.0)
