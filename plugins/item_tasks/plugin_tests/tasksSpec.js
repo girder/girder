@@ -286,7 +286,7 @@ describe('Navigate to the new JSON task', function () {
 describe('Run task on item from item view', function () {
     it('navigate to collections', function () {
         runs(function () {
-            $('ul.g-global-nav .g-nav-link[g-target="collections"]').click();
+            $('.g-global-nav .g-nav-link[g-target="collections"]').click();
         });
 
         waitsFor(function () {
