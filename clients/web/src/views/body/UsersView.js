@@ -34,7 +34,7 @@ var UsersView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         this.collection = new UserCollection();
-        var promiseArray = [];
+        const promiseArray = [];
         promiseArray.push(this.collection.fetch());
 
         this.paginateWidget = new PaginateWidget({
@@ -60,11 +60,11 @@ var UsersView = View.extend({
         }).on('g:resultClicked', this._gotoUser, this);
 
         if (getCurrentUser() && getCurrentUser().get('admin')) {
-            var userCountpromise = UserCollection.getUsersCount()
-                .done((resp) => {
-                    this.usersCount = resp;
+            const userCountPromise = UserCollection.getTotalCount()
+                .done((count) => {
+                    this.usersCount = count;
                 });
-            promiseArray.push(userCountpromise);
+            promiseArray.push(userCountPromise);
         }
         this.register = settings.dialog === 'register' && getCurrentUser() &&
                         getCurrentUser().get('admin');

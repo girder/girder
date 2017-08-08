@@ -10,7 +10,7 @@ var UserCollection = Collection.extend({
     sortField: 'lastName',
     secondarySortField: 'firstName'
 }, {
-    getUsersCount: function () {
+    getTotalCount: function () {
         return restRequest({
             path: 'user/details'
         })
