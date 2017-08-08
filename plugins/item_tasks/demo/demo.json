@@ -197,6 +197,13 @@
                 "description": "Choose a directory and name for an output item",
                 "type": "new-file",
                 "target": "filepath"
+            },
+            {
+                "id": "folder_output",
+                "name": "Folder output",
+                "description": "Choose a directory and name for an output folder",
+                "type": "new-folder",
+                "target": "filepath"
             }
         ]
     }
