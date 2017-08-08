@@ -3,8 +3,6 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 import events from 'girder/events';
-import BrowserWidget from 'girder/views/widgets/BrowserWidget';
-import { getCurrentUser } from 'girder/auth';
 
 import ItemSelectorWidget from './ItemSelectorWidget';
 
@@ -21,8 +19,6 @@ import 'bootstrap-colorpicker/dist/js/bootstrap-colorpicker';
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
 import 'bootstrap-slider/dist/bootstrap-slider';
 import 'bootstrap-slider/dist/css/bootstrap-slider.css';
-
-var lastParent = null;
 
 var ControlWidget = View.extend({
     events: {

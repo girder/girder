@@ -58,7 +58,7 @@ var ItemSelectorWidget = View.extend({
             input: input,
             showPreview: preview,
             validate: _.bind(this._validateSelection, this)
-        }).render();
+        });
         this._browserWidget.once('g:saved', (model, inputValue) => {
             this._browserWidget.$el.modal('hide');
             this.model.set({
@@ -67,7 +67,7 @@ var ItemSelectorWidget = View.extend({
             });
             this.trigger('g:saved');
         });
-
+        this._browserWidget.render();
         return this;
     },
 
@@ -76,18 +76,16 @@ var ItemSelectorWidget = View.extend({
             case 'file':
                 return restRequest({path: '/item/' + item.id + '/files', data: {limit: 1}})
                     .then((resp) => {
-                        if (!resp.length) {
-                            console.log('file');
-                            throw 'Please select an item with at least one file.';
+                        if (resp.length !== 1) {
+                            throw 'Please select an item with exactly one file.';
                         }
                         return undefined;
                     }, () => {
                         throw 'There was an error listing files for the selected item.';
                     });
-                break;
             case 'image':
                 var image = item.get('largeImage');
-                var isImage = $.Deferred()
+                var isImage = $.Deferred();
                 if (!image) {
                     isImage.reject('Please select a "large_image" item.');
                 } else {

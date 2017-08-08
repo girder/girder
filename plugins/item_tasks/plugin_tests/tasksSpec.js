@@ -107,6 +107,93 @@ describe('Run the item task', function () {
         $('.g-inputs-container .g-select-file-button').click();
         girderTest.waitForDialog();
 
+        // Create two items, one with 1 file and one with 2 files.
+
+        // Get collection ID
+        var folderId;
+        runs(function() {
+            var getCollectionIdReq = girder.rest.restRequest({
+                path: 'collection',
+                type: 'get',
+                data: {
+                    text: 'task test'
+                }
+            }).then(function (req) {
+                collectionId = req[0]._id;
+                return girder.rest.restRequest({
+                    path: 'folder',
+                    type: 'get',
+                    data: {
+                        parentType: 'collection',
+                        parentId: collectionId,
+                        text: 'tasks'
+                    }
+                });
+            }).then(function (req) {
+                folderId = req[0]._id;
+            });
+        })
+
+        waitsFor(function() {
+            return folderId;
+        }, 'get request on collection');
+
+        // Create 2 items
+        var oneFileItemPostReq;
+        var twoFileItemPostReq;
+        var item2Id;
+        runs(function () {
+            girder.rest.restRequest({
+                path: 'file',
+                type: 'POST',
+                data: {
+                    parentType: 'folder',
+                    parentId: folderId,
+                    name: 'oneFileItem',
+                    size: 0
+                }
+            }).done(function (req) {
+                oneFileItemPostReq = req;
+            });
+            girder.rest.restRequest({
+                path: 'item',
+                type: 'POST',
+                data: {
+                    folderId: folderId,
+                    name: 'twoFileItem'
+                }
+            }).then(function (req) {
+                item2Id = req._id;
+                return girder.rest.restRequest({
+                    path: 'file',
+                    type: 'POST',
+                    data: {
+                        parentType: 'item',
+                        parentId: item2Id,
+                        name: 'file1',
+                        size: 0
+                    }
+                });
+            }).then(function (req) {
+                return girder.rest.restRequest({
+                    path: 'file',
+                    type: 'POST',
+                    data: {
+                        parentType: 'item',
+                        parentId: item2Id,
+                        name: 'file2',
+                        size: 0
+                    }
+                });
+            }).then(function (req) {
+                twoFileItemPostReq = req;
+            });
+        });
+
+        waitsFor(function () {
+            return oneFileItemPostReq && twoFileItemPostReq;
+        }, 'rest requests');
+
         waitsFor(function () {
             return $('.modal-dialog #g-root-selector:visible').length > 0;
         }, 'input root selector to appear');
@@ -122,7 +209,8 @@ describe('Run the item task', function () {
         }, 'hierarchy widget to update for input root');
 
         runs(function () {
-            $('.modal-dialog .g-folder-list-link:first').click();
+            // Select "tasks" folder
+            $('.modal-dialog .g-folder-list-link:contains("tasks")').click();
         });
 
         waitsFor(function () {
@@ -131,11 +219,30 @@ describe('Run the item task', function () {
 
         runs(function () {
             expect($('.modal-dialog #g-selected-model').val()).toBe('');
-            $('.modal-dialog .g-item-list-link').click();
+            $('.modal-dialog .g-item-list-link:contains("PET")').click();
             expect($('.modal-dialog #g-selected-model').val()).not.toBe('');
             $('.modal-dialog .g-submit-button').click();
         });
 
+        waitsFor(function () {
+            return $('.g-validation-failed-message').text();
+        }, 'selected item to be validated');
+
+        runs(function (){
+            expect($('.g-validation-failed-message').text()).toBe('Please select an item with exactly one file.');
+            $('.modal-dialog .g-item-list-link:contains("twoFileItem")').click();
+            $('.modal-dialog .g-submit-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-validation-failed-message').text();
+        }, 'selected item to be validated');
+
+        runs(function (){
+            expect($('.g-validation-failed-message').text()).toBe('Please select an item with exactly one file.');
+            $('.modal-dialog .g-item-list-link:contains("oneFileItem")').click();
+            $('.modal-dialog .g-submit-button').click();
+        });
         girderTest.waitForLoad();
     });
 
@@ -148,11 +255,11 @@ describe('Run the item task', function () {
         }, 'hierarchy widget to appear');
 
         runs(function () {
-            // we should be in the parent folder selected before
-            expect($('.modal-dialog a.g-breadcrumb-link').length).toBe(1);
+            // // we should be in the parent folder selected before
+            // expect($('.modal-dialog a.g-breadcrumb-link').length).toBe(1);
 
             // go back to the user's main path
-            $('.modal-dialog a.g-breadcrumb-link:first').click();
+            // $('.modal-dialog a.g-breadcrumb-link:first').click();
 
             // Select our user from the root selector
             var id = $('.modal-dialog #g-root-selector option:not([disabled]):first').attr('value');

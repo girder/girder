@@ -600,7 +600,7 @@ describe('control widget view', function () {
         expect(w.model.value()).toBe(300);
     });
 
-    it('file', function () {
+    it('item', function () {
         var item = new girder.models.ItemModel({id: 'model id', name: 'b'});
 
         var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
@@ -608,6 +608,38 @@ describe('control widget view', function () {
         spyOn(browserWidgetProto, 'render').andCallFake(function () {
             // trigger a response from the mocked widget
             this.trigger('g:saved', item);
+        });
+
+        var w = new itemTasks.views.ControlWidget({
+            parentView: parentView,
+            el: $el,
+            model: new itemTasks.models.WidgetModel({
+                type: 'item',
+                title: 'Title',
+                id: 'item-widget'
+            })
+        });
+
+        w.render();
+        checkWidgetCommon(w);
+
+        w.$('.g-select-file-button').click();
+
+        // make sure the browser widget was initialized
+        expect(browserWidgetProto.initialize).toHaveBeenCalled();
+        expect(browserWidgetProto.render).toHaveBeenCalled();
+
+        expect(w.model.get('value')).toBe(item);
+    });
+
+    it('file', function () {
+        var file = new girder.models.FileModel({id: 'file id', name: 'd'});
+
+        var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
+        spyOn(browserWidgetProto, 'initialize');
+        spyOn(browserWidgetProto, 'render').andCallFake(function () {
+            // trigger a response from the mocked widget
+            this.trigger('g:saved', file);
         });
 
         var w = new itemTasks.views.ControlWidget({
@@ -627,8 +659,9 @@ describe('control widget view', function () {
 
         // make sure the browser widget was initialized
         expect(browserWidgetProto.initialize).toHaveBeenCalled();
+        expect(browserWidgetProto.render).toHaveBeenCalled();
 
-        expect(w.model.get('value')).toBe(item);
+        expect(w.model.get('value')).toBe(file);
     });
 
     it('new-file', function () {
