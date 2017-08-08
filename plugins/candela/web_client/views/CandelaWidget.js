@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'underscore';
 
 import View from 'girder/views/View';
@@ -52,7 +51,7 @@ var CandelaWidget = View.extend({
         this.$el.html(CandelaWidgetTemplate({
             components: this._components
         }));
-        this.parametersView.setElement($('.g-item-candela-parameters'));
+        this.parametersView.setElement(this.$('.g-item-candela-parameters'));
         parser(this.item.downloadUrl(), (error, data) => {
             if (error) {
                 events.trigger('g:alert', {

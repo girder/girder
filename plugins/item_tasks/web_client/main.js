@@ -89,14 +89,12 @@ wrap(JobDetailsWidget, 'render', function (render) {
     render.call(this);
 
     if (this.job.has('itemTaskBindings')) {
-        var el = $('<div/>', {class: 'g-item-tasks-job-info-container'}).insertBefore(
-            this.$('.g-job-info-key[property="log"]')
-        );
-
         new JobDetailsInfoView({
-            el,
+            className: 'g-item-tasks-job-info-container',
             parentView: this,
             model: this.job
-        }).render();
+        })
+            .render()
+            .$el.insertBefore(this.$('.g-job-info-key[property="log"]'));
     }
 });
