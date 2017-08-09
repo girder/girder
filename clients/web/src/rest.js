@@ -84,19 +84,27 @@ setStaticRoot(
  * any time the server might throw an exception from validating user input,
  * e.g. logging in, registering, or generally filling out forms.
  *
- * @param path The resource path, e.g. "user/login"
- * @param data The form parameter object.
- * @param [type='GET'] The HTTP method to invoke.
- * @param [girderToken] An alternative auth token to use for this request.
+ * @param {Object} opts Options for the request, most of which will be passed through to `$.ajax`.
+ * @param {string} opts.url The resource path, e.g. "user/login"
+ * @param {string} [opts.method='GET'] The HTTP method to invoke.
+ * @param [opts.data] The query string or form parameter object.
+ * @param {?Function} [opts.error] An error callback, as documented in
+ *        `$.ajax <http://api.jquery.com/jQuery.ajax/>`_, or null. If not provided, this will have a
+ *        default behavior of triggering a `'g:alert'` global event, with details of the error.
+ * @param {string} [opts.dataType='json'] The type of data expected back from the server.
+ * @param {string} [opts.girderToken] An alternative auth token to use for this request.
+ * @returns {$.Promise} A jqXHR promise, which resolves and rejects
+ *          `as documented by $.ajax<http://api.jquery.com/jQuery.ajax/#jqXHR>`_.
  */
 function __restRequest(opts) {
     opts = opts || {};
-    var defaults = {
+    const defaults = {
+        method: 'GET',
         dataType: 'json',
-        type: 'GET',
+        girderToken: getCurrentToken() || cookie.find('girderToken'),
 
-        error: function (error, status) {
-            var info;
+        error: (error, status) => {
+            let info;
             if (error.status === 401) {
                 events.trigger('g:loginUi');
                 info = {
@@ -116,7 +124,7 @@ function __restRequest(opts) {
                 /* We expected this abort, so do nothing. */
                 return;
             } else if (error.status === 500 && error.responseJSON &&
-                       error.responseJSON.type === 'girder') {
+                error.responseJSON.type === 'girder') {
                 info = {
                     text: error.responseJSON.message,
                     type: 'warning',
@@ -146,22 +154,27 @@ function __restRequest(opts) {
         }
     };
 
-    if (opts.path.substring(0, 1) !== '/') {
-        opts.path = '/' + opts.path;
-    }
-    opts.url = getApiRoot() + opts.path;
+    // Overwrite defaults with passed opts, but do not mutate opts
+    const args = _.extend({}, defaults, opts);
 
-    opts = _.extend(defaults, opts);
-
-    var token = opts.girderToken ||
-                getCurrentToken() ||
-                cookie.find('girderToken');
-    if (token) {
-        opts.headers = opts.headers || {};
-        opts.headers['Girder-Token'] = token;
+    if (args.path) {
+        console.warn('restRequest\'s "path" option is deprecated, use "url" instead');
+        args.url = args.url || args.path;
+        delete args.path;
     }
 
-    let jqXHR = Backbone.ajax(opts);
+    if (!args.url) {
+        throw new Error('restRequest requires a "url" argument');
+    }
+    args.url = `${getApiRoot()}${args.url.substring(0, 1) === '/' ? '' : '/'}${args.url}`;
+
+    if (args.girderToken) {
+        args.headers = args.headers || {};
+        args.headers['Girder-Token'] = args.girderToken;
+        delete args.girderToken;
+    }
+
+    let jqXHR = Backbone.$.ajax(args);
     jqXHR.error = function () {
         console.warn('Use of restRequest.error is deprecated, use restRequest.fail instead.');
         return jqXHR.fail.apply(jqXHR, arguments);
@@ -190,6 +203,9 @@ function mockRestRequest(mock) {
 function unmockRestRequest(mock) {
     restRequestMock = null;
 }
+
+// All requests from Backbone should go through restRequest, adding authentication and the API root.
+Backbone.ajax = restRequest;
 
 /* Pending rest requests are listed in this pool so that they can be aborted or
 * checked if still processing. */
