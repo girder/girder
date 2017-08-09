@@ -213,6 +213,9 @@ var WidgetModel = Backbone.Model.extend({
         } else if (model.type === 'new-file') {
             return this._validateGirderModel(model.value) ||
                 (model.fileName ? undefined : 'No file name provided');
+        } else if (model.type === 'new-folder') {
+            return this._validateGirderModel(model.value) ||
+                (model.fileName ? undefined : 'No folder name provided');
         } else if (this.isGirderModel()) {
             return this._validateGirderModel(model.value);
         }
