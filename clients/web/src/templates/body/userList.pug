@@ -1,5 +1,10 @@
 .g-user-list-header
   .g-user-pagination
+  if getCurrentUser() && getCurrentUser().get('admin')
+    .g-user-count-container
+      i.icon-user
+      span.g-user-count
+        = getUsersCount
   .g-user-sort
   form.g-user-search-form.form-inline(role="form")
     .form-group.g-users-search-container
@@ -7,9 +12,6 @@
     button.g-user-create-button.btn.btn-sm.btn-default
       i.icon-plus-squared
       |  Create user
-    i.icon-user
-      span.badge
-        = getUsersCount
 
 each user in users
   .g-user-list-entry
