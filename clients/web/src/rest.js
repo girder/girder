@@ -91,7 +91,6 @@ setStaticRoot(
  * @param {?Function} [opts.error] An error callback, as documented in
  *        `$.ajax <http://api.jquery.com/jQuery.ajax/>`_, or null. If not provided, this will have a
  *        default behavior of triggering a `'g:alert'` global event, with details of the error.
- * @param {string} [opts.dataType='json'] The type of data expected back from the server.
  * @param {string} [opts.girderToken] An alternative auth token to use for this request.
  * @returns {$.Promise} A jqXHR promise, which resolves and rejects
  *          `as documented by $.ajax<http://api.jquery.com/jQuery.ajax/#jqXHR>`_.
@@ -100,7 +99,6 @@ function __restRequest(opts) {
     opts = opts || {};
     const defaults = {
         method: 'GET',
-        dataType: 'json',
         girderToken: getCurrentToken() || cookie.find('girderToken'),
 
         error: (error, status) => {

@@ -232,7 +232,6 @@ var FileModel = Model.extend({
         restRequest({
             url: `file/chunk?offset=${this.startByte}&uploadId=${uploadId}`,
             method: 'POST',
-            dataType: 'json',
             data: blob,
             contentType: false,
             processData: false,
