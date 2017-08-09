@@ -95,7 +95,7 @@ setStaticRoot(
  * @returns {$.Promise} A jqXHR promise, which resolves and rejects
  *          `as documented by $.ajax<http://api.jquery.com/jQuery.ajax/#jqXHR>`_.
  */
-function __restRequest(opts) {
+let restRequest = function (opts) {
     opts = opts || {};
     const defaults = {
         method: 'GET',
@@ -178,28 +178,20 @@ function __restRequest(opts) {
         return jqXHR.fail.apply(jqXHR, arguments);
     };
     return jqXHR;
-}
+};
 
+const _originalRestRequest = restRequest;
 /**
- * Make a request to the REST API.
- *
- * Provide an API to mock this single conduit connecting the client to the server.
- * While this can be done with various testing framework, choosing the right one depends on the
- * way our code is bundled (spyOn() vs. rewire(), for example). Let's provide a specific API
- * to mock restRequest nonetheless, since it is likely to be mocked the most.
+ * @deprecated: will be removed in v3
  */
-var restRequestMock = null;
-function restRequest() {
-    if (restRequestMock) {
-        return restRequestMock.apply(this, arguments);
-    }
-    return __restRequest.apply(this, arguments);
-}
 function mockRestRequest(mock) {
-    restRequestMock = mock;
+    restRequest = mock;
 }
-function unmockRestRequest(mock) {
-    restRequestMock = null;
+/**
+ * @deprecated: will be removed in v3
+ */
+function unmockRestRequest() {
+    restRequest = _originalRestRequest;
 }
 
 // All requests from Backbone should go through restRequest, adding authentication and the API root.
