@@ -671,3 +671,115 @@ describe('Navigate to the new Slicer CLI task', function () {
         });
     });
 });
+
+describe('Test celery tasks', function () {
+    describe('setup', function () {
+        it('go to collection page', function () {
+            $('ul.g-global-nav .g-nav-link[g-target="collections"]').click();
+        });
+
+        it('create collection and folder', girderTest.createCollection('celery task test', '', 'tasks'));
+
+        it('navigate to the folder', function () {
+            runs(function () {
+                $('.g-folder-list-link').click();
+            });
+
+            waitsFor(function () {
+                return $('.g-empty-parent-message:visible').length > 0;
+            }, 'folder empty list to appear');
+        });
+
+        it('create a new item', function () {
+            runs(function () {
+                $('.g-folder-list-link').click();
+            });
+
+            waitsFor(function () {
+                return $('.g-empty-parent-message:visible').length > 0;
+            }, 'folder empty list to appear');
+
+            runs(function () {
+                $('.g-folder-actions-button').click();
+                $('.g-folder-actions-menu .g-create-item').click();
+            });
+
+            girderTest.waitForDialog();
+
+            runs(function () {
+                $('.modal-dialog #g-name').val('task placeholder');
+                $('.modal-dialog .g-save-item').click();
+            });
+
+            waitsFor(function () {
+                return $('.g-item-list-link').text().indexOf('task placeholder') !== -1;
+            }, 'item to appear in the list');
+        });
+
+        it('navigate to the item', function () {
+            $('.g-item-list-link:first').click();
+
+            waitsFor(function () {
+                return $('.g-item-files .g-file-list').length > 0;
+            }, 'item view to render');
+        });
+    });
+
+    describe('test configuring a celery task item', function () {
+        it('open the task configuration dialog', function () {
+            $('.g-item-actions-button').click();
+            $('.g-item-actions-menu .g-configure-item-task').click();
+
+            girderTest.waitForDialog();
+
+            runs(function () {
+                $('.modal-dialog .g-configure-celery-task-tab > a').click();
+            });
+        });
+
+        it('run the item task configuration', function () {
+            $('.modal-dialog .g-celery-import-path').val(
+                'girder.web_test_setup0.echo_number'
+            );
+            $('.modal-dialog button.btn.btn-success[type="submit"]').click();
+
+            girderTest.waitForLoad();
+            runs(function () {
+                expect($('.g-item-name').text()).toBe('echo_number');
+            });
+        });
+    });
+
+    describe('test configuring a celery task folder', function () {
+        it('navigate to the tasks folder', function () {
+            $('.g-item-breadcrumb-link:contains("tasks")').click();
+            girderTest.waitForLoad();
+        });
+
+        it('open the configuration dialog', function () {
+            $('.g-folder-actions-button').click();
+            $('.g-folder-actions-menu .g-create-docker-tasks').click();
+            girderTest.waitForDialog();
+
+            runs(function () {
+                $('.modal-dialog .g-configure-celery-task-tab > a').click();
+            });
+        });
+
+        it('check dropdown items', function () {
+            expect($('.g-worker-extension option[value="test_echo"]').length).toBe(1);
+            expect($('.g-worker-extension option[value="test_echo_string"]').length).toBe(1);
+            expect($('.g-worker-extension option[value="test_echo_number"]').length).toBe(1);
+        });
+
+        it('configure the folder', function () {
+            $('.g-worker-extension').val('test_echo');
+            $('.modal-dialog button.btn.btn-success[type="submit"]').click();
+            girderTest.waitForLoad();
+            runs(function () {
+                expect($('.g-item-list-link:contains("echo_string")').length).toBe(1);
+                expect($('.g-item-list-link:contains("echo_number")').length).toBe(1);
+            });
+        });
+    });
+});

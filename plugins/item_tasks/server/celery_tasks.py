@@ -96,7 +96,7 @@ def describeItemTaskFromFunction(self, func, item, importName, setName=True, set
         item['name'] = description['name']
 
     if setDescription:
-        item['description'] = description['description']
+        item['description'] = description.get('description', '')
 
     if setName or setDescription:
         self.model('item').save(item)

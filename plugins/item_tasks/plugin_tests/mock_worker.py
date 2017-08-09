@@ -1,9 +1,48 @@
 # Mocks job scheduling in order to simulate interaction with the worker.
 # This is loaded during the web_client_item_tasks.tasks test.
 import girder
+import mock
 import os
 import requests
 import json
+
+from girder_worker import entrypoint
+from girder_worker.app import app
+from girder_worker.describe import argument, types
+
+
+# register a few girder_worker extensions for testing the ui
+@app.task
+@argument('n', types.Number)
+def echo_number(n):
+    return n
+
+
+@app.task
+@argument('s', types.String)
+def echo_string(s):
+    return s
+
+
+def mock_celery_task(task):
+    return_val = mock.Mock()
+    return_val.job = {}
+    mock.patch.object(task, 'delay', return_val=return_val)
+
+
+mock_celery_task(echo_number)
+mock_celery_task(echo_string)
+
+entrypoint.register_extension('test_echo', {
+    '%s.echo_number' % __name__: echo_number,
+    '%s.echo_string' % __name__: echo_string
+})
+entrypoint.register_extension('test_echo_number', {
+    '%s.echo_number' % __name__: echo_number
+})
+entrypoint.register_extension('test_echo_string', {
+    '%s.echo_string' % __name__: echo_string
+})
 
 
 def markAsFinished(job):
