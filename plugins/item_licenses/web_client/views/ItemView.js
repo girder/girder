@@ -32,7 +32,7 @@ wrap(ItemView, 'render', function (render) {
  */
 wrap(ItemView, 'editItem', function (editItem) {
     restRequest({
-        type: 'GET',
+        method: 'GET',
         url: 'item/licenses'
     }).done(_.bind(function (resp) {
         this.licenses = resp;

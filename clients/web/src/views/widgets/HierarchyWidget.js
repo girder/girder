@@ -603,7 +603,7 @@ var HierarchyWidget = View.extend({
                  * method. */
                 restRequest({
                     url: 'resource',
-                    type: 'POST',
+                    method: 'POST',
                     data: {resources: resources, progress: true},
                     headers: {'X-HTTP-Method-Override': 'DELETE'}
                 }).done(() => {
@@ -848,7 +848,7 @@ var HierarchyWidget = View.extend({
         var nItems = (pickedResources.resources.item || []).length;
         restRequest({
             url: 'resource/move',
-            type: 'PUT',
+            method: 'PUT',
             data: {
                 resources: resources,
                 parentType: this.parentModel.resourceName,
@@ -871,7 +871,7 @@ var HierarchyWidget = View.extend({
         var nItems = (pickedResources.resources.item || []).length;
         restRequest({
             url: 'resource/copy',
-            type: 'POST',
+            method: 'POST',
             data: {
                 resources: resources,
                 parentType: this.parentModel.resourceName,

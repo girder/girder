@@ -316,7 +316,7 @@ var JobListWidget = View.extend({
                 })
                 .map((jobId) => restRequest({
                     url: `job/${jobId}/cancel`,
-                    type: 'PUT',
+                    method: 'PUT',
                     error: null
                 }))
         ).done((results) => {

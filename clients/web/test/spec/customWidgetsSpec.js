@@ -431,7 +431,7 @@ describe('Test access widget with non-standard options', function () {
             // Register a couple access flags in the system
             xhr = girder.rest.restRequest({
                 url: 'webclienttest/access_flag',
-                type: 'POST',
+                method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify({
                     openFlag: {

@@ -93,7 +93,7 @@ var UserModel = Model.extend({
                 old: oldPassword,
                 new: newPassword
             },
-            type: 'PUT',
+            method: 'PUT',
             error: null
         }).done(_.bind(function () {
             this.trigger('g:passwordChanged');
@@ -111,7 +111,7 @@ var UserModel = Model.extend({
             data: {
                 password: newPassword
             },
-            type: 'PUT',
+            method: 'PUT',
             error: null
         }).done(_.bind(function () {
             this.trigger('g:passwordChanged');

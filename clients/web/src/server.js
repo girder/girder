@@ -35,7 +35,7 @@ function _retryUntilFulfilled(func, delay) {
 function restartServer() {
     // Query the server first
     return restRequest({
-        type: 'GET',
+        method: 'GET',
         url: 'system/version'
     })
         // Restart the server
@@ -68,7 +68,7 @@ function restartServer() {
  */
 restartServer._checkServer = function (lastStartDate) {
     return restRequest({
-        type: 'GET',
+        method: 'GET',
         url: 'system/version',
         error: null
     })
@@ -84,7 +84,7 @@ restartServer._checkServer = function (lastStartDate) {
 /* Having these as object properties facilitates testing */
 restartServer._callSystemRestart = function () {
     return restRequest({
-        type: 'PUT',
+        method: 'PUT',
         url: 'system/restart'
     });
 };
@@ -109,7 +109,7 @@ function rebuildWebClient() {
 rebuildWebClient._rebuildWebClient = function () {
     return restRequest({
         url: 'system/web_build',
-        type: 'POST',
+        method: 'POST',
         data: { progress: true }
     });
 };

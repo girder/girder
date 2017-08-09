@@ -67,11 +67,11 @@ var PluginsView = View.extend({
             const promises = [
                 restRequest({
                     url: 'system/plugins',
-                    type: 'GET'
+                    method: 'GET'
                 }).then((resp) => resp),
                 restRequest({
                     url: 'system/configuration',
-                    type: 'GET',
+                    method: 'GET',
                     data: {
                         section: 'server',
                         key: 'cherrypy_server'
@@ -209,7 +209,7 @@ var PluginsView = View.extend({
 
         restRequest({
             url: 'system/plugins',
-            type: 'PUT',
+            method: 'PUT',
             data: {
                 plugins: JSON.stringify(this.enabled)
             }

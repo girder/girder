@@ -13,7 +13,7 @@ function _setProgress(test, duration, resourceId, resourceName) {
      */
     girder.rest.restRequest({
         url: 'webclienttest/progress',
-        type: 'GET',
+        method: 'GET',
         data: {
             test: test,
             duration: duration,
@@ -132,7 +132,7 @@ describe('Test widgets that are not covered elsewhere', function () {
             girder.utilities.eventStream.settings._heartbeatTimeout = 5000;
             girder.rest.restRequest({
                 url: 'webclienttest/progress/stop',
-                type: 'PUT',
+                method: 'PUT',
                 async: false
             });
         });

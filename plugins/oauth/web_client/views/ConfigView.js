@@ -27,7 +27,7 @@ var ConfigView = View.extend({
 
         'change .g-ignore-registration-policy': function (event) {
             restRequest({
-                type: 'PUT',
+                method: 'PUT',
                 url: 'system/setting',
                 data: {
                     key: 'oauth.ignore_registration_policy',
@@ -105,7 +105,7 @@ var ConfigView = View.extend({
         }, this);
 
         restRequest({
-            type: 'GET',
+            method: 'GET',
             url: 'system/setting',
             data: {
                 list: JSON.stringify(settingKeys)
@@ -162,7 +162,7 @@ var ConfigView = View.extend({
         });
 
         restRequest({
-            type: 'PUT',
+            method: 'PUT',
             url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)

@@ -107,7 +107,7 @@ var CurationDialog = View.extend({
 
     _save: function (successText, data) {
         restRequest({
-            type: 'PUT',
+            method: 'PUT',
             url: `folder/${this.folder.id}/curation`,
             data: data
         }).done(_.bind(function (resp) {

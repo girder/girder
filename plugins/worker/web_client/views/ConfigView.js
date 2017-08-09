@@ -28,7 +28,7 @@ var ConfigView = View.extend({
 
     initialize: function () {
         restRequest({
-            type: 'GET',
+            method: 'GET',
             url: 'system/setting',
             data: {
                 list: JSON.stringify([
@@ -63,7 +63,7 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
+            method: 'PUT',
             url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)

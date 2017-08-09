@@ -22,7 +22,7 @@ var ConfigView = View.extend({
 
     initialize: function () {
         restRequest({
-            type: 'GET',
+            method: 'GET',
             url: 'system/setting',
             data: {
                 list: JSON.stringify(['gravatar.default_image'])
@@ -51,7 +51,7 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
+            method: 'PUT',
             url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)

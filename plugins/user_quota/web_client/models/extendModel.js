@@ -13,7 +13,7 @@ function extendModel(Model, modelType) {
     Model.prototype.updateQuotaPolicy = function () {
         restRequest({
             url: `${this.resourceName}/${this.id}/quota`,
-            type: 'PUT',
+            method: 'PUT',
             error: null,
             data: {
                 policy: JSON.stringify(this.get('quotaPolicy'))
@@ -40,7 +40,7 @@ function extendModel(Model, modelType) {
         if (!this.get('quotaPolicy') || force) {
             restRequest({
                 url: `${this.resourceName}/${this.id}/quota`,
-                type: 'GET'
+                method: 'GET'
             }).done(_.bind(function (resp) {
                 this.set('quotaPolicy', resp.quota);
                 this.fetch();
@@ -86,7 +86,7 @@ function extendModel(Model, modelType) {
                 (!this.get('defaultQuota') || force)) {
             restRequest({
                 url: 'system/setting',
-                type: 'GET',
+                method: 'GET',
                 data: {
                     key: 'user_quota.default_' + modelType + '_quota'
                 }

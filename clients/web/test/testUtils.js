@@ -763,7 +763,7 @@ girderTest.binaryUpload = function (path) {
 
         girder.rest.restRequest({
             url: 'webclienttest/file',
-            type: 'POST',
+            method: 'POST',
             data: {
                 path: path,
                 folderId: folderId

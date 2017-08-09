@@ -15,7 +15,7 @@ events.on('g:appload.after', function () {
     /*eslint-enable */
 
     restRequest({
-        type: 'GET',
+        method: 'GET',
         url: 'google_analytics/id'
     }).done(_.bind(function (resp) {
         if (resp.google_analytics_id) {

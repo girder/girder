@@ -66,7 +66,7 @@ var Model = Backbone.Model.extend({
 
         return restRequest({
             url: path,
-            type: type,
+            method: type,
             data: data,
             error: null // don't do default error behavior (validation may fail)
         }).done(_.bind(function (resp) {
@@ -153,7 +153,7 @@ var Model = Backbone.Model.extend({
 
         var args = {
             url: `${this.altUrl || this.resourceName}/${this.id}`,
-            type: 'DELETE'
+            method: 'DELETE'
         };
 
         opts = opts || {};

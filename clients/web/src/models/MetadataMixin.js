@@ -10,7 +10,7 @@ var MetadataMixin = {
                 ((this.altUrl || this.resourceName) + `/${this.id}/metadata?allowNull=true`),
             contentType: 'application/json',
             data: JSON.stringify(metadata),
-            type: 'PUT',
+            method: 'PUT',
             error: null
         }).done(_.bind(function (resp) {
             this.set(opts.field || 'meta', resp.meta);
@@ -48,7 +48,7 @@ var MetadataMixin = {
                 ((this.altUrl || this.resourceName) + `/${this.id}/metadata`),
             contentType: 'application/json',
             data: JSON.stringify(key),
-            type: 'DELETE',
+            method: 'DELETE',
             error: null
         }).done((resp) => {
             this.set(opts.field || 'meta', resp.meta);

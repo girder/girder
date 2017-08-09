@@ -65,7 +65,7 @@ prototype.execute = function () {
 
                 restRequest({
                     url: 'file/completion',
-                    type: 'POST',
+                    method: 'POST',
                     data: {
                         uploadId: this.params.upload._id
                     },
@@ -115,7 +115,7 @@ prototype.resume = function () {
     // to re-generate the initial request with a new timestamp.
     restRequest({
         url: 'file/offset',
-        type: 'GET',
+        method: 'GET',
         data: {
             uploadId: this.params.upload._id
         },
@@ -182,7 +182,7 @@ prototype._sendNextChunk = function () {
     // Get the authorized request from Girder
     restRequest({
         url: 'file/chunk',
-        type: 'POST',
+        method: 'POST',
         data: {
             offset: 0,
             chunk: JSON.stringify({
@@ -245,7 +245,7 @@ prototype._sendNextChunk = function () {
 prototype._finalizeMultiChunkUpload = function () {
     restRequest({
         url: 'file/completion',
-        type: 'POST',
+        method: 'POST',
         data: {
             uploadId: this.params.upload._id
         },

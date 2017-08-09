@@ -43,7 +43,7 @@ var ConfigView = View.extend({
 
             restRequest({
                 url: 'system/ldap_server/status',
-                type: 'GET',
+                method: 'GET',
                 data: {
                     uri,
                     bindName,
@@ -67,7 +67,7 @@ var ConfigView = View.extend({
 
     initialize: function () {
         restRequest({
-            type: 'GET',
+            method: 'GET',
             url: 'system/setting',
             data: {
                 key: 'ldap.servers'
@@ -108,7 +108,7 @@ var ConfigView = View.extend({
         this.$('.g-validation-failed-message').empty();
 
         restRequest({
-            type: 'PUT',
+            method: 'PUT',
             url: 'system/setting',
             data: {
                 key: 'ldap.servers',

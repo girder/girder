@@ -46,7 +46,7 @@ var SystemConfigurationView = View.extend({
             }, this);
 
             restRequest({
-                type: 'PUT',
+                method: 'PUT',
                 url: 'system/setting',
                 data: {
                     list: JSON.stringify(settings)
@@ -95,7 +95,7 @@ var SystemConfigurationView = View.extend({
         this.settingsKeys = keys;
         restRequest({
             url: 'system/setting',
-            type: 'GET',
+            method: 'GET',
             data: {
                 list: JSON.stringify(keys),
                 default: 'none'
@@ -104,7 +104,7 @@ var SystemConfigurationView = View.extend({
             this.settings = resp;
             restRequest({
                 url: 'system/setting',
-                type: 'GET',
+                method: 'GET',
                 data: {
                     list: JSON.stringify(keys),
                     default: 'default'

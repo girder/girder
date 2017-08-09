@@ -7,7 +7,7 @@ import { wrap } from 'girder/utilities/PluginUtils';
 
 wrap(FrontPageView, 'render', function (render) {
     restRequest({
-        type: 'GET',
+        method: 'GET',
         url: 'homepage/markdown'
     }).done(_.bind(function (resp) {
         this.$el.html(renderMarkdown(resp['homepage.markdown']));

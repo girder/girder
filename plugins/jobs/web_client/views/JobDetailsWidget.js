@@ -133,7 +133,7 @@ var JobDetailsWidget = View.extend({
         const jobId = this.job.id;
         restRequest({
             url: `job/${jobId}/cancel`,
-            type: 'PUT',
+            method: 'PUT',
             error: null
         }).done(_.bind(function () {
             events.trigger('g:alert', {

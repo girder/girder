@@ -193,7 +193,7 @@ describe('Test item creation, editing, and deletion', function () {
             /* Create a link file */
             girder.rest.restRequest({
                 url: 'file',
-                type: 'POST',
+                method: 'POST',
                 data: {
                     parentType: 'item',
                     parentId: id,

@@ -44,7 +44,7 @@ var LoginView = View.extend({
             this.$('.g-validation-failed-message').html('');
             restRequest({
                 url: 'user/verification',
-                type: 'POST',
+                method: 'POST',
                 data: {login: this.$('#g-login').val()},
                 error: null
             }).done(_.bind(function (resp) {
