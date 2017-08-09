@@ -950,7 +950,7 @@ describe('Test FileModel static upload functions', function () {
 
         runs(function () {
             file = girder.rest.restRequest({
-                url: '/item/' + item.get('_id') + '/files',
+                url: '/item/' + item.id + '/files',
                 type: 'GET',
                 async: false
             });

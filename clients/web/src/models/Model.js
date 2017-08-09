@@ -93,7 +93,7 @@ var Model = Backbone.Model.extend({
 
         opts = opts || {};
         var restOpts = {
-            url: (this.altUrl || this.resourceName) + '/' + this.get('_id')
+            url: `${this.altUrl || this.resourceName}/${this.id}`
         };
         if (opts.extraPath) {
             restOpts.url += '/' + opts.extraPath;
@@ -152,7 +152,7 @@ var Model = Backbone.Model.extend({
         }
 
         var args = {
-            url: (this.altUrl || this.resourceName) + '/' + this.get('_id'),
+            url: `${this.altUrl || this.resourceName}/${this.id}`,
             type: 'DELETE'
         };
 

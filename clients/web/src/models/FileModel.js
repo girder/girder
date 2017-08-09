@@ -35,7 +35,7 @@ var FileModel = Model.extend({
         data = this._wrapData(data);
 
         this.upload(null, data, {
-            url: 'file/' + this.get('_id') + '/contents',
+            url: `file/${this.id}/contents`,
             type: 'PUT',
             data: {
                 size: data.size

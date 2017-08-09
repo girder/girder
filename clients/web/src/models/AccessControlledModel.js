@@ -25,7 +25,7 @@ var AccessControlledModel = Model.extend({
         }
 
         return restRequest({
-            url: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
+            url: `${this.altUrl || this.resourceName}/${this.id}/access`,
             type: 'PUT',
             data: _.extend({
                 access: JSON.stringify(this.get('access')),
@@ -53,7 +53,7 @@ var AccessControlledModel = Model.extend({
 
         if (!this.get('access') || force) {
             return restRequest({
-                url: (this.altUrl || this.resourceName) + '/' + this.get('_id') + '/access',
+                url: `${this.altUrl || this.resourceName}/${this.id}/access`,
                 type: 'GET'
             }).done(_.bind(function (resp) {
                 if (resp.access) {

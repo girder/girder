@@ -62,7 +62,7 @@ var CurationDialog = View.extend({
         this.folder = this.parentView.parentModel;
         this.curation = {timeline: []};
         restRequest({
-            url: 'folder/' + this.folder.get('_id') + '/curation'
+            url: `folder/${this.folder.id}/curation`
         }).done(_.bind(function (resp) {
             this.curation = resp;
             this.render();
@@ -108,7 +108,7 @@ var CurationDialog = View.extend({
     _save: function (successText, data) {
         restRequest({
             type: 'PUT',
-            url: 'folder/' + this.folder.get('_id') + '/curation',
+            url: `folder/${this.folder.id}/curation`,
             data: data
         }).done(_.bind(function (resp) {
             this.curation = resp;

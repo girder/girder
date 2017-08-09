@@ -8,7 +8,7 @@ import { restRequest } from 'girder/rest';
  */
 AssetstoreModel.hdfsImport = function (params) {
     restRequest({
-        url: 'hdfs_assetstore/' + this.get('_id') + '/import',
+        url: `hdfs_assetstore/${this.id}/import`,
         type: 'PUT',
         data: params,
         error: null
