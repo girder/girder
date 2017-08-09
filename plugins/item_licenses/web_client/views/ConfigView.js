@@ -25,7 +25,7 @@ var ConfigView = View.extend({
 
             restRequest({
                 type: 'GET',
-                path: 'item/licenses',
+                url: 'item/licenses',
                 data: {
                     'default': true
                 }
@@ -39,7 +39,7 @@ var ConfigView = View.extend({
     initialize: function () {
         restRequest({
             type: 'GET',
-            path: 'system/setting',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(['item_licenses.licenses'])
             }
@@ -66,7 +66,7 @@ var ConfigView = View.extend({
     _saveSettings: function (settings) {
         restRequest({
             type: 'PUT',
-            path: 'system/setting',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)
             },

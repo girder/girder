@@ -66,11 +66,11 @@ var PluginsView = View.extend({
         } else {
             const promises = [
                 restRequest({
-                    path: 'system/plugins',
+                    url: 'system/plugins',
                     type: 'GET'
                 }).then((resp) => resp),
                 restRequest({
-                    path: 'system/configuration',
+                    url: 'system/configuration',
                     type: 'GET',
                     data: {
                         section: 'server',
@@ -208,7 +208,7 @@ var PluginsView = View.extend({
         this.enabled = _.intersection(this.enabled, _.keys(this.allPlugins));
 
         restRequest({
-            path: 'system/plugins',
+            url: 'system/plugins',
             type: 'PUT',
             data: {
                 plugins: JSON.stringify(this.enabled)

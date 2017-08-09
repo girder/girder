@@ -181,7 +181,7 @@ const TaskRunView = View.extend({
         });
 
         restRequest({
-            path: `item_task/${this.model.id}/execution`,
+            url: `item_task/${this.model.id}/execution`,
             type: 'POST',
             data: {
                 inputs: JSON.stringify(inputs),

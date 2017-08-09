@@ -64,7 +64,7 @@ prototype.execute = function () {
                 });
 
                 restRequest({
-                    path: 'file/completion',
+                    url: 'file/completion',
                     type: 'POST',
                     data: {
                         uploadId: this.params.upload._id
@@ -114,7 +114,7 @@ prototype.resume = function () {
     // If this is a single-chunk upload, we have to use the offset method
     // to re-generate the initial request with a new timestamp.
     restRequest({
-        path: 'file/offset',
+        url: 'file/offset',
         type: 'GET',
         data: {
             uploadId: this.params.upload._id
@@ -181,7 +181,7 @@ prototype._sendNextChunk = function () {
 
     // Get the authorized request from Girder
     restRequest({
-        path: 'file/chunk',
+        url: 'file/chunk',
         type: 'POST',
         data: {
             offset: 0,
@@ -244,7 +244,7 @@ prototype._sendNextChunk = function () {
  */
 prototype._finalizeMultiChunkUpload = function () {
     restRequest({
-        path: 'file/completion',
+        url: 'file/completion',
         type: 'POST',
         data: {
             uploadId: this.params.upload._id

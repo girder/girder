@@ -20,7 +20,7 @@ var AssetstoreModel = Model.extend({
 
     import: function (params) {
         return restRequest({
-            path: 'assetstore/' + this.get('_id') + '/import',
+            url: 'assetstore/' + this.get('_id') + '/import',
             type: 'POST',
             data: params,
             error: null

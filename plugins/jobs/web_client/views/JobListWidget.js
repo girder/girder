@@ -144,7 +144,7 @@ var JobListWidget = View.extend({
         });
 
         restRequest({
-            path: this.showAllJobs ? 'job/typeandstatus/all' : 'job/typeandstatus',
+            url: this.showAllJobs ? 'job/typeandstatus/all' : 'job/typeandstatus',
             method: 'GET'
         }).done((result) => {
             var typesFilter = result.types.reduce((obj, type) => {
@@ -315,7 +315,7 @@ var JobListWidget = View.extend({
                     return JobStatus.isCancelable(jobModel);
                 })
                 .map((jobId) => restRequest({
-                    path: `job/${jobId}/cancel`,
+                    url: `job/${jobId}/cancel`,
                     type: 'PUT',
                     error: null
                 }))

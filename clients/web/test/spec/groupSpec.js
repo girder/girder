@@ -79,7 +79,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
         }
         runs(function () {
             girder.rest.restRequest({
-                path: 'system/setting',
+                url: 'system/setting',
                 type: 'PUT',
                 data: {
                     key: 'core.add_to_group_policy',

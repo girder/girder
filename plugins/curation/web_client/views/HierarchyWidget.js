@@ -24,7 +24,7 @@ wrap(HierarchyWidget, 'render', function (render) {
             _addCurationButton();
         } else {
             restRequest({
-                path: 'folder/' + this.parentModel.get('_id') + '/curation'
+                url: 'folder/' + this.parentModel.get('_id') + '/curation'
             }).done(_.bind(function (resp) {
                 if (resp.enabled) {
                     _addCurationButton();

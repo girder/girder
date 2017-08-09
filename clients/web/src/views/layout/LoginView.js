@@ -43,7 +43,7 @@ var LoginView = View.extend({
         'click .g-send-verification-email': function () {
             this.$('.g-validation-failed-message').html('');
             restRequest({
-                path: 'user/verification',
+                url: 'user/verification',
                 type: 'POST',
                 data: {login: this.$('#g-login').val()},
                 error: null

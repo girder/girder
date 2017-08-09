@@ -762,7 +762,7 @@ girderTest.binaryUpload = function (path) {
         oldLen = $('.g-item-list-entry').length;
 
         girder.rest.restRequest({
-            path: 'webclienttest/file',
+            url: 'webclienttest/file',
             type: 'POST',
             data: {
                 path: path,

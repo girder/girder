@@ -12,7 +12,7 @@ function extendModel(Model, modelType) {
      */
     Model.prototype.updateQuotaPolicy = function () {
         restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/quota',
+            url: this.resourceName + '/' + this.get('_id') + '/quota',
             type: 'PUT',
             error: null,
             data: {
@@ -39,7 +39,7 @@ function extendModel(Model, modelType) {
         });
         if (!this.get('quotaPolicy') || force) {
             restRequest({
-                path: this.resourceName + '/' + this.get('_id') + '/quota',
+                url: this.resourceName + '/' + this.get('_id') + '/quota',
                 type: 'GET'
             }).done(_.bind(function (resp) {
                 this.set('quotaPolicy', resp.quota);
@@ -85,7 +85,7 @@ function extendModel(Model, modelType) {
         if (getCurrentUser().get('admin') &&
                 (!this.get('defaultQuota') || force)) {
             restRequest({
-                path: 'system/setting',
+                url: 'system/setting',
                 type: 'GET',
                 data: {
                     key: 'user_quota.default_' + modelType + '_quota'

@@ -20,7 +20,7 @@ function _setMinimumChunkSize(minSize) {
     if (!minUploadSize) {
         minUploadSize = {UPLOAD_CHUNK_SIZE: girder.rest.getUploadChunkSize()};
         var resp = girder.rest.restRequest({
-            path: 'system/setting',
+            url: 'system/setting',
             type: 'GET',
             data: {key: 'core.upload_minimum_chunk_size'},
             async: false
@@ -36,7 +36,7 @@ function _setMinimumChunkSize(minSize) {
     }
     girder.rest.setUploadChunkSize(uploadChunkSize);
     girder.rest.restRequest({
-        path: 'system/setting',
+        url: 'system/setting',
         type: 'PUT',
         data: {key: 'core.upload_minimum_chunk_size', value: settingSize},
         async: false
@@ -889,7 +889,7 @@ describe('Test FileModel static upload functions', function () {
             var item;
 
             item = girder.rest.restRequest({
-                path: '/item',
+                url: '/item',
                 type: 'GET',
                 data: {
                     folderId: folder.get('_id'),
@@ -901,7 +901,7 @@ describe('Test FileModel static upload functions', function () {
             item = item && item.responseJSON && item.responseJSON[0];
 
             file = girder.rest.restRequest({
-                path: '/item/' + item._id + '/files',
+                url: '/item/' + item._id + '/files',
                 type: 'GET',
                 async: false
             });
@@ -910,7 +910,7 @@ describe('Test FileModel static upload functions', function () {
 
             if (file) {
                 var resp = girder.rest.restRequest({
-                    path: '/file/' + file._id + '/download',
+                    url: '/file/' + file._id + '/download',
                     type: 'GET',
                     dataType: 'text'
                 }).done(function () {
@@ -950,7 +950,7 @@ describe('Test FileModel static upload functions', function () {
 
         runs(function () {
             file = girder.rest.restRequest({
-                path: '/item/' + item.get('_id') + '/files',
+                url: '/item/' + item.get('_id') + '/files',
                 type: 'GET',
                 async: false
             });
@@ -959,7 +959,7 @@ describe('Test FileModel static upload functions', function () {
 
             if (file) {
                 var resp = girder.rest.restRequest({
-                    path: '/file/' + file._id + '/download',
+                    url: '/file/' + file._id + '/download',
                     type: 'GET',
                     dataType: 'text'
                 }).done(function () {

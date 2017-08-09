@@ -8,7 +8,7 @@ var AuthorizeUploadView = View.extend({
     events: {
         'click .g-create-authorized-upload': function () {
             restRequest({
-                path: 'authorized_upload',
+                url: 'authorized_upload',
                 type: 'POST',
                 data: {
                     folderId: this.folder.id,

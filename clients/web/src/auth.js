@@ -64,7 +64,7 @@ function setCurrentToken(token) {
 function fetchCurrentUser() {
     return restRequest({
         method: 'GET',
-        path: '/user/me'
+        url: '/user/me'
     });
 }
 
@@ -87,7 +87,7 @@ function login(username, password, cors) {
 
     return restRequest({
         method: 'GET',
-        path: '/user/authentication',
+        url: '/user/authentication',
         headers: {
             'Girder-Authorization': auth
         },
@@ -116,7 +116,7 @@ function login(username, password, cors) {
 function logout() {
     return restRequest({
         method: 'DELETE',
-        path: '/user/authentication'
+        url: '/user/authentication'
     }).done(function () {
         setCurrentUser(null);
         setCurrentToken(null);

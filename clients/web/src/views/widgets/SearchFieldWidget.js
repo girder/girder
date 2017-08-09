@@ -195,7 +195,7 @@ var SearchFieldWidget = View.extend({
         this.pending = null;
 
         restRequest({
-            path: 'resource/search',
+            url: 'resource/search',
             data: {
                 q: q,
                 mode: this.currentMode,

@@ -42,7 +42,7 @@ var ConfigView = View.extend({
             const password = this.$(`#g-ldap-server-${idx}-password`).val();
 
             restRequest({
-                path: 'system/ldap_server/status',
+                url: 'system/ldap_server/status',
                 type: 'GET',
                 data: {
                     uri,
@@ -68,7 +68,7 @@ var ConfigView = View.extend({
     initialize: function () {
         restRequest({
             type: 'GET',
-            path: 'system/setting',
+            url: 'system/setting',
             data: {
                 key: 'ldap.servers'
             }
@@ -109,7 +109,7 @@ var ConfigView = View.extend({
 
         restRequest({
             type: 'PUT',
-            path: 'system/setting',
+            url: 'system/setting',
             data: {
                 key: 'ldap.servers',
                 value: JSON.stringify(servers)

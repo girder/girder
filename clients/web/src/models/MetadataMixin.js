@@ -6,7 +6,7 @@ var MetadataMixin = {
     _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
         opts = opts || {};
         restRequest({
-            path: opts.path ||
+            url: opts.path ||
                 ((this.altUrl || this.resourceName) + `/${this.id}/metadata?allowNull=true`),
             contentType: 'application/json',
             data: JSON.stringify(metadata),
@@ -44,7 +44,7 @@ var MetadataMixin = {
             key = [key];
         }
         restRequest({
-            path: opts.path ||
+            url: opts.path ||
                 ((this.altUrl || this.resourceName) + `/${this.id}/metadata`),
             contentType: 'application/json',
             data: JSON.stringify(key),

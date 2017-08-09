@@ -10,7 +10,7 @@ import { wrap } from 'girder/utilities/PluginUtils';
 wrap(HierarchyWidget, 'uploadDialog', function (uploadDialog) {
     restRequest({
         type: 'GET',
-        path: 'item/licenses'
+        url: 'item/licenses'
     }).done(_.bind(function (resp) {
         this.licenses = resp;
         uploadDialog.call(this);
@@ -25,7 +25,7 @@ wrap(HierarchyWidget, 'uploadDialog', function (uploadDialog) {
 wrap(HierarchyWidget, 'createItemDialog', function (createItemDialog) {
     restRequest({
         type: 'GET',
-        path: 'item/licenses'
+        url: 'item/licenses'
     }).done(_.bind(function (resp) {
         this.licenses = resp;
         createItemDialog.call(this);

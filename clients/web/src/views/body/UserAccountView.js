@@ -168,7 +168,7 @@ var UserAccountView = View.extend({
 
     temporaryPassword: function (id, token) {
         restRequest({
-            path: 'user/password/temporary/' + id,
+            url: 'user/password/temporary/' + id,
             type: 'GET',
             data: {token: token},
             error: null

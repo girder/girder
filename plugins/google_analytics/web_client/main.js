@@ -16,7 +16,7 @@ events.on('g:appload.after', function () {
 
     restRequest({
         type: 'GET',
-        path: 'google_analytics/id'
+        url: 'google_analytics/id'
     }).done(_.bind(function (resp) {
         if (resp.google_analytics_id) {
             ga('create', resp.google_analytics_id, 'none');

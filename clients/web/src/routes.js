@@ -149,7 +149,7 @@ router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
 });
 router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
     restRequest({
-        path: 'user/password/temporary/' + id,
+        url: 'user/password/temporary/' + id,
         type: 'GET',
         data: {token: token},
         error: null
@@ -171,7 +171,7 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
 
 router.route('useraccount/:id/verification/:token', 'accountVerify', function (id, token) {
     restRequest({
-        path: 'user/' + id + '/verification',
+        url: 'user/' + id + '/verification',
         type: 'PUT',
         data: {token: token},
         error: null

@@ -36,7 +36,7 @@ function restartServer() {
     // Query the server first
     return restRequest({
         type: 'GET',
-        path: 'system/version'
+        url: 'system/version'
     })
         // Restart the server
         .then((resp) => {
@@ -69,7 +69,7 @@ function restartServer() {
 restartServer._checkServer = function (lastStartDate) {
     return restRequest({
         type: 'GET',
-        path: 'system/version',
+        url: 'system/version',
         error: null
     })
     .then((resp) => {
@@ -85,7 +85,7 @@ restartServer._checkServer = function (lastStartDate) {
 restartServer._callSystemRestart = function () {
     return restRequest({
         type: 'PUT',
-        path: 'system/restart'
+        url: 'system/restart'
     });
 };
 
@@ -108,7 +108,7 @@ function rebuildWebClient() {
 
 rebuildWebClient._rebuildWebClient = function () {
     return restRequest({
-        path: 'system/web_build',
+        url: 'system/web_build',
         type: 'POST',
         data: { progress: true }
     });

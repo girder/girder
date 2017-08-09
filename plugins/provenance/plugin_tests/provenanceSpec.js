@@ -36,7 +36,7 @@ describe('test the provenance plugin', function () {
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/setting',
+                url: 'system/setting',
                 type: 'GET',
                 data: {key: 'provenance.resources'},
                 async: false

@@ -662,7 +662,7 @@ describe('Test the plugins page', function () {
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/plugins',
+                url: 'system/plugins',
                 type: 'GET',
                 async: false
             });

@@ -19,7 +19,7 @@ var GroupModel = AccessControlledModel.extend({
     sendInvitation: function (userId, accessType, request, params) {
         params = params || {};
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/invitation',
+            url: this.resourceName + '/' + this.get('_id') + '/invitation',
             data: _.extend({
                 userId: userId,
                 level: accessType
@@ -48,7 +48,7 @@ var GroupModel = AccessControlledModel.extend({
      */
     joinGroup: function () {
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/member',
+            url: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
             getCurrentUser().addToGroup(this.get('_id'));
@@ -69,7 +69,7 @@ var GroupModel = AccessControlledModel.extend({
      */
     requestInvitation: function () {
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/member',
+            url: this.resourceName + '/' + this.get('_id') + '/member',
             type: 'POST'
         }).done(_.bind(function (resp) {
             this.set(resp);
@@ -94,7 +94,7 @@ var GroupModel = AccessControlledModel.extend({
             role = 'admin';
         }
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/' + role,
+            url: this.resourceName + '/' + this.get('_id') + '/' + role,
             data: {
                 userId: user.get('_id')
             },
@@ -122,7 +122,7 @@ var GroupModel = AccessControlledModel.extend({
             role = 'admin';
         }
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/' + role +
+            url: this.resourceName + '/' + this.get('_id') + '/' + role +
                 '?userId=' + userId,
             type: 'DELETE'
         }).done(_.bind(function (resp) {
@@ -142,7 +142,7 @@ var GroupModel = AccessControlledModel.extend({
      */
     removeMember: function (userId) {
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') +
+            url: this.resourceName + '/' + this.get('_id') +
                   '/member?userId=' + userId,
             type: 'DELETE'
         }).done(_.bind(function (resp) {

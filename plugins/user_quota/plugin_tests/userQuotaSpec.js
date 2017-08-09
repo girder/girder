@@ -215,7 +215,7 @@ describe('test the user quota plugin', function () {
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/setting',
+                url: 'system/setting',
                 type: 'GET',
                 data: {key: 'user_quota.default_user_quota'},
                 async: false
@@ -374,7 +374,7 @@ describe('test the user quota plugin', function () {
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/setting',
+                url: 'system/setting',
                 type: 'GET',
                 data: {key: 'user_quota.default_collection_quota'},
                 async: false
