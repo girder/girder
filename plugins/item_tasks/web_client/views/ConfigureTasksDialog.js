@@ -57,12 +57,17 @@ var ConfigureTasksDialog = View.extend({
             currentImage: currentImage,
             currentTaskName: currentTaskName,
             currentSlicerCliArgs
-        })).girderModal(this);
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('input:first').focus();
+        });
 
         // Clear validation error message when switching tabs
         this.$('a[data-toggle="tab"]')
             .on('hide.bs.tab', (e) => {
                 this.$('.g-validation-failed-message').text('');
+            })
+            .on('shown.bs.tab', (e) => {
+                this.$($(e.currentTarget).attr('href') + ' input:first').focus();
             });
 
         return this;
