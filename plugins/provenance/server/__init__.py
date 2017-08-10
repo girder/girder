@@ -17,26 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-import six
-
 from girder import events
-from girder.models.model_base import ValidationException
-from girder.utility import setting_utilities
+
 from . import constants
 from .resource import ResourceExt
-
-
-@setting_utilities.validator(constants.PluginSettings.PROVENANCE_RESOURCES)
-def validateProvenanceResources(doc):
-    val = doc['value']
-
-    if val:
-        if not isinstance(val, six.string_types):
-            raise ValidationException('Provenance Resources must be a string.', 'value')
-        # accept comma or space separated lists
-        resources = val.replace(',', ' ').strip().split()
-        # reformat to a comma-separated list
-        doc['value'] = ','.join(resources)
 
 
 def load(info):

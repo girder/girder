@@ -17,6 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
+from girder.models.model_base import ValidationException
+from girder.utility import setting_utilities
+
+
 # The path that will be mounted in docker containers for data IO
 DOCKER_DATA_VOLUME = '/mnt/girder_worker/data'
 
@@ -29,3 +33,32 @@ class PluginSettings(object):
     BROKER = 'worker.broker'
     BACKEND = 'worker.backend'
     API_URL = 'worker.api_url'
+
+
+@setting_utilities.default({
+    PluginSettings.BROKER,
+    PluginSettings.BACKEND
+})
+def _defaultBrokerBackend():
+    return 'amqp://guest@localhost/'
+
+
+@setting_utilities.validator({
+    PluginSettings.BROKER,
+    PluginSettings.BACKEND
+})
+def _validateBrokerBackend(doc):
+    """
+    Handle plugin-specific system settings. Right now we don't do any
+    validation for the broker or backend URL settings, but we do reinitialize
+    the celery app object with the new values.
+    """
+    global _celeryapp
+    _celeryapp = None
+
+
+@setting_utilities.validator(PluginSettings.API_URL)
+def _validateApiUrl(doc):
+    val = doc['value']
+    if val and not val.startswith('http://') and not val.startswith('https://'):
+        raise ValidationException('API URL must start with http:// or https://.', 'value')

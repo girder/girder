@@ -17,7 +17,16 @@
 #  limitations under the License.
 ###############################################################################
 
+from girder.models.model_base import ValidationException
+from girder.utility import setting_utilities
+
 
 # Constants representing the setting keys for this plugin
 class PluginSettings:
     GOOGLE_ANALYTICS_TRACKING_ID = 'google_analytics.tracking_id'
+
+
+@setting_utilities.validator(PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID)
+def validateTrackingId(doc):
+    if not doc['value']:
+        raise ValidationException('Google Analytics Tracking ID must not be empty.', 'value')

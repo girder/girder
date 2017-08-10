@@ -22,9 +22,7 @@ from celery.result import AsyncResult
 
 from girder import events, logger
 from girder.constants import AccessType
-from girder.models.model_base import ValidationException
 from girder.plugins.jobs.constants import JobStatus
-from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
 from .constants import PluginSettings
@@ -108,8 +106,8 @@ def getCeleryApp():
 
     if _celeryapp is None:
         settings = ModelImporter.model('setting')
-        backend = settings.get(PluginSettings.BACKEND) or 'amqp://guest@localhost/'
-        broker = settings.get(PluginSettings.BROKER) or 'amqp://guest@localhost/'
+        backend = settings.get(PluginSettings.BACKEND)
+        broker = settings.get(PluginSettings.BROKER)
         _celeryapp = celery.Celery('girder_worker', backend=backend, broker=broker)
     return _celeryapp
 
@@ -170,29 +168,6 @@ def cancel(event):
             # Send the revoke request.
             asyncResult = AsyncResult(celeryTaskId, app=getCeleryApp())
             asyncResult.revoke()
-
-
-@setting_utilities.validator({
-    PluginSettings.BROKER,
-    PluginSettings.BACKEND
-})
-def validateSettings(doc):
-    """
-    Handle plugin-specific system settings. Right now we don't do any
-    validation for the broker or backend URL settings, but we do reinitialize
-    the celery app object with the new values.
-    """
-    global _celeryapp
-    _celeryapp = None
-
-
-@setting_utilities.validator({
-    PluginSettings.API_URL
-})
-def validateApiUrl(doc):
-    val = doc['value']
-    if val and not val.startswith('http://') and not val.startswith('https://'):
-        raise ValidationException('API URL must start with http:// or https://.', 'value')
 
 
 def validateJobStatus(event):
