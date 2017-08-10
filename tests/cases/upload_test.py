@@ -224,8 +224,10 @@ class UploadTestCase(base.TestCase):
         can delete partial uploads that are older than a certain date.
         """
         completeUpload = self._uploadFile('complete_upload')
-        # test uploading large files
-        self._uploadFile('complete_upload', largeFile=True)
+        # test uploading large files and one-chunk files
+        self._uploadFile('complete_large_upload', largeFile=True)
+        self._uploadFileWithInitialChunk('one_chunk_upload', oneChunk=True)
+        # test partial uploads
         partialUploads = []
         for largeFile in (False, True):
             for partial in range(3):
@@ -233,11 +235,11 @@ class UploadTestCase(base.TestCase):
                     'partial_upload_%d_%s' % (partial, str(largeFile)),
                     partial, largeFile))
         # The admin user should see all of the partial uploads, but not the
-        # complete upload
+        # complete uploads
         resp = self.request(path='/system/uploads', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), len(partialUploads))
-        # We shouldn't be able to delete the completed upload
+        # We shouldn't be able to delete a completed upload
         resp = self.request(
             path='/system/uploads', method='DELETE', user=self.admin,
             params={'uploadId': completeUpload['_id']})
