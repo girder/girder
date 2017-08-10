@@ -139,7 +139,7 @@ class ItemTask(Resource):
 
         return transformed
 
-    def _transformOutputs(self, outputs, token, job):
+    def _transformOutputs(self, outputs, token, job, task):
         """
         Validates and sanitizes the output bindings. If they are Girder outputs, adds
         the necessary token info. If the token does not allow DATA_WRITE, or if the user
@@ -150,7 +150,7 @@ class ItemTask(Resource):
             if v['mode'] == 'girder':
                 ensureTokenScopes(token, TokenScope.DATA_WRITE)
                 ptype = v.get('parent_type', 'folder')
-                if ptype not in {'item', 'folder'}:
+                if not self._validateOutputParentType(k, ptype, task['outputs']):
                     raise ValidationException('Invalid output parent type: %s.' % ptype)
 
                 parent = self.model(ptype).load(
@@ -167,6 +167,29 @@ class ItemTask(Resource):
                 raise ValidationException('Invalid output mode: %s.' % v['mode'])
 
         return transformed
+
+    def _validateOutputParentType(self, outputId, parentType, outputSpec):
+        """
+        Checks if the output parent type is compatible with the output type.
+        """
+
+        # Find the corresponding output specification for the given outputID
+        output = None
+        for out in outputSpec:
+            if outputId == out['id']:
+                output = out
+
+        # If a corresponding output is found, check if its parent type is valid
+        if output:
+            if output['type'] == 'new-file' and parentType not in {'item', 'folder'}:
+                return False
+            elif output['type'] == 'new-folder' and\
+                    parentType not in {'folder', 'user', 'collection'}:
+                return False
+            else:
+                return True
+        else:
+            return False
 
     @access.user(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
     @filtermodel(model='job', plugin='jobs')
@@ -211,7 +234,7 @@ class ItemTask(Resource):
             'kwargs': {
                 'task': task,
                 'inputs': self._transformInputs(inputs, token),
-                'outputs': self._transformOutputs(outputs, token, job),
+                'outputs': self._transformOutputs(outputs, token, job, task),
                 'validate': False,
                 'auto_convert': False,
                 'cleanup': True
