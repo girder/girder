@@ -67,7 +67,7 @@ const TaskRunView = View.extend({
                 name: match.fileName || match.id
             });
             spec.fileName = match.fileName || match.id;
-        } else if (match.mode === 'girder' && _.contains(['folder', 'collection', 'user'], match.parentType)) {
+        } else if (match.mode === 'girder' && _.contains(['folder', 'collection', 'user'], match.parent_type)) {
             spec.value = new FolderModel({
                 _id: match.parent_id,
                 _modelType: 'folder'
