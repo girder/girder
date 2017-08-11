@@ -325,7 +325,7 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
         this.editor = new JSONEditor(this.$el.find('.g-json-editor')[0], {
             mode: 'tree',
             modes: ['code', 'tree'],
-            error: function () {
+            onError: function () {
                 events.trigger('g:alert', {
                     text: 'The field contains invalid JSON and can not be viewed in Tree Mode.',
                     type: 'warning'
