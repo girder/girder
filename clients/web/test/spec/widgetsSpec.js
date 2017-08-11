@@ -12,8 +12,8 @@ function _setProgress(test, duration, resourceId, resourceName) {
      *     is associated with.
      */
     girder.rest.restRequest({
-        path: 'webclienttest/progress',
-        type: 'GET',
+        url: 'webclienttest/progress',
+        method: 'GET',
         data: {
             test: test,
             duration: duration,
@@ -131,8 +131,8 @@ describe('Test widgets that are not covered elsewhere', function () {
         runs(function () {
             girder.utilities.eventStream.settings._heartbeatTimeout = 5000;
             girder.rest.restRequest({
-                path: 'webclienttest/progress/stop',
-                type: 'PUT',
+                url: 'webclienttest/progress/stop',
+                method: 'PUT',
                 async: false
             });
         });

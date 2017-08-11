@@ -31,8 +31,8 @@ if (!FileInfoWidget.prototype.events) {
 }
 FileInfoWidget.prototype.events['click .g-hashsum-compute'] = function () {
     restRequest({
-        path: `file/${this.model.id}/hashsum`,
-        type: 'POST',
+        url: `file/${this.model.id}/hashsum`,
+        method: 'POST',
         data: {
             'progress': true
         }

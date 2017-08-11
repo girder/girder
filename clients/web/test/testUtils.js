@@ -762,8 +762,8 @@ girderTest.binaryUpload = function (path) {
         oldLen = $('.g-item-list-entry').length;
 
         girder.rest.restRequest({
-            path: 'webclienttest/file',
-            type: 'POST',
+            url: 'webclienttest/file',
+            method: 'POST',
             data: {
                 path: path,
                 folderId: folderId
@@ -1170,9 +1170,9 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     var MAX_AJAX_LOG_SIZE = 20;
     var logIndex = 0;
     var ajaxCalls = [];
-    var backboneAjax = Backbone.ajax;
+    var backboneAjax = Backbone.$.ajax;
 
-    Backbone.ajax = function () {
+    Backbone.$.ajax = function () {
         var opts = {}, record;
 
         if (arguments.length === 1) {
@@ -1192,7 +1192,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
         ajaxCalls[logIndex] = record;
         logIndex = (logIndex + 1) % MAX_AJAX_LOG_SIZE;
 
-        return backboneAjax(opts).done(
+        return backboneAjax.call(Backbone.$, opts).done(
             function (data, textStatus) {
                 record.status = textStatus;
                 // this data structure has circular references that cannot be serialized.

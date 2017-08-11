@@ -8,8 +8,8 @@ var AuthorizeUploadView = View.extend({
     events: {
         'click .g-create-authorized-upload': function () {
             restRequest({
-                path: 'authorized_upload',
-                type: 'POST',
+                url: 'authorized_upload',
+                method: 'POST',
                 data: {
                     folderId: this.folder.id,
                     duration: this.$('.g-num-days').val() || 30

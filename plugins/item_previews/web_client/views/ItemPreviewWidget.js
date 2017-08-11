@@ -76,8 +76,8 @@ var ItemPreviewWidget = View.extend({
 
             // Ajax request the JSON files to display them.
             restRequest({
-                path: 'item/' + id + '/download',
-                type: 'GET',
+                url: `item/${id}/download`,
+                method: 'GET',
                 error: null // don't do default error behavior (validation may fail)
             }).done((resp) => {
                 this.$('.json[data-id="' + id + '"]').text(JSON.stringify(resp, null, '\t'));

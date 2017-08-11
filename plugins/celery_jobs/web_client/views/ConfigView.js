@@ -29,8 +29,8 @@ var ConfigView = View.extend({
     },
     initialize: function () {
         restRequest({
-            type: 'GET',
-            path: 'system/setting',
+            method: 'GET',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify([
                     'celery_jobs.broker_url',
@@ -74,8 +74,8 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
-            path: 'system/setting',
+            method: 'PUT',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)
             },

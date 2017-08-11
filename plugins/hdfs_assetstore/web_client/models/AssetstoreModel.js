@@ -8,8 +8,8 @@ import { restRequest } from 'girder/rest';
  */
 AssetstoreModel.hdfsImport = function (params) {
     restRequest({
-        path: 'hdfs_assetstore/' + this.get('_id') + '/import',
-        type: 'PUT',
+        url: `hdfs_assetstore/${this.id}/import`,
+        method: 'PUT',
         data: params,
         error: null
     }).done(_.bind(function () {

@@ -23,7 +23,7 @@ var OAuthLoginView = View.extend({
         this.providers = null;
 
         restRequest({
-            path: 'oauth/provider',
+            url: 'oauth/provider',
             data: {
                 redirect: redirect,
                 list: true

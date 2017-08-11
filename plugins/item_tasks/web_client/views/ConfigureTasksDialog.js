@@ -96,8 +96,8 @@ var ConfigureTasksDialog = View.extend({
         }
 
         restRequest({
-            path: `${this.resourceName}/${this.model.id}/item_task_json_description`,
-            type: 'POST',
+            url: `${this.resourceName}/${this.model.id}/item_task_json_description`,
+            method: 'POST',
             data,
             error: null
         }).done((job) => {
@@ -130,8 +130,8 @@ var ConfigureTasksDialog = View.extend({
         }
 
         restRequest({
-            path: `${this.resourceName}/${this.model.id}/item_task_slicer_cli_description`,
-            type: 'POST',
+            url: `${this.resourceName}/${this.model.id}/item_task_slicer_cli_description`,
+            method: 'POST',
             data,
             error: null
         }).done((job) => {

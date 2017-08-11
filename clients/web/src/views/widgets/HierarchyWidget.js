@@ -602,8 +602,8 @@ var HierarchyWidget = View.extend({
                  * can't get it to work under jasmine/phantom), so override the
                  * method. */
                 restRequest({
-                    path: 'resource',
-                    type: 'POST',
+                    url: 'resource',
+                    method: 'POST',
                     data: {resources: resources, progress: true},
                     headers: {'X-HTTP-Method-Override': 'DELETE'}
                 }).done(() => {
@@ -847,8 +847,8 @@ var HierarchyWidget = View.extend({
         var nFolders = (pickedResources.resources.folder || []).length;
         var nItems = (pickedResources.resources.item || []).length;
         restRequest({
-            path: 'resource/move',
-            type: 'PUT',
+            url: 'resource/move',
+            method: 'PUT',
             data: {
                 resources: resources,
                 parentType: this.parentModel.resourceName,
@@ -870,8 +870,8 @@ var HierarchyWidget = View.extend({
         var nFolders = (pickedResources.resources.folder || []).length;
         var nItems = (pickedResources.resources.item || []).length;
         restRequest({
-            path: 'resource/copy',
-            type: 'POST',
+            url: 'resource/copy',
+            method: 'POST',
             data: {
                 resources: resources,
                 parentType: this.parentModel.resourceName,

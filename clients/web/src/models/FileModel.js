@@ -35,8 +35,8 @@ var FileModel = Model.extend({
         data = this._wrapData(data);
 
         this.upload(null, data, {
-            path: 'file/' + this.get('_id') + '/contents',
-            type: 'PUT',
+            url: `file/${this.id}/contents`,
+            method: 'PUT',
             data: {
                 size: data.size
             }
@@ -100,8 +100,8 @@ var FileModel = Model.extend({
         this.resumeInfo = null;
         this.uploadHandler = null;
         _restParams = _restParams || {
-            path: 'file',
-            type: 'POST',
+            url: 'file',
+            method: 'POST',
             data: _.extend({
                 parentType: parentModel.resourceName,
                 parentId: parentModel.get('_id'),
@@ -183,8 +183,8 @@ var FileModel = Model.extend({
 
         // Request the actual offset we need to resume at
         restRequest({
-            path: 'file/offset',
-            type: 'GET',
+            url: 'file/offset',
+            method: 'GET',
             data: {
                 uploadId: this.resumeInfo.uploadId
             },
@@ -212,8 +212,8 @@ var FileModel = Model.extend({
             return;
         }
         restRequest({
-            path: 'system/uploads',
-            type: 'DELETE',
+            url: 'system/uploads',
+            method: 'DELETE',
             data: {
                 uploadId: this.resumeInfo.uploadId
             },
@@ -230,9 +230,8 @@ var FileModel = Model.extend({
         var blob = file[sliceFn](this.startByte, endByte);
 
         restRequest({
-            path: `file/chunk?offset=${this.startByte}&uploadId=${uploadId}`,
-            type: 'POST',
-            dataType: 'json',
+            url: `file/chunk?offset=${this.startByte}&uploadId=${uploadId}`,
+            method: 'POST',
             data: blob,
             contentType: false,
             processData: false,

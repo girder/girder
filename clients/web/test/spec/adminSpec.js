@@ -662,8 +662,8 @@ describe('Test the plugins page', function () {
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/plugins',
-                type: 'GET',
+                url: 'system/plugins',
+                method: 'GET',
                 async: false
             });
             return (resp && resp.responseJSON && resp.responseJSON.enabled &&

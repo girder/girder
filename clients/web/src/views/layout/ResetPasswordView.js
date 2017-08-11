@@ -18,11 +18,11 @@ var ResetPasswordView = View.extend({
         'submit #g-reset-password-form': function (e) {
             e.preventDefault();
             restRequest({
-                path: 'user/password/temporary',
+                url: 'user/password/temporary',
                 data: {
                     email: this.$('#g-email').val().trim()
                 },
-                type: 'PUT',
+                method: 'PUT',
                 error: null // don't do default error behavior
             }).done(_.bind(function () {
                 this.$el.modal('hide');

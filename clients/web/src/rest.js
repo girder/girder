@@ -75,28 +75,40 @@ setStaticRoot(
 );
 
 /**
- * Make a request to the REST API. Bind a "done" handler to the return
- * value that will be called when the response is successful. To bind a
- * custom error handler, bind a "fail" handler to the return promise,
- * which will be executed in addition to the normal behavior of logging
- * the error to the console. To override the default error handling
- * behavior, pass an "error" key in your opts object; this should be done
- * any time the server might throw an exception from validating user input,
- * e.g. logging in, registering, or generally filling out forms.
+ * Make a request to the REST API.
  *
- * @param path The resource path, e.g. "user/login"
- * @param data The form parameter object.
- * @param [type='GET'] The HTTP method to invoke.
- * @param [girderToken] An alternative auth token to use for this request.
+ * This is a wrapper around {@link http://api.jquery.com/jQuery.ajax/ $.ajax}, which also handles
+ * authentication and routing to the Girder API, and provides a default for error notification.
+ *
+ * Most users of this method should attach a "done" handler to the return value. In cases where the
+ * server is ordinarily expected to return a non-200 status (e.g. validating user input), the
+ * "error: null" argument should probably be provided, and errors should be processed via an
+ * attached "fail" handler.
+ *
+ * Before this function is called, the API root must be set (which typically happens automatically).
+ *
+ * @param {Object} opts Options for the request, most of which will be passed through to $.ajax.
+ * @param {string} opts.url The resource path, relative to the API root, without leading or trailing
+ *        slashes. e.g. "user/login"
+ * @param {string} [opts.method='GET'] The HTTP method to invoke.
+ * @param {string|Object} [opts.data] The query string or form parameter object.
+ * @param {?Function} [opts.error] An error callback, as documented in
+ *        {@link http://api.jquery.com/jQuery.ajax/ $.ajax}, or null. If not provided, this will
+ *        have a default behavior of triggering a 'g:alert' global event, with details of the
+ *        error, and logging the error to the console. It is recommended that you do not ever pass
+ *        a non-null callback function, and handle errors via promise rejection handlers instead.
+ * @param {string} [opts.girderToken] An alternative auth token to use for this request.
+ * @returns {$.Promise} A jqXHR promise, which resolves and rejects
+ *          {@link http://api.jquery.com/jQuery.ajax/#jqXHR as documented by $.ajax}.
  */
-function __restRequest(opts) {
+let restRequest = function (opts) {
     opts = opts || {};
-    var defaults = {
-        dataType: 'json',
-        type: 'GET',
+    const defaults = {
+        method: 'GET',
+        girderToken: getCurrentToken() || cookie.find('girderToken'),
 
-        error: function (error, status) {
-            var info;
+        error: (error, status) => {
+            let info;
             if (error.status === 401) {
                 events.trigger('g:loginUi');
                 info = {
@@ -116,7 +128,7 @@ function __restRequest(opts) {
                 /* We expected this abort, so do nothing. */
                 return;
             } else if (error.status === 500 && error.responseJSON &&
-                       error.responseJSON.type === 'girder') {
+                error.responseJSON.type === 'girder') {
                 info = {
                     text: error.responseJSON.message,
                     type: 'warning',
@@ -146,50 +158,50 @@ function __restRequest(opts) {
         }
     };
 
-    if (opts.path.substring(0, 1) !== '/') {
-        opts.path = '/' + opts.path;
-    }
-    opts.url = getApiRoot() + opts.path;
+    // Overwrite defaults with passed opts, but do not mutate opts
+    const args = _.extend({}, defaults, opts);
 
-    opts = _.extend(defaults, opts);
-
-    var token = opts.girderToken ||
-                getCurrentToken() ||
-                cookie.find('girderToken');
-    if (token) {
-        opts.headers = opts.headers || {};
-        opts.headers['Girder-Token'] = token;
+    if (args.path) {
+        console.warn('restRequest\'s "path" option is deprecated, use "url" instead');
+        args.url = args.url || args.path;
+        delete args.path;
     }
 
-    let jqXHR = Backbone.ajax(opts);
+    if (!args.url) {
+        throw new Error('restRequest requires a "url" argument');
+    }
+    args.url = `${getApiRoot()}${args.url.substring(0, 1) === '/' ? '' : '/'}${args.url}`;
+
+    if (args.girderToken) {
+        args.headers = args.headers || {};
+        args.headers['Girder-Token'] = args.girderToken;
+        delete args.girderToken;
+    }
+
+    let jqXHR = Backbone.$.ajax(args);
     jqXHR.error = function () {
         console.warn('Use of restRequest.error is deprecated, use restRequest.fail instead.');
         return jqXHR.fail.apply(jqXHR, arguments);
     };
     return jqXHR;
+};
+
+const _originalRestRequest = restRequest;
+/**
+ * @deprecated: will be removed in v3
+ */
+function mockRestRequest(mock) {
+    restRequest = mock;
+}
+/**
+ * @deprecated: will be removed in v3
+ */
+function unmockRestRequest() {
+    restRequest = _originalRestRequest;
 }
 
-/**
- * Make a request to the REST API.
- *
- * Provide an API to mock this single conduit connecting the client to the server.
- * While this can be done with various testing framework, choosing the right one depends on the
- * way our code is bundled (spyOn() vs. rewire(), for example). Let's provide a specific API
- * to mock restRequest nonetheless, since it is likely to be mocked the most.
- */
-var restRequestMock = null;
-function restRequest() {
-    if (restRequestMock) {
-        return restRequestMock.apply(this, arguments);
-    }
-    return __restRequest.apply(this, arguments);
-}
-function mockRestRequest(mock) {
-    restRequestMock = mock;
-}
-function unmockRestRequest(mock) {
-    restRequestMock = null;
-}
+// All requests from Backbone should go through restRequest, adding authentication and the API root.
+Backbone.ajax = restRequest;
 
 /* Pending rest requests are listed in this pool so that they can be aborted or
 * checked if still processing. */
