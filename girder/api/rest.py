@@ -179,7 +179,7 @@ def _cacheAuthToken(fun):
 
 
 @_cacheAuthToken
-def getCurrentToken(allowCookie=False):
+def getCurrentToken(allowCookie=None):
     """
     Returns the current valid token object that was passed via the token header
     or parameter, or None if no valid token was passed.
@@ -190,9 +190,13 @@ def getCurrentToken(allowCookie=False):
         This should only be used on read-only operations that will not make any
         changes to data on the server, and only in cases where the user agent
         behavior makes passing custom headers infeasible, such as downloading
-        data to disk in the browser.
+        data to disk in the browser. In the event that allowCookie is not explicitly
+        passed, it will default to False unless the access.cookie decorator is used.
     :type allowCookie: bool
     """
+    if allowCookie is None:
+        allowCookie = getattr(cherrypy.request, 'girderAllowCookie', False)
+
     tokenStr = None
     if 'token' in cherrypy.request.params:  # Token as a parameter
         tokenStr = cherrypy.request.params.get('token')
@@ -920,10 +924,8 @@ class Resource(ModelImporter):
                 forceCookie = False
             if cookieAuth:
                 if forceCookie or method in ('head', 'get'):
-                    # getCurrentToken will cache its output, so calling it
-                    # once with allowCookie will make the parameter
-                    # effectively permanent (for the request)
-                    getCurrentToken(allowCookie=True)
+                    # Allow cookies for the rest of the request
+                    setattr(cherrypy.request, 'girderAllowCookie', True)
 
         kwargs['params'] = params
         # Add before call for the API method. Listeners can return
