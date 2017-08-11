@@ -20,7 +20,6 @@
 from .. import base
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
 
-
 def setUpModule():
     base.startServer()
 
@@ -41,6 +40,9 @@ class WebRootTestCase(base.TestCase):
         body = self.getBody(resp)
         self.assertTrue('girder_app.min.js' in body)
         self.assertTrue('girder_lib.min.js' in body)
+
+        emailAddress = self.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
+        self.assertTrue('contactEmail: \'%s\'' %emailAddress in body)
 
     def testWebRootProperlyHandlesStaticRouteUrls(self):
         self.model('setting').set(SettingKey.ROUTE_TABLE, {

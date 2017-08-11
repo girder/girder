@@ -75,6 +75,7 @@ describe('Test the settings page', function () {
         expect($('#g-core-cookie-lifetime').val()).toBe('');
         expect($('#g-core-smtp-host').val()).toMatch(/^localhost:31/);
         expect($('#g-core-email-from-address').val()).toBe('');
+        expect($('#g-core-contact-email-address').val()).toBe('');
         expect($('#g-core-registration-policy').val()).toBe('open');
         expect($('#g-core-upload-minimum-chunk-size').val()).toBe('');
         expect(JSON.parse($('#g-core-collection-create-policy').val())).toEqual({
@@ -98,6 +99,13 @@ describe('Test the settings page', function () {
         waitsFor(function () {
             return $('#g-settings-error-message').text() === '';
         }, 'error message to be cleared');
+        runs(function () {
+            $('#g-core-contact-email-address').val('foo@foo.com');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-core-contact-email-address').val() === 'foo@foo.com';
+        }, 'contact email address to change');
     });
     it('Use search to update collection create policy', function () {
         runs(function () {
