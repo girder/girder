@@ -75,25 +75,31 @@ setStaticRoot(
 );
 
 /**
- * Make a request to the REST API. Bind a "done" handler to the return
- * value that will be called when the response is successful. To bind a
- * custom error handler, bind a "fail" handler to the return promise,
- * which will be executed in addition to the normal behavior of logging
- * the error to the console. To override the default error handling
- * behavior, pass an "error" key in your opts object; this should be done
- * any time the server might throw an exception from validating user input,
- * e.g. logging in, registering, or generally filling out forms.
+ * Make a request to the REST API.
  *
- * @param {Object} opts Options for the request, most of which will be passed through to `$.ajax`.
- * @param {string} opts.url The resource path, e.g. "user/login"
+ * This is a wrapper around {@link http://api.jquery.com/jQuery.ajax/ $.ajax}, which also handles
+ * authentication and routing to the Girder API, and provides a default for error notification.
+ *
+ * Most users of this method should attach a "done" handler to the return value. In cases where the
+ * server is ordinarily expected to return a non-200 status (e.g. validating user input), the
+ * "error: null" argument should probably be provided, and errors should be processed via an
+ * attached "fail" handler.
+ *
+ * Before this function is called, the API root must be set (which typically happens automatically).
+ *
+ * @param {Object} opts Options for the request, most of which will be passed through to $.ajax.
+ * @param {string} opts.url The resource path, relative to the API root, without leading or trailing
+ *        slashes. e.g. "user/login"
  * @param {string} [opts.method='GET'] The HTTP method to invoke.
- * @param [opts.data] The query string or form parameter object.
+ * @param {string|Object} [opts.data] The query string or form parameter object.
  * @param {?Function} [opts.error] An error callback, as documented in
- *        `$.ajax <http://api.jquery.com/jQuery.ajax/>`_, or null. If not provided, this will have a
- *        default behavior of triggering a `'g:alert'` global event, with details of the error.
+ *        {@link http://api.jquery.com/jQuery.ajax/ $.ajax}, or null. If not provided, this will
+ *        have a default behavior of triggering a 'g:alert' global event, with details of the
+ *        error, and logging the error to the console. It is recommended that you do not ever pass
+ *        a non-null callback function, and handle errors via promise rejection handlers instead.
  * @param {string} [opts.girderToken] An alternative auth token to use for this request.
  * @returns {$.Promise} A jqXHR promise, which resolves and rejects
- *          `as documented by $.ajax<http://api.jquery.com/jQuery.ajax/#jqXHR>`_.
+ *          {@link http://api.jquery.com/jQuery.ajax/#jqXHR as documented by $.ajax}.
  */
 let restRequest = function (opts) {
     opts = opts || {};
