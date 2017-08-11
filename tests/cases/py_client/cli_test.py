@@ -21,6 +21,7 @@ import contextlib
 import girder_client.cli
 import mock
 import os
+import requests
 import shutil
 import sys
 import six
@@ -210,10 +211,10 @@ class PythonCliTestCase(base.TestCase):
     def testUploadDownload(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
         args = ['upload', str(self.publicFolder['_id']), localDir, '--parent-type=folder']
-        with self.assertRaises(girder_client.HttpError):
+        with self.assertRaises(requests.HTTPError):
             invokeCli(args)
 
-        with self.assertRaises(girder_client.HttpError):
+        with self.assertRaises(requests.HTTPError):
             invokeCli(['--api-key', '1234'] + args)
 
         # Test dry-run and blacklist options

@@ -17,9 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 import click
+import requests
 import sys
 import types
-from girder_client import GirderClient, HttpError, __version__
+from girder_client import GirderClient, __version__
 
 
 class GirderCli(GirderClient):
@@ -184,8 +185,8 @@ def _lookup_parent_type(client, object_id):
         try:
             client.get('resource/%s/path' % object_id, parameters={'type': parent_type})
             return parent_type
-        except HttpError as exc_info:
-            if exc_info.status == 400:
+        except requests.HTTPError as exc_info:
+            if exc_info.response.status_code == 400:
                 continue
             raise
 
