@@ -21,8 +21,10 @@ import cherrypy
 import mako
 import os
 
-from girder import constants
+from girder import constants, events
+from girder.constants import CoreEventHandler, SettingKey
 from girder.utility import config
+from girder.utility.model_importer import ModelImporter
 
 
 class WebrootBase(object):
@@ -88,8 +90,17 @@ class Webroot(WebrootBase):
             'plugins': [],
             'apiRoot': '',
             'staticRoot': '',
-            'title': 'Girder'
+            'title': 'Girder',
+            'contactEmail': ModelImporter.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
         }
+
+        events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
+                    self._onSettingSave)
+
+    def _onSettingSave(self, event):
+        settingDoc = event.info
+        if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
+            self.updateHtmlVars({'contactEmail': settingDoc['value']})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

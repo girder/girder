@@ -9,9 +9,16 @@ import 'girder/stylesheets/layout/footer.styl';
  * This view shows the footer in the layout.
  */
 var LayoutFooterView = View.extend({
+
+    initialize: function (settings) {
+        const mail = settings.contactEmail || '';
+        this.emailHref = 'mailto:' + mail;
+    },
+
     render: function () {
         this.$el.html(LayoutFooterTemplate({
-            apiRoot: getApiRoot()
+            apiRoot: getApiRoot(),
+            contactHref: this.emailHref
         }));
         return this;
     }

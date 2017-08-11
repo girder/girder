@@ -72,6 +72,7 @@ var SystemConfigurationView = View.extend({
         cancelRestRequests('fetch');
 
         var keys = [
+            'core.contact_email_address',
             'core.cookie_lifetime',
             'core.email_from_address',
             'core.email_host',
