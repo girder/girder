@@ -12,13 +12,15 @@ var LayoutFooterView = View.extend({
 
     initialize: function (settings) {
         const mail = settings.contactEmail || '';
-        this.emailHref = 'mailto:' + mail;
+        if (mail !== '') {
+            this.emailHref = 'mailto:' + mail;
+        }
     },
 
     render: function () {
         this.$el.html(LayoutFooterTemplate({
             apiRoot: getApiRoot(),
-            contactHref: this.emailHref
+            contactHref: this.emailHref || ''
         }));
         return this;
     }
