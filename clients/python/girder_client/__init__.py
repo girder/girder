@@ -343,7 +343,8 @@ class GirderClient(object):
             if authResponse.status_code in (401, 403):
                 raise AuthenticationError()
             elif not authResponse.ok:
-                raise HttpError(authResponse.status_code, authResponse.text, url, 'GET')
+                raise HttpError(authResponse.status_code, authResponse.text, url, 'GET',
+                                response=authResponse)
 
             resp = authResponse.json()
 
@@ -490,7 +491,8 @@ class GirderClient(object):
                 return result
         else:
             raise HttpError(
-                status=result.status_code, url=result.url, method=method, text=result.text)
+                status=result.status_code, url=result.url, method=method, text=result.text,
+                response=result)
 
     def get(self, path, parameters=None, jsonResp=True):
         """
@@ -1192,7 +1194,7 @@ class GirderClient(object):
         url = '%sfile/%s/download' % (self.urlBase, fileId)
         req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
         if not req.ok:
-            raise HttpError(req.status_code, req.text, url, 'GET')
+            raise HttpError(req.status_code, req.text, url, 'GET', response=req)
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             with self.progressReporterCls(
                     label=progressFileName,
