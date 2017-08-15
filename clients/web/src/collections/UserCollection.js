@@ -12,7 +12,8 @@ var UserCollection = Collection.extend({
 }, {
     getTotalCount: function () {
         return restRequest({
-            path: 'user/details'
+            url: 'user/details',
+            method: 'GET'
         })
             .then((resp) => {
                 return resp['nUsers'];

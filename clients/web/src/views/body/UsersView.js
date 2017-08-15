@@ -34,6 +34,7 @@ var UsersView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         this.collection = new UserCollection();
+
         const promiseArray = [];
         promiseArray.push(this.collection.fetch());
 
@@ -71,6 +72,9 @@ var UsersView = View.extend({
 
         $.when(...promiseArray)
             .done(() => {
+                this.listenTo(this.collection, 'g:changed', () => {
+                    this.render();
+                });
                 this.render();
             });
     },
@@ -78,7 +82,7 @@ var UsersView = View.extend({
     render: function () {
         this.$el.html(UserListTemplate({
             users: this.collection.toArray(),
-            getCurrentUser: getCurrentUser,
+            currentUser: getCurrentUser(),
             getUsersCount: this.usersCount,
             formatDate: formatDate,
             formatSize: formatSize,
