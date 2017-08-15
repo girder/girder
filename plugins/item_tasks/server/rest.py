@@ -178,6 +178,7 @@ class ItemTask(Resource):
         for out in outputSpec:
             if outputId == out['id']:
                 output = out
+                break
 
         # If a corresponding output is found, check if its parent type is valid
         if output:
@@ -189,7 +190,7 @@ class ItemTask(Resource):
             else:
                 return True
         else:
-            return False
+            raise ValidationException('Invlaid outpud id: %s.' % outputId)
 
     @access.user(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
     @filtermodel(model='job', plugin='jobs')
