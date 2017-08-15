@@ -29,6 +29,7 @@ import sys
 import traceback
 import unicodedata
 
+from dogpile.cache.util import kwarg_function_key_generator
 from . import docs
 from girder import events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
@@ -38,6 +39,7 @@ from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
 from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
+from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
 from six.moves import range, urllib
 
@@ -161,6 +163,7 @@ def _cacheAuthUser(fun):
     return inner
 
 
+@requestCache.cache_on_arguments(function_key_generator=kwarg_function_key_generator)
 def getCurrentToken(allowCookie=None):
     """
     Returns the current valid token object that was passed via the token header
