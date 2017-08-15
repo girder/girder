@@ -47,7 +47,7 @@ var SelectSingleFileTaskWidget = View.extend({
             }))
             .girderModal(this);
 
-        this.paginateTasksWidget.setElement(this.$('.g-search-field-container')).render();
+        this.paginateTasksWidget.setElement(this.$('.g-task-list-container')).render();
         this.$('.g-submit-select-task').girderEnable(false);
 
         return this;
@@ -57,7 +57,7 @@ var SelectSingleFileTaskWidget = View.extend({
         this.task = params.task;
         this.$('.g-submit-select-task').girderEnable(true);
 
-        this.$('.g-target-result-container').html(SelectSingleFileTaskWidgetSelectedTemplate({
+        this.$('.g-task-selected-container').html(SelectSingleFileTaskWidgetSelectedTemplate({
             task: this.task
         }));
     }
