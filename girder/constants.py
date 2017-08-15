@@ -192,7 +192,7 @@ class SettingDefault:
         SettingKey.PLUGINS_ENABLED: [],
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
-        SettingKey.CONTACT_EMAIL_ADDRESS: 'Kitware Support <kitware@kitware.com>',
+        SettingKey.CONTACT_EMAIL_ADDRESS: 'kitware@kitware.com',
         SettingKey.REGISTRATION_POLICY: 'open',
         SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.SMTP_HOST: 'localhost',

@@ -39,7 +39,7 @@ var App = View.extend({
     initialize: function (settings) {
         this._started = false;
         settings = settings || {};
-        this.contactEmail = settings.contactEmail || '';
+        this.contactEmail = settings.contactEmail || null;
         if (settings.start === undefined || settings.start) {
             this.start();
         }
