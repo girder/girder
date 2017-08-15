@@ -899,7 +899,7 @@ var HierarchyWidget = View.extend({
     },
 
     redirectViaForm: function (method, url, data) {
-        var form = $('<form action="' + url + '" method="' + method + '"/>');
+        var form = $('<form/>').attr({action: url, method: method});
         _.each(data, function (value, key) {
             form.append($('<input/>').attr({type: 'text', name: key, value: value}));
         });

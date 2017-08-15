@@ -1,5 +1,3 @@
-import $ from 'jquery';
-
 import ItemView from 'girder/views/body/ItemView';
 import { wrap } from 'girder/utilities/PluginUtils';
 
@@ -7,14 +5,13 @@ import GeospatialItemWidget from './GeospatialItemWidget';
 
 wrap(ItemView, 'render', function (render) {
     this.once('g:rendered', function () {
-        var element = $('<div class="g-item-geospatial"/>');
-        $('.g-item-metadata').after(element);
         this.geospatialItemWidget = new GeospatialItemWidget({
+            className: 'g-item-geospatial',
             accessLevel: this.accessLevel,
-            el: element,
             item: this.model,
             parentView: this
         });
+        this.geospatialItemWidget.$el.insertAfter(this.$('.g-item-metadata'));
     }, this);
 
     return render.call(this);
