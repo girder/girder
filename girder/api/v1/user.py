@@ -43,6 +43,7 @@ class User(Resource):
         self.route('GET', ('authentication',), self.login)
         self.route('GET', (':id',), self.getUser)
         self.route('GET', (':id', 'details'), self.getUserDetails)
+        self.route('GET', ('details',), self.getUsersDetails)
         self.route('POST', (), self.createUser)
         self.route('PUT', (':id',), self.updateUser)
         self.route('PUT', ('password',), self.changePassword)
@@ -195,6 +196,15 @@ class User(Resource):
     def deleteUser(self, user):
         self.model('user').remove(user)
         return {'message': 'Deleted user %s.' % user['login']}
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get detailed information about all users.')
+        .errorResponse('You are not a system administrator.', 403)
+    )
+    def getUsersDetails(self):
+        nUsers = self.model('user').find().count()
+        return {'nUsers': nUsers}
 
     @access.user
     @filtermodel(model='user')

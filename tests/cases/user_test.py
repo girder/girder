@@ -856,3 +856,25 @@ class UserTestCase(base.TestCase):
             path='/file/chunk', user=pvt, fields=fields, files=files)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['itemId'], itemId)
+
+    def testUsersDetails(self):
+        """
+        Test that the user count is correct.
+        """
+        # Create an admin user
+        admin = self.model('user').createUser(
+            firstName='Admin', lastName='Admin', login='admin',
+            email='admin@admin.com', password='adminadmin')
+        # Create a couple of users
+        users = [self.model('user').createUser(
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            for num in [0, 1]]
+        resp = self.request(path='/user/details', user=admin, method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nUsers'], 3)
+        # test for a non-admin user
+        resp = self.request(path='/user/details', user=users[0], method='GET')
+        self.assertStatus(resp, 403)
+        # test for a non-user
+        resp = self.request(path='/user/details', method='GET')
+        self.assertStatus(resp, 401)

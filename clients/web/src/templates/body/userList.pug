@@ -1,9 +1,14 @@
+- const isAdmin = currentUser && currentUser.get('admin');
 .g-user-list-header
   .g-user-pagination
+  if isAdmin
+    .g-user-count-container
+      i.icon-user
+      span.g-user-count= usersCount
   .g-user-sort
   form.g-user-search-form.form-inline(role="form")
     .form-group.g-users-search-container
-  if getCurrentUser() && getCurrentUser().get('admin')
+  if isAdmin
     button.g-user-create-button.btn.btn-sm.btn-default
       i.icon-plus-squared
       |  Create user

@@ -87,9 +87,15 @@ describe('Create an admin and non-admin user', function () {
         }, 'front page to display');
     });
 
-    it('check redirect to front page after logout from users list page', function () {
+    it('check the user count with an admin user', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         girderTest.goToUsersPage()();
+        runs(function () {
+            expect($('span.g-user-count').text()).toBe('3');
+        });
+    });
+
+    it('check redirect to front page after logout from users list page', function () {
         girderTest.logout()();
         waitsFor(function () {
             return $('.g-frontpage-title:visible').length > 0;
