@@ -520,6 +520,7 @@ describe('Navigate to the demo task', function () {
 
         girderTest.waitForLoad();
 
+        // Select new-file
         runs(function () {
             // set the output
             $('#file_output').parent().find('button').click();
@@ -532,9 +533,29 @@ describe('Navigate to the demo task', function () {
             $('.modal-dialog .g-submit-button').click();
         });
 
-        waitsFor(function () {
-            return $('#g-dialog-container').css('display') === 'none';
-        }, 'modal dialog to disappear');
+        girderTest.waitForLoad();
+
+        runs(function () {
+            expect($('#file_output').val()).toBe('output.txt');
+        });
+
+        // Select new-folder
+        runs(function () {
+            // set the folder output
+            $('#folder_output').parent().find('button').click();
+        });
+        girderTest.waitForDialog();
+
+        runs(function () {
+            $('#g-input-element').val('newFolder');
+            $('.modal-dialog .g-submit-button').click();
+        });
+
+        girderTest.waitForLoad();
+
+        runs(function () {
+            expect($('#folder_output').val()).toBe('newFolder');
+        });
     });
 
     it('run the task', function () {

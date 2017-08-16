@@ -67,7 +67,7 @@ const TaskRunView = View.extend({
                 name: match.fileName || match.id
             });
             spec.fileName = match.fileName || match.id;
-        } else if (match.mode === 'girder' && match.parent_type === 'folder') {
+        } else if (match.mode === 'girder' && _.contains(['folder', 'collection', 'user'], match.parent_type)) {
             spec.value = new FolderModel({
                 _id: match.parent_id,
                 _modelType: 'folder'
@@ -139,7 +139,6 @@ const TaskRunView = View.extend({
 
         const translate = (model) => {
             let val = model.value();
-
             switch (model.get('type')) {
                 case 'image': // This is an input
                     return {
@@ -160,6 +159,13 @@ const TaskRunView = View.extend({
                         mode: 'girder',
                         parent_id: val.id,
                         parent_type: 'folder',
+                        name: model.get('fileName')
+                    };
+                case 'new-folder': // This is an output
+                    return {
+                        mode: 'girder',
+                        parent_id: val.id,
+                        parent_type: val.get('_modelType'),
                         name: model.get('fileName')
                     };
                 default:
