@@ -872,9 +872,9 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user/details', user=admin, method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nUsers'], 3)
-        # test for a no-admin user
+        # test for a non-admin user
         resp = self.request(path='/user/details', user=users[0], method='GET')
         self.assertStatus(resp, 403)
-        # test for a no-user
+        # test for a non-user
         resp = self.request(path='/user/details', method='GET')
         self.assertStatus(resp, 401)

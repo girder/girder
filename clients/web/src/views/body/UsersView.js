@@ -72,9 +72,7 @@ var UsersView = View.extend({
 
         $.when(...promiseArray)
             .done(() => {
-                this.listenTo(this.collection, 'g:changed', () => {
-                    this.render();
-                });
+                this.listenTo(this.collection, 'g:changed', this.render);
                 this.render();
             });
     },
@@ -83,7 +81,7 @@ var UsersView = View.extend({
         this.$el.html(UserListTemplate({
             users: this.collection.toArray(),
             currentUser: getCurrentUser(),
-            getUsersCount: this.usersCount,
+            usersCount: this.usersCount,
             formatDate: formatDate,
             formatSize: formatSize,
             DATE_DAY: DATE_DAY

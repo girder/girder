@@ -199,7 +199,8 @@ class User(Resource):
 
     @access.admin
     @autoDescribeRoute(
-        Description('Get the number of users.')
+        Description('Get detailed information about all users.')
+        .errorResponse('You are not a system administrator.', 403)
     )
     def getUsersDetails(self):
         nUsers = self.model('user').find().count()
