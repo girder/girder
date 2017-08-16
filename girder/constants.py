@@ -162,6 +162,7 @@ class SettingKey:
     PLUGINS_ENABLED = 'core.plugins_enabled'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
+    CONTACT_EMAIL_ADDRESS = 'core.contact_email_address'
     EMAIL_HOST = 'core.email_host'
     REGISTRATION_POLICY = 'core.registration_policy'
     EMAIL_VERIFICATION = 'core.email_verification'
@@ -191,6 +192,7 @@ class SettingDefault:
         SettingKey.PLUGINS_ENABLED: [],
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
+        SettingKey.CONTACT_EMAIL_ADDRESS: 'kitware@kitware.com',
         SettingKey.REGISTRATION_POLICY: 'open',
         SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.SMTP_HOST: 'localhost',
@@ -340,3 +342,6 @@ class CoreEventHandler(object):
 
     # For adding a user into its own ACL.
     USER_SELF_ACCESS = 'core.grantSelfAccess'
+
+    # For updating the cached webroot HTML when settings change.
+    WEBROOT_SETTING_CHANGE = 'core.updateWebrootSettings'

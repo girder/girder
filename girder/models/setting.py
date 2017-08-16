@@ -279,6 +279,12 @@ class Setting(Model):
             raise ValidationException('Email from address must not be blank.', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.CONTACT_EMAIL_ADDRESS)
+    def validateCoreContactEmailAddress(doc):
+        if not doc['value']:
+            raise ValidationException('Contact email address must not be blank.', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_HOST)
     def validateCoreEmailHost(doc):
         if isinstance(doc['value'], six.string_types):

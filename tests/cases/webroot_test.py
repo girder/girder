@@ -42,6 +42,15 @@ class WebRootTestCase(base.TestCase):
         self.assertTrue('girder_app.min.js' in body)
         self.assertTrue('girder_lib.min.js' in body)
 
+        emailAddress = self.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
+        self.assertTrue('contactEmail: \'%s\'' % emailAddress in body)
+        self.model('setting').set(SettingKey.CONTACT_EMAIL_ADDRESS, 'foo@bar.com')
+        # A new request to update changes
+        resp = self.request(path='/', method='GET', isJson=False, prefix='')
+        self.assertStatus(resp, 200)
+        body = self.getBody(resp)
+        self.assertTrue('contactEmail: \'%s\'' % 'foo@bar.com' in body)
+
     def testWebRootProperlyHandlesStaticRouteUrls(self):
         self.model('setting').set(SettingKey.ROUTE_TABLE, {
             GIRDER_ROUTE_ID: '/',

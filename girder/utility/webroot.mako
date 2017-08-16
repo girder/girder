@@ -22,7 +22,8 @@
             girder.events.trigger('g:appload.before');
             girder.app = new girder.views.App({
                 el: 'body',
-                parentView: null
+                parentView: null,
+                contactEmail: '${contactEmail | h}'
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });

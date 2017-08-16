@@ -213,6 +213,7 @@ class SystemTestCase(base.TestCase):
         # the badValues table.
         badValues = {
             SettingKey.EMAIL_FROM_ADDRESS: '',
+            SettingKey.CONTACT_EMAIL_ADDRESS: '',
             SettingKey.EMAIL_HOST: {},
             SettingKey.SMTP_HOST: '',
             SettingKey.CORS_ALLOW_ORIGIN: {},
