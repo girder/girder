@@ -347,11 +347,11 @@ describe('Run task on item from item view', function () {
         girderTest.waitForDialog();
 
         waitsFor(function () {
-            return $('.g-list-group-item').length > 0;
+            return $('.list-group-item').length > 0;
         }, 'tasks to load in widget');
 
         runs(function () {
-            $('.g-list-group-item.g-execute-task-link:contains("me/my_image:latest 1")').click();
+            $('.list-group-item.g-execute-task-link:contains("me/my_image:latest 1")').click();
 
             expect($('.g-selected-task-name').text()).toBe('me/my_image:latest 1');
             $('.g-submit-select-task').click();
