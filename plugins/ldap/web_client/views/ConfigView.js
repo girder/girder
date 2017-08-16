@@ -42,8 +42,8 @@ var ConfigView = View.extend({
             const password = this.$(`#g-ldap-server-${idx}-password`).val();
 
             restRequest({
-                path: 'system/ldap_server/status',
-                type: 'GET',
+                url: 'system/ldap_server/status',
+                method: 'GET',
                 data: {
                     uri,
                     bindName,
@@ -67,8 +67,8 @@ var ConfigView = View.extend({
 
     initialize: function () {
         restRequest({
-            type: 'GET',
-            path: 'system/setting',
+            method: 'GET',
+            url: 'system/setting',
             data: {
                 key: 'ldap.servers'
             }
@@ -108,8 +108,8 @@ var ConfigView = View.extend({
         this.$('.g-validation-failed-message').empty();
 
         restRequest({
-            type: 'PUT',
-            path: 'system/setting',
+            method: 'PUT',
+            url: 'system/setting',
             data: {
                 key: 'ldap.servers',
                 value: JSON.stringify(servers)

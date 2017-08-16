@@ -71,7 +71,7 @@ class ThumbnailsTestCase(base.TestCase):
             else:
                 self.privateFolder = folder
 
-        path = os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'img', 'Girder_Mark.png')
+        path = os.path.join(ROOT_DIR, 'clients', 'web', 'src', 'assets', 'Girder_Mark.png')
         with open(path, 'rb') as file:
             self.image = file.read()
         events.unbind('thumbnails.create', 'test')

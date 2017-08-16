@@ -21,35 +21,18 @@ module.exports = function (grunt) {
     grunt.config.merge({
         shell: {
             sphinx: {
-                command: [
-                    'cd docs',
-                    'make html'
-                ].join('&&'),
-                options: {
-                    stdout: true
-                }
+                command: 'make html',
+                cwd: 'docs'
             },
             sphinx_clean: {
-                command: [
-                    'cd docs',
-                    'make clean'
-                ].join('&&'),
-                options: {
-                    stdout: true
-                }
-            }
-        },
-
-        watch: {
-            sphinx: {
-                files: ['docs/*.rst'],
-                tasks: ['docs']
+                command: 'make clean',
+                cwd: 'docs'
             }
         }
     });
 
     grunt.registerTask('docs', function (target) {
-        var tasks = ['shell:sphinx'];
+        let tasks = ['shell:sphinx'];
         if (target === 'clean') {
             tasks.unshift('shell:sphinx_clean');
         }

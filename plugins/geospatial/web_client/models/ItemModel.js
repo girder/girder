@@ -7,7 +7,7 @@ import { wrap } from 'girder/utilities/PluginUtils';
 wrap(ItemModel, 'fetch', function (fetch) {
     fetch.call(this);
     restRequest({
-        path: this.resourceName + '/' + this.get('_id') + '/geospatial',
+        url: `${this.resourceName}/${this.id}/geospatial`,
         error: null
     }).done(_.bind(function (resp) {
         this.set(resp);

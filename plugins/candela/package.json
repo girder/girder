@@ -2,7 +2,7 @@
     "name": "candela-plugin",
     "version": "0.1.0",
     "dependencies": {
-        "candela": "^0.12.1",
-        "datalib": "^1.7"
+        "candela": "~0.16.0",
+        "datalib": "~1.7"
     }
 }

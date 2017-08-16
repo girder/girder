@@ -242,6 +242,8 @@ class TokenScope:
 
     _customScopes = []
     _adminCustomScopes = []
+    _scopeIds = set()
+    _adminScopeIds = set()
 
     @classmethod
     def describeScope(cls, scopeId, name, description, admin=False):
@@ -264,8 +266,10 @@ class TokenScope:
         }
         if admin:
             cls._adminCustomScopes.append(info)
+            cls._adminScopeIds.add(scopeId)
         else:
             cls._customScopes.append(info)
+            cls._scopeIds.add(scopeId)
 
     @classmethod
     def listScopes(cls):
@@ -273,6 +277,13 @@ class TokenScope:
             'custom': cls._customScopes,
             'adminCustom': cls._adminCustomScopes
         }
+
+    @classmethod
+    def scopeIds(cls, admin=False):
+        if admin:
+            return cls._scopeIds | cls._adminScopeIds
+        else:
+            return cls._scopeIds
 
 
 TokenScope.describeScope(

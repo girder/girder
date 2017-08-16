@@ -158,7 +158,7 @@ In your JavaScript, perform callbacks such as the following:
 
     $('#logout').click(function () {
         restRequest({
-            path: 'user/authentication',
+            url: 'user/authentication',
             type: 'DELETE'
         }).done(function () {
             setCurrentUser(null);
@@ -189,7 +189,7 @@ In your JavaScript, perform callbacks such as the following:
 
     // Check for who is logged in initially
     restRequest({
-        path: 'user/authentication',
+        url: 'user/authentication',
         error: null
     }).done(function (resp) {
         setCurrentUser(UserModel(resp.user));

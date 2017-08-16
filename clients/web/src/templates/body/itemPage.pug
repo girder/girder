@@ -8,9 +8,9 @@
     .btn-group
       button.g-item-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
           data-toggle="dropdown", title="Item actions")
-          i.icon-doc-text-inv
-          |  Actions
-          i.icon-down-dir
+        i.icon-doc-text-inv
+        |  Actions
+        i.icon-down-dir
       ul.g-item-actions-menu.dropdown-menu.pull-right(role="menu")
         li(role="presentation")
           a.g-download-item(role="menuitem", href=item.downloadUrl())
@@ -48,6 +48,9 @@
   .g-item-updated.g-info-list-entry
     i.icon-clock
     | Updated on #{formatDate(item.get('updated'), DATE_SECOND)}
+  .g-item-id.g-info-list-entry
+    i.icon-share
+    | Unique ID: #{item.id}
 
 .g-item-metadata
 

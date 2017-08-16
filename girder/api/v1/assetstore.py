@@ -23,6 +23,7 @@ from girder import events
 from girder.constants import AccessType, AssetstoreType, TokenScope
 from girder.api import access
 from girder.utility.progress import ProgressContext
+from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
 
 class Assetstore(Resource):
@@ -47,7 +48,7 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def getAssetstore(self, assetstore, params):
+    def getAssetstore(self, assetstore):
         self.model('assetstore').addComputedInfo(assetstore)
         return assetstore
 
@@ -58,7 +59,7 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def find(self, limit, offset, sort, params):
+    def find(self, limit, offset, sort):
         return list(self.model('assetstore').list(offset=offset, limit=limit, sort=sort))
 
     @access.admin
@@ -92,11 +93,16 @@ class Assetstore(Resource):
                'Do not include the bucket name here.', required=False, default='')
         .param('readOnly', 'If this assetstore is read-only, set this to true.',
                required=False, dataType='boolean', default=False)
+        .param('region', 'The AWS region to which the S3 bucket belongs.', required=False,
+               default=DEFAULT_REGION)
+        .param('inferCredentials', 'The credentials for connecting to S3 will be inferred '
+               'by Boto rather than explicitly passed. Inferring credentials will '
+               'ignore accessKeyId and secret.', dataType='boolean', required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def createAssetstore(self, name, type, root, perms, db, mongohost, replicaset, shard, bucket,
-                         prefix, accessKeyId, secret, service, readOnly, params):
+                         prefix, accessKeyId, secret, service, readOnly, region, inferCredentials):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
             return self.model('assetstore').createFilesystemAssetstore(
@@ -109,7 +115,8 @@ class Assetstore(Resource):
             self.requireParams({'bucket': bucket})
             return self.model('assetstore').createS3Assetstore(
                 name=name, bucket=bucket, prefix=prefix, secret=secret,
-                accessKeyId=accessKeyId, service=service, readOnly=readOnly)
+                accessKeyId=accessKeyId, service=service, readOnly=readOnly, region=region,
+                inferCredentials=inferCredentials)
         else:
             raise RestException('Invalid type parameter')
 
@@ -140,7 +147,7 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403)
     )
     def importData(self, assetstore, importPath, destinationId, destinationType, progress,
-                   leafFoldersAsItems, fileIncludeRegex, fileExcludeRegex, params):
+                   leafFoldersAsItems, fileIncludeRegex, fileExcludeRegex):
         user = self.getCurrentUser()
         parent = self.model(destinationType).load(
             destinationId, user=user, level=AccessType.ADMIN, exc=True)
@@ -179,12 +186,18 @@ class Assetstore(Resource):
                'Do not include the bucket name here.', required=False, default='')
         .param('readOnly', 'If this assetstore is read-only, set this to true.',
                required=False, dataType='boolean')
+        .param('region', 'The AWS region to which the S3 bucket belongs.', required=False,
+               default=DEFAULT_REGION)
         .param('current', 'Whether this is the current assetstore', dataType='boolean')
+        .param('inferCredentials', 'The credentials for connecting to S3 will be inferred '
+               'by Boto rather than explicitly passed. Inferring credentials will '
+               'ignore accessKeyId and secret.', dataType='boolean', required=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def updateAssetstore(self, assetstore, name, root, perms, db, mongohost, replicaset, shard,
-                         bucket, prefix, accessKeyId, secret, service, readOnly, current, params):
+                         bucket, prefix, accessKeyId, secret, service, readOnly, region, current,
+                         inferCredentials, params):
         assetstore['name'] = name
         assetstore['current'] = current
 
@@ -204,15 +217,15 @@ class Assetstore(Resource):
                 assetstore['shard'] = shard
         elif assetstore['type'] == AssetstoreType.S3:
             self.requireParams({
-                'bucket': bucket,
-                'accessKeyId': accessKeyId,
-                'secret': secret
+                'bucket': bucket
             })
             assetstore['bucket'] = bucket
             assetstore['prefix'] = prefix
             assetstore['accessKeyId'] = accessKeyId
             assetstore['secret'] = secret
             assetstore['service'] = service
+            assetstore['region'] = region
+            assetstore['inferCredentials'] = inferCredentials
             if readOnly is not None:
                 assetstore['readOnly'] = readOnly
         else:
@@ -222,7 +235,7 @@ class Assetstore(Resource):
                     name=name, current=current, readOnly=readOnly, root=root, perms=perms,
                     db=db, mongohost=mongohost, replicaset=replicaset, shard=shard, bucket=bucket,
                     prefix=prefix, accessKeyId=accessKeyId, secret=secret, service=service,
-                    **params
+                    region=region, **params
                 )
             })
             if event.defaultPrevented:
@@ -238,7 +251,7 @@ class Assetstore(Resource):
                         'The assetstore is not empty.'))
         .errorResponse('You are not an administrator.', 403)
     )
-    def deleteAssetstore(self, assetstore, params):
+    def deleteAssetstore(self, assetstore):
         self.model('assetstore').remove(assetstore)
         return {'message': 'Deleted assetstore %s.' % assetstore['name']}
 
@@ -250,7 +263,7 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def getAssetstoreFiles(self, assetstore, limit, offset, sort, params):
+    def getAssetstoreFiles(self, assetstore, limit, offset, sort):
         return list(self.model('file').find(
             query={'assetstoreId': assetstore['_id']},
             offset=offset, limit=limit, sort=sort))

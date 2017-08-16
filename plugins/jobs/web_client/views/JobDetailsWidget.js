@@ -1,9 +1,11 @@
 import _ from 'underscore';
 
+import { restRequest } from 'girder/rest';
 import TimelineWidget from 'girder/views/widgets/TimelineWidget';
 import View from 'girder/views/View';
 import eventStream from 'girder/utilities/EventStream';
 import { formatDate, DATE_SECOND } from 'girder/misc';
+import events from 'girder/events';
 
 import JobDetailsWidgetTemplate from '../templates/jobDetailsWidget.pug';
 import JobStatus from '../JobStatus';
@@ -11,6 +13,11 @@ import JobStatus from '../JobStatus';
 import '../stylesheets/jobDetailsWidget.styl';
 
 var JobDetailsWidget = View.extend({
+    events: {
+        'click .g-job-cancel': function (event) {
+            this._cancelJob();
+        }
+    },
     initialize: function (settings) {
         this.job = settings.job;
 
@@ -36,6 +43,13 @@ var JobDetailsWidget = View.extend({
             }
         });
 
+        this.listenTo(eventStream, 'g:eventStream.start', function (event) {
+            const status = this.job.get('status');
+            if (!JobStatus.finished(status)) {
+                this.job.fetch().done(() => { this.render(); });
+            }
+        });
+
         if (settings.renderImmediate) {
             this.render();
         }
@@ -46,7 +60,8 @@ var JobDetailsWidget = View.extend({
         this.$el.html(JobDetailsWidgetTemplate({
             job: this.job,
             statusText: JobStatus.text(status),
-            colorClass: 'g-job-color-' + JobStatus.classAffix(status),
+            textColor: JobStatus.textColor(status),
+            color: JobStatus.color(status),
             JobStatus: JobStatus,
             formatDate: formatDate,
             DATE_SECOND: DATE_SECOND,
@@ -69,7 +84,7 @@ var JobDetailsWidget = View.extend({
         var segments = [{
             start: startTime,
             end: timestamps[0].time,
-            class: 'g-job-color-inactive',
+            color: JobStatus.color(JobStatus.INACTIVE),
             tooltip: 'Inactive: %r s'
         }];
 
@@ -79,13 +94,13 @@ var JobDetailsWidget = View.extend({
                 start: stamp.time,
                 end: timestamps[i + 1].time,
                 tooltip: statusText + ': %r s',
-                class: 'g-job-color-' + JobStatus.classAffix(stamp.status)
+                color: JobStatus.color(stamp.status)
             };
         }, this));
 
         var points = [{
             time: startTime,
-            class: 'g-job-color-inactive',
+            color: JobStatus.color(JobStatus.INACTIVE),
             tooltip: 'Created at ' + new Date(startTime).toISOString()
         }];
 
@@ -95,7 +110,7 @@ var JobDetailsWidget = View.extend({
                 time: stamp.time,
                 tooltip: 'Moved to ' + statusText + ' at ' +
                          new Date(stamp.time).toISOString(),
-                class: 'g-job-color-' + JobStatus.classAffix(stamp.status)
+                color: JobStatus.color(stamp.status)
             };
         }, this));
 
@@ -112,6 +127,29 @@ var JobDetailsWidget = View.extend({
             startLabel: '0 s',
             endLabel: elapsed + ' s'
         }).render();
+    },
+
+    _cancelJob: function () {
+        const jobId = this.job.id;
+        restRequest({
+            url: `job/${jobId}/cancel`,
+            method: 'PUT',
+            error: null
+        }).done(_.bind(function () {
+            events.trigger('g:alert', {
+                icon: 'ok',
+                text: 'Job successfully canceled.',
+                type: 'success',
+                timeout: 4000
+            });
+        }, this)).fail(_.bind(function (err) {
+            events.trigger('g:alert', {
+                icon: 'cancel',
+                text: err,
+                type: 'danger',
+                timeout: 4000
+            });
+        }, this));
     }
 });
 

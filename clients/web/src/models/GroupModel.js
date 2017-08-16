@@ -19,12 +19,12 @@ var GroupModel = AccessControlledModel.extend({
     sendInvitation: function (userId, accessType, request, params) {
         params = params || {};
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/invitation',
+            url: `${this.resourceName}/${this.id}/invitation`,
             data: _.extend({
                 userId: userId,
                 level: accessType
             }, params),
-            type: 'POST',
+            method: 'POST',
             error: null
         }).done(_.bind(function (resp) {
             this.set(resp);
@@ -48,8 +48,8 @@ var GroupModel = AccessControlledModel.extend({
      */
     joinGroup: function () {
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/member',
-            type: 'POST'
+            url: `${this.resourceName}/${this.id}/member`,
+            method: 'POST'
         }).done(_.bind(function (resp) {
             getCurrentUser().addToGroup(this.get('_id'));
             getCurrentUser().removeInvitation(this.get('_id'));
@@ -69,8 +69,8 @@ var GroupModel = AccessControlledModel.extend({
      */
     requestInvitation: function () {
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/member',
-            type: 'POST'
+            url: `${this.resourceName}/${this.id}/member`,
+            method: 'POST'
         }).done(_.bind(function (resp) {
             this.set(resp);
 
@@ -94,11 +94,11 @@ var GroupModel = AccessControlledModel.extend({
             role = 'admin';
         }
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/' + role,
+            url: `${this.resourceName}/${this.id}/${role}`,
             data: {
                 userId: user.get('_id')
             },
-            type: 'POST'
+            method: 'POST'
         }).done(_.bind(function (resp) {
             this.set(resp);
 
@@ -122,9 +122,8 @@ var GroupModel = AccessControlledModel.extend({
             role = 'admin';
         }
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/' + role +
-                '?userId=' + userId,
-            type: 'DELETE'
+            url: `${this.resourceName}/${this.id}/${role}?userId=${userId}`,
+            method: 'DELETE'
         }).done(_.bind(function (resp) {
             this.set(resp);
 
@@ -142,9 +141,8 @@ var GroupModel = AccessControlledModel.extend({
      */
     removeMember: function (userId) {
         return restRequest({
-            path: this.resourceName + '/' + this.get('_id') +
-                  '/member?userId=' + userId,
-            type: 'DELETE'
+            url: `${this.resourceName}/${this.id}/member?userId=${userId}`,
+            method: 'DELETE'
         }).done(_.bind(function (resp) {
             if (userId === getCurrentUser().get('_id')) {
                 getCurrentUser().removeFromGroup(this.get('_id'));

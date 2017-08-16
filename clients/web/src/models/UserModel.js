@@ -88,12 +88,12 @@ var UserModel = Model.extend({
      */
     changePassword: function (oldPassword, newPassword) {
         return restRequest({
-            path: this.resourceName + '/password',
+            url: `${this.resourceName}/password`,
             data: {
                 old: oldPassword,
                 new: newPassword
             },
-            type: 'PUT',
+            method: 'PUT',
             error: null
         }).done(_.bind(function () {
             this.trigger('g:passwordChanged');
@@ -107,11 +107,11 @@ var UserModel = Model.extend({
      */
     adminChangePassword: function (newPassword) {
         return restRequest({
-            path: this.resourceName + '/' + this.id + '/password',
+            url: `${this.resourceName}/${this.id}/password`,
             data: {
                 password: newPassword
             },
-            type: 'PUT',
+            method: 'PUT',
             error: null
         }).done(_.bind(function () {
             this.trigger('g:passwordChanged');

@@ -55,7 +55,7 @@ var EditApiKeyWidget = View.extend({
         this._shouldRender = false;
 
         restRequest({
-            path: 'token/scopes'
+            url: 'token/scopes'
         }).done(_.bind(function (resp) {
             this.scopeInfo = resp;
             if (this._shouldRender) {

@@ -21,6 +21,7 @@ from .. import base
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
+from girder.models.model_base import GirderException
 from girder.constants import SettingKey, SettingDefault
 
 testServer = None
@@ -66,6 +67,10 @@ class RoutesTestCase(base.TestCase):
     Unit tests of the routing system of REST Resources.
     """
     def testRouteSystem(self):
+        # Test an empty route handler
+        emptyResource = Resource()
+        self.assertRaises(GirderException, emptyResource.handleRoute, 'GET', (), {})
+
         dummy = DummyResource()
 
         # Bad route should give a useful exception.
@@ -90,10 +95,19 @@ class RoutesTestCase(base.TestCase):
         dummy.route('DUMMY', (':id', 'dummy'), dummy.handler)
         r = dummy.handleRoute('DUMMY', ('guid', 'dummy'), {})
         self.assertEqual(r, {'id': 'guid', 'params': {}})
+
+        # Test getting the route handler
+        self.assertRaises(Exception, dummy.getRouteHandler, 'FOO', (':id', 'dummy'))
+        self.assertRaises(Exception, dummy.getRouteHandler, 'DUMMY', (':id', 'foo'))
+        registeredHandler = dummy.getRouteHandler('DUMMY', (':id', 'dummy'))
+        # The handler method cannot be compared directly with `is`, but its name and behavior can be
+        # examined
+        self.assertEqual(registeredHandler.__name__, dummy.handler.__name__)
+        self.assertEqual(registeredHandler(foo=42), {'foo': 42})
+
         # Now remove the route
-        dummy.removeRoute('DUMMY', (':id', 'dummy'), dummy.handler)
-        self.assertRaises(RestException, dummy.handleRoute, 'DUMMY',
-                          ('guid', 'dummy'), {})
+        dummy.removeRoute('DUMMY', (':id', 'dummy'))
+        self.assertRaises(RestException, dummy.handleRoute, 'DUMMY', ('guid', 'dummy'), {})
 
     def testCORS(self):
         testServer.root.api.v1.dummy = DummyResource()

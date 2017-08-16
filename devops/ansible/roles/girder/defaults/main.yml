@@ -14,3 +14,6 @@ girder_web_extra_args: ""
 
 # the default is to only build assets when the git step results in new files
 girder_always_build_assets: no
+
+# experimental support
+girder_hardened: no

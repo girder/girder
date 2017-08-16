@@ -36,6 +36,15 @@ class JobStatus(object):
     ERROR = 4
     CANCELED = 5
 
+    # Mapping of states to valid previous states
+    valid_transitions = {
+        QUEUED: [INACTIVE],
+        RUNNING: [QUEUED, INACTIVE],
+        SUCCESS: [RUNNING],
+        ERROR: [QUEUED, RUNNING],
+        CANCELED: [INACTIVE, QUEUED, RUNNING]
+    }
+
     @staticmethod
     def isValid(status):
         event = events.trigger('jobs.status.validate', info=status)
@@ -57,3 +66,23 @@ class JobStatus(object):
             return ProgressState.SUCCESS
         else:
             return ProgressState.ERROR
+
+    @staticmethod
+    def validTransitions(job, status):
+        """
+        Returns a list of states that it is valid to transition from for the
+        status.
+
+        :param status: The status being transitioned to.
+        :type status: str
+        :return Returns list of states it valid to transition from.
+        """
+        event = events.trigger('jobs.status.validTransitions', info={
+            'job': job,
+            'status': status
+        })
+
+        if event.defaultPrevented and len(event.responses):
+            return event.responses[-1]
+
+        return JobStatus.valid_transitions.get(status)

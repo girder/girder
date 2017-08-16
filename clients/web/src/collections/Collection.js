@@ -155,7 +155,7 @@ var Collection = Backbone.Collection.extend({
 
         function fetchListFragment() {
             var xhr = restRequest({
-                path: this.altUrl || this.resourceName,
+                url: this.altUrl || this.resourceName,
                 data: _.extend({
                     limit: limit,
                     offset: this.offset,

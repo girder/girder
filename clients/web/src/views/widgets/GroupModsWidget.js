@@ -27,20 +27,18 @@ var GroupModsWidget = View.extend({
 
         'click .g-group-mod-demote': function (e) {
             var li = $(e.currentTarget).parents('li');
-            var view = this;
 
             confirm({
                 text: 'Are you sure you want to remove moderator privileges ' +
                     'from <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
-                confirmCallback: function () {
-                    view.trigger('g:demoteUser', li.attr('userid'));
+                confirmCallback: () => {
+                    this.trigger('g:demoteUser', li.attr('userid'));
                 }
             });
         },
 
         'click a.g-group-mod-remove': function (e) {
-            var view = this;
             var li = $(e.currentTarget).parents('li');
 
             confirm({
@@ -48,8 +46,8 @@ var GroupModsWidget = View.extend({
                     _.escape(li.attr('username')) +
                     '</b> from this group?',
                 escapedHtml: true,
-                confirmCallback: function () {
-                    view.trigger('g:removeMember', li.attr('userid'));
+                confirmCallback: () => {
+                    this.trigger('g:removeMember', li.attr('userid'));
                 }
             });
         },

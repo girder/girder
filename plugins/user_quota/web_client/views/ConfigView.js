@@ -16,20 +16,20 @@ var ConfigView = View.extend({
             this._saveSettings([{
                 key: 'user_quota.default_user_quota',
                 value: valueAndUnitsToSize(
-                    this.$('.g-sizeValue[model=user]').val(),
-                    this.$('.g-sizeUnits[model=user]').val())
+                    this.$('#g-user-quota-user-size-value').val(),
+                    this.$('#g-user-quota-user-size-units').val())
             }, {
                 key: 'user_quota.default_collection_quota',
                 value: valueAndUnitsToSize(
-                    this.$('.g-sizeValue[model=collection]').val(),
-                    this.$('.g-sizeUnits[model=collection]').val())
+                    this.$('#g-user-quota-collection-size-value').val(),
+                    this.$('#g-user-quota-collection-size-units').val())
             }]);
         }
     },
     initialize: function () {
         restRequest({
-            type: 'GET',
-            path: 'system/setting',
+            method: 'GET',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify([
                     'user_quota.default_user_quota',
@@ -74,8 +74,8 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
-            path: 'system/setting',
+            method: 'PUT',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)
             },

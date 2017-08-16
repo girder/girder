@@ -37,6 +37,7 @@ var AuthorizedUploadView = View.extend({
     render: function () {
         this.$el.html(template());
         this.uploadWidget.setElement(this.$('.g-upload-widget-container')).render();
+        return this;
     }
 });
 

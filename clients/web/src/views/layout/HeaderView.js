@@ -39,6 +39,8 @@ var LayoutHeaderView = View.extend({
 
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
+
+        return this;
     }
 });
 

@@ -9,26 +9,26 @@
         .g-assetstore-form-fields
           .form-group
             label.control-label(for="g-edit-name") Assetstore Name
-            input.input-sm#g-edit-name.form-control(type="text", placeholder="Name")
+            input#g-edit-name.input-sm.form-control(type="text", placeholder="Name")
           if assetstore.get('type') === types.FILESYSTEM
             .form-group
               label.control-label(for="g-edit-fs-root") Root directory
-              input.input-sm#g-edit-fs-root.form-control(type="text", placeholder="Root directory")
+              input#g-edit-fs-root.input-sm.form-control(type="text", placeholder="Root directory")
             .form-group
               label.control-label(for="g-edit-fs-perms") File creation permissions (octal)
-              input.input-sm#g-edit-fs-perms.form-control(type="text", placeholder="600")
+              input#g-edit-fs-perms.input-sm.form-control(type="text", placeholder="600")
           if assetstore.get('type') === types.GRIDFS
             .form-group
               label.control-label(for="g-edit-gridfs-db") Database name
-              input.input-sm#g-edit-gridfs-db.form-control(type="text", placeholder="Database name")
+              input#g-edit-gridfs-db.input-sm.form-control(type="text", placeholder="Database name")
             .form-group
               label.control-label(for="g-edit-gridfs-mongohost") Mongo Host URI
-              input.input-sm#g-edit-gridfs-mongohost.form-control(
+              input#g-edit-gridfs-mongohost.input-sm.form-control(
                   type="text", placeholder="Mongo host uri (defaults to the main Girder database)",
                   title="The URI is of the form mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]")
             .form-group
               label.control-label(for="g-edit-gridfs-replicaset") Replica Set
-              input.input-sm#g-edit-gridfs-replicaset.form-control(type="text", placeholder="Replica set name (blank if not using a replica set)")
+              input#g-edit-gridfs-replicaset.input-sm.form-control(type="text", placeholder="Replica set name (blank if not using a replica set)")
             .checkbox
               label(title="If the Mongo Host supports sharding, this requests that the database support sharding and shards the GridFS collection using an appropriate index.")
                 input#g-edit-gridfs-shard-auto(type="checkbox")
@@ -36,19 +36,26 @@
           if assetstore.get('type') === types.S3
             .form-group
               label.control-label(for="g-edit-s3-bucket") S3 bucket name
-              input.input-sm#g-edit-s3-bucket.form-control(type="text", placeholder="Bucket")
+              input#g-edit-s3-bucket.input-sm.form-control(type="text", placeholder="Bucket")
             .form-group
               label.control-label(for="g-edit-s3-prefix") Path prefix (optional)
-              input.input-sm#g-edit-s3-prefix.form-control(type="text", placeholder="Prefix")
+              input#g-edit-s3-prefix.input-sm.form-control(type="text", placeholder="Prefix")
             .form-group
               label.control-label(for="g-edit-s3-access-key-id") Access key ID
-              input.input-sm#g-edit-s3-access-key-id.form-control(type="text", placeholder="Access key ID")
+              input#g-edit-s3-access-key-id.input-sm.form-control(type="text", placeholder="Access key ID")
             .form-group
               label.control-label(for="g-edit-s3-secret") Secret access key
-              input.input-sm#g-edit-s3-secret.form-control(type="text", placeholder="Secret access key")
+              input#g-edit-s3-secret.input-sm.form-control(type="text", placeholder="Secret access key")
             .form-group
               label.control-label(for="g-edit-s3-service") Service
-              input.input-sm#g-edit-s3-service.form-control(type="text", placeholder="Service name")
+              input#g-edit-s3-service.input-sm.form-control(type="text", placeholder="Service")
+            .form-group
+              label.control-label(for="g-edit-s3-region") Region
+              input#g-edit-s3-region.input-sm.form-control(type="text", placeholder="Region")
+            .checkbox
+              label
+                input#g-edit-s3-infercredentials(type="checkbox")
+                | Infer Credentials
             .checkbox
               label
                 input#g-edit-s3-readonly(type="checkbox")

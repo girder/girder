@@ -50,17 +50,16 @@ var EditAssetstoreWidget = View.extend({
     fieldsMap: {},
 
     render: function () {
-        var view = this;
         var modal = this.$el.html(EditAssetstoreWidgetTemplate({
-            assetstore: view.model,
+            assetstore: this.model,
             types: AssetstoreType
-        })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-edit-name').focus();
-            handleOpen('assetstoreedit', undefined, view.model.get('id'));
-            view.$('#g-edit-name').val(view.model.get('name'));
-            view.fieldsMap[view.model.get('type')].set.call(view);
-        }).on('hidden.bs.modal', function () {
-            handleClose('assetstoreedit', undefined, view.model.get('id'));
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('#g-edit-name').focus();
+            handleOpen('assetstoreedit', undefined, this.model.get('id'));
+            this.$('#g-edit-name').val(this.model.get('name'));
+            this.fieldsMap[this.model.get('type')].set.call(this);
+        }).on('hidden.bs.modal', () => {
+            handleClose('assetstoreedit', undefined, this.model.get('id'));
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         return this;
@@ -126,7 +125,9 @@ fieldsMap[AssetstoreType.S3] = {
             accessKeyId: this.$('#g-edit-s3-access-key-id').val(),
             secret: this.$('#g-edit-s3-secret').val(),
             service: this.$('#g-edit-s3-service').val(),
-            readOnly: this.$('#g-edit-s3-readonly').is(':checked')
+            region: this.$('#g-edit-s3-region').val(),
+            readOnly: this.$('#g-edit-s3-readonly').is(':checked'),
+            inferCredentials: this.$('#g-edit-s3-infercredentials').is(':checked')
         };
     },
     set: function () {
@@ -135,7 +136,10 @@ fieldsMap[AssetstoreType.S3] = {
         this.$('#g-edit-s3-access-key-id').val(this.model.get('accessKeyId'));
         this.$('#g-edit-s3-secret').val(this.model.get('secret'));
         this.$('#g-edit-s3-service').val(this.model.get('service'));
+        this.$('#g-edit-s3-region').val(this.model.get('region'));
         this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
+        this.$('#g-edit-s3-infercredentials').attr('checked', (this.model.get('inferCredentials')
+                                                               ? 'checked' : undefined));
     }
 };
 

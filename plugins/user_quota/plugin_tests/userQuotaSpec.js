@@ -110,17 +110,17 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
         return $(hasChart ? '.g-has-chart' : '.g-no-chart').length === 1;
     }, 'the chart to be determined (' + hasChart + ' ' + capacity + ')');
     runs(function () {
-        expect($('#g-sizeValue').length).toBe(1);
+        expect($('#g-user-quota-size-value').length).toBe(1);
         /* The change() call should automatically set the custom quota radio
          * button. */
-        $('#g-sizeValue').val('abc').trigger('input');
+        $('#g-user-quota-size-value').val('abc').trigger('input');
         $('.g-save-policies').click();
     });
     waitsFor(function () {
         return $('.g-validation-failed-message').text().indexOf('Invalid quota') >= 0;
     }, 'an error message to appear');
     runs(function () {
-        $('#g-sizeValue').val(capacity || '');
+        $('#g-user-quota-size-value').val(capacity || '');
     });
     runs(function () {
         $('.g-save-policies').click();
@@ -144,7 +144,7 @@ function _testQuotaDialogAsUser(hasChart) {
         return $(hasChart ? '.g-has-chart' : '.g-no-chart').length === 1;
     }, 'the chart to be determined');
     runs(function () {
-        expect($('#g-sizeValue').length).toBe(0);
+        expect($('#g-user-quota-size-value').length).toBe(0);
     });
     runs(function () {
         $('a.btn-default').click();
@@ -203,20 +203,20 @@ describe('test the user quota plugin', function () {
             return $('input.g-sizeValue').length > 0;
         }, 'quota default settings to be shown');
         runs(function () {
-            $('input.g-sizeValue[model=user]').val('abc');
+            $('input#g-user-quota-user-size-value').val('abc');
             $('#g-user-quota-form input.btn-primary').click();
         });
         waitsFor(function () {
             return $('#g-user-quota-error-message').text().indexOf('Invalid quota') >= 0;
         }, 'error message to appear');
         runs(function () {
-            $('input.g-sizeValue[model=user]').val('512000');
+            $('input#g-user-quota-user-size-value').val('512000');
             $('#g-user-quota-form input.btn-primary').click();
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/setting',
-                type: 'GET',
+                url: 'system/setting',
+                method: 'GET',
                 data: {key: 'user_quota.default_user_quota'},
                 async: false
             });
@@ -369,13 +369,13 @@ describe('test the user quota plugin', function () {
             return $('input.g-sizeValue').length > 0;
         }, 'quota default settings to be shown');
         runs(function () {
-            $('input.g-sizeValue[model=collection]').val('256000');
+            $('input#g-user-quota-collection-size-value').val('256000');
             $('#g-user-quota-form input.btn-primary').click();
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/setting',
-                type: 'GET',
+                url: 'system/setting',
+                method: 'GET',
                 data: {key: 'user_quota.default_collection_quota'},
                 async: false
             });

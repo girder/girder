@@ -94,9 +94,6 @@ function _addItemToFolder(folder) {
 
     runs(function () {
         expect($('li.g-item-list-entry').attr('public')).toBe(isPublic);
-    });
-
-    runs(function () {
         $('a.g-item-list-link:contains(Test Item Name)').click();
     });
 
@@ -107,6 +104,7 @@ function _addItemToFolder(folder) {
     runs(function () {
         expect($('.g-item-name').text()).toBe('Test Item Name');
         expect($('.g-item-description').text().trim()).toBe('Test Item Description');
+        expect($('.g-item-id').text()).toMatch(/[a-f0-9]{24}/);
     });
 }
 
@@ -144,7 +142,7 @@ describe('Test item creation, editing, and deletion', function () {
         });
 
         runs(function () {
-            $("a.g-user-link:contains('Not Admin')").click();
+            $('a.g-user-link:contains("Not Admin")').click();
         });
 
         waitsFor(function () {
@@ -153,7 +151,7 @@ describe('Test item creation, editing, and deletion', function () {
 
         // check for actions menu
         runs(function () {
-            expect($("button:contains('Actions')").length).toBe(1);
+            expect($('button:contains("Actions")').length).toBe(1);
         });
     });
 
@@ -165,7 +163,7 @@ describe('Test item creation, editing, and deletion', function () {
 
     it('view the users on the user page and click on one', function () {
         runs(function () {
-            $("a.g-user-link:contains('Not Admin')").click();
+            $('a.g-user-link:contains("Not Admin")').click();
         });
 
         waitsFor(function () {
@@ -194,8 +192,8 @@ describe('Test item creation, editing, and deletion', function () {
             var id = window.location.hash.split('/')[1].split('?')[0];
             /* Create a link file */
             girder.rest.restRequest({
-                path: 'file',
-                type: 'POST',
+                url: 'file',
+                method: 'POST',
                 data: {
                     parentType: 'item',
                     parentId: id,

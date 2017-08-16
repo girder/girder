@@ -6,6 +6,7 @@
     girder_force: no
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
     girder_always_build_assets: yes
+    girder_web_extra_args: "--dev --all-plugins"
   pre_tasks:
     - name: Update package cache
       apt:
@@ -50,12 +51,6 @@
         requirements: "requirements-dev.txt"
         chdir: "{{ girder_path }}"
         virtualenv: "{{ girder_virtualenv }}"
-
-    - name: Build Girder with development dependencies
-      command: "npm install"
-      args:
-        chdir: "{{ girder_path }}"
-      when: girder_web
 
     - name: Install development packages
       apt:

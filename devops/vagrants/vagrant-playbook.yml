@@ -1,0 +1,27 @@
+---
+
+- hosts: all
+  vars:
+    bind_node_modules: yes
+  tasks:
+    - name: Create / remove a local girder_node_modules directory
+      file:
+        path: "{{ ansible_user_dir }}/girder_node_modules"
+        state: "{{ 'directory' if bind_node_modules else 'absent' }}"
+
+    - name: Mount / unmount girder_node_modules
+      mount:
+        path: "{{ ansible_user_dir }}/girder/node_modules"
+        src: "{{ ansible_user_dir }}/girder_node_modules"
+        state: "{{ 'mounted' if bind_node_modules else 'absent' }}"
+        fstype: none
+        opts: bind
+        boot: yes
+      become: yes
+      become_user: root
+
+    - name: Define WATCH_USEPOLLING environment variable
+      lineinfile:
+        line: "export WATCH_USEPOLLING=true"
+        path: "{{ ansible_user_dir }}/.bashrc"
+        state: present

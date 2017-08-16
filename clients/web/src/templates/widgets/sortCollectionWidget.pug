@@ -1,0 +1,14 @@
+.btn-group
+  a.g-sort-order-button.g-up.btn.btn-sm(title="Sort order")
+    i.icon-sort-name-up
+  a.g-sort-order-button.g-down.btn.btn-sm(title="Sort order")
+    i.icon-sort-name-down
+  button.g-collection-sort-actions.btn.btn-sm.btn-default.dropdown-toggle(
+      data-toggle="dropdown", title="Sort by Field")
+    | Sort by
+    i.icon-down-dir
+  ul.g-collection-sort-menu.dropdown-menu(role="menu")
+    each fieldName, field in fields
+      li(role="presentation")
+        a.g-collection-sort-link(role="menuitem", g-sort=field)
+          = fieldName

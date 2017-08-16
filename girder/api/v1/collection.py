@@ -49,7 +49,7 @@ class Collection(Resource):
         .param('text', 'Pass this to perform a text search for collections.', required=False)
         .pagingParams(defaultSort='name')
     )
-    def find(self, text, limit, offset, sort, params):
+    def find(self, text, limit, offset, sort):
         user = self.getCurrentUser()
 
         if text is not None:
@@ -71,7 +71,7 @@ class Collection(Resource):
         .errorResponse()
         .errorResponse('You are not authorized to create collections.', 403)
     )
-    def createCollection(self, name, description, public, params):
+    def createCollection(self, name, description, public):
         user = self.getCurrentUser()
 
         if not self.model('collection').hasCreatePrivilege(user):
@@ -89,7 +89,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the collection.', 403)
     )
-    def getCollection(self, collection, params):
+    def getCollection(self, collection):
         return collection
 
     @access.public(scope=TokenScope.DATA_READ)
@@ -99,7 +99,7 @@ class Collection(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the collection.', 403)
     )
-    def getCollectionDetails(self, collection, params):
+    def getCollectionDetails(self, collection):
         return {
             'nFolders': self.model('collection').countFolders(
                 collection, user=self.getCurrentUser(), level=AccessType.READ)
@@ -115,7 +115,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the collection.', 403)
     )
-    def downloadCollection(self, collection, mimeFilter, params):
+    def downloadCollection(self, collection, mimeFilter):
         setResponseHeader('Content-Type', 'application/zip')
         setResponseHeader(
             'Content-Disposition', 'attachment; filename="%s%s"' % (collection['name'], '.zip'))
@@ -136,7 +136,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403)
     )
-    def getCollectionAccess(self, collection, params):
+    def getCollectionAccess(self, collection):
         return self.model('collection').getFullAccessList(collection)
 
     @access.user(scope=TokenScope.DATA_OWN)
@@ -159,7 +159,7 @@ class Collection(Resource):
         .errorResponse('Admin permission denied on the collection.', 403)
     )
     def updateCollectionAccess(
-            self, collection, access, public, recurse, progress, publicFlags, params):
+            self, collection, access, public, recurse, progress, publicFlags):
         user = self.getCurrentUser()
         progress = progress and recurse
 
@@ -184,7 +184,7 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write permission denied on the collection.', 403)
     )
-    def updateCollection(self, collection, name, description, params):
+    def updateCollection(self, collection, name, description):
         if name is not None:
             collection['name'] = name
         if description is not None:
@@ -199,6 +199,6 @@ class Collection(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403)
     )
-    def deleteCollection(self, collection, params):
+    def deleteCollection(self, collection):
         self.model('collection').remove(collection)
         return {'message': 'Deleted collection %s.' % collection['name']}

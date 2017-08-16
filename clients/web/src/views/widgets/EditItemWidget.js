@@ -49,29 +49,28 @@ var EditItemWidget = View.extend({
     },
 
     render: function () {
-        var view = this;
         var modal = this.$el.html(EditItemWidgetTemplate({
             item: this.item
-        })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-name').focus();
-            if (view.item) {
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('#g-name').focus();
+            if (this.item) {
                 handleOpen('itemedit');
             } else {
                 handleOpen('itemcreate');
             }
-        }).on('hidden.bs.modal', function () {
-            if (view.create) {
+        }).on('hidden.bs.modal', () => {
+            if (this.create) {
                 handleClose('itemcreate');
             } else {
                 handleClose('itemedit');
             }
-        }).on('ready.girder.modal', function () {
-            if (view.item) {
-                view.$('#g-name').val(view.item.get('name'));
-                view.$('#g-description').val(view.item.get('description'));
-                view.create = false;
+        }).on('ready.girder.modal', () => {
+            if (this.item) {
+                this.$('#g-name').val(this.item.get('name'));
+                this.$('#g-description').val(this.item.get('description'));
+                this.create = false;
             } else {
-                view.create = true;
+                this.create = true;
             }
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));

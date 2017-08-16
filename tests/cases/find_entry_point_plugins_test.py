@@ -27,9 +27,13 @@ from girder.utility.plugin_utilities import findEntryPointPlugins, getPluginFail
 
 
 class FakeEntryPoint(object):
-    def __init__(self, name):
+    def __init__(self, name, goodLoad=True):
         self.name = name
-        self.load = lambda: None
+        self.goodLoad = goodLoad
+
+    def load(self):
+        if not self.goodLoad:
+            raise SystemError('failed')
 
 
 class FindEntryPointPluginsTestCase(unittest.TestCase):
@@ -162,3 +166,26 @@ class FindEntryPointPluginsTestCase(unittest.TestCase):
         self.assertIn('entry_point_plugin_bad_yaml', failures)
         self.assertIn('traceback', failures['entry_point_plugin_bad_yaml'])
         self.assertIn('ScannerError', failures['entry_point_plugin_bad_yaml']['traceback'])
+
+    @mock.patch('girder.utility.plugin_utilities._clearPluginFailureInfo')
+    @mock.patch('pkg_resources.resource_exists')
+    @mock.patch('girder.utility.plugin_utilities.iter_entry_points')
+    def testFindEntryPointPluginsBadLoad(self, iter_entry_points, resource_exists,
+                                         _clearPluginFailureInfo):
+        iter_entry_points.return_value = [FakeEntryPoint(
+            name='entry_point_plugin_bad_load', goodLoad=False)]
+
+        resource_exists.return_value = False
+        _clearPluginFailureInfo.return_value = None
+
+        plugins = {}
+        findEntryPointPlugins(plugins)
+
+        iter_entry_points.assert_called_once_with(group='girder.plugin')
+
+        self.assertIn('entry_point_plugin_bad_load', plugins)
+
+        failures = getPluginFailureInfo()
+        self.assertIn('entry_point_plugin_bad_load', failures)
+        self.assertIn('traceback', failures['entry_point_plugin_bad_load'])
+        self.assertIn('SystemError', failures['entry_point_plugin_bad_load']['traceback'])

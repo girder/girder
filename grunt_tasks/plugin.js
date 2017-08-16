@@ -495,7 +495,6 @@ module.exports = function (grunt) {
                     path.resolve(dir, config.grunt.file || 'Gruntfile.js')
                 )(grunt);
             } catch (e) {
-                // the error can be safely ignored when doing `grunt init`
                 // otherwise a default task will most likely fail later on
                 // write out a warning to help the developers debug errors
                 grunt.log.writeln((
@@ -511,21 +510,19 @@ module.exports = function (grunt) {
         }
 
         // process all external dependencies when building
-        if (buildPlugin) {
-            processPluginDependencies(plugin, dir, config);
+        processPluginDependencies(plugin, dir, config);
 
-            // Make sure the npm task runs before plugin build tasks
-            grunt.config.set(`default.plugin:${plugin}`, {
-                dependencies: ['npm-install-plugins']
-            });
+        // Make sure the npm task runs before plugin build tasks
+        grunt.config.set(`default.plugin:${plugin}`, {
+            dependencies: ['npm-install-plugins']
+        });
 
-            // For backward compatibility, we still generate the old 'npm-install'
-            // task as a noop, but ensure that the real npm install task is
-            // executed as a prerequisite.
-            grunt.config.set(`default.npm-install:${plugin}`, {
-                dependencies: ['npm-install-plugins']
-            });
-        }
+        // For backward compatibility, we still generate the old 'npm-install'
+        // task as a noop, but ensure that the real npm install task is
+        // executed as a prerequisite.
+        grunt.config.set(`default.npm-install:${plugin}`, {
+            dependencies: ['npm-install-plugins']
+        });
     };
 
     // Configure the plugins that were requested via --configure-plugins in order

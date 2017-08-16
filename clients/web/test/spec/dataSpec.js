@@ -20,8 +20,8 @@ function _setMinimumChunkSize(minSize) {
     if (!minUploadSize) {
         minUploadSize = {UPLOAD_CHUNK_SIZE: girder.rest.getUploadChunkSize()};
         var resp = girder.rest.restRequest({
-            path: 'system/setting',
-            type: 'GET',
+            url: 'system/setting',
+            method: 'GET',
             data: {key: 'core.upload_minimum_chunk_size'},
             async: false
         });
@@ -36,24 +36,20 @@ function _setMinimumChunkSize(minSize) {
     }
     girder.rest.setUploadChunkSize(uploadChunkSize);
     girder.rest.restRequest({
-        path: 'system/setting',
-        type: 'PUT',
+        url: 'system/setting',
+        method: 'PUT',
         data: {key: 'core.upload_minimum_chunk_size', value: settingSize},
         async: false
     });
 }
 
-/**
- * Intercept window.location.assign calls so we can test the behavior of,
- * e.g. download directives that occur from js.
- */
-(function () {
-    window.location.assign = function (url) {
-        girderTest._redirect = url;
-    };
-}());
-
 describe('Create a data hierarchy', function () {
+    beforeEach(function () {
+        // Intercept window.location.assign calls so we can test the behavior of e.g. download
+        // directives that occur from js.
+        spyOn(window.location, 'assign');
+    });
+
     it('register a user',
         girderTest.createUser('johndoe',
                               'john.doe@email.com',
@@ -181,17 +177,17 @@ describe('Create a data hierarchy', function () {
         }, 'the item page to display the file list');
 
         runs(function () {
-            girderTest._redirect = null;
+            window.location.assign.reset();
             window.location.assign($('a.g-file-list-link').attr('href'));
         });
 
         waitsFor(function () {
-            return girderTest._redirect !== null;
+            return window.location.assign.wasCalled;
         }, 'redirect to the file download URL');
 
         runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download$/.test(
-                girderTest._redirect)).toBe(true);
+            expect(window.location.assign)
+                .toHaveBeenCalledWith(/^http:\/\/localhost:.*\/api\/v1\/file\/.+\/download$/);
         });
     });
 
@@ -321,15 +317,15 @@ describe('Create a data hierarchy', function () {
             return $('.g-download-folder:visible').length === 1;
         }, 'the folder down action to appear');
         runs(function () {
-            girderTest._redirect = null;
+            window.location.assign.reset();
             window.location.assign($('a.g-download-folder').attr('href'));
         });
         waitsFor(function () {
-            return girderTest._redirect !== null;
+            return window.location.assign.wasCalled;
         }, 'redirect to the resource download URL');
         runs(function () {
-            expect(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download$/.test(
-                girderTest._redirect)).toBe(true);
+            expect(window.location.assign)
+                .toHaveBeenCalledWith(/^http:\/\/localhost:.*\/api\/v1\/folder\/.+\/download$/);
         });
     });
 
@@ -893,8 +889,8 @@ describe('Test FileModel static upload functions', function () {
             var item;
 
             item = girder.rest.restRequest({
-                path: '/item',
-                type: 'GET',
+                url: '/item',
+                method: 'GET',
                 data: {
                     folderId: folder.get('_id'),
                     text: filename
@@ -905,8 +901,8 @@ describe('Test FileModel static upload functions', function () {
             item = item && item.responseJSON && item.responseJSON[0];
 
             file = girder.rest.restRequest({
-                path: '/item/' + item._id + '/files',
-                type: 'GET',
+                url: '/item/' + item._id + '/files',
+                method: 'GET',
                 async: false
             });
 
@@ -914,8 +910,8 @@ describe('Test FileModel static upload functions', function () {
 
             if (file) {
                 var resp = girder.rest.restRequest({
-                    path: '/file/' + file._id + '/download',
-                    type: 'GET',
+                    url: '/file/' + file._id + '/download',
+                    method: 'GET',
                     dataType: 'text'
                 }).done(function () {
                     text = resp.responseText;
@@ -954,8 +950,8 @@ describe('Test FileModel static upload functions', function () {
 
         runs(function () {
             file = girder.rest.restRequest({
-                path: '/item/' + item.get('_id') + '/files',
-                type: 'GET',
+                url: '/item/' + item.id + '/files',
+                method: 'GET',
                 async: false
             });
 
@@ -963,8 +959,8 @@ describe('Test FileModel static upload functions', function () {
 
             if (file) {
                 var resp = girder.rest.restRequest({
-                    path: '/file/' + file._id + '/download',
-                    type: 'GET',
+                    url: '/file/' + file._id + '/download',
+                    method: 'GET',
                     dataType: 'text'
                 }).done(function () {
                     text = resp.responseText;

@@ -83,13 +83,12 @@ var GroupView = View.extend({
     },
 
     deleteGroup: function () {
-        var view = this;
         confirm({
             text: 'Are you sure you want to delete the group <b>' +
-                view.model.escape('name') + '</b>?',
+                this.model.escape('name') + '</b>?',
             escapedHtml: true,
-            confirmCallback: function () {
-                view.model.on('g:deleted', function () {
+            confirmCallback: () => {
+                this.model.on('g:deleted', function () {
                     router.navigate('groups', {trigger: true});
                 }).destroy();
             }
@@ -165,10 +164,9 @@ var GroupView = View.extend({
             this.invitees = new UserCollection();
             this.invitees.altUrl =
                 'group/' + this.model.get('_id') + '/invitation';
-            var view = this;
-            this.invitees.on('g:changed', function () {
+            this.invitees.on('g:changed', () => {
                 this._renderInvitesWidget();
-                view.updatePendingStatus();
+                this.updatePendingStatus();
             }, this).fetch();
         }
 
@@ -197,18 +195,17 @@ var GroupView = View.extend({
             this.edit = false;
         }
 
-        _.each($('.g-group-tabs>li>a'), function (el) {
+        _.each($('.g-group-tabs>li>a'), (el) => {
             var tabLink = $(el);
-            var view = this;
-            tabLink.tab().on('shown.bs.tab', function (e) {
-                view.tab = $(e.currentTarget).attr('name');
-                router.navigate('group/' + view.model.get('_id') + '/' + view.tab);
+            tabLink.tab().on('shown.bs.tab', (e) => {
+                this.tab = $(e.currentTarget).attr('name');
+                router.navigate('group/' + this.model.get('_id') + '/' + this.tab);
             });
 
             if (tabLink.attr('name') === this.tab) {
                 tabLink.tab('show');
             }
-        }, this);
+        });
 
         return this;
     },
@@ -236,12 +233,11 @@ var GroupView = View.extend({
     },
 
     leaveGroup: function () {
-        var view = this;
         confirm({
             text: 'Are you sure you want to leave this group?',
-            confirmCallback: function () {
-                view.model.off('g:removed').on('g:removed', function () {
-                    view.render();
+            confirmCallback: () => {
+                this.model.off('g:removed').on('g:removed', () => {
+                    this.render();
                 }).removeMember(getCurrentUser().get('_id'));
             }
         });

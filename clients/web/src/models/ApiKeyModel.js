@@ -8,7 +8,7 @@ var ApiKeyModel = AccessControlledModel.extend({
 
     setActive: function (active) {
         return restRequest({
-            path: 'api_key/' + this.id,
+            url: `api_key/${this.id}`,
             method: 'PUT',
             data: {
                 active: active

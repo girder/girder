@@ -12,8 +12,8 @@ function _setProgress(test, duration, resourceId, resourceName) {
      *     is associated with.
      */
     girder.rest.restRequest({
-        path: 'webclienttest/progress',
-        type: 'GET',
+        url: 'webclienttest/progress',
+        method: 'GET',
         data: {
             test: test,
             duration: duration,
@@ -32,7 +32,7 @@ describe('Test widgets that are not covered elsewhere', function () {
                               'adminpassword!'));
 
     it('test task progress widget', function () {
-        var errorCalled = 0, onMessageError = 0;
+        var errorCalled = 0, onmessageSpy, stream;
 
         runs(function () {
             expect($('#g-app-progress-container:visible').length).toBe(0);
@@ -56,15 +56,16 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'progress to report an error');
 
         runs(function () {
-            var origOnMessage = girder.utilities.eventStream._eventSource.onmessage;
-            girder.utilities.eventStream._eventSource.onmessage = function (e) {
+            onmessageSpy = spyOn(girder.utilities.eventStream._eventSource, 'onmessage').andCallFake(function (e) {
                 try {
-                    origOnMessage(e);
+                    onmessageSpy.originalValue(e);
                 } catch (err) {
-                    onMessageError += 1;
+                    onmessageSpy.errorCount += 1;
                 }
-            };
-            var stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
+            });
+            onmessageSpy.errorCount = 0;
+
+            stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
             stream.on('g:error', function () { errorCalled += 1; });
             stream.on('g:event.progress', function () {
                 throw new Error('intentional error');
@@ -72,13 +73,13 @@ describe('Test widgets that are not covered elsewhere', function () {
             _setProgress('success', 0, null, null);
         });
         waitsFor(function () {
-            return onMessageError === 1;
+            return onmessageSpy.errorCount === 1;
         }, 'bad progress callback to be tried');
         runs(function () {
             _setProgress('error', 0, null, null);
         });
         waitsFor(function () {
-            return onMessageError === 2;
+            return onmessageSpy.errorCount === 2;
         }, 'bad progress callback to be tried again');
         runs(function () {
             expect(errorCalled).toBe(0);
@@ -121,12 +122,24 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'at least the first progress to be hidden');
 
         runs(function () {
+            girder.utilities.eventStream.settings._heartbeatTimeout = 1;
+        }, 'ask event stream to stop');
+        waitsFor(function () {
+            return $('.g-progress-widget-container').length === 0;
+        }, 'Progress to clear.');
+
+        runs(function () {
+            girder.utilities.eventStream.settings._heartbeatTimeout = 5000;
             girder.rest.restRequest({
-                path: 'webclienttest/progress/stop',
-                type: 'PUT',
+                url: 'webclienttest/progress/stop',
+                method: 'PUT',
                 async: false
             });
         });
+        runs(function () {
+            stream.off('g:error');
+            stream.off('g:event.progress');
+        }, 'turn off stream events');
     });
 });
 

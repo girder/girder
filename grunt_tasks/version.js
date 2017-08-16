@@ -44,7 +44,7 @@ module.exports = function (grunt) {
             'python-version': {
                 'girder/girder-version.json': function (fs, fd, done) {
                     var girderVersion = versionInfoObject();
-                    fs.writeSync(fd, girderVersion);
+                    fs.writeSync(fd, girderVersion + '\n');
                     done();
                 }
             },

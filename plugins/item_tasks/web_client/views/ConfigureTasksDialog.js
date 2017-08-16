@@ -57,13 +57,20 @@ var ConfigureTasksDialog = View.extend({
             currentImage: currentImage,
             currentTaskName: currentTaskName,
             currentSlicerCliArgs
-        })).girderModal(this);
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('input:first').focus();
+        });
 
         // Clear validation error message when switching tabs
         this.$('a[data-toggle="tab"]')
             .on('hide.bs.tab', (e) => {
                 this.$('.g-validation-failed-message').text('');
+            })
+            .on('shown.bs.tab', (e) => {
+                this.$($(e.currentTarget).attr('href') + ' input:first').focus();
             });
+
+        return this;
     },
 
     _submitJson: function () {
@@ -89,8 +96,8 @@ var ConfigureTasksDialog = View.extend({
         }
 
         restRequest({
-            path: `${this.resourceName}/${this.model.id}/item_task_json_description`,
-            type: 'POST',
+            url: `${this.resourceName}/${this.model.id}/item_task_json_description`,
+            method: 'POST',
             data,
             error: null
         }).done((job) => {
@@ -123,8 +130,8 @@ var ConfigureTasksDialog = View.extend({
         }
 
         restRequest({
-            path: `${this.resourceName}/${this.model.id}/item_task_slicer_cli_description`,
-            type: 'POST',
+            url: `${this.resourceName}/${this.model.id}/item_task_slicer_cli_description`,
+            method: 'POST',
             data,
             error: null
         }).done((job) => {

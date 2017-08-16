@@ -22,6 +22,8 @@ import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tooltip';
 
 var MetadatumWidget = View.extend({
+    className: 'g-widget-metadata-row',
+
     events: {
         'click .g-widget-metadata-edit-button': 'editMetadata'
     },
@@ -95,16 +97,13 @@ var MetadatumWidget = View.extend({
     },
 
     editMetadata: function (event) {
-        var row = $(event.currentTarget.parentElement);
-        row.addClass('editing').empty();
-
-        var newEditRow = row.append('<div></div>');
+        this.$el.addClass('editing');
+        this.$el.empty();
 
         var opts = {
-            el: newEditRow.find('div'),
             item: this.parentView.item,
-            key: row.attr('g-key'),
-            value: row.attr('g-value'),
+            key: this.$el.attr('g-key'),
+            value: this.$el.attr('g-value'),
             accessLevel: this.accessLevel,
             newDatum: false,
             parentView: this,
@@ -117,7 +116,7 @@ var MetadatumWidget = View.extend({
         // If they're trying to open false, null, 6, etc which are not stored as strings
         if (this.mode === 'json') {
             try {
-                var jsonValue = JSON.parse(row.attr('g-value'));
+                var jsonValue = JSON.parse(this.$el.attr('g-value'));
 
                 if (jsonValue !== undefined && !_.isObject(jsonValue)) {
                     opts.value = jsonValue;
@@ -125,12 +124,13 @@ var MetadatumWidget = View.extend({
             } catch (e) {}
         }
 
-        this.parentView.modes[this.mode].editor(opts).render();
+        this.parentView.modes[this.mode].editor(opts)
+            .render()
+            .$el.appendTo(this.$el);
     },
 
     render: function () {
         this.$el.attr({
-            class: 'g-widget-metadata-row',
             'g-key': this.key,
             'g-value': _.bind(this.parentView.modes[this.mode].displayValue, this)()
         }).empty();
@@ -442,13 +442,10 @@ var MetadataWidget = View.extend({
 
     addMetadata: function (event, mode) {
         var EditWidget = this.modes[mode].editor;
-        var newRow = $('<div>').attr({
-            class: 'g-widget-metadata-row editing'
-        }).appendTo(this.$el.find('.g-widget-metadata-container'));
         var value = (mode === 'json') ? '{}' : '';
 
         var widget = new MetadatumWidget({
-            el: newRow,
+            className: 'g-widget-metadata-row editing',
             mode: mode,
             key: '',
             value: value,
@@ -460,11 +457,9 @@ var MetadataWidget = View.extend({
             onMetadataEdited: this.onMetadataEdited,
             onMetadataAdded: this.onMetadataAdded
         });
-
-        var newEditRow = $('<div>').appendTo(widget.$el);
+        widget.$el.appendTo(this.$('.g-widget-metadata-container'));
 
         new EditWidget({
-            el: newEditRow,
             item: this.item,
             key: '',
             value: value,
@@ -475,7 +470,9 @@ var MetadataWidget = View.extend({
             parentView: widget,
             onMetadataEdited: this.onMetadataEdited,
             onMetadataAdded: this.onMetadataAdded
-        }).render();
+        })
+            .render()
+            .$el.appendTo(widget.$el);
     },
 
     render: function () {

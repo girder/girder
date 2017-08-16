@@ -97,6 +97,8 @@ const TaskRunView = View.extend({
         if (hasOutputs) {
             this._outputsPanel.setElement(this.$('.g-outputs-container')).render();
         }
+
+        return this;
     },
 
     /**
@@ -179,8 +181,8 @@ const TaskRunView = View.extend({
         });
 
         restRequest({
-            path: `item_task/${this.model.id}/execution`,
-            type: 'POST',
+            url: `item_task/${this.model.id}/execution`,
+            method: 'POST',
             data: {
                 inputs: JSON.stringify(inputs),
                 outputs: JSON.stringify(outputs)
