@@ -59,6 +59,13 @@
 - include: daemon.yml
   when: girder_daemonize
 
+- name: Install Girder Plugins
+  command: "{{ girder_install_executable|default('girder-install') }} plugin {{ item }}"
+  args:
+    chdir: "{{ girder_path }}"
+  when: girder_web
+  with_items: "{{ girder_plugins }}"
+
 - name: Build Girder (web)
   command: "{{ girder_install_executable|default('girder-install') }} web {{ girder_web_extra_args }}"
   args:
