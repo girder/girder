@@ -11,6 +11,7 @@ import ItemView from 'girder/views/body/ItemView';
 import { registerPluginNamespace } from 'girder/pluginUtils';
 import JobModel from 'girder_plugins/jobs/models/JobModel';
 import * as itemTasks from 'girder_plugins/item_tasks';
+import router from 'girder/router';
 
 import './routes';
 
@@ -49,6 +50,7 @@ wrap(ItemView, 'render', function (render) {
     return render.call(this);
 });
 
+// "Configure Task" button in Actions drop down menu
 import ConfigureTasksDialog from './views/ConfigureTasksDialog';
 ItemView.prototype.events['click .g-configure-item-task'] = function () {
     if (!this.configureTaskDialog) {
@@ -59,6 +61,21 @@ ItemView.prototype.events['click .g-configure-item-task'] = function () {
         });
     }
     this.configureTaskDialog.render();
+};
+
+// "Select Task" button in Actions drop down menu
+import SelectSingleFileTaskWidget from './views/SelectSingleFileTaskWidget';
+ItemView.prototype.events['click .g-select-item-task'] = function (e) {
+    new SelectSingleFileTaskWidget({
+        el: $('#g-dialog-container'),
+        parentView: this,
+        item: this.model
+    }).once('g:selected', function (params) {
+        let item = params.item;
+        let task = params.task;
+
+        router.navigate(`item_task/${task.id}/run?itemId=${item.id}`, {trigger: true});
+    }, this).render();
 };
 
 import hierarchyMenuModTemplate from './templates/hierarchyMenuMod.pug';

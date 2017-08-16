@@ -37,7 +37,7 @@ var PaginateTasksWidget = View.extend({
         if (settings.collection) {
             this.render();
         } else {
-            this.collection.fetch(this.params);
+            this.collection.fetch();
         }
     },
 
@@ -48,7 +48,6 @@ var PaginateTasksWidget = View.extend({
         }));
 
         this.paginateWidget.setElement(this.$('.g-task-pagination')).render();
-
         return this;
     }
 });
