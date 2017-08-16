@@ -174,23 +174,18 @@ class ItemTask(Resource):
         """
 
         # Find the corresponding output specification for the given outputID
-        output = None
-        for out in outputSpec:
-            if outputId == out['id']:
-                output = out
-                break
-
-        # If a corresponding output is found, check if its parent type is valid
-        if output:
-            if output['type'] == 'new-file' and parentType not in {'item', 'folder'}:
-                return False
-            elif output['type'] == 'new-folder' and\
-                    parentType not in {'folder', 'user', 'collection'}:
-                return False
-            else:
-                return True
+        for output in outputSpec:
+            if outputId == output['id']:
+                # If a corresponding output is found, check if its parent type is valid
+                if output['type'] == 'new-file' and parentType not in {'item', 'folder'}:
+                    return False
+                elif output['type'] == 'new-folder' and\
+                        parentType not in {'folder', 'user', 'collection'}:
+                    return False
+                else:
+                    return True
         else:
-            raise ValidationException('Invlaid outpud id: %s.' % outputId)
+            raise ValidationException('Invalid output id: %s.' % outputId)
 
     @access.user(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
     @filtermodel(model='job', plugin='jobs')
