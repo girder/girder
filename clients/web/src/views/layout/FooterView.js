@@ -11,16 +11,14 @@ import 'girder/stylesheets/layout/footer.styl';
 var LayoutFooterView = View.extend({
 
     initialize: function (settings) {
-        const mail = settings.contactEmail || null;
-        if (mail !== null) {
-            this.emailHref = `mailto: ${mail}`;
-        }
+        const contactEmail = settings.contactEmail || null;
+        this.contactHref = contactEmail !== null ? `mailto:${contactEmail}` : null;
     },
 
     render: function () {
         this.$el.html(LayoutFooterTemplate({
             apiRoot: getApiRoot(),
-            contactHref: this.emailHref || null
+            contactHref: this.contactHref
         }));
         return this;
     }
