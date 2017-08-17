@@ -80,12 +80,16 @@ def _onUpload(event):
 
         if not width and not height:
             return
+        if not isinstance(width, int) or not isinstance(height, int):
+            return
 
         file = event.info['file']
-        item = ModelImporter.model('item').load(file['itemId'], force=True)
-        utils.scheduleThumbnailJob(
-            file=file, attachToType='item', attachToId=item['_id'], user=event.info['currentUser'],
-            width=width, height=height, crop=ref['thumbnail'].get('crop', True))
+        if 'itemId' in file:
+            item = ModelImporter.model('item').load(file['itemId'], force=True)
+            crop = bool(ref['thumbnail'].get('crop', True))
+            utils.scheduleThumbnailJob(
+                file=file, attachToType='item', attachToId=item['_id'],
+                user=event.info['currentUser'], width=width, height=height, crop=crop)
 
 
 def load(info):
