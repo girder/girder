@@ -224,6 +224,11 @@ module.exports = {
         ],
         symlinks: false
     },
+    resolveLoader: {
+        modules: [
+            paths.node_modules
+        ]
+    },
     node: {
         canvas: 'empty',
         file: 'empty',

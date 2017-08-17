@@ -368,17 +368,7 @@ module.exports = function (grunt) {
                             alias: {
                                 [`girder_plugins/${plugin}/node`]: pluginNodeDir,
                                 [`girder_plugins/${plugin}`]: webClient
-                            },
-                            modules: [
-                                path.resolve(process.cwd(), 'node_modules'),
-                                pluginNodeDir
-                            ]
-                        },
-                        resolveLoader: {
-                            modules: [
-                                path.resolve(process.cwd(), 'node_modules'),
-                                pluginNodeDir
-                            ]
+                            }
                         }
                     }
                 }
