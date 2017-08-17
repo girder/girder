@@ -414,7 +414,8 @@ Web client libraries in Girder core are managed via `npm <https://www.npmjs.com/
 When a new npm package is required, or an existing package is upgraded, the following
 should be done:
 
-1. Ensure that version >=5.3 of npm is installed in your development environment:
+1. Ensure that you are using a Linux development environment (macOS causes npm to produce slightly
+   different outputs) with version >=5.3 of npm installed:
 
    .. code-block:: bash
 
