@@ -27,8 +27,7 @@ import six
 
 import girder.events
 from girder import constants, logprint, __version__, logStdoutStderr
-from girder.utility import plugin_utilities, model_importer
-from girder.utility import config
+from girder.utility import plugin_utilities, model_importer, config
 from . import webroot
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
@@ -76,7 +75,8 @@ def _configureStaticRoutes(webroot, plugins, event=None):
     webroot.updateHtmlVars({
         'apiRoot': config.getConfig()['server']['api_root'],
         'staticRoot': staticRoot,
-        'plugins': plugins
+        'plugins': plugins,
+        'title': model_importer.ModelImporter.model('setting').get(constants.SettingKey.BRAND_NAME)
     })
 
     webroot.api.v1.updateHtmlVars({

@@ -90,7 +90,7 @@ class Webroot(WebrootBase):
             'plugins': [],
             'apiRoot': '',
             'staticRoot': '',
-            'title': 'Girder',
+            'title': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
             'contactEmail': ModelImporter.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
         }
 
@@ -101,6 +101,8 @@ class Webroot(WebrootBase):
         settingDoc = event.info
         if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
             self.updateHtmlVars({'contactEmail': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'title': settingDoc['value']})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

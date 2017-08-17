@@ -37,8 +37,9 @@ var FrontPageView = View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
         cancelRestRequests('fetch');
+        this.brandName = settings.brandName || 'Girder';
         this.render();
     },
 
@@ -46,7 +47,8 @@ var FrontPageView = View.extend({
         this.$el.html(FrontPageTemplate({
             apiRoot: getApiRoot(),
             currentUser: getCurrentUser(),
-            versionInfo: versionInfo
+            versionInfo: versionInfo,
+            brandName: this.brandName
         }));
 
         return this;

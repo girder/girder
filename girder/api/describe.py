@@ -436,7 +436,7 @@ class ApiDocs(WebrootBase):
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'title': 'Girder - REST API Documentation',
+            'brandName': ModelImporter.model('setting').get(constants.SettingKey.BRAND_NAME),
             'mode': mode
         }
 
