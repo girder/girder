@@ -69,27 +69,31 @@ def _onUpload(event):
 
     At least one of ``width`` or ``height`` must be passed. The ``crop`` parameter is optional.
     """
+    file = event.info['file']
+    if 'itemId' not in file:
+        return
+
     try:
         ref = json.loads(event.info.get('reference'))
     except (ValueError, TypeError):
         return
 
-    if isinstance(ref, dict) and isinstance(ref.get('thumbnail'), dict):
-        width = max(0, ref['thumbnail'].get('width', 0))
-        height = max(0, ref['thumbnail'].get('height', 0))
+    if not isinstance(ref, dict) or not isinstance(ref.get('thumbnail'), dict):
+        return
 
-        if not width and not height:
-            return
-        if not isinstance(width, int) or not isinstance(height, int):
-            return
+    width = max(0, ref['thumbnail'].get('width', 0))
+    height = max(0, ref['thumbnail'].get('height', 0))
 
-        file = event.info['file']
-        if 'itemId' in file:
-            item = ModelImporter.model('item').load(file['itemId'], force=True)
-            crop = bool(ref['thumbnail'].get('crop', True))
-            utils.scheduleThumbnailJob(
-                file=file, attachToType='item', attachToId=item['_id'],
-                user=event.info['currentUser'], width=width, height=height, crop=crop)
+    if not width and not height:
+        return
+    if not isinstance(width, int) or not isinstance(height, int):
+        return
+
+    item = ModelImporter.model('item').load(file['itemId'], force=True)
+    crop = bool(ref['thumbnail'].get('crop', True))
+    utils.scheduleThumbnailJob(
+        file=file, attachToType='item', attachToId=item['_id'], user=event.info['currentUser'],
+        width=width, height=height, crop=crop)
 
 
 def load(info):
