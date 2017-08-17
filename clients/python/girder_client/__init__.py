@@ -76,12 +76,16 @@ class IncorrectUploadLengthError(RuntimeError):
         self.upload = upload
 
 
-class HttpError(Exception):
+class HttpError(requests.HTTPError):
     """
     Raised if the server returns an error status code from a request.
+    @deprecated This will be removed in a future release of Girder. Raisers of this
+    exception should instead raise requests.HTTPError manually or through another mechanism
+    such as requests.Response.raise_for_status.
     """
-    def __init__(self, status, text, url, method):
-        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url))
+    def __init__(self, status, text, url, method, response=None):
+        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url),
+                                        response=response)
         self.status = status
         self.responseText = text
         self.url = url
@@ -336,12 +340,13 @@ class GirderClient(object):
             url = self.urlBase + 'user/authentication'
             authResponse = self._requestFunc('get')(url, auth=(username, password))
 
-            if authResponse.status_code == 404:
-                raise HttpError(404, authResponse.text, url, 'GET')
+            if authResponse.status_code in (401, 403):
+                raise AuthenticationError()
+            elif not authResponse.ok:
+                raise HttpError(authResponse.status_code, authResponse.text, url, 'GET',
+                                response=authResponse)
 
             resp = authResponse.json()
-            if 'authToken' not in resp:
-                raise AuthenticationError()
 
             self.setToken(resp['authToken']['token'])
 
@@ -484,10 +489,10 @@ class GirderClient(object):
                 return result.json()
             else:
                 return result
-        # TODO handle 300-level status (follow redirect?)
         else:
             raise HttpError(
-                status=result.status_code, url=result.url, method=method, text=result.text)
+                status=result.status_code, url=result.url, method=method, text=result.text,
+                response=result)
 
     def get(self, path, parameters=None, jsonResp=True):
         """
@@ -1189,7 +1194,7 @@ class GirderClient(object):
         url = '%sfile/%s/download' % (self.urlBase, fileId)
         req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
         if not req.ok:
-            raise HttpError(req.status_code, req.text, url, 'GET')
+            raise HttpError(req.status_code, req.text, url, 'GET', response=req)
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             with self.progressReporterCls(
                     label=progressFileName,
