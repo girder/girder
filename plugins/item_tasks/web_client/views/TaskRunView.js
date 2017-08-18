@@ -4,6 +4,7 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import FolderModel from 'girder/models/FolderModel';
 import ItemModel from 'girder/models/ItemModel';
+import FileModel from 'girder/models/FileModel';
 import router  from 'girder/router';
 import { restRequest } from 'girder/rest';
 import { renderMarkdown } from 'girder/misc';
@@ -64,6 +65,13 @@ const TaskRunView = View.extend({
             spec.value = new ItemModel({
                 _id: match.id,
                 _modelType: 'item',
+                name: match.fileName || match.id
+            });
+            spec.fileName = match.fileName || match.id;
+        } else if (match.mode === 'girder' && match.resource_type === 'file') {
+            spec.value = new FileModel({
+                _id: match.id,
+                _modelType: 'file',
                 name: match.fileName || match.id
             });
             spec.fileName = match.fileName || match.id;
