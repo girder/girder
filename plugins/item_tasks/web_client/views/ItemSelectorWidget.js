@@ -4,12 +4,10 @@ import { getCurrentUser } from 'girder/auth';
 import BrowserWidget from 'girder/views/widgets/BrowserWidget';
 import View from 'girder/views/View';
 import ItemModel from 'girder/models/ItemModel';
+import FileModel from 'girder/models/FileModel';
 import { restRequest } from 'girder/rest';
 
 var ItemSelectorWidget = View.extend({
-    events: {
-        'submit .g-new-file-select-form': '_selectButton'
-    },
 
     initialize: function (settings) {
         if (!this.model) {
@@ -22,6 +20,7 @@ var ItemSelectorWidget = View.extend({
             input = false,
             preview = true,
             type = this.model.get('type'),
+            validate = this._validateSelection,
             title, help;
 
         // Customize the browser widget according the argument type
@@ -35,7 +34,29 @@ var ItemSelectorWidget = View.extend({
             title = 'Select a folder';
             help = 'Browse to a directory to select it, then click "Save"';
         }
-
+        if (type === 'new-folder') {
+            title = 'Create a new folder';
+            help = 'Browse to a path, enter a name, then click "Save"';
+            input = {
+                label: 'Name',
+                placeholder: 'Choose a name for the new folder',
+                validate: (val) => {
+                    // validation on the "new item name"
+                    if (!val) {
+                        return 'Please provide a folder name.';
+                    }
+                },
+                default: this.model.get('fileName')
+            };
+            // validation on the parent model
+            validate = (model) => {
+                var type = model.get('_modelType');
+                if (!_.contains(['folder', 'collection', 'user'], type)) {
+                    return 'Invalid parent type, please choose a collection, folder, or user.';
+                }
+            };
+            preview = false;
+        }
         if (type === 'new-file') {
             title = 'Create a new item';
             help = 'Browse to a path, enter a name, then click "Save"';
@@ -57,15 +78,26 @@ var ItemSelectorWidget = View.extend({
             helpText: help,
             input: input,
             showPreview: preview,
-            validate: _.bind(this._validateSelection, this)
+            validate: _.bind(validate, this)
         });
         this._browserWidget.once('g:saved', (model, inputValue) => {
             this._browserWidget.$el.modal('hide');
-            this.model.set({
-                value: model,
-                fileName: inputValue || model.name()
-            });
-            this.trigger('g:saved');
+            if (type === 'file') {
+                this._file.once('g:fetched', () => {
+                    this.model.set({
+                        value: this._file,
+                        fileName: inputValue || this._file.name()
+                    });
+                    this.trigger('g:saved');
+                }).fetch();
+            }
+            else {
+                this.model.set({
+                    value: model,
+                    fileName: inputValue || model.name()
+                });
+                this.trigger('g:saved');
+            }
         });
         this._browserWidget.render();
         return this;
@@ -79,6 +111,7 @@ var ItemSelectorWidget = View.extend({
                         if (resp.length !== 1) {
                             throw 'Please select an item with exactly one file.';
                         }
+                        this._file = new FileModel({_id: resp[0]._id});
                         return undefined;
                     }, () => {
                         throw 'There was an error listing files for the selected item.';
@@ -96,51 +129,6 @@ var ItemSelectorWidget = View.extend({
                 return $.Deferred().resolve().promise();
         }
     },
-
-    _selectButton: function (e) {
-        e.preventDefault();
-
-        var inputEl = this.$('#s-new-file-name');
-        var inputElGroup =  inputEl.parent();
-        var fileName = inputEl.val();
-        var type = this.model.get('type');
-        var parent = this._hierarchyView.parentModel;
-        var errorEl = this.$('.s-modal-error').addClass('hidden');
-
-        inputElGroup.removeClass('has-error');
-
-        switch (type) {
-            case 'new-file':
-                // a file name must be provided
-                if (!fileName) {
-                    inputElGroup.addClass('has-error');
-                    errorEl.removeClass('hidden')
-                        .text('You must provide a name for the new file.');
-                    return;
-                }
-                // the parent must be a folder
-                if (parent.resourceName !== 'folder') {
-                    errorEl.removeClass('hidden')
-                        .text('Files cannot be added under collections.');
-                    return;
-                }
-                this.model.set({
-                    parent: parent,
-                    value: new ItemModel({
-                        name: fileName,
-                        folderId: parent.id
-                    })
-                });
-                break;
-            case 'directory':
-                this.model.set({
-                    value: parent
-                });
-                break;
-        }
-        this.trigger('g:saved');
-        this.$el.modal('hide');
-    }
 });
 
 export default ItemSelectorWidget;

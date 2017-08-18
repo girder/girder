@@ -302,10 +302,10 @@ var WidgetModel = Backbone.Model.extend({
             return 'Empty value';
         } else if (!type) {
             return 'Invalid value';
-        } else if (this.get('type') === 'file' && type !== 'item') {
+        } else if (_.contains(['image', 'item'], this.get('type')) && type !== 'item') {
             return 'Value must be an item';
-        } else if (this.get('type') === 'image' && type !== 'item') {
-            return 'Value must be an item';
+        } else if (this.get('type') === 'file' && type !== 'file') {
+            return 'Value must be a file';
         } else if (this.get('type') === 'directory' && type !== 'folder') {
             return 'Value must be a folder';
         } else if (this.get('type') === 'new-file' && type !== 'folder') {
@@ -382,7 +382,7 @@ var WidgetModel = Backbone.Model.extend({
      */
     isGirderModel: function () {
         return _.contains(
-            ['directory', 'new-folder', 'file', 'new-file', 'image'],
+            ['directory', 'new-folder', 'file', 'item', 'new-file', 'image'],
             this.get('type')
         );
     },
