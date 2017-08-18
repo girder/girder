@@ -20,6 +20,8 @@ import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
 import 'bootstrap-slider/dist/bootstrap-slider';
 import 'bootstrap-slider/dist/css/bootstrap-slider.css';
 
+var lastParent = null;
+
 var ControlWidget = View.extend({
     events: {
         'change input,select': '_input',
@@ -182,9 +184,11 @@ var ControlWidget = View.extend({
         var modal = new ItemSelectorWidget({
             el: $('#g-dialog-container'),
             parentView: this,
-            model: this.model
+            model: this.model,
+            root: lastParent
         });
         modal.once('g:saved', () => {
+            lastParent = modal.root;
             modal.$el.modal('hide');
         }).render();
     }

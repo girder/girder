@@ -13,6 +13,7 @@ var ItemSelectorWidget = View.extend({
         if (!this.model) {
             this.model = new ItemModel();
         }
+        this.root = settings.root || getCurrentUser();
     },
 
     render: function () {
@@ -73,7 +74,7 @@ var ItemSelectorWidget = View.extend({
             parentView: this,
             showItems: showItems,
             selectItem: showItems,
-            root: getCurrentUser(),
+            root: this.root,
             titleText: title,
             helpText: help,
             input: input,
@@ -81,6 +82,7 @@ var ItemSelectorWidget = View.extend({
             validate: _.bind(validate, this)
         });
         this._browserWidget.once('g:saved', (model, inputValue) => {
+            this.root = this._browserWidget.root;
             this._browserWidget.$el.modal('hide');
             if (type === 'file') {
                 this._file.once('g:fetched', () => {
@@ -90,8 +92,7 @@ var ItemSelectorWidget = View.extend({
                     });
                     this.trigger('g:saved');
                 }).fetch();
-            }
-            else {
+            } else {
                 this.model.set({
                     value: model,
                     fileName: inputValue || model.name()
@@ -128,7 +129,7 @@ var ItemSelectorWidget = View.extend({
             default:
                 return $.Deferred().resolve().promise();
         }
-    },
+    }
 });
 
 export default ItemSelectorWidget;
