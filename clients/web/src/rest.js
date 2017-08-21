@@ -104,6 +104,7 @@ setStaticRoot(
 let restRequest = function (opts) {
     opts = opts || {};
     const defaults = {
+        dataType: 'json',
         method: 'GET',
         girderToken: getCurrentToken() || cookie.find('girderToken'),
 
@@ -171,6 +172,10 @@ let restRequest = function (opts) {
         throw new Error('restRequest requires a "url" argument');
     }
     args.url = `${getApiRoot()}${args.url.substring(0, 1) === '/' ? '' : '/'}${args.url}`;
+    if (args.type) {
+        args.method = args.type;
+        delete args.method;
+    }
 
     if (args.girderToken) {
         args.headers = args.headers || {};
