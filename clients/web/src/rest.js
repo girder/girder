@@ -172,9 +172,11 @@ let restRequest = function (opts) {
         throw new Error('restRequest requires a "url" argument');
     }
     args.url = `${getApiRoot()}${args.url.substring(0, 1) === '/' ? '' : '/'}${args.url}`;
+    // jQuery's ajax method prefers `method` over `type`.  Since we specify a
+    // default `method`, if the caller supplies a `type`, use it instead.
     if (args.type) {
         args.method = args.type;
-        delete args.method;
+        delete args.type;
     }
 
     if (args.girderToken) {
