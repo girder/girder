@@ -105,7 +105,7 @@ let restRequest = function (opts) {
     opts = opts || {};
     const defaults = {
         dataType: 'json',
-        method: 'GET',
+        // the default `method` (aliased as `type`) is 'GET'
         girderToken: getCurrentToken() || cookie.find('girderToken'),
 
         error: (error, status) => {
@@ -172,12 +172,6 @@ let restRequest = function (opts) {
         throw new Error('restRequest requires a "url" argument');
     }
     args.url = `${getApiRoot()}${args.url.substring(0, 1) === '/' ? '' : '/'}${args.url}`;
-    // jQuery's ajax method prefers `method` over `type`.  Since we specify a
-    // default `method`, if the caller supplies a `type`, use it instead.
-    if (args.type) {
-        args.method = args.type;
-        delete args.type;
-    }
 
     if (args.girderToken) {
         args.headers = args.headers || {};
