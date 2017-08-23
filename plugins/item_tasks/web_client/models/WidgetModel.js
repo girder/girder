@@ -38,7 +38,9 @@ import tinycolor from 'tinycolor2';
  *
  * Girder models:
  *   * file:
- *      an input file (evaluates to an item id)
+ *      an input file (evaluates to an file id)
+ *   * item:
+ *      an input item (evaluates to an item id)
  *   * directory:
  *      an input folder (evaluates to a folder id)
  *   * new-file:
