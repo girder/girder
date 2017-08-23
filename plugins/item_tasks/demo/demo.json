@@ -198,8 +198,8 @@
             },
             {
                 "id": "file_input",
-                "name": "Item input",
-                "description": "Choose an existing item that will be used by the task",
+                "name": "File input",
+                "description": "Choose an existing item with one file that will be used by the task",
                 "type": "file",
                 "target": "filepath"
             }

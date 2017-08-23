@@ -10,7 +10,7 @@ describe('Create an item task', function () {
         $('ul.g-global-nav .g-nav-link[g-target="collections"]').click();
     });
 
-    it('create collection and folder', girderTest.createCollection('task test', '', 'tasks'));
+    it('create collection and folder', girderTest.createCollection('task test files', '', 'tasks'));
 
     it('create item', function () {
         runs(function () {
@@ -100,41 +100,35 @@ describe('Run the item task', function () {
     });
 
     it('configure task inputs', function () {
-        expect($('input[name="MaximumRadius"]').val()).toBe('20');
-
-        $('input[name="MaximumRadius"]').val('12').trigger('change');
-
-        $('.g-inputs-container .g-select-file-button').click();
-        girderTest.waitForDialog();
-
         // Create two items, one with 1 file and one with 2 files.
 
         // Get collection ID
         var folderId;
-        runs(function() {
-            var getCollectionIdReq = girder.rest.restRequest({
-                path: 'collection',
-                type: 'get',
+        runs(function () {
+            girder.rest.restRequest({
+                url: 'collection',
+                method: 'GET',
                 data: {
-                    text: 'task test'
+                    text: 'task test files'
                 }
             }).then(function (req) {
-                collectionId = req[0]._id;
+                var collectionId = req[0]._id;
+                // Get folder ID
                 return girder.rest.restRequest({
-                    path: 'folder',
-                    type: 'get',
+                    url: 'folder',
+                    method: 'GET',
                     data: {
                         parentType: 'collection',
                         parentId: collectionId,
                         text: 'tasks'
                     }
                 });
-            }).then(function (req) {
+            }).done(function (req) {
                 folderId = req[0]._id;
             });
-        })
+        });
 
-        waitsFor(function() {
+        waitsFor(function () {
             return folderId;
         }, 'get request on collection');
 
@@ -144,20 +138,20 @@ describe('Run the item task', function () {
         var item2Id;
         runs(function () {
             girder.rest.restRequest({
-                path: 'file',
-                type: 'POST',
+                url: 'file',
+                method: 'POST',
                 data: {
                     parentType: 'folder',
                     parentId: folderId,
-                    name: 'oneFileItem',
+                    name: 'oneFileItem.txt',
                     size: 0
                 }
             }).done(function (req) {
                 oneFileItemPostReq = req;
             });
             girder.rest.restRequest({
-                path: 'item',
-                type: 'POST',
+                url: 'item',
+                method: 'POST',
                 data: {
                     folderId: folderId,
                     name: 'twoFileItem'
@@ -165,27 +159,27 @@ describe('Run the item task', function () {
             }).then(function (req) {
                 item2Id = req._id;
                 return girder.rest.restRequest({
-                    path: 'file',
-                    type: 'POST',
+                    url: 'file',
+                    method: 'POST',
                     data: {
                         parentType: 'item',
                         parentId: item2Id,
-                        name: 'file1',
+                        name: 'twoFileItemfile1.txt',
                         size: 0
                     }
                 });
             }).then(function (req) {
                 return girder.rest.restRequest({
-                    path: 'file',
-                    type: 'POST',
+                    url: 'file',
+                    method: 'POST',
                     data: {
                         parentType: 'item',
                         parentId: item2Id,
-                        name: 'file2',
+                        name: 'twoFileItemfile2.txt',
                         size: 0
                     }
                 });
-            }).then(function (req) {
+            }).done(function (req) {
                 twoFileItemPostReq = req;
             });
         });
@@ -193,6 +187,14 @@ describe('Run the item task', function () {
         waitsFor(function () {
             return oneFileItemPostReq && twoFileItemPostReq;
         }, 'rest requests');
+
+        expect($('input[name="MaximumRadius"]').val()).toBe('20');
+
+        $('input[name="MaximumRadius"]').val('12').trigger('change');
+
+        $('.g-inputs-container .g-select-file-button').click();
+
+        girderTest.waitForDialog();
 
         waitsFor(function () {
             return $('.modal-dialog #g-root-selector:visible').length > 0;
@@ -219,6 +221,7 @@ describe('Run the item task', function () {
 
         runs(function () {
             expect($('.modal-dialog #g-selected-model').val()).toBe('');
+            // Select 'PET Phantom...' item, which has zero files
             $('.modal-dialog .g-item-list-link:contains("PET")').click();
             expect($('.modal-dialog #g-selected-model').val()).not.toBe('');
             $('.modal-dialog .g-submit-button').click();
@@ -226,20 +229,22 @@ describe('Run the item task', function () {
 
         waitsFor(function () {
             return $('.g-validation-failed-message').text();
-        }, 'selected item to be validated');
+        }, 'selected zero file item to be validated');
 
-        runs(function (){
+        runs(function () {
             expect($('.g-validation-failed-message').text()).toBe('Please select an item with exactly one file.');
+            $('.g-validation-failed-message').text('');
             $('.modal-dialog .g-item-list-link:contains("twoFileItem")').click();
             $('.modal-dialog .g-submit-button').click();
         });
 
         waitsFor(function () {
             return $('.g-validation-failed-message').text();
-        }, 'selected item to be validated');
+        }, 'selected two file item to be validated');
 
-        runs(function (){
+        runs(function () {
             expect($('.g-validation-failed-message').text()).toBe('Please select an item with exactly one file.');
+            $('.g-validation-failed-message').text('');
             $('.modal-dialog .g-item-list-link:contains("oneFileItem")').click();
             $('.modal-dialog .g-submit-button').click();
         });
@@ -256,10 +261,10 @@ describe('Run the item task', function () {
 
         runs(function () {
             // // we should be in the parent folder selected before
-            // expect($('.modal-dialog a.g-breadcrumb-link').length).toBe(1);
+            expect($('.modal-dialog a.g-breadcrumb-link').length).toBe(1);
 
             // go back to the user's main path
-            // $('.modal-dialog a.g-breadcrumb-link:first').click();
+            $('.modal-dialog a.g-breadcrumb-link:first').click();
 
             // Select our user from the root selector
             var id = $('.modal-dialog #g-root-selector option:not([disabled]):first').attr('value');
@@ -272,15 +277,16 @@ describe('Run the item task', function () {
 
         runs(function () {
             // check invalid parent
+            $('#g-input-element').val('out.txt');
             $('.modal-dialog .g-submit-button').click();
         });
 
         waitsFor(function () {
-            return $('.g-validation-failed-message').text();
-        }, 'validation to fail');
+            return $('.modal-body .g-validation-failed-message').text();
+        }, 'output validation to fail');
 
         runs(function () {
-            expect($('.g-validation-failed-message').text()).toMatch(/Invalid parent type/);
+            expect($('.modal-body .g-validation-failed-message').text()).toMatch(/Invalid parent type/);
             $('.modal-dialog .g-folder-list-link:first').click();
         });
 
@@ -290,12 +296,14 @@ describe('Run the item task', function () {
 
         runs(function () {
             // check no name provided
+            $('#g-input-element').val('');
+            $('.modal-body .g-validation-failed-message').text('');
             $('.modal-dialog .g-submit-button').click();
         });
 
         waitsFor(function () {
-            return $('.g-validation-failed-message').text();
-        }, 'validation to fail');
+            return $('.modal-body .g-validation-failed-message').text();
+        }, 'output validation to fail');
 
         runs(function () {
             expect($('.g-validation-failed-message').text()).toMatch(/Please provide an item name/);
@@ -308,7 +316,9 @@ describe('Run the item task', function () {
     });
 
     it('run the task', function () {
-        $('.g-run-task').click();
+        runs(function () {
+            $('.g-run-task').click();
+        });
 
         waitsFor(function () {
             return $('.g-item-tasks-job-info-container').length > 0;
@@ -330,7 +340,7 @@ describe('Run the item task', function () {
 
         runs(function () {
             // Make sure item name displays properly
-            expect($('input[name="InputImage"]').val()).toBe('PET phantom detector CLI');
+            expect($('input[name="InputImage"]').val()).toBe('oneFileItem.txt');
         });
     });
 });
@@ -415,7 +425,7 @@ describe('Run task on item from item view', function () {
     it('navigate to folders', function () {
         runs(function () {
             // Select the second collection, "task test"
-            $('.g-collection-link:contains("task test")').click();
+            $('.g-collection-link:contains("task test files")').click();
         });
 
         waitsFor(function () {
@@ -590,6 +600,7 @@ describe('Navigate to the demo task', function () {
         expect($('#string_choice_input').val()).toBe('green');
         expect($('#number_multi_choice_input').val()).toEqual(['3.14', '1.62']);
         expect($('#string_multi_choice_input').val()).toEqual(['green', 'yellow']);
+        expect($('#item_input').val()).toBe('');
         expect($('#file_input').val()).toBe('');
         expect($('#file_output').val()).toBe('');
     });
@@ -608,7 +619,7 @@ describe('Navigate to the demo task', function () {
             $('#string_choice_input').val('cyan').trigger('change');
             $('#number_multi_choice_input').val(['3.14', '1.62']).trigger('change');
             $('#string_multi_choice_input').val(['green', 'blue']).trigger('change');
-            $('#file_input').parent().find('button').click();
+            $('#item_input').parent().find('button').click();
         });
 
         girderTest.waitForDialog();
@@ -675,6 +686,42 @@ describe('Navigate to the demo task', function () {
         runs(function () {
             expect($('#folder_output').val()).toBe('newFolder');
         });
+
+        // Select file input
+        runs(function () {
+            $('#file_input').parent().find('button').click();
+        });
+
+        girderTest.waitForDialog();
+
+        waitsFor(function () {
+            return $('.modal-dialog #g-root-selector:visible').length > 0;
+        }, 'input root selector to appear');
+
+        runs(function () {
+            // Select our collection for the input item
+            var id = $('.modal-dialog #g-root-selector option:contains("task test files")').attr('value');
+            $('.modal-dialog #g-root-selector').val(id).trigger('change');
+        });
+
+        waitsFor(function () {
+            return $('.modal-dialog .g-folder-list-link:contains("tasks")').length > 0;
+        }, 'hierarchy widget to update for input root');
+
+        runs(function () {
+            // Select "tasks" folder
+            $('.modal-dialog .g-folder-list-link:contains("tasks")').click();
+        });
+
+        waitsFor(function () {
+            return $('.modal-dialog .g-item-list-link').length > 0;
+        }, 'folder nav in input selection widget');
+
+        runs(function () {
+            $('.modal-dialog .g-item-list-link:contains("oneFileItem")').click();
+            $('.modal-dialog .g-submit-button').click();
+        });
+        girderTest.waitForLoad();
     });
 
     it('run the task', function () {
@@ -703,8 +750,10 @@ describe('Navigate to the demo task', function () {
             expect(args.string_choice_input.data).toBe('cyan');
             expect(args.number_multi_choice_input.data).toBe('3.14,1.62');
             expect(args.string_multi_choice_input.data).toBe('green,blue');
-            expect(args.file_input.fileName).toBe('item_tasks widget types demo');
-            expect(args.file_input.resource_type).toBe('item');
+            expect(args.item_input.fileName).toBe('item_tasks widget types demo');
+            expect(args.item_input.resource_type).toBe('item');
+            expect(args.file_input.fileName).toBe('oneFileItem.txt');
+            expect(args.file_input.resource_type).toBe('file');
         });
     });
 });
