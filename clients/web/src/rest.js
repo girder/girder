@@ -104,7 +104,6 @@ setStaticRoot(
 let restRequest = function (opts) {
     opts = opts || {};
     const defaults = {
-        dataType: 'json',
         // the default `method` (aliased as `type`) is 'GET'
         girderToken: getCurrentToken() || cookie.find('girderToken'),
 
