@@ -730,18 +730,26 @@ class GirderClient(object):
         return self.createResource('collection', params)
 
     def createFolder(self, parentId, name, description='', parentType='folder',
-                     public=None, reuseExisting=False):
+                     public=None, reuseExisting=False, metadata=None):
         """
         Creates and returns a folder.
 
+        :param parentId: The id of the parent resource to create the folder in.
+        :param name: The name of the folder.
+        :param description: A description of the folder.
         :param parentType: One of ('folder', 'user', 'collection')
+        :param public: Whether the folder should be marked a public.
+        :param reuseExisting: Whether to return an existing folder if one with
+            the same name exists.
+        :param metadata: JSON metadata string to set on the folder.
         """
         params = {
             'parentId': parentId,
             'parentType': parentType,
             'name': name,
             'description': description,
-            'reuseExisting': reuseExisting
+            'reuseExisting': reuseExisting,
+            'metadata': metadata
         }
         if public is not None:
             params['public'] = public
@@ -1458,13 +1466,14 @@ class GirderClient(object):
         """
         self._itemUploadCallbacks.append(callback)
 
-    def loadOrCreateFolder(self, folderName, parentId, parentType):
+    def loadOrCreateFolder(self, folderName, parentId, parentType, metadata=None):
         """Returns a folder in Girder with the given name under the given
         parent. If none exists yet, it will create it and return it.
 
         :param folderName: the name of the folder to look up.
         :param parentId: id of parent in Girder
         :param parentType: one of (collection, folder, user)
+        :param metadata: JSON metadata string to set on folder.
         :returns: The folder that was found or created.
         """
         children = self.listFolder(parentId, parentType, name=folderName)
@@ -1472,7 +1481,8 @@ class GirderClient(object):
         try:
             return six.next(children)
         except StopIteration:
-            return self.createFolder(parentId, folderName, parentType=parentType)
+            return self.createFolder(parentId, folderName, parentType=parentType,
+                                     metadata=metadata)
 
     def _hasOnlyFiles(self, localFolder):
         """Returns whether a folder has only files. This will be false if the

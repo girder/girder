@@ -863,3 +863,15 @@ class PythonClientTestCase(base.TestCase):
                                       'meta', metadata=json.dumps(testMeta))
 
         self.assertEquals(self.client.getItem(item['_id'])['meta'], testMeta)
+
+    def testCreateFolderWithMeta(self):
+        testMeta = {
+            'meta': {
+                'meta': 'meta'
+            }
+
+        }
+        folder = self.client.createFolder(self.publicFolder['_id'],
+                                      'meta', metadata=json.dumps(testMeta))
+
+        self.assertEquals(self.client.getFolder(folder['_id'])['meta'], testMeta)
