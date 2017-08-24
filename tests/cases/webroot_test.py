@@ -43,11 +43,11 @@ class WebRootTestCase(base.TestCase):
         self.assertTrue('girder_lib.min.js' in body)
 
         emailAddress = self.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
-        self.assertTrue('contactEmail: \'%s\'' % emailAddress in body)
+        self.assertTrue(('contactEmail: \'%s\'' % emailAddress) in body)
         self.model('setting').set(SettingKey.CONTACT_EMAIL_ADDRESS, 'foo@bar.com')
 
         brandName = self.model('setting').get(SettingKey.BRAND_NAME)
-        self.assertTrue('<title>%s</title>' % brandName in body)
+        self.assertTrue(('<title>%s</title>' % brandName) in body)
         self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
 
         # A new request to update changes
@@ -55,8 +55,8 @@ class WebRootTestCase(base.TestCase):
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
 
-        self.assertTrue('contactEmail: \'%s\'' % 'foo@bar.com' in body)
-        self.assertTrue('<title>%s</title>' % 'FooBar' in body)
+        self.assertTrue(('contactEmail: \'%s\'' % 'foo@bar.com') in body)
+        self.assertTrue(('<title>%s</title>' % 'FooBar') in body)
 
     def testWebRootProperlyHandlesStaticRouteUrls(self):
         self.model('setting').set(SettingKey.ROUTE_TABLE, {

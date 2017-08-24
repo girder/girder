@@ -24,7 +24,7 @@ from .. import base
 
 from girder.api import access, describe, docs
 from girder.api.rest import Resource, filtermodel
-from girder.constants import AccessType, registerAccessFlag
+from girder.constants import AccessType, registerAccessFlag, SettingKey
 
 server = None
 Routes = [
@@ -111,6 +111,21 @@ class ApiDescribeTestCase(base.TestCase):
     """
     Makes sure our swagger auto API docs are working.
     """
+
+    def testApiBrandName(self):
+        resp = self.request(path='', method='GET', isJson=False)
+        self.assertStatusOk(resp)
+        body = self.getBody(resp)
+
+        brandName = self.model('setting').get(SettingKey.BRAND_NAME)
+        self.assertTrue(('<title>%s - REST API Documentation</title>' % brandName) in body)
+
+        self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
+        # An other request to check if the brand name is set
+        resp = self.request(path='', method='GET', isJson=False)
+        self.assertStatusOk(resp)
+        body = self.getBody(resp)
+        self.assertTrue(('<title>%s - REST API Documentation</title>' % 'FooBar') in body)
 
     def testInvalidResource(self):
         methods = ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
