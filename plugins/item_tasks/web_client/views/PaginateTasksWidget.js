@@ -1,5 +1,6 @@
 import View from 'girder/views/View';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+import { renderMarkdown } from 'girder/misc';
 
 import ItemTaskCollection from '../collections/ItemTaskCollection';
 import template from '../templates/paginateTasksWidget.pug';
@@ -44,7 +45,8 @@ var PaginateTasksWidget = View.extend({
     render: function () {
         this.$el.html(template({
             tasks: this.collection.toArray(),
-            itemUrlFunc: this.itemUrlFunc
+            itemUrlFunc: this.itemUrlFunc,
+            renderMarkdown
         }));
 
         this.paginateWidget.setElement(this.$('.g-task-pagination')).render();
