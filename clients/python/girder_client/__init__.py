@@ -618,15 +618,24 @@ class GirderClient(object):
             'id': itemId,
         }, limit=limit, offset=offset)
 
-    def createItem(self, parentFolderId, name, description='', reuseExisting=False):
+    def createItem(self, parentFolderId, name, description='', reuseExisting=False,
+                   metadata=None):
         """
         Creates and returns an item.
+
+        :param parentFolderId: the folder this item should be created in.
+        :param name: the item name.
+        :param description: a description of the item.
+        :param reuseExisting: whether to return an existing item if one with
+            same name already exists.
+        :param metadata: JSON metadata string to set on item.
         """
         params = {
             'folderId': parentFolderId,
             'name': name,
             'description': description,
-            'reuseExisting': reuseExisting
+            'reuseExisting': reuseExisting,
+            'metadata': metadata
         }
         return self.createResource('item', params)
 
@@ -1473,13 +1482,14 @@ class GirderClient(object):
         return not any(os.path.isdir(os.path.join(localFolder, entry))
                        for entry in os.listdir(localFolder))
 
-    def loadOrCreateItem(self, name, parentFolderId, reuseExisting=True):
+    def loadOrCreateItem(self, name, parentFolderId, reuseExisting=True, metadata=None):
         """Create an item with the given name in the given parent folder.
 
         :param name: The name of the item to load or create.
         :param parentFolderId: id of parent folder in Girder
         :param reuseExisting: boolean indicating whether to load an existing
             item of the same name in the same location, or create a new one.
+        :param metadata: JSON metadata string to set on item.
         """
         item = None
         if reuseExisting:
@@ -1490,7 +1500,7 @@ class GirderClient(object):
                 pass
 
         if item is None:
-            item = self.createItem(parentFolderId, name, description='')
+            item = self.createItem(parentFolderId, name, description='', metadata=metadata)
 
         return item
 

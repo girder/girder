@@ -851,3 +851,15 @@ class PythonClientTestCase(base.TestCase):
     def testNonJsonResponse(self):
         resp = self.client.get('user', jsonResp=False)
         self.assertIsInstance(resp.content, six.binary_type)
+
+    def testCreateItemWithMeta(self):
+        testMeta = {
+            'meta': {
+                'meta': 'meta'
+            }
+
+        }
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'meta', metadata=json.dumps(testMeta))
+
+        self.assertEquals(self.client.getItem(item['_id'])['meta'], testMeta)
