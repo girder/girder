@@ -4,7 +4,7 @@
   vars:
     girder_update: no
     girder_force: no
-    girder_virtualenv: "{{ ansible_user_dir }}/virtualenvs/girder"
+    girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
     girder_always_build_assets: yes
     girder_web_extra_args: "--dev --all-plugins"
   pre_tasks:
