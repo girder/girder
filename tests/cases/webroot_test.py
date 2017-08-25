@@ -50,6 +50,10 @@ class WebRootTestCase(base.TestCase):
         self.assertTrue(('<title>%s</title>' % brandName) in body)
         self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
 
+        titleName = self.model('setting').get(SettingKey.TITLE_NAME)
+        self.assertTrue(('titleName: \'%s\'' % titleName) in body)
+        self.model('setting').set(SettingKey.TITLE_NAME, 'Foo')
+
         # A new request to update changes
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
@@ -57,6 +61,7 @@ class WebRootTestCase(base.TestCase):
 
         self.assertTrue(('contactEmail: \'%s\'' % 'foo@bar.com') in body)
         self.assertTrue(('<title>%s</title>' % 'FooBar') in body)
+        self.assertTrue(('titleName: \'%s\'' % 'Foo') in body)
 
     def testWebRootProperlyHandlesStaticRouteUrls(self):
         self.model('setting').set(SettingKey.ROUTE_TABLE, {

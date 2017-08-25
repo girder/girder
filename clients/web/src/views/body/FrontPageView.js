@@ -40,6 +40,7 @@ var FrontPageView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         this.brandName = settings.brandName || 'Girder';
+        this.titleName = settings.titleName || 'Girder';
         this.render();
     },
 
@@ -48,7 +49,8 @@ var FrontPageView = View.extend({
             apiRoot: getApiRoot(),
             currentUser: getCurrentUser(),
             versionInfo: versionInfo,
-            brandName: this.brandName
+            brandName: this.brandName,
+            titleName: this.titleName
         }));
 
         return this;

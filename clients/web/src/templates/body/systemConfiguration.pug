@@ -8,6 +8,11 @@ form.g-settings-form(role="form")
           type="text", value=settings['core.brand_name'] || '',
           placeholder=`Default: ${defaults['core.brand_name'] || 'none'}`,
           title="The brand name of the application.")
+      label(for="g-core-title-name") Title Name
+      input#g-core-title-name.form-control.input-sm(
+          type="text", value=settings['core.title_name'] || '',
+          placeholder=`Default: ${defaults['core.title_name'] || 'none'}`,
+          title="The title name of the application.")
       label(for="g-core-contact-email-address") Contact email address
       input#g-core-contact-email-address.form-control.input-sm(
           type="text", value=settings['core.contact_email_address'] || '',

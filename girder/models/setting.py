@@ -171,6 +171,12 @@ class Setting(Model):
             raise ValidationException('The brand name may not be empty', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.TITLE_NAME)
+    def validateCoreTitleName(doc):
+        if not doc['value']:
+            raise ValidationException('The title name may not be empty', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.SECURE_COOKIE)
     def validateSecureCookie(doc):
         if not isinstance(doc['value'], bool):
