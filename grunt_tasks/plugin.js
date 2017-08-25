@@ -389,6 +389,12 @@ module.exports = function (grunt) {
                     entry: {
                         [helperConfig.pluginEntry]: [main]
                     },
+                    module: {
+                        // We set these since webpack.helper.js functions may
+                        // expect these properties to be defined.
+                        loaders: [],
+                        rules: []
+                    },
                     output: {
                         path: path.join(paths.web_built, 'plugins', plugin),
                         filename: `${output}.min.js`,
@@ -470,8 +476,7 @@ module.exports = function (grunt) {
                 }
             }
 
-            var baseConfig = grunt.config.getRaw('webpack.options');
-            baseConfig.module.loaders = [];
+            var baseConfig = grunt.config.getRaw(`webpack.${output}_${plugin}`);
             var newConfig = webpackHelper(baseConfig, helperConfig);
             if (_.has(newConfig.module, 'loaders')) {
                 if (!_.isEmpty(newConfig.module.loaders)) {
@@ -481,7 +486,7 @@ module.exports = function (grunt) {
                 }
                 delete newConfig.module.loaders;
             }
-            grunt.config.set('webpack.options', newConfig);
+            grunt.config.set(`webpack.${output}_${plugin}`, newConfig);
         });
 
         if (config.grunt) {
