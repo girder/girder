@@ -47,12 +47,24 @@ class WebRootTestCase(base.TestCase):
         self.model('setting').set(SettingKey.CONTACT_EMAIL_ADDRESS, 'foo@bar.com')
 
         brandName = self.model('setting').get(SettingKey.BRAND_NAME)
-        self.assertTrue(('<title>%s</title>' % brandName) in body)
+        self.assertTrue(('brandName: \'%s\'' % brandName) in body)
         self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
 
         titleName = self.model('setting').get(SettingKey.TITLE_NAME)
         self.assertTrue(('titleName: \'%s\'' % titleName) in body)
-        self.model('setting').set(SettingKey.TITLE_NAME, 'Foo')
+        self.model('setting').set(SettingKey.TITLE_NAME, 'FooHeader')
+
+        tabName = self.model('setting').get(SettingKey.TAB_NAME)
+        self.assertTrue(('tabName: \'%s\'' % tabName) in body)
+        self.model('setting').set(SettingKey.TAB_NAME, 'FooTab')
+
+        subheadingText = self.model('setting').get(SettingKey.SUBHEADING_TEXT)
+        self.assertTrue(('subheadingText: \'%s\'' % subheadingText) in body)
+        self.model('setting').set(SettingKey.SUBHEADING_TEXT, 'FooSubHeader')
+
+        welcomeText = self.model('setting').get(SettingKey.WELCOME_TEXT)
+        self.assertTrue(('welcomeText: \'%s\'' % welcomeText) in body)
+        self.model('setting').set(SettingKey.WELCOME_TEXT, 'FooWelcome')
 
         # A new request to update changes
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
@@ -60,8 +72,11 @@ class WebRootTestCase(base.TestCase):
         body = self.getBody(resp)
 
         self.assertTrue(('contactEmail: \'%s\'' % 'foo@bar.com') in body)
-        self.assertTrue(('<title>%s</title>' % 'FooBar') in body)
-        self.assertTrue(('titleName: \'%s\'' % 'Foo') in body)
+        self.assertTrue(('brandName: \'%s\'' % 'FooBar') in body)
+        self.assertTrue(('titleName: \'%s\'' % 'FooHeader') in body)
+        self.assertTrue(('tabName: \'%s\'' % 'FooTab') in body)
+        self.assertTrue(('subheadingText: \'%s\'' % 'FooSubHeader') in body)
+        self.assertTrue(('welcomeText: \'%s\'' % 'FooWelcome') in body)
 
     def testWebRootProperlyHandlesStaticRouteUrls(self):
         self.model('setting').set(SettingKey.ROUTE_TABLE, {

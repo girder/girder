@@ -177,6 +177,24 @@ class Setting(Model):
             raise ValidationException('The title name may not be empty', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.TAB_NAME)
+    def validateCoreTabName(doc):
+        if not doc['value']:
+            raise ValidationException('The HTML title name may not be empty', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.SUBHEADING_TEXT)
+    def validateCoreSubheaderText(doc):
+        if not doc['value']:
+            raise ValidationException('The subheading text may not be empty', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.WELCOME_TEXT)
+    def validateCoreWelcomeText(doc):
+        if not doc['value']:
+            raise ValidationException('The welcome text may not be empty', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.SECURE_COOKIE)
     def validateSecureCookie(doc):
         if not isinstance(doc['value'], bool):

@@ -41,6 +41,8 @@ var FrontPageView = View.extend({
         cancelRestRequests('fetch');
         this.brandName = settings.brandName || 'Girder';
         this.titleName = settings.titleName || 'Girder';
+        this.subheadingText = settings.subheadingText || 'Data management platform';
+        this.welcomeText = settings.welcomeText || 'Welcome to Girder!';
         this.render();
     },
 
@@ -50,7 +52,9 @@ var FrontPageView = View.extend({
             currentUser: getCurrentUser(),
             versionInfo: versionInfo,
             brandName: this.brandName,
-            titleName: this.titleName
+            titleName: this.titleName,
+            subheadingText: this.subheadingText,
+            welcomeText: this.welcomeText
         }));
 
         return this;

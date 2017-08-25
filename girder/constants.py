@@ -161,6 +161,9 @@ class SettingKey:
     """
     BRAND_NAME = 'core.brand_name'
     TITLE_NAME = 'core.title_name'
+    TAB_NAME = 'core.tab_name'
+    SUBHEADING_TEXT = 'core.subheading_text'
+    WELCOME_TEXT = 'core.welcome_text'
     PLUGINS_ENABLED = 'core.plugins_enabled'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
@@ -193,6 +196,9 @@ class SettingDefault:
     defaults = {
         SettingKey.BRAND_NAME: 'Girder',
         SettingKey.TITLE_NAME: 'Girder',
+        SettingKey.TAB_NAME: 'Girder',
+        SettingKey.SUBHEADING_TEXT: 'Data management platform',
+        SettingKey.WELCOME_TEXT: 'Welcome to Girder!',
         SettingKey.PLUGINS_ENABLED: [],
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',

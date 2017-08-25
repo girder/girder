@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${brandName}</title>
+    <title>${tabName | h}</title>
     <link rel="stylesheet" href="${staticRoot}/built/googlefonts.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/fontello.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/animation.css">
@@ -25,7 +25,11 @@
                 parentView: null,
                 contactEmail: '${contactEmail | h}',
                 brandName: '${brandName | h}',
-                titleName: '${titleName | h}'
+                titleName: '${titleName | h}',
+                tabName: '${tabName | h}',
+                subheadingText: '${subheadingText | h}',
+                welcomeText: '${welcomeText | h}',
+
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });

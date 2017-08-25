@@ -12,7 +12,22 @@ form.g-settings-form(role="form")
       input#g-core-title-name.form-control.input-sm(
           type="text", value=settings['core.title_name'] || '',
           placeholder=`Default: ${defaults['core.title_name'] || 'none'}`,
-          title="The title name of the application.")
+          title="The title name of the front page.")
+      label(for="g-core-tab-name") Tab Name
+      input#g-core-tab-name.form-control.input-sm(
+          type="text", value=settings['core.tab_name'] || '',
+          placeholder=`Default: ${defaults['core.tab_name'] || 'none'}`,
+          title="The HTML title name of the page.")
+      label(for="g-core-subheading-text") Subheading Text
+      input#g-core-subheading-text.form-control.input-sm(
+          type="text", value=settings['core.subheading_text'] || '',
+          placeholder=`Default: ${defaults['core.subheading_text'] || 'none'}`,
+          title="The subheading text of the front page.")
+      label(for="g-core-welcome-text") Welcome Text
+      input#g-core-welcome-text.form-control.input-sm(
+          type="text", value=settings['core.welcome_text'] || '',
+          placeholder=`Default: ${defaults['core.welcome_text'] || 'none'}`,
+          title="The welcome text of the front page.")
       label(for="g-core-contact-email-address") Contact email address
       input#g-core-contact-email-address.form-control.input-sm(
           type="text", value=settings['core.contact_email_address'] || '',

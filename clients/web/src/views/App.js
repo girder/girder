@@ -42,6 +42,8 @@ var App = View.extend({
         this.contactEmail = settings.contactEmail || null;
         this.brandName = settings.brandName || null;
         this.titleName = settings.titleName || null;
+        this.subheadingText = settings.subheadingText || null;
+        this.welcomeText = settings.welcomeText || null;
         if (settings.start === undefined || settings.start) {
             this.start();
         }
@@ -128,7 +130,9 @@ var App = View.extend({
         this.headerView = new LayoutHeaderView({
             parentView: this,
             brandName: this.brandName,
-            titleName: this.titleName
+            titleName: this.titleName,
+            subheadingText: this.subheadingText,
+            welcomeText: this.welcomeText
         });
 
         this.globalNavView = new LayoutGlobalNavView({
@@ -227,7 +231,9 @@ var App = View.extend({
                 el: this.$('#g-app-body-container'),
                 parentView: this,
                 brandName: this.brandName,
-                titleName: this.titleName
+                titleName: this.titleName,
+                subheadingText: this.subheadingText,
+                welcomeText: this.welcomeText
             });
 
             /* We let the view be created in this way even though it is

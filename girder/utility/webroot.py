@@ -92,6 +92,9 @@ class Webroot(WebrootBase):
             'staticRoot': '',
             'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
             'titleName': ModelImporter.model('setting').get(SettingKey.TITLE_NAME),
+            'tabName': ModelImporter.model('setting').get(SettingKey.TAB_NAME),
+            'subheadingText': ModelImporter.model('setting').get(SettingKey.SUBHEADING_TEXT),
+            'welcomeText': ModelImporter.model('setting').get(SettingKey.WELCOME_TEXT),
             'contactEmail': ModelImporter.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
         }
 
@@ -106,6 +109,12 @@ class Webroot(WebrootBase):
             self.updateHtmlVars({'brandName': settingDoc['value']})
         elif settingDoc['key'] == SettingKey.TITLE_NAME:
             self.updateHtmlVars({'titleName': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.TAB_NAME:
+            self.updateHtmlVars({'tabName': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.SUBHEADING_TEXT:
+            self.updateHtmlVars({'subheadingText': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.WELCOME_TEXT:
+            self.updateHtmlVars({'welcomeText': settingDoc['value']})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

@@ -214,6 +214,9 @@ class SystemTestCase(base.TestCase):
         badValues = {
             SettingKey.BRAND_NAME: '',
             SettingKey.TITLE_NAME: '',
+            SettingKey.TAB_NAME: '',
+            SettingKey.SUBHEADING_TEXT: '',
+            SettingKey.WELCOME_TEXT: '',
             SettingKey.EMAIL_FROM_ADDRESS: '',
             SettingKey.CONTACT_EMAIL_ADDRESS: '',
             SettingKey.EMAIL_HOST: {},
