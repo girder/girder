@@ -29,6 +29,7 @@
                 tabName: '${tabName | h}',
                 subheadingText: '${subheadingText | h}',
                 welcomeText: '${welcomeText | h}',
+                bannerColor: '${bannerColor}',
 
             }).render();
             girder.events.trigger('g:appload.after', girder.app);

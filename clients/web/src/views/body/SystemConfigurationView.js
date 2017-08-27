@@ -65,7 +65,10 @@ var SystemConfigurationView = View.extend({
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             }, this));
         },
-        'click #g-restart-server': restartServerPrompt
+        'click #g-restart-server': restartServerPrompt,
+        'click #g-core-banner-default-color': function (event) {
+            this.$('#g-core-banner-color').attr('value', this.defaults['core.banner_color']);
+        }
     },
 
     initialize: function () {
@@ -78,6 +81,7 @@ var SystemConfigurationView = View.extend({
             'core.tab_name',
             'core.subheading_text',
             'core.welcome_text',
+            'core.banner_color',
             'core.cookie_lifetime',
             'core.email_from_address',
             'core.email_host',

@@ -95,6 +95,7 @@ class Webroot(WebrootBase):
             'tabName': ModelImporter.model('setting').get(SettingKey.TAB_NAME),
             'subheadingText': ModelImporter.model('setting').get(SettingKey.SUBHEADING_TEXT),
             'welcomeText': ModelImporter.model('setting').get(SettingKey.WELCOME_TEXT),
+            'bannerColor': ModelImporter.model('setting').get(SettingKey.BANNER_COLOR),
             'contactEmail': ModelImporter.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
         }
 
@@ -115,6 +116,8 @@ class Webroot(WebrootBase):
             self.updateHtmlVars({'subheadingText': settingDoc['value']})
         elif settingDoc['key'] == SettingKey.WELCOME_TEXT:
             self.updateHtmlVars({'welcomeText': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.BANNER_COLOR:
+            self.updateHtmlVars({'bannerColor': settingDoc['value']})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

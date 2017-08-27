@@ -85,7 +85,9 @@ def _configureStaticRoutes(webroot, plugins, event=None):
         'subheadingText': model_importer.ModelImporter.model('setting').get(
             constants.SettingKey.SUBHEADING_TEXT),
         'welcomeText': model_importer.ModelImporter.model('setting').get(
-            constants.SettingKey.WELCOME_TEXT)
+            constants.SettingKey.WELCOME_TEXT),
+        'bannerColor': model_importer.ModelImporter.model('setting').get(
+            constants.SettingKey.BANNER_COLOR)
     })
 
     webroot.api.v1.updateHtmlVars({

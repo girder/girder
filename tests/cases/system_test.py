@@ -217,6 +217,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.TAB_NAME: '',
             SettingKey.SUBHEADING_TEXT: '',
             SettingKey.WELCOME_TEXT: '',
+            SettingKey.BANNER_COLOR: '',
             SettingKey.EMAIL_FROM_ADDRESS: '',
             SettingKey.CONTACT_EMAIL_ADDRESS: '',
             SettingKey.EMAIL_HOST: {},

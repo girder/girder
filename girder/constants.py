@@ -164,6 +164,7 @@ class SettingKey:
     TAB_NAME = 'core.tab_name'
     SUBHEADING_TEXT = 'core.subheading_text'
     WELCOME_TEXT = 'core.welcome_text'
+    BANNER_COLOR = 'core.banner_color'
     PLUGINS_ENABLED = 'core.plugins_enabled'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
@@ -199,6 +200,7 @@ class SettingDefault:
         SettingKey.TAB_NAME: 'Girder',
         SettingKey.SUBHEADING_TEXT: 'Data management platform',
         SettingKey.WELCOME_TEXT: 'Welcome to Girder!',
+        SettingKey.BANNER_COLOR: '#3F3B3B',
         SettingKey.PLUGINS_ENABLED: [],
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',

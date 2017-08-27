@@ -44,6 +44,7 @@ var App = View.extend({
         this.titleName = settings.titleName || null;
         this.subheadingText = settings.subheadingText || null;
         this.welcomeText = settings.welcomeText || null;
+        this.bannerColor = settings.bannerColor || null;
         if (settings.start === undefined || settings.start) {
             this.start();
         }
@@ -132,7 +133,8 @@ var App = View.extend({
             brandName: this.brandName,
             titleName: this.titleName,
             subheadingText: this.subheadingText,
-            welcomeText: this.welcomeText
+            welcomeText: this.welcomeText,
+            bannerColor: this.bannerColor
         });
 
         this.globalNavView = new LayoutGlobalNavView({
