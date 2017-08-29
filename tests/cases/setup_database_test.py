@@ -64,6 +64,9 @@ class SetupDatabaseTestCase(base.TestCase):
         self.assertDictContains({
             'public': True
         }, folder, 'manually created public folder')
+        self.assertDictContains({
+            'creatorId': user['_id']
+        }, folder, 'folder is created by expected user')
 
     def testUserImportedFolders(self):
         user = self.model('user').findOne({'login': 'importedfolders'})
