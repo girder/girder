@@ -628,8 +628,12 @@ class GirderClient(object):
         :param description: a description of the item.
         :param reuseExisting: whether to return an existing item if one with
             same name already exists.
-        :param metadata: JSON metadata string to set on item.
+        :param metadata: JSON metadata to set on item.
         """
+
+        if metadata is not None and not isinstance(metadata, six.string_types):
+            metadata = json.dumps(metadata)
+
         params = {
             'folderId': parentFolderId,
             'name': name,
@@ -741,8 +745,12 @@ class GirderClient(object):
         :param public: Whether the folder should be marked a public.
         :param reuseExisting: Whether to return an existing folder if one with
             the same name exists.
-        :param metadata: JSON metadata string to set on the folder.
+        :param metadata: JSON metadata to set on the folder.
         """
+
+        if metadata is not None and not isinstance(metadata, six.string_types):
+            metadata = json.dumps(metadata)
+
         params = {
             'parentId': parentId,
             'parentType': parentType,
@@ -802,6 +810,10 @@ class GirderClient(object):
         :param access: JSON document specifying access control.
         :param public: Boolean specificying the public value.
         """
+
+        if access is not None and not isinstance(access, six.string_types):
+            access = json.dumps(access)
+
         path = 'folder/' + folderId + '/access'
         params = {
             'access': access,
