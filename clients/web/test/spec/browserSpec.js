@@ -453,6 +453,11 @@ describe('Test the hierarchy browser modal', function () {
             });
             runs(function () {
                 view.$('.g-submit-button').click();
+            });
+            waitsFor(function () {
+                return $('.g-validation-failed-message').text();
+            }, 'validation to complete');
+            runs(function () {
                 expect(view.$el.hasClass('in')).toBe(true);
                 expect(view.$('.g-validation-failed-message').text()).toBe('invalid');
                 expect(view.$('.g-validation-falied-message').hasClass('hidden')).toBe(false);
@@ -594,7 +599,11 @@ describe('Test the hierarchy browser modal', function () {
                 // test an invalid input
                 view.$('#g-input-element').val('input value');
                 view.$('.g-submit-button').click();
-
+            });
+            waitsFor(function () {
+                return $('.g-validation-failed-message').text();
+            }, 'validation to complete');
+            runs(function () {
                 expect(validateCalledWith).toBe('input value');
                 expect(view.$('.g-validation-failed-message').text()).toBe('invalid');
                 expect(view.$('.g-validation-failed-message').hasClass('hidden')).toBe(false);
