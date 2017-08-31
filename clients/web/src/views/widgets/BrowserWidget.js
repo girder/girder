@@ -149,26 +149,97 @@ var BrowserWidget = View.extend({
 
     _submitButton: function () {
         var model = this.selectedModel();
-        var message = this.validate(model);
-        var inputMessage;
+        var invalidSelectedModel;
+        var invalidInputElement;
 
-        if (this.input && this.input.validate) {
-            inputMessage = this.input.validate(this.$('#g-input-element').val());
-        }
+        /**
+         * This independently validates both the input-element and the selected-model.
+         * The 4 possible outcomes of this validation are as follows...
+         *
+         * Case |  selected-model | input-element
+         *  1.  |      Valid      |     Valid
+         *  2.  |      Valid      |    Invalid
+         *  3.  |     Invalid     |    Invalid
+         *  4.  |     Invalid     |     Valid
+         *
+         * The code path for each case is commented inline
+         */
+        const validationPromise = $.Deferred().resolve()
+            .then(() => {
+                // Validate input-element
+                if (this.input && this.input.validate) {
+                    var message = this.input.validate(this.$('#g-input-element').val());
+                    if (message === undefined) {
+                        return undefined;
+                    } else if (_.isFunction(message.then)) {
+                        return message;
+                    } else {
+                        throw message;
+                    }
+                } else {
+                    return undefined;
+                }
+            })
+            .then(() => {
+                // input-element is valid
+                // Now validate selected-model
+                var message = this.validate(model);
+                if (message === undefined) {
+                    return undefined;
+                } else if (_.isFunction(message.then)) {
+                    return message;
+                } else {
+                    throw message;
+                }
+            }, (failMessage) => {
+                // input-element is invalid
+                invalidInputElement = failMessage;
 
-        if (inputMessage) {
-            this.$('.g-input-element').addClass('has-error');
-            this.$('.g-validation-failed-message').removeClass('hidden').html(
-                _.escape(inputMessage) + '<br>' + _.escape(message)
-            );
-        } else if (message) {
-            this.$('.g-selected-model').addClass('has-error');
-            this.$('.g-validation-failed-message').removeClass('hidden').text(message);
-        } else {
-            this.root = this._hierarchyView.parentModel;
-            this.$el.modal('hide');
-            this.trigger('g:saved', model, this.$('#g-input-element').val());
-        }
+                // Now validate selected-model
+                var message = this.validate(model);
+                if (message === undefined) {
+                    return undefined;
+                } else if (_.isFunction(message.then)) {
+                    return message;
+                } else {
+                    throw message;
+                }
+            })
+            .then(() => {
+                // selected-model is valid
+                if (invalidInputElement) {
+                    // Case 2
+                    return $.Deferred().reject().promise();
+                } else {
+                    // Case 1
+                    return undefined;
+                }
+            }, (failMessage) => {
+                // selected-model is invalid
+                // Case 3 and 4
+                invalidSelectedModel = failMessage;
+                return $.Deferred().reject().promise();
+            });
+
+        $.when(validationPromise)
+            .fail(() => {
+                if (invalidInputElement) {
+                    // Case 2 and 3
+                    this.$('.g-input-element').addClass('has-error');
+                    this.$('.g-validation-failed-message').removeClass('hidden').html(
+                        _.escape(invalidInputElement) + '<br>' + _.escape(invalidSelectedModel));
+                } else if (invalidSelectedModel) {
+                    // Case 4
+                    this.$('.g-selected-model').addClass('has-error');
+                    this.$('.g-validation-failed-message').removeClass('hidden').text(invalidSelectedModel);
+                }
+            })
+            .done(() => {
+                // Case 1
+                this.root = this._hierarchyView.parentModel;
+                this.$el.modal('hide');
+                this.trigger('g:saved', model, this.$('#g-input-element').val());
+            });
     }
 });
 
