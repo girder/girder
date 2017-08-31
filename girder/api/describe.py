@@ -84,6 +84,7 @@ class Description(object):
         self._params = []
         self._responses = {}
         self._consumes = []
+        self._produces = []
         self._responseClass = None
         self._responseClassArray = False
         self._notes = None
@@ -128,6 +129,9 @@ class Description(object):
 
         if self._consumes:
             resp['consumes'] = self._consumes
+
+        if self._produces:
+            resp['produces'] = self._produces
 
         if self._deprecated:
             resp['deprecated'] = True
@@ -376,6 +380,13 @@ class Description(object):
 
     def consumes(self, value):
         self._consumes.append(value)
+        return self
+
+    def produces(self, value):
+        if isinstance(value, (list, tuple)):
+            self._produces.extend(value)
+        else:
+            self._produces.append(value)
         return self
 
     def notes(self, notes):

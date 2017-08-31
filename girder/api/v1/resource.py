@@ -175,6 +175,7 @@ class Resource(BaseResource):
                    '"folder": [(folder id 1)]}.', requireObject=True)
         .param('includeMetadata', 'Include any metadata in JSON files in the '
                'archive.', required=False, dataType='boolean', default=False)
+        .produces('application/zip')
         .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')

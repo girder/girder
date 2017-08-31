@@ -117,6 +117,7 @@ class Folder(Resource):
         .modelParam('id', model='folder', level=AccessType.READ)
         .jsonParam('mimeFilter', 'JSON list of MIME types to include.', required=False,
                    requireArray=True)
+        .produces('application/zip')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )

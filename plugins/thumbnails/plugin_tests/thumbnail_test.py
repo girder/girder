@@ -17,8 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
 import os
 import six
+import time
 
 from tests import base
 from girder import events
@@ -39,6 +41,7 @@ def tearDownModule():
 class ThumbnailsTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
+
         # Create some test documents with an item
         admin = {
             'email': 'admin@email.com',
@@ -68,26 +71,25 @@ class ThumbnailsTestCase(base.TestCase):
             else:
                 self.privateFolder = folder
 
+        path = os.path.join(ROOT_DIR, 'clients', 'web', 'src', 'assets', 'Girder_Mark.png')
+        with open(path, 'rb') as file:
+            self.image = file.read()
         events.unbind('thumbnails.create', 'test')
 
     def testThumbnailCreation(self):
-        path = os.path.join(ROOT_DIR, 'clients', 'web', 'src', 'assets', 'Girder_Mark.png')
-        with open(path, 'rb') as file:
-            data = file.read()
-
         # Upload the Girder logo to the admin's public folder
         resp = self.request(
             path='/file', method='POST', user=self.admin, params={
                 'parentType': 'folder',
                 'parentId': self.publicFolder['_id'],
                 'name': 'test.png',
-                'size': len(data)
+                'size': len(self.image)
             })
         self.assertStatusOk(resp)
         uploadId = resp.json['_id']
 
         fields = [('offset', 0), ('uploadId', uploadId)]
-        files = [('chunk', 'test.png', data)]
+        files = [('chunk', 'test.png', self.image)]
         resp = self.multipartRequest(
             path='/file/chunk', fields=fields, files=files, user=self.admin)
         self.assertStatusOk(resp)
@@ -103,8 +105,7 @@ class ThumbnailsTestCase(base.TestCase):
 
         # We shouldn't be able to add thumbnails without write access to the
         # target resource.
-        resp = self.request(
-            path='/thumbnail', method='POST', user=self.user, params=params)
+        resp = self.request(path='/thumbnail', method='POST', user=self.user, params=params)
         self.assertStatus(resp, 403)
 
         # Should complain if we don't pass a width or a height
@@ -114,13 +115,11 @@ class ThumbnailsTestCase(base.TestCase):
         resp = self.request(
             path='/thumbnail', method='POST', user=self.user, params=params)
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'You must specify a valid width,'
-                         ' height, or both.')
+        self.assertEqual(resp.json['message'], 'You must specify a valid width, height, or both.')
 
         # Set a width, we should now correctly have a thumbnail
         params['width'] = 64
-        resp = self.request(
-            path='/thumbnail', method='POST', user=self.user, params=params)
+        resp = self.request(path='/thumbnail', method='POST', user=self.user, params=params)
         self.assertStatusOk(resp)
         job = resp.json
 
@@ -131,15 +130,13 @@ class ThumbnailsTestCase(base.TestCase):
         self.assertEqual(len(self.user['_thumbnails']), 1)
         thumbnailId = self.user['_thumbnails'][0]
 
-        resp = self.request('/file/%s/download' % str(thumbnailId),
-                            isJson=False)
+        resp = self.request('/file/%s/download' % str(thumbnailId), isJson=False)
         data = self.getBody(resp, text=False)
         image = Image.open(six.BytesIO(data))
         self.assertEqual(image.size, (64, 64))
 
         # Delete the thumbnail, it should be removed from the user thumb list
-        resp = self.request('/file/%s' % str(thumbnailId), method='DELETE',
-                            user=self.user)
+        resp = self.request('/file/%s' % str(thumbnailId), method='DELETE', user=self.user)
         self.assertStatusOk(resp)
 
         self.assertEqual(self.model('file').load(thumbnailId), None)
@@ -157,14 +154,12 @@ class ThumbnailsTestCase(base.TestCase):
                 'fileId': fileId
             })
         self.assertStatusOk(resp)
-        self.publicFolder = self.model('folder').load(
-            self.publicFolder['_id'], force=True)
+        self.publicFolder = self.model('folder').load(self.publicFolder['_id'], force=True)
         self.assertEqual(len(self.publicFolder['_thumbnails']), 1)
 
         thumbnailId = self.publicFolder['_thumbnails'][0]
 
-        resp = self.request('/file/%s/download' % str(thumbnailId),
-                            isJson=False)
+        resp = self.request('/file/%s/download' % thumbnailId, isJson=False)
         data = self.getBody(resp, text=False)
         image = Image.open(six.BytesIO(data))
         self.assertEqual(image.size, (64, 32))
@@ -207,19 +202,16 @@ class ThumbnailsTestCase(base.TestCase):
 
         # We shouldn't be able to add thumbnails without write access to the
         # target resource.
-        resp = self.request(
-            path='/thumbnail', method='POST', user=self.user, params=params)
+        resp = self.request(path='/thumbnail', method='POST', user=self.user, params=params)
         self.assertStatus(resp, 403)
 
         # Should complain if we don't pass a width or a height
         del params['width']
         params['attachToId'] = str(self.user['_id'])
 
-        resp = self.request(
-            path='/thumbnail', method='POST', user=self.user, params=params)
+        resp = self.request(path='/thumbnail', method='POST', user=self.user, params=params)
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'You must specify a valid width,'
-                         ' height, or both.')
+        self.assertEqual(resp.json['message'], 'You must specify a valid width, height, or both.')
 
         # Set a width, we should now correctly have a thumbnail
         params['width'] = 64
@@ -235,15 +227,13 @@ class ThumbnailsTestCase(base.TestCase):
         self.assertEqual(len(self.user['_thumbnails']), 1)
         thumbnailId = self.user['_thumbnails'][0]
 
-        resp = self.request('/file/%s/download' % str(thumbnailId),
-                            isJson=False)
+        resp = self.request('/file/%s/download' % thumbnailId, isJson=False)
         data = self.getBody(resp, text=False)
         image = Image.open(six.BytesIO(data))
         self.assertEqual(image.size, (64, 64))
 
         # Delete the thumbnail, it should be removed from the user thumb list
-        resp = self.request('/file/%s' % str(thumbnailId), method='DELETE',
-                            user=self.user)
+        resp = self.request('/file/%s' % str(thumbnailId), method='DELETE', user=self.user)
         self.assertStatusOk(resp)
 
         self.assertEqual(self.model('file').load(thumbnailId), None)
@@ -267,8 +257,7 @@ class ThumbnailsTestCase(base.TestCase):
 
         thumbnailId = self.publicFolder['_thumbnails'][0]
 
-        resp = self.request('/file/%s/download' % str(thumbnailId),
-                            isJson=False)
+        resp = self.request('/file/%s/download' % thumbnailId, isJson=False)
         data = self.getBody(resp, text=False)
         image = Image.open(six.BytesIO(data))
         self.assertEqual(image.size, (64, 32))
@@ -300,9 +289,6 @@ class ThumbnailsTestCase(base.TestCase):
             event.preventDefault()
 
         events.bind('thumbnails.create', 'test', override)
-        path = os.path.join(ROOT_DIR, 'clients', 'web', 'src', 'assets', 'Girder_Mark.png')
-        with open(path, 'rb') as file:
-            data = file.read()
 
         # Upload the Girder logo to the admin's public folder
         resp = self.request(
@@ -310,13 +296,13 @@ class ThumbnailsTestCase(base.TestCase):
                 'parentType': 'folder',
                 'parentId': self.publicFolder['_id'],
                 'name': 'test.png',
-                'size': len(data)
+                'size': len(self.image)
             })
         self.assertStatusOk(resp)
         uploadId = resp.json['_id']
 
         fields = [('offset', 0), ('uploadId', uploadId)]
-        files = [('chunk', 'test.png', data)]
+        files = [('chunk', 'test.png', self.image)]
         resp = self.multipartRequest(
             path='/file/chunk', fields=fields, files=files, user=self.admin)
         self.assertStatusOk(resp)
@@ -338,8 +324,7 @@ class ThumbnailsTestCase(base.TestCase):
         # Download the new thumbnail
         folder = self.model('folder').load(self.publicFolder['_id'], force=True)
         self.assertEqual(len(folder['_thumbnails']), 1)
-        thumbnail = self.model('file').load(folder['_thumbnails'][0],
-                                            force=True)
+        thumbnail = self.model('file').load(folder['_thumbnails'][0], force=True)
 
         self.assertEqual(thumbnail['attachedToType'], 'folder')
         self.assertEqual(thumbnail['attachedToId'], folder['_id'])
@@ -347,3 +332,39 @@ class ThumbnailsTestCase(base.TestCase):
         # Its contents should be the PNG magic number
         stream = self.model('file').download(thumbnail, headers=False)
         self.assertEqual(b'\x89PNG', b''.join(stream()))
+
+    def testCreationOnUpload(self):
+        resp = self.request(
+            path='/file', method='POST', user=self.admin, params={
+                'parentType': 'folder',
+                'parentId': self.publicFolder['_id'],
+                'name': 'test.png',
+                'size': len(self.image),
+                'reference': json.dumps({
+                    'thumbnail': {
+                        'width': 100
+                    }
+                })
+            })
+        self.assertStatusOk(resp)
+
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.admin, body=self.image, params={
+                'offset': 0,
+                'uploadId': resp.json['_id']
+            }, type='image/png')
+        self.assertStatusOk(resp)
+        self.assertIn('itemId', resp.json)
+        itemId = resp.json['itemId']
+
+        start = time.time()
+        while time.time() - start < 15:
+            # Wait for thumbnail creation
+            item = self.model('item').load(itemId, force=True)
+            if item.get('_thumbnails'):
+                break
+            time.sleep(0.1)
+        self.assertEqual(len(item['_thumbnails']), 1)
+        file = self.model('file').load(item['_thumbnails'][0], force=True)
+        with self.model('file').open(file) as fh:
+            self.assertEqual(fh.read(2), b'\xff\xd8')  # jpeg magic number

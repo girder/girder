@@ -26,6 +26,7 @@ from girder.api import rest
 from girder.constants import SettingKey
 from girder.utility import assetstore_utilities
 from .model_base import Model, GirderException, ValidationException
+from girder.utility import RequestBodyStream
 from girder.utility.progress import noProgress
 
 
@@ -103,7 +104,7 @@ class Upload(Model):
             if not data:
                 break
 
-            upload = self.handleChunk(upload, six.BytesIO(data))
+            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(data), size))
 
         return upload
 
@@ -417,12 +418,12 @@ class Upload(Model):
             else:
                 chunk = data
             if len(chunk) >= chunkSize:
-                upload = self.handleChunk(upload, six.BytesIO(chunk))
+                upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(chunk), len(chunk)))
                 progress.update(increment=len(chunk))
                 chunk = None
 
         if chunk is not None:
-            upload = self.handleChunk(upload, six.BytesIO(chunk))
+            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(chunk), len(chunk)))
             progress.update(increment=len(chunk))
 
         return upload

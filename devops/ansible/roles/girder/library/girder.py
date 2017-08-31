@@ -19,7 +19,8 @@
 
 import json
 import os
-from inspect import getmembers, ismethod, getargspec
+import requests
+from inspect import getmembers, ismethod, isfunction, getargspec
 
 # Ansible's module magic requires this to be
 # 'from ansible.module_utils.basic import *' otherwise it will error out. See:
@@ -28,7 +29,7 @@ from inspect import getmembers, ismethod, getargspec
 from ansible.module_utils.basic import *  # noqa
 
 try:
-    from girder_client import GirderClient, AuthenticationError, HttpError
+    from girder_client import GirderClient, AuthenticationError
     HAS_GIRDER_CLIENT = True
 except ImportError:
     HAS_GIRDER_CLIENT = False
@@ -878,7 +879,7 @@ EXAMPLES = '''
 def class_spec(cls, include=None):
     include = include if include is not None else []
 
-    for fn, method in getmembers(cls, predicate=ismethod):
+    for fn, method in getmembers(cls, predicate=lambda f: ismethod(f) or isfunction(f)):
         if fn in include:
             spec = getargspec(method)
             # Note: must specify the kind of data we accept
@@ -943,7 +944,7 @@ class Resource(object):
         try:
             ret = self.client.post(self.resource_type, body, **kwargs)
             self.client.changed = True
-        except HttpError as htErr:
+        except requests.HTTPError as htErr:
             try:
                 # If we can't create the item,  try and return
                 # The item with the same name
@@ -1210,7 +1211,7 @@ class GirderClientModule(GirderClient):
         try:
             user = self.get("/resource/lookup",
                             {"path": "/user/{}".format(login)})
-        except HttpError:
+        except requests.HTTPError:
             user = None
         return user
 
@@ -1218,7 +1219,7 @@ class GirderClientModule(GirderClient):
         try:
             # Could potentially fail if we have more 50 groups
             group = {g['name']: g for g in self.get("group")}['name']
-        except (KeyError, HttpError):
+        except (KeyError, requests.HTTPError):
             group = None
         return group
 
@@ -1816,8 +1817,8 @@ class GirderClientModule(GirderClient):
 
             try:
                 response = self.put('system/setting', parameters=params)
-            except HttpError as e:
-                self.fail(json.loads(e.responseText)['message'])
+            except requests.HTTPError as e:
+                self.fail(e.response.json()['message'])
 
             if response and isinstance(value, list):
                 self.changed = set(existing_value) != set(value)
@@ -1844,8 +1845,8 @@ class GirderClientModule(GirderClient):
 
                     ret['previous_value'] = existing_value
                     ret['current_value'] = default
-                except HttpError as e:
-                    self.fail(json.loads(e.responseText)['message'])
+                except requests.HTTPError as e:
+                    self.fail(e.response.json()['message'])
 
         return ret
 
@@ -1898,10 +1899,10 @@ def main():
     try:
         gcm(module)
 
-    except HttpError as e:
+    except requests.HTTPError as e:
         import traceback
         module.fail_json(msg="%s:%s\n%s\n%s" % (e.__class__, str(e),
-                                                e.responseText,
+                                                e.response.text,
                                                 traceback.format_exc()))
     except Exception as e:
         import traceback

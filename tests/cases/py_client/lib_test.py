@@ -22,6 +22,7 @@ import girder_client
 import json
 import mock
 import os
+import requests
 import shutil
 import six
 from six import StringIO
@@ -110,6 +111,34 @@ class PythonClientTestCase(base.TestCase):
 
             return folders[0]
 
+    def testAuthenticateRaisesHTTPError(self):
+        # Test non "OK" responses throw HTTPError
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(500, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(requests.HTTPError):
+                self.client.authenticate(self.user['login'], self.password)
+
+    def testAuthenticateRaisesAuthenticationError(self):
+        # Test 401/403 raise AuthenticationError
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(401, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.AuthenticationError):
+                self.client.authenticate(self.user['login'], self.password)
+
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(403, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.AuthenticationError):
+                self.client.authenticate(self.user['login'], self.password)
+
     def testRestCore(self):
         self.assertTrue(self.user['admin'])
 
@@ -144,10 +173,10 @@ class PythonClientTestCase(base.TestCase):
         flag = False
         try:
             self.client.getResource('user/badId')
-        except girder_client.HttpError as e:
-            self.assertEqual(e.status, 400)
-            self.assertEqual(e.method, 'GET')
-            resp = json.loads(e.responseText)
+        except requests.HTTPError as e:
+            self.assertEqual(e.response.status_code, 400)
+            self.assertEqual(e.request.method, 'GET')
+            resp = e.response.json()
             self.assertEqual(resp['type'], 'validation')
             self.assertEqual(resp['field'], 'id')
             self.assertEqual(resp['message'], 'Invalid ObjectId: badId')
@@ -599,9 +628,9 @@ class PythonClientTestCase(base.TestCase):
         def mock(url, request):
             return httmock.response(500, 'error', request=request)
 
-        # Attempt to download file to object stream, should raise HttpError
+        # Attempt to download file to object stream, should raise HTTPError
         with httmock.HTTMock(mock):
-            with self.assertRaises(girder_client.HttpError):
+            with self.assertRaises(requests.HTTPError):
                 self.client.downloadFile(file['_id'], obj)
 
     def testAddMetadataToItem(self):
@@ -687,7 +716,7 @@ class PythonClientTestCase(base.TestCase):
                          item['_id'])
 
         # Test invalid path, default
-        with self.assertRaises(girder_client.HttpError) as cm:
+        with self.assertRaises(requests.HTTPError) as cm:
             self.client.resourceLookup(testInvalidPath)
 
         self.assertEqual(cm.exception.status, 400)
@@ -713,12 +742,12 @@ class PythonClientTestCase(base.TestCase):
             item['_id'])
 
         # Test invalid path, test = False
-        with self.assertRaises(girder_client.HttpError) as cm:
+        with self.assertRaises(requests.HTTPError) as cm:
             self.client.resourceLookup(testInvalidPath, test=False)
 
-        self.assertEqual(cm.exception.status, 400)
-        self.assertEqual(cm.exception.method, 'GET')
-        resp = json.loads(cm.exception.responseText)
+        self.assertEqual(cm.exception.response.status_code, 400)
+        self.assertEqual(cm.exception.request.method, 'GET')
+        resp = cm.exception.response.json()
         self.assertEqual(resp['type'], 'validation')
         self.assertEqual(resp['message'], 'Path not found: %s' % (testInvalidPath))
 

@@ -63,6 +63,7 @@ class HashedFile(File):
         .param('algo', 'The hashsum algorithm.', paramType='path', lower=True,
                enum=SUPPORTED_ALGORITHMS)
         .notes('This is meant to be used in conjunction with CMake\'s ExternalData module.')
+        .produces('text/plain')
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
