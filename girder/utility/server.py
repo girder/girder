@@ -75,8 +75,7 @@ def _configureStaticRoutes(webroot, plugins, event=None):
     webroot.updateHtmlVars({
         'apiRoot': config.getConfig()['server']['api_root'],
         'staticRoot': staticRoot,
-        'plugins': plugins,
-        'title': model_importer.ModelImporter.model('setting').get(constants.SettingKey.BRAND_NAME)
+        'plugins': plugins
     })
 
     webroot.api.v1.updateHtmlVars({
