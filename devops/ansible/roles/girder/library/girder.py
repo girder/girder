@@ -877,7 +877,7 @@ EXAMPLES = '''
 
 
 def unjsonify(a):
-    '''Convert json parts to python objects.
+    """Convert json parts to python objects.
 
     Tries to convert a json string or a compund object consisting of partial
     json strings to a full python object.  Returns either a json scalar (string,
@@ -887,7 +887,7 @@ def unjsonify(a):
     Note that this function does not detect cycles in an object graph and, if
     provided an object with one, will run until out of memory, at the stack
     limit, or until at some other run-time limit.
-    '''
+    """
 
     # if string, try to loads() it
     if isinstance(a, basestring):
@@ -901,57 +901,9 @@ def unjsonify(a):
         return [unjsonify(x) for x in a]
 
     if isinstance(a, dict):
-        return {str(k):unjsonify(v) for k,v in a.items()}
+        return {str(k): unjsonify(v) for k, v in a.items()}
 
-
-def deep_equals(a, b):
-    '''Simplified deep comparison for DAG Python objects.
-
-    Note that this function does not detect cycles in an object graph and, if
-    provided an object with one, will run until out of memory, at the stack
-    limit, or until at some other run-time limit.
-    '''
-
-    is_int = isinstance(a, int)
-    is_float = isinstance(a, float)
-    is_string = isinstance(a, basestring)
-
-    is_scalar = is_int or is_float or is_string
-
-    if is_scalar:
-        if ((is_int and not isinstance(b, int)) or
-                (is_float and not isinstance(b, float)) or
-                (is_string and not isinstance(b, basestring))):
-            return False
-
-        return a == b
-
-    if isinstance(a, list):
-        if not isinstance(b, list):
-            return False
-
-        if len(a) != len(b):
-            return False
-
-        return all(deep_equals(x, y) for x,y in zip(a, b))
-
-    if isinstance(a, dict):
-        if not isinstance(b, dict):
-            return False
-
-        if len(a) != len(b):
-            return False
-
-        a_keys = list(sorted(a.keys()))
-        b_keys = list(sorted(b.keys()))
-
-        if not deep_equals(a_keys, b_keys):
-            return False
-
-        return all(deep_equals(a[k], b[k]) for k in a_keys)
-
-    # we don't deal with any other sort of compound value
-    return False
+    return None
 
 
 def class_spec(cls, include=None):
@@ -1895,8 +1847,10 @@ class GirderClientModule(GirderClient):
 
             params = {
                 'key': key,
-                'value': json.dumps(value)
-                         if isinstance(value, (list, dict)) else value
+                'value': (
+                    json.dumps(value)
+                    if isinstance(value, (list, dict)) else value
+                )
             }
 
             try:
@@ -1905,8 +1859,7 @@ class GirderClientModule(GirderClient):
                 self.fail(e.response.json()['message'])
 
             if response:
-                self.changed = deep_equals(
-                        unjsonify(existing_value), unjsonify(value))
+                self.changed = unjsonify(existing_value) != unjsonify(value)
 
             if self.changed:
                 ret['previous_value'] = existing_value
