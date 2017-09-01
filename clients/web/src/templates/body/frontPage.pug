@@ -1,12 +1,12 @@
 .g-frontpage-header
   img.g-frontpage-logo(src=require('girder/assets/Girder_Mark.png'), width="82")
   .g-frontpage-title-container
-    .g-frontpage-title Girder
+    .g-frontpage-title #{brandName}
     .g-frontpage-subtitle Data management platform
 
 .g-frontpage-body
   p.g-frontpage-paragraph
-    b Welcome to Girder!
+    b Welcome to #{brandName}!
 
     ul
       if !currentUser
@@ -46,22 +46,11 @@
               | .
 
       li
-        | To learn more about Girder, including how you can host your own
-        | instance either locally or in the cloud, see the
-        a(target="_blank", href="http://girder.readthedocs.io/en/latest/user-guide.html")  User Guide
-        | , the
-        a(target="_blank", href="http://girder.readthedocs.io/en/latest")  full documentation
-        | , or visit the
-        a(target="_blank", href="https://github.com/girder/girder")  GitHub repository
-        | .
-
-      li
-        | To use Girder's REST API to interact with this server, check out the
-        a(href=apiRoot)  interactive web API docs
-        | .
-
-      li
-        | Girder is a part of
+        if brandName === 'Girder'
+          | Girder is
+        else
+          | #{brandName} is powered by Girder,
+        |  a part of
         a(target="_blank", href="http://resonant.kitware.com")  Resonant
         | , Kitware's open-source platform for data management, analytics, and
         | visualization. To learn more, you can read our series of
@@ -70,12 +59,28 @@
         a(target="_blank", href="http://www.kitware.com/contact-us")  contact us
         |  to learn how we can help you solve your data problems.
 
+        ul
+          li
+            | To learn more about Girder, including how you can host your own
+            | instance either locally or in the cloud, see the
+            a(target="_blank", href="http://girder.readthedocs.io/en/latest/user-guide.html")  User Guide
+            | , the
+            a(target="_blank", href="http://girder.readthedocs.io/en/latest")  full documentation
+            | , or visit the
+            a(target="_blank", href="https://github.com/girder/girder")  GitHub repository
+            | .
+
+      li
+        | To use the REST API to interact with this server, check out the
+        a(href=apiRoot)  interactive web API docs
+        | .
+
       if versionInfo.git
         li
-          | This instance of Girder was built from Git version
+          | This instance of #{brandName} was built from Git version
           a.g-git-sha(target="_blank", href=`https://github.com/girder/girder/tree/${versionInfo.SHA}`)  #{versionInfo.shortSHA}
           | . API version #{versionInfo.apiVersion}.
       else
         li
-          | This instance of Girder was built on #{new Date(versionInfo.date).toLocaleDateString()}
+          | This instance of #{brandName} was built on #{new Date(versionInfo.date).toLocaleDateString()}
           | . API version #{versionInfo.apiVersion}.
