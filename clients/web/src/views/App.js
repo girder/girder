@@ -40,6 +40,7 @@ var App = View.extend({
         this._started = false;
         settings = settings || {};
         this.contactEmail = settings.contactEmail || null;
+        this.brandName = settings.brandName || null;
         if (settings.start === undefined || settings.start) {
             this.start();
         }
@@ -124,7 +125,8 @@ var App = View.extend({
      */
     _createLayout: function () {
         this.headerView = new LayoutHeaderView({
-            parentView: this
+            parentView: this,
+            brandName: this.brandName
         });
 
         this.globalNavView = new LayoutGlobalNavView({
@@ -221,7 +223,8 @@ var App = View.extend({
 
             settings = _.extend(settings, {
                 el: this.$('#g-app-body-container'),
-                parentView: this
+                parentView: this,
+                brandName: this.brandName
             });
 
             /* We let the view be created in this way even though it is

@@ -27,6 +27,7 @@ from girder.api.rest import Resource, RestException, AccessException, filtermode
 from girder.constants import AccessType, SettingKey, TokenScope
 from girder.models.token import genToken
 from girder.utility import mail_utils
+from girder.utility.model_importer import ModelImporter
 
 
 class User(Resource):
@@ -308,7 +309,11 @@ class User(Resource):
         html = mail_utils.renderTemplate('resetPassword.mako', {
             'password': randomPass
         })
-        mail_utils.sendEmail(to=email, subject='Girder: Password reset', text=html)
+        mail_utils.sendEmail(
+            to=email, subject='%s: Password reset'
+            % ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
+            text=html
+        )
         self.model('user').setPassword(user, randomPass)
         return {'message': 'Sent password reset email.'}
 
@@ -335,7 +340,11 @@ class User(Resource):
             'url': url,
             'token': str(token['_id'])
         })
-        mail_utils.sendEmail(to=email, subject='Girder: Temporary access', text=html)
+        mail_utils.sendEmail(
+            to=email, subject='%s: Temporary access'
+            % ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
+            text=html
+        )
         return {'message': 'Sent temporary access email.'}
 
     @access.public

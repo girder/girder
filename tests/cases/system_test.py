@@ -212,6 +212,7 @@ class SystemTestCase(base.TestCase):
         # 'bad' won't trigger a validation error, the key should be present in
         # the badValues table.
         badValues = {
+            SettingKey.BRAND_NAME: '',
             SettingKey.EMAIL_FROM_ADDRESS: '',
             SettingKey.CONTACT_EMAIL_ADDRESS: '',
             SettingKey.EMAIL_HOST: {},

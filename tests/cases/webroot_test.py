@@ -36,20 +36,38 @@ class WebRootTestCase(base.TestCase):
         Requests the webroot and tests the existence of several
         elements in the returned html
         """
+        # Check webroot default settings
+        defaultEmailAddress = self.model('setting').getDefault(SettingKey.CONTACT_EMAIL_ADDRESS)
+        defaultBrandName = self.model('setting').getDefault(SettingKey.BRAND_NAME)
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
+        self.assertTrue(('contactEmail: \'%s\'' % defaultEmailAddress) in body)
+        self.assertTrue(('brandName: \'%s\'' % defaultBrandName) in body)
+        self.assertTrue(('<title>%s</title>' % defaultBrandName) in body)
+
         self.assertTrue('girder_app.min.js' in body)
         self.assertTrue('girder_lib.min.js' in body)
 
-        emailAddress = self.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
-        self.assertTrue('contactEmail: \'%s\'' % emailAddress in body)
+        # Change webroot settings
         self.model('setting').set(SettingKey.CONTACT_EMAIL_ADDRESS, 'foo@bar.com')
-        # A new request to update changes
+        self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
-        self.assertTrue('contactEmail: \'%s\'' % 'foo@bar.com' in body)
+        self.assertTrue(('contactEmail: \'%s\'' % 'foo@bar.com') in body)
+        self.assertTrue(('brandName: \'%s\'' % 'FooBar') in body)
+        self.assertTrue(('<title>%s</title>' % 'FooBar') in body)
+
+        # Remove webroot settings
+        self.model('setting').unset(SettingKey.CONTACT_EMAIL_ADDRESS)
+        self.model('setting').unset(SettingKey.BRAND_NAME)
+        resp = self.request(path='/', method='GET', isJson=False, prefix='')
+        self.assertStatus(resp, 200)
+        body = self.getBody(resp)
+        self.assertTrue(('contactEmail: \'%s\'' % defaultEmailAddress) in body)
+        self.assertTrue(('brandName: \'%s\'' % defaultBrandName) in body)
+        self.assertTrue(('<title>%s</title>' % defaultBrandName) in body)
 
     def testWebRootProperlyHandlesStaticRouteUrls(self):
         self.model('setting').set(SettingKey.ROUTE_TABLE, {
