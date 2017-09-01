@@ -448,17 +448,25 @@ class ApiDocs(WebrootBase):
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'brandName': ModelImporter.model('setting').get(constants.SettingKey.BRAND_NAME),
+            'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
             'mode': mode
         }
 
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
                     self._onSettingSave)
+        events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
+                    self._onSettingRemove)
 
     def _onSettingSave(self, event):
         settingDoc = event.info
         if settingDoc['key'] == SettingKey.BRAND_NAME:
             self.updateHtmlVars({'brandName': settingDoc['value']})
+
+    def _onSettingRemove(self, event):
+        settingDoc = event.info
+        if settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
+                SettingKey.BRAND_NAME)})
 
 
 class Describe(Resource):

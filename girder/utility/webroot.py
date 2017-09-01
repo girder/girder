@@ -98,6 +98,8 @@ class Webroot(WebrootBase):
 
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
                     self._onSettingSave)
+        events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
+                    self._onSettingRemove)
 
     def _onSettingSave(self, event):
         settingDoc = event.info
@@ -105,6 +107,15 @@ class Webroot(WebrootBase):
             self.updateHtmlVars({'contactEmail': settingDoc['value']})
         elif settingDoc['key'] == SettingKey.BRAND_NAME:
             self.updateHtmlVars({'brandName': settingDoc['value']})
+
+    def _onSettingRemove(self, event):
+        settingDoc = event.info
+        if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
+            self.updateHtmlVars({'contactEmail': ModelImporter.model('setting').getDefault(
+                SettingKey.CONTACT_EMAIL_ADDRESS)})
+        elif settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
+                SettingKey.BRAND_NAME)})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

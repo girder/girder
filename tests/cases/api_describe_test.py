@@ -117,8 +117,8 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertStatusOk(resp)
         body = self.getBody(resp)
 
-        brandName = self.model('setting').get(SettingKey.BRAND_NAME)
-        self.assertTrue(('<title>%s - REST API Documentation</title>' % brandName) in body)
+        defaultBrandName = self.model('setting').getDefault(SettingKey.BRAND_NAME)
+        self.assertTrue(('<title>%s - REST API Documentation</title>' % defaultBrandName) in body)
 
         self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
         # An other request to check if the brand name is set
@@ -126,6 +126,12 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertStatusOk(resp)
         body = self.getBody(resp)
         self.assertTrue(('<title>%s - REST API Documentation</title>' % 'FooBar') in body)
+
+        self.model('setting').unset(SettingKey.BRAND_NAME)
+        resp = self.request(path='', method='GET', isJson=False)
+        self.assertStatusOk(resp)
+        body = self.getBody(resp)
+        self.assertTrue(('<title>%s - REST API Documentation</title>' % defaultBrandName) in body)
 
     def testInvalidResource(self):
         methods = ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
