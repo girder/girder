@@ -8,37 +8,44 @@ form.g-settings-form(role="form")
           type="text", value=settings['core.brand_name'] || '',
           placeholder=`Default: ${defaults['core.brand_name'] || 'none'}`,
           title="The brand name of the application.")
-      label(for="g-core-title-name") Title Name
-      input#g-core-title-name.form-control.input-sm(
-          type="text", value=settings['core.title_name'] || '',
-          placeholder=`Default: ${defaults['core.title_name'] || 'none'}`,
-          title="The title name of the front page.")
+    .form-group
       label(for="g-core-tab-name") Tab Name
       input#g-core-tab-name.form-control.input-sm(
           type="text", value=settings['core.tab_name'] || '',
           placeholder=`Default: ${defaults['core.tab_name'] || 'none'}`,
           title="The HTML title name of the page.")
+    .form-group
+      label(for="g-core-title-name") Title Name
+      input#g-core-title-name.form-control.input-sm(
+          type="text", value=settings['core.title_name'] || '',
+          placeholder=`Default: ${defaults['core.title_name'] || 'none'}`,
+          title="The title name of the front page.")
+    .form-group
       label(for="g-core-subheading-text") Subheading Text
       input#g-core-subheading-text.form-control.input-sm(
           type="text", value=settings['core.subheading_text'] || '',
           placeholder=`Default: ${defaults['core.subheading_text'] || 'none'}`,
           title="The subheading text of the front page.")
+    .form-group
       label(for="g-core-welcome-text") Welcome Text
       input#g-core-welcome-text.form-control.input-sm(
           type="text", value=settings['core.welcome_text'] || '',
           placeholder=`Default: ${defaults['core.welcome_text'] || 'none'}`,
           title="The welcome text of the front page.")
+    .form-group
       label(for="g-core-contact-email-address") Contact email address
       input#g-core-contact-email-address.form-control.input-sm(
           type="text", value=settings['core.contact_email_address'] || '',
           placeholder=`Default: ${defaults['core.contact_email_address'] || 'none'}`,
           title="The contact email address for users to obtain support with this instance.")
+    .form-group
       label(for="g-core-banner-color") Banner Color
-      input#g-core-banner-color.form-control.input-sm(
-          type="color", value=settings['core.banner_color'] || defaults['core.banner_color'],
-          title="The banner color of the application.")
-      button#g-core-banner-default-color.form-control.input-sm(
-          type="button", title="Default color") default
+      #g-core-banner-color-container
+        input#g-core-banner-color.form-control.input-sm(
+            type="color", value=settings['core.banner_color'] || defaults['core.banner_color'],
+            title="The banner color of the application.")
+        button#g-core-banner-default-color.form-control.input-sm(
+            type="button", title="Default color") default
   .form-group
     label(for="g-core-cookie-lifetime") Cookie duration (days)
     input#g-core-cookie-lifetime.form-control.input-sm(
