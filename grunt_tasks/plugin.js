@@ -391,6 +391,12 @@ module.exports = function (grunt) {
                         library: `girder_plugin_${plugin}`
                     },
                     resolve: {
+                        alias: {
+                            // Make sure we use the core jquery rather than pulling one
+                            // from a plugin's local node modules. Multiple jquery versions
+                            // breaks due to use of side effects for jquery plugins.
+                            'jquery': path.resolve(paths.node_modules, 'jquery')
+                        },
                         modules: [
                             path.resolve(dir, 'node_modules'),
                             pluginNodeDir,
