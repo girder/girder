@@ -23,8 +23,8 @@
             girder.app = new girder.views.App({
                 el: 'body',
                 parentView: null,
-                contactEmail: '${contactEmail | h}',
-                brandName: '${brandName | h}'
+                contactEmail: _.unescape('${contactEmail | h}'),
+                brandName: _.unescape('${brandName | h}')
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });
