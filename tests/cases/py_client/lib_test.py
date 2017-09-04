@@ -208,6 +208,10 @@ class PythonClientTestCase(base.TestCase):
         self.client.setFolderAccess(privateFolder['_id'], json.dumps(acl), public=False)
         self.assertEqual(acl, self.client.getFolderAccess(privateFolder['_id']))
 
+        # Ensure setFolderAccess also accepts a dict
+        self.client.setFolderAccess(privateFolder['_id'], acl, public=False)
+        self.assertEqual(acl, self.client.getFolderAccess(privateFolder['_id']))
+
         # Test recursive ACL propagation (not very robust test yet)
         self.client.createFolder(privateFolder['_id'], name='Subfolder')
         self.client.inheritAccessControlRecursive(privateFolder['_id'])
@@ -851,3 +855,39 @@ class PythonClientTestCase(base.TestCase):
     def testNonJsonResponse(self):
         resp = self.client.get('user', jsonResp=False)
         self.assertIsInstance(resp.content, six.binary_type)
+
+    def testCreateItemWithMeta(self):
+        testMeta = {
+            'meta': {
+                'meta': 'meta'
+            }
+
+        }
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'meta', metadata=json.dumps(testMeta))
+
+        self.assertEquals(self.client.getItem(item['_id'])['meta'], testMeta)
+
+        # Try dict form
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'meta-dict', metadata=testMeta)
+
+        self.assertEquals(self.client.getItem(item['_id'])['meta'], testMeta)
+
+    def testCreateFolderWithMeta(self):
+        testMeta = {
+            'meta': {
+                'meta': 'meta'
+            }
+
+        }
+        folder = self.client.createFolder(self.publicFolder['_id'],
+                                          'meta', metadata=json.dumps(testMeta))
+
+        self.assertEquals(self.client.getFolder(folder['_id'])['meta'], testMeta)
+
+        # Try dict form
+        folder = self.client.createFolder(self.publicFolder['_id'],
+                                          'meta-dict', metadata=testMeta)
+
+        self.assertEquals(self.client.getFolder(folder['_id'])['meta'], testMeta)
