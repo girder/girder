@@ -232,7 +232,8 @@ class Item(Resource):
     @autoDescribeRoute(
         Description('Download the contents of an item.')
         .modelParam('id', model='item', level=AccessType.READ)
-        .param('offset', 'Byte offset into the file.', dataType='int', default=0)
+        .param('offset', 'Byte offset into the file.', dataType='int',
+               required=False, default=0)
         .param('format', 'If unspecified, items with one file are downloaded '
                'as that file, and other items are downloaded as a zip '
                'archive.  If \'zip\', a zip archive is always sent.',
@@ -244,6 +245,8 @@ class Item(Resource):
         .param('extraParameters', 'Arbitrary data to send along with the '
                'download request, only applied for single file '
                'items.', required=False)
+        # single file items could produce other types, too.
+        .produces(['application/zip', 'application/octet-stream'])
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )

@@ -12,6 +12,7 @@ describe('Test version reporting', function () {
             expect($('.g-git-sha').length).toBe(1);
             expect(!!$('.g-git-sha')
                 .text()
+                .trim()
                 .toLowerCase()
                 .match(/^[0-9a-f]+$/)
             ).toBe(true);

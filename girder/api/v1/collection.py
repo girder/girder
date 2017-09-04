@@ -112,6 +112,7 @@ class Collection(Resource):
         .modelParam('id', model='collection', level=AccessType.READ)
         .jsonParam('mimeFilter', 'JSON list of MIME types to include.', requireArray=True,
                    required=False)
+        .produces('application/zip')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the collection.', 403)
     )

@@ -476,12 +476,16 @@ var HierarchyWidget = View.extend({
         this.$('.g-child-count-container').addClass('hide');
 
         var showCounts = _.bind(function () {
+            const folderCount = formatCount(this.parentModel.get('nFolders'));
             this.$('.g-child-count-container').removeClass('hide');
-            this.$('.g-subfolder-count').text(
-                formatCount(this.parentModel.get('nFolders')));
+            this.$('.g-subfolder-count').text(folderCount);
+            const folderTooltip = folderCount === 1 ? `${folderCount} total folder` : `${folderCount} total folders`;
+            this.$('.g-subfolder-count-container').attr('title', folderTooltip);
             if (this.parentModel.has('nItems')) {
-                this.$('.g-item-count').text(
-                    formatCount(this.parentModel.get('nItems')));
+                const itemCount = formatCount(this.parentModel.get('nItems'));
+                this.$('.g-item-count').text(itemCount);
+                const itemTooltip = itemCount === 1 ? `${itemCount} total item` : `${itemCount} total items`;
+                this.$('.g-item-count-container').attr('title', itemTooltip);
             }
         }, this);
 

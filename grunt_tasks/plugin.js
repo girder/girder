@@ -379,6 +379,12 @@ module.exports = function (grunt) {
                     entry: {
                         [helperConfig.pluginEntry]: [main]
                     },
+                    module: {
+                        // We set these since webpack.helper.js functions may
+                        // expect these properties to be defined.
+                        loaders: [],
+                        rules: []
+                    },
                     output: {
                         path: path.join(paths.web_built, 'plugins', plugin),
                         filename: `${output}.min.js`,
@@ -435,8 +441,19 @@ module.exports = function (grunt) {
                         dependencies: ['build'] // plugin builds must run after core build
                     }
                 };
+
+                var baseConfig = configOpts.webpack[`${output}_${plugin}`];
+                var newConfig = webpackHelper(baseConfig, helperConfig);
+                if (_.has(newConfig.module, 'loaders')) {
+                    if (!_.isEmpty(newConfig.module.loaders)) {
+                        grunt.log.writeln(`  >> "module.loaders" is deprecated, use "module.rules" in ${webpackHelperFile} instead.`.yellow);
+                        newConfig.module.rules = newConfig.module.rules || [];
+                        newConfig.module.rules = newConfig.module.rules.concat(newConfig.module.loaders);
+                    }
+                    delete newConfig.module.loaders;
+                }
+                grunt.config.set(`webpack.${output}_${plugin}`, newConfig);
             }
-            grunt.config.merge(configOpts);
 
             // If the plugin config has no webpack section, no defaultLoaders
             // property in the webpack section, or the defaultLoaders is
@@ -461,19 +478,7 @@ module.exports = function (grunt) {
                     grunt.config.set(selector, loaders.concat(loaderIncludes));
                 }
             }
-
-            var baseConfig = grunt.config.getRaw('webpack.options');
-            baseConfig.module.loaders = [];
-            var newConfig = webpackHelper(baseConfig, helperConfig);
-            if (_.has(newConfig.module, 'loaders')) {
-                if (!_.isEmpty(newConfig.module.loaders)) {
-                    grunt.log.writeln(`  >> "module.loaders" is deprecated, use "module.rules" in ${webpackHelperFile} instead.`.yellow);
-                    newConfig.module.rules = newConfig.module.rules || [];
-                    newConfig.module.rules = newConfig.module.rules.concat(newConfig.module.loaders);
-                }
-                delete newConfig.module.loaders;
-            }
-            grunt.config.set('webpack.options', newConfig);
+            grunt.config.merge(configOpts);
         });
 
         if (config.grunt) {

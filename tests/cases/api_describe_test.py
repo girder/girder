@@ -24,7 +24,7 @@ from .. import base
 
 from girder.api import access, describe, docs
 from girder.api.rest import Resource, filtermodel
-from girder.constants import AccessType, registerAccessFlag
+from girder.constants import AccessType, registerAccessFlag, SettingKey
 
 server = None
 Routes = [
@@ -111,6 +111,27 @@ class ApiDescribeTestCase(base.TestCase):
     """
     Makes sure our swagger auto API docs are working.
     """
+
+    def testApiBrandName(self):
+        resp = self.request(path='', method='GET', isJson=False)
+        self.assertStatusOk(resp)
+        body = self.getBody(resp)
+
+        defaultBrandName = self.model('setting').getDefault(SettingKey.BRAND_NAME)
+        self.assertTrue(('<title>%s - REST API Documentation</title>' % defaultBrandName) in body)
+
+        self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
+        # An other request to check if the brand name is set
+        resp = self.request(path='', method='GET', isJson=False)
+        self.assertStatusOk(resp)
+        body = self.getBody(resp)
+        self.assertTrue(('<title>%s - REST API Documentation</title>' % 'FooBar') in body)
+
+        self.model('setting').unset(SettingKey.BRAND_NAME)
+        resp = self.request(path='', method='GET', isJson=False)
+        self.assertStatusOk(resp)
+        body = self.getBody(resp)
+        self.assertTrue(('<title>%s - REST API Documentation</title>' % defaultBrandName) in body)
 
     def testInvalidResource(self):
         methods = ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
@@ -578,3 +599,55 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertIn('get', resp.json['paths']['/old_resource/deprecated'])
         self.assertIn('deprecated', resp.json['paths']['/old_resource/deprecated']['get'])
         self.assertTrue(resp.json['paths']['/old_resource/deprecated']['get']['deprecated'])
+
+    def testProduces(self):
+        """
+        Test that a route marked as producing a list of mime types reports
+        that information properly.
+        """
+        class ProducesResource(Resource):
+            def __init__(self):
+                super(ProducesResource, self).__init__()
+                self.resourceName = 'produces_resource'
+                self.route('GET', (), self.handler)
+                self.route('GET', ('produces1',), self.producesHandler)
+                self.route('GET', ('produces2',), self.produces2Handler)
+
+            @access.public
+            @describe.describeRoute(
+                describe.Description('Handler')
+            )
+            def handler(self, params):
+                return None
+
+            @access.public
+            @describe.describeRoute(
+                describe.Description('Produces handler')
+                .produces('image/jpeg')
+            )
+            def producesHandler(self, params):
+                return None
+
+            @access.public
+            @describe.describeRoute(
+                describe.Description('Produces 2 handler')
+                .produces('image/tiff')
+                .produces(['image/jpeg', 'image/png'])
+            )
+            def produces2Handler(self, params):
+                return None
+
+        server.root.api.v1.produces_resource = ProducesResource()
+
+        resp = self.request(path='/describe', method='GET')
+        self.assertStatusOk(resp)
+        self.assertIn('paths', resp.json)
+        self.assertIn('/produces_resource', resp.json['paths'])
+        self.assertIn('/produces_resource/produces1', resp.json['paths'])
+        self.assertIn('/produces_resource/produces2', resp.json['paths'])
+        self.assertNotIn('produces', resp.json['paths']['/produces_resource']['get'])
+        self.assertIn('produces', resp.json['paths']['/produces_resource/produces1']['get'])
+        self.assertEqual(resp.json['paths']['/produces_resource/produces1']['get']['produces'],
+                         ['image/jpeg'])
+        self.assertEqual(resp.json['paths']['/produces_resource/produces2']['get']['produces'],
+                         ['image/tiff', 'image/jpeg', 'image/png'])

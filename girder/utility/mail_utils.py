@@ -60,6 +60,8 @@ def renderTemplate(name, params=None):
 
     if 'host' not in params:
         params['host'] = getEmailUrlPrefix()
+    if 'brandName' not in params:
+        params['brandName'] = ModelImporter.model('setting').get(SettingKey.BRAND_NAME)
 
     template = _templateLookup.get_template(name)
     return template.render(**params)

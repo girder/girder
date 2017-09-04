@@ -3,8 +3,6 @@
 
 .g-task-list-container.list-group
   each task in tasks
-    a.g-execute-task-link.list-group-item(
-        href=itemUrlFunc && itemUrlFunc(task),
-        data-task-id=task.id)
-      h4.g-execute-task-link-header.list-group-item-heading= task.name()
-      .g-execute-task-link-body.list-group-item-text= task.get('description')
+    .g-execute-task-link-wrapper.list-group-item
+      a.g-execute-task-link.list-group-item-heading(data-task-id=task.id, href=itemUrlFunc && itemUrlFunc(task))= task.name()
+      .g-execute-task-link-body.list-group-item-text!= renderMarkdown(task.get('description'))

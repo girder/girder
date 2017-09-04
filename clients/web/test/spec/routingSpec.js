@@ -53,7 +53,7 @@ describe('Test routing paths', function () {
     it('logout', girderTest.logout());
     it('test routes without being logged in', function () {
         girderTest.testRoute('', false, function () {
-            return $('a.g-login-link:first').text() === ' Log In';
+            return $('a.g-login-link:first').length > 0;
         });
         girderTest.testRoute('useraccount/' + ids.admin + '/info', false,
             function () {
