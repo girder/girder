@@ -1,5 +1,8 @@
 var path = require('path');
 
+const es2015BabelPreset = require.resolve('babel-preset-es2015');
+const es2016BabelPreset = require.resolve('babel-preset-es2016');
+
 module.exports = function (config, data) {
     var candelaDir = path.resolve(data.nodeDir, 'candela');
 
@@ -12,7 +15,7 @@ module.exports = function (config, data) {
             {
                 loader: 'babel-loader',
                 options: {
-                    presets: ['es2015', 'es2016']
+                    presets: [es2015BabelPreset, es2016BabelPreset]
                 }
             }
         ]
