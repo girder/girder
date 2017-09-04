@@ -386,12 +386,14 @@ module.exports = function (grunt) {
                     },
                     resolve: {
                         modules: [
-                            path.resolve(dir, 'node_modules')
+                            path.resolve(dir, 'node_modules'),
+                            pluginNodeDir
                         ]
                     },
                     resolveLoader: {
                         modules: [
-                            path.resolve(dir, 'node_modules')
+                            path.resolve(dir, 'node_modules'),
+                            pluginNodeDir
                         ]
                     },
                     plugins: [
