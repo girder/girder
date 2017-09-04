@@ -219,15 +219,7 @@ module.exports = {
             'girder': paths.web_src
         },
         extensions: ['.js'],
-        modules: [
-            paths.node_modules
-        ],
         symlinks: false
-    },
-    resolveLoader: {
-        modules: [
-            paths.node_modules
-        ]
     },
     node: {
         canvas: 'empty',

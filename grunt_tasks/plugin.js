@@ -393,13 +393,15 @@ module.exports = function (grunt) {
                     resolve: {
                         modules: [
                             path.resolve(dir, 'node_modules'),
-                            pluginNodeDir
+                            pluginNodeDir,
+                            paths.node_modules
                         ]
                     },
                     resolveLoader: {
                         modules: [
                             path.resolve(dir, 'node_modules'),
-                            pluginNodeDir
+                            pluginNodeDir,
+                            paths.node_modules
                         ]
                     },
                     plugins: [
