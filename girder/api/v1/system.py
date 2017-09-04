@@ -505,14 +505,20 @@ class System(Resource):
             userDoc = self.model('user').load(
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
-            user['login'] = userDoc['login']
-            user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
+            if userDoc is None:
+                acList['users'].remove(user)
+            else:
+                user['login'] = userDoc['login']
+                user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
         for grp in acList['groups'][:]:
             grpDoc = self.model('group').load(
                 grp['id'], force=True, fields=['name', 'description'])
-            grp['name'] = grpDoc['name']
-            grp['description'] = grpDoc['description']
+            if grpDoc is None:
+                acList['groups'].remove(grp)
+            else:
+                grp['name'] = grpDoc['name']
+                grp['description'] = grpDoc['description']
 
         return acList
 
