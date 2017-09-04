@@ -756,14 +756,25 @@ class SystemTestCase(base.TestCase):
             'list': json.dumps([
                 {'key': SettingKey.COLLECTION_CREATE_POLICY, 'value': json.dumps({
                     'open': True,
-                    'users': [str(self.users[0]['_id'])],
+                    'users': [str(self.users[1]['_id'])],
                     'groups': [str(self.group['_id'])]
                 })}
             ])
         }, user=self.users[0])
+        self.assertStatusOk(resp)
 
         resp = self.request(path='/system/setting/collection_creation_policy/access',
                             method='GET', user=self.users[0])
-        self.assertEqual(resp.json['users'][0]['id'], str(self.users[0]['_id']))
-        self.assertEqual(resp.json['users'][0]['login'], str(self.users[0]['login']))
+        self.assertEqual(resp.json['users'][0]['id'], str(self.users[1]['_id']))
+        self.assertEqual(resp.json['users'][0]['login'], str(self.users[1]['login']))
         self.assertEqual(resp.json['groups'][0]['id'], str(self.group['_id']))
+
+        # Delete underlying users and groups, should be OK
+        self.model('group').remove(self.group)
+        self.model('user').remove(self.users[1])
+        resp = self.request(
+            path='/system/setting/collection_creation_policy/access', method='GET',
+            user=self.users[0])
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['users'], [])
+        self.assertEqual(resp.json['groups'], [])
