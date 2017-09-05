@@ -82,8 +82,8 @@ def parseSlicerCliXml(fd):
     args.sort(key=lambda p: p.index)
     opts.sort(key=lambda p: p.flag or p.longflag)
 
-    inputArgs = [a for a in args if a.channel == 'input']
-    inputOpts = [o for o in opts if o.channel == 'input']
+    inputArgs = [a for a in args if a.channel == 'input' or a.channel is None]
+    inputOpts = [o for o in opts if o.channel == 'input' or o.channel is None]
     outputArgs = [a for a in args if a.channel == 'output']
     outputOpts = [o for o in opts if o.channel == 'output']
 

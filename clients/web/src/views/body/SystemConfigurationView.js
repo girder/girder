@@ -73,6 +73,7 @@ var SystemConfigurationView = View.extend({
 
         var keys = [
             'core.contact_email_address',
+            'core.brand_name',
             'core.cookie_lifetime',
             'core.email_from_address',
             'core.email_host',
