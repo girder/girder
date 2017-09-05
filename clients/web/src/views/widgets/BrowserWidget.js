@@ -49,7 +49,7 @@ var BrowserWidget = View.extend({
         // store options
         settings = settings || {};
         this.titleText = settings.titleText || 'Select an item';
-        this.validate = settings.validate || function () {};
+        this.validate = settings.validate || _.constant($.Deferred().resolve().promise());
         this.helpText = settings.helpText;
         this.showItems = settings.showItems;
         this.showPreview = _.isUndefined(settings.showPreview) ? true : !!settings.showPreview;
