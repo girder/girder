@@ -17,6 +17,18 @@ var ConfigView = View.extend({
             this._saveSettings([{
                 key: 'homepage.markdown',
                 value: this.editor.val()
+            },
+            {
+                key: 'homepage.header',
+                value: this.$('#g-homepage-header').val()
+            },
+            {
+                key: 'homepage.subheading_text',
+                value: this.$('#g-homepage-subheading-text').val()
+            },
+            {
+                key: 'homepage.welcome_text',
+                value: this.$('#g-homepage-welcome-text').val()
             }]);
         }
     },
@@ -39,10 +51,28 @@ var ConfigView = View.extend({
             this.render();
             this.editor.val(resp['homepage.markdown']);
         }, this));
+
+        restRequest({
+            method: 'GET',
+            url: 'homepage/settings'
+        }).done(_.bind(function (resp) {
+            this.folder = new FolderModel({_id: resp.folderId});
+            this.header = resp['homepage.header'];
+            this.subHeadingText = resp['homepage.subheading_text'];
+            this.welcomeText = resp['homepage.welcome_text'];
+            this.render();
+        }, this));
     },
 
     render: function () {
-        this.$el.html(ConfigViewTemplate());
+        this.$el.html(ConfigViewTemplate({
+            header: this.header || null,
+            subHeadingText: this.subHeadingText || null,
+            welcomeText: this.welcomeText || null,
+            defaultHeader: 'Girder',
+            defaultWelcomeText: 'Welcome to Girder!',
+            defaultSubHeadingText: 'Data management platform'
+        }));
 
         this.editor.setElement(
             this.$('.g-homepage-container')).render();

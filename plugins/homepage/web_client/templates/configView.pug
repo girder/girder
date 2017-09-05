@@ -1,7 +1,33 @@
 .g-config-breadcrumb-container
 
+form.g-settings-form(role="form")
+  .g-settings-form-container
+    h4 Instance Branding
+
+  p.g-homepage-description
+  | To configure the homepage content without loosing the default content
+
+  .form-group
+    label(for="g-homepage-header") Header
+    input#g-homepage-header.form-control.input-sm(
+      type="text", value= header || '',
+      placeholder=`Default: ${defaultHeader || 'none'}`,
+      title="The header of the front page.")
+  .form-group
+    label(for="g-homepage-subheading-text") Subheading Text
+    input#g-homepage-subheading-text.form-control.input-sm(
+      type="text", value= subHeadingText || '',
+      placeholder=`Default: ${defaultSubHeadingText || 'none'}`,
+      title="The subheading text of the front page.")
+  .form-group
+    label(for="g-homepage-welcome-text") Welcome Text
+    input#g-homepage-welcome-text.form-control.input-sm(
+      type="text", value= welcomeText || '',
+      placeholder=`Default: ${defaultWelcomeText || 'none'}`,
+      title="The welcome text of the front page.")
+
 p.g-homepage-description
-  | To configure the homepage content, enter Markdown here.
+  | To configure the homepage content, enter Markdown here which replace totaly the front page body.
 
 .g-homepage-container
 

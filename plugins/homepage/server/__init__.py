@@ -23,7 +23,11 @@ from girder.api.rest import Resource
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
-KEY = 'homepage.markdown'
+MARKDOWN = 'homepage.markdown'
+HEADER = 'homepage.header'
+SUBHEADING_TEXT = 'homepage.subheading_text'
+WELCOME_TEXT = 'homepage.welcome_text'
+
 NAME = 'Homepage Assets'
 
 
@@ -32,6 +36,7 @@ class Homepage(Resource):
         super(Homepage, self).__init__()
         self.resourceName = 'homepage'
         self.route('GET', ('markdown',), self.getMarkdown)
+        self.route('GET', ('settings',), self.getSettingFrontPage)
 
     @access.public
     @describeRoute(
@@ -40,15 +45,35 @@ class Homepage(Resource):
     def getMarkdown(self, params):
         folder = getOrCreateAssetsFolder()
         return {
-            KEY: self.model('setting').get(KEY),
+            MARKDOWN: self.model('setting').get(MARKDOWN),
             'folderId': folder['_id']
         }
 
+    @access.public
+    @describeRoute(
+        Description('Public url for getting the homepage settings.')
+    )
+    def getSettingFrontPage(self, params):
+        folder = getOrCreateAssetsFolder()
+        return {
+            HEADER: self.model('setting').get(HEADER),
+            SUBHEADING_TEXT: self.model('setting').get(SUBHEADING_TEXT),
+            WELCOME_TEXT: self.model('setting').get(WELCOME_TEXT),
+            'folderId': folder['_id']
+        }
 
-@setting_utilities.validator(KEY)
+@setting_utilities.validator(MARKDOWN)
 def validateHomepageMarkdown(event):
     pass
-
+@setting_utilities.validator(HEADER)
+def validateHomepageTitle(event):
+    pass
+@setting_utilities.validator(SUBHEADING_TEXT)
+def validateHomepageTitle(event):
+    pass
+@setting_utilities.validator(WELCOME_TEXT)
+def validateHomepageTitle(event):
+    pass
 
 def getOrCreateAssetsFolder():
     collection = ModelImporter.model('collection').createCollection(
@@ -60,3 +85,14 @@ def getOrCreateAssetsFolder():
 
 def load(info):
     info['apiRoot'].homepage = Homepage()
+
+# DEBUG
+def function ():
+    home = Homepage()
+    folder = getOrCreateAssetsFolder()
+    return  {
+                HEADER: home.model('setting').get(HEADER),
+                SUBHEADING_TEXT: home.model('setting').get(SUBHEADING_TEXT),
+                WELCOME_TEXT: home.model('setting').get(WELCOME_TEXT),
+                'folderId': folder['_id']
+            }
