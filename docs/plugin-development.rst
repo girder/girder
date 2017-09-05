@@ -537,6 +537,9 @@ That will cause both ``plugin.min.*`` and ``external.min.*`` files to appear in 
 built directory. The file paths of the entry points should be specified relative to the
 plugin directory.
 
+
+.. _webpackhelper:
+
 Customizing the Webpack Build
 *****************************
 
@@ -549,7 +552,7 @@ plugin build - that returns a modified webpack configuration to use to build the
 plugin. This can be useful if you wish to use custom webpack loaders or plugins
 to build your plugin.
 
-The hash passed to the helper function contains the following information:
+The object passed to the helper function contains the following keys:
 
 - ``plugin``: the name of the plugin
 - ``output``: the name of the output bundle, which is "plugin" by default.
@@ -618,66 +621,35 @@ Each type needs to be installed differently due to how node manages external pac
   ``npm.fields`` specifies which top-level keys in that file contain package names
   to install (by default, this property has the value ``['devDependencies',
   'dependencies', 'optionalDependencies']``). If the ``localNodeModules`` option
-  is set to ``true``, then the
-  dependencies will be installed to a directory named ``node_modules_<pluginname>``,
-  alongside Girder's own ``node_modules`` directory. Such modules must be
-  referenced in plugin code with a special alias: ``plugins/<pluginname>/node``.
-  For example:
-
-  .. code-block:: javascript
-
-      import foobar from 'girder_plugins/MY_PLUGIN/node/foobar'
-
-  would import the default value from NPM dependency ``foobar`` as installed
-  in ``MY_PLUGIN``'s dedicated ``node_modules_MY_PLUGIN`` directory. This is mainly
-  useful if you need a different version of a package already in use by Girder
-  core, or if for any other reason you prefer to keep your plugin dependencies
-  isolated. By default, the ``localNodeModules`` is set to ``false`` and the
-  dependencies will be installed to Girder's own ``node_modules`` directory.
+  is set to ``true``, then the dependencies will be installed within a separate
+  directory so that they will not collide with Girder's own set of node_modules.
 
   The final alternative for Webpack-built plugins is to set the ``npm.install``
   configuration property to ``true``; this will cause the build system to run
-  ``npm install`` in the plugin directory. This may have certain benefits for
-  plugin development, such as allowing plugin sources to import modules without
-  the alias prefix as described above (though, this alias would still be
-  available for use by other plugins that want to access your plugin's
-  dependencies). Additionally, if your plugin is installed without using
-  symlinks, then you will still have access to Girder's Node dependencies (see
-  this [GitHub conversation](https://github.com/nodejs/node/issues/3402) for a
-  discussion of why symlinked directories will not allow for the usual Node
-  import semantics).
+  ``npm install`` in the plugin directory.
 
-  If instead you are using a custom Grunt build with a Gruntfile, the
-  dependencies should be installed into your plugin's **node_modules** directory
-  by providing a `package.json <https://docs.npmjs.com/files/package.json>`_
-  file just as they are used for standalone node applications.  When such a file
-  exists in your plugin directory, ``npm install`` will be executed in a new
-  process from within your package's directory.
+  When you use the `import` directive within your plugin code, for example:
 
-- Build time dependencies that your Grunt tasks rely on to assemble the sources
-  for deployment need to be installed into Girder's own **node_modules** directory.
-  These dependencies will typically be Grunt extensions defining extra tasks used
-  by your build.  Such dependencies should be listed under ``grunt.dependencies``
-  as an object (much like dependencies in **package.json**) inside your
-  **plugin.json** or **plugin.yml** file.
+  .. code-block:: javascript
 
-  .. code-block:: json
+      import foobar from 'foobar';
 
-      {
-          "name": "MY_PLUGIN",
-          "grunt": {
-              "dependencies": {
-                  "grunt-contrib-concat": ">=1.0.1"
-              }
-          }
-      }
+   The build process will search for the ``'foobar'`` module in the following locations, in order:
 
-  In addition to installing these dependencies, Girder will also load grunt extensions
-  contained in them before executing any tasks.
+   1. The plugin's local modules directory that is created if ``npm.localNodeModules`` has
+      been set to ``true`` in the plugin configuration file.
+   2. The ``node_modules`` directory underneath the plugin directory, which would exist when using
+      ``npm.install: true``, or if node modules had been installed there manually.
+   3. Within Girder's own ``node_modules`` directory.
 
-.. note:: Packages installed into Girder's scope can possibly overwrite an alternate
-          version of the same package.  Care should be taken to only list packages here
-          that are not already provided by Girder's own build time dependencies.
+  .. note:: One notable exception to this rule is for the jQuery library; having multiple versions of jQuery from
+  different targets often breaks things at runtime, so plugins will always use the same jQuery
+  as Girder core.
+
+  If for some reason you need to modify this search order for your plugin, you can do so via the ``webpack.helper.js``
+  file documented in the :ref:`webpackhelper` section. To do so, you can override the ``resolve.modules`` field of
+  the configuration and set it to a list of paths to search in order. If you need to modify the path to search for
+  webpack loaders instead of module imports, use the ``resolveLoader.modules`` list instead.
 
 Controlling the Build Output
 ****************************

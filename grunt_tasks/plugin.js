@@ -201,7 +201,7 @@ module.exports = function (grunt) {
             /*
              * Case 2:
              */
-            grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: node_modules_${pluginName}`);
+            grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: girder_plugin_${pluginName}/node_modules`);
             addDependencies(deps, getPluginLocalNodePath(pluginName));
             deps = {};
         } else {
@@ -398,15 +398,15 @@ module.exports = function (grunt) {
                             'jquery': path.resolve(paths.node_modules, 'jquery')
                         },
                         modules: [
-                            path.resolve(dir, 'node_modules'),
                             pluginNodeDir,
+                            path.resolve(dir, 'node_modules'),
                             paths.node_modules
                         ]
                     },
                     resolveLoader: {
                         modules: [
-                            path.resolve(dir, 'node_modules'),
                             pluginNodeDir,
+                            path.resolve(dir, 'node_modules'),
                             paths.node_modules
                         ]
                     },
