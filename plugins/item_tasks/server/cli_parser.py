@@ -20,7 +20,8 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'file': 'file',
     'directory': 'folder',
     'image': 'file',
-    'pointfile': 'file'
+    'pointfile': 'file',
+    'region': 'region'
 }
 
 _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP = {
