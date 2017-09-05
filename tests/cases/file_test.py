@@ -24,6 +24,7 @@ import json
 import moto
 import os
 import shutil
+import six
 import zipfile
 
 from hashlib import sha512
@@ -237,7 +238,7 @@ class FileTestCase(base.TestCase):
 
         return file
 
-    def _testDownloadFile(self, file, contents):
+    def _testDownloadFile(self, file, contents, contentDisposition=None):
         """
         Downloads the previously uploaded file from the server.
 
@@ -249,11 +250,13 @@ class FileTestCase(base.TestCase):
         resp = self.request(path='/file/%s/download' % str(file['_id']),
                             method='GET', user=self.user, isJson=False)
         self.assertStatusOk(resp)
+        if not contentDisposition:
+            contentDisposition = 'filename="%s"' % file['name']
         if contents:
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
             self.assertEqual(resp.headers['Content-Disposition'],
-                             'attachment; filename="%s"' % file['name'])
+                             'attachment; %s' % contentDisposition)
 
         self.assertEqual(contents, self.getBody(resp))
 
@@ -267,7 +270,7 @@ class FileTestCase(base.TestCase):
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
             self.assertEqual(resp.headers['Content-Disposition'],
-                             'inline; filename="%s"' % file['name'])
+                             'inline; %s' % contentDisposition)
 
         self.assertEqual(contents, self.getBody(resp))
 
@@ -305,7 +308,7 @@ class FileTestCase(base.TestCase):
         resp = self.request(
             path='/file/%s/download/%s' % (
                 str(file['_id']),
-                urllib.parse.quote(file['name']).encode('utf8')
+                urllib.parse.quote(file['name'].encode('utf8'))
             ), method='GET', user=self.user, isJson=False)
         self.assertStatusOk(resp)
         if contents:
@@ -780,6 +783,18 @@ class FileTestCase(base.TestCase):
         # Test copying a file
         copyTestFile = self._testUploadFile('helloWorld1.txt')
         self._testCopyFile(copyTestFile)
+
+        # Test unicode filenames for content disposition.  The test name has
+        # quotes, a Linear-B codepoint, Cyrllic, Arabic, Chinese, and an emoji.
+        filename = u'Unicode "sample" \U00010088 ' + \
+                   u'\u043e\u0431\u0440\u0430\u0437\u0435\u0446 ' + \
+                   u'\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'
+        file = self._testUploadFile(filename)
+        file = self.model('file').load(file['_id'], force=True)
+        testval = 'filename="%s"; filename*=UTF-8\'\'%s' % (
+            filename.replace('"', '').encode('ascii', 'ignore').decode('utf8'),
+            six.moves.urllib.parse.quote(filename.encode('utf8', 'ignore')))
+        self._testDownloadFile(file, chunk1 + chunk2, testval)
 
     def testGridFsAssetstore(self):
         """

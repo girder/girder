@@ -252,6 +252,45 @@ def setCurrentUser(user):
     cherrypy.request.girderUser = user
 
 
+def setContentDisposition(filename, disposition='attachment', setHeader=True):
+    """
+    Set the content disposition header to either inline or attachment, and
+    specify a filename that is properly escaped.
+
+    :param filename: the filename to add to the content disposition header.
+    :param disposition: either 'inline' or 'attachment'.  None is the same as
+        'attachment'.  Any other value skips setting the content disposition
+        header.
+    :param setHeader: if False, return the value that would be set to the
+        Content-Disposition header, but do not set it.
+    :returns: the content-disposition header value.
+    """
+    if disposition is None:
+        disposition = 'attachment'
+    if ((disposition not in ('inline', 'attachment') and
+         not disposition.startswith('form-data')) or not filename):
+        return
+    if not isinstance(disposition, six.binary_type):
+        disposition = disposition.encode('ascii', 'ignore')
+    if not isinstance(filename, six.text_type):
+        filename = filename.decode('utf8', 'ignore')
+    # Using ASCII for the safeFilename is more restrictive than necessary, but
+    # should work on all browsers/
+    safeFilename = filename.encode('ascii', 'ignore').replace(b'"', b'')
+    encodedFilename = filename.encode('utf8', 'ignore')
+    value = disposition + b'; filename="' + safeFilename + b'"'
+    if safeFilename != encodedFilename:
+        quotedFilename = six.moves.urllib.parse.quote(encodedFilename)
+        if not isinstance(quotedFilename, six.binary_type):
+            quotedFilename = quotedFilename.encode('ascii', 'ignore')
+        value += b'; filename*=UTF-8\'\'' + quotedFilename
+    if not isinstance(value, six.text_type):
+        value = value.decode('utf8')
+    if setHeader:
+        setResponseHeader('Content-Disposition', value)
+    return value
+
+
 def requireAdmin(user, message=None):
     """
     Calling this on a user will ensure that they have admin rights.  If not,
