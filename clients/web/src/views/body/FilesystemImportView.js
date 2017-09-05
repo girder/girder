@@ -39,9 +39,13 @@ var FilesystemImportView = View.extend({
             helpText: 'Browse to a location to select it as the destination.',
             submitText: 'Select Destination',
             validate: function (id) {
+                var isValid = $.Deferred();
                 if (!id) {
-                    return 'Please select a valid root.';
+                    isValid.reject('Please select a valid root.');
+                } else {
+                    isValid.resolve();
                 }
+                return isValid.promise();
             }
         });
         this.listenTo(this._browserWidgetView, 'g:saved', function (val) {

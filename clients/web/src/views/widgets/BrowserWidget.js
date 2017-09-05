@@ -174,6 +174,7 @@ var BrowserWidget = View.extend({
                 if (this.input && this.input.validate) {
                     var message = this.input.validate(this.$('#g-input-element').val());
                     if (message === undefined) {
+                        console.warn('Static validation is deprecated, return a promise instead');
                         return undefined;
                     } else if (_.isFunction(message.then)) {
                         return message;
@@ -189,6 +190,7 @@ var BrowserWidget = View.extend({
                 // Validate selected-model
                 var message = this.validate(selectedModel);
                 if (message === undefined) {
+                    console.warn('Static validation is deprecated, return a promise instead');
                     return undefined;
                 } else if (_.isFunction(message.then)) {
                     return message;
@@ -202,6 +204,7 @@ var BrowserWidget = View.extend({
                 // Validate selected-model
                 var message = this.validate(selectedModel);
                 if (message === undefined) {
+                    console.warn('Static validation is deprecated, return a promise instead');
                     return undefined;
                 } else if (_.isFunction(message.then)) {
                     return message;

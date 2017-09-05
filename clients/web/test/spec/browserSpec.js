@@ -446,7 +446,9 @@ describe('Test the hierarchy browser modal', function () {
             view = new girder.views.widgets.BrowserWidget({
                 parentView: null,
                 el: testEl,
-                validate: _.constant('invalid')
+                validate: () => {
+                    return $.Deferred().resolve().promise();
+                }
             }).render();
             waitsFor(function () {
                 return $(view.$el).is(':visible');
@@ -580,7 +582,11 @@ describe('Test the hierarchy browser modal', function () {
                     placeholder: 'placeholder',
                     validate: function (val) {
                         validateCalledWith = val;
-                        return validateReturn;
+                        if (!validateReturn) {
+                            return $.Deferred().reject(validateReturn).promise();
+                        } else {
+                            return $.Deferred().resolve().promise();
+                        }
                     }
                 }
             }).render();
