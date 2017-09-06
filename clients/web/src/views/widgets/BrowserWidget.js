@@ -164,50 +164,54 @@ var BrowserWidget = View.extend({
      * The code path for each case is commented inline
      */
     _validate: function () {
-        var selectedModel = this.selectedModel();
-        var invalidSelectedModel;
-        var invalidInputElement;
+        // Validate input element
+        let inputValidation;
+        if (this.input && this.input.validate) {
+            inputValidation = this.input.validate(this.$('#g-input-element').val());
+            if (!_.isFunction(inputValidation.then)) {
+                console.warn('Static validation is deprecated, return a promise instead');
+                if (inputValidation === undefined) {
+                    inputValidation = $.Deferred().resolve().promise();
+                } else {
+                    inputValidation = $.Deferred().reject(inputValidation).promise();
+                }
+            }
+        } else {
+            // No validator is implicit acceptance
+            inputValidation = $.Deferred().resolve().promise();
+        }
 
-        $.Deferred().resolve()
-            .then(() => {
-                // Validate input-element
-                if (this.input && this.input.validate) {
-                    var message = this.input.validate(this.$('#g-input-element').val());
-                    if (message === undefined) {
-                        console.warn('Static validation is deprecated, return a promise instead');
-                        return undefined;
-                    } else if (_.isFunction(message.then)) {
-                        return message;
-                    } else {
-                        throw message;
-                    }
-                } else {
+        // Validate selected element
+        const selectedModel = this.selectedModel();
+        let selectedValidation = this.validate(selectedModel);
+        if (!_.isFunction(selectedValidation.then)) {
+            console.warn('Static validation is deprecated, return a promise instead');
+            if (selectedValidation === undefined) {
+                selectedValidation = $.Deferred().resolve().promise();
+            } else {
+                selectedValidation = $.Deferred().reject(selectedValidation).promise();
+            }
+        }
+
+        let invalidInputElement;
+        let invalidSelectedModel;
+        // We want to wait until both promises to run to completion, which only happens if they're
+        // accepted. So, chain an extra handler on to them, which transforms a rejection into an
+        // acceptance.
+        $.when(
+            inputValidation
+                .catch((failMessage) => {
+                    // input-element is invalid
+                    invalidInputElement = failMessage;
                     return undefined;
-                }
-            })
-            .catch((failMessage) => {
-                // input-element is invalid
-                invalidInputElement = failMessage;
-                // Change the promise chain back to an accepted state, so additional handlers run
-                return undefined;
-            })
-            .then(() => {
-                // Validate selected-model
-                var message = this.validate(selectedModel);
-                if (message === undefined) {
-                    console.warn('Static validation is deprecated, return a promise instead');
+                }),
+            selectedValidation
+                .catch((failMessage) => {
+                    // selected-model is invalid
+                    invalidSelectedModel = failMessage;
                     return undefined;
-                } else if (_.isFunction(message.then)) {
-                    return message;
-                } else {
-                    throw message;
-                }
-            })
-            .catch((failMessage) => {
-                // selected-model is invalid
-                invalidSelectedModel = failMessage;
-                return undefined;
-            })
+                })
+        )
             .done(() => {
                 // Reset any previous error states
                 this.$('.g-selected-model').removeClass('has-error');
