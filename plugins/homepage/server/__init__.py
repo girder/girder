@@ -62,18 +62,26 @@ class Homepage(Resource):
             'folderId': folder['_id']
         }
 
+
 @setting_utilities.validator(MARKDOWN)
 def validateHomepageMarkdown(event):
     pass
+
+
 @setting_utilities.validator(HEADER)
 def validateHomepageTitle(event):
     pass
+
+
 @setting_utilities.validator(SUBHEADING_TEXT)
-def validateHomepageTitle(event):
+def validateHomepageSubHeadingText(event):
     pass
+
+
 @setting_utilities.validator(WELCOME_TEXT)
-def validateHomepageTitle(event):
+def validateHomepagewelcomeText(event):
     pass
+
 
 def getOrCreateAssetsFolder():
     collection = ModelImporter.model('collection').createCollection(
@@ -85,14 +93,3 @@ def getOrCreateAssetsFolder():
 
 def load(info):
     info['apiRoot'].homepage = Homepage()
-
-# DEBUG
-def function ():
-    home = Homepage()
-    folder = getOrCreateAssetsFolder()
-    return  {
-                HEADER: home.model('setting').get(HEADER),
-                SUBHEADING_TEXT: home.model('setting').get(SUBHEADING_TEXT),
-                WELCOME_TEXT: home.model('setting').get(WELCOME_TEXT),
-                'folderId': folder['_id']
-            }

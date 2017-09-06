@@ -48,8 +48,8 @@ var ConfigView = View.extend({
                 maxUploadSize: 1024 * 1024 * 10,
                 allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
             });
+            this.editor.text = resp['homepage.markdown'];
             this.render();
-            this.editor.val(resp['homepage.markdown']);
         }, this));
 
         restRequest({
