@@ -71,5 +71,5 @@ CollectionModel.prototype.currentUserSetAcceptTerms = function () {
 
 CollectionModel.prototype._hashTerms = function () {
     window.hex = createHash('sha256').update(this.get('terms'));
-    return createHash('sha256').update(this.get('terms')).digest('base64');
+    return createHash('sha256').update(this.get('terms')).digest('hex');
 };

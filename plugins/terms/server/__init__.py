@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import base64
 import datetime
 import hashlib
 
@@ -35,7 +34,7 @@ from girder.models.model_base import ModelImporter
 @autoDescribeRoute(
     Description('Accept a collection\'s Terms of Use for the current user.')
     .modelParam('id', model='collection', level=AccessType.READ)
-    .param('termsHash', 'The SHA-256 hash of this collection\'s terms, encoded in Base64.')
+    .param('termsHash', 'The SHA-256 hash of this collection\'s terms, encoded in hexadecimal.')
 )
 def acceptCollectionTerms(self, collection, termsHash):
     if not collection.get('terms'):
@@ -44,9 +43,7 @@ def acceptCollectionTerms(self, collection, termsHash):
     # termsHash should be encoded to a bytes object, but storing bytes into MongoDB behaves
     # differently in Python 2 vs 3. Additionally, serializing a bytes to JSON behaves differently
     # in Python 2 vs 3. So, just keep it as a unicode (or ordinary Python 2 str).
-    realTermsHash = base64.b64encode(
-        hashlib.sha256(collection['terms'].encode('utf-8')).digest()
-    ).decode('utf-8')
+    realTermsHash = hashlib.sha256(collection['terms'].encode('utf-8')).hexdigest()
     if termsHash != realTermsHash:
         # This "proves" that the client has at least accessed the terms
         raise RestException(

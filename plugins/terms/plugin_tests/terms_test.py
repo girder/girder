@@ -76,7 +76,7 @@ class TermsTest(base.TestCase):
             '/collection/%s/acceptTerms' % basicCollectionId, method='POST', user=self.creatorUser,
             params={
                 # This is the hash of an empty string
-                'termsHash': '47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='
+                'termsHash': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
             })
         self.assertStatus(resp, 400)
 
@@ -120,7 +120,9 @@ class TermsTest(base.TestCase):
         resp = self.request(
             '/collection/%s/acceptTerms' % termsCollectionId, method='POST', user=self.creatorUser,
             params={
-                'termsHash': 'gargTz1mz476PQf9oUVbtob7OS3ban/3aHqOdLgcHA0='.replace('g', 'f')
+                'termsHash':
+                    '81aae04f3d66cf8efa3d07fda1455bb686fb392ddb6a7ff7687a8e74b81c1c0d'
+                    .replace('8', '2')
             })
         self.assertStatus(resp, 400)
 
@@ -128,7 +130,7 @@ class TermsTest(base.TestCase):
         resp = self.request(
             '/collection/%s/acceptTerms' % termsCollectionId, method='POST', user=self.creatorUser,
             params={
-                'termsHash': 'gargTz1mz476PQf9oUVbtob7OS3ban/3aHqOdLgcHA0='
+                'termsHash': '81aae04f3d66cf8efa3d07fda1455bb686fb392ddb6a7ff7687a8e74b81c1c0d'
             })
         self.assertStatusOk(resp)
 
@@ -136,7 +138,7 @@ class TermsTest(base.TestCase):
         resp = self.request('/user/me', method='GET', user=self.creatorUser)
         self.assertStatusOk(resp)
         self.assertDictContainsSubset(
-            {'hash': 'gargTz1mz476PQf9oUVbtob7OS3ban/3aHqOdLgcHA0='},
+            {'hash': '81aae04f3d66cf8efa3d07fda1455bb686fb392ddb6a7ff7687a8e74b81c1c0d'},
             resp.json.get('terms', {}).get('collection', {}).get(termsCollectionId, {})
         )
 
