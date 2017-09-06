@@ -152,16 +152,7 @@ var BrowserWidget = View.extend({
     },
 
     /**
-     * _validate independently validates the input-element and the selected-model.
-     * The 4 possible outcomes of this validation are as follows...
-     *
-     * Case |  input-element  |  selected-model
-     *  1.  |      Valid      |      Valid
-     *  2.  |      Valid      |     Invalid
-     *  3.  |     Invalid     |      Valid
-     *  4.  |     Invalid     |     Invalid
-     *
-     * The code path for each case is commented inline
+     * Independently validate the input-element and the selected-model.
      */
     _validate: function () {
         // Validate input element
@@ -193,8 +184,8 @@ var BrowserWidget = View.extend({
             }
         }
 
-        let invalidInputElement;
-        let invalidSelectedModel;
+        let invalidInputElement = null;
+        let invalidSelectedModel = null;
         // We want to wait until both promises to run to completion, which only happens if they're
         // accepted. So, chain an extra handler on to them, which transforms a rejection into an
         // acceptance.
@@ -218,24 +209,28 @@ var BrowserWidget = View.extend({
                 this.$('.g-input-element').removeClass('has-error');
                 this.$('.g-validation-failed-message').addClass('hidden').html('');
 
-                // Case 1
+                // The 4 possible outcomes of this validation are as follows...
+                //
+                // Case |  input-element  |  selected-model
+                //  1.  |      Valid      |      Valid
+                //  2.  |      Valid      |     Invalid
+                //  3.  |     Invalid     |      Valid
+                //  4.  |     Invalid     |     Invalid
                 if (!invalidInputElement && !invalidSelectedModel) {
+                    // Case 1
                     this.root = this._hierarchyView.parentModel;
                     this.$el.modal('hide');
                     this.trigger('g:saved', selectedModel, this.$('#g-input-element').val());
-                }
-                // Case 2
-                else if (!invalidInputElement && invalidSelectedModel) {
+                } else if (!invalidInputElement && invalidSelectedModel) {
+                    // Case 2
                     this.$('.g-selected-model').addClass('has-error');
                     this.$('.g-validation-failed-message').removeClass('hidden').text(invalidSelectedModel);
-                }
-                // Case 3
-                else if (invalidInputElement && !invalidSelectedModel) {
+                } else if (invalidInputElement && !invalidSelectedModel) {
+                    // Case 3
                     this.$('.g-input-element').addClass('has-error');
                     this.$('.g-validation-failed-message').removeClass('hidden').text(invalidInputElement);
-                }
-                // Case 4
-                else if (invalidInputElement && invalidSelectedModel) {
+                } else if (invalidInputElement && invalidSelectedModel) {
+                    // Case 4
                     this.$('.g-selected-model').addClass('has-error');
                     this.$('.g-input-element').addClass('has-error');
                     this.$('.g-validation-failed-message').removeClass('hidden').html(
