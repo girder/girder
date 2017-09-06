@@ -41,7 +41,7 @@ describe('Test the candela UI.', function () {
         }, 'the candela component selector to appear');
 
         runs(function () {
-            expect($('.g-item-candela-component option').length).toBeGreaterThan(10);
+            expect($('.g-item-candela-component option').length).toBeGreaterThan(5);
             $('.g-item-candela-component').val('BarChart').change();
         });
 
