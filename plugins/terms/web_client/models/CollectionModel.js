@@ -50,7 +50,12 @@ CollectionModel.prototype.currentUserSetAcceptTerms = function () {
                 const userAcceptedTerms = currentUser.get('terms') || {};
                 // This code would be much cleaner with _.merge from Lodash.
                 userAcceptedTerms.collection = userAcceptedTerms.collection || {};
-                userAcceptedTerms.collection[this.id] = termsHash;
+                userAcceptedTerms.collection[this.id] = {
+                    hash: termsHash,
+                    // 'accepted' is from a server-set timestamp, so we don't know it here. However,
+                    // its value is irreverent, as it's for auditing purposes only.
+                    accepted: null
+                };
                 currentUser.set('terms', userAcceptedTerms);
             });
     } else {
