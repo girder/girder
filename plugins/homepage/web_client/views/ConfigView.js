@@ -34,7 +34,9 @@ var ConfigView = View.extend({
     },
 
     initialize: function () {
-        restRequest({
+        const promiseArray = [];
+
+        const markdownPromise = restRequest({
             method: 'GET',
             url: 'homepage/markdown'
         }).done(_.bind(function (resp) {
@@ -49,10 +51,10 @@ var ConfigView = View.extend({
                 allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
             });
             this.editor.text = resp['homepage.markdown'];
-            this.render();
         }, this));
+        promiseArray.push(markdownPromise);
 
-        restRequest({
+        const settingsPromise = restRequest({
             method: 'GET',
             url: 'homepage/settings'
         }).done(_.bind(function (resp) {
@@ -61,7 +63,7 @@ var ConfigView = View.extend({
             this.subHeader = resp['homepage.subheader'];
             this.welcomeText = new MarkdownWidget({
                 prefix: 'welcome',
-                placeholder: 'Enter Markdown for the welcome text. Default: \"**Welcome to Girder!**\"',
+                placeholder: 'Enter Markdown to replace the welcome text.',
                 parentView: this,
                 parent: this.folder,
                 enableUploads: true,
@@ -70,9 +72,13 @@ var ConfigView = View.extend({
             });
             this.welcomeText.text = resp['homepage.welcome_text'];
             this.logo = resp['homepage.logo'];
-            console.log(this.welcomeText);
-            this.render();
         }, this));
+        promiseArray.push(settingsPromise);
+
+        $.when(...promiseArray)
+            .done(() => {
+                this.render();
+            });
     },
 
     render: function () {
@@ -89,7 +95,6 @@ var ConfigView = View.extend({
             this.$('.g-homepage-container')).render();
         this.welcomeText.setElement(
             this.$('.g-welcome-text-container')).render();
-        console.log(this.welcomeText);
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({
