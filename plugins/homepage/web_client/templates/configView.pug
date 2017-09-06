@@ -14,17 +14,18 @@ form.g-settings-form(role="form")
         placeholder=`Default: ${defaultHeader || 'none'}`,
         title="The homepage header.")
   .form-group
-    label(for="g-homepage-subheading-text") Subheading Text
-    input#g-homepage-subheading-text.form-control.input-sm(
-        type="text", value= subHeadingText || '',
-        placeholder=`Default: ${defaultSubHeadingText || 'none'}`,
+    label(for="g-homepage-subheader") Subheader
+    input#g-homepage-subheader.form-control.input-sm(
+        type="text", value= subHeader || '',
+        placeholder=`Default: ${defaultSubHeader || 'none'}`,
         title="The homepage subheader.")
   .form-group
     label(for="g-homepage-welcome-text") Welcome Text
-    input#g-homepage-welcome-text.form-control.input-sm(
-        type= "text", value= welcomeText || '',
-        placeholder=`Default: ${defaultWelcomeText || 'none'}`,
-        title="The homepage welcome text (rendered as the first paragraph of the gray callout box.")
+    #g-homepage-welcome-text.g-welcome-text-container
+
+  .form-group
+    label(for="g-homepage-logo") Logo
+    #g-homepage-logo
 
 p.g-homepage-description
   | To completely replace the homepage content (ignoring the other settings), enter Markdown here.

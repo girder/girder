@@ -27,6 +27,7 @@ MARKDOWN = 'homepage.markdown'
 HEADER = 'homepage.header'
 SUBHEADER = 'homepage.subheader'
 WELCOME_TEXT = 'homepage.welcome_text'
+LOGO = 'homepage.logo'
 
 NAME = 'Homepage Assets'
 
@@ -59,6 +60,7 @@ class Homepage(Resource):
             HEADER: self.model('setting').get(HEADER),
             SUBHEADER: self.model('setting').get(SUBHEADER),
             WELCOME_TEXT: self.model('setting').get(WELCOME_TEXT),
+            LOGO: self.model('setting').get(LOGO),
             'folderId': folder['_id']
         }
 
@@ -79,7 +81,11 @@ def validateHomepageSubHeadingText(event):
 
 
 @setting_utilities.validator(WELCOME_TEXT)
-def validateHomepagewelcomeText(event):
+def validateHomepageWelcomeText(event):
+    pass
+
+@setting_utilities.validator(LOGO)
+def validateHomepageLogo(event):
     pass
 
 

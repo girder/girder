@@ -23,12 +23,12 @@ var ConfigView = View.extend({
                 value: this.$('#g-homepage-header').val()
             },
             {
-                key: 'homepage.subheading_text',
-                value: this.$('#g-homepage-subheading-text').val()
+                key: 'homepage.subheader',
+                value: this.$('#g-homepage-subheader').val()
             },
             {
                 key: 'homepage.welcome_text',
-                value: this.$('#g-homepage-welcome-text').val()
+                value: this.welcomeText.val()
             }]);
         }
     },
@@ -58,8 +58,19 @@ var ConfigView = View.extend({
         }).done(_.bind(function (resp) {
             this.folder = new FolderModel({_id: resp.folderId});
             this.header = resp['homepage.header'];
-            this.subHeadingText = resp['homepage.subheading_text'];
-            this.welcomeText = resp['homepage.welcome_text'];
+            this.subHeader = resp['homepage.subheader'];
+            this.welcomeText = new MarkdownWidget({
+                prefix: 'welcome',
+                placeholder: 'Enter Markdown for the welcome text. Default: \"**Welcome to Girder!**\"',
+                parentView: this,
+                parent: this.folder,
+                enableUploads: true,
+                maxUploadSize: 1024 * 1024 * 10,
+                allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
+            });
+            this.welcomeText.text = resp['homepage.welcome_text'];
+            this.logo = resp['homepage.logo'];
+            console.log(this.welcomeText);
             this.render();
         }, this));
     },
@@ -67,15 +78,18 @@ var ConfigView = View.extend({
     render: function () {
         this.$el.html(ConfigViewTemplate({
             header: this.header || null,
-            subHeadingText: this.subHeadingText || null,
-            welcomeText: this.welcomeText || null,
+            subHeader: this.subHeader || null,
+            logo: this.logo || null,
             defaultHeader: 'Girder',
-            defaultWelcomeText: 'Welcome to Girder!',
-            defaultSubHeadingText: 'Data management platform'
+            defaultSubHeader: 'Data management platform',
+            defaultLogo: {src: 'girder/assets/Girder_Mark.png', width: '82'}
         }));
-
+        
         this.editor.setElement(
             this.$('.g-homepage-container')).render();
+        this.welcomeText.setElement(
+            this.$('.g-welcome-text-container')).render();
+        console.log(this.welcomeText);
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({
