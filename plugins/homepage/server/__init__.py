@@ -25,7 +25,7 @@ from girder.utility.model_importer import ModelImporter
 
 MARKDOWN = 'homepage.markdown'
 HEADER = 'homepage.header'
-SUBHEADING_TEXT = 'homepage.subheading_text'
+SUBHEADER = 'homepage.subheader'
 WELCOME_TEXT = 'homepage.welcome_text'
 
 NAME = 'Homepage Assets'
@@ -36,7 +36,7 @@ class Homepage(Resource):
         super(Homepage, self).__init__()
         self.resourceName = 'homepage'
         self.route('GET', ('markdown',), self.getMarkdown)
-        self.route('GET', ('settings',), self.getSettingFrontPage)
+        self.route('GET', ('settings',), self.getSettings)
 
     @access.public
     @describeRoute(
@@ -53,11 +53,11 @@ class Homepage(Resource):
     @describeRoute(
         Description('Public url for getting the homepage settings.')
     )
-    def getSettingFrontPage(self, params):
+    def getSettings(self, params):
         folder = getOrCreateAssetsFolder()
         return {
             HEADER: self.model('setting').get(HEADER),
-            SUBHEADING_TEXT: self.model('setting').get(SUBHEADING_TEXT),
+            SUBHEADER: self.model('setting').get(SUBHEADER),
             WELCOME_TEXT: self.model('setting').get(WELCOME_TEXT),
             'folderId': folder['_id']
         }
@@ -73,7 +73,7 @@ def validateHomepageTitle(event):
     pass
 
 
-@setting_utilities.validator(SUBHEADING_TEXT)
+@setting_utilities.validator(SUBHEADER)
 def validateHomepageSubHeadingText(event):
     pass
 
