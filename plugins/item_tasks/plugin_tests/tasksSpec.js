@@ -165,13 +165,12 @@ describe('Run the item task', function () {
 
         runs(function () {
             // check invalid parent
-            $('.g-validation-failed-message').text('');
             $('.modal-dialog .g-submit-button').click();
         });
 
         waitsFor(function () {
             return $('.g-validation-failed-message').text();
-        }, 'validation to complete');
+        }, 'validation to fail');
 
         runs(function() {
             expect($('.g-validation-failed-message').text()).toMatch(/Invalid parent type/);
@@ -184,13 +183,12 @@ describe('Run the item task', function () {
 
         runs(function () {
             // check no name provided
-            $('.g-validation-failed-message').text('');
             $('.modal-dialog .g-submit-button').click();
         });
 
         waitsFor(function () {
             return $('.g-validation-failed-message').text();
-        }, 'validation to complete');
+        }, 'validation to fail');
 
         runs(function () {
             expect($('.g-validation-failed-message').text()).toMatch(/Please provide an item name/);

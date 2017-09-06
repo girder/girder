@@ -179,13 +179,13 @@ var ControlWidget = View.extend({
             input = false,
             preview = true,
             validate = () => {
-                return $.Deferred().resolve().reject();
+                return $.Deferred().resolve().promise();
             },
             type = this.model.get('type'),
             title, help;
 
-        var validationPromise = function (condition, message) {
-            var isValid = $.Deferred();
+        let validationPromise = function (condition, message) {
+            let isValid = $.Deferred();
             if (!condition) {
                 isValid.reject(message);
             } else {
@@ -234,7 +234,7 @@ var ControlWidget = View.extend({
                 label: 'Name',
                 placeholder: 'Choose a name for the new item',
                 validate: (val) => {
-                    // validation on the "new folder name"\
+                    // validation on the "new folder name"
                     return validationPromise(val, 'Please provide an item name.');
                 },
                 default: this.model.get('fileName')

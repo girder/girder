@@ -458,7 +458,7 @@ describe('Test the hierarchy browser modal', function () {
             });
             waitsFor(function () {
                 return $('.g-validation-failed-message').text();
-            }, 'validation to complete');
+            }, 'validation to fail');
             runs(function () {
                 expect(view.$el.hasClass('in')).toBe(true);
                 expect(view.$('.g-validation-failed-message').text()).toBe('invalid');
@@ -610,7 +610,7 @@ describe('Test the hierarchy browser modal', function () {
             });
             waitsFor(function () {
                 return $('.g-validation-failed-message').text();
-            }, 'validation to complete');
+            }, 'validation to fail');
             runs(function () {
                 expect(validateCalledWith).toBe('input value');
                 expect(view.$('.g-validation-failed-message').text()).toBe('invalid');

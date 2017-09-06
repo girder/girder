@@ -38,9 +38,9 @@ var FilesystemImportView = View.extend({
             titleText: 'Destination',
             helpText: 'Browse to a location to select it as the destination.',
             submitText: 'Select Destination',
-            validate: function (id) {
-                var isValid = $.Deferred();
-                if (!id) {
+            validate: function (model) {
+                let isValid = $.Deferred();
+                if (!model) {
                     isValid.reject('Please select a valid root.');
                 } else {
                     isValid.resolve();

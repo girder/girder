@@ -16,7 +16,9 @@ import 'girder/utilities/jquery/girderModal';
  */
 var BrowserWidget = View.extend({
     events: {
-        'click .g-submit-button': '_submitButton'
+        'click .g-submit-button': function () {
+            this._validate();
+        }
     },
 
     /**
@@ -27,8 +29,10 @@ var BrowserWidget = View.extend({
      * @param {string} [submitText="Save"] Text to display on the submit button
      * @param {boolean} [showItems=false] Show items in the hierarchy widget
      * @param {boolean} [showPreview=true] Show a preview of the current object id
-     * @param {function} [validate] A validation function returning a promise that returns a string
-        to be displayed on error, or undefined if valid.
+     * @param {function} [validate] A validation function, which is passed the selected model as a
+        parameter, and which should return a promise. The returned promise should resolve if the
+        selection is acceptable and reject with a string value (as an error message) if the
+        selection is unacceptable.
      * @param {object} [rootSelectorSettings] Settings passed to the root selector widget
      * @param {boolean} [showMetadata=false] Show the metadata editor inside the hierarchy widget
      * @param {Model} [root] The default root model to pass to the hierarchy widget
@@ -41,8 +45,10 @@ var BrowserWidget = View.extend({
      *   as in a "Save As" dialog.  The default (false) hides this element.
      * @param {string} [input.label="Name"] A label for the input element.
      * @param {string} [input.default] The default value
-     * @param {function} [input.validate] A validation function returning a promise that returns a
-        string to be displayed on error, or undefined if valid.
+     * @param {function} [input.validate] A validation function, which is passed the value of the
+        user-specified input element as a parameter, and which should return a promise. The returned
+        promise should resolve if the selection is acceptable and reject with a string value (as an
+        error message) if the selection is unacceptable.
      * @param {string} [input.placeholder] A placeholder string for the input element.
      */
     initialize: function (settings) {
@@ -145,10 +151,6 @@ var BrowserWidget = View.extend({
             return;
         }
         this._resetSelection(this._hierarchyView.parentModel);
-    },
-
-    _submitButton: function () {
-        this._validate();
     },
 
     /**
