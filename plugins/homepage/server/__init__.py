@@ -37,26 +37,15 @@ class Homepage(Resource):
         super(Homepage, self).__init__()
         self.resourceName = 'homepage'
         self.route('GET', ('markdown',), self.getMarkdown)
-        self.route('GET', ('settings',), self.getSettings)
 
     @access.public
     @describeRoute(
-        Description('Public url for getting the homepage markdown.')
+        Description('Public url for getting the homepage markdown and settings.')
     )
     def getMarkdown(self, params):
         folder = getOrCreateAssetsFolder()
         return {
             MARKDOWN: self.model('setting').get(MARKDOWN),
-            'folderId': folder['_id']
-        }
-
-    @access.public
-    @describeRoute(
-        Description('Public url for getting the homepage settings.')
-    )
-    def getSettings(self, params):
-        folder = getOrCreateAssetsFolder()
-        return {
             HEADER: self.model('setting').get(HEADER),
             SUBHEADER: self.model('setting').get(SUBHEADER),
             WELCOME_TEXT: self.model('setting').get(WELCOME_TEXT),

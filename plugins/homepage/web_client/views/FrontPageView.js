@@ -11,21 +11,19 @@ wrap(FrontPageView, 'render', function (render) {
         url: 'homepage/markdown'
     }).done(_.bind(function (resp) {
         if (resp['homepage.markdown'] === '') {
-            restRequest({
-                method: 'GET',
-                url: 'homepage/settings'
-            }).done(_.bind(function (res) {
-                _.bind(render, this)();
-                if (res['homepage.header'] !== '') {
-                    this.$('.g-frontpage-title').text(res['homepage.header']);
-                }
-                if (res['homepage.subheading_text'] !== '') {
-                    this.$('.g-frontpage-subtitle').text(res['homepage.subheader']);
-                }
-                if (res['homepage.welcome_text'] !== '') {
-                    this.$('.g-frontpage-welcome-text-content').html(renderMarkdown(res['homepage.welcome_text']));
-                }
-            }, this));
+            _.bind(render, this)();
+	        if (resp['homepage.header'] !== '') {
+	            this.$('.g-frontpage-title').text(resp['homepage.header']);
+	        }
+	        if (resp['homepage.subheading_text'] !== '') {
+	            this.$('.g-frontpage-subtitle').text(resp['homepage.subheader']);
+	        }
+	        if (resp['homepage.welcome_text'] !== '') {
+	            this.$('.g-frontpage-welcome-text-content').html(renderMarkdown(resp['homepage.welcome_text']));
+	        }
+	        // if (resp['homepage.logo'] !== '') {
+	        //
+	        // }
         } else {
             this.$el.html(renderMarkdown(resp['homepage.markdown']));
         }

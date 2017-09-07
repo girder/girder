@@ -29,14 +29,16 @@ var ConfigView = View.extend({
             {
                 key: 'homepage.welcome_text',
                 value: this.welcomeText.val()
-            }]);
+            }
+            /*{
+                key: 'homepage.logo',
+                value: this.logo.val()
+            }*/]);
         }
     },
 
     initialize: function () {
-        const promiseArray = [];
-
-        const markdownPromise = restRequest({
+        restRequest({
             method: 'GET',
             url: 'homepage/markdown'
         }).done(_.bind(function (resp) {
@@ -50,17 +52,6 @@ var ConfigView = View.extend({
                 maxUploadSize: 1024 * 1024 * 10,
                 allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
             });
-            this.editor.text = resp['homepage.markdown'];
-        }, this));
-        promiseArray.push(markdownPromise);
-
-        const settingsPromise = restRequest({
-            method: 'GET',
-            url: 'homepage/settings'
-        }).done(_.bind(function (resp) {
-            this.folder = new FolderModel({_id: resp.folderId});
-            this.header = resp['homepage.header'];
-            this.subHeader = resp['homepage.subheader'];
             this.welcomeText = new MarkdownWidget({
                 prefix: 'welcome',
                 placeholder: 'Enter Markdown to replace the welcome text.',
@@ -70,15 +61,14 @@ var ConfigView = View.extend({
                 maxUploadSize: 1024 * 1024 * 10,
                 allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
             });
+            this.editor.text = resp['homepage.markdown'];
+            this.header = resp['homepage.header'];
+            this.subHeader = resp['homepage.subheader'];
             this.welcomeText.text = resp['homepage.welcome_text'];
             this.logo = resp['homepage.logo'];
-        }, this));
-        promiseArray.push(settingsPromise);
 
-        $.when(...promiseArray)
-            .done(() => {
-                this.render();
-            });
+            this.render();
+        }, this));
     },
 
     render: function () {
