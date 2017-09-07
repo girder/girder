@@ -270,7 +270,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
     :returns: the content-disposition header value.
     """
     if ((disposition not in ('inline', 'attachment') and
-         not disposition.startswith('form-data')) or not filename):
+         disposition and not disposition.startswith('form-data')) or not filename):
         return
     if not isinstance(disposition, six.binary_type):
         disposition = disposition.encode('iso8859-1', 'ignore')

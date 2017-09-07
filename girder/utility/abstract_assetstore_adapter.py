@@ -342,7 +342,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         setResponseHeader(
             'Content-Type',
             file.get('mimeType') or 'application/octet-stream')
-        setContentDisposition(file['name'], contentDisposition)
+        setContentDisposition(file['name'], contentDisposition or 'attachment')
         setResponseHeader('Content-Length', max(endByte - offset, 0))
 
         if (offset or endByte < file['size']) and file['size']:
