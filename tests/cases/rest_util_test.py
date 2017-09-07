@@ -134,15 +134,20 @@ class RestUtilTestCase(unittest.TestCase):
         self.assertIsNone(rest.setContentDisposition(
             'filename', 'unknown', False))
         self.assertEqual(rest.setContentDisposition(
-            'filename', setHeader=False), 'attachment; filename="filename"')
+            'filename', setHeader=False),
+            'attachment; filename="filename"')
         self.assertEqual(rest.setContentDisposition(
-            'filename', 'inline', setHeader=False), 'inline; filename="filename"')
+            'filename', 'inline', setHeader=False),
+            'inline; filename="filename"')
         self.assertEqual(rest.setContentDisposition(
             'filename', 'form-data; name="chunk"', setHeader=False),
             'form-data; name="chunk"; filename="filename"')
         self.assertEqual(rest.setContentDisposition(
             'file "name"', setHeader=False),
-            'attachment; filename="file name"; filename*=UTF-8\'\'file%20%22name%22')
+            'attachment; filename="file \\"name\\""')
+        self.assertEqual(rest.setContentDisposition(
+            'file\\name', setHeader=False),
+            'attachment; filename="file\\\\name"')
         self.assertEqual(rest.setContentDisposition(
             u'\u043e\u0431\u0440\u0430\u0437\u0435\u0446', setHeader=False),
             'attachment; filename=""; filename*=UTF-8\'\''

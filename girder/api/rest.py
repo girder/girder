@@ -26,6 +26,7 @@ import posixpath
 import six
 import sys
 import traceback
+import unicodedata
 
 from . import docs
 from girder import events, logger, logprint
@@ -255,7 +256,10 @@ def setCurrentUser(user):
 def setContentDisposition(filename, disposition='attachment', setHeader=True):
     """
     Set the content disposition header to either inline or attachment, and
-    specify a filename that is properly escaped.
+    specify a filename that is properly escaped.  See
+    developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition,
+    tools.ietf.org/html/rfc2183, and tools.ietf.org/html/rfc6266 for
+    specificatioons and details.
 
     :param filename: the filename to add to the content disposition header.
     :param disposition: either 'inline' or 'attachment'.  None is the same as
@@ -265,27 +269,25 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         Content-Disposition header, but do not set it.
     :returns: the content-disposition header value.
     """
-    if disposition is None:
-        disposition = 'attachment'
     if ((disposition not in ('inline', 'attachment') and
          not disposition.startswith('form-data')) or not filename):
         return
     if not isinstance(disposition, six.binary_type):
-        disposition = disposition.encode('ascii', 'ignore')
+        disposition = disposition.encode('iso8859-1', 'ignore')
     if not isinstance(filename, six.text_type):
         filename = filename.decode('utf8', 'ignore')
-    # Using ASCII for the safeFilename is more restrictive than necessary, but
-    # should work on all browsers/
-    safeFilename = filename.encode('ascii', 'ignore').replace(b'"', b'')
-    encodedFilename = filename.encode('utf8', 'ignore')
-    value = disposition + b'; filename="' + safeFilename + b'"'
-    if safeFilename != encodedFilename:
-        quotedFilename = six.moves.urllib.parse.quote(encodedFilename)
+    # Decompose the name before trying to encode it.  This will de-accent
+    # characters rather than remove them in some instances.
+    safeFilename = unicodedata.normalize('NFKD', filename).encode('iso8859-1', 'ignore')
+    utf8Filename = filename.encode('utf8', 'ignore')
+    value = disposition + b'; filename="' + safeFilename.replace(
+        '\\', '\\\\').replace(b'"', b'\\"') + b'"'
+    if safeFilename != utf8Filename:
+        quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
         if not isinstance(quotedFilename, six.binary_type):
-            quotedFilename = quotedFilename.encode('ascii', 'ignore')
+            quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
         value += b'; filename*=UTF-8\'\'' + quotedFilename
-    if not isinstance(value, six.text_type):
-        value = value.decode('utf8')
+    value = value.decode('utf8')
     if setHeader:
         setResponseHeader('Content-Disposition', value)
     return value

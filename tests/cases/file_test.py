@@ -792,7 +792,7 @@ class FileTestCase(base.TestCase):
         file = self._testUploadFile(filename)
         file = self.model('file').load(file['_id'], force=True)
         testval = 'filename="%s"; filename*=UTF-8\'\'%s' % (
-            filename.replace('"', '').encode('ascii', 'ignore').decode('utf8'),
+            filename.replace('"', '\\"').encode('iso8859-1', 'ignore').decode('utf8'),
             six.moves.urllib.parse.quote(filename.encode('utf8', 'ignore')))
         self._testDownloadFile(file, chunk1 + chunk2, testval)
 

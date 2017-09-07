@@ -24,7 +24,7 @@ import warnings
 from girder import events
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
-from girder.api.rest import RestException, setRawResponse, setResponseHeader
+from girder.api.rest import RestException, setRawResponse, setResponseHeader, setContentDisposition
 from girder.api.v1.file import File
 from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
@@ -77,7 +77,7 @@ class HashedFile(File):
 
         setResponseHeader('Content-Length', len(hash))
         setResponseHeader('Content-Type', 'text/plain')
-        setResponseHeader('Content-Disposition', 'attachment; filename="%s"' % name)
+        setContentDisposition(name)
         setRawResponse()
 
         return hash
