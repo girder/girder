@@ -22,6 +22,7 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType, SortDir
 from . import constants
+from . import utils
 
 
 class Job(Resource):
@@ -81,8 +82,8 @@ class Job(Resource):
         .param('title', '', required=True)
         .param('type', '', required=True)
         .modelParam('parentId', 'ID of the parent job.', model='job',
-                    plugin='jobs', level=AccessType.ADMIN,
-                    destName='parentJob', paramType='query', required=False)
+                    plugin='jobs', destName='parentJob',
+                    paramType='query', required=False, force=True)
         .param('public', '', required=False, dataType='boolean', default=False)
         .param('handler', '', required=False, dataType='string')
         .jsonParam('args', 'Job arguments', required=False, requireArray=True)
@@ -92,7 +93,8 @@ class Job(Resource):
                    requireObject=True, required=False)
     )
     def createJob(self, title, type, parentJob, public, handler, args, kwargs, otherFields):
-        return self.model('job', 'jobs').createJob(
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(
             title=title,
             type=type,
             public=public,
@@ -102,6 +104,9 @@ class Job(Resource):
             kwargs=kwargs,
             parentJob=parentJob,
             otherFields=otherFields)
+
+        job = jobModel.updateJob(job, otherFields={'jobInfoSpec': utils.jobInfoSpec(job)})
+        return job
 
     @access.admin
     @filtermodel(model='job', plugin='jobs')
