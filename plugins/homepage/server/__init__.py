@@ -73,6 +73,7 @@ def validateHomepageSubHeadingText(event):
 def validateHomepageWelcomeText(event):
     pass
 
+
 @setting_utilities.validator(LOGO)
 def validateHomepageLogo(event):
     pass

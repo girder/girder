@@ -45,7 +45,7 @@ function _verifyMarkdownContent(elem) {
 function _verifyHomepageSettings(elem) {
     expect(elem.find('div[class="g-frontpage-title"]:contains("Header")').length).toBe(1);
     expect(elem.find('div[class="g-frontpage-subtitle"]:contains("Subheader")').length).toBe(1);
-    _verifyMarkdownContent(elem)
+    _verifyMarkdownContent(elem);
 }
 
 describe('homepage plugin test ', function () {

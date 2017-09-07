@@ -30,10 +30,10 @@ var ConfigView = View.extend({
                 key: 'homepage.welcome_text',
                 value: this.welcomeText.val()
             }
-            /*{
+            /* {
                 key: 'homepage.logo',
                 value: this.logo.val()
-            }*/]);
+            } */]);
         }
     },
 
@@ -80,7 +80,6 @@ var ConfigView = View.extend({
             defaultSubHeader: 'Data management platform',
             defaultLogo: {src: 'girder/assets/Girder_Mark.png', width: '82'}
         }));
-        
         this.editor.setElement(
             this.$('.g-homepage-container')).render();
         this.welcomeText.setElement(
