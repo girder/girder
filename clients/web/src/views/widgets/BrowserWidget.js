@@ -161,13 +161,12 @@ var BrowserWidget = View.extend({
         let inputValidation;
         if (this.input && this.input.validate) {
             inputValidation = this.input.validate(this.$('#g-input-element').val());
-            if (!_.isFunction(inputValidation.then)) {
+            if (inputValidation === undefined) {
                 console.warn('Static validation is deprecated, return a promise instead');
-                if (inputValidation === undefined) {
-                    inputValidation = $.Deferred().resolve().promise();
-                } else {
-                    inputValidation = $.Deferred().reject(inputValidation).promise();
-                }
+                inputValidation = $.Deferred().resolve().promise();
+            } else if (!_.isFunction(inputValidation.then)) {
+                console.warn('Static validation is deprecated, return a promise instead');
+                inputValidation = $.Deferred().reject(inputValidation).promise();
             }
         } else {
             // No validator is implicit acceptance
@@ -177,13 +176,12 @@ var BrowserWidget = View.extend({
         // Validate selected element
         const selectedModel = this.selectedModel();
         let selectedValidation = this.validate(selectedModel);
-        if (!_.isFunction(selectedValidation.then)) {
+        if (selectedValidation === undefined) {
             console.warn('Static validation is deprecated, return a promise instead');
-            if (selectedValidation === undefined) {
-                selectedValidation = $.Deferred().resolve().promise();
-            } else {
-                selectedValidation = $.Deferred().reject(selectedValidation).promise();
-            }
+            selectedValidation = $.Deferred().resolve().promise();
+        } else if (!_.isFunction(selectedValidation.then)) {
+            console.warn('Static validation is deprecated, return a promise instead');
+            selectedValidation = $.Deferred().reject(selectedValidation).promise();
         }
 
         let invalidInputElement = null;
