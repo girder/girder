@@ -281,7 +281,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
     safeFilename = unicodedata.normalize('NFKD', filename).encode('iso8859-1', 'ignore')
     utf8Filename = filename.encode('utf8', 'ignore')
     value = disposition + b'; filename="' + safeFilename.replace(
-        '\\', '\\\\').replace(b'"', b'\\"') + b'"'
+        b'\\', b'\\\\').replace(b'"', b'\\"') + b'"'
     if safeFilename != utf8Filename:
         quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
         if not isinstance(quotedFilename, six.binary_type):
