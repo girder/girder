@@ -60,7 +60,8 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'girder-cli = girder_client.cli:main'
+            'girder-cli = girder_client.cli:main',
+            'girder-client = girder_client.cli:main'
         ]
     }
 )
