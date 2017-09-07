@@ -219,9 +219,9 @@ var ControlWidget = View.extend({
             };
             // validation on the parent model
             validate = (model) => {
-                var type = model.get('_modelType');
-                var condition = _.contains(['folder', 'collection', 'user'], type);
-                var message = 'Invalid parent type, please choose a collection, folder, or user.';
+                let type = model.get('_modelType');
+                let condition = _.contains(['folder', 'collection', 'user'], type);
+                let message = 'Invalid parent type, please choose a collection, folder, or user.';
                 return validationPromise(condition, message);
             };
             preview = false;
@@ -241,9 +241,9 @@ var ControlWidget = View.extend({
             };
             // validation on the parent model
             validate = (model) => {
-                var type = model.get('_modelType');
-                var condition = type === 'folder';
-                var message = 'Invalid parent type, please choose a folder.';
+                let type = model.get('_modelType');
+                let condition = type === 'folder';
+                let message = 'Invalid parent type, please choose a folder.';
                 return validationPromise(condition, message);
             };
             preview = false;
