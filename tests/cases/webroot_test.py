@@ -19,6 +19,7 @@
 
 from .. import base
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
+from girder.utility.webroot import WebrootBase
 
 
 def setUpModule():
@@ -30,6 +31,20 @@ def tearDownModule():
 
 
 class WebRootTestCase(base.TestCase):
+    def testEscapeJavascript(self):
+        # Don't escape alphanumeric characters
+        alphaNumString = 'abcxyz0189ABCXYZ'
+        self.assertEqual(
+            WebrootBase._escapeJavascript(alphaNumString),
+            alphaNumString
+        )
+
+        # Do escape everything else
+        dangerString = 'ab\'"<;>\\YZ'
+        self.assertEqual(
+            WebrootBase._escapeJavascript(dangerString),
+            'ab\\u0027\\u0022\\u003C\\u003B\\u003E\\u005CYZ'
+        )
 
     def testAccessWebRoot(self):
         """
@@ -42,7 +57,7 @@ class WebRootTestCase(base.TestCase):
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
-        self.assertIn(defaultEmailAddress, body)
+        self.assertIn(WebrootBase._escapeJavascript(defaultEmailAddress), body)
         self.assertIn('<title>%s</title>' % defaultBrandName, body)
 
         self.assertIn('girder_app.min.js', body)
@@ -54,7 +69,7 @@ class WebRootTestCase(base.TestCase):
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
-        self.assertIn('foo@bar.com', body)
+        self.assertIn(WebrootBase._escapeJavascript('foo@bar.com'), body)
         self.assertIn('<title>FooBar</title>', body)
 
         # Remove webroot settings
@@ -63,7 +78,7 @@ class WebRootTestCase(base.TestCase):
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
-        self.assertIn(defaultEmailAddress, body)
+        self.assertIn(WebrootBase._escapeJavascript(defaultEmailAddress), body)
         self.assertIn('<title>%s</title>' % defaultBrandName, body)
 
     def testWebRootProperlyHandlesStaticRouteUrls(self):
