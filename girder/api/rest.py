@@ -269,9 +269,11 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         Content-Disposition header, but do not set it.
     :returns: the content-disposition header value.
     """
-    if ((disposition not in ('inline', 'attachment') and
-         disposition and not disposition.startswith('form-data')) or not filename):
-        return
+    if (not disposition or (disposition not in ('inline', 'attachment') and
+                            not disposition.startswith('form-data'))):
+        raise RestException('Error: Content-Disposition is not a recognized value.')
+    if not filename:
+        raise RestException('Error: Content-Disposition filename is empty.')
     if not isinstance(disposition, six.binary_type):
         disposition = disposition.encode('iso8859-1', 'ignore')
     if not isinstance(filename, six.text_type):

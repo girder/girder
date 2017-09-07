@@ -131,8 +131,13 @@ class RestUtilTestCase(unittest.TestCase):
             resource.requireParams(['hello'], None)
 
     def testSetContentDisposition(self):
-        self.assertIsNone(rest.setContentDisposition(
-            'filename', 'unknown', False))
+        with six.assertRaisesRegex(
+                self, rest.RestException,
+                'Error: Content-Disposition is not a recognized value.'):
+            rest.setContentDisposition('filename', 'unknown', False)
+        with six.assertRaisesRegex(
+                self, rest.RestException, 'Error: Content-Disposition filename is empty.'):
+            rest.setContentDisposition('', setHeader=False)
         self.assertEqual(rest.setContentDisposition(
             'filename', setHeader=False),
             'attachment; filename="filename"')
