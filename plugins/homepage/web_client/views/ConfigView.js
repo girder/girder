@@ -29,11 +29,24 @@ var ConfigView = View.extend({
             {
                 key: 'homepage.welcome_text',
                 value: this.welcomeText.val()
-            }
-            /* {
+            },
+            {
                 key: 'homepage.logo',
-                value: this.logo.val()
-            } */]);
+                value: this.logoUrl
+            }]);
+        },
+
+        'change #g-homepage-logo': function (event) {
+            var reader = new FileReader();
+            reader.onload = () => {
+                this.$('.g-preview-logo').attr({
+                    'src': reader.result,
+                    'width': '50px'
+                });
+                this.logoUrl = reader.result;
+            };
+            reader.readAsDataURL(event.target.files[0]);
+            this.$('.g-preview-logo').removeClass('hidden');
         }
     },
 
@@ -65,7 +78,7 @@ var ConfigView = View.extend({
             this.header = resp['homepage.header'];
             this.subHeader = resp['homepage.subheader'];
             this.welcomeText.text = resp['homepage.welcome_text'];
-            this.logo = resp['homepage.logo'];
+            this.logoUrl = resp['homepage.logo'];
 
             this.render();
         }, this));
@@ -75,15 +88,17 @@ var ConfigView = View.extend({
         this.$el.html(ConfigViewTemplate({
             header: this.header || null,
             subHeader: this.subHeader || null,
-            logo: this.logo || null,
             defaultHeader: 'Girder',
-            defaultSubHeader: 'Data management platform',
-            defaultLogo: {src: 'girder/assets/Girder_Mark.png', width: '82'}
+            defaultSubHeader: 'Data management platform'
         }));
         this.editor.setElement(
             this.$('.g-homepage-container')).render();
         this.welcomeText.setElement(
             this.$('.g-welcome-text-container')).render();
+        this.$('.g-preview-logo').attr({'src': this.logoUrl, 'width': '50px'});
+        if (this.logoUrl !== null) {
+            this.$('.g-preview-logo').removeClass('hidden');
+        }
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({

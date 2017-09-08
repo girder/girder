@@ -21,9 +21,9 @@ wrap(FrontPageView, 'render', function (render) {
             if (resp['homepage.welcome_text'] !== '') {
                 this.$('.g-frontpage-welcome-text-content').html(renderMarkdown(resp['homepage.welcome_text']));
             }
-            // if (resp['homepage.logo'] !== '') {
-            //
-            // }
+            if (resp['homepage.logo'] !== '') {
+                this.$('.g-frontpage-logo').attr('src', resp['homepage.logo']);
+            }
         } else {
             this.$el.html(renderMarkdown(resp['homepage.markdown']));
         }

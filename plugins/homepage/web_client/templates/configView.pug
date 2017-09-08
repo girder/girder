@@ -25,7 +25,10 @@ form.g-settings-form(role="form")
 
   .form-group
     label(for="g-homepage-logo") Logo
-    #g-homepage-logo
+    .g-logo-container
+      input#g-homepage-logo.g-logo-element.input-sm(
+        type="file", title="The front page logo.")
+      img.g-preview-logo.g-logo-element.hidden(src="#", alt="Branding logo")
 
 p.g-homepage-description
   | To completely replace the homepage content (ignoring the other settings), enter Markdown here.
