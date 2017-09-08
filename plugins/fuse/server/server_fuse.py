@@ -2,8 +2,10 @@ import atexit
 import errno
 import fuse
 import os
+import shutil
 import six
 import stat
+import sys
 import subprocess
 import threading
 import time
@@ -60,7 +62,7 @@ class ServerFuse(fuse.Operations, ModelImporter):
         # we always set st_mode, st_size, st_ino, st_nlink, so we don't need
         # to track those.
         self._defaultStat = dict((key, getattr(stat, key)) for key in (
-            'st_atime', 'st_ctime', 'st_gid', 'st_mtime', 'st_uid'))
+            'st_atime', 'st_ctime', 'st_gid', 'st_mtime', 'st_uid', 'st_blksize'))
         self.nextFH = 1
         self.openFiles = {}
         self.openFilesLock = threading.Lock()
@@ -83,10 +85,10 @@ class ServerFuse(fuse.Operations, ModelImporter):
             # Log all exceptions and then reraise them
             if self.log:
                 if getattr(e, 'errno', None) == errno.ENOENT:
-                    self.log.debug('-- %s %s', op, str(e))
+                    self.log.debug('-- %s %r', op, e)
                 else:
                     self.log.exception('-- %s', op)
-            raise
+            raise e
         finally:
             if self.log:
                 if op != 'read':
@@ -101,6 +103,11 @@ class ServerFuse(fuse.Operations, ModelImporter):
         :param path: path within the fuse.
         :returns: a Girder resource dictionary.
         """
+        # If asked about a file in top level directory or the top directory,
+        # return that it doesn't exist.  Other methods should handle '',
+        # '/user', and 'collection' before calling this method.
+        if '/' not in path.rstrip('/')[1:]:
+            raise fuse.FuseOSError(errno.ENOENT)
         try:
             # We can't filter the resource, since that removes files'
             # assetstore information and users' size information.
@@ -138,10 +145,10 @@ class ServerFuse(fuse.Operations, ModelImporter):
         attr['st_ctime'] = attr['st_mtime']
 
         if model == 'file':
-            attr['st_mode'] = 0o777 | stat.S_IFREG
+            attr['st_mode'] = 0o400 | stat.S_IFREG
             attr['st_size'] = doc.get('size', len(doc.get('linkUrl', '')))
         else:
-            attr['st_mode'] = 0o777 | stat.S_IFDIR
+            attr['st_mode'] = 0o500 | stat.S_IFDIR
             # Directories have zero size.  We could, instead, list the size
             # of all of their children via doc.get('size', 0), but that isn't
             # how most directories are reported.
@@ -197,16 +204,18 @@ class ServerFuse(fuse.Operations, ModelImporter):
     def access(self, path, mode):
         """
         Try to load the resource associated with a path.  If we have permission
-        to do so absed on the current mode, report that access is allowed.
+        to do so based on the current mode, report that access is allowed.
         Otherwise, an exception is raised.
 
         :param path: path within the fuse.
         :param mode: either F_OK to test if the resource exists, or a bitfield
             of R_OK, W_OK, and X_OK to test if read, write, and execute
             permissions are allowed.
-        :returns: True if access is allowed.  An exception is raised if it is
+        :returns: 0 if access is allowed.  An exception is raised if it is
             not.
         """
+        if path.rstrip('/') in ('', '/user', '/collection'):
+            return super(ServerFuse, self).access(path, mode)
         # mode is either F_OK or a bitfield of R_OK, W_OK, X_OK
         # we need to validate if the resource can be accessed
         resource = self._getPath(path)
@@ -220,7 +229,7 @@ class ServerFuse(fuse.Operations, ModelImporter):
             if (mode & os.X_OK):
                 self.model(resource['model']).requireAccess(
                     resource['document'], self.user, level=AccessType.ADMIN)
-        return True
+        return 0
 
     def getattr(self, path, fh=None):
         """
@@ -233,11 +242,14 @@ class ServerFuse(fuse.Operations, ModelImporter):
         """
         if path.rstrip('/') in ('', '/user', '/collection'):
             attr = self._defaultStat.copy()
-            attr['st_mode'] = 0o777 | stat.S_IFDIR
+            attr['st_mode'] = 0o500 | stat.S_IFDIR
             attr['st_size'] = 0
         else:
             resource = self._getPath(path)
             attr = self._stat(resource['document'], resource['model'])
+        if attr.get('st_blksize') and attr.get('st_size'):
+            attr['st_blocks'] = int(
+                (attr['st_size'] + attr['st_blksize'] - 1) / attr['st_blksize'])
         return attr
 
     def read(self, path, size, offset, fh):
@@ -364,11 +376,20 @@ def unmountServerFuse(name):
         if entry:
             events.trigger('server_fuse.unmount', {'name': name})
             path = entry['path']
-            subprocess.call(['fusermount', '-u', os.path.realpath(path)])
+            # Girder uses shutilwhich on Python < 3
+            if shutil.which('fusermount'):
+                subprocess.call(['fusermount', '-u', os.path.realpath(path)])
+            else:
+                subprocess.call(['umount', os.path.realpath(path)])
             if entry['thread']:
                 entry['thread'].join(10)
             # clean up previous processes so there aren't any zombies
-            os.waitpid(-1, os.WNOHANG)
+            try:
+                os.waitpid(-1, os.WNOHANG)
+            except OSError:
+                # Don't throw an error; sometimes we get an
+                # errno 10: no child processes
+                pass
 
 
 def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
@@ -411,21 +432,24 @@ def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
             # when the program is stopped.
             opClass = ServerFuse(level=level, user=user, force=force,
                                  stat=os.stat(path))
+            options = {
+                # Running in a thread in the foreground makes it easier to
+                # clean up the process when we need to shut it down.
+                'foreground': True,
+                # Automatically unmount when python we try to mount again
+                'auto_unmount': True,
+                # Cache files if their size and timestamp haven't changed.
+                # This lets to OS buffer files efficiently.
+                'auto_cache': True,
+                # We aren't specifying our own inos
+                'use_ino': False,
+                # read-only file system
+                'ro': True,
+            }
+            if sys.platform == 'darwin':
+                del options['auto_unmount']
             fuseThread = threading.Thread(
-                target=fuse.FUSE, args=(opClass, path), kwargs={
-                    # Running in a thread in the foreground makes it easier to
-                    # clean up the process when we need to shut it down.
-                    'foreground': True,
-                    # Automatically unmount when python we try to mount again
-                    'auto_unmount': True,
-                    # Cache files if their size and timestamp haven't changed.
-                    # This lets to OS buffer files efficiently.
-                    'auto_cache': True,
-                    # We aren't specifying our own inos
-                    'use_ino': False,
-                    # read-only file system
-                    'ro': True,
-                })
+                target=fuse.FUSE, args=(opClass, path), kwargs=options)
             fuseThread.daemon = True
             fuseThread.start()
             entry['thread'] = fuseThread

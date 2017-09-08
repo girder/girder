@@ -266,7 +266,7 @@ class ServerFuseTestCase(base.TestCase):
         from girder.plugins.fuse import server_fuse
 
         op = server_fuse.ServerFuse(user=self.user2, force=False)
-        self.assertTrue(op.__call__('access', self.publicFileName, os.F_OK))
+        self.assertEqual(op.__call__('access', self.publicFileName, os.F_OK), 0)
         with self.assertRaises(fuse.FuseOSError):
             op.__call__('access', self.privateFileName, os.F_OK)
         with self.assertRaises(fuse.FuseOSError):
@@ -299,7 +299,7 @@ class ServerFuseTestCase(base.TestCase):
         self.assertEqual(attr['st_nlink'], 1)
         self.assertGreater(attr['st_mtime'], time.time() - 1e5)
         self.assertEqual(attr['st_ctime'], attr['st_mtime'])
-        self.assertEqual(attr['st_mode'], 0o777 | stat.S_IFREG)
+        self.assertEqual(attr['st_mode'], 0o400 | stat.S_IFREG)
         self.assertGreater(attr['st_size'], len(self.knownPaths[self.publicFileName]))
         resource['document']['updated'] = datetime.datetime.utcfromtimestamp(time.time() + 1)
         self.model('file').save(resource['document'])
@@ -310,11 +310,11 @@ class ServerFuseTestCase(base.TestCase):
 
         resource = op._getPath(os.path.dirname(self.publicFileName))
         attr = op._stat(resource['document'], resource['model'])
-        self.assertEqual(attr['st_mode'], 0o777 | stat.S_IFDIR)
+        self.assertEqual(attr['st_mode'], 0o500 | stat.S_IFDIR)
         self.assertEqual(attr['st_size'], 0)
         resource = op._getPath(os.path.dirname(os.path.dirname(self.publicFileName)))
         attr = op._stat(resource['document'], resource['model'])
-        self.assertEqual(attr['st_mode'], 0o777 | stat.S_IFDIR)
+        self.assertEqual(attr['st_mode'], 0o500 | stat.S_IFDIR)
         self.assertEqual(attr['st_size'], 0)
 
     def testFunctionName(self):
@@ -371,13 +371,13 @@ class ServerFuseTestCase(base.TestCase):
         from girder.plugins.fuse import server_fuse
 
         op = server_fuse.ServerFuse()
-        self.assertTrue(op.access(self.publicFileName, os.F_OK))
-        self.assertTrue(op.access(self.publicFileName, os.R_OK | os.W_OK | os.X_OK))
-        self.assertTrue(op.access(self.adminFileName, os.F_OK))
-        self.assertTrue(op.access(self.adminFileName, os.R_OK))
+        self.assertEqual(op.access(self.publicFileName, os.F_OK), 0)
+        self.assertEqual(op.access(self.publicFileName, os.R_OK | os.W_OK | os.X_OK), 0)
+        self.assertEqual(op.access(self.adminFileName, os.F_OK), 0)
+        self.assertEqual(op.access(self.adminFileName, os.R_OK), 0)
         op = server_fuse.ServerFuse(user=self.user, force=False)
-        self.assertTrue(op.access(self.publicFileName, os.F_OK))
-        self.assertTrue(op.access(self.publicFileName, os.R_OK | os.W_OK | os.X_OK))
+        self.assertEqual(op.access(self.publicFileName, os.F_OK), 0)
+        self.assertEqual(op.access(self.publicFileName, os.R_OK | os.W_OK | os.X_OK), 0)
         with self.assertRaises(fuse.FuseOSError):
             op.access(self.adminFileName, os.F_OK)
         with self.assertRaises(fuse.FuseOSError):
@@ -388,14 +388,14 @@ class ServerFuseTestCase(base.TestCase):
 
         op = server_fuse.ServerFuse()
         attr = op.getattr('/user')
-        self.assertEqual(attr['st_mode'], 0o777 | stat.S_IFDIR)
+        self.assertEqual(attr['st_mode'], 0o500 | stat.S_IFDIR)
         self.assertEqual(attr['st_size'], 0)
         attr = op.getattr(self.publicFileName)
         self.assertEqual(attr['st_ino'], -1)
         self.assertEqual(attr['st_nlink'], 1)
         self.assertGreater(attr['st_mtime'], time.time() - 1e5)
         self.assertEqual(attr['st_ctime'], attr['st_mtime'])
-        self.assertEqual(attr['st_mode'], 0o777 | stat.S_IFREG)
+        self.assertEqual(attr['st_mode'], 0o400 | stat.S_IFREG)
         self.assertGreater(attr['st_size'], len(self.knownPaths[self.publicFileName]))
 
     def testFunctionRead(self):
