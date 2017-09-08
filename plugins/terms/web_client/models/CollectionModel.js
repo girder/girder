@@ -53,7 +53,7 @@ CollectionModel.prototype.currentUserSetAcceptTerms = function () {
                 userAcceptedTerms.collection[this.id] = {
                     hash: termsHash,
                     // 'accepted' is from a server-set timestamp, so we don't know it here. However,
-                    // its value is irreverent, as it's for auditing purposes only.
+                    // its value is irrelevant, as it's for auditing purposes only.
                     accepted: null
                 };
                 currentUser.set('terms', userAcceptedTerms);
