@@ -19,6 +19,7 @@
 
 from .. import base
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
+from girder.utility.webroot import WebrootBase
 
 
 def setUpModule():
@@ -30,6 +31,20 @@ def tearDownModule():
 
 
 class WebRootTestCase(base.TestCase):
+    def testEscapeJavascript(self):
+        # Don't escape alphanumeric characters
+        alphaNumString = 'abcxyz0189ABCXYZ'
+        self.assertEqual(
+            WebrootBase._escapeJavascript(alphaNumString),
+            alphaNumString
+        )
+
+        # Do escape everything else
+        dangerString = 'ab\'"<;>\\YZ'
+        self.assertEqual(
+            WebrootBase._escapeJavascript(dangerString),
+            'ab\\u0027\\u0022\\u003C\\u003B\\u003E\\u005CYZ'
+        )
 
     def testAccessWebRoot(self):
         """
@@ -42,12 +57,11 @@ class WebRootTestCase(base.TestCase):
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
-        self.assertTrue(('contactEmail: \'%s\'' % defaultEmailAddress) in body)
-        self.assertTrue(('brandName: \'%s\'' % defaultBrandName) in body)
-        self.assertTrue(('<title>%s</title>' % defaultBrandName) in body)
+        self.assertIn(WebrootBase._escapeJavascript(defaultEmailAddress), body)
+        self.assertIn('<title>%s</title>' % defaultBrandName, body)
 
-        self.assertTrue('girder_app.min.js' in body)
-        self.assertTrue('girder_lib.min.js' in body)
+        self.assertIn('girder_app.min.js', body)
+        self.assertIn('girder_lib.min.js', body)
 
         # Change webroot settings
         self.model('setting').set(SettingKey.CONTACT_EMAIL_ADDRESS, 'foo@bar.com')
@@ -55,9 +69,8 @@ class WebRootTestCase(base.TestCase):
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
-        self.assertTrue(('contactEmail: \'%s\'' % 'foo@bar.com') in body)
-        self.assertTrue(('brandName: \'%s\'' % 'FooBar') in body)
-        self.assertTrue(('<title>%s</title>' % 'FooBar') in body)
+        self.assertIn(WebrootBase._escapeJavascript('foo@bar.com'), body)
+        self.assertIn('<title>FooBar</title>', body)
 
         # Remove webroot settings
         self.model('setting').unset(SettingKey.CONTACT_EMAIL_ADDRESS)
@@ -65,9 +78,8 @@ class WebRootTestCase(base.TestCase):
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
-        self.assertTrue(('contactEmail: \'%s\'' % defaultEmailAddress) in body)
-        self.assertTrue(('brandName: \'%s\'' % defaultBrandName) in body)
-        self.assertTrue(('<title>%s</title>' % defaultBrandName) in body)
+        self.assertIn(WebrootBase._escapeJavascript(defaultEmailAddress), body)
+        self.assertIn('<title>%s</title>' % defaultBrandName, body)
 
     def testWebRootProperlyHandlesStaticRouteUrls(self):
         self.model('setting').set(SettingKey.ROUTE_TABLE, {
