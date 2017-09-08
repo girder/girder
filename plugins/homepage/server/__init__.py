@@ -40,7 +40,7 @@ class Homepage(Resource):
 
     @access.public
     @describeRoute(
-        Description('Public url for getting the homepage markdown and settings.')
+        Description('Public url for getting the homepage properties including markdown content.')
     )
     def getMarkdown(self, params):
         folder = getOrCreateAssetsFolder()
