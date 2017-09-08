@@ -19,7 +19,7 @@ var LayoutHeaderView = View.extend({
 
     initialize: function (settings) {
         this.brandName = settings.brandName || 'Girder';
-
+        this.bannerColor = settings.bannerColor || '#3F3B3B';
         this.userView = new LayoutHeaderUserView({
             parentView: this
         });
@@ -40,7 +40,7 @@ var LayoutHeaderView = View.extend({
         this.$el.html(LayoutHeaderTemplate({
             brandName: this.brandName
         }));
-
+        this.$('.g-header-wrapper').css('background-color', this.bannerColor);
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
 

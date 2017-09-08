@@ -171,6 +171,12 @@ class Setting(Model):
             raise ValidationException('The brand name may not be empty', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.BANNER_COLOR)
+    def validateCoreBannerColor(doc):
+        if not doc['value']:
+            raise ValidationException('The banner color may not be empty', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.SECURE_COOKIE)
     def validateSecureCookie(doc):
         if not isinstance(doc['value'], bool):

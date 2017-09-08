@@ -24,7 +24,8 @@
                 el: 'body',
                 parentView: null,
                 contactEmail: '${contactEmail | h}',
-                brandName: '${brandName | h}'
+                brandName: '${brandName | h}',
+                bannerColor: '${bannerColor}'
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });

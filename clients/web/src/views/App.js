@@ -41,6 +41,8 @@ var App = View.extend({
         settings = settings || {};
         this.contactEmail = settings.contactEmail || null;
         this.brandName = settings.brandName || null;
+        this.bannerColor = settings.bannerColor || null;
+
         if (settings.start === undefined || settings.start) {
             this.start();
         }
@@ -126,7 +128,8 @@ var App = View.extend({
     _createLayout: function () {
         this.headerView = new LayoutHeaderView({
             parentView: this,
-            brandName: this.brandName
+            brandName: this.brandName,
+            bannerColor: this.bannerColor
         });
 
         this.globalNavView = new LayoutGlobalNavView({

@@ -213,6 +213,7 @@ class SystemTestCase(base.TestCase):
         # the badValues table.
         badValues = {
             SettingKey.BRAND_NAME: '',
+            SettingKey.BANNER_COLOR: '',
             SettingKey.EMAIL_FROM_ADDRESS: '',
             SettingKey.CONTACT_EMAIL_ADDRESS: '',
             SettingKey.EMAIL_HOST: {},

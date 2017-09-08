@@ -93,6 +93,7 @@ class Webroot(WebrootBase):
             # 'title' is depreciated use brandName instead
             'title': 'Girder',
             'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
+            'bannerColor': ModelImporter.model('setting').get(SettingKey.BANNER_COLOR),
             'contactEmail': ModelImporter.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
         }
 
@@ -107,6 +108,8 @@ class Webroot(WebrootBase):
             self.updateHtmlVars({'contactEmail': settingDoc['value']})
         elif settingDoc['key'] == SettingKey.BRAND_NAME:
             self.updateHtmlVars({'brandName': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.BANNER_COLOR:
+            self.updateHtmlVars({'bannerColor': settingDoc['value']})
 
     def _onSettingRemove(self, event):
         settingDoc = event.info
@@ -116,6 +119,8 @@ class Webroot(WebrootBase):
         elif settingDoc['key'] == SettingKey.BRAND_NAME:
             self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
                 SettingKey.BRAND_NAME)})
+        elif settingDoc['key'] == SettingKey.BANNER_COLOR:
+            self.updateHtmlVars({'bannerColor': settingDoc['value']})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []
