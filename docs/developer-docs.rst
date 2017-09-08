@@ -4,6 +4,7 @@ Developer Documentation
 .. toctree::
    :maxdepth: 2
 
+   dev-installation
    api-docs
    development
    plugin-development
