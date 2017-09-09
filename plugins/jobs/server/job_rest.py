@@ -21,8 +21,8 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType, SortDir
+from girder.utility.model_importer import ModelImporter
 from . import constants
-from . import utils
 
 
 class Job(Resource):
@@ -93,19 +93,20 @@ class Job(Resource):
                    requireObject=True, required=False)
     )
     def createJob(self, title, type, parentJob, public, handler, args, kwargs, otherFields):
-        jobModel = self.model('job', 'jobs')
-        job = jobModel.createJob(
-            title=title,
-            type=type,
-            public=public,
-            handler=handler,
-            user=self.getCurrentUser(),
-            args=args,
-            kwargs=kwargs,
-            parentJob=parentJob,
-            otherFields=otherFields)
+        params = {
+            'title': title,
+            'type': type,
+            'public': public,
+            'handler': handler,
+            'user': self.getCurrentUser(),
+            'args': args,
+            'kwargs': kwargs,
+            'parentJob': parentJob,
+            'otherFields': otherFields
+        }
+        jobModel = ModelImporter.model('job', 'jobs')
+        job = jobModel.createJob(**params)
 
-        job = jobModel.updateJob(job, otherFields={'jobInfoSpec': utils.jobInfoSpec(job)})
         return job
 
     @access.admin
