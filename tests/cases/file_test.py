@@ -24,7 +24,6 @@ import json
 import moto
 import os
 import shutil
-import six
 import zipfile
 
 from hashlib import sha512
@@ -791,9 +790,10 @@ class FileTestCase(base.TestCase):
                    u'\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'
         file = self._testUploadFile(filename)
         file = self.model('file').load(file['_id'], force=True)
-        testval = 'filename="%s"; filename*=UTF-8\'\'%s' % (
-            filename.replace('"', '\\"').encode('iso8859-1', 'ignore').decode('utf8'),
-            six.moves.urllib.parse.quote(filename.encode('utf8', 'ignore')))
+        testval = 'filename="Unicode \\"sample\\"     "; filename*=UTF-8\'\'' \
+            'Unicode%20%22sample%22%20%F0%90%82%88%20%D0%BE%D0%B1%D1%80%D0' \
+            '%B0%D0%B7%D0%B5%D1%86%20%D8%B9%D9%8A%D9%86%D8%A9%20%E6%A8%A3%E5' \
+            '%93%81%20%F0%9F%98%83'
         self._testDownloadFile(file, chunk1 + chunk2, testval)
 
     def testGridFsAssetstore(self):
