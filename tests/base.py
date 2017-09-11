@@ -39,6 +39,7 @@ from girder.utility import model_importer, plugin_utilities
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
 from girder.models import getDbConnection
+from girder.api.rest import setContentDisposition
 from . import mock_smtp
 from . import mock_s3
 from . import mongo_replicaset
@@ -509,7 +510,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             body = body.encode('utf8')
 
         if params:
-            qs = urllib.parse.urlencode(params)
+            # Python2 can't urlencode unicode and this does no harm in Python3
+            qs = urllib.parse.urlencode({
+                k: v.encode('utf8') if isinstance(v, six.text_type) else v
+                for k, v in params.items()})
 
         if params and body:
             # In this case, we are forced to send params in query string
@@ -668,8 +672,8 @@ class MultipartFormdataEncoder(object):
             key = self.u(key)
             filename = self.u(filename)
             yield encoder('--%s\r\n' % self.boundary)
-            yield encoder(self.u('Content-Disposition: form-data; name="%s";'
-                          ' filename="%s"\r\n' % (key, filename)))
+            disposition = setContentDisposition(filename, 'form-data; name="%s"' % key, False)
+            yield encoder(self.u('Content-Disposition: ') + self.u(disposition))
             yield encoder('Content-Type: application/octet-stream\r\n')
             yield encoder('\r\n')
 

@@ -17,9 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+import re
+
 import cherrypy
 import mako
-import os
 
 from girder import constants, events
 from girder.constants import CoreEventHandler, SettingKey
@@ -54,8 +56,20 @@ class WebrootBase(object):
         self.vars.update(vars)
         self.indexHtml = None
 
+    @staticmethod
+    def _escapeJavascript(string):
+        # Per the advice at:
+        # https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#Output_Encoding_Rules_Summary
+        # replace all non-alphanumeric characters with "\0uXXXX" unicode escaping:
+        # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Unicode_escape_sequences
+        return re.sub(
+            r'[^a-zA-Z0-9]',
+            lambda match: '\\u%04X' % ord(match.group()),
+            string
+        )
+
     def _renderHTML(self):
-        return mako.template.Template(self.template).render(**self.vars)
+        return mako.template.Template(self.template).render(js=self._escapeJavascript, **self.vars)
 
     def GET(self, **params):
         if self.indexHtml is None or self.config['server']['mode'] == 'development':
