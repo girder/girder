@@ -25,10 +25,17 @@ form.g-settings-form(role="form")
 
   .form-group
     label(for="g-homepage-logo") Logo
-    .g-logo-container
-      input#g-homepage-logo.g-logo-element.input-sm(
+    input#g-homepage-logo.g-logo-element.input-sm.hidden(
         type="file", title="The front page logo.")
+    .g-logo-container
+      .g-logo-btn-container
+        button#g-homepage-upload-logo-btn.g-homepage-logo-btn.btn.btn-sm.btn-default(
+          type="button", title="Upload button") Browse...
+        button#g-homepage-default-logo-btn.g-homepage-logo-btn.btn.btn-sm.btn-default(
+          type="button", title="Default button") Default logo
       img.g-preview-logo.g-logo-element.hidden(src="#", alt="Branding logo")
+
+  .g-test
 
 p.g-homepage-description
   | To completely replace the homepage content (ignoring the other settings), enter Markdown here.

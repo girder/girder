@@ -47,6 +47,19 @@ var ConfigView = View.extend({
             };
             reader.readAsDataURL(event.target.files[0]);
             this.$('.g-preview-logo').removeClass('hidden');
+        },
+
+        'click #g-homepage-default-logo-btn': function (event) {
+        this.$('.g-preview-logo').attr({
+                'src': require('girder/assets/Girder_Mark.png'),
+                'width': '50px'
+            });
+            this.logoUrl = require('girder/assets/Girder_Mark.png');
+            this.$('.g-preview-logo').removeClass('hidden');
+        },
+
+        'click #g-homepage-upload-logo-btn': function () {
+            this.$('#g-homepage-logo').click();
         }
     },
 
