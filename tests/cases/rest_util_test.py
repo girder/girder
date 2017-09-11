@@ -133,7 +133,7 @@ class RestUtilTestCase(unittest.TestCase):
     def testSetContentDisposition(self):
         with six.assertRaisesRegex(
                 self, rest.RestException,
-                'Error: Content-Disposition is not a recognized value.'):
+                'Error: Content-Disposition \(.*\) is not a recognized value.'):
             rest.setContentDisposition('filename', 'unknown', False)
         with six.assertRaisesRegex(
                 self, rest.RestException, 'Error: Content-Disposition filename is empty.'):

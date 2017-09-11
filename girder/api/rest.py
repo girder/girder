@@ -258,8 +258,8 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
     Set the content disposition header to either inline or attachment, and
     specify a filename that is properly escaped.  See
     developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition,
-    tools.ietf.org/html/rfc2183, and tools.ietf.org/html/rfc6266 for
-    specificatioons and details.
+    tools.ietf.org/html/rfc2183, tools.ietf.org/html/rfc6266, and
+    tools.ietf.org/html/rfc5987 for specifications and details.
 
     :param filename: the filename to add to the content disposition header.
     :param disposition: either 'inline' or 'attachment'.  None is the same as
@@ -271,7 +271,8 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
     """
     if (not disposition or (disposition not in ('inline', 'attachment') and
                             not disposition.startswith('form-data'))):
-        raise RestException('Error: Content-Disposition is not a recognized value.')
+        raise RestException(
+            'Error: Content-Disposition (%r) is not a recognized value.' % disposition)
     if not filename:
         raise RestException('Error: Content-Disposition filename is empty.')
     if not isinstance(disposition, six.binary_type):
