@@ -9,7 +9,7 @@ Virtual Machine
 +++++++++++++++ 
  
 The easiest way to develop for girder is within a virtual machine using Vagrant.
-For this, you need `Vagrant <https://www.vagrantup.com/downloads.html`_ and `VirtualBox <https://www.virtualbox.org/wiki/Downloads>`_. 
+For this, you need `Vagrant <https://www.vagrantup.com/downloads.html>`_ and `VirtualBox <https://www.virtualbox.org/wiki/Downloads>`_. 
 Girder is tested to work seamlessly with Vagrant 2.0 and VirtualBox 5.1. 
  
 Once you have those installed, obtain the Girder source code by cloning the Git 
