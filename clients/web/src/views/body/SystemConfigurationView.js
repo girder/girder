@@ -66,7 +66,7 @@ var SystemConfigurationView = View.extend({
             }, this));
         },
         'click #g-restart-server': restartServerPrompt,
-        'click #g-core-banner-default-color': function (event) {
+        'click #g-core-banner-default-color': function () {
             this.$('#g-core-banner-color').attr('value', this.defaults['core.banner_color']);
         }
     },

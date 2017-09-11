@@ -38,9 +38,9 @@ var LayoutHeaderView = View.extend({
 
     render: function () {
         this.$el.html(LayoutHeaderTemplate({
-            brandName: this.brandName
+            brandName: this.brandName,
+            bannerColor: this.bannerColor
         }));
-        this.$('.g-header-wrapper').css('background-color', this.bannerColor);
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
 
