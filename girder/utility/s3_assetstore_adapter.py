@@ -27,6 +27,7 @@ import six
 import uuid
 
 from girder import logger, events
+from girder.api.rest import setContentDisposition
 from girder.models.model_base import GirderException, ValidationException
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
@@ -106,7 +107,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def _getRequestHeaders(self, upload):
         return {
-            'Content-Disposition': 'attachment; filename="%s"' % upload['name'],
+            'Content-Disposition': setContentDisposition(upload['name'], setHeader=False),
             'Content-Type': upload.get('mimeType', ''),
             'x-amz-acl': 'private',
             'x-amz-meta-uploader-id': str(upload['userId']),

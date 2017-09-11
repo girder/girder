@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel, setResponseHeader
+from ..rest import Resource, RestException, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
 from girder.constants import AccessType, TokenScope
 from girder.api import access
@@ -201,9 +201,7 @@ class Item(Resource):
 
     def _downloadMultifileItem(self, item, user):
         setResponseHeader('Content-Type', 'application/zip')
-        setResponseHeader(
-            'Content-Disposition',
-            'attachment; filename="%s%s"' % (item['name'], '.zip'))
+        setContentDisposition(item['name'] + '.zip')
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])

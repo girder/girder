@@ -129,3 +129,34 @@ class RestUtilTestCase(unittest.TestCase):
 
         with six.assertRaisesRegex(self, rest.RestException, 'Parameter "hello" is required.'):
             resource.requireParams(['hello'], None)
+
+    def testSetContentDisposition(self):
+        with six.assertRaisesRegex(
+                self, rest.RestException,
+                'Error: Content-Disposition \(.*\) is not a recognized value.'):
+            rest.setContentDisposition('filename', 'unknown', False)
+        with six.assertRaisesRegex(
+                self, rest.RestException, 'Error: Content-Disposition filename is empty.'):
+            rest.setContentDisposition('', setHeader=False)
+        self.assertEqual(rest.setContentDisposition(
+            'filename', setHeader=False),
+            'attachment; filename="filename"')
+        self.assertEqual(rest.setContentDisposition(
+            'filename', 'inline', setHeader=False),
+            'inline; filename="filename"')
+        self.assertEqual(rest.setContentDisposition(
+            'filename', 'form-data; name="chunk"', setHeader=False),
+            'form-data; name="chunk"; filename="filename"')
+        self.assertEqual(rest.setContentDisposition(
+            'file "name"', setHeader=False),
+            'attachment; filename="file \\"name\\""')
+        self.assertEqual(rest.setContentDisposition(
+            'file\\name', setHeader=False),
+            'attachment; filename="file\\\\name"')
+        self.assertEqual(rest.setContentDisposition(
+            u'\u043e\u0431\u0440\u0430\u0437\u0435\u0446', setHeader=False),
+            'attachment; filename=""; filename*=UTF-8\'\''
+            '%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%B5%D1%86')
+        self.assertEqual(rest.setContentDisposition(
+            u'\U0001f603', setHeader=False),
+            'attachment; filename=""; filename*=UTF-8\'\'%F0%9F%98%83')
