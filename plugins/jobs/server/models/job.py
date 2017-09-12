@@ -94,12 +94,8 @@ class Job(AccessControlledModel):
             query['type'] = {'$in': types}
         if statuses is not None:
             query['status'] = {'$in': statuses}
-
-        parentId = None
         if parentJob:
-            parentId = parentJob['_id']
-
-        query['parentId'] = parentId
+            query['parentId'] = parentJob['_id']
 
         cursor = self.find(query, sort=sort)
 
