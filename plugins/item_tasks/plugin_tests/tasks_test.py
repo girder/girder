@@ -27,6 +27,9 @@ class TasksTest(base.TestCase):
         folders = self.model('folder').childFolders(self.admin, parentType='user', user=self.admin)
         self.privateFolder, self.publicFolder = list(folders)
 
+        # show full diff when objects don't match
+        self.maxDiff = None
+
     def testAddItemTasksToFolderFromJson(self):
         """
         Test adding item tasks to a folder from a JSON spec.
@@ -476,16 +479,15 @@ class TasksTest(base.TestCase):
             'mode': 'docker',
             'docker_image': 'johndoe/foo:v5',
             'container_args': [
-                '--foo', 'bar', '--InputImage', '$input{--InputImage}',
-                '--MaximumLineStraightnessDeviation',
-                '$input{--MaximumLineStraightnessDeviation}', '--MaximumRadius',
-                '$input{--MaximumRadius}', '--MaximumSphereDistance',
-                '$input{--MaximumSphereDistance}', '--MinimumRadius',
-                '$input{--MinimumRadius}', '--MinimumSphereActivity',
-                '$input{--MinimumSphereActivity}', '--MinimumSphereDistance',
-                '$input{--MinimumSphereDistance}', '--SpheresPerPhantom',
-                '$input{--SpheresPerPhantom}', '$flag{--StrictSorting}',
-                '--DetectedPoints', '$output{--DetectedPoints}'
+                '--foo', 'bar', '--InputImage=$input{--InputImage}',
+                '--MaximumLineStraightnessDeviation=$input{--MaximumLineStraightnessDeviation}',
+                '--MaximumRadius=$input{--MaximumRadius}',
+                '--MaximumSphereDistance=$input{--MaximumSphereDistance}',
+                '--MinimumRadius=$input{--MinimumRadius}',
+                '--MinimumSphereActivity=$input{--MinimumSphereActivity}',
+                '--MinimumSphereDistance=$input{--MinimumSphereDistance}',
+                '--SpheresPerPhantom=$input{--SpheresPerPhantom}', '$flag{--StrictSorting}',
+                '--DetectedPoints=$output{--DetectedPoints}'
             ],
             'inputs': [{
                 'description': 'Input image to be analysed.',

@@ -121,15 +121,12 @@ def parseSlicerCliXml(fd):
         if param.typ == 'boolean':
             info['args'].append('$flag{%s}' % name)
         else:
-            info['args'] += [name, '$input{%s}' % name]
+            info['args'].append('%s=$input{%s}' % (name, name))
 
     for param in outputOpts:
         name = param.flag or param.longflag
         info['outputs'].append(ioSpec(name, param))
-        info['args'] += [
-            name,
-            '$output{%s}' % name
-        ]
+        info['args'].append('%s=$output{%s}' % (name, name))
 
     for param in inputArgs:
         info['inputs'].append(ioSpec(param.name, param, True))
