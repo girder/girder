@@ -50,7 +50,7 @@ var ConfigView = View.extend({
         },
 
         'click #g-homepage-default-logo-btn': function (event) {
-        this.$('.g-preview-logo').attr({
+            this.$('.g-preview-logo').attr({
                 'src': require('girder/assets/Girder_Mark.png'),
                 'width': '50px'
             });
