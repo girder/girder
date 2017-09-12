@@ -45,8 +45,13 @@ var ConfigView = View.extend({
                 });
                 this.logoUrl = reader.result;
             };
+
             reader.readAsDataURL(event.target.files[0]);
             this.$('.g-preview-logo').removeClass('hidden');
+            /* Clear the value of the hidden file input to avoid 'Chrome'
+            to not triger the change event when the same image is set,
+            this line fix a bug */
+            this.$('#g-homepage-logo').val(null);
         },
 
         'click #g-homepage-default-logo-btn': function (event) {
