@@ -491,8 +491,8 @@ class TasksTest(base.TestCase):
             ],
             'inputs': [{
                 'description': 'Input image to be analysed.',
-                'format': 'file',
-                'name': 'InputImage', 'type': 'file', 'id': '--InputImage',
+                'format': 'image',
+                'name': 'InputImage', 'type': 'image', 'id': '--InputImage',
                 'target': 'filepath'
             }, {
                 'description': 'Used for eliminating detections which are not in a straight line. '

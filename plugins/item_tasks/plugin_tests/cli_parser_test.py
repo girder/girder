@@ -31,3 +31,17 @@ class CliParserTest(base.TestCase):
                     break
             else:
                 raise Exception('MinimumSphereActivity not added as an input')
+
+    def test_image_parameter(self):
+        """Check that parameters of type image are handled correctly."""
+        from girder.plugins.item_tasks import cli_parser
+        with open(CLI_FILE) as fd:
+            spec = cli_parser.parseSlicerCliXml(fd)
+            inputs = spec['inputs']
+
+            for input in inputs:
+                if input['name'] == 'InputImage':
+                    self.assertEqual(input['type'], 'image')
+                    break
+            else:
+                raise Exception('InputImage not added to spec.')
