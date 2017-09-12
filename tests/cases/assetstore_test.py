@@ -787,7 +787,7 @@ class AssetstoreTestCase(base.TestCase):
                 client.get_object(Bucket='bucketname', Key=file['s3Key'])
             except botocore.exceptions.ClientError:
                 break
-            if time.time()-startTime > 15:
+            if time.time() - startTime > 15:
                 break  # give up and fail
             time.sleep(0.1)
         with self.assertRaises(botocore.exceptions.ClientError):
@@ -1004,3 +1004,143 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(
             path='/file/%s/download' % file['_id'], user=self.admin, isJson=False)
         self.assertStatusOk(resp)
+
+    def testAssetstoreSpaceUsageEndpoint(self):
+        # upload one file to user 1's user folder
+        folder = six.next(self.model('folder').childFolders(
+            parent=self.admin, parentType='user', force=True, limit=1))
+        item = self.model('item').createItem('test', self.admin, folder)
+        itemA = item
+        self.model('file').createFile(
+            name='hello.txt',
+            creator=self.admin,
+            item=item,
+            assetstore=self.assetstore,
+            size=os.path.getsize(os.path.join(
+                ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'hello.txt')))
+
+        # create user 2 and upload a file to user 2's user folder
+        user = self.model('user').createUser(**{
+            'email': 'user@email.com',
+            'login': 'user',
+            'firstName': 'user',
+            'lastName': 'user',
+            'password': 'password',
+            'admin': False
+        })
+        user2Id = str(user['_id'])
+        folder = six.next(self.model('folder').childFolders(
+            parent=user, parentType='user', force=True, limit=1))
+        item = self.model('item').createItem('test', user, folder)
+        self.model('file').createFile(
+            name='hello.txt',
+            creator=user,
+            item=item,
+            assetstore=self.assetstore,
+            size=os.path.getsize(os.path.join(
+                ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'world.txt')))
+
+        # create a collection and a folder within the collection, and upload two files as user 1
+        collection = self.model('collection').createCollection(**{
+            'name': 'collection 1',
+            'description': '',
+            'public': False,
+            'creator': self.admin
+        })
+        collection1Id = str(collection['_id'])
+
+        folder = self.model('folder').createFolder(
+            parentType='collection', parent=collection, creator=self.admin,
+            public=False, name='folder in collection 1')
+        item = self.model('item').createItem('test', self.admin, folder)
+        self.model('file').createFile(
+            name='hello.txt',
+            creator=self.admin,
+            item=item,
+            assetstore=self.assetstore,
+            size=os.path.getsize(os.path.join(
+                ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'hello.txt')))
+        self.model('file').createFile(
+            name='hello.txt',
+            creator=self.admin,
+            item=item,
+            assetstore=self.assetstore,
+            size=os.path.getsize(os.path.join(
+                ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'world.txt')))
+
+        # create collection 2 and upload two file by two different users
+        collection = self.model('collection').createCollection(**{
+            'name': 'collection 2',
+            'description': '',
+            'public': True,
+            'creator': self.admin
+        })
+        collection2Id = str(collection['_id'])
+
+        folder = self.model('folder').createFolder(
+            parentType='collection', parent=collection, creator=self.admin,
+            public=True, name='folder in collection 2')
+        item = self.model('item').createItem('test', self.admin, folder)
+        itemB = item
+
+        self.model('file').createFile(
+            name='hello.txt',
+            creator=self.admin,
+            item=item,
+            assetstore=self.assetstore,
+            size=os.path.getsize(os.path.join(
+                ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'hello.txt')))
+        self.model('file').createFile(
+            name='hello.txt',
+            creator=user,
+            item=item,
+            assetstore=self.assetstore,
+            size=os.path.getsize(os.path.join(
+                ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'world.txt')))
+
+        # create assetstore 2 and upload one file to user folder and one
+        # file to a collection folder. Those file should affect space
+        # usage statistics of only assetstore 2
+        assetstore2 = self.model('assetstore').createFilesystemAssetstore(
+            name='assetstore2', root=os.path.join(self.assetstore['root'], 'other'), perms=0o600)
+        self.model('file').createFile(
+            name='hello.txt',
+            creator=self.admin,
+            item=itemA,
+            assetstore=assetstore2,
+            size=os.path.getsize(os.path.join(
+                ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'hello.txt')))
+        self.model('file').createFile(
+            name='hello.txt',
+            creator=user,
+            item=itemB,
+            assetstore=assetstore2,
+            size=os.path.getsize(os.path.join(
+                ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata', 'hello.txt')))
+
+        # check the space usage of assetstore 1
+        result = json.loads(self.getBody(self.request(path='/assetstore/' +
+                            str(self.assetstore['_id']) + '/stats',
+                            method='GET', user=self.admin)))
+
+        user1Id = str(self.admin['_id'])
+
+        self.assertEqual([x for x in result['spaceUsage']['users']
+                          if x.get('_id') == user1Id][0]['spaceUsage'], 24)
+        self.assertEqual([x for x in result['spaceUsage']['users']
+                          if x.get('_id') == user2Id][0]['spaceUsage'], 12)
+        self.assertEqual([x for x in result['spaceUsage']['collections']
+                          if x.get('_id') == collection1Id][0]['spaceUsage'], 12)
+        self.assertEqual([x for x in result['spaceUsage']['collections']
+                          if x.get('_id') == collection2Id][0]['spaceUsage'], 12)
+
+        # check the space usage of assetstore 2
+        result = json.loads(self.getBody(self.request(
+                            path='/assetstore/' + str(assetstore2['_id']) + '/stats',
+                            method='GET', user=self.admin)))
+        self.assertEqual([x for x in result['spaceUsage']['users']
+                          if x.get('_id') == user1Id][0]['spaceUsage'], 6)
+        self.assertEqual([x for x in result['spaceUsage']['users']
+                          if x.get('_id') == user2Id][0]['spaceUsage'], 6)
+        self.assertEqual([x for x in result['spaceUsage']['collections']
+                          if x.get('_id') == collection2Id][0]['spaceUsage'], 6)

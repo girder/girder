@@ -16,7 +16,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
+from collections import defaultdict
+import six
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, RestException
 from girder import events
@@ -30,6 +31,7 @@ class Assetstore(Resource):
     """
     API Endpoint for managing assetstores. Requires admin privileges.
     """
+
     def __init__(self):
         super(Assetstore, self).__init__()
         self.resourceName = 'assetstore'
@@ -40,6 +42,7 @@ class Assetstore(Resource):
         self.route('PUT', (':id',), self.updateAssetstore)
         self.route('DELETE', (':id',), self.deleteAssetstore)
         self.route('GET', (':id', 'files'), self.getAssetstoreFiles)
+        self.route('GET', (':id', 'stats',), self.getStats)
 
     @access.admin
     @autoDescribeRoute(
@@ -267,3 +270,91 @@ class Assetstore(Resource):
         return list(self.model('file').find(
             query={'assetstoreId': assetstore['_id']},
             offset=offset, limit=limit, sort=sort))
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Get statistics by collection and by user.')
+        .modelParam('id', model='assetstore')
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403)
+    )
+    def getStats(self, assetstore, params):
+        filesInStore = list(self.model('file').find(
+            query={'assetstoreId': assetstore['_id']}, fields=['size', 'creatorId', 'itemId']))
+
+        collectionItemsInStore = list(self.model('item').find(query={
+            '_id': {
+                '$in': list(set([file['itemId'] for file in filesInStore if 'itemId' in file]))
+            },
+            'baseParentType': 'collection'
+        }))
+        collectionItemsInStoreMap = dict((item['_id'], item) for item in collectionItemsInStore)
+
+        collectionUsingStore = list(self.model('collection').find(
+            query={
+                '_id': {
+                    '$in': list(set([x['baseParentId'] for x in collectionItemsInStore]))
+                }
+            }))
+        collectionUsingStoreMap = dict((collection['_id'], collection) for
+                                       collection in collectionUsingStore)
+
+        collectionFileMap = defaultdict(list)
+        for file in filesInStore:
+            if file['itemId'] in collectionItemsInStoreMap:
+                collectionId = collectionItemsInStoreMap[file['itemId']]['baseParentId']
+                collectionFileMap[collectionId].append(file)
+
+        usersUsingStore = list(self.model('user').find(
+            query={
+                '_id': {
+                    '$in': list(set([file['creatorId'] for file in filesInStore]))
+                }
+            }))
+        userUsingStoreMap = {user['_id']: user for user in usersUsingStore}
+        userFileMap = defaultdict(list)
+        for file in filesInStore:
+            userId = file['creatorId']
+            userFileMap[userId].append(file)
+
+        # based on collected data stored in dictionary, aggregate size and format
+        # result. Ignore the fact there will be only one copy for the same file
+        # in the assetstore.
+
+        def collectionMapper(collectionId, files):
+            collection = collectionUsingStoreMap[collectionId]
+            collection = {
+                '_id': collection.get('_id'),
+                'name': collection.get('name')
+            }
+            collection['spaceUsage'] = sum(file['size'] for file in files)
+            return collection
+
+        collections = sorted((
+            collectionMapper(collectionId, files)
+            for collectionId, files in six.viewitems(collectionFileMap)),
+            key=lambda collection: collection['spaceUsage'], reverse=True)
+
+        def userMapper(userId, files):
+            if userId not in userUsingStoreMap:
+                return None
+            user = userUsingStoreMap[userId]
+            user = {
+                '_id': user.get('_id'),
+                'login': user.get('login'),
+                'firstName': user.get('firstName'),
+                'lastName': user.get('lastName'),
+                'email': user.get('email')
+            }
+            user['spaceUsage'] = sum(file['size'] for file in files)
+            return user
+        users = sorted((x for x in (userMapper(userId, files)
+                                    for userId, files in six.viewitems(userFileMap))
+                        if x), key=lambda user: user['spaceUsage'], reverse=True)
+
+        return {
+            'spaceUsage': {
+                'users': users,
+                'collections': collections
+            }
+        }
