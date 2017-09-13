@@ -20,34 +20,34 @@ const TaskRunView = View.extend({
     },
 
     initialize: function (settings) {
-        this._taskSpec = this.model.get('meta').itemTaskSpec || {};
-        this._inputs = this._taskSpec.inputs || [];
-        this._outputs = this._taskSpec.outputs || [];
-        this._inputWidgets = new WidgetCollection();
-        this._outputWidgets = new WidgetCollection();
-        this._initialValues = settings.initialValues || null;
+        this.inputWidgets = new WidgetCollection();
+        this.outputWidgets = new WidgetCollection();
 
-        const initialInputs = (this._initialValues && this._initialValues.inputs) || {};
-        const initialOutputs = (this._initialValues && this._initialValues.outputs) || {};
+        const taskSpec = this.model.get('meta').itemTaskSpec || {};
+        const inputs = taskSpec.inputs || [];
+        const outputs = taskSpec.outputs || [];
+        const initialValues = settings.initialValues || null;
+        const initialInputs = (initialValues && initialValues.inputs) || {};
+        const initialOutputs = (initialValues && initialValues.outputs) || {};
 
         // Build all the widget models from the task IO spec
-        this._inputWidgets.add(
-            this._inputs.map((input) => this._setJobInfo(input, initialInputs))
+        this.inputWidgets.add(
+            inputs.map((input) => this._setJobInfo(input, initialInputs))
         );
 
-        this._outputWidgets.add(
-            this._outputs.map((output) => this._setJobInfo(output, initialOutputs))
+        this.outputWidgets.add(
+            outputs.map((output) => this._setJobInfo(output, initialOutputs))
         );
 
-        this._inputsPanel = new ControlsPanel({
+        this.inputsPanel = new ControlsPanel({
             title: 'Configure inputs',
-            collection: this._inputWidgets,
+            collection: this.inputWidgets,
             parentView: this
         });
 
-        this._outputsPanel = new ControlsPanel({
+        this.outputsPanel = new ControlsPanel({
             title: 'Configure outputs',
-            collection: this._outputWidgets,
+            collection: this.outputWidgets,
             parentView: this
         });
     },
@@ -80,8 +80,8 @@ const TaskRunView = View.extend({
     },
 
     render: function () {
-        var hasInputs = !!this._inputs.length,
-            hasOutputs = !!this._outputs.length;
+        var hasInputs = !!this.inputWidgets.length,
+            hasOutputs = !!this.outputWidgets.length;
 
         this.$el.html(template({
             item: this.model,
@@ -91,11 +91,11 @@ const TaskRunView = View.extend({
         }));
 
         if (hasInputs) {
-            this._inputsPanel.setElement(this.$('.g-inputs-container')).render();
+            this.inputsPanel.setElement(this.$('.g-inputs-container')).render();
         }
 
         if (hasOutputs) {
-            this._outputsPanel.setElement(this.$('.g-outputs-container')).render();
+            this.outputsPanel.setElement(this.$('.g-outputs-container')).render();
         }
 
         return this;
@@ -114,8 +114,8 @@ const TaskRunView = View.extend({
         };
 
         // Don't short-circuit; we want to highlight *all* invalid inputs
-        this._inputWidgets.each(test);
-        this._outputWidgets.each(test);
+        this.inputWidgets.each(test);
+        this.outputWidgets.each(test);
 
         return ok;
     },
@@ -140,13 +140,7 @@ const TaskRunView = View.extend({
         const translate = (model) => {
             let val = model.value();
             switch (model.get('type')) {
-                case 'image': // This is an input
-                    return {
-                        mode: 'girder',
-                        resource_type: 'file',
-                        id: val.id,
-                        fileName: model.get('fileName') || null
-                    };
+                case 'image':
                 case 'file': // This is an input
                     return {
                         mode: 'girder',
@@ -179,10 +173,10 @@ const TaskRunView = View.extend({
             }
         };
 
-        this._inputWidgets.each((model) => {
+        this.inputWidgets.each((model) => {
             inputs[model.id] = translate(model);
         });
-        this._outputWidgets.each((model) => {
+        this.outputWidgets.each((model) => {
             outputs[model.id] = translate(model);
         });
 

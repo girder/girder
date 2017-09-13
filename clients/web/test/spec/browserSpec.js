@@ -446,13 +446,20 @@ describe('Test the hierarchy browser modal', function () {
             view = new girder.views.widgets.BrowserWidget({
                 parentView: null,
                 el: testEl,
-                validate: _.constant('invalid')
+                validate: function (val) {
+                    return $.Deferred().reject('invalid').promise();
+                }
             }).render();
             waitsFor(function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
                 view.$('.g-submit-button').click();
+            });
+            waitsFor(function () {
+                return $('.g-validation-failed-message').text();
+            }, 'validation to fail');
+            runs(function () {
                 expect(view.$el.hasClass('in')).toBe(true);
                 expect(view.$('.g-validation-failed-message').text()).toBe('invalid');
                 expect(view.$('.g-validation-falied-message').hasClass('hidden')).toBe(false);
@@ -574,8 +581,14 @@ describe('Test the hierarchy browser modal', function () {
                     default: 'default',
                     placeholder: 'placeholder',
                     validate: function (val) {
+                        var isValid = $.Deferred();
                         validateCalledWith = val;
-                        return validateReturn;
+                        if (validateReturn) {
+                            isValid.reject(validateReturn);
+                        } else {
+                            isValid.resolve();
+                        }
+                        return isValid.promise();
                     }
                 }
             }).render();
@@ -594,7 +607,11 @@ describe('Test the hierarchy browser modal', function () {
                 // test an invalid input
                 view.$('#g-input-element').val('input value');
                 view.$('.g-submit-button').click();
-
+            });
+            waitsFor(function () {
+                return $('.g-validation-failed-message').text();
+            }, 'validation to fail');
+            runs(function () {
                 expect(validateCalledWith).toBe('input value');
                 expect(view.$('.g-validation-failed-message').text()).toBe('invalid');
                 expect(view.$('.g-validation-failed-message').hasClass('hidden')).toBe(false);

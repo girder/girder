@@ -181,10 +181,21 @@ var ControlWidget = View.extend({
         var showItems = false,
             input = false,
             preview = true,
-            validate = _.noop,
+            validate = () => {
+                return $.Deferred().resolve().promise();
+            },
             type = this.model.get('type'),
             title, help;
 
+        let validationPromise = function (condition, message) {
+            let isValid = $.Deferred();
+            if (!condition) {
+                isValid.reject(message);
+            } else {
+                isValid.resolve();
+            }
+            return isValid.promise();
+        };
         // Customize the browser widget according the argument type
         if (type === 'file' || type === 'image') {
             showItems = true;
@@ -205,18 +216,16 @@ var ControlWidget = View.extend({
                 placeholder: 'Choose a name for the new folder',
                 validate: (val) => {
                     // validation on the "new item name"
-                    if (!val) {
-                        return 'Please provide a folder name.';
-                    }
+                    return validationPromise(val, 'Please provide a folder name.');
                 },
                 default: this.model.get('fileName')
             };
             // validation on the parent model
             validate = (model) => {
-                var type = model.get('_modelType');
-                if (!_.contains(['folder', 'collection', 'user'], type)) {
-                    return 'Invalid parent type, please choose a collection, folder, or user.';
-                }
+                let type = model.get('_modelType');
+                let condition = _.contains(['folder', 'collection', 'user'], type);
+                let message = 'Invalid parent type, please choose a collection, folder, or user.';
+                return validationPromise(condition, message);
             };
             preview = false;
         }
@@ -229,18 +238,16 @@ var ControlWidget = View.extend({
                 placeholder: 'Choose a name for the new item',
                 validate: (val) => {
                     // validation on the "new folder name"
-                    if (!val) {
-                        return 'Please provide an item name.';
-                    }
+                    return validationPromise(val, 'Please provide an item name.');
                 },
                 default: this.model.get('fileName')
             };
             // validation on the parent model
             validate = (model) => {
-                var type = model.get('_modelType');
-                if (type !== 'folder') {
-                    return 'Invalid parent type, please choose a folder.';
-                }
+                let type = model.get('_modelType');
+                let condition = type === 'folder';
+                let message = 'Invalid parent type, please choose a folder.';
+                return validationPromise(condition, message);
             };
             preview = false;
         }

@@ -4,10 +4,10 @@
       .modal-header
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         h4.modal-title
-          if (collection)
-            | Edit collection
-          else
+          if (create)
             | Create collection
+          else
+            | Edit collection
       .modal-body
         .form-group
           label.control-label(for="g-name") Name
@@ -19,9 +19,9 @@
       .modal-footer
         a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
         button.g-save-collection.btn.btn-small.btn-primary(type="submit")
-          if (collection)
-            i.icon-edit
-            | Save
-          else
+          if (create)
             i.icon-plus-squared
             | Create
+          else
+            i.icon-edit
+            | Save

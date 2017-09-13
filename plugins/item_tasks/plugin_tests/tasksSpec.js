@@ -166,6 +166,13 @@ describe('Run the item task', function () {
         runs(function () {
             // check invalid parent
             $('.modal-dialog .g-submit-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-validation-failed-message').text();
+        }, 'validation to fail');
+
+        runs(function() {
             expect($('.g-validation-failed-message').text()).toMatch(/Invalid parent type/);
             $('.modal-dialog .g-folder-list-link:first').click();
         });
@@ -177,6 +184,13 @@ describe('Run the item task', function () {
         runs(function () {
             // check no name provided
             $('.modal-dialog .g-submit-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-validation-failed-message').text();
+        }, 'validation to fail');
+
+        runs(function () {
             expect($('.g-validation-failed-message').text()).toMatch(/Please provide an item name/);
 
             $('#g-input-element').val('out.txt');

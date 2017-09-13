@@ -10,7 +10,7 @@ block input
       - name = value.name()
 
     // different behavior for different types of inputs
-    if type === 'file'
+    if type === 'file' || type === 'image'
       +input(title, type, id, name)(placeholder='Choose an item...', readonly=true)
 
     else if type === 'directory'

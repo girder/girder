@@ -19,7 +19,7 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'string-enumeration': 'string-enumeration',
     'file': 'file',
     'directory': 'folder',
-    'image': 'file',
+    'image': 'image',
     'pointfile': 'file',
     'region': 'region'
 }
@@ -31,7 +31,7 @@ _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP = {
 }
 
 _SLICER_TYPE_TO_GIRDER_MODEL_MAP = {
-    'image': 'file',
+    'image': 'image',
     'file': 'file',
     'directory': 'folder'
 }
@@ -122,15 +122,12 @@ def parseSlicerCliXml(fd):
         if param.typ == 'boolean':
             info['args'].append('$flag{%s}' % name)
         else:
-            info['args'] += [name, '$input{%s}' % name]
+            info['args'].append('%s=$input{%s}' % (name, name))
 
     for param in outputOpts:
         name = param.flag or param.longflag
         info['outputs'].append(ioSpec(name, param))
-        info['args'] += [
-            name,
-            '$output{%s}' % name
-        ]
+        info['args'].append('%s=$output{%s}' % (name, name))
 
     for param in inputArgs:
         info['inputs'].append(ioSpec(param.name, param, True))

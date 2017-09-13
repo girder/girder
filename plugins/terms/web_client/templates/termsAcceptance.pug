@@ -1,0 +1,8 @@
+.g-terms-container
+  .g-body-title= collection.name()
+  label Terms of Use
+  .g-terms-info!= renderMarkdown(collection.get('terms'))
+
+  .btn-toolbar
+    button#g-terms-accept.btn.btn-primary.btn-md I Accept
+    button#g-terms-reject.btn.btn-primary.btn-md I Decline

@@ -236,3 +236,13 @@ class SetupDatabaseTestCase(base.TestCase):
         }, item, 'item.txt')
 
         self.assertImported(folder)
+
+    def testYAMLAliases(self):
+        folderModel = self.model('folder')
+        aliasedFolders = list(folderModel.find({'name': 'Common'}, force=True))
+        self.assertTrue(len(aliasedFolders) == 2)
+
+        for folder in aliasedFolders:
+            self.assertTrue(
+                len(list(folderModel.childItems(folder, force=True))) == 2
+            )

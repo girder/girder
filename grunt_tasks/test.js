@@ -23,8 +23,6 @@ module.exports = function (grunt) {
         return;
     }
 
-    var fs = require('fs');
-
     grunt.config.merge({
         uglify: {
             test: {
@@ -44,38 +42,41 @@ module.exports = function (grunt) {
                 dest: 'clients/web/static/built/testing/testing.min.css'
             }
         },
-
-        default: {
-            'test-env-html': {
-                dependencies: ['build', 'uglify:test', 'copy:test']
-            },
-            'uglify:test': {},
-            'copy:test': {}
+        pug: {
+            test: {
+                src: 'clients/web/test/testEnv.pug',
+                dest: 'clients/web/static/built/testing/testEnv.html',
+                options: {
+                    data: {
+                        cssFiles: [
+                            '/static/built/fontello/css/fontello.css',
+                            '/static/built/fontello/css/animation.css',
+                            '/static/built/girder_lib.min.css',
+                            '/static/built/girder_app.min.css',
+                            '/static/built/testing.min.css'
+                        ],
+                        jsFiles: [
+                            '/static/built/girder_lib.min.js',
+                            '/static/built/girder_app.min.js',
+                            '/static/built/testing/testing.min.js'
+                        ],
+                        staticRoot: '/static',
+                        apiRoot: '/api/v1'
+                    },
+                    pretty: true
+                }
+            }
         }
     });
 
-    grunt.registerTask('test-env-html', 'Build the phantom test html page.', function () {
-        var pug = require('pug');
-        var buffer = fs.readFileSync('clients/web/test/testEnv.pug');
-
-        var fn = pug.compile(buffer, {
-            client: false,
-            pretty: true
-        });
-        fs.writeFileSync('clients/web/static/built/testing/testEnv.html', fn({
-            cssFiles: [
-                '/static/built/fontello/css/fontello.css',
-                '/static/built/girder_lib.min.css',
-                '/static/built/girder_app.min.css',
-                '/static/built/testing.min.css'
-            ],
-            jsFiles: [
-                '/static/built/girder_lib.min.js',
-                '/static/built/girder_app.min.js',
-                '/static/built/testing/testing.min.js'
-            ],
-            staticRoot: '/static',
-            apiRoot: '/api/v1'
-        }));
+    grunt.registerTask('test-env-html', 'Build the phantom test html page.', [
+        'uglify:test',
+        'copy:test',
+        'pug:test'
+    ]);
+    grunt.config.merge({
+        default: {
+            'test-env-html': {}
+        }
     });
 };

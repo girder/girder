@@ -219,9 +219,6 @@ module.exports = {
             'girder': paths.web_src
         },
         extensions: ['.js'],
-        modules: [
-            paths.node_modules
-        ],
         symlinks: false
     },
     node: {

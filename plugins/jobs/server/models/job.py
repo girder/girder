@@ -37,12 +37,13 @@ class Job(AccessControlledModel):
             ('type', SortDir.ASCENDING),
             ('status', SortDir.ASCENDING)
         )
-        self.ensureIndices([(compoundSearchIndex, {}), 'created', 'parentId'])
+        self.ensureIndices([(compoundSearchIndex, {}),
+                            'created', 'parentId', 'celeryTaskId'])
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
             'progress', 'log', 'meta', '_id', 'public', 'parentId', 'async',
-            'updated', 'timestamps', 'handler'})
+            'updated', 'timestamps', 'handler', 'jobInfoSpec'})
 
         self.exposeFields(level=AccessType.SITE_ADMIN, fields={'args', 'kwargs'})
 
@@ -94,12 +95,8 @@ class Job(AccessControlledModel):
             query['type'] = {'$in': types}
         if statuses is not None:
             query['status'] = {'$in': statuses}
-
-        parentId = None
         if parentJob:
-            parentId = parentJob['_id']
-
-        query['parentId'] = parentId
+            query['parentId'] = parentJob['_id']
 
         cursor = self.find(query, sort=sort)
 

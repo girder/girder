@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel, setResponseHeader
+from ..rest import Resource, RestException, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.utility import ziputil
@@ -127,9 +127,7 @@ class Folder(Resource):
         file containing this folder's contents, filtered by permissions.
         """
         setResponseHeader('Content-Type', 'application/zip')
-        setResponseHeader(
-            'Content-Disposition', 'attachment; filename="%s%s"' % (folder['name'], '.zip'))
-
+        setContentDisposition(folder['name'] + '.zip')
         user = self.getCurrentUser()
 
         def stream():

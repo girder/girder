@@ -83,19 +83,21 @@ module.exports = function (grunt) {
         }
     }
 
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-pug');
+    grunt.loadNpmTasks('grunt-contrib-stylus');
+    grunt.loadNpmTasks('grunt-contrib-symlink');
+    grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-file-creator');
+    grunt.loadNpmTasks('grunt-gitinfo');
+    grunt.loadNpmTasks('grunt-shell');
+    grunt.loadNpmTasks('grunt-webpack');
+    grunt.loadNpmTasks('grunt-zip');
+
     /**
      * Load task modules inside `grunt_tasks`.
      */
     grunt.loadTasks('grunt_tasks');
-    grunt.loadNpmTasks('grunt-shell');
-    grunt.loadNpmTasks('grunt-contrib-stylus');
-    grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-contrib-copy');
-    grunt.loadNpmTasks('grunt-contrib-symlink');
-    grunt.loadNpmTasks('grunt-gitinfo');
-    grunt.loadNpmTasks('grunt-zip');
-    grunt.loadNpmTasks('grunt-file-creator');
-    grunt.loadNpmTasks('grunt-webpack');
 
     /**
      * This task is noop that exists for backwards compatibility in case any plugins rely

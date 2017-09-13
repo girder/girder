@@ -2,6 +2,11 @@ import os
 
 from tests import base
 
+CLI_FILE = os.path.join(
+    os.path.abspath(os.path.dirname(__file__)),
+    'slicer_cli.xml'
+)
+
 
 def setUpModule():
     base.enabledPlugins.append('item_tasks')
@@ -57,3 +62,15 @@ class CliParserTest(base.TestCase):
                 break
         else:
             raise Exception('analysis_roi not added as an input')
+
+    def test_image_parameter(self):
+        """Check that parameters of type image are handled correctly."""
+        spec = self.parse_file('slicer_cli.xml')
+
+        inputs = spec['inputs']
+        for input in inputs:
+            if input['name'] == 'InputImage':
+                self.assertEqual(input['type'], 'image')
+                break
+        else:
+            raise Exception('InputImage not added to spec.')

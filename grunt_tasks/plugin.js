@@ -201,7 +201,7 @@ module.exports = function (grunt) {
             /*
              * Case 2:
              */
-            grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: node_modules_${pluginName}`);
+            grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: girder_plugin_${pluginName}/node_modules`);
             addDependencies(deps, getPluginLocalNodePath(pluginName));
             deps = {};
         } else {
@@ -368,17 +368,7 @@ module.exports = function (grunt) {
                             alias: {
                                 [`girder_plugins/${plugin}/node`]: pluginNodeDir,
                                 [`girder_plugins/${plugin}`]: webClient
-                            },
-                            modules: [
-                                path.resolve(process.cwd(), 'node_modules'),
-                                pluginNodeDir
-                            ]
-                        },
-                        resolveLoader: {
-                            modules: [
-                                path.resolve(process.cwd(), 'node_modules'),
-                                pluginNodeDir
-                            ]
+                            }
                         }
                     }
                 }
@@ -401,13 +391,23 @@ module.exports = function (grunt) {
                         library: `girder_plugin_${plugin}`
                     },
                     resolve: {
+                        alias: {
+                            // Make sure we use the core jquery rather than pulling one
+                            // from a plugin's local node modules. Multiple jquery versions
+                            // breaks due to use of side effects for jquery plugins.
+                            'jquery': path.resolve(paths.node_modules, 'jquery')
+                        },
                         modules: [
-                            path.resolve(dir, 'node_modules')
+                            pluginNodeDir,
+                            path.resolve(dir, 'node_modules'),
+                            paths.node_modules
                         ]
                     },
                     resolveLoader: {
                         modules: [
-                            path.resolve(dir, 'node_modules')
+                            pluginNodeDir,
+                            path.resolve(dir, 'node_modules'),
+                            paths.node_modules
                         ]
                     },
                     plugins: [
