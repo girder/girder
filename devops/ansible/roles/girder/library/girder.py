@@ -876,6 +876,36 @@ EXAMPLES = '''
 '''
 
 
+def unjsonify(a):
+    """Convert json parts to python objects.
+
+    Tries to convert a json string or a compund object consisting of partial
+    json strings to a full python object.  Returns either a json scalar (string,
+    int, float), a list or dict of json scalars, or any combination of lists and
+    dicts that eventually end at json scalars.
+
+    Note that this function does not detect cycles in an object graph and, if
+    provided an object with one, will run until out of memory, at the stack
+    limit, or until at some other run-time limit.
+    """
+
+    # if string, try to loads() it
+    if isinstance(a, basestring):
+        try:
+            a = json.loads(a)
+            # pass-through to below
+        except ValueError:
+            return a
+
+    if isinstance(a, list):
+        return [unjsonify(x) for x in a]
+
+    if isinstance(a, dict):
+        return {str(k): unjsonify(v) for k, v in a.items()}
+
+    return None
+
+
 def class_spec(cls, include=None):
     include = include if include is not None else []
 
@@ -1804,15 +1834,23 @@ class GirderClientModule(GirderClient):
 
     def setting(self, key, value=None):
         ret = {}
-        json_value = isinstance(value, (list, dict))
+
+        if value is None:
+            value = ''
 
         if self.module.params['state'] == 'present':
             # Get existing setting value to determine self.changed
             existing_value = self.get('system/setting', parameters={'key': key})
 
+            if existing_value is None:
+                existing_value = ''
+
             params = {
                 'key': key,
-                'value': json.dumps(value) if json_value else value
+                'value': (
+                    json.dumps(value)
+                    if isinstance(value, (list, dict)) else value
+                )
             }
 
             try:
@@ -1820,12 +1858,8 @@ class GirderClientModule(GirderClient):
             except requests.HTTPError as e:
                 self.fail(e.response.json()['message'])
 
-            if response and isinstance(value, list):
-                self.changed = set(existing_value) != set(value)
-            elif response and isinstance(value, dict):
-                self.changed = set(existing_value.items()) != set(value.items())
-            elif response:
-                self.changed = existing_value != value
+            if response:
+                self.changed = unjsonify(existing_value) != unjsonify(value)
 
             if self.changed:
                 ret['previous_value'] = existing_value
