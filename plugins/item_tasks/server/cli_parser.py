@@ -19,7 +19,7 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'string-enumeration': 'string-enumeration',
     'file': 'file',
     'directory': 'folder',
-    'image': 'file',
+    'image': 'image',
     'pointfile': 'file'
 }
 
@@ -30,7 +30,7 @@ _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP = {
 }
 
 _SLICER_TYPE_TO_GIRDER_MODEL_MAP = {
-    'image': 'file',
+    'image': 'image',
     'file': 'file',
     'directory': 'folder'
 }
