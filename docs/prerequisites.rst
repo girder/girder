@@ -296,6 +296,13 @@ MongoDB
 
          brew install mongodb
 
+      MongoDB does not run automatically as a service on macOS, so you'll need to either configure it as a service
+      yourself, or just ensure it's running manually via the following command:
+
+      .. code-block:: bash
+
+        mongod -f /usr/local/etc/mongod.conf
+
 Node.js
 -------
 Node.js v8.0 is the `active LTS release <https://github.com/nodejs/Release#release-schedule>`_, though later versions
