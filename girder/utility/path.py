@@ -179,8 +179,8 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
             ModelImporter.model(model).requireAccess(document, user)
         for token in pathArray[2:]:
             document, model = lookUpToken(token, model, document)
-        if not force:
-            ModelImporter.model(model).requireAccess(document, user)
+            if not force:
+                ModelImporter.model(model).requireAccess(document, user)
     except (ValidationException, AccessException):
         # We should not distinguish the response between access and validation errors so that
         # adversarial users cannot discover the existence of data they don't have access to by
