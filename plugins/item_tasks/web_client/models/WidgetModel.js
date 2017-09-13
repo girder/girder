@@ -33,6 +33,8 @@ import tinycolor from 'tinycolor2';
  *      a select box containing strings
  *   * string-enumeration-multiple:
  *      a multiselect box containing strings
+ *   * region
+ *      a numeric vector type representing a subregion of an image
  *
  * Girder models:
  *   * file:
@@ -323,7 +325,8 @@ var WidgetModel = Backbone.Model.extend({
             'number',
             'number-vector',
             'number-enumeration',
-            'number-enumeration-multiple'
+            'number-enumeration-multiple',
+            'region'
         ], this.get('type'));
     },
 
@@ -349,7 +352,8 @@ var WidgetModel = Backbone.Model.extend({
             'number-vector',
             'number-enumeration-multiple',
             'string-vector',
-            'string-enumeration-multiple'
+            'string-enumeration-multiple',
+            'region'
         ], this.get('type'));
     },
 
@@ -417,7 +421,8 @@ var WidgetModel = Backbone.Model.extend({
         'directory',
         'new-file',
         'new-folder',
-        'image'
+        'image',
+        'region'
     ]
 });
 

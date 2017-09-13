@@ -303,6 +303,32 @@ describe('widget model', function () {
 
         expect(w.isValid()).toBe(false);
     });
+    it('region', function () {
+        var w = new itemTasks.models.WidgetModel({
+            type: 'number-vector',
+            title: 'Region widget'
+        });
+        expect(w.isNumeric()).toBe(true);
+        expect(w.isBoolean()).toBe(false);
+        expect(w.isVector()).toBe(true);
+        expect(w.isColor()).toBe(false);
+        expect(w.isEnumeration()).toBe(false);
+        expect(w.isFile()).toBe(false);
+
+        w.set('value', 'a,b,c,d');
+        expect(w.isValid()).toBe(false);
+
+        w.set('value', ['a', 1, '2', '3']);
+        expect(w.isValid()).toBe(false);
+
+        w.set('value', '1,2,3,4');
+        expect(w.value()).toEqual([1, 2, 3, 4]);
+        expect(w.isValid()).toBe(true);
+
+        w.set('value', ['0', 1, '2', '3']);
+        expect(w.value()).toEqual([0, 1, 2, 3]);
+        expect(w.isValid()).toBe(true);
+    });
 });
 
 describe('widget collection', function () {

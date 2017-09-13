@@ -9,10 +9,10 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'float': 'number',
     'double': 'number',
     'string': 'string',
-    'integer-vector': 'integer_list',
-    'float-vector': 'number_list',
-    'double-vector': 'number_list',
-    'string-vector': 'string_list',
+    'integer-vector': 'integer-vector',
+    'float-vector': 'number-vector',
+    'double-vector': 'number-vector',
+    'string-vector': 'string-vector',
     'integer-enumeration': 'number-enumeration',
     'float-enumeration': 'number-enumeration',
     'double-enumeration': 'number-enumeration',
@@ -20,7 +20,8 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'file': 'file',
     'directory': 'folder',
     'image': 'image',
-    'pointfile': 'file'
+    'pointfile': 'file',
+    'region': 'region'
 }
 
 _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP = {

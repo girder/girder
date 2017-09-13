@@ -183,6 +183,20 @@
                 }
             },
             {
+                "id": "region_input",
+                "name": "Image region input",
+                "description": "Choose an image region",
+                "type": "region",
+                "default": {
+                    "data": [
+                        -1,
+                        -1,
+                        -1,
+                        -1
+                    ]
+                }
+            },
+            {
                 "id": "file_input",
                 "name": "Item input",
                 "description": "Choose an existing item that will be used by the task",

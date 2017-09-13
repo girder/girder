@@ -136,6 +136,9 @@ var ControlWidget = View.extend({
         },
         'new-folder': {
             template: fileWidget
+        },
+        'region': {
+            template: widget
         }
     },
 
