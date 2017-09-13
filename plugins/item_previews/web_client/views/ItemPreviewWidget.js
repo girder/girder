@@ -21,7 +21,6 @@ var ItemPreviewWidget = View.extend({
     },
 
     initialize: function (settings) {
-        this._isSupportedItem = this._isSupportedItem.bind(this);
         this.debouncedaddMoreItems = _.debounce(this.addMoreItems, 100);
         this.onScroll = _.debounce(this.onScroll, 100);
 
@@ -35,8 +34,8 @@ var ItemPreviewWidget = View.extend({
     // Because the parent-child life cycle is not clean, this method is needed.
     setCollection: function (collection) {
         this.collection = collection;
-        this.collection.on('g:changed', () => {
-            this.supportedItems = this.collection.toJSON().filter(this._isSupportedItem);
+        this.listenTo(this.collection, 'g:changed', () => {
+            this.supportedItems = this.collection.toJSON().filter(this._isSupportedItem.bind(this));
             if (this.supportedItems.length !== 0 &&
                 (this.isNotFull() || this.isNearBottom())) {
                 this.debouncedaddMoreItems();
@@ -73,6 +72,7 @@ var ItemPreviewWidget = View.extend({
             this.$('.g-widget-item-previews-container').on('scroll', (e) => this.onScroll(e));
             this.debouncedaddMoreItems();
         }
+        return this;
     },
 
     isNotFull: function () {
@@ -95,7 +95,7 @@ var ItemPreviewWidget = View.extend({
         var $container = this.$('.g-widget-item-previews-wrapper');
         _whenAll(items.map((item) => {
             return restRequest({
-                path: `item/${item._id}/files`,
+                url: `item/${item._id}/files`,
                 data: { limit: 5 }
             }).then((files) => {
                 return _whenAll(files.map((file) => {
@@ -149,8 +149,8 @@ var ItemPreviewWidget = View.extend({
 
     getJsonContent: function (url) {
         return restRequest({
-            path: url,
-            type: 'GET',
+            url: url,
+            method: 'GET',
             error: null
         }).then((resp) => {
             return {
