@@ -25,7 +25,7 @@ from pymongo.errors import OperationFailure
 
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
-from girder.api.rest import Resource, RestException
+from girder.api.rest import Resource, RestException, filtermodel
 from girder.constants import AccessType
 
 
@@ -38,6 +38,7 @@ class GeospatialItem(Resource):
     """
 
     @access.user
+    @filtermodel('item')
     @autoDescribeRoute(
         Description('Create new items from a GeoJSON feature or feature collection.')
         .modelParam('folderId', 'The ID of the parent folder.', model='folder',
@@ -55,7 +56,7 @@ class GeospatialItem(Resource):
         .notes("All GeoJSON features must contain a property named 'name' from"
                " which the name of each created item is taken.")
     )
-    def create(self, folder, geoJSON, params):
+    def create(self, folder, geoJSON):
         try:
             GeoJSON.to_instance(geoJSON, strict=True)
         except ValueError:
@@ -110,19 +111,21 @@ class GeospatialItem(Resource):
             newItem = self.model('item').updateItem(newItem)
             items.append(newItem)
 
-        return [self._filter(item) for item in items]
+        return items
 
     @access.public
+    @filtermodel('item')
     @autoDescribeRoute(
         Description('Search for an item by geospatial data.')
         .jsonParam('q', 'Search query as a JSON object.')
         .pagingParams(defaultSort='lowerName')
         .errorResponse()
     )
-    def find(self, q, limit, offset, sort, params):
+    def find(self, q, limit, offset, sort):
         return self._find(q, limit, offset, sort)
 
     @access.public
+    @filtermodel('item')
     @autoDescribeRoute(
         Description('Search for items that intersects with a GeoJSON object.')
         .param('field', 'Name of field containing GeoJSON on which to search.', strip=True)
@@ -130,7 +133,7 @@ class GeospatialItem(Resource):
         .pagingParams(defaultSort='lowerName')
         .errorResponse()
     )
-    def intersects(self, field, geometry, limit, offset, sort, params):
+    def intersects(self, field, geometry, limit, offset, sort):
         try:
             GeoJSON.to_instance(geometry, strict=True)
         except (TypeError, ValueError):
@@ -161,6 +164,7 @@ class GeospatialItem(Resource):
             raise RestException("Invalid GeoJSON passed as 'geometry' parameter.")
 
     @access.public
+    @filtermodel('item')
     @autoDescribeRoute(
         Description('Search for items that are in proximity to a GeoJSON point.')
         .param('field', 'Name of field containing GeoJSON on which to search.', strip=True)
@@ -178,8 +182,7 @@ class GeospatialItem(Resource):
         .notes("Field on which to search be indexed by a 2dsphere index."
                " Anonymous users may not use 'ensureIndex' to create such an index.")
     )
-    def near(self, field, geometry, maxDistance, minDistance, ensureIndex, limit,
-             offset, sort, params):
+    def near(self, field, geometry, maxDistance, minDistance, ensureIndex, limit, offset, sort):
         condition = {
             '$geometry': self._getGeometry(geometry)
         }
@@ -218,6 +221,7 @@ class GeospatialItem(Resource):
     _RADIUS_OF_EARTH = 6378137.0  # average in meters
 
     @access.public
+    @filtermodel('item')
     @autoDescribeRoute(
         Description('Search for items that are entirely within either a GeoJSON'
                     ' polygon or a circular region.')
@@ -235,7 +239,7 @@ class GeospatialItem(Resource):
         .notes("Either parameter 'geometry' or both parameters 'center' "
                " and 'radius' are required.")
     )
-    def within(self, field, geometry, center, radius, limit, offset, sort, params):
+    def within(self, field, geometry, center, radius, limit, offset, sort):
         if geometry is not None:
             try:
                 GeoJSON.to_instance(geometry, strict=True)
@@ -286,16 +290,20 @@ class GeospatialItem(Resource):
         return self._find(query, limit, offset, sort)
 
     @access.public
+    @filtermodel('item')
     @autoDescribeRoute(
         Description('Get an item and its geospatial data by ID.')
         .modelParam('id', 'The ID of the item.', model='item', level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
+        .deprecated()
     )
-    def getGeospatial(self, item, params):
-        return self._filter(item)
+    def getGeospatial(self, item):
+        # Deprecated -- we use the modern filtering mechanisms now to include the geo field
+        return item
 
     @access.user
+    @filtermodel('item')
     @autoDescribeRoute(
         Description('Set geospatial fields on an item.')
         .notes('Set geospatial fields to null to delete them.')
@@ -308,7 +316,7 @@ class GeospatialItem(Resource):
         .errorResponse('Geospatial field did not contain valid GeoJSON.')
         .errorResponse('Write access was denied for the item.', 403)
     )
-    def setGeospatial(self, item, geospatial, params):
+    def setGeospatial(self, item, geospatial):
         for k, v in six.viewitems(geospatial):
             if '.' in k or k[0] == '$':
                 raise RestException('Geospatial key name %s must not contain a'
@@ -321,7 +329,7 @@ class GeospatialItem(Resource):
                                         ' contain valid GeoJSON: %s' % (k, v))
 
         if GEOSPATIAL_FIELD not in item:
-            item[GEOSPATIAL_FIELD] = dict()
+            item[GEOSPATIAL_FIELD] = {}
 
         item[GEOSPATIAL_FIELD].update(six.viewitems(geospatial))
         keys = [k for k, v in six.viewitems(item[GEOSPATIAL_FIELD]) if v is None]
@@ -329,28 +337,7 @@ class GeospatialItem(Resource):
         for key in keys:
             del item[GEOSPATIAL_FIELD][key]
 
-        item = self.model('item').updateItem(item)
-
-        return self._filter(item)
-
-    def _filter(self, item):
-        """
-        Helper to filter the fields of an item and append its geospatial data.
-
-        :param item: item whose fields to filter and geospatial data append.
-        :type item: dict[str, unknown]
-        :returns: filtered fields of the item with geospatial data appended to
-                 its 'geo' field.
-        :rtype : dict[str, unknown]
-        """
-        filtered = self.model('item').filter(item)
-
-        if GEOSPATIAL_FIELD in item:
-            filtered[GEOSPATIAL_FIELD] = item[GEOSPATIAL_FIELD]
-        else:
-            filtered[GEOSPATIAL_FIELD] = {}
-
-        return filtered
+        return self.model('item').updateItem(item)
 
     def _find(self, query, limit, offset, sort):
         """
@@ -369,10 +356,7 @@ class GeospatialItem(Resource):
                  appended to the 'geo' field of each item.
         :rtype : list[dict[str, unknown]]
         """
-        user = self.getCurrentUser()
         cursor = self.model('item').find(query, sort=sort)
 
-        return [self._filter(result) for result in
-                self.model('item')
-                    .filterResultsByPermission(cursor, user, AccessType.READ,
-                                               limit, offset)]
+        return list(self.model('item').filterResultsByPermission(
+            cursor, self.getCurrentUser(), AccessType.READ, limit, offset))

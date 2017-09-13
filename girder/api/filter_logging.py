@@ -70,7 +70,7 @@ def addLoggingFilter(regex, frequency=None, duration=None):
         value of seconds between logging.
     """
     # Always make sure that cherrypy is using our logging filter class.  This
-    # is done as a singleton so that addFilter will not duplciate the filter.
+    # is done as a singleton so that addFilter will not duplicate the filter.
     # By doing this here, the import order doesn't matter, and additional
     # cherrypy handlers can be added after import, provided that
     # addLoggingFilter is called after the new logging handlers were added.

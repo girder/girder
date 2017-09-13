@@ -113,4 +113,3 @@ specified paths.
 
 These paths can be modified by navigating to Admin Console -> Server Configuration and
 visiting the Routing section.
-

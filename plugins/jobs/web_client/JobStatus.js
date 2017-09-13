@@ -26,6 +26,16 @@ var JobStatus = {
         return this._map[status].color;
     },
 
+    textColor: function (status) {
+        return this._map[status].textColor;
+    },
+
+    isCancelable: _.constant(false),
+
+    finished: function (status) {
+        return this._map[status].finished;
+    },
+
     /**
      * Convert this status text into a value appropriate for an HTML class name.
      */
@@ -43,11 +53,20 @@ var JobStatus = {
     registerStatus: function (status) {
         _.each(status, function (info, name) {
             this[name] = info.value;
-            this._map[info.value] = {
+
+            let statusInfo = {
                 text: info.text,
                 icon: info.icon,
-                color: info.color
+                color: info.color,
+                textColor: 'white',
+                finished: _.has(info, 'finished') ? info.finished : false
             };
+
+            if (_.has(info, 'textColor')) {
+                statusInfo.textColor = info.textColor;
+            }
+
+            this._map[info.value] = statusInfo;
         }, this);
     },
 
@@ -61,37 +80,44 @@ JobStatus.registerStatus({
         value: 0,
         text: 'Inactive',
         icon: 'icon-pause',
-        color: '#ccc'
+        color: '#ccc',
+        textColor: '#555',
+        finished: false
     },
     QUEUED: {
         value: 1,
         text: 'Queued',
         icon: 'icon-ellipsis',
-        color: '#dbc345'
+        color: '#dbc345',
+        finished: false
     },
     RUNNING: {
         value: 2,
         text: 'Running',
         icon: 'icon-spin3 animate-spin',
-        color: '#6666d5'
+        color: '#6666d5',
+        finished: false
     },
     SUCCESS: {
         value: 3,
         text: 'Success',
         icon: 'icon-ok',
-        color: '#53b653'
+        color: '#53b653',
+        finished: true
     },
     ERROR: {
         value: 4,
         text: 'Error',
         icon: 'icon-cancel',
-        color: '#d44'
+        color: '#d44',
+        finished: true
     },
     CANCELED: {
         value: 5,
         text: 'Canceled',
         icon: 'icon-cancel',
-        color: '#545'
+        color: '#545',
+        finished: true
     }
 });
 

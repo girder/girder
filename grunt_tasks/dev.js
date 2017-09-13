@@ -19,9 +19,7 @@
  * build system for installed girder packages.
  */
 module.exports = function (grunt) {
-    if (!grunt.config.get('isSourceBuild')) {
-        // If this is a package build rather than a source build, we skip the
-        // dev build tasks.
+    if (grunt.config.get('environment') !== 'dev') {
         return;
     }
 
@@ -67,6 +65,7 @@ module.exports = function (grunt) {
         fs.writeFileSync('clients/web/static/built/testing/testEnv.html', fn({
             cssFiles: [
                 '/static/built/fontello/css/fontello.css',
+                '/static/built/fontello/css/animation.css',
                 '/static/built/girder_lib.min.css',
                 '/static/built/girder_app.min.css',
                 '/static/built/testing.min.css'

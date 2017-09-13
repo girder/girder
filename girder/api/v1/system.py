@@ -79,7 +79,7 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
         .errorResponse('Failed to set system setting.', 500)
     )
-    def setSetting(self, key, value, list, params):
+    def setSetting(self, key, value, list):
         if list is None:
             list = ({'key': key, 'value': value},)
 
@@ -129,7 +129,7 @@ class System(Resource):
                'default value of the setting(s).', required=False)
         .errorResponse('You are not a system administrator.', 403)
     )
-    def getSetting(self, key, list, default, params):
+    def getSetting(self, key, list, default):
         getFuncName = 'get'
         funcParams = {}
         if default is not None:
@@ -152,7 +152,7 @@ class System(Resource):
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def getPlugins(self, params):
+    def getPlugins(self):
         plugins = {
             'all': plugin_utilities.findAllPlugins(),
             'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED)
@@ -166,7 +166,7 @@ class System(Resource):
     @autoDescribeRoute(
         Description('Get the version information for this server.')
     )
-    def getVersion(self, params):
+    def getVersion(self):
         version = dict(**VERSION)
         version['apiVersion'] = API_VERSION
         version['serverStartDate'] = ModuleStartTime
@@ -181,7 +181,7 @@ class System(Resource):
         .errorResponse('Required dependencies do not exist.', 500)
         .errorResponse('You are not a system administrator.', 403)
     )
-    def enablePlugins(self, plugins, params):
+    def enablePlugins(self, plugins):
         # Determine what plugins have been disabled and remove their associated routes.
         setting = self.model('setting')
         routeTable = setting.get(SettingKey.ROUTE_TABLE)
@@ -211,7 +211,7 @@ class System(Resource):
         .param('key', 'The key identifying the setting to unset.')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def unsetSetting(self, key, params):
+    def unsetSetting(self, key):
         return self.model('setting').unset(key)
 
     @access.admin(scope=TokenScope.PARTIAL_UPLOAD_READ)
@@ -235,7 +235,7 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def getPartialUploads(self, uploadId, userId, parentId, assetstoreId, minimumAge,
-                          includeUntracked, limit, offset, sort, params):
+                          includeUntracked, limit, offset, sort):
         filters = {}
         if uploadId is not None:
             filters['uploadId'] = uploadId
@@ -281,7 +281,7 @@ class System(Resource):
         .errorResponse('Failed to delete upload', 500)
     )
     def discardPartialUploads(self, uploadId, userId, parentId, assetstoreId,
-                              minimumAge, includeUntracked, params):
+                              minimumAge, includeUntracked):
         filters = {}
         if uploadId is not None:
             filters['uploadId'] = uploadId
@@ -315,7 +315,7 @@ class System(Resource):
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def restartServer(self, params):
+    def restartServer(self):
         if not config.getConfig()['server'].get('cherrypy_server', True):
             raise RestException('Restarting of server is disabled.', 403)
 
@@ -350,7 +350,7 @@ class System(Resource):
                required=False, enum=('basic', 'quick', 'slow'), default='basic')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def systemStatus(self, mode, params):
+    def systemStatus(self, mode):
         user = self.getCurrentUser()
         if mode != 'basic':
             self.requireAdmin(user)
@@ -360,7 +360,7 @@ class System(Resource):
 
     @access.public
     @autoDescribeRoute(Description('List all access flags available in the system.'))
-    def getAccessFlags(self, params):
+    def getAccessFlags(self):
         return ACCESS_FLAGS
 
     @access.admin
@@ -373,7 +373,7 @@ class System(Resource):
                required=False, dataType='boolean', default=False)
         .errorResponse('You are not a system administrator.', 403)
     )
-    def systemConsistencyCheck(self, progress, params):
+    def systemConsistencyCheck(self, progress):
         user = self.getCurrentUser()
         title = 'Running system consistency check'
         with ProgressContext(progress, user=user, title=title) as pc:
@@ -409,7 +409,7 @@ class System(Resource):
                required=False, default='error')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def getLog(self, bytes, log, params):
+    def getLog(self, bytes, log):
         path = girder.getLogPaths()[log]
         filesize = os.path.getsize(path)
         length = int(bytes) or filesize
@@ -452,7 +452,7 @@ class System(Resource):
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def getLogLevel(self, params):
+    def getLogLevel(self):
         level = girder.logger.getEffectiveLevel()
         return logging.getLevelName(level)
 
@@ -465,7 +465,7 @@ class System(Resource):
                default='INFO')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def setLogLevel(self, level, params):
+    def setLogLevel(self, level):
         level = logging.getLevelName(level)
         for logger in (girder.logger, cherrypy.log.access_log, cherrypy.log.error_log):
             logger.setLevel(level)
@@ -481,7 +481,7 @@ class System(Resource):
         .param('dev', 'Whether to build for development mode.', required=False,
                dataType='boolean', default=False)
     )
-    def buildWebCode(self, progress, dev, params):
+    def buildWebCode(self, progress, dev):
         user = self.getCurrentUser()
 
         with ProgressContext(progress, user=user, title='Building web client code') as progress:
@@ -493,7 +493,7 @@ class System(Resource):
         .notes('Get result in the same structure as the access endpoints'
                'of collection, file, and group')
     )
-    def getCollectionCreationPolicyAccess(self, params):
+    def getCollectionCreationPolicyAccess(self):
         cpp = self.model('setting').get('core.collection_create_policy')
 
         acList = {
@@ -505,14 +505,20 @@ class System(Resource):
             userDoc = self.model('user').load(
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
-            user['login'] = userDoc['login']
-            user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
+            if userDoc is None:
+                acList['users'].remove(user)
+            else:
+                user['login'] = userDoc['login']
+                user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
         for grp in acList['groups'][:]:
             grpDoc = self.model('group').load(
                 grp['id'], force=True, fields=['name', 'description'])
-            grp['name'] = grpDoc['name']
-            grp['description'] = grpDoc['description']
+            if grpDoc is None:
+                acList['groups'].remove(grp)
+            else:
+                grp['name'] = grpDoc['name']
+                grp['description'] = grpDoc['description']
 
         return acList
 

@@ -24,10 +24,12 @@ const CandelaParametersView = View.extend({
 
     setData: function (data, columns) {
         this._data = data;
-        this._columns = ['(none)'].concat(columns);
-        this._multiColumns = this._columns.slice(1);
-        this._numericColumns = ['(none)'].concat(
-            this._columns.filter((d) => this._data.__types__[d] === 'number'));
+        this._columns = ['(none)', ...columns];
+        this._multiColumns = columns;
+        this._numericColumns = ['(none)', ...columns.filter((column) => {
+            const columnType = this._data.__types__[column];
+            return _.contains(['number', 'integer', 'date'], columnType);
+        })];
         this._multiNumericColumns = this._numericColumns.slice(1);
         this.render();
     },
@@ -39,10 +41,10 @@ const CandelaParametersView = View.extend({
 
     render: function () {
         if (!this._data) {
-            return;
+            return this;
         }
         if (!this._component) {
-            return;
+            return this;
         }
 
         this._inputWidgets.reset();
@@ -50,22 +52,20 @@ const CandelaParametersView = View.extend({
         this._inputWidgets.add(new WidgetModel({
             type: 'integer',
             title: 'Width',
-            description: 'The visualization width in pixels.',
             id: 'width',
             min: 0,
-            value: 800
+            value: 400
         }));
         this._inputWidgets.add(new WidgetModel({
             type: 'integer',
             title: 'Height',
-            description: 'The visualization height in pixels.',
             id: 'height',
             min: 0,
-            value: 800
+            value: 400
         }));
 
         // Build all the widget models from the vis spec
-        this._component.options.forEach((input) => {
+        _.each(this._component.options, (input) => {
             if (input.type === 'number') {
                 this._inputWidgets.add(new WidgetModel({
                     type: 'number',
@@ -89,9 +89,9 @@ const CandelaParametersView = View.extend({
                 if (_.isArray(input.domain)) {
                     values = input.domain;
                     if (input.type === 'string') {
-                        value = input.domain[0];
+                        value = input.default === undefined ? input.domain[0] : input.default;
                     } else {
-                        value = [];
+                        value = input.default === undefined ? [] : input.default;
                     }
                 } else {
                     let numeric = !input.domain.fieldTypes.includes('string');
@@ -125,6 +125,8 @@ const CandelaParametersView = View.extend({
         this.$el.html(template());
 
         this._inputsPanel.setElement(this.$('.g-candela-inputs-container')).render();
+
+        return this;
     },
 
     /**
@@ -165,8 +167,10 @@ const CandelaParametersView = View.extend({
         });
         inputs.data = this._data;
 
-        this.$('.g-candela-vis')[0].style.width = inputs.width + 'px';
-        this.$('.g-candela-vis')[0].style.height = inputs.height + 'px';
+        if (this.vis && this.vis.destroy) {
+            this.vis.destroy();
+        }
+        this.$('.g-candela-vis').empty();
         let vis = new this._component(this.$('.g-candela-vis')[0], inputs);
         vis.render();
     }

@@ -18,7 +18,7 @@
 ###############################################################################
 
 import argparse
-import boto
+import boto3
 import errno
 import logging
 import os
@@ -28,8 +28,7 @@ import time
 
 import moto.server
 import moto.s3
-from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, \
-    botoConnectS3, S3AssetstoreAdapter
+from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
 from six.moves import range
 
 _startPort = 31100
@@ -39,42 +38,16 @@ _maxTries = 100
 def createBucket(botoConnect, bucketName):
     """
     Create a bucket if it doesn't already exist.
+
     :param botoConnect: connection parameters to pass to use with boto.
     :type botoConnect: dict
     :param bucketName: the bucket name
     :type bucket: str
-    :returns: a boto bucket.
+    :returns: the client object
     """
-    conn = botoConnectS3(botoConnect)
-    bucket = conn.lookup(bucket_name=bucketName, validate=True)
-    # if found, return
-    if bucket is not None:
-        return
-    bucket = conn.create_bucket(bucketName)
-    # I would have preferred to set the CORS for the bucket we created, but
-    # moto doesn't support that.
-    # setBucketCors(bucket)
-    return bucket
-
-
-def setBucketCors(bucket):
-    """
-    Set the cors access values on a boto bucket to allow general access to that
-    bucket.
-    :param bucket: a boto bucket to set.
-    """
-    cors = boto.s3.cors.CORSConfiguration()
-    cors.add_rule(
-        id='girder_cors_rule',
-        allowed_method=['HEAD', 'GET', 'PUT', 'POST', 'DELETE'],
-        allowed_origin=['*'],
-        allowed_header=['Content-Disposition', 'Content-Type',
-                        'x-amz-meta-authorized-length', 'x-amz-acl',
-                        'x-amz-meta-uploader-ip', 'x-amz-meta-uploader-id'],
-        expose_header=['ETag'],
-        max_age_seconds=3000
-        )
-    bucket.set_cors(cors)
+    client = boto3.client('s3', **botoConnect)
+    client.create_bucket(ACL='private', Bucket=bucketName)
+    return client
 
 
 def startMockS3Server():
@@ -126,37 +99,8 @@ class MockS3Server(threading.Thread):
 
     def run(self):
         """Start and run the mock S3 server."""
-        app = moto.server.DomainDispatcherApplication(_create_app,
-                                                      service='s3bucket_path')
+        app = moto.server.DomainDispatcherApplication(moto.server.create_backend_app, service='s3')
         moto.server.run_simple('0.0.0.0', self.port, app, threaded=True)
-
-
-def _create_app(service):
-    """
-    Create the S3 server using moto, altering the responses to allow CORS
-    requests.
-    :param service: the amazon service we wish to mimic.  This should probably
-                    be 's3bucket_path'.
-    """
-    app = moto.server.create_backend_app(service)
-
-    # I would have preferred to set the CORS for the bucket we have, but moto
-    # doesn't support that, so I have to add the values here.
-    @app.after_request
-    def after_request(response):
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Methods',
-                             'HEAD, GET, PUT, POST, OPTIONS, DELETE')
-        response.headers.add(
-            'Access-Control-Allow-Headers',
-            'Content-Disposition,Content-Type,'
-            'x-amz-meta-authorized-length,x-amz-acl,x-amz-meta-uploader-ip,'
-            'x-amz-meta-uploader-id'
-            )
-        response.headers.add('Access-Control-Expose-Headers', 'ETag')
-        return response
-
-    return app
 
 
 if __name__ == '__main__':
@@ -165,14 +109,11 @@ if __name__ == '__main__':
     a modified conf file to simulate an S3 store.
     """
     parser = argparse.ArgumentParser(
-        description='Run a mock S3 server.  All data will be lost when it is '
-        'stopped.')
-    parser.add_argument('-p', '--port', type=int, help='The port to run on',
-                        default=_startPort)
-    parser.add_argument('-b', '--bucket', type=str,
-                        help='The name of a bucket to create', default='')
-    parser.add_argument('-v', '--verbose', action='count',
-                        help='Increase verbosity.', default=0)
+        description='Run a mock S3 server.  All data will be lost when it is stopped.')
+    parser.add_argument('-p', '--port', type=int, help='The port to run on', default=_startPort)
+    parser.add_argument(
+        '-b', '--bucket', type=str, help='The name of a bucket to create', default='')
+    parser.add_argument('-v', '--verbose', action='count', help='Increase verbosity.', default=0)
     args = parser.parse_args()
     server = MockS3Server(args.port)
     server.start()

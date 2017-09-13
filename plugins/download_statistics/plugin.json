@@ -1,0 +1,7 @@
+{
+    "name": "Download Statistics",
+    "description": "Record file download statistics",
+    "url": "",
+    "version": "0.1.0",
+    "dependencies": []
+}

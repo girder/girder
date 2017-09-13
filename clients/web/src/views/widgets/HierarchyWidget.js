@@ -20,7 +20,7 @@ import { AccessType } from 'girder/constants';
 import { confirm, handleClose } from 'girder/dialog';
 import events from 'girder/events';
 import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/misc';
-import { restRequest, apiRoot } from 'girder/rest';
+import { restRequest, getApiRoot } from 'girder/rest';
 
 import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.pug';
 import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.pug';
@@ -63,6 +63,8 @@ var HierarchyBreadcrumbView = View.extend({
             current: active,
             descriptionText: descriptionText
         }));
+
+        return this;
     }
 });
 
@@ -287,6 +289,7 @@ var HierarchyWidget = View.extend({
             this._initFolderViewSubwidgets();
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
             this.metadataWidget.setItem(this.parentModel);
+            this.metadataWidget.accessLevel = this.parentModel.getAccessLevel();
             if (this._showMetadata) {
                 this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
             }
@@ -473,12 +476,16 @@ var HierarchyWidget = View.extend({
         this.$('.g-child-count-container').addClass('hide');
 
         var showCounts = _.bind(function () {
+            const folderCount = formatCount(this.parentModel.get('nFolders'));
             this.$('.g-child-count-container').removeClass('hide');
-            this.$('.g-subfolder-count').text(
-                formatCount(this.parentModel.get('nFolders')));
+            this.$('.g-subfolder-count').text(folderCount);
+            const folderTooltip = folderCount === 1 ? `${folderCount} total folder` : `${folderCount} total folders`;
+            this.$('.g-subfolder-count-container').attr('title', folderTooltip);
             if (this.parentModel.has('nItems')) {
-                this.$('.g-item-count').text(
-                    formatCount(this.parentModel.get('nItems')));
+                const itemCount = formatCount(this.parentModel.get('nItems'));
+                this.$('.g-item-count').text(itemCount);
+                const itemTooltip = itemCount === 1 ? `${itemCount} total item` : `${itemCount} total items`;
+                this.$('.g-item-count-container').attr('title', itemTooltip);
             }
         }, this);
 
@@ -527,7 +534,9 @@ var HierarchyWidget = View.extend({
                     downloadLinks: this._downloadLinks,
                     viewLinks: this._viewLinks,
                     itemFilter: this._itemFilter,
-                    showSizes: this._showSizes
+                    showSizes: this._showSizes,
+                    public: this.parentModel.get('public'),
+                    accessLevel: this.parentModel.getAccessLevel()
                 });
             }
             this._initFolderViewSubwidgets();
@@ -578,7 +587,6 @@ var HierarchyWidget = View.extend({
      * Prompt the user to delete the currently checked items.
      */
     deleteCheckedDialog: function () {
-        var view = this;
         var folders = this.folderListView.checked;
         var items;
         if (this.itemListView && this.itemListView.checked.length) {
@@ -591,25 +599,25 @@ var HierarchyWidget = View.extend({
                   desc + ')?',
 
             yesText: 'Delete',
-            confirmCallback: function () {
-                var resources = view._getCheckedResourceParam();
+            confirmCallback: () => {
+                var resources = this._getCheckedResourceParam();
                 /* Content on DELETE requests is somewhat oddly supported (I
                  * can't get it to work under jasmine/phantom), so override the
                  * method. */
                 restRequest({
-                    path: 'resource',
-                    type: 'POST',
+                    url: 'resource',
+                    method: 'POST',
                     data: {resources: resources, progress: true},
                     headers: {'X-HTTP-Method-Override': 'DELETE'}
-                }).done(function () {
-                    if (items && items.length && view.parentModel.has('nItems')) {
-                        view.parentModel.increment('nItems', -items.length);
+                }).done(() => {
+                    if (items && items.length && this.parentModel.has('nItems')) {
+                        this.parentModel.increment('nItems', -items.length);
                     }
-                    if (folders.length && view.parentModel.has('nFolders')) {
-                        view.parentModel.increment('nFolders', -folders.length);
+                    if (folders.length && this.parentModel.has('nFolders')) {
+                        this.parentModel.increment('nFolders', -folders.length);
                     }
 
-                    view.setCurrentModel(view.parentModel, {setRoute: false});
+                    this.setCurrentModel(this.parentModel, {setRoute: false});
                 });
             }
         };
@@ -765,7 +773,7 @@ var HierarchyWidget = View.extend({
     },
 
     downloadChecked: function () {
-        var url = apiRoot + '/resource/download';
+        var url = getApiRoot() + '/resource/download';
         var resources = this._getCheckedResourceParam();
         var data = {resources: resources};
 
@@ -842,8 +850,8 @@ var HierarchyWidget = View.extend({
         var nFolders = (pickedResources.resources.folder || []).length;
         var nItems = (pickedResources.resources.item || []).length;
         restRequest({
-            path: 'resource/move',
-            type: 'PUT',
+            url: 'resource/move',
+            method: 'PUT',
             data: {
                 resources: resources,
                 parentType: this.parentModel.resourceName,
@@ -865,8 +873,8 @@ var HierarchyWidget = View.extend({
         var nFolders = (pickedResources.resources.folder || []).length;
         var nItems = (pickedResources.resources.item || []).length;
         restRequest({
-            path: 'resource/copy',
-            type: 'POST',
+            url: 'resource/copy',
+            method: 'POST',
             data: {
                 resources: resources,
                 parentType: this.parentModel.resourceName,
@@ -894,7 +902,7 @@ var HierarchyWidget = View.extend({
     },
 
     redirectViaForm: function (method, url, data) {
-        var form = $('<form action="' + url + '" method="' + method + '"/>');
+        var form = $('<form/>').attr({action: url, method: method});
         _.each(data, function (value, key) {
             form.append($('<input/>').attr({type: 'text', name: key, value: value}));
         });

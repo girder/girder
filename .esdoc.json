@@ -1,4 +1,4 @@
 {
-  "source": "./clients/web/src",
-  "destination": "./docs/_build/esdoc"
+    "source": "./clients/web/src",
+    "destination": "./docs/_build/esdoc"
 }

@@ -19,10 +19,11 @@
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel
-from girder.models.model_base import AccessException
-from girder.constants import AccessType, SettingKey
-from girder.utility import mail_utils
 from girder.api import access
+from girder.constants import AccessType, SettingKey
+from girder.models.model_base import AccessException
+from girder.utility import mail_utils
+from girder.utility.model_importer import ModelImporter
 
 
 class Group(Resource):
@@ -56,7 +57,7 @@ class Group(Resource):
         .pagingParams(defaultSort='name')
         .errorResponse()
     )
-    def find(self, text, exact, limit, offset, sort, params):
+    def find(self, text, exact, limit, offset, sort):
         user = self.getCurrentUser()
         if text is not None:
             if exact:
@@ -84,7 +85,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
     )
-    def createGroup(self, name, description, public, params):
+    def createGroup(self, name, description, public):
         return self.model('group').createGroup(
             name=name, creator=self.getCurrentUser(), description=description, public=public)
 
@@ -97,7 +98,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403)
     )
-    def getGroup(self, group, params):
+    def getGroup(self, group):
         # Add in the current setting for adding to groups
         group['_addToGroupPolicy'] = self.model('setting').get(SettingKey.ADD_TO_GROUP_POLICY)
         return group
@@ -111,7 +112,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403)
     )
-    def getGroupAccess(self, group, params):
+    def getGroupAccess(self, group):
         groupModel = self.model('group')
         group['access'] = groupModel.getFullAccessList(group)
         group['requests'] = list(groupModel.getFullRequestList(group))
@@ -127,7 +128,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Read access was denied for the group.', 403)
     )
-    def getGroupInvitations(self, group, limit, offset, sort, params):
+    def getGroupInvitations(self, group, limit, offset, sort):
         return list(self.model('group').getInvites(group, limit, offset, sort))
 
     @access.user
@@ -146,7 +147,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Write access was denied for the group.', 403)
     )
-    def updateGroup(self, group, name, description, public, addAllowed, params):
+    def updateGroup(self, group, name, description, public, addAllowed):
         if public is not None:
             self.model('group').setPublic(group, public)
 
@@ -170,7 +171,7 @@ class Group(Resource):
         .errorResponse('You were not invited to this group, or do not have '
                        'read access to it.', 403)
     )
-    def joinGroup(self, group, params):
+    def joinGroup(self, group):
         groupModel = self.model('group')
         group = groupModel.joinGroup(group, self.getCurrentUser())
         group['access'] = groupModel.getFullAccessList(group)
@@ -186,7 +187,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the group.', 403)
     )
-    def listMembers(self, group, limit, offset, sort, params):
+    def listMembers(self, group, limit, offset, sort):
         return list(self.model('group').listMembers(group, offset=offset, limit=limit, sort=sort))
 
     @access.user
@@ -210,7 +211,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse('Write access was denied for the group.', 403)
     )
-    def inviteToGroup(self, group, userToInvite, level, quiet, force, params):
+    def inviteToGroup(self, group, userToInvite, level, quiet, force):
         groupModel = self.model('group')
         user = self.getCurrentUser()
 
@@ -247,7 +248,9 @@ class Group(Resource):
                 })
                 mail_utils.sendEmail(
                     to=userToInvite['email'], text=html,
-                    subject="Girder: You've been invited to a group")
+                    subject="%s: You've been invited to a group"
+                    % ModelImporter.model('setting').get(SettingKey.BRAND_NAME)
+                )
 
         group['access'] = groupModel.getFullAccessList(group)
         group['requests'] = list(groupModel.getFullRequestList(group))
@@ -264,7 +267,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse("You don't have permission to promote users.", 403)
     )
-    def promoteToModerator(self, group, user, params):
+    def promoteToModerator(self, group, user):
         return self._promote(group, user, AccessType.WRITE)
 
     @access.user
@@ -278,7 +281,7 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse("You don't have permission to promote users.", 403)
     )
-    def promoteToAdmin(self, group, user, params):
+    def promoteToAdmin(self, group, user):
         return self._promote(group, user, AccessType.ADMIN)
 
     def _promote(self, group, user, level):
@@ -309,7 +312,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse("You don't have permission to demote users.", 403)
     )
-    def demote(self, group, user, params):
+    def demote(self, group, user):
         groupModel = self.model('group')
         group = groupModel.setUserAccess(group, user, level=AccessType.READ, save=True)
         group['access'] = groupModel.getFullAccessList(group)
@@ -332,7 +335,7 @@ class Group(Resource):
         .errorResponse()
         .errorResponse("You don't have permission to remove that user.", 403)
     )
-    def removeFromGroup(self, group, userToRemove, params):
+    def removeFromGroup(self, group, userToRemove):
         user = self.getCurrentUser()
         groupModel = self.model('group')
 
@@ -361,6 +364,6 @@ class Group(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the group.', 403)
     )
-    def deleteGroup(self, group, params):
+    def deleteGroup(self, group):
         self.model('group').remove(group)
         return {'message': 'Deleted the group %s.' % group['name']}

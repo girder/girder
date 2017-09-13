@@ -21,37 +21,34 @@ var GroupAdminsWidget = View.extend({
         'click .g-demote-moderator': function (e) {
             var li = $(e.currentTarget).parents('.g-group-admins>li');
             var userid = li.attr('userid');
-            var view = this;
 
             confirm({
                 text: 'Are you sure you want to demote <b>' +
                     _.escape(li.attr('username')) + '</b> to a moderator?',
                 escapedHtml: true,
-                confirmCallback: function () {
+                confirmCallback: () => {
                     var user = new UserModel({_id: userid});
-                    view.model.off('g:promoted').on('g:promoted', function () {
+                    this.model.off('g:promoted').on('g:promoted', () => {
                         this.trigger('g:moderatorAdded');
-                    }, view).promoteUser(user, AccessType.WRITE);
+                    }, this).promoteUser(user, AccessType.WRITE);
                 }
             });
         },
 
         'click .g-demote-member': function (e) {
             var li = $(e.currentTarget).parents('.g-group-admins>li');
-            var view = this;
 
             confirm({
                 text: 'Are you sure you want to remove admin privileges ' +
                     'from <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
-                confirmCallback: function () {
-                    view.trigger('g:demoteUser', li.attr('userid'));
+                confirmCallback: () => {
+                    this.trigger('g:demoteUser', li.attr('userid'));
                 }
             });
         },
 
         'click a.g-group-admin-remove': function (e) {
-            var view = this;
             var li = $(e.currentTarget).parents('li');
 
             confirm({
@@ -59,8 +56,8 @@ var GroupAdminsWidget = View.extend({
                     _.escape(li.attr('username')) +
                     '</b> from this group?',
                 escapedHtml: true,
-                confirmCallback: function () {
-                    view.trigger('g:removeMember', li.attr('userid'));
+                confirmCallback: () => {
+                    this.trigger('g:removeMember', li.attr('userid'));
                 }
             });
         },

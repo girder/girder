@@ -63,6 +63,17 @@ With ``watch`` option, *sourcemaps* will be generated, which helps debugging fro
 When you want to end the watch process, press Ctrl+C (or however you would normally terminate a
 process in your terminal).
 
+Girder Shell
+^^^^^^^^^^^^
+
+To test various functionality in a typical REPL (Python, IPython, etc) some bootstrapping
+is required to configure the Girder server. This sets up an "embedded" server, meaning no TCP ports
+are actually bound but requests can still be performed via Python. Bootstrapping the server
+involves running ``girder.utility.server.configureServer`` with the plugins to be enabled.
+
+Girder provides a utility script for entering into a shell with the server preconfigured. Once
+Girder is installed the script can be run using ``girder-shell`` which optionally takes a comma
+separated list of plugins to enable.
 
 Utilities
 ---------
@@ -397,6 +408,34 @@ to the latest released version, except when:
    exceptions. However, attempts should still be made to maintain API
    compatibility via monkey patching, wrapper classes, etc.
 
+Modifying core web client libraries
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Web client libraries in Girder core are managed via `npm <https://www.npmjs.com/>`_.
+When a new npm package is required, or an existing package is upgraded, the following
+should be done:
+
+1. Ensure that you are using a Linux development environment (macOS causes npm to produce slightly
+   different outputs) with version >=5.3 of npm installed:
+
+   .. code-block:: bash
+
+       npm install -g 'npm@>=5.3'
+
+2. Update ``dependencies`` or ``devDependencies`` in ``package.json`` to add a new
+   *abstract* specifier for the package:
+  * Packages that are bundled into the web client should generally use the
+    `tilde range <https://www.npmjs.com/package/semver#tilde-ranges-123-12-1>`_
+    to specify versions.
+  * Packages that are part of the build or testing process should generally use the
+    `caret range <https://www.npmjs.com/package/semver#caret-ranges-123-025-004>`_
+    to specify versions.
+3. Run from the root Girder directory:
+
+   .. code-block:: bash
+
+       npm update
+
+4. Commit the updated ``package.json`` and ``package-lock.json`` files.
 
 Creating a new release
 ----------------------
@@ -407,7 +446,7 @@ are stored as releases inside the official
 `github repository <https://github.com/girder/girder/releases>`_. The
 recommended process for generating a new release is described here.
 
-1.  From the target commit, set the desired version number in ``package.json``
+1.  From the target commit, set the desired version number in ``package.json``, ``clients/web/src/package.json``,
     and ``girder/__init__.py``. Create a new commit and note the SHA; this will
     become the release tag.
 
@@ -445,6 +484,10 @@ recommended process for generating a new release is described here.
 9.  Finally, upload the release to PyPI with the following command: ::
 
         python setup.py sdist upload
+
+10. Publish the new girder source package on npm.
+
+        cd clients/web/src && npm publish
 
 .. _releasepythonclientpackage:
 

@@ -300,7 +300,7 @@ def createUsers(users):
     """
     folders = []
     for user in users:
-        for folder in folders:
+        for folder in user.get('folders', []):
             # By default set the creator under a user to that user
             folder.setdefault('creator', user['login'])
 

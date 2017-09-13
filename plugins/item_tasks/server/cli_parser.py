@@ -13,10 +13,10 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'float-vector': 'number_list',
     'double-vector': 'number_list',
     'string-vector': 'string_list',
-    'integer-enumeration': 'integer',
-    'float-enumeration': 'number',
-    'double-enumeration': 'number',
-    'string-enumeration': 'string',
+    'integer-enumeration': 'number-enumeration',
+    'float-enumeration': 'number-enumeration',
+    'double-enumeration': 'number-enumeration',
+    'string-enumeration': 'string-enumeration',
     'file': 'file',
     'directory': 'folder',
     'image': 'file',
@@ -82,8 +82,8 @@ def parseSlicerCliXml(fd):
     args.sort(key=lambda p: p.index)
     opts.sort(key=lambda p: p.flag or p.longflag)
 
-    inputArgs = [a for a in args if a.channel == 'input']
-    inputOpts = [o for o in opts if o.channel == 'input']
+    inputArgs = [a for a in args if a.channel == 'input' or a.channel is None]
+    inputOpts = [o for o in opts if o.channel == 'input' or o.channel is None]
     outputArgs = [a for a in args if a.channel == 'output']
     outputOpts = [o for o in opts if o.channel == 'output']
 
@@ -100,6 +100,9 @@ def parseSlicerCliXml(fd):
             'type': typ,
             'format': typ
         }
+
+        if typ in ('string-enumeration', 'number-enumeration'):
+            spec['values'] = list(param.elements)
 
         if param.isExternalType():
             spec['target'] = 'filepath'
@@ -118,15 +121,12 @@ def parseSlicerCliXml(fd):
         if param.typ == 'boolean':
             info['args'].append('$flag{%s}' % name)
         else:
-            info['args'] += [name, '$input{%s}' % name]
+            info['args'].append('%s=$input{%s}' % (name, name))
 
     for param in outputOpts:
         name = param.flag or param.longflag
         info['outputs'].append(ioSpec(name, param))
-        info['args'] += [
-            name,
-            '$output{%s}' % name
-        ]
+        info['args'].append('%s=$output{%s}' % (name, name))
 
     for param in inputArgs:
         info['inputs'].append(ioSpec(param.name, param, True))

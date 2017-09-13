@@ -31,6 +31,8 @@ var CollectionInfoWidget = View.extend({
             DATE_SECOND: DATE_SECOND,
             renderMarkdown: renderMarkdown
         })).girderModal(this);
+
+        return this;
     }
 });
 

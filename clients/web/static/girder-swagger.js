@@ -1,3 +1,4 @@
+/* global _ SwaggerUi SwaggerClient hljs */
 $(function () {
     var apiRoot = $('#g-global-info-apiroot').text().replace(
         '%HOST%', window.location.origin);
@@ -18,15 +19,15 @@ $(function () {
         },
         onFailure: function (data) {
             if (console) {
-                console.log("Unable to Load SwaggerUI");
+                console.log('Unable to Load SwaggerUI');
                 console.log(data);
             }
         },
-        docExpansion: "none",
+        docExpansion: 'none',
         jsonEditor: false,
-        apisSorter: "alpha",
+        apisSorter: 'alpha',
         operationsSorter: sortOperations,
-        defaultModelRendering: "schema",
+        defaultModelRendering: 'schema',
         showRequestHeaders: false,
         validatorUrl: null
     });
@@ -59,14 +60,14 @@ $(function () {
         var cookieParams = document.cookie.split(';').map(function (m) {
             return m.replace(/^\s+/, '').replace(/\s+$/, '');
         });
-        $.each(cookieParams, function (i, val) {
+        _.each(cookieParams, function (val, i) {
             var arr = val.split('=');
             if (arr[0] === 'girderToken') {
                 // Make swagger send the Girder-Token header with each request.
                 var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization(
-                    "Girder-Token", arr[1], "header");
+                    'Girder-Token', arr[1], 'header');
                 window.swaggerUi.api.clientAuthorizations.add(
-                    "Girder-Token", apiKeyAuth);
+                    'Girder-Token', apiKeyAuth);
             }
         });
     }

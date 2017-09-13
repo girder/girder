@@ -52,29 +52,28 @@ var EditFolderWidget = View.extend({
     },
 
     render: function () {
-        var view = this;
         var modal = this.$el.html(EditFolderWidgetTemplate({
             folder: this.folder
-        })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-name').focus();
-            if (view.folder) {
+        })).girderModal(this).on('shown.bs.modal', () => {
+            this.$('#g-name').focus();
+            if (this.folder) {
                 handleOpen('folderedit');
             } else {
                 handleOpen('foldercreate');
             }
-        }).on('hidden.bs.modal', function () {
-            if (view.create) {
+        }).on('hidden.bs.modal', () => {
+            if (this.create) {
                 handleClose('foldercreate');
             } else {
                 handleClose('folderedit');
             }
-        }).on('ready.girder.modal', function () {
-            if (view.folder) {
-                view.$('#g-name').val(view.folder.get('name'));
-                view.descriptionEditor.val(view.folder.get('description'));
-                view.create = false;
+        }).on('ready.girder.modal', () => {
+            if (this.folder) {
+                this.$('#g-name').val(this.folder.get('name'));
+                this.descriptionEditor.val(this.folder.get('description'));
+                this.create = false;
             } else {
-                view.create = true;
+                this.create = true;
             }
         });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));

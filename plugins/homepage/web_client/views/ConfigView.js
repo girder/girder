@@ -23,8 +23,8 @@ var ConfigView = View.extend({
 
     initialize: function () {
         restRequest({
-            type: 'GET',
-            path: 'homepage/markdown'
+            method: 'GET',
+            url: 'homepage/markdown'
         }).done(_.bind(function (resp) {
             this.folder = new FolderModel({_id: resp.folderId});
             this.editor = new MarkdownWidget({
@@ -60,8 +60,8 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
-            path: 'system/setting',
+            method: 'PUT',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)
             },

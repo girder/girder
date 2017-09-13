@@ -34,16 +34,37 @@ class ItemTask(Resource):
     @autoDescribeRoute(
         Description('List all available tasks that can be executed.')
         .pagingParams(defaultSort='name')
+        .param('minFileInputs', 'Filter tasks by minimum number of file inputs.', required=False,
+               dataType='int')
+        .param('maxFileInputs', 'Filter tasks by maximum number of file inputs.', required=False,
+               dataType='int')
     )
     @filtermodel(model='item')
-    def listTasks(self, limit, offset, sort, params):
+    def listTasks(self, limit, offset, sort, minFileInputs, maxFileInputs, params):
         cursor = self.model('item').find({
             'meta.isItemTask': {'$exists': True}
         }, sort=sort)
 
+        if minFileInputs is not None or maxFileInputs is not None:
+            cursor = self._filterMinMaxFileInputs(cursor, minFileInputs, maxFileInputs)
+
         return list(self.model('item').filterResultsByPermission(
             cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
             flags=constants.ACCESS_FLAG_EXECUTE_TASK))
+
+    def _filterMinMaxFileInputs(self, cursor, minFileInputs, maxFileInputs):
+        for item in cursor:
+            fileCount = sum(
+                input['type'] == 'file'
+                for input in
+                item['meta']['itemTaskSpec'].get('inputs', []))
+
+            if minFileInputs is not None and fileCount < minFileInputs:
+                continue
+            elif maxFileInputs is not None and fileCount > maxFileInputs:
+                continue
+            else:
+                yield item
 
     def _validateTask(self, item):
         """
@@ -118,7 +139,7 @@ class ItemTask(Resource):
 
         return transformed
 
-    def _transformOutputs(self, outputs, token, job):
+    def _transformOutputs(self, outputs, token, job, task):
         """
         Validates and sanitizes the output bindings. If they are Girder outputs, adds
         the necessary token info. If the token does not allow DATA_WRITE, or if the user
@@ -129,7 +150,7 @@ class ItemTask(Resource):
             if v['mode'] == 'girder':
                 ensureTokenScopes(token, TokenScope.DATA_WRITE)
                 ptype = v.get('parent_type', 'folder')
-                if ptype not in {'item', 'folder'}:
+                if not self._validateOutputParentType(k, ptype, task['outputs']):
                     raise ValidationException('Invalid output parent type: %s.' % ptype)
 
                 parent = self.model(ptype).load(
@@ -147,6 +168,25 @@ class ItemTask(Resource):
 
         return transformed
 
+    def _validateOutputParentType(self, outputId, parentType, outputSpec):
+        """
+        Checks if the output parent type is compatible with the output type.
+        """
+
+        # Find the corresponding output specification for the given outputID
+        for output in outputSpec:
+            if outputId == output['id']:
+                # If a corresponding output is found, check if its parent type is valid
+                if output['type'] == 'new-file' and parentType not in {'item', 'folder'}:
+                    return False
+                elif output['type'] == 'new-folder' and\
+                        parentType not in {'folder', 'user', 'collection'}:
+                    return False
+                else:
+                    return True
+        else:
+            raise ValidationException('Invalid output id: %s.' % outputId)
+
     @access.user(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
     @filtermodel(model='job', plugin='jobs')
     @autoDescribeRoute(
@@ -161,7 +201,7 @@ class ItemTask(Resource):
         .jsonParam('outputs', 'The output bindings for the task.', required=False,
                    requireObject=True)
     )
-    def executeTask(self, item, jobTitle, includeJobInfo, inputs, outputs, params):
+    def executeTask(self, item, jobTitle, includeJobInfo, inputs, outputs):
         user = self.getCurrentUser()
         if jobTitle is None:
             jobTitle = item['name']
@@ -190,7 +230,7 @@ class ItemTask(Resource):
             'kwargs': {
                 'task': task,
                 'inputs': self._transformInputs(inputs, token),
-                'outputs': self._transformOutputs(outputs, token, job),
+                'outputs': self._transformOutputs(outputs, token, job, task),
                 'validate': False,
                 'auto_convert': False,
                 'cleanup': True

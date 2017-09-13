@@ -19,7 +19,8 @@
 
 import json
 import os
-from inspect import getmembers, ismethod, getargspec
+import requests
+from inspect import getmembers, ismethod, isfunction, getargspec
 
 # Ansible's module magic requires this to be
 # 'from ansible.module_utils.basic import *' otherwise it will error out. See:
@@ -28,11 +29,15 @@ from inspect import getmembers, ismethod, getargspec
 from ansible.module_utils.basic import *  # noqa
 
 try:
-    from girder_client import GirderClient, AuthenticationError, HttpError
+    from girder_client import GirderClient, AuthenticationError
     HAS_GIRDER_CLIENT = True
 except ImportError:
     HAS_GIRDER_CLIENT = False
 
+try:
+    from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
+except ImportError:
+    DEFAULT_REGION = 'us-east-1'
 
 __version__ = "0.3.0"
 
@@ -233,18 +238,18 @@ options:
                            - The S3 bucket to store data in
 
                    prefix:
-                       required: true
+                       required: false
                        description:
                            - Optional path prefix within the bucket under which
                              files will be stored
 
                    accessKeyId:
-                       required: true
+                       required: false
                        description:
                            - the AWS access key ID to use for authentication
 
                    secret:
-                       required: true
+                       required: false
                        description:
                            - the AWS secret key to use for authentication
 
@@ -256,6 +261,14 @@ options:
                            - This can be used to specify a protocol and port
                              -  use the form [http[s]://](host domain)[:(port)]
                            - Do not include the bucket name here
+
+                   region:
+                       required: false
+                       default: us-east
+
+                   inferCredentials:
+                       required: false
+                       default: false
 
               options (hdfs) (EXPERIMENTAL):
                    host:
@@ -330,6 +343,10 @@ options:
                     - A list of folder options
                     - Specified by the 'folder' option to the girder module
                     - (see 'folder:')
+            public:
+                required: false
+                description:
+                    - Set to true if the collection is public or false if private
             access:
                 required: false
                 description:
@@ -370,13 +387,17 @@ options:
             parentId:
                 required: true
                 description:
-                    - The ID of the parent collection
+                    - The ID of the parent collection/folder/user
             folders:
                 required: false
                 description:
                     - A list of folder options
                     - Specified by the 'folder' option to the girder module
                     - (see 'folder:')
+            public:
+                required: false
+                description:
+                    - Set to true if the folder is public or false if private
             access:
                 required: false
                 description:
@@ -858,7 +879,7 @@ EXAMPLES = '''
 def class_spec(cls, include=None):
     include = include if include is not None else []
 
-    for fn, method in getmembers(cls, predicate=ismethod):
+    for fn, method in getmembers(cls, predicate=lambda f: ismethod(f) or isfunction(f)):
         if fn in include:
             spec = getargspec(method)
             # Note: must specify the kind of data we accept
@@ -923,7 +944,7 @@ class Resource(object):
         try:
             ret = self.client.post(self.resource_type, body, **kwargs)
             self.client.changed = True
-        except HttpError as htErr:
+        except requests.HTTPError as htErr:
             try:
                 # If we can't create the item,  try and return
                 # The item with the same name
@@ -942,10 +963,15 @@ class Resource(object):
         if _id in self.resources:
             current = self.resources[_id]
             # if body is a subset of current we don't actually need to update
-            if set(body.items()) <= set(current.items()):
-                return current
-            else:
-                return self.__apply(_id, self.client.put, body, **kwargs)
+            try:
+                if set(body.items()) <= set(
+                        {k: v for k, v in current.items() if k in body}.items()):
+                    return current
+            except TypeError:
+                # If a current value is unhashable, we throw a TypeError, but
+                # should still update it.
+                pass
+            return self.__apply(_id, self.client.put, body, **kwargs)
         else:
             raise Exception("{} does not exist!".format(_id))
 
@@ -1185,7 +1211,7 @@ class GirderClientModule(GirderClient):
         try:
             user = self.get("/resource/lookup",
                             {"path": "/user/{}".format(login)})
-        except HttpError:
+        except requests.HTTPError:
             user = None
         return user
 
@@ -1193,7 +1219,7 @@ class GirderClientModule(GirderClient):
         try:
             # Could potentially fail if we have more 50 groups
             group = {g['name']: g for g in self.get("group")}['name']
-        except (KeyError, HttpError):
+        except (KeyError, requests.HTTPError):
             group = None
         return group
 
@@ -1653,10 +1679,10 @@ class GirderClientModule(GirderClient):
                    replicaset='', bucket=None, prefix='', accessKeyId=None,
                    secret=None, service='s3.amazonaws.com', host=None,
                    port=None, path=None, user=None, webHdfsPort=None,
-                   dbtype=None, dburi=None,
-                   readOnly=False, current=False):
+                   dbtype=None, dburi=None, readOnly=False, current=False,
+                   region=DEFAULT_REGION, inferCredentials=False):
 
-            # Fail if somehow we have an asset type not in assetstore_types
+        # Fail if somehow we have an asset type not in assetstore_types
         if type not in self.assetstore_types.keys():
             self.fail("assetstore type %s is not implemented!" % type)
 
@@ -1671,11 +1697,7 @@ class GirderClientModule(GirderClient):
                        'replicaset': replicaset},
             "s3": {'name': name,
                    'type': self.assetstore_types[type],
-                   'bucket': bucket,
-                   'prefix': prefix,
-                   'accessKeyId': accessKeyId,
-                   'secret': secret,
-                   'service': service},
+                   'bucket': bucket},
             'hdfs': {'name': name,
                      'type': self.assetstore_types[type],
                      'host': host,
@@ -1699,6 +1721,12 @@ class GirderClientModule(GirderClient):
         # Set optional arguments in the hash
         argument_hash[type]['readOnly'] = readOnly
         argument_hash[type]['current'] = current
+        argument_hash[type]['prefix'] = prefix
+        argument_hash[type]['accessKeyId'] = accessKeyId
+        argument_hash[type]['secret'] = secret
+        argument_hash[type]['service'] = service
+        argument_hash[type]['region'] = region
+        argument_hash[type]['inferCredentials'] = inferCredentials
 
         ret = []
         # Get the current assetstores
@@ -1726,7 +1754,8 @@ class GirderClientModule(GirderClient):
                 updateable = ["root", "mongohost", "replicaset", "bucket",
                               "prefix", "db", "accessKeyId", "secret",
                               "service", "host", "port", "path", "user",
-                              "webHdfsPort", "current", "dbtype", "dburi"]
+                              "webHdfsPort", "current", "dbtype", "dburi",
+                              "region", "inferCredentials"]
 
                 # tuples of (key,  value) for fields that can be updated
                 # in the assetstore
@@ -1788,8 +1817,8 @@ class GirderClientModule(GirderClient):
 
             try:
                 response = self.put('system/setting', parameters=params)
-            except HttpError as e:
-                self.fail(json.loads(e.responseText)['message'])
+            except requests.HTTPError as e:
+                self.fail(e.response.json()['message'])
 
             if response and isinstance(value, list):
                 self.changed = set(existing_value) != set(value)
@@ -1816,8 +1845,8 @@ class GirderClientModule(GirderClient):
 
                     ret['previous_value'] = existing_value
                     ret['current_value'] = default
-                except HttpError as e:
-                    self.fail(json.loads(e.responseText)['message'])
+                except requests.HTTPError as e:
+                    self.fail(e.response.json()['message'])
 
         return ret
 
@@ -1870,10 +1899,10 @@ def main():
     try:
         gcm(module)
 
-    except HttpError as e:
+    except requests.HTTPError as e:
         import traceback
         module.fail_json(msg="%s:%s\n%s\n%s" % (e.__class__, str(e),
-                                                e.responseText,
+                                                e.response.text,
                                                 traceback.format_exc()))
     except Exception as e:
         import traceback

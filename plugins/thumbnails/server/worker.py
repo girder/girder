@@ -80,7 +80,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
                 fileModel.download, file, headers=False)
 
     if 'assetstoreId' not in file:
-        # TODO(zachmullen) we could thumbnail link files if we really wanted.
+        # TODO we could thumbnail link files if we really wanted.
         raise Exception('File %s has no assetstore.' % fileId)
 
     stream = streamFn()

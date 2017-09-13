@@ -19,14 +19,18 @@
 
 import bson.json_util
 import dateutil.parser
-import inspect
+try:
+    from inspect import signature, Parameter
+except ImportError:
+    from funcsigs import signature, Parameter
 import jsonschema
 import os
 import six
 import cherrypy
 
-from girder import constants, logprint
+from girder import constants, events, logprint
 from girder.api.rest import getCurrentUser, RestException, getBodyJson
+from girder.constants import CoreEventHandler, SettingKey
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
@@ -80,6 +84,7 @@ class Description(object):
         self._params = []
         self._responses = {}
         self._consumes = []
+        self._produces = []
         self._responseClass = None
         self._responseClassArray = False
         self._notes = None
@@ -124,6 +129,9 @@ class Description(object):
 
         if self._consumes:
             resp['consumes'] = self._consumes
+
+        if self._produces:
+            resp['produces'] = self._produces
 
         if self._deprecated:
             resp['deprecated'] = True
@@ -374,6 +382,13 @@ class Description(object):
         self._consumes.append(value)
         return self
 
+    def produces(self, value):
+        if isinstance(value, (list, tuple)):
+            self._produces.extend(value)
+        else:
+            self._produces.append(value)
+        return self
+
     def notes(self, notes):
         self._notes = notes
         return self
@@ -433,9 +448,25 @@ class ApiDocs(WebrootBase):
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'title': 'Girder - REST API Documentation',
+            'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
             'mode': mode
         }
+
+        events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
+                    self._onSettingSave)
+        events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
+                    self._onSettingRemove)
+
+    def _onSettingSave(self, event):
+        settingDoc = event.info
+        if settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'brandName': settingDoc['value']})
+
+    def _onSettingRemove(self, event):
+        settingDoc = event.info
+        if settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
+                SettingKey.BRAND_NAME)})
 
 
 class Describe(Resource):
@@ -545,16 +576,40 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         :type kwargs: dict
         :param val: The value of the argument to set
         """
-        if name in fun._fnArgs or fun._fnKeywds is not None:
+        if name in self._funNamedArgs or self._funHasKwargs:
             kwargs[name] = val
             kwargs['params'].pop(name, None)
         else:
             kwargs['params'][name] = val
 
+    def _mungeKwargs(self, kwargs, fun):
+        """
+        Performs final modifications to the kwargs passed into the wrapped function.
+        Combines the sort/sortdir params appropriately for consumption by the model
+        layer, and only passes the "params" catch-all dict if there is a corresponding
+        kwarg for it in the wrapped function.
+        """
+        if self.description.hasPagingParams and 'sort' in kwargs:
+            sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
+            kwargs['sort'] = [(kwargs['sort'], sortdir)]
+
+        if 'params' not in self._funNamedArgs and not self._funHasKwargs:
+            kwargs.pop('params', None)
+
+    def _inspectFunSignature(self, fun):
+        self._funNamedArgs = set()
+        self._funHasKwargs = False
+        for funParam in six.viewvalues(signature(fun).parameters):
+            if funParam.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}:
+                # POSITIONAL_OR_KEYWORD are basic positional parameters
+                # KEYWORD_ONLY are named parameters that appear after a * in Python 3
+                self._funNamedArgs.add(funParam.name)
+            elif funParam.kind == Parameter.VAR_KEYWORD:
+                # VAR_KEYWORD is the **kwargs parameter
+                self._funHasKwargs = True
+
     def __call__(self, fun):
-        fnInfo = inspect.getargspec(fun)
-        fun._fnArgs = set(fnInfo.args)
-        fun._fnKeywds = fnInfo.keywords
+        self._inspectFunSignature(fun)
 
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
@@ -605,9 +660,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     else:
                         self._passArg(fun, kwargs, name, None)
 
-            if self.description.hasPagingParams and 'sort' in kwargs:
-                sortdir = kwargs.pop('sortdir', None) or kwargs['params'].pop('sortdir', None)
-                kwargs['sort'] = [(kwargs['sort'], sortdir)]
+            self._mungeKwargs(kwargs, fun)
 
             return fun(*args, **kwargs)
 
@@ -725,6 +778,6 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
             raise RestException('Invalid value for %s: "%s". Allowed values: %s.' % (
-                name, value, ', '.join(descParam['enum'])))
+                name, value, ', '.join(str(v) for v in descParam['enum'])))
 
         return value

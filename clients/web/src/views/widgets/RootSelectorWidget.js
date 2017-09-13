@@ -103,6 +103,8 @@ var RootSelectorWidget = View.extend({
                 format: this._formatName
             })
         );
+
+        return this;
     },
 
     /**

@@ -74,16 +74,12 @@ var UserView = View.extend({
                 this.folder.set({
                     _id: settings.folderId
                 }).on('g:fetched', function () {
-                    this._createHierarchyWidget();
                     this.render();
                 }, this).on('g:error', function () {
                     this.folder = null;
-                    this._createHierarchyWidget();
-
                     this.render();
                 }, this).fetch();
             } else {
-                this._createHierarchyWidget();
                 this.render();
             }
         } else if (settings.id) {
@@ -91,22 +87,9 @@ var UserView = View.extend({
             this.model.set('_id', settings.id);
 
             this.model.on('g:fetched', function () {
-                this._createHierarchyWidget();
                 this.render();
             }, this).fetch();
         }
-    },
-
-    _createHierarchyWidget: function () {
-        this.hierarchyWidget = new HierarchyWidget({
-            parentModel: this.folder || this.model,
-            upload: this.upload,
-            folderAccess: this.folderAccess,
-            folderEdit: this.folderEdit,
-            folderCreate: this.folderCreate,
-            itemCreate: this.itemCreate,
-            parentView: this
-        });
     },
 
     render: function () {
@@ -115,7 +98,23 @@ var UserView = View.extend({
             AccessType: AccessType
         }));
 
-        this.hierarchyWidget.setElement(this.$('.g-user-hierarchy-container')).render();
+        if (!this.hierarchyWidget) {
+            // The HierarchyWidget will self-render when instantiated
+            this.hierarchyWidget = new HierarchyWidget({
+                el: this.$('.g-user-hierarchy-container'),
+                parentModel: this.folder || this.model,
+                upload: this.upload,
+                folderAccess: this.folderAccess,
+                folderEdit: this.folderEdit,
+                folderCreate: this.folderCreate,
+                itemCreate: this.itemCreate,
+                parentView: this
+            });
+        } else {
+            this.hierarchyWidget
+                .setElement(this.$('.g-user-hierarchy-container'))
+                .render();
+        }
 
         this.upload = false;
         this.folderAccess = false;

@@ -29,7 +29,7 @@ import traceback
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor, VERSION
 from girder.utility import config, mkdir
 
-__version__ = '2.2.0'
+__version__ = '2.3.0'
 __license__ = 'Apache 2.0'
 
 
@@ -71,7 +71,8 @@ class LogFormatter(logging.Formatter):
 
     def format(self, record, *args, **kwargs):
         if hasattr(record, 'name') and hasattr(record, 'message'):
-            if record.name.startswith('cherrypy.access'):
+            if (record.name.startswith('cherrypy.access') or
+                    record.name.startswith('cherrypy.error')):
                 return record.message
         return super(LogFormatter, self).format(record, *args, **kwargs)
 
@@ -108,7 +109,7 @@ class StreamToLogger:
     def write(self, buf):
         if not self.logger._girderLogHandlerOutput:
             self.logger._girderLogHandlerOutput = True
-            _originalStdOut.write(buf)
+            self.stream.write(buf)
             for line in buf.rstrip().splitlines():
                 self.logger.log(self.level, line.rstrip())
             self.logger._girderLogHandlerOutput = False
@@ -190,6 +191,8 @@ def _setupLogger():
         eh._girderLogHandler = 'error'
         eh.setFormatter(fmt)
         logger.addHandler(eh)
+        # Record cherrypy errors in our logs, too
+        cherrypy.log.error_log.addHandler(eh)
     else:
         infoMaxLevel = logging.CRITICAL
 
@@ -202,9 +205,8 @@ def _setupLogger():
     ih._girderLogHandler = 'info'
     ih.setFormatter(fmt)
     logger.addHandler(ih)
-
-    sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
-    sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
+    # Record cherrypy errors in our logs, too
+    cherrypy.log.error_log.addHandler(ih)
 
     # Log http accesses to the screen and/or the info log.
     accessLog = logCfg.get('log_access', 'screen')
@@ -219,6 +221,12 @@ def _setupLogger():
 
 
 logger = _setupLogger()
+
+
+def logStdoutStderr():
+    if _originalStdOut == sys.stdout:
+        sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
+        sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
 
 
 def logprint(*args, **kwargs):

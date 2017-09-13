@@ -13,30 +13,37 @@ import 'girder/utilities/jquery/girderModal';
 /**
  * This widget is used to create a new collection or edit an existing one.
  */
-var EditCollectionWidget = View.extend({
+const EditCollectionWidget = View.extend({
     events: {
         'submit #g-collection-edit-form': function (e) {
             e.preventDefault();
 
-            var fields = {
+            const fields = {
                 name: this.$('#g-name').val(),
                 description: this.descriptionEditor.val()
             };
 
-            if (this.model) {
-                this.updateCollection(fields);
-            } else {
-                this.createCollection(fields);
-            }
-
             this.descriptionEditor.saveText();
             this.$('button.g-save-collection').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
+
+            this._saveCollection(fields)
+                .always(() => {
+                    this.$('button.g-save-collection').girderEnable(true);
+                })
+                .done(() => {
+                    this.$el.modal('hide');
+                })
+                .fail((err) => {
+                    this.$('.g-validation-failed-message').text(err.responseJSON.message);
+                    this.$('#g-' + err.responseJSON.field).focus();
+                });
         }
     },
 
     initialize: function (settings) {
-        this.model = settings.model || null;
+        this.create = !settings.model;
+        this.model = settings.model || new CollectionModel();
         this.descriptionEditor = new MarkdownWidget({
             text: this.model ? this.model.get('description') : '',
             prefix: 'collection-description',
@@ -47,62 +54,49 @@ var EditCollectionWidget = View.extend({
     },
 
     render: function () {
-        var view = this;
-        var modal = this.$el.html(EditCollectionWidgetTemplate({
-            collection: view.model
-        })).girderModal(this).on('shown.bs.modal', function () {
-            view.$('#g-name').focus();
-        }).on('hidden.bs.modal', function () {
-            if (view.create) {
-                handleClose('create');
-            } else {
-                handleClose('edit');
-            }
-        }).on('ready.girder.modal', function () {
-            if (view.model) {
-                view.$('#g-name').val(view.model.get('name'));
-                view.$('#g-description').val(view.model.get('description'));
-                view.create = false;
-            } else {
-                view.create = true;
-            }
-        });
+        this.$el.html(EditCollectionWidgetTemplate({
+            create: this.create,
+            collection: this.model
+        }));
+        const modal = this.$el
+            .girderModal(this)
+            .on('shown.bs.modal', () => {
+                this.$('#g-name').focus();
+            })
+            .on('hidden.bs.modal', () => {
+                handleClose(this.create ? 'create' : 'edit');
+            })
+            .on('ready.girder.modal', () => {
+                if (!this.create) {
+                    this.$('#g-name').val(this.model.get('name'));
+                    this.$('#g-description').val(this.model.get('description'));
+                }
+            });
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
         this.descriptionEditor.setElement(this.$('.g-description-editor-container')).render();
         this.$('#g-name').focus();
 
-        if (view.model) {
-            handleOpen('edit');
-        } else {
-            handleOpen('create');
-        }
+        handleOpen(this.create ? 'create' : 'edit');
 
         return this;
     },
 
     createCollection: function (fields) {
-        var collection = new CollectionModel();
-        collection.set(fields);
-        collection.on('g:saved', function () {
-            this.$el.modal('hide');
-            this.trigger('g:saved', collection);
-        }, this).off('g:error').on('g:error', function (err) {
-            this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-collection').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
-        }, this).save();
+        console.warn('The createCollection method is deprecated; use _saveCollection instead');
+        this._saveCollection(fields);
     },
 
     updateCollection: function (fields) {
+        console.warn('The updateCollection method is deprecated; use _saveCollection instead');
+        this._saveCollection(fields);
+    },
+
+    _saveCollection: function (fields) {
         this.model.set(fields);
-        this.model.on('g:saved', function () {
-            this.$el.modal('hide');
-            this.trigger('g:saved', this.model);
-        }, this).off('g:error').on('g:error', function (err) {
-            this.$('.g-validation-failed-message').text(err.responseJSON.message);
-            this.$('button.g-save-collection').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
-        }, this).save();
+        return this.model.save()
+            .done(() => {
+                this.trigger('g:saved', this.model);
+            });
     }
 });
 

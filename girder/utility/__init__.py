@@ -26,6 +26,7 @@ import os
 import pytz
 import re
 import string
+import six
 
 import girder
 import girder.events
@@ -164,6 +165,9 @@ class RequestBodyStream(object):
     def __iter__(self):
         return self
 
+    def __len__(self):
+        return self.getSize()
+
     def next(self):
         data = self.read(self._ITER_CHUNK_LEN)
         if not data:
@@ -183,3 +187,57 @@ class RequestBodyStream(object):
             return self.size
 
         return int(cherrypy.request.headers['Content-Length'])
+
+
+def optionalArgumentDecorator(baseDecorator):
+    """
+    This decorator can be applied to other decorators, allowing the target decorator to be used
+    either with or without arguments.
+
+    The target decorator is expected to take at least 1 argument: the function to be wrapped. If
+    additional arguments are provided by the final implementer of the target decorator, they will
+    be passed to the target decorator as additional arguments.
+
+    For example, this may be used as:
+
+        @optionalArgumentDecorator
+        def myDec(fun, someArg=None):
+            ...
+
+        @myDec
+        def a(...):
+            ...
+
+        @myDec()
+        def a(...):
+            ...
+
+        @myDec(5)
+        def a(...):
+            ...
+
+        @myDec(someArg=5)
+        def a(...):
+            ...
+
+    :param baseDecorator: The target decorator.
+    :type baseDecorator: callable
+    """
+    @six.wraps(baseDecorator)
+    def normalizedArgumentDecorator(*args, **kwargs):
+        if len(args) == 1 and callable(args[0]):  # Applied as a raw decorator
+            decoratedFunction = args[0]
+            # baseDecorator must wrap and return decoratedFunction
+            return baseDecorator(decoratedFunction)
+        else:   # Applied as a argument-containing decorator
+            # Decoration will occur in two passes:
+            #   * Now, the decorator arguments are passed, and a new decorator should be returned
+            #   * Afterwards, the new decorator will be called to decorate the decorated function
+            decoratorArgs = args
+            decoratorKwargs = kwargs
+
+            def partiallyAppliedDecorator(decoratedFunction):
+                return baseDecorator(decoratedFunction, *decoratorArgs, **decoratorKwargs)
+            return partiallyAppliedDecorator
+
+    return normalizedArgumentDecorator

@@ -11,7 +11,6 @@ import 'bootstrap/js/modal';
  *             to just close an open modal dialog.
  */
 $.fn.girderModal = function (view) {
-    var that = this;
     /* If we have a modal dialog open, or one is in the process of closing,
      * close that dialog before opening the new one.  This prevents
      * layering modal dialogs, but also makes sure that we don't have a
@@ -36,9 +35,9 @@ $.fn.girderModal = function (view) {
         // the modal (and sending the 'shown.bs.modal' event) *before* we get to
         // register the event in .on('shown.bs.modal', cb). Let's show
         // the modal in the next animation frame to fix this behavior for now.
-        setTimeout(function () {
-            that.modal().find('[data-dismiss="modal"]').off('click').click(function () {
-                that.modal('hide');
+        setTimeout(() => {
+            this.modal().find('[data-dismiss="modal"]').off('click').click(() => {
+                this.modal('hide');
             });
         }, 0);
         if (view !== false) {

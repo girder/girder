@@ -6,6 +6,7 @@
   become: yes
   become_user: root
   with_items:
+    - curl
     - git
     - libffi-dev
     - build-essential

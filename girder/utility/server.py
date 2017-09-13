@@ -26,9 +26,8 @@ import posixpath
 import six
 
 import girder.events
-from girder import constants, logprint, __version__
-from girder.utility import plugin_utilities, model_importer
-from girder.utility import config
+from girder import constants, logprint, __version__, logStdoutStderr
+from girder.utility import plugin_utilities, model_importer, config
 from . import webroot
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
@@ -225,6 +224,8 @@ def setup(test=False, plugins=None, curConfig=None):
     :param plugins: List of plugins to enable.
     :param curConfig: The config object to update.
     """
+    logStdoutStderr()
+
     pluginWebroots = plugin_utilities.getPluginWebroots()
     girderWebroot, appconf = configureServer(test, plugins, curConfig)
     routeTable = loadRouteTable(reconcileRoutes=True)

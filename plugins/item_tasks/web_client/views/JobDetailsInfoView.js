@@ -8,6 +8,7 @@ var JobDetailsInfoView = View.extend({
         this.$el.html(template({
             job: this.model
         }));
+        return this;
     }
 });
 

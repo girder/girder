@@ -6,15 +6,15 @@ p.
 form#g-worker-settings-form(role="form")
   .form-group
     label.control-label(for="g-worker-broker") Celery broker URL
-    input.input-sm.form-control#g-worker-broker(
+    input#g-worker-broker.input-sm.form-control(
       type="text", placeholder="Broker (default: amqp://guest@localhost/)")
   .form-group
     label.control-label(for="g-worker-backend") Celery backend URL
-    input.input-sm.form-control#g-worker-backend(
+    input#g-worker-backend.input-sm.form-control(
       type="text", placeholder="Backend (default: amqp://guest@localhost/)")
   .form-group
     label.control-label(for="g-worker-api-url") Alternative Girder API URL
-    input.input-sm.form-control#g-worker-api-url(
+    input#g-worker-api-url.input-sm.form-control(
       type="text", placeholder="API URL (default: auto-detected)")
   p#g-worker-settings-error-message.g-validation-failed-message
   input.btn.btn-sm.btn-primary(type="submit", value="Save")

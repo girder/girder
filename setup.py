@@ -54,15 +54,15 @@ class InstallWithOptions(install):
                     os.path.join(dest, 'clients', 'web', 'src', 'assets'))
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
-        self.mergeDir('scripts', dest)
 
 with open('README.rst') as f:
     readme = f.read()
 
 install_reqs = [
     'bcrypt',
-    'boto',
+    'boto3',
     'CherryPy',
+    'click',
     'filelock',
     'jsonschema',
     'Mako',
@@ -82,7 +82,7 @@ extras_reqs = {
     'item_tasks': ['ctk-cli'],
     'ldap': ['pyldap'],
     'thumbnails': ['Pillow', 'pydicom', 'numpy'],
-    'worker': ['celery']
+    'worker': ['celery>=4.0.0']
 }
 all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values())
 extras_reqs['plugins'] = list(set(all_extra_reqs))
@@ -103,6 +103,8 @@ if sys.version_info[0] == 2:
             'hachoir-parser'
         ]
     })
+if sys.version_info[0:2] < (3, 5):
+    install_reqs.append('funcsigs')
 
 extras_reqs['sftp'] = ['paramiko']
 
@@ -156,7 +158,8 @@ setup(
         'console_scripts': [
             'girder-server = girder.__main__:main',
             'girder-install = girder.utility.install:main',
-            'girder-sftpd = girder.api.sftp:_main'
+            'girder-sftpd = girder.api.sftp:_main',
+            'girder-shell = girder.utility.shell:main'
         ]
     }
 )

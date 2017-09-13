@@ -20,7 +20,7 @@
 import six
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource as BaseResource, RestException, setResponseHeader
+from ..rest import Resource as BaseResource, RestException, setResponseHeader, setContentDisposition
 from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.utility import parseTimestamp
@@ -65,7 +65,7 @@ class Resource(BaseResource):
         .pagingParams(defaultSort=None, defaultLimit=10)
         .errorResponse('Invalid type list format.')
     )
-    def search(self, q, mode, types, level, limit, offset, params):
+    def search(self, q, mode, types, level, limit, offset):
         level = AccessType.validate(level)
         user = self.getCurrentUser()
 
@@ -142,7 +142,7 @@ class Resource(BaseResource):
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403)
     )
-    def lookup(self, path, test, params):
+    def lookup(self, path, test):
         return path_util.lookUpPath(path, self.getCurrentUser(), test)['document']
 
     @access.public(scope=TokenScope.DATA_READ)
@@ -154,7 +154,7 @@ class Resource(BaseResource):
         .errorResponse('Invalid resource type.')
         .errorResponse('Read access was denied for the resource.', 403)
     )
-    def path(self, id, type, params):
+    def path(self, id, type):
         user = self.getCurrentUser()
         doc = self._getResource(id, type)
         if doc is None:
@@ -175,13 +175,14 @@ class Resource(BaseResource):
                    '"folder": [(folder id 1)]}.', requireObject=True)
         .param('includeMetadata', 'Include any metadata in JSON files in the '
                'archive.', required=False, dataType='boolean', default=False)
-        .errorResponse('Unsupport or unknown resource type.')
+        .produces('application/zip')
+        .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
         .errorResponse('Read access was denied for a resource.', 403)
     )
-    def download(self, resources, includeMetadata, params):
+    def download(self, resources, includeMetadata):
         """
         Returns a generator function that will be used to stream out a zip
         file containing the listed resource's contents, filtered by
@@ -197,7 +198,7 @@ class Resource(BaseResource):
                 if not model.load(id=id, user=user, level=AccessType.READ):
                     raise RestException('Resource %s %s not found.' % (kind, id))
         setResponseHeader('Content-Type', 'application/zip')
-        setResponseHeader('Content-Disposition', 'attachment; filename="Resources.zip"')
+        setContentDisposition('Resources.zip')
 
         def stream():
             zip = ziputil.ZipGenerator()
@@ -220,13 +221,13 @@ class Resource(BaseResource):
                    '(item id2)], "folder": [(folder id 1)]}.', requireObject=True)
         .param('progress', 'Whether to record progress on this task.',
                default=False, required=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
         .errorResponse('Admin access was denied for a resource.', 403)
     )
-    def delete(self, resources, progress, params):
+    def delete(self, resources, progress):
         user = self.getCurrentUser()
         self._validateResourceSet(resources, allowedDeleteTypes)
         total = sum([len(resources[key]) for key in resources])
@@ -264,7 +265,7 @@ class Resource(BaseResource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the resource.', 403)
     )
-    def getResource(self, id, type, params):
+    def getResource(self, id, type):
         return self._getResource(id, type)
 
     @access.admin
@@ -277,7 +278,7 @@ class Resource(BaseResource):
         .errorResponse('ID was invalid.')
         .errorResponse('Access was denied for the resource.', 403)
     )
-    def setTimestamp(self, id, type, created, updated, params):
+    def setTimestamp(self, id, type, created, updated):
         user = self.getCurrentUser()
         model = self._getResourceModel(type)
         doc = model.load(id=id, user=user, level=AccessType.WRITE, exc=True)
@@ -312,14 +313,14 @@ class Resource(BaseResource):
         .param('parentId', 'Parent ID for the new parent of these resources.')
         .param('progress', 'Whether to record progress on this task.',
                required=False, default=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('Resource type not supported.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
         .errorResponse('ID was invalid.')
     )
-    def moveResources(self, resources, parentType, parentId, progress, params):
+    def moveResources(self, resources, parentType, parentId, progress):
         user = self.getCurrentUser()
         parent = self._prepareMoveOrCopy(resources, parentType, parentId)
         total = sum([len(resources[key]) for key in resources])
@@ -352,14 +353,14 @@ class Resource(BaseResource):
         .param('parentId', 'Parent ID for the new parent of these resources.')
         .param('progress', 'Whether to record progress on this task.',
                required=False, default=False, dataType='boolean')
-        .errorResponse('Unsupport or unknown resource type.')
+        .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('Resource type not supported.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
         .errorResponse('ID was invalid.')
     )
-    def copyResources(self, resources, parentType, parentId, progress, params):
+    def copyResources(self, resources, parentType, parentId, progress):
         user = self.getCurrentUser()
         parent = self._prepareMoveOrCopy(resources, parentType, parentId)
         total = len(resources.get('item', []))

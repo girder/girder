@@ -321,27 +321,28 @@ girderTest.testMetadata = function () {
 
         if (type === 'tree') {
             if (!_.isObject(value)) {
-                $('.jsoneditor button.contextmenu:first', elem).click();
+                $('.jsoneditor button.jsoneditor-contextmenu:first', elem).click();
+                $('.jsoneditor-contextmenu .jsoneditor-type-object:first').click();
 
-                $('.jsoneditor-contextmenu .type-object:first').click();
-                $('.jsoneditor-contextmenu .type-auto:first').click();
+                $('.jsoneditor button.jsoneditor-contextmenu:first', elem).click();
+                $('.jsoneditor-contextmenu .jsoneditor-type-auto:first').click();
 
-                $('.jsoneditor table.values div.value.empty', elem).text(value);
+                $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).text(value);
 
-                $('.jsoneditor table.values .empty', elem).trigger('keyup');
+                $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).trigger('keyup');
 
                 return;
             }
 
             for (var arrKey in value) {
                 if (value.hasOwnProperty(arrKey)) {
-                    $('.jsoneditor button.contextmenu', elem).click();
-                    $('.jsoneditor-contextmenu button.insert').click();
-                    $('.jsoneditor table.values div.field.empty', elem).text(arrKey);
-                    $('.jsoneditor table.values div.value.empty', elem).text(value[arrKey]);
+                    $('.jsoneditor button.jsoneditor-contextmenu', elem).click();
+                    $('.jsoneditor-contextmenu button.jsoneditor-insert').click();
+                    $('.jsoneditor table.jsoneditor-values div.jsoneditor-field.jsoneditor-empty', elem).text(arrKey);
+                    $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).text(value[arrKey]);
 
                     // trigger update for JSONEditor to do internal tasks
-                    $('.jsoneditor table.values .empty', elem).trigger('keyup');
+                    $('.jsoneditor table.jsoneditor-values .jsoneditor-empty', elem).trigger('keyup');
                 }
             }
         }
@@ -444,7 +445,7 @@ girderTest.testMetadata = function () {
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 1 &&
                 ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 1
-                                     : $('.jsoneditor > .outer > .tree').length === 1);
+                                     : $('.jsoneditor > .jsoneditor-outer > .jsoneditor-tree').length === 1);
         }, 'the add metadata input fields to appear');
         runs(function () {
             if (!elem) {
@@ -503,7 +504,7 @@ girderTest.testMetadata = function () {
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 0 &&
                 ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 0
-                                     : $('.jsoneditor > .outer > .tree').length === 0);
+                                     : $('.jsoneditor > .jsoneditor-outer > .jsoneditor-tree').length === 0);
         }, 'edit fields to disappear');
         waitsFor(function () {
             return $('.g-widget-metadata-row').length === expectedNum;
@@ -762,8 +763,8 @@ girderTest.binaryUpload = function (path) {
         oldLen = $('.g-item-list-entry').length;
 
         girder.rest.restRequest({
-            path: 'webclienttest/file',
-            type: 'POST',
+            url: 'webclienttest/file',
+            method: 'POST',
             data: {
                 path: path,
                 folderId: folderId
@@ -1167,10 +1168,12 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
  * so we can print the log after a test failure.
  */
 (function () {
+    var MAX_AJAX_LOG_SIZE = 20;
+    var logIndex = 0;
     var ajaxCalls = [];
-    var backboneAjax = Backbone.ajax;
+    var backboneAjax = Backbone.$.ajax;
 
-    Backbone.ajax = function () {
+    Backbone.$.ajax = function () {
         var opts = {}, record;
 
         if (arguments.length === 1) {
@@ -1187,9 +1190,10 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
             opts: opts
         };
 
-        ajaxCalls.push(record);
+        ajaxCalls[logIndex] = record;
+        logIndex = (logIndex + 1) % MAX_AJAX_LOG_SIZE;
 
-        return backboneAjax(opts).done(
+        return backboneAjax.call(Backbone.$, opts).done(
             function (data, textStatus) {
                 record.status = textStatus;
                 // this data structure has circular references that cannot be serialized.
@@ -1202,9 +1206,10 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     };
 
     girderTest.ajaxLog = function (reset) {
-        var calls = ajaxCalls;
+        var calls = ajaxCalls.slice(logIndex, ajaxCalls.length).concat(ajaxCalls.slice(0, logIndex));
         if (reset) {
             ajaxCalls = [];
+            logIndex = 0;
         }
         return calls;
     };
@@ -1237,47 +1242,47 @@ $(function () {
 });
 
 /**
- * Wait for all of the sources to load and then start the main girder application.
- * This will also delay the invocation of the jasmine test suite until after the
+ * Wait for all of the sources to load and then start the main Girder application.
+ * This will also delay the invocation of the Jasmine test suite until after the
  * application is running.  This method returns a promise that resolves with the
  * application object.
  */
 girderTest.startApp = function () {
-    var defer = new $.Deferred();
-    girderTest.promise.done(function () {
-        /* Track bootstrap transitions.  This is largely a duplicate of the
-         * Bootstrap emulateTransitionEnd function, with the only change being
-         * our tracking of the transition.  This still relies on the browser
-         * possibly firing css transition end events, with this function as a
-         * fail-safe. */
-        $.fn.emulateTransitionEnd = function (duration) {
-            girder._inTransition = true;
-            var called = false;
-            var $el = this;
-            $(this).one('bsTransitionEnd', function () { called = true; });
-            var callback = function () {
-                if (!called) {
-                    $($el).trigger($.support.transition.end);
-                }
-                girder._inTransition = false;
+    girderTest.promise = girderTest.promise
+        .then(function () {
+            /* Track bootstrap transitions.  This is largely a duplicate of the
+             * Bootstrap emulateTransitionEnd function, with the only change being
+             * our tracking of the transition.  This still relies on the browser
+             * possibly firing css transition end events, with this function as a
+             * fail-safe. */
+            $.fn.emulateTransitionEnd = function (duration) {
+                girder._inTransition = true;
+                var called = false;
+                var $el = this;
+                $(this).one('bsTransitionEnd', function () {
+                    called = true;
+                });
+                var callback = function () {
+                    if (!called) {
+                        $($el).trigger($.support.transition.end);
+                    }
+                    girder._inTransition = false;
+                };
+                setTimeout(callback, duration);
+                return this;
             };
-            setTimeout(callback, duration);
-            return this;
-        };
 
-        girder.events.trigger('g:appload.before');
-        var app = new girder.views.App({
-            el: 'body',
-            parentView: null,
-            start: false
+            girder.events.trigger('g:appload.before');
+            girder.app = new girder.views.App({
+                el: 'body',
+                parentView: null,
+                start: false
+            });
+            return girder.app.start();
+        })
+        .then(function () {
+            girder.events.trigger('g:appload.after', girder.app);
+            return girder.app;
         });
-        app.start().done(function () {
-            girder.events.trigger('g:appload.after');
-            defer.resolve(app);
-        });
-    }).fail(function () {
-        defer.reject.apply(defer, arguments);
-    });
-    girderTest.promise = defer.promise();
     return girderTest.promise;
 };

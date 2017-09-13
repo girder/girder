@@ -22,6 +22,7 @@ import girder_client
 import json
 import mock
 import os
+import requests
 import shutil
 import six
 from six import StringIO
@@ -110,6 +111,34 @@ class PythonClientTestCase(base.TestCase):
 
             return folders[0]
 
+    def testAuthenticateRaisesHTTPError(self):
+        # Test non "OK" responses throw HTTPError
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(500, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(requests.HTTPError):
+                self.client.authenticate(self.user['login'], self.password)
+
+    def testAuthenticateRaisesAuthenticationError(self):
+        # Test 401/403 raise AuthenticationError
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(401, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.AuthenticationError):
+                self.client.authenticate(self.user['login'], self.password)
+
+        @httmock.urlmatch(path=r'.*/user/authentication$')
+        def mock(url, request):
+            return httmock.response(403, None, request=request)
+
+        with httmock.HTTMock(mock):
+            with self.assertRaises(girder_client.AuthenticationError):
+                self.client.authenticate(self.user['login'], self.password)
+
     def testRestCore(self):
         self.assertTrue(self.user['admin'])
 
@@ -144,10 +173,10 @@ class PythonClientTestCase(base.TestCase):
         flag = False
         try:
             self.client.getResource('user/badId')
-        except girder_client.HttpError as e:
-            self.assertEqual(e.status, 400)
-            self.assertEqual(e.method, 'GET')
-            resp = json.loads(e.responseText)
+        except requests.HTTPError as e:
+            self.assertEqual(e.response.status_code, 400)
+            self.assertEqual(e.request.method, 'GET')
+            resp = e.response.json()
             self.assertEqual(resp['type'], 'validation')
             self.assertEqual(resp['field'], 'id')
             self.assertEqual(resp['message'], 'Invalid ObjectId: badId')
@@ -177,6 +206,10 @@ class PythonClientTestCase(base.TestCase):
         self.assertIn('groups', acl)
 
         self.client.setFolderAccess(privateFolder['_id'], json.dumps(acl), public=False)
+        self.assertEqual(acl, self.client.getFolderAccess(privateFolder['_id']))
+
+        # Ensure setFolderAccess also accepts a dict
+        self.client.setFolderAccess(privateFolder['_id'], acl, public=False)
         self.assertEqual(acl, self.client.getFolderAccess(privateFolder['_id']))
 
         # Test recursive ACL propagation (not very robust test yet)
@@ -434,6 +467,40 @@ class PythonClientTestCase(base.TestCase):
         self.assertNotEqual(eventList[2]['file']['_id'],
                             eventList[-1]['file']['_id'])
 
+    def testUploadFileToFolder(self):
+        filepath = os.path.join(self.libTestDir, 'sub0', 'f')
+
+        stream_filename = 'uploaded_from_stream'
+        disk_filename = 'uploaded_from_disk'
+
+        # upload filepath as a stream and as a local file, and assert the end result is the same
+        with open(filepath, 'rb') as infile:
+            infile.seek(0, os.SEEK_END)
+            size = infile.tell()
+            infile.seek(0)
+
+            self.client.uploadStreamToFolder(str(self.publicFolder['_id']), infile, stream_filename,
+                                             size, mimeType='text/plain')
+
+        self.client.uploadFileToFolder(str(self.publicFolder['_id']), filepath,
+                                       filename=disk_filename)
+
+        stream_item = six.next(self.client.listItem(str(self.publicFolder['_id']),
+                                                    name=stream_filename))
+        disk_item = six.next(self.client.listItem(str(self.publicFolder['_id']),
+                                                  name=disk_filename))
+
+        # assert names and sizes are correct
+        self.assertEqual(stream_filename, stream_item['name'])
+        self.assertEqual(size, stream_item['size'])
+        self.assertEqual(disk_filename, disk_item['name'])
+        self.assertEqual(size, disk_item['size'])
+
+        # assert every other field (besides unique ones) are identical
+        unique_attrs = ('_id', 'name', 'created', 'updated')
+        self.assertEqual({k: v for (k, v) in six.viewitems(stream_item) if k not in unique_attrs},
+                         {k: v for (k, v) in six.viewitems(disk_item) if k not in unique_attrs})
+
     def testUploadContentWithMultipart(self):
         with mock.patch.object(self.client, 'getServerVersion', return_value=['2', '1', '0']):
             self._testUploadContent()
@@ -565,9 +632,9 @@ class PythonClientTestCase(base.TestCase):
         def mock(url, request):
             return httmock.response(500, 'error', request=request)
 
-        # Attempt to download file to object stream, should raise HttpError
+        # Attempt to download file to object stream, should raise HTTPError
         with httmock.HTTMock(mock):
-            with self.assertRaises(girder_client.HttpError):
+            with self.assertRaises(requests.HTTPError):
                 self.client.downloadFile(file['_id'], obj)
 
     def testAddMetadataToItem(self):
@@ -653,7 +720,7 @@ class PythonClientTestCase(base.TestCase):
                          item['_id'])
 
         # Test invalid path, default
-        with self.assertRaises(girder_client.HttpError) as cm:
+        with self.assertRaises(requests.HTTPError) as cm:
             self.client.resourceLookup(testInvalidPath)
 
         self.assertEqual(cm.exception.status, 400)
@@ -679,12 +746,12 @@ class PythonClientTestCase(base.TestCase):
             item['_id'])
 
         # Test invalid path, test = False
-        with self.assertRaises(girder_client.HttpError) as cm:
+        with self.assertRaises(requests.HTTPError) as cm:
             self.client.resourceLookup(testInvalidPath, test=False)
 
-        self.assertEqual(cm.exception.status, 400)
-        self.assertEqual(cm.exception.method, 'GET')
-        resp = json.loads(cm.exception.responseText)
+        self.assertEqual(cm.exception.response.status_code, 400)
+        self.assertEqual(cm.exception.request.method, 'GET')
+        resp = cm.exception.response.json()
         self.assertEqual(resp['type'], 'validation')
         self.assertEqual(resp['message'], 'Path not found: %s' % (testInvalidPath))
 
@@ -788,3 +855,39 @@ class PythonClientTestCase(base.TestCase):
     def testNonJsonResponse(self):
         resp = self.client.get('user', jsonResp=False)
         self.assertIsInstance(resp.content, six.binary_type)
+
+    def testCreateItemWithMeta(self):
+        testMeta = {
+            'meta': {
+                'meta': 'meta'
+            }
+
+        }
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'meta', metadata=json.dumps(testMeta))
+
+        self.assertEquals(self.client.getItem(item['_id'])['meta'], testMeta)
+
+        # Try dict form
+        item = self.client.createItem(self.publicFolder['_id'],
+                                      'meta-dict', metadata=testMeta)
+
+        self.assertEquals(self.client.getItem(item['_id'])['meta'], testMeta)
+
+    def testCreateFolderWithMeta(self):
+        testMeta = {
+            'meta': {
+                'meta': 'meta'
+            }
+
+        }
+        folder = self.client.createFolder(self.publicFolder['_id'],
+                                          'meta', metadata=json.dumps(testMeta))
+
+        self.assertEquals(self.client.getFolder(folder['_id'])['meta'], testMeta)
+
+        # Try dict form
+        folder = self.client.createFolder(self.publicFolder['_id'],
+                                          'meta-dict', metadata=testMeta)
+
+        self.assertEquals(self.client.getFolder(folder['_id'])['meta'], testMeta)

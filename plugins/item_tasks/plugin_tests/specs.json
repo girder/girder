@@ -1,14 +1,23 @@
 [
-  {
-    "description": "Task 1 description",
-    "mode": "docker",
-    "inputs": [],
-    "outputs": []
-  },
-  {
-    "description": "Task 2 description",
-    "mode": "docker",
-    "inputs": [],
-    "outputs": []
-  }
+    {
+        "description": "Task 1 description",
+        "mode": "docker",
+        "inputs": [],
+        "outputs": []
+    },
+    {
+        "description": "Task 2 description",
+        "mode": "docker",
+        "inputs": [
+            {
+                "name": "Test File",
+                "description": "Test File",
+                "id": "testData",
+                "required": true,
+                "target": "filepath",
+                "type": "file"
+            }
+        ],
+        "outputs": []
+    }
 ]

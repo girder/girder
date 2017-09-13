@@ -15,20 +15,20 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'provenance.resources',
-                value: this.$('#provenance.resources').val().trim()
+                value: this.$('#g-provenance-resources').val().trim()
             }]);
         }
     },
     initialize: function () {
         restRequest({
-            type: 'GET',
-            path: 'system/setting',
+            method: 'GET',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(['provenance.resources'])
             }
         }).done(_.bind(function (resp) {
             this.render();
-            this.$('#provenance.resources').val(
+            this.$('#g-provenance-resources').val(
                 resp['provenance.resources']
             );
         }, this));
@@ -50,8 +50,8 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
-            path: 'system/setting',
+            method: 'PUT',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)
             },

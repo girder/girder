@@ -1,6 +1,7 @@
 {
-    "name": "Candela data visualizations",
+    "name": "Candela Visualization",
     "description": "Render Candela visualizations in the item page for CSV files.",
+    "url": "http://girder.readthedocs.io/en/latest/plugins.html#candela-visualization",
     "version": "0.1.0",
     "staticWebDependencies": ["item_tasks"],
     "npm": {

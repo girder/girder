@@ -21,6 +21,6 @@ NewAssetstoreWidget.prototype.events['submit #g-new-hdfs-form'] = function (e) {
         effectiveUser: this.$('#g-new-hdfs-user').val(),
         host: this.$('#g-new-hdfs-host').val(),
         port: this.$('#g-new-hdfs-port').val(),
-        webHdfsPort: this.$('#g-new-webhdfs-port').val()
+        webHdfsPort: this.$('#g-new-hdfs-webhdfs-port').val()
     });
 };

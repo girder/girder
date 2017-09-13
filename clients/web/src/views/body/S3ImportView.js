@@ -35,6 +35,7 @@ var S3ImportView = View.extend({
         this.$el.html(S3ImportTemplate({
             assetstore: this.assetstore
         }));
+        return this;
     }
 });
 

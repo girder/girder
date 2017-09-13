@@ -24,7 +24,7 @@ class DicomItem(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the item.', 403)
     )
-    def getDicom(self, item, filters, force, params):
+    def getDicom(self, item, filters, force):
         if force:
             self.model('item').requireAccess(
                 item, user=self.getCurrentUser(), level=AccessType.WRITE)

@@ -16,7 +16,9 @@ import 'girder/utilities/jquery/girderModal';
  */
 var BrowserWidget = View.extend({
     events: {
-        'click .g-submit-button': '_submitButton'
+        'click .g-submit-button': function () {
+            this._validate();
+        }
     },
 
     /**
@@ -27,7 +29,10 @@ var BrowserWidget = View.extend({
      * @param {string} [submitText="Save"] Text to display on the submit button
      * @param {boolean} [showItems=false] Show items in the hierarchy widget
      * @param {boolean} [showPreview=true] Show a preview of the current object id
-     * @param {function} [validate] A validation function returning a string that is displayed on error
+     * @param {function} [validate] A validation function, which is passed the selected model as a
+        parameter, and which should return a promise. The returned promise should resolve if the
+        selection is acceptable and reject with a string value (as an error message) if the
+        selection is unacceptable.
      * @param {object} [rootSelectorSettings] Settings passed to the root selector widget
      * @param {boolean} [showMetadata=false] Show the metadata editor inside the hierarchy widget
      * @param {Model} [root] The default root model to pass to the hierarchy widget
@@ -40,16 +45,17 @@ var BrowserWidget = View.extend({
      *   as in a "Save As" dialog.  The default (false) hides this element.
      * @param {string} [input.label="Name"] A label for the input element.
      * @param {string} [input.default] The default value
-     * @param {function} [input.validate] A validation function.  This function
-     *   accepts the user input as an argument and should return "undefined"
-     *   for a valid value or a string to pass to the user for an invalid value.
+     * @param {function} [input.validate] A validation function, which is passed the value of the
+        user-specified input element as a parameter, and which should return a promise. The returned
+        promise should resolve if the selection is acceptable and reject with a string value (as an
+        error message) if the selection is unacceptable.
      * @param {string} [input.placeholder] A placeholder string for the input element.
      */
     initialize: function (settings) {
         // store options
         settings = settings || {};
         this.titleText = settings.titleText || 'Select an item';
-        this.validate = settings.validate || function () {};
+        this.validate = settings.validate || _.constant($.Deferred().resolve().promise());
         this.helpText = settings.helpText;
         this.showItems = settings.showItems;
         this.showPreview = _.isUndefined(settings.showPreview) ? true : !!settings.showPreview;
@@ -108,6 +114,7 @@ var BrowserWidget = View.extend({
         }
         this.$('.g-wait-for-root').removeClass('hidden');
         this._hierarchyView = new HierarchyWidget({
+            el: this.$('.g-hierarchy-widget-container'),
             parentView: this,
             parentModel: this.root,
             checkboxes: false,
@@ -118,7 +125,6 @@ var BrowserWidget = View.extend({
             showMetadata: this.showMetadata
         });
         this.listenTo(this._hierarchyView, 'g:setCurrentModel', this._selectModel);
-        this._hierarchyView.setElement(this.$('.g-hierarchy-widget-container')).render();
         this._selectModel();
     },
 
@@ -147,28 +153,90 @@ var BrowserWidget = View.extend({
         this._resetSelection(this._hierarchyView.parentModel);
     },
 
-    _submitButton: function () {
-        var model = this.selectedModel();
-        var message = this.validate(model);
-        var inputMessage;
-
+    /**
+     * Independently validate the input-element and the selected-model.
+     */
+    _validate: function () {
+        // Validate input element
+        let inputValidation;
         if (this.input && this.input.validate) {
-            inputMessage = this.input.validate(this.$('#g-input-element').val());
+            inputValidation = this.input.validate(this.$('#g-input-element').val());
+            if (inputValidation === undefined) {
+                console.warn('Static validation is deprecated, return a promise instead');
+                inputValidation = $.Deferred().resolve().promise();
+            } else if (!_.isFunction(inputValidation.then)) {
+                console.warn('Static validation is deprecated, return a promise instead');
+                inputValidation = $.Deferred().reject(inputValidation).promise();
+            }
+        } else {
+            // No validator is implicit acceptance
+            inputValidation = $.Deferred().resolve().promise();
         }
 
-        if (inputMessage) {
-            this.$('.g-input-element').addClass('has-error');
-            this.$('.g-validation-failed-message').removeClass('hidden').html(
-                _.escape(inputMessage) + '<br>' + _.escape(message)
-            );
-        } else if (message) {
-            this.$('.g-selected-model').addClass('has-error');
-            this.$('.g-validation-failed-message').removeClass('hidden').text(message);
-        } else {
-            this.root = this._hierarchyView.parentModel;
-            this.$el.modal('hide');
-            this.trigger('g:saved', model, this.$('#g-input-element').val());
+        // Validate selected element
+        const selectedModel = this.selectedModel();
+        let selectedValidation = this.validate(selectedModel);
+        if (selectedValidation === undefined) {
+            console.warn('Static validation is deprecated, return a promise instead');
+            selectedValidation = $.Deferred().resolve().promise();
+        } else if (!_.isFunction(selectedValidation.then)) {
+            console.warn('Static validation is deprecated, return a promise instead');
+            selectedValidation = $.Deferred().reject(selectedValidation).promise();
         }
+
+        let invalidInputElement = null;
+        let invalidSelectedModel = null;
+        // We want to wait until both promises to run to completion, which only happens if they're
+        // accepted. So, chain an extra handler on to them, which transforms a rejection into an
+        // acceptance.
+        $.when(
+            inputValidation
+                .catch((failMessage) => {
+                    // input-element is invalid
+                    invalidInputElement = failMessage;
+                    return undefined;
+                }),
+            selectedValidation
+                .catch((failMessage) => {
+                    // selected-model is invalid
+                    invalidSelectedModel = failMessage;
+                    return undefined;
+                })
+        )
+            .done(() => {
+                // Reset any previous error states
+                this.$('.g-selected-model').removeClass('has-error');
+                this.$('.g-input-element').removeClass('has-error');
+                this.$('.g-validation-failed-message').addClass('hidden').html('');
+
+                // The 4 possible outcomes of this validation are as follows...
+                //
+                // Case |  input-element  |  selected-model
+                //  1.  |      Valid      |      Valid
+                //  2.  |      Valid      |     Invalid
+                //  3.  |     Invalid     |      Valid
+                //  4.  |     Invalid     |     Invalid
+                if (!invalidInputElement && !invalidSelectedModel) {
+                    // Case 1
+                    this.root = this._hierarchyView.parentModel;
+                    this.$el.modal('hide');
+                    this.trigger('g:saved', selectedModel, this.$('#g-input-element').val());
+                } else if (!invalidInputElement && invalidSelectedModel) {
+                    // Case 2
+                    this.$('.g-selected-model').addClass('has-error');
+                    this.$('.g-validation-failed-message').removeClass('hidden').text(invalidSelectedModel);
+                } else if (invalidInputElement && !invalidSelectedModel) {
+                    // Case 3
+                    this.$('.g-input-element').addClass('has-error');
+                    this.$('.g-validation-failed-message').removeClass('hidden').text(invalidInputElement);
+                } else if (invalidInputElement && invalidSelectedModel) {
+                    // Case 4
+                    this.$('.g-selected-model').addClass('has-error');
+                    this.$('.g-input-element').addClass('has-error');
+                    this.$('.g-validation-failed-message').removeClass('hidden').html(
+                        _.escape(invalidInputElement) + '<br>' + _.escape(invalidSelectedModel));
+                }
+            });
     }
 });
 

@@ -43,8 +43,8 @@ var LoginView = View.extend({
         'click .g-send-verification-email': function () {
             this.$('.g-validation-failed-message').html('');
             restRequest({
-                path: 'user/verification',
-                type: 'POST',
+                url: 'user/verification',
+                method: 'POST',
                 data: {login: this.$('#g-login').val()},
                 error: null
             }).done(_.bind(function (resp) {
@@ -64,11 +64,10 @@ var LoginView = View.extend({
     },
 
     render: function () {
-        var view = this;
         this.$el.html(LoginDialogTemplate()).girderModal(this)
-            .on('shown.bs.modal', function () {
-                view.$('#g-login').focus();
-            }).on('hidden.bs.modal', function () {
+            .on('shown.bs.modal', () => {
+                this.$('#g-login').focus();
+            }).on('hidden.bs.modal', () => {
                 handleClose('login', {replace: true});
             });
 

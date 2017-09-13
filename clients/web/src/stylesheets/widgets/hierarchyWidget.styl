@@ -1,10 +1,8 @@
-@import '~nib/index.styl'
-
 .g-hierarchy-widget
   border 1px solid #eaeaea
 
   .g-hierarchy-actions-header
-    background linear-gradient(top, #e6e6e6 0%, #f7f7f7 8px)
+    background linear-gradient(top, #e6e6e6 0, #f7f7f7 8px)
     padding 4px 5px 3px
     background-color #f6f6f6
     border-top 1px solid #ddd
@@ -54,23 +52,23 @@
       user-select none
       cursor default
 
-      .g-subfolder-count-container,.g-item-count-container
+      .g-subfolder-count-container, .g-item-count-container
         display inline-block
         position relative
         margin-left 8px
 
-      .g-subfolder-count,.g-item-count
+      .g-subfolder-count, .g-item-count
         display inline-block
         border-radius 3px
         color black
-        background-color rgba(255,255,255,0.75)
+        background-color rgba(255, 255, 255, 0.75)
         position absolute
         font-size 9px
         bottom -2px
         right -3px
         padding 0 0.3em
 
-  .g-folder-list,.g-item-list,.g-file-list
+  .g-folder-list, .g-item-list, .g-file-list
     margin 0
     padding 0
     list-style-type none
@@ -80,7 +78,7 @@
       box-sizing border-box
       padding 4px 5px 3px
 
-    >.g-folder-list-entry,>.g-item-list-entry
+    >.g-folder-list-entry, >.g-item-list-entry
       font-size 15px
 
       &:hover
@@ -93,7 +91,7 @@
           background-color #f4eedf
 
     >.g-show-more
-      background-image linear-gradient(top, #f6f6f6 0%, #fff 10px)
+      background-image linear-gradient(top, #f6f6f6 0, #fff 10px)
 
     .g-list-checkbox
       font-size 16px
@@ -118,7 +116,7 @@
         border 1px solid #aaa
         background-color #dadada
 
-  .g-item-size,.g-folder-privacy
+  .g-item-size, .g-folder-privacy
     display inline-block
     padding 1px 5px
     margin-left 10px
@@ -135,7 +133,7 @@
 .g-folder-metadata
   margin-top 20px
 
-.g-folder-info-line,.g-collection-info-line,.g-file-info-line
+.g-folder-info-line, .g-collection-info-line, .g-file-info-line
   color #808080
   margin-bottom 2px
   padding 2px 4px
@@ -147,5 +145,5 @@
     font-weight bold
 
 .g-info-dialog-description
-  margin 0 0 10px 0
+  margin 0 0 10px
   border-bottom 1px solid #eee

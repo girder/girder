@@ -34,7 +34,7 @@ var Collection = Backbone.Collection.extend({
     append: false,
 
     /**
-     * Client-side filtering: set to a function that takes an instace of this
+     * Client-side filtering: set to a function that takes an instance of this
      * collection's model and returns true for each instance that should be
      * included in this collection.  For the sake of least surprise, this
      * property should not be changed in the definition of collections, but
@@ -155,7 +155,7 @@ var Collection = Backbone.Collection.extend({
 
         function fetchListFragment() {
             var xhr = restRequest({
-                path: this.altUrl || this.resourceName,
+                url: this.altUrl || this.resourceName,
                 data: _.extend({
                     limit: limit,
                     offset: this.offset,

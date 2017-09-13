@@ -93,6 +93,7 @@ var TimelineWidget = View.extend({
             var start = this.numeric ? segment.start : new Date(segment.start);
             var end = this.numeric ? segment.end : new Date(segment.end);
             var classes = segment.class ? [segment.class] : [this.defaultSegmentClass];
+            var color = segment.color ? `background-color: ${segment.color}` : '';
 
             if (segment.tooltip) {
                 classes.push('g-tooltip');
@@ -104,13 +105,15 @@ var TimelineWidget = View.extend({
                 width: (100 * (end - start) / range).toFixed(1) + '%',
                 tooltip: this._segmentTooltip(segment, {
                     range: this.numeric ? end - start : (end - start) / 1000
-                })
+                }),
+                color
             };
         }, this);
 
         this._processedPoints = _.map(this.points, function (point) {
             var time = this.numeric ? point.time : new Date(point.time);
             var classes = point.class ? [point.class] : [this.defaultPointClass];
+            var color = point.color ? `background-color: ${point.color}` : '';
 
             if (point.tooltip) {
                 classes.push('g-tooltip');
@@ -121,7 +124,8 @@ var TimelineWidget = View.extend({
                 left: (100 * (time - this.startTime) / range).toFixed(1) + '%',
                 tooltip: this._pointTooltip(point, {
                     time: time
-                })
+                }),
+                color
             };
         }, this);
     },

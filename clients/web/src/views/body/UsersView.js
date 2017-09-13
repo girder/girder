@@ -4,6 +4,7 @@ import PaginateWidget from 'girder/views/widgets/PaginateWidget';
 import RegisterView from 'girder/views/layout/RegisterView';
 import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import SortCollectionWidget from 'girder/views/widgets/SortCollectionWidget';
 import UserCollection from 'girder/collections/UserCollection';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
@@ -33,13 +34,23 @@ var UsersView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         this.collection = new UserCollection();
-        this.collection.on('g:changed', function () {
-            this.render();
-        }, this).fetch();
+
+        const promiseArray = [];
+        promiseArray.push(this.collection.fetch());
 
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
             parentView: this
+        });
+
+        this.sortCollectionWidget = new SortCollectionWidget({
+            collection: this.collection,
+            parentView: this,
+            fields: {
+                lastName: 'Last Name',
+                created: 'Creation Date',
+                size: 'Used Space'
+            }
         });
 
         this.searchWidget = new SearchFieldWidget({
@@ -49,20 +60,35 @@ var UsersView = View.extend({
             parentView: this
         }).on('g:resultClicked', this._gotoUser, this);
 
+        if (getCurrentUser() && getCurrentUser().get('admin')) {
+            const userCountPromise = UserCollection.getTotalCount()
+                .done((count) => {
+                    this.usersCount = count;
+                });
+            promiseArray.push(userCountPromise);
+        }
         this.register = settings.dialog === 'register' && getCurrentUser() &&
                         getCurrentUser().get('admin');
+
+        $.when(...promiseArray)
+            .done(() => {
+                this.listenTo(this.collection, 'g:changed', this.render);
+                this.render();
+            });
     },
 
     render: function () {
         this.$el.html(UserListTemplate({
             users: this.collection.toArray(),
-            getCurrentUser: getCurrentUser,
+            currentUser: getCurrentUser(),
+            usersCount: this.usersCount,
             formatDate: formatDate,
             formatSize: formatSize,
             DATE_DAY: DATE_DAY
         }));
 
         this.paginateWidget.setElement(this.$('.g-user-pagination')).render();
+        this.sortCollectionWidget.setElement(this.$('.g-user-sort')).render();
         this.searchWidget.setElement(this.$('.g-users-search-container')).render();
 
         if (this.register) {

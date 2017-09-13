@@ -1,10 +1,11 @@
-import $ from 'jquery';
+import _ from 'underscore';
 
 import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
 import events from 'girder/events';
+import candela from 'candela';
+import 'candela/plugins/vega/load';
+import 'candela/plugins/treeheatmap/load';
 
-import candela from 'girder_plugins/candela/node/candela';
 import datalib from 'girder_plugins/candela/node/datalib';
 
 import CandelaWidgetTemplate from '../templates/candelaWidget.pug';
@@ -20,12 +21,7 @@ var CandelaWidget = View.extend({
     initialize: function (settings) {
         this.item = settings.item;
         this.accessLevel = settings.accessLevel;
-        this._components = [];
-        for (let component in candela.components) {
-            if (candela.components.hasOwnProperty(component)) {
-                this._components.push(component);
-            }
-        }
+        this._components = _.keys(_.pick(candela.components, (comp) => comp.options));
 
         this.listenTo(this.item, 'change', function () {
             this.render();
@@ -44,61 +40,61 @@ var CandelaWidget = View.extend({
     },
 
     render: function () {
-        if (this.accessLevel >= AccessType.READ && this.item.get('name').toLowerCase().endsWith('.csv')) {
-            this.$el.html(CandelaWidgetTemplate({
-                components: this._components
-            }));
-            this.parametersView.setElement($('.g-item-candela-parameters'));
-            datalib.csv(this.item.downloadUrl(), (error, data) => {
-                if (error) {
-                    let info = {
-                        text: 'An error occurred while attempting to read and ' +
-                              'parse the data file. Details have been logged in the console.',
-                        type: 'danger',
-                        timeout: 5000,
-                        icon: 'attention'
-                    };
-                    events.trigger('g:alert', info);
-                    console.error(error);
-                    return;
-                }
-
-                datalib.read(data, {parse: 'auto'});
-
-                // Vega has issues with empty-string fields and fields with dots, so rename those.
-                let rename = [];
-                for (let key in data.__types__) {
-                    if (data.__types__.hasOwnProperty(key)) {
-                        if (key === '') {
-                            rename.push(['', 'id']);
-                        } else if (key.indexOf('.') >= 0) {
-                            rename.push([key, key.replace(/\./g, '_')]);
-                        }
-                    }
-                }
-
-                rename.forEach((d) => {
-                    data.__types__[d[1]] = data.__types__[d[0]];
-                    delete data.__types__[d[0]];
-                    data.forEach((row) => {
-                        row[d[1]] = row[d[0]];
-                        delete row[d[0]];
-                    });
-                });
-
-                let columns = [];
-                for (let key in data.__types__) {
-                    if (data.__types__.hasOwnProperty(key)) {
-                        columns.push(key);
-                    }
-                }
-                this.parametersView.setData(data, columns);
-                this.updateComponent();
-            });
+        let parser = null;
+        let name = this.item.get('name').toLowerCase();
+        if (name.endsWith('.csv')) {
+            parser = datalib.csv;
+        } else if (name.endsWith('.tsv') || name.endsWith('.tab')) {
+            parser = datalib.tsv;
         } else {
-            this.$('.g-item-candela')
-                .remove();
+            this.$('.g-item-candela').remove();
+            return this;
         }
+
+        this.$el.html(CandelaWidgetTemplate({
+            components: this._components
+        }));
+        this.parametersView.setElement(this.$('.g-item-candela-parameters'));
+        parser(this.item.downloadUrl(), (error, data) => {
+            if (error) {
+                events.trigger('g:alert', {
+                    text: 'An error occurred while attempting to read and ' +
+                          'parse the data file. Details have been logged in the console.',
+                    type: 'danger',
+                    timeout: 5000,
+                    icon: 'attention'
+                });
+                console.error(error);
+                return;
+            }
+
+            datalib.read(data, {parse: 'auto'});
+
+            // Vega has issues with empty-string fields and fields with dots, so rename those.
+            let rename = [];
+            _.each(data.__types__, (value, key) => {
+                if (key === '') {
+                    rename.push({from: '', to: 'id'});
+                } else if (key.indexOf('.') >= 0) {
+                    rename.push({from: key, to: key.replace(/\./g, '_')});
+                }
+            });
+
+            _.each(rename, (d) => {
+                data.__types__[d.to] = data.__types__[d.from];
+                delete data.__types__[d.from];
+                _.each(data, (row) => {
+                    row[d.to] = row[d.from];
+                    delete row[d.from];
+                });
+            });
+
+            let columns = _.keys(data.__types__);
+            this.parametersView.setData(data, columns);
+            this.updateComponent();
+        });
+
+        return this;
     }
 });
 

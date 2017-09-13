@@ -38,10 +38,14 @@ var FilesystemImportView = View.extend({
             titleText: 'Destination',
             helpText: 'Browse to a location to select it as the destination.',
             submitText: 'Select Destination',
-            validate: function (id) {
-                if (!id) {
-                    return 'Please select a valid root.';
+            validate: function (model) {
+                let isValid = $.Deferred();
+                if (!model) {
+                    isValid.reject('Please select a valid root.');
+                } else {
+                    isValid.resolve();
                 }
+                return isValid.promise();
             }
         });
         this.listenTo(this._browserWidgetView, 'g:saved', function (val) {
@@ -55,6 +59,8 @@ var FilesystemImportView = View.extend({
         this.$el.html(FilesystemImportTemplate({
             assetstore: this.assetstore
         }));
+
+        return this;
     },
 
     _openBrowser: function () {

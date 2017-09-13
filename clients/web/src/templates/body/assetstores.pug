@@ -62,10 +62,13 @@
               span.g-access-key-id  #{assetstore.get('accessKeyId')}
             div
               b Secret access key:
-              span.g-secret-key  #{assetstore.get('secret')}
+              span.g-secret-key  #{assetstore.get('secret') && '[hidden]'}
             div
               b Service:
               span.g-service-key  #{assetstore.get('service')}
+            div
+              b Region:
+              span.g-region-key  #{assetstore.get('region')}
 
         if assetstore.capacityKnown()
           div

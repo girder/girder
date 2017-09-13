@@ -1,11 +1,9 @@
 girderTest.importPlugin('hashsum_download');
-
-girder.events.trigger('g:appload.before');
-var app = new girder.views.App({
-    el: 'body',
-    parentView: null
-});
-girder.events.trigger('g:appload.after');
+var app;
+girderTest.startApp()
+    .done(function (startedApp) {
+        app = startedApp;
+    });
 
 describe('Unit test the file view augmentation', function () {
     var file;
@@ -55,13 +53,13 @@ describe('Test configuration page', function () {
         window.location.assign('#plugins/hashsum_download/config');
 
         waitsFor(function () {
-            return $('#hashsum-download-auto-compute').length > 0;
+            return $('#g-hashsum-download-auto-compute').length > 0;
         }, 'config page to load');
     });
 
     it('update auto compute setting', function () {
-        expect($('#hashsum-download-auto-compute').is(':checked')).toBe(false);
-        $('#hashsum-download-auto-compute').click();
+        expect($('#g-hashsum-download-auto-compute').is(':checked')).toBe(false);
+        $('#g-hashsum-download-auto-compute').click();
         $('.btn[value="Save"]').click();
 
         waitsFor(function () {

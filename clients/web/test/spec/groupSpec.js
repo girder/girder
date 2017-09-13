@@ -1,6 +1,3 @@
-/**
- * Start the girder backbone app.
- */
 girderTest.startApp();
 
 /* Search for a name on the members search panel, and invite or add the first
@@ -82,8 +79,8 @@ function _testDirectAdd(policy, curUser, curSetting) {
         }
         runs(function () {
             girder.rest.restRequest({
-                path: 'system/setting',
-                type: 'PUT',
+                url: 'system/setting',
+                method: 'PUT',
                 data: {
                     key: 'core.add_to_group_policy',
                     value: policy.setting

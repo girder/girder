@@ -43,7 +43,9 @@ var NewAssetstoreWidget = View.extend({
                 accessKeyId: this.$('#g-new-s3-access-key-id').val(),
                 secret: this.$('#g-new-s3-secret').val(),
                 service: this.$('#g-new-s3-service').val(),
-                readOnly: this.$('#g-new-s3-readonly').is(':checked')
+                region: this.$('#g-new-s3-region').val(),
+                readOnly: this.$('#g-new-s3-readonly').is(':checked'),
+                inferCredentials: this.$('#g-new-s3-infercredentials').is(':checked')
             });
         }
     },
