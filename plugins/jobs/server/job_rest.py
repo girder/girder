@@ -83,7 +83,7 @@ class Job(Resource):
         .param('type', '', required=True)
         .modelParam('parentId', 'ID of the parent job.', model='job',
                     plugin='jobs', destName='parentJob',
-                    paramType='query', required=False, force=True)
+                    paramType='query', required=False)
         .param('public', '', required=False, dataType='boolean', default=False)
         .param('handler', '', required=False, dataType='string')
         .jsonParam('args', 'Job arguments', required=False, requireArray=True)
