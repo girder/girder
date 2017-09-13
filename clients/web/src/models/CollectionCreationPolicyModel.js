@@ -5,13 +5,13 @@ var CollectionCreationPolicyModel = AccessControlledModel.extend({
     resourceName: 'system/setting/collection_creation_policy',
     fetchAccess: function () {
         return restRequest({
-            path: this.resourceName + '/access',
-            type: 'GET'
-        }).done(resp => {
+            url: `${this.resourceName}/access`,
+            method: 'GET'
+        }).done((resp) => {
             this.set('access', resp);
             this.trigger('g:accessFetched');
             return resp;
-        }).error(err => {
+        }).fail((err) => {
             this.trigger('g:error', err);
         });
     }

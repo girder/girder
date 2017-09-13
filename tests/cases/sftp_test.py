@@ -71,6 +71,7 @@ def tearDownModule():
     if server:
         server.shutdown()
         server.server_close()
+    base.dropAllTestDatabases()
 
 
 class SftpTestCase(base.TestCase):

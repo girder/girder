@@ -103,6 +103,8 @@ var RootSelectorWidget = View.extend({
                 format: this._formatName
             })
         );
+
+        return this;
     },
 
     /**
@@ -164,4 +166,3 @@ var RootSelectorWidget = View.extend({
 });
 
 export default RootSelectorWidget;
-

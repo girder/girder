@@ -87,9 +87,8 @@ fi
 
 # Use the already downloaded fontello archive.
 export GIRDER_LOCAL_FONTELLO_ARCHIVE=${PROJECT_SOURCE_DIR}/clients/web/static/built/fontello.zip
-# Use node_modules from outer process to make this go quicker
 webroot=$(girder-install web-root)
-ln -s "${PROJECT_SOURCE_DIR}/node_modules" "${webroot}/../../node_modules" || exit 1
+
 # Build the web client code
 girder-install web || exit 1
 

@@ -1,6 +1,3 @@
-/**
- * Start the girder backbone app.
- */
 girderTest.startApp();
 
 var registeredUsers = [];
@@ -62,7 +59,7 @@ describe('Create an admin and non-admin user', function () {
         });
 
         runs(function () {
-            $("a.g-user-link:contains('Admin Admin')").click();
+            $('a.g-user-link:contains("Admin Admin")').click();
         });
 
         waitsFor(function () {
@@ -72,7 +69,7 @@ describe('Create an admin and non-admin user', function () {
         girderTest.waitForLoad();
         // check for actions menu
         runs(function () {
-            expect($("button:contains('Actions')").length).toBe(0);
+            expect($('button:contains("Actions")').length).toBe(0);
         });
     });
 
@@ -90,9 +87,15 @@ describe('Create an admin and non-admin user', function () {
         }, 'front page to display');
     });
 
-    it('check redirect to front page after logout from users list page', function () {
+    it('check the user count with an admin user', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         girderTest.goToUsersPage()();
+        runs(function () {
+            expect($('span.g-user-count').text()).toBe('3');
+        });
+    });
+
+    it('check redirect to front page after logout from users list page', function () {
         girderTest.logout()();
         waitsFor(function () {
             return $('.g-frontpage-title:visible').length > 0;
@@ -121,7 +124,7 @@ describe('Create an admin and non-admin user', function () {
         }, 'error to vanish');
     });
 
-    it("test changing other user's password", function () {
+    it('test changing other user\'s password', function () {
         runs(function () {
             girder.router.navigate('useraccount/' + registeredUsers[1].id + '/password',
                                    {trigger: true});
@@ -364,7 +367,7 @@ describe('test email verification', function () {
         girderTest.logout()();
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
         waitsFor(function () {
             return $('.g-server-config').length > 0;
@@ -417,7 +420,7 @@ describe('test email verification', function () {
         }, 'email verification message to appear');
 
         runs(function () {
-            $("a[data-dismiss='modal']").click();
+            $('a[data-dismiss="modal"]').click();
         });
     });
 });
@@ -426,7 +429,7 @@ describe('test account approval', function () {
     it('Turn on approval policy', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
         waitsFor(function () {
             return $('.g-server-config').length > 0;
@@ -493,7 +496,7 @@ describe('test account approval', function () {
         }, 'approval message to appear');
 
         runs(function () {
-            $("a[data-dismiss='modal']").click();
+            $('a[data-dismiss="modal"]').click();
         });
     });
 });

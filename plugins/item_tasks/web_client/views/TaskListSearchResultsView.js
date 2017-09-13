@@ -1,5 +1,6 @@
 import View from 'girder/views/View';
 import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+
 import TaskListWidget from './TaskListWidget';
 import ItemTaskCollection from '../collections/ItemTaskCollection';
 
@@ -42,7 +43,7 @@ var TaskListSearchResultsView = View.extend({
         };
 
         this.collection.fetch(params)
-            .then(() => {
+            .done(() => {
                 this.render();
 
                 // Render PaginateWidget when collection changes

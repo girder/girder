@@ -34,7 +34,8 @@ class User(AccessControlledModel):
 
     def initialize(self):
         self.name = 'user'
-        self.ensureIndices(['login', 'email', 'groupInvites.groupId'])
+        self.ensureIndices(['login', 'email', 'groupInvites.groupId', 'size',
+                            'created'])
         self.prefixSearchFields = (
             'login', ('firstName', 'i'), ('lastName', 'i'))
 
@@ -137,6 +138,14 @@ class User(AccessControlledModel):
         :returns: The corresponding user if the login was successful.
         :rtype: dict
         """
+        event = events.trigger('model.user.authenticate', {
+            'login': login,
+            'password': password
+        })
+
+        if event.defaultPrevented and len(event.responses):
+            return event.responses[-1]
+
         login = login.lower().strip()
         loginField = 'email' if '@' in login else 'login'
 

@@ -21,114 +21,94 @@ import six
 
 from girder.api import rest
 from girder.models.model_base import AccessException
+from girder.utility import optionalArgumentDecorator
+from girder.utility.model_importer import ModelImporter
 
 
-def admin(*args, **kwargs):
+@optionalArgumentDecorator
+def admin(fun, scope=None):
     """
-    Functions that require administrator access should be wrapped in this
-    decorator.
+    REST endpoints that require administrator access should be wrapped in this decorator.
 
+    :param fun: A REST endpoint.
+    :type fun: callable
     :param scope: To also expose this endpoint for certain token scopes,
         pass those scopes here. If multiple are passed, all will be required.
-    :type scope: str or list of str
+    :type scope: str or list of str or None
     """
-    if len(args) == 1 and callable(args[0]):  # Raw decorator
-        @six.wraps(args[0])
-        def wrapped(*iargs, **ikwargs):
-            rest.requireAdmin(rest.getCurrentUser())
-            return args[0](*iargs, **ikwargs)
-        wrapped.accessLevel = 'admin'
-        return wrapped
-    else:  # We should return a decorator
-        def dec(fun):
-            @six.wraps(fun)
-            def wrapped(*iargs, **ikwargs):
-                rest.requireAdmin(rest.getCurrentUser())
-                return fun(*iargs, **ikwargs)
-            wrapped.accessLevel = 'admin'
-            wrapped.requiredScopes = kwargs.get('scope')
-            return wrapped
-        return dec
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        rest.requireAdmin(rest.getCurrentUser())
+        return fun(*args, **kwargs)
+    wrapped.accessLevel = 'admin'
+    wrapped.requiredScopes = scope
+    return wrapped
 
 
-def user(*args, **kwargs):
+@optionalArgumentDecorator
+def user(fun, scope=None):
     """
-    Functions that require a logged-in user should be wrapped with this access
-    decorator.
+    REST endpoints that require a logged-in user should be wrapped with this access decorator.
 
+    :param fun: A REST endpoint.
+    :type fun: callable
     :param scope: To also expose this endpoint for certain token scopes,
         pass those scopes here. If multiple are passed, all will be required.
-    :type scope: str or list of str
+    :type scope: str or list of str or None
     """
-    if len(args) == 1 and callable(args[0]):  # Raw decorator
-        @six.wraps(args[0])
-        def wrapped(*iargs, **ikwargs):
-            if not rest.getCurrentUser():
-                raise AccessException('You must be logged in.')
-            return args[0](*iargs, **ikwargs)
-        wrapped.accessLevel = 'user'
-        return wrapped
-    else:  # We should return a decorator
-        def dec(fun):
-            @six.wraps(fun)
-            def wrapped(*iargs, **ikwargs):
-                if not rest.getCurrentUser():
-                    raise AccessException('You must be logged in.')
-                return fun(*iargs, **ikwargs)
-            wrapped.accessLevel = 'user'
-            wrapped.requiredScopes = kwargs.get('scope')
-            return wrapped
-        return dec
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        if not rest.getCurrentUser():
+            raise AccessException('You must be logged in.')
+        return fun(*args, **kwargs)
+    wrapped.accessLevel = 'user'
+    wrapped.requiredScopes = scope
+    return wrapped
 
 
-def token(*args, **kwargs):
+@optionalArgumentDecorator
+def token(fun, scope=None, required=False):
     """
-    Functions that require a token, but not necessarily a user authentication
-    token, should use this access decorator.
+    REST endpoints that require a token, but not necessarily a user authentication token, should use
+    this access decorator.
 
+    :param fun: A REST endpoint.
+    :type fun: callable
     :param scope: The scope or list of scopes required for this token.
-    :type scope: str or list of str
+    :type scope: str or list of str or None
+    :param required: Whether all of the passed ``scope`` are required to access the endpoint at all.
+    :type required: bool
     """
-    if len(args) == 1 and callable(args[0]):  # Raw decorator
-        @six.wraps(args[0])
-        def wrapped(*iargs, **ikwargs):
-            if not rest.getCurrentToken():
-                raise AccessException(
-                    'You must be logged in or have a valid auth token.')
-            return args[0](*iargs, **ikwargs)
-        wrapped.accessLevel = 'token'
-        return wrapped
-    else:  # We should return a decorator
-        def dec(fun):
-            @six.wraps(fun)
-            def wrapped(*iargs, **ikwargs):
-                if not rest.getCurrentToken():
-                    raise AccessException(
-                        'You must be logged in or have a valid auth token.')
-                return fun(*iargs, **ikwargs)
-            wrapped.accessLevel = 'token'
-            wrapped.requiredScopes = kwargs.get('scope')
-            return wrapped
-        return dec
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        if not rest.getCurrentToken():
+            raise AccessException('You must be logged in or have a valid auth token.')
+        if required:
+            ModelImporter.model('token').requireScope(rest.getCurrentToken(), scope)
+        return fun(*args, **kwargs)
+    wrapped.accessLevel = 'token'
+    wrapped.requiredScopes = scope
+    return wrapped
 
 
-def public(*args, **kwargs):
+@optionalArgumentDecorator
+def public(fun, scope=None):
     """
     Functions that allow any client access, including those that haven't logged
     in should be wrapped in this decorator.
+
+    :param fun: A REST endpoint.
+    :type fun: callable
+    :param scope: The scope or list of scopes required for this token.
+    :type scope: str or list of str or None
     """
-    if len(args) == 1 and callable(args[0]):  # Raw decorator
-        args[0].accessLevel = 'public'
-        return args[0]
-    else:  # We should return a decorator
-        def dec(fun):
-            fun.accessLevel = 'public'
-            fun.requiredScopes = kwargs.get('scope')
-            return fun
-        return dec
+    fun.accessLevel = 'public'
+    fun.requiredScopes = scope
+    return fun
 
 
-def cookie(*args, **kwargs):
+@optionalArgumentDecorator
+def cookie(fun, force=False):
     """
     REST endpoints that allow the use of a cookie for authentication should be
     wrapped in this decorator.
@@ -140,14 +120,11 @@ def cookie(*args, **kwargs):
     application to Cross-Site Request Forgery (CSRF) attacks, an optional
     ``force=True`` kwarg may be passed to the decorator to make it effective
     on any type of route.
-    """
-    if len(args) == 1 and callable(args[0]):  # Used as a raw decorator
-        force = False
-        args[0].cookieAuth = (True, force)
-        return args[0]
-    else:  # Used with arguments
-        def decorator(fun):
-            fun.cookieAuth = (True, kwargs.get('force', False))
-            return fun
 
-        return decorator
+    :param fun: A REST endpoint.
+    :type fun: callable
+    :param force: Allow this to apply to non-GET and non-HEAD endpoints.
+    :type force: bool
+    """
+    fun.cookieAuth = (True, force)
+    return fun

@@ -1,6 +1,3 @@
-/**
- * Start the girder backbone app.
- */
 girderTest.startApp();
 
 describe('Create an admin and non-admin user', function () {
@@ -56,7 +53,7 @@ describe('Test the settings page', function () {
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to settings page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         waitsFor(function () {
@@ -78,9 +75,11 @@ describe('Test the settings page', function () {
         expect($('#g-core-cookie-lifetime').val()).toBe('');
         expect($('#g-core-smtp-host').val()).toMatch(/^localhost:31/);
         expect($('#g-core-email-from-address').val()).toBe('');
+        expect($('#g-core-brand-name').val()).toBe('');
+        expect($('#g-core-contact-email-address').val()).toBe('');
         expect($('#g-core-registration-policy').val()).toBe('open');
         expect($('#g-core-upload-minimum-chunk-size').val()).toBe('');
-        expect($.parseJSON($('#g-core-collection-create-policy').val())).toEqual({
+        expect(JSON.parse($('#g-core-collection-create-policy').val())).toEqual({
             open: false,
             users: [],
             groups: []
@@ -101,6 +100,20 @@ describe('Test the settings page', function () {
         waitsFor(function () {
             return $('#g-settings-error-message').text() === '';
         }, 'error message to be cleared');
+        runs(function () {
+            $('#g-core-brand-name').val('fooBar');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-core-brand-name').val() === 'fooBar';
+        }, 'brand name to change');
+        runs(function () {
+            $('#g-core-contact-email-address').val('foo@foo.com');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-core-contact-email-address').val() === 'foo@foo.com';
+        }, 'contact email address to change');
     });
     it('Use search to update collection create policy', function () {
         runs(function () {
@@ -193,7 +206,7 @@ describe('Test the assetstore page', function () {
         it('Create, switch to, and delete a ' + assetstore + ' assetstore', function () {
             /* create the assetstore */
             runs(function () {
-                $("[data-target='#" + tab + "']").click();
+                $('[data-target="#' + tab + '"]').click();
             });
             waitsFor(function () {
                 return $('#' + tab + ' .g-new-assetstore-submit:visible').length > 0;
@@ -214,7 +227,11 @@ describe('Test the assetstore page', function () {
                     if (value === 'service') {
                         value = service;
                     }
-                    $('input#' + key).val(value);
+                    if ($('input#' + key).is(':checkbox')) {
+                        $('input#' + key).attr('checked', value);
+                    } else {
+                        $('input#' + key).val(value);
+                    }
                 }
             });
             waitsFor(function () {
@@ -287,7 +304,7 @@ describe('Test the assetstore page', function () {
 
             /* navigate away and back */
             runs(function () {
-                $("a.g-nav-link[g-target='admin']").click();
+                $('a.g-nav-link[g-target="admin"]').click();
             });
             waitsFor(function () {
                 return $('.g-assetstore-config').length > 0;
@@ -301,7 +318,7 @@ describe('Test the assetstore page', function () {
 
             if (callback) {
                 runs(function () {
-                    callback({
+                    callback({  // eslint-disable-line standard/no-callback-literal
                         name: name
                     });
                 });
@@ -456,39 +473,8 @@ describe('Test the assetstore page', function () {
         });
 
         waitsFor(function () {
-            return $('.g-folder-list-entry').text().indexOf('prefix') !== -1;
+            return $('.g-empty-parent-message').length > 0;
         }, 'user folders to show');
-
-        runs(function () {
-            _.each($('.g-folder-list-link'), function (link) {
-                if ($(link).text() === 'prefix') {
-                    $(link).click();
-                }
-            });
-        });
-
-        waitsFor(function () {
-            return $('.g-item-list-link').text().indexOf('test') !== -1;
-        }, 'item to appear in the hierarchy widget');
-
-        runs(function () {
-            $('.g-item-list-link').click();
-        });
-
-        waitsFor(function () {
-            return $('.g-file-list-link').length === 1;
-        }, 'item page to render');
-
-        // Delete the containing folder so we can delete the assetstore
-        runs(function () {
-            privateFolder.on('g:deleted', function () {
-                privateFolder = null;
-            }).destroy();
-        });
-
-        waitsFor(function () {
-            return privateFolder === null;
-        }, 'private folder to be deleted');
 
         runs(function () {
             window.location = '#assetstores';
@@ -507,11 +493,11 @@ describe('Test the assetstore page', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         waitsFor(function () {
@@ -539,21 +525,24 @@ describe('Test the assetstore page', function () {
         'g-new-fs-root': '/tmp/assetstore'
     }, _testFilesystemImport);
 
-    _testAssetstore('gridfs', 'g-create-gridfs-tab',
-        {'g-new-gridfs-name': 'name',
-            'g-new-gridfs-db': 'girder_webclient_gridfs'});
+    _testAssetstore('gridfs', 'g-create-gridfs-tab', {
+        'g-new-gridfs-name': 'name',
+        'g-new-gridfs-db': 'girder_webclient_gridfs'
+    });
 
     /* The specified assetstore should NOT exist, and the specified mongohost
      * should NOT be present (nothing should respond on those ports). */
-    _testAssetstore('gridfs-rs', 'g-create-gridfs-tab',
-        {'g-new-gridfs-name': 'name',
-            'g-new-gridfs-db': 'girder_webclient_gridfsrs',
-            'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,' +
-                        '127.0.0.2:27081,127.0.0.2:27082',
-            'g-new-gridfs-replicaset': 'replicaset'}, null, function () {
-                return $('.g-validation-failed-message:contains(' +
-                              '"Could not connect to the database: ")').length === 1;
-            }, 'validation failure to display', true);
+    _testAssetstore('gridfs-rs', 'g-create-gridfs-tab', {
+        'g-new-gridfs-name': 'name',
+        'g-new-gridfs-db': 'girder_webclient_gridfsrs',
+        'g-new-gridfs-mongohost': 'mongodb://127.0.0.2:27080,127.0.0.2:27081,' +
+                                  '127.0.0.2:27082/?serverSelectionTimeoutMS=250',
+        'g-new-gridfs-replicaset': 'replicaset',
+        'g-new-gridfs-shard-auto': false
+    }, null, function () {
+        return $('.g-validation-failed-message:contains(' +
+                 '"Could not connect to the database: ")').length === 1;
+    }, 'validation failure to display', true);
 
     _testAssetstore('s3', 'g-create-s3-tab', {
         'g-new-s3-name': 'name',
@@ -576,15 +565,18 @@ describe('Test the assetstore page', function () {
 describe('Test the plugins page', function () {
     beforeEach(function () {
         spyOn(girder.server.restartServer, '_callSystemRestart').andCallFake(function () {
+            var restartResolution = $.Deferred();
             window.setTimeout(function () {
                 girder.server.restartServer._lastStartDate = 0;
+                restartResolution.resolve();
             }, 100);
-        });
-        // We don't want to really rebuild the web code, so replace the original one with a resolved Promise
-        spyOn(girder.server.restartServer, '_rebuildWebClient').andCallFake(function () {
-            return Promise.resolve();
+            return restartResolution.promise();
         });
         spyOn(girder.server.restartServer, '_reloadWindow');
+        // We don't want to really rebuild the web code, so replace the original one with a resolved Promise
+        spyOn(girder.server.rebuildWebClient, '_rebuildWebClient').andCallFake(function () {
+            return $.Deferred().resolve().promise();
+        });
     });
 
     it('Test that anonymous loading plugins page prompts login', function () {
@@ -594,7 +586,7 @@ describe('Test the plugins page', function () {
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to plugins page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
         waitsFor(function () {
             return $('.g-plugins-config').length > 0;
@@ -661,7 +653,7 @@ describe('Test the plugins page', function () {
     });
     it('Go away and back to plugins page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
         waitsFor(function () {
             return $('.g-plugins-config').length > 0;
@@ -686,8 +678,8 @@ describe('Test the plugins page', function () {
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/plugins',
-                type: 'GET',
+                url: 'system/plugins',
+                method: 'GET',
                 async: false
             });
             return (resp && resp.responseJSON && resp.responseJSON.enabled &&

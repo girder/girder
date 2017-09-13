@@ -29,10 +29,10 @@ our example, we'll just use JSON. ::
 
     touch cats/plugin.json
 
-The plugin config file should specify a human-readable name and description for 
-your plugin. It can also optionally contain a URL to documentation and 
-a list of other plugins that your plugin depends on. If your plugin has 
-dependencies, the other plugins will be enabled whenever your plugin is enabled. 
+The plugin config file should specify a human-readable name and description for
+your plugin. It can also optionally contain a URL to documentation and
+a list of other plugins that your plugin depends on. If your plugin has
+dependencies, the other plugins will be enabled whenever your plugin is enabled.
 The contents of plugin.json for our example will be:
 
 .. note:: If you have both ``plugin.json`` and ``plugin.yml`` files in the directory, the
@@ -57,10 +57,10 @@ The contents of plugin.json for our example will be:
 This information will appear in the web client administration console, and
 administrators will be able to enable and disable it there. Whenever plugins
 are enabled or disabled, a server restart is required in order for the
-change to take effect. 
+change to take effect.
 
-If you are developing a plugin for girder, sometimes using the Rebuild and restart button 
-on the Plugins page may be undesirable as it will rebuild core and all enabled plugins 
+If you are developing a plugin for girder, sometimes using the Rebuild and restart button
+on the Plugins page may be undesirable as it will rebuild core and all enabled plugins
 in production mode, which will take some time and doesn't provide sourcemaps.
 Rebuild specific plugin restart the server may be a better choice. See `During Development <development.html#during-development>`__ for details.
 
@@ -115,7 +115,7 @@ route for ``GET /item/:id/cat`` to the system,
     from girder.api.rest import boundHandler
 
     @access.public
-    @boundHandler()
+    @boundHandler
     def myHandler(self, id, params):
         self.requireParams('cat', params)
 
@@ -159,7 +159,7 @@ example:
         .param('id', 'The item ID', paramType='path')
         .param('cat', 'The cat value.', required=False)
         .errorResponse())
-    def myHandler(id, cat, params):
+    def myHandler(id, cat):
         return {
            'itemId': id,
            'cat': cat
@@ -173,10 +173,10 @@ and type coercion for you, with the benefit of ensuring that the documentation o
 the endpoint inputs matches their actual behavior. Documented parameters will be
 sent to the method as kwargs (so the order you declare them in the header doesn't matter).
 Any additional parameters that were passed but not listed in the ``Description`` object
-will be contained in the ``params`` kwarg as a dictionary. The validation of required
-parameters, coercion to the correct data type, and setting default values is all
-handled automatically for you based on the parameter descriptions in the ``Description``
-object passed. Two special methods of the ``Description`` object can be used for
+will be contained in the ``params`` kwarg as a dictionary, if that parameter is present. The
+validation of required parameters, coercion to the correct data type, and setting default
+values is all handled automatically for you based on the parameter descriptions in the
+``Description`` object passed. Two special methods of the ``Description`` object can be used for
 additional behavior control: :py:func:`girder.api.describe.Description.modelParam` and
 :py:func:`girder.api.describe.Description.jsonParam`.
 
@@ -473,67 +473,12 @@ cancelled.
    that, the identifiers for those events should begin with the name of your
    plugin, e.g., ``events.trigger('cats.something_happened', info='foo')``
 
-Automated testing for plugins
-*****************************
+* **User login**
 
-Girder makes it easy to add automated testing to your plugin that integrates
-with the main Girder testing framework. In general, any CMake code that you
-want to be executed for your plugin can be performed by adding a
-**plugin.cmake** file in your plugin. ::
-
-    cd plugins/cats ; touch plugin.cmake
-
-That file will be automatically included when Girder is configured by CMake.
-To add tests for your plugin, you can make use of some handy CMake functions
-provided by the core system. For example:
-
-.. code-block:: cmake
-
-    add_python_test(cat PLUGIN cats)
-    add_python_style_test(python_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/server")
-
-Then you should create a ``plugin_tests`` package in your plugin: ::
-
-    mkdir plugin_tests ; cd plugin-tests ; touch __init__.py cat_test.py
-
-The **cat_test.py** file should look like: ::
-
-    from tests import base
-
-
-    def setUpModule():
-        base.enabledPlugins.append('cats')
-        base.startServer()
-
-
-    def tearDownModule():
-        base.stopServer()
-
-
-    class CatsCatTestCase(base.TestCase):
-
-        def testCatsWork(self):
-            ...
-
-You can use all of the testing utilities provided by the ``base.TestCase`` class
-from core. You will also get coverage results for your plugin aggregated with
-the main Girder coverage results if coverage is enabled.
-
-Plugins can also use the external data interface provided by Girder as described
-in :ref:`use_external_data`.  For plugins, the data key files should be placed
-inside a directory called ``plugin_tests/data/``.  When referencing the
-files, they must be prefixed by your plugin name as follows
-
-.. code-block:: cmake
-
-    add_python_test(my_test EXTERNAL_DATA plugins/cats/test_file.txt)
-
-Then inside your unittest, the file will be available under the main data path
-as ``os.environ['GIRDER_TEST_DATA_PREFIX'] + '/plugins/cats/test_file.txt'``.
-
-.. note:: When enabling coverage in a plugin, only files residing under the plugin's
-          ``server`` directory will be included.  See :ref:`python-coverage-paths`
-          to change the paths used to generate python coverage reports.
+The event ``model.user.authenticate`` is fired when a user is attempting to
+login via a username and password. This allows alternative authentication
+modes to be used instead of core, or prior to attempting core authentication.
+The event info contains two keys, "login" and "password".
 
 .. _client-side-plugins:
 
@@ -592,6 +537,9 @@ That will cause both ``plugin.min.*`` and ``external.min.*`` files to appear in 
 built directory. The file paths of the entry points should be specified relative to the
 plugin directory.
 
+
+.. _webpackhelper:
+
 Customizing the Webpack Build
 *****************************
 
@@ -604,7 +552,7 @@ plugin build - that returns a modified webpack configuration to use to build the
 plugin. This can be useful if you wish to use custom webpack loaders or plugins
 to build your plugin.
 
-The hash passed to the helper function contains the following information:
+The object passed to the helper function contains the following keys:
 
 - ``plugin``: the name of the plugin
 - ``output``: the name of the output bundle, which is "plugin" by default.
@@ -631,66 +579,11 @@ default):
         }
     }
 
-Linting and Style Checking Client-Side Code
-*******************************************
-
-Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its
-own JavaScript files.  Developers can easily add the same static analysis
-tests to their own plugins using a CMake function call defined by Girder.
-
-.. code-block:: cmake
-
-    add_eslint_test(
-        js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
-    )
-
-This will check all files with the extension **.js** inside of the ``cats`` plugin's
-``web_client`` directory using the same style rules enforced within Girder itself.
-Plugin developers can also choose to extend or even override entirely the core style
-rules.  To do this, you only need to provide a path to a custom ESLint configuration
-file as follows.
-
-.. code-block:: cmake
-
-    add_eslint_test(
-        js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
-        ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/cats/.eslintrc"
-    )
-
-You can `configure ESLint <http://eslint.org/docs/user-guide/configuring.html>`_
-inside this file however you choose.  For example, to extend Girder's own
-configuration by adding a new global variable ``cats`` and you really hate using
-semicolons, you can put the following in your **.eslintrc**
-
-.. code-block:: javascript
-
-    {
-        "extends": "../../.eslintrc",
-        "globals": {
-            "cats": true
-        },
-        "rules": {
-            "semi": 0
-        }
-    }
-
-You can also lint your pug templates using the ``pug-lint`` tool.
-
-.. code-block:: cmake
-
-   add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
-
 Installing custom dependencies from npm
 ***************************************
 
-There are two types of node dependencies you may need to install for your plugin.
-Each type needs to be installed differently due to how node manages external packages.
-
-- Run time dependencies that your application relies on may be handled in one
-  of two ways. If you are writing a simple plugin that does not contain its own
-  Gruntfile, these dependencies should be installed into Girder's own
-  **node_modules** directory by specifying them in the ``npm.dependencies``
-  section of your ``plugin.json`` file.
+If your application requires third-party npm packages to be installed, there are a few ways to achieve this. The
+first is to declare them in your ``plugin.json`` file under ``npm.dependencies``:
 
   .. code-block:: json
 
@@ -703,7 +596,7 @@ Each type needs to be installed differently due to how node manages external pac
           }
       }
 
-  You can also name a JSON file containing NPM dependencies, as follows:
+You can also name a JSON file containing NPM dependencies, as follows:
 
   .. code-block:: json
 
@@ -716,72 +609,41 @@ Each type needs to be installed differently due to how node manages external pac
           }
       }
 
-  The ``npm.file`` property is a path to a JSON file relative to the plugin
-  directory (``package.json`` is a convenient choice, simply because the ``npm
-  install --save-dev`` command manipulates this file by default), while
-  ``npm.fields`` specifies which top-level keys in that file contain package names
-  to install (by default, this property has the value ``['devDependencies',
-  'dependencies', 'optionalDependencies']``). If the ``localNodeModules`` option
-  is set to ``true``, then the
-  dependencies will be installed to a directory named ``node_modules_<pluginname>``,
-  alongside Girder's own ``node_modules`` directory. Such modules must be
-  referenced in plugin code with a special alias: ``plugins/<pluginname>/node``.
-  For example:
+The ``npm.file`` property is a path to a JSON file relative to the plugin
+directory (``package.json`` is a convenient choice, simply because the ``npm
+install --save-dev`` command manipulates this file by default), while
+``npm.fields`` specifies which top-level keys in that file contain package names
+to install (by default, this property has the value ``['devDependencies',
+'dependencies', 'optionalDependencies']``). If the ``localNodeModules`` option
+is set to ``true``, then the dependencies will be installed within a separate
+directory so that they will not collide with Girder's own set of node_modules.
 
-  .. code-block:: javascript
+The final alternative for Webpack-built plugins is to set the ``npm.install``
+configuration property to ``true``; this will cause the build system to run
+``npm install`` in the plugin directory.
 
-      import foobar from 'girder_plugins/MY_PLUGIN/node/foobar'
+When you use the `import` directive within your plugin code, for example:
 
-  would import the default value from NPM dependency ``foobar`` as installed
-  in ``MY_PLUGIN``'s dedicated ``node_modules_MY_PLUGIN`` directory. This is mainly
-  useful if you need a different version of a package already in use by Girder
-  core, or if for any other reason you prefer to keep your plugin dependencies
-  isolated. By default, the ``localNodeModules`` is set to ``false`` and the
-  dependencies will be installed to Girder's own ``node_modules`` directory.
+.. code-block:: javascript
 
-  The final alternative for Webpack-built plugins is to set the ``npm.install``
-  configuration property to ``true``; this will cause the build system to run
-  ``npm install`` in the plugin directory. This may have certain benefits for
-  plugin development, such as allowing plugin sources to import modules without
-  the alias prefix as described above (though, this alias would still be
-  available for use by other plugins that want to access your plugin's
-  dependencies). Additionally, if your plugin is installed without using
-  symlinks, then you will still have access to Girder's Node dependencies (see
-  this [GitHub conversation](https://github.com/nodejs/node/issues/3402) for a
-  discussion of why symlinked directories will not allow for the usual Node
-  import semantics).
+    import foobar from 'foobar';
 
-  If instead you are using a custom Grunt build with a Gruntfile, the
-  dependencies should be installed into your plugin's **node_modules** directory
-  by providing a `package.json <https://docs.npmjs.com/files/package.json>`_
-  file just as they are used for standalone node applications.  When such a file
-  exists in your plugin directory, ``npm install`` will be executed in a new
-  process from within your package's directory.
+The build process will search for the ``'foobar'`` module in the following locations, in order:
 
-- Build time dependencies that your Grunt tasks rely on to assemble the sources
-  for deployment need to be installed into Girder's own **node_modules** directory.
-  These dependencies will typically be Grunt extensions defining extra tasks used
-  by your build.  Such dependencies should be listed under ``grunt.dependencies``
-  as an object (much like dependencies in **package.json**) inside your
-  **plugin.json** or **plugin.yml** file.
+1. The plugin's local modules directory that is created if ``npm.localNodeModules`` has
+   been set to ``true`` in the plugin configuration file.
+2. The ``node_modules`` directory underneath the plugin directory, which would exist when using
+   ``npm.install: true``, or if node modules had been installed there manually.
+3. Within Girder's own ``node_modules`` directory.
 
-  .. code-block:: json
+.. note:: One notable exception to this rule is for the jQuery library; having multiple versions of jQuery from
+different targets often breaks things at runtime, so plugins will always use the same jQuery
+as Girder core.
 
-      {
-          "name": "MY_PLUGIN",
-          "grunt": {
-              "dependencies": {
-                  "grunt-shell": ">=0.2.1"
-              }
-          }
-      }
-
-  In addition to installing these dependencies, Girder will also load grunt extensions
-  contained in them before executing any tasks.
-
-.. note:: Packages installed into Girder's scope can possibly overwrite an alternate
-          version of the same package.  Care should be taken to only list packages here
-          that are not already provided by Girder's own build time dependencies.
+If for some reason you need to modify this search order for your plugin, you can do so via the ``webpack.helper.js``
+file documented in the :ref:`webpackhelper` section. To do so, you can override the ``resolve.modules`` field of
+the configuration and set it to a list of paths to search in order. If you need to modify the path to search for
+webpack loaders instead of module imports, use the ``resolveLoader.modules`` list instead.
 
 Controlling the Build Output
 ****************************
@@ -908,6 +770,28 @@ This demonstrates one simple use case for client plugins, but using these same
 techniques, you should be able to do almost anything to change the core
 application as you need.
 
+JavaScript events
+*****************
+
+The JavaScript client handles notifications from the server and Backbone events
+in client-specific code.  The server notifications originate on the server and
+can be monitored by both the server's Python code and the client's JavaScript
+code.  The client Backbone events are solely within the web client, and do not
+get transmitted to the server.
+
+If the connection to the server is interrupted, the client will not receive
+server events.  Periodically, the client will attempt to reconnect to the
+server to resume handling events.  Similarly, if client's browser tab is placed
+in the background for a long enough period of time, the connection that listens
+for server events will be stopped to prevent excessive resource use.  When the
+browser's tab regains focus, the client will once again receive server events.
+
+When the connection to the server's event stream is interrupted, a
+``g:eventStream.stop`` Backbone event is triggered on the ``EventStream``
+object.  When the server is once more sending events, it first sends a
+``g:eventStream.start`` event.  Clients can listen to these events and refresh
+necessary components to ensure that data is current.
+
 Setting an empty layout for a route
 ***********************************
 
@@ -940,3 +824,169 @@ route to your plugin.
             router.navigate('/collections', {trigger: true});
         }, this).fetch();
     });
+
+Automated testing for plugins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Girder makes it easy to add automated testing to your plugin that integrates with the main Girder
+testing framework. In general, any CMake code for configuring testing can be added to the
+``plugin.cmake`` file in your plugin. For example:
+
+.. code-block:: bash
+
+    cd plugins/cats ; touch plugin.cmake
+
+That file will be automatically included when Girder is configured by CMake. To add tests for your
+plugin, you can make use of a handy CMake function provided by the core system. Simply add to your
+``plugin.cmake``:
+
+.. code-block:: cmake
+
+    add_standard_plugin_tests()
+
+This will automatically run static analysis tools on most parts of your plugin, including the
+server, client, and testing files. Additionally, it will detect and run any tests in the special
+``plugin_tests`` directory of your plugin, provided that server-side tests are named with the suffix
+``_test.py`` (and the directory contains a ``__init__.py`` to make it a Python module) and
+client-side tests are named with the suffix ``Spec.js``. For example:
+
+.. code-block:: bash
+
+    cd plugins/cats; mkdir plugin_tests ; cd plugin_tests ; touch __init__.py cat_test.py catSpec.js
+
+For more sophisticated configuration of plugin testing, options to ``add_standard_plugin_tests`` can
+be used to disable some of the automatically-added tests, so they can be explicitly added with
+additional options. See the ``add_standard_plugin_tests`` implementation for full option
+documentation.
+
+Testing Server-Side Code
+************************
+
+The ``plugin_tests/cat_test.py`` file should look like:
+
+.. code-block:: python
+
+    from tests import base
+
+
+    def setUpModule():
+        base.enabledPlugins.append('cats')
+        base.startServer()
+
+
+    def tearDownModule():
+        base.stopServer()
+
+
+    class CatsCatTestCase(base.TestCase):
+
+        def testCatsWork(self):
+            ...
+
+You can use all of the testing utilities provided by the ``base.TestCase`` class
+from core. You will also get coverage results for your plugin aggregated with
+the main Girder coverage results if coverage is enabled.
+
+.. note:: When enabling coverage in a plugin, only files residing under the plugin's
+          ``server`` directory will be included.  See :ref:`python-coverage-paths`
+          to change the paths used to generate python coverage reports.
+
+Testing Client-Side Code
+************************
+
+Web client components may also be tested, using the
+`Jasmine 1.3 test framework <https://jasmine.github.io/1.3/introduction>`_.
+
+At the start of a plugin client test file, the built plugin files must be explicitly loaded,
+typically with the ``girderTest.importPlugin`` function.
+
+.. note:: Plugin dependency resolution will not take place when loading built plugin files in the
+          test environment. If your plugin has dependencies on other Girder plugins, you should
+          make multiple calls to ``girderTest.importPlugin``, loading any dependant plugins in
+          topologically sorted order, before loading your plugin with ``girderTest.importPlugin``
+          last.
+
+If the plugin test requires an instance of the Girder client app to be running, it can be
+started with ``girderTest.startApp()`` immediately after plugins are imported. Plugin tests that
+perform only unit tests or standalone instantiation of views may be able to skip starting the Girder
+client app.
+
+Jasmine specs (defined with ``it``) are not run until the plugin (and app, if started) are fully
+loaded, so they should be defined directly inside a suite (defined with ``describe``) at the
+top-level.
+
+For example, the cats plugin would define tests in a ``plugin_tests/catSpec.js`` file, like:
+
+.. code-block:: javascript
+
+    girderTest.importPlugin('cats');
+    girderTest.startApp();
+
+    describe("Test the cats plugin", function() {
+        it("tests some new functionality", function() {
+            ...
+        });
+    });
+
+
+Using External Data Artifacts
+*****************************
+
+Plugin tests can also use the external data interface provided by Girder as described in
+:ref:`use_external_data`.  The data key files should be placed inside a directory
+called ``plugin_tests/data/``.  Tests which depend on these files should be explicitly added using
+the ``EXTERNAL_DATA`` option, with arguments of data file names (without the hash file extension)
+prefixed by ``plugins/<plugin_name>``. For example:
+
+.. code-block:: cmake
+
+    add_standard_plugin_tests(NO_SERVER_TESTS)
+    add_python_test(cats_server_test PLUGIN cats EXTERNAL_DATA plugins/cats/test_file.txt)
+
+Then, within your test environment, the file will be available
+under the a location specified by the ``GIRDER_TEST_DATA_PREFIX`` environment variable, in the
+subdirectory ``plugins/<plugin_name>``. For example, in the same ``cats_server_test``, the file
+can be loaded at the path:
+
+.. code-block:: python
+
+    os.path.join(os.environ['GIRDER_TEST_DATA_PREFIX'], 'plugins', 'cats', 'test_file.txt')
+
+
+Customizing Static Analysis of Client-Side Code
+***********************************************
+
+Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its own JavaScript files.
+If the ``add_standard_plugin_tests`` CMake macro is used, these same tests are run on all
+Javascript code in the ``web_client`` and ``plugin_tests`` directories of a plugin.
+
+However, plugin developers can also choose to extend or even entirely override the core style rules.
+To do this, you only need to provide a path to a custom ESLint configuration file, using the
+``ESLINT_CONFIG_FILE`` option to ``add_eslint_test``. Of course, since ``add_standard_plugin_tests``
+should be prevented from adding these tests, static analysis should also be manually added to PugJS
+template files with ``add_puglint_test`` and ``add_stylint_test``. For example:
+
+.. code-block:: cmake
+
+    add_standard_plugin_tests(NO_CLIENT)
+    add_eslint_test(js_static_analysis_cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client"
+        ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/plugins/cats/.eslintrc.json")
+    add_puglint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/templates")
+    add_stylint_test(cats "${PROJECT_SOURCE_DIR}/plugins/cats/web_client/stylesheets")
+
+You can `configure ESLint <http://eslint.org/docs/user-guide/configuring.html>`_ inside your
+``.eslintrc.json`` file however you choose.  For example, to extend Girder's own configuration to
+add a new global variable ``cats`` and stop requiring semicolons to terminate statements, you can
+put the following in your ``.eslintrc.json``:
+
+.. code-block:: javascript
+
+    {
+        "extends": "../../.eslintrc.json",
+        "globals": {
+            "cats": true
+        },
+        "rules": {
+            "semi": 0
+        }
+    }

@@ -19,7 +19,12 @@ var FolderView = View.extend({
         this.folderEdit = settings.folderEdit || false;
         this.itemCreate = settings.itemCreate || false;
 
+        this.render();
+    },
+
+    render: function () {
         this.hierarchyWidget = new HierarchyWidget({
+            el: this.$el,
             parentModel: this.folder,
             upload: this.upload,
             folderAccess: this.folderAccess,
@@ -29,11 +34,6 @@ var FolderView = View.extend({
             parentView: this
         });
 
-        this.render();
-    },
-
-    render: function () {
-        this.hierarchyWidget.setElement(this.$el).render();
         return this;
     }
 }, {

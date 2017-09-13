@@ -1,9 +1,4 @@
-/* globals girder, girderTest, describe, expect, it, runs, waitsFor */
-
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/homepage/plugin.min.js'
-]);
-
+girderTest.importPlugin('homepage');
 girderTest.startApp();
 
 function _goToHomepagePluginSettings() {
@@ -47,64 +42,62 @@ function _verifyMarkdownContent(elem) {
     expect(elem.find('a[href="https://girder.readthedocs.io/"]:contains("link to Girder!")').length).toBe(1);
 }
 
-$(function () {
-    describe('homepage plugin test ', function () {
-        it('registers an admin user', girderTest.createUser(
-            'admin', 'admin@example.com', 'Mark', 'Down', 'password'
-        ));
+describe('homepage plugin test ', function () {
+    it('registers an admin user', girderTest.createUser(
+        'admin', 'admin@example.com', 'Mark', 'Down', 'password'
+    ));
 
-        it('goes to homepage plugin settings', _goToHomepagePluginSettings);
+    it('goes to homepage plugin settings', _goToHomepagePluginSettings);
 
-        it('sets, previews, and saves homepage markdown content', function () {
-            runs(function () {
-                $('textarea.g-markdown-text').val(
-                    'It\'s very easy to make some words **bold** and other words *italic* with ' +
-                        'Markdown. You can even [link to Girder!](https://girder.readthedocs.io/)'
-                );
-
-                $('a.g-preview-link').click();
-
-                _verifyMarkdownContent($('.g-markdown-preview'));
-
-                $('#g-homepage-form').submit();
-            });
-
-            waitsFor(function () {
-                return girder.rest.numberOutstandingRestRequests() === 0;
-            }, 'rest requests to finish');
-        });
-
-        it('verifies homepage content as admin user', function () {
-            runs(function () {
-                $('.g-app-title').click();
-            });
-
-            waitsFor(function () {
-                return girder.rest.numberOutstandingRestRequests() === 0;
-            }, 'rest requests to finish');
-
-            runs(function () {
-                _verifyMarkdownContent($('#g-app-body-container'));
-            });
-        });
-
-        it('goes back to homepage plugin settings', _goToHomepagePluginSettings);
-
-        it('verifies previously set homepage markdown content', function () {
-            runs(function () {
-                expect($('textarea.g-markdown-text').val()).toEqual(
-                    'It\'s very easy to make some words **bold** and other words *italic* with ' +
+    it('sets, previews, and saves homepage markdown content', function () {
+        runs(function () {
+            $('textarea.g-markdown-text').val(
+                'It\'s very easy to make some words **bold** and other words *italic* with ' +
                     'Markdown. You can even [link to Girder!](https://girder.readthedocs.io/)'
-                );
-            });
+            );
+
+            $('a.g-preview-link').click();
+
+            _verifyMarkdownContent($('.g-markdown-preview'));
+
+            $('#g-homepage-form').submit();
         });
 
-        it('logs out admin', girderTest.logout());
+        waitsFor(function () {
+            return girder.rest.numberOutstandingRestRequests() === 0;
+        }, 'rest requests to finish');
+    });
 
-        it('verifies homepage content as anonymous user', function () {
-            runs(function () {
-                _verifyMarkdownContent($('#g-app-body-container'));
-            });
+    it('verifies homepage content as admin user', function () {
+        runs(function () {
+            $('.g-app-title').click();
+        });
+
+        waitsFor(function () {
+            return girder.rest.numberOutstandingRestRequests() === 0;
+        }, 'rest requests to finish');
+
+        runs(function () {
+            _verifyMarkdownContent($('#g-app-body-container'));
+        });
+    });
+
+    it('goes back to homepage plugin settings', _goToHomepagePluginSettings);
+
+    it('verifies previously set homepage markdown content', function () {
+        runs(function () {
+            expect($('textarea.g-markdown-text').val()).toEqual(
+                'It\'s very easy to make some words **bold** and other words *italic* with ' +
+                'Markdown. You can even [link to Girder!](https://girder.readthedocs.io/)'
+            );
+        });
+    });
+
+    it('logs out admin', girderTest.logout());
+
+    it('verifies homepage content as anonymous user', function () {
+        runs(function () {
+            _verifyMarkdownContent($('#g-app-body-container'));
         });
     });
 });

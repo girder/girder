@@ -12,15 +12,15 @@ function extendModel(Model, modelType) {
      */
     Model.prototype.updateQuotaPolicy = function () {
         restRequest({
-            path: this.resourceName + '/' + this.get('_id') + '/quota',
-            type: 'PUT',
+            url: `${this.resourceName}/${this.id}/quota`,
+            method: 'PUT',
             error: null,
             data: {
                 policy: JSON.stringify(this.get('quotaPolicy'))
             }
         }).done(_.bind(function () {
             this.trigger('g:quotaPolicySaved');
-        }, this)).error(_.bind(function (err) {
+        }, this)).fail(_.bind(function (err) {
             this.trigger('g:error', err);
         }, this));
 
@@ -39,12 +39,12 @@ function extendModel(Model, modelType) {
         });
         if (!this.get('quotaPolicy') || force) {
             restRequest({
-                path: this.resourceName + '/' + this.get('_id') + '/quota',
-                type: 'GET'
+                url: `${this.resourceName}/${this.id}/quota`,
+                method: 'GET'
             }).done(_.bind(function (resp) {
                 this.set('quotaPolicy', resp.quota);
                 this.fetch();
-            }, this)).error(_.bind(function (err) {
+            }, this)).fail(_.bind(function (err) {
                 this.trigger('g:error', err);
             }, this));
         } else {
@@ -85,8 +85,8 @@ function extendModel(Model, modelType) {
         if (getCurrentUser().get('admin') &&
                 (!this.get('defaultQuota') || force)) {
             restRequest({
-                path: 'system/setting',
-                type: 'GET',
+                url: 'system/setting',
+                method: 'GET',
                 data: {
                     key: 'user_quota.default_' + modelType + '_quota'
                 }

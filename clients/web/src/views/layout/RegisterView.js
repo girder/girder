@@ -83,14 +83,13 @@ var RegisterView = View.extend({
     },
 
     render: function () {
-        var view = this;
         this.$el.html(RegisterDialogTemplate({
             currentUser: getCurrentUser(),
             title: getCurrentUser() ? 'Create new user' : 'Sign up'
         })).girderModal(this)
-            .on('shown.bs.modal', function () {
-                view.$('#g-login').focus();
-            }).on('hidden.bs.modal', function () {
+            .on('shown.bs.modal', () => {
+                this.$('#g-login').focus();
+            }).on('hidden.bs.modal', () => {
                 handleClose('register', {replace: true});
             });
         this.$('#g-login').focus();

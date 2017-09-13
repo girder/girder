@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import { AccessType } from 'girder/constants';
 import { getCurrentUser } from 'girder/auth';
 import { wrap } from 'girder/utilities/PluginUtils';

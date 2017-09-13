@@ -8,6 +8,7 @@ if(POLICY CMP0058)
 endif()
 
 include(CTest)
+include(CMakeParseArguments)
 
 set(PYTHON_VERSION "2.7" CACHE STRING "Python version used for testing")
 
@@ -42,6 +43,7 @@ if(JAVASCRIPT_STYLE_TESTS)
   endif()
   find_program(ESLINT_EXECUTABLE eslint ${PROJECT_SOURCE_DIR}/node_modules/.bin NO_DEFAULT_PATH)
   find_program(PUGLINT_EXECUTABLE pug-lint ${PROJECT_SOURCE_DIR}/node_modules/.bin NO_DEFAULT_PATH)
+  find_program(STYLINT_EXECUTABLE stylint ${PROJECT_SOURCE_DIR}/node_modules/.bin NO_DEFAULT_PATH)
 endif()
 
 if(BUILD_JAVASCRIPT_TESTS)
@@ -52,6 +54,7 @@ endif()
 
 if(BUILD_TESTING)
   include(tests/TestData.cmake)
+  include(tests/TestCommon.cmake)
   include(tests/PythonTests.cmake)
   include(tests/JavascriptTests.cmake)
   add_subdirectory(tests)

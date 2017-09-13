@@ -213,7 +213,7 @@ function capitalize(str) {
 
 function splitRoute(route) {
     if (!route) {
-        return {base: '', name: ''};
+        return { base: '', name: '' };
     }
     var firstIndex = route.indexOf('?'),
         lastIndex = route.lastIndexOf('?'),
@@ -232,7 +232,11 @@ function splitRoute(route) {
         dialogName = route.slice(lastIndex + 1);
     }
 
-    return {name: dialogName, base: baseRoute};
+    return { name: dialogName, base: baseRoute };
+}
+
+function _whenAll(promises) {
+    return $.when(...promises).then((...results) => results);
 }
 
 export {
@@ -250,5 +254,6 @@ export {
     defineFlags,
     renderMarkdown,
     capitalize,
-    splitRoute
+    splitRoute,
+    _whenAll
 };

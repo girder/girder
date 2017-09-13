@@ -87,24 +87,23 @@ var ItemView = View.extend({
         var folderId = this.model.get('folderId');
         var parentRoute = this.model.get('baseParentType') + '/' +
             this.model.get('baseParentId') + '/folder/' + folderId;
-        var page = this;
         confirm({
             text: 'Are you sure you want to delete <b>' + this.model.escape('name') + '</b>?',
             yesText: 'Delete',
             escapedHtml: true,
-            confirmCallback: _.bind(function () {
-                this.model.on('g:deleted', function () {
+            confirmCallback: () => {
+                this.model.on('g:deleted', () => {
                     router.navigate(parentRoute, {trigger: true});
-                }).off('g:error').on('g:error', function () {
-                    page.render();
+                }).off('g:error').on('g:error', () => {
+                    this.render();
                     events.trigger('g:alert', {
                         icon: 'cancel',
                         text: 'Failed to delete item.',
                         type: 'danger',
                         timeout: 4000
                     });
-                }).destroy();
-            }, this)
+                }, this).destroy();
+            }
         });
     },
 

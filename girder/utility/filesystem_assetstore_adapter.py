@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import filelock
 from hashlib import sha512
 import os
 import psutil
@@ -216,11 +217,22 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         path = os.path.join(dir, hash)
         abspath = os.path.join(self.assetstore['root'], path)
 
+        # Store the hash in the upload so that deleting a file won't delete
+        # this file
+        if '_id' in upload:
+            upload['sha512'] = hash
+            self.model('upload').update({'_id': upload['_id']}, update={'$set': {'sha512': hash}})
+
         mkdir(absdir)
 
-        if os.path.exists(abspath):
+        # Only maintain the lock which checking if the file exists.  The only
+        # other place the lock is used is checking if an upload task has
+        # reserved the file, so this is sufficient.
+        with filelock.FileLock(abspath + '.deleteLock'):
+            pathExists = os.path.exists(abspath)
+        if pathExists:
             # Already have this file stored, just delete temp file.
-            os.remove(upload['tempFile'])
+            os.unlink(upload['tempFile'])
         else:
             # Move the temp file to permanent location in the assetstore.
             # shutil.move works across filesystems
@@ -292,18 +304,23 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Deletes the file from disk if it is the only File in this assetstore
         with the given sha512. Imported files are not actually deleted.
         """
-        if file.get('imported'):
+        if file.get('imported') or 'path' not in file:
             return
 
         q = {
             'sha512': file['sha512'],
             'assetstoreId': self.assetstore['_id']
         }
-        matching = self.model('file').find(q, limit=2, fields=[])
-        if matching.count(True) == 1:
-            path = os.path.join(self.assetstore['root'], file['path'])
-            if os.path.isfile(path):
-                os.remove(path)
+        path = os.path.join(self.assetstore['root'], file['path'])
+        if os.path.isfile(path):
+            with filelock.FileLock(path + '.deleteLock'):
+                matching = self.model('file').find(q, limit=2, fields=[])
+                matchingUpload = self.model('upload').findOne(q)
+                if matching.count(True) == 1 and matchingUpload is None:
+                    try:
+                        os.unlink(path)
+                    except Exception:
+                        logger.exception('Failed to delete file %s' % path)
 
     def cancelUpload(self, upload):
         """

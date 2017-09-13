@@ -788,21 +788,30 @@ class AccessControlledModel(Model):
                     doc['access'][entity].remove(perm)
 
         if save:
-            if '_id' not in doc:
-                doc = self.save(doc)
-            else:
-                # copy all other (potentially updated) fields to the update list
-                if '$set' in update:
-                    for propKey in doc:
-                        if propKey != 'access':
-                            update['$set'][propKey] = doc[propKey]
-                else:
-                    update['$set'] = {k: v for k, v in six.viewitems(doc)
-                                      if k != 'access'}
-                doc = self.collection.find_one_and_update(
-                    {'_id': ObjectId(doc['_id'])}, update,
-                    return_document=pymongo.ReturnDocument.AFTER)
+            doc = self._saveAcl(doc, update)
 
+        return doc
+
+    def _saveAcl(self, doc, update):
+        if '_id' not in doc:
+            return self.save(doc)
+
+        # copy all other (potentially updated) fields to the update list,
+        # and trigger normal save events
+        if '$set' in update:
+            for propKey in doc:
+                if propKey != 'access':
+                    update['$set'][propKey] = doc[propKey]
+        else:
+            update['$set'] = {k: v for k, v in six.viewitems(doc)
+                              if k != 'access'}
+
+        event = events.trigger('model.%s.save' % self.name, doc)
+        if not event.defaultPrevented:
+            doc = self.collection.find_one_and_update(
+                {'_id': ObjectId(doc['_id'])}, update,
+                return_document=pymongo.ReturnDocument.AFTER)
+            events.trigger('model.%s.save.after' % self.name, doc)
         return doc
 
     def setPublic(self, doc, public, save=False):

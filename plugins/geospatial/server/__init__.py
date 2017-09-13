@@ -17,22 +17,20 @@
 #  limitations under the License.
 ###############################################################################
 
-from . geospatial import GeospatialItem
+from . geospatial import GeospatialItem, GEOSPATIAL_FIELD
+from girder.constants import AccessType
+from girder.utility.model_importer import ModelImporter
 
 
 def load(info):
     geospatialItem = GeospatialItem()
-    info['apiRoot'].item.route('POST', ('geospatial',),
-                               geospatialItem.create)
-    info['apiRoot'].item.route('GET', ('geospatial',),
-                               geospatialItem.find)
-    info['apiRoot'].item.route('GET', ('geospatial', 'intersects'),
-                               geospatialItem.intersects)
-    info['apiRoot'].item.route('GET', ('geospatial', 'near'),
-                               geospatialItem.near)
-    info['apiRoot'].item.route('GET', ('geospatial', 'within'),
-                               geospatialItem.within)
-    info['apiRoot'].item.route('GET', (':id', 'geospatial'),
-                               geospatialItem.getGeospatial)
-    info['apiRoot'].item.route('PUT', (':id', 'geospatial'),
-                               geospatialItem.setGeospatial)
+
+    info['apiRoot'].item.route('POST', ('geospatial',), geospatialItem.create)
+    info['apiRoot'].item.route('GET', ('geospatial',), geospatialItem.find)
+    info['apiRoot'].item.route('GET', ('geospatial', 'intersects'), geospatialItem.intersects)
+    info['apiRoot'].item.route('GET', ('geospatial', 'near'), geospatialItem.near)
+    info['apiRoot'].item.route('GET', ('geospatial', 'within'), geospatialItem.within)
+    info['apiRoot'].item.route('GET', (':id', 'geospatial'), geospatialItem.getGeospatial)
+    info['apiRoot'].item.route('PUT', (':id', 'geospatial'), geospatialItem.setGeospatial)
+
+    ModelImporter.model('item').exposeFields(level=AccessType.READ, fields={GEOSPATIAL_FIELD})

@@ -1,4 +1,6 @@
+import $ from 'jquery';
 import _ from 'underscore';
+
 import View from 'girder/views/View';
 import events from 'girder/events';
 import { handleClose, handleOpen } from 'girder/dialog';
@@ -41,13 +43,13 @@ var LoginView = View.extend({
         'click .g-send-verification-email': function () {
             this.$('.g-validation-failed-message').html('');
             restRequest({
-                path: 'user/verification',
-                type: 'POST',
+                url: 'user/verification',
+                method: 'POST',
                 data: {login: this.$('#g-login').val()},
                 error: null
             }).done(_.bind(function (resp) {
                 this.$('.g-validation-failed-message').html(resp.message);
-            }, this)).error(_.bind(function (err) {
+            }, this)).fail(_.bind(function (err) {
                 this.$('.g-validation-failed-message').html(err.responseJSON.message);
             }, this));
         },
@@ -62,11 +64,10 @@ var LoginView = View.extend({
     },
 
     render: function () {
-        var view = this;
         this.$el.html(LoginDialogTemplate()).girderModal(this)
-            .on('shown.bs.modal', function () {
-                view.$('#g-login').focus();
-            }).on('hidden.bs.modal', function () {
+            .on('shown.bs.modal', () => {
+                this.$('#g-login').focus();
+            }).on('hidden.bs.modal', () => {
                 handleClose('login', {replace: true});
             });
 

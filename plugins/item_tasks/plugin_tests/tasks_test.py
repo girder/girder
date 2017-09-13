@@ -27,7 +27,13 @@ class TasksTest(base.TestCase):
         folders = self.model('folder').childFolders(self.admin, parentType='user', user=self.admin)
         self.privateFolder, self.publicFolder = list(folders)
 
-    def testJsonSpec(self):
+        # show full diff when objects don't match
+        self.maxDiff = None
+
+    def testAddItemTasksToFolderFromJson(self):
+        """
+        Test adding item tasks to a folder from a JSON spec.
+        """
         # Create a new folder that will contain the tasks
         folder = self.model('folder').createFolder(
             name='placeholder', creator=self.admin, parent=self.admin, parentType='user')
@@ -35,7 +41,7 @@ class TasksTest(base.TestCase):
         # Create task to introspect container
         with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
             resp = self.request(
-                '/item_task/%s/json_description' % folder['_id'], method='POST', params={
+                '/folder/%s/item_task_json_description' % folder['_id'], method='POST', params={
                     'image': 'johndoe/foo:v5'
                 }, user=self.admin)
             self.assertStatusOk(resp)
@@ -44,6 +50,13 @@ class TasksTest(base.TestCase):
             job = scheduleMock.mock_calls[0][1][0]
             self.assertEqual(job['handler'], 'worker_handler')
             self.assertEqual(job['itemTaskId'], folder['_id'])
+            self.assertEqual(job['kwargs']['outputs']['_stdout']['method'], 'POST')
+            self.assertTrue(job['kwargs']['outputs']['_stdout']['url'].endswith(
+                'folder/%s/item_task_json_specs' % folder['_id']))
+            params = job['kwargs']['outputs']['_stdout']['params']
+            self.assertEqual(params['image'], 'johndoe/foo:v5')
+            self.assertEqual(params['pullImage'], True)
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
 
         # Task should not be registered until we get the callback
         resp = self.request('/item_task', user=self.admin)
@@ -57,11 +70,10 @@ class TasksTest(base.TestCase):
         parsedSpecs = json.loads(specs)
 
         resp = self.request(
-            '/item_task/%s/json_specs' % (folder['_id']), method='POST', params={
+            '/folder/%s/item_task_json_specs' % folder['_id'], method='POST', params={
                 'image': 'johndoe/foo:v5',
                 'pullImage': False
-            },
-            user=self.admin, body=specs, type='application/json')
+            }, token=token, body=specs, type='application/json')
 
         self.assertStatusOk(resp)
 
@@ -77,6 +89,7 @@ class TasksTest(base.TestCase):
             parsedSpecs[itemIndex]['pull_image'] = False
             parsedSpecs[itemIndex]['docker_image'] = 'johndoe/foo:v5'
             self.assertEqual(item['meta']['itemTaskSpec'], parsedSpecs[itemIndex])
+            self.assertEqual(item['meta']['itemTaskName'], '')
 
         # We should only be able to see tasks we have read access on
         resp = self.request('/item_task')
@@ -101,12 +114,16 @@ class TasksTest(base.TestCase):
         with open(os.path.join(os.path.dirname(__file__), 'spec.json')) as f:
             spec = f.read()
         parsedSpec = json.loads(spec)
+
+        token = self.model('token').createToken(
+            user=self.admin, scope='item_task.set_task_spec.%s' % folder2['_id'])
         resp = self.request(
-            '/item_task/%s/json_specs' % (folder2['_id']), method='POST', params={
+            '/folder/%s/item_task_json_specs' % folder2['_id'], method='POST', params={
                 'image': 'johndoe/foo:v5',
                 'pullImage': False
             },
-            user=self.admin, body=spec, type='application/json')
+            token=token, body=spec, type='application/json')
+        self.assertStatusOk(resp)
         items = list(self.model('folder').childItems(folder2, user=self.admin))
         self.assertEqual(len(items), 1)
 
@@ -118,6 +135,7 @@ class TasksTest(base.TestCase):
         parsedSpec['pull_image'] = False
         parsedSpec['docker_image'] = 'johndoe/foo:v5'
         self.assertEqual(item['meta']['itemTaskSpec'], parsedSpec)
+        self.assertEqual(item['meta']['itemTaskName'], '')
 
         # Test searching for tasks
         resp = self.request('/item_task', user=self.admin)
@@ -160,7 +178,289 @@ class TasksTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, [])
 
-    def testSlicerCli(self):
+    def testItemTaskGetEndpointMinMax(self):
+        """
+        Test adding item tasks to a folder from a JSON spec.
+        """
+        with open(os.path.join(os.path.dirname(__file__), 'namedSpecs.json')) as f:
+            specs = f.read()
+
+        def createTask(itemName, taskName, specs=specs):
+            # Create a new item that will become a task
+            item = self.model('item').createItem(
+                name=itemName, creator=self.admin, folder=self.privateFolder)
+            # Create task to introspect container
+            with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+                resp = self.request(
+                    '/item/%s/item_task_json_description' % item['_id'], method='POST', params={
+                        'image': 'johndoe/foo:v5',
+                        'taskName': taskName
+                    }, user=self.admin)
+                self.assertStatusOk(resp)
+                job = scheduleMock.mock_calls[0][1][0]
+                token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
+
+            # Simulate callback with a valid task name
+            resp = self.request(
+                '/item/%s/item_task_json_specs' % (item['_id']), method='PUT', params={
+                    'image': 'johndoe/foo:v5',
+                    'taskName': taskName,
+                    'setName': True,
+                    'setDescription': True,
+                    'pullImage': False
+                },
+                token=token, body=specs, type='application/json')
+            self.assertStatusOk(resp)
+
+        # Test GET endpoint
+        def testMinMax(expected, min=None, max=None):
+            params = {}
+            if min is not None:
+                params['minFileInputs'] = min
+            if max is not None:
+                params['maxFileInputs'] = max
+            resp = self.request(
+                '/item_task', params=params,
+                user=self.admin)
+            self.assertStatusOk(resp)
+            self.assertEqual(len(resp.json), expected)
+
+        createTask('item1', 'Task 1')
+        createTask('item2', '1 File Task')
+        createTask('item3', '2 File Task')
+        createTask('item4', '3 File Task')
+        testMinMax(1, min=1, max=1)
+        testMinMax(4, max=3)
+        testMinMax(3, min=0, max=2)
+        testMinMax(2, min=2, max=3)
+        testMinMax(4)
+        testMinMax(1, min=3)
+        testMinMax(0, min=8)
+        testMinMax(1, min=0, max=0)
+
+    def testConfigureItemTaskFromJson(self):
+        """
+        Test configuring an item with a task from a JSON spec, then reconfiguring the
+        item with a different task from the JSON spec.
+        """
+        # Create a new item that will become a task
+        item = self.model('item').createItem(
+            name='placeholder', creator=self.admin, folder=self.privateFolder)
+
+        # Create job to introspect container
+        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+            resp = self.request(
+                '/item/%s/item_task_json_description' % item['_id'], method='POST', params={
+                    'image': 'johndoe/foo:v5',
+                    'taskName': 'Task 2'
+                }, user=self.admin)
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['_modelType'], 'job')
+            self.assertEqual(len(scheduleMock.mock_calls), 1)
+            job = scheduleMock.mock_calls[0][1][0]
+            self.assertEqual(job['handler'], 'worker_handler')
+            self.assertEqual(job['itemTaskId'], item['_id'])
+            self.assertEqual(job['kwargs']['outputs']['_stdout']['method'], 'PUT')
+            self.assertTrue(job['kwargs']['outputs']['_stdout']['url'].endswith(
+                'item/%s/item_task_json_specs' % item['_id']))
+            params = job['kwargs']['outputs']['_stdout']['params']
+            self.assertEqual(params['image'], 'johndoe/foo:v5')
+            self.assertEqual(params['taskName'], 'Task 2')
+            self.assertEqual(params['setName'], True)
+            self.assertEqual(params['setDescription'], True)
+            self.assertEqual(params['pullImage'], True)
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
+
+        # Task should not be registered until we get the callback
+        resp = self.request('/item_task', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+
+        # Simulate callback from introspection job
+        with open(os.path.join(os.path.dirname(__file__), 'namedSpecs.json')) as f:
+            specs = f.read()
+
+        # Simulate callback with an invalid task name
+        resp = self.request(
+            '/item/%s/item_task_json_specs' % (item['_id']), method='PUT', params={
+                'image': 'johndoe/foo:v5',
+                'taskName': 'Invalid task'
+            },
+            token=token, body=specs, type='application/json')
+        self.assertStatus(resp, 400)
+
+        # Simulate callback with a valid task name
+        resp = self.request(
+            '/item/%s/item_task_json_specs' % (item['_id']), method='PUT', params={
+                'image': 'johndoe/foo:v5',
+                'taskName': 'Task 2',
+                'setName': True,
+                'setDescription': True,
+                'pullImage': False
+            },
+            token=token, body=specs, type='application/json')
+        self.assertStatusOk(resp)
+
+        # We should only be able to see tasks we have read access on
+        resp = self.request('/item_task')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+
+        resp = self.request('/item_task', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(item['_id']))
+
+        # Check that the item has the correct metadata
+        item = self.model('item').load(item['_id'], force=True)
+        self.assertEqual(item['name'], 'Task 2')
+        self.assertEqual(item['description'], 'Task 2 description')
+        self.assertTrue(item['meta']['isItemTask'])
+        self.assertEqual(item['meta']['itemTaskName'], 'Task 2')
+        self.assertEqual(item['meta']['itemTaskSpec']['name'], 'Task 2')
+        self.assertEqual(item['meta']['itemTaskSpec']['description'], 'Task 2 description')
+        self.assertEqual(item['meta']['itemTaskSpec']['mode'], 'docker')
+        self.assertEqual(item['meta']['itemTaskSpec']['inputs'], [])
+        self.assertEqual(item['meta']['itemTaskSpec']['outputs'], [])
+
+        # Create job to introspect container
+        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+            resp = self.request(
+                '/item/%s/item_task_json_description' % item['_id'], method='POST', params={
+                    'image': 'johndoe/foo:v5',
+                    'taskName': 'Task 1'
+                }, user=self.admin)
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['_modelType'], 'job')
+            self.assertEqual(len(scheduleMock.mock_calls), 1)
+            job = scheduleMock.mock_calls[0][1][0]
+            self.assertEqual(job['handler'], 'worker_handler')
+            self.assertEqual(job['itemTaskId'], item['_id'])
+            self.assertEqual(job['kwargs']['outputs']['_stdout']['method'], 'PUT')
+            self.assertTrue(job['kwargs']['outputs']['_stdout']['url'].endswith(
+                'item/%s/item_task_json_specs' % item['_id']))
+            params = job['kwargs']['outputs']['_stdout']['params']
+            self.assertEqual(params['image'], 'johndoe/foo:v5')
+            self.assertEqual(params['taskName'], 'Task 1')
+            self.assertEqual(params['setName'], True)
+            self.assertEqual(params['setDescription'], True)
+            self.assertEqual(params['pullImage'], True)
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
+
+        # Simulate callback from introspection job
+        resp = self.request(
+            '/item/%s/item_task_json_specs' % item['_id'], method='PUT', params={
+                'image': 'johndoe/foo:v5',
+                'taskName': 'Task 1',
+                'setName': True,
+                'setDescription': True,
+                'pullImage': False
+            },
+            token=token, body=specs, type='application/json')
+        self.assertStatusOk(resp)
+
+        resp = self.request('/item_task', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(item['_id']))
+
+        # Check that the item has the correct metadata
+        item = self.model('item').load(item['_id'], force=True)
+        self.assertEqual(item['name'], 'Task 1')
+        self.assertEqual(item['description'], 'Task 1 description')
+        self.assertTrue(item['meta']['isItemTask'])
+        self.assertEqual(item['meta']['itemTaskName'], 'Task 1')
+        self.assertEqual(item['meta']['itemTaskSpec']['name'], 'Task 1')
+        self.assertEqual(item['meta']['itemTaskSpec']['description'], 'Task 1 description')
+        self.assertEqual(item['meta']['itemTaskSpec']['mode'], 'docker')
+        self.assertEqual(item['meta']['itemTaskSpec']['inputs'], [{
+            'id': 'dummy_input',
+            'name': 'Dummy input',
+            'description': 'Dummy input flag',
+            'type': 'boolean',
+            'default': {'data': True}
+        }])
+        self.assertEqual(item['meta']['itemTaskSpec']['outputs'], [])
+
+    def testAddItemTasksToFolderFromSlicerCli(self):
+        """
+        Test adding item tasks to a folder from Slicer CLI XML.
+        """
+        # Create a new folder that will contain the tasks
+        folder = self.model('folder').createFolder(
+            name='placeholder', creator=self.admin, parent=self.admin, parentType='user')
+
+        # Create task to introspect container
+        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+            resp = self.request(
+                '/folder/%s/item_task_slicer_cli_description' % folder['_id'], method='POST',
+                params={
+                    'image': 'johndoe/foo:v5',
+                    'args': json.dumps(['--foo', 'bar'])
+                }, user=self.admin)
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['_modelType'], 'job')
+            self.assertEqual(len(scheduleMock.mock_calls), 1)
+            job = scheduleMock.mock_calls[0][1][0]
+            self.assertEqual(job['handler'], 'worker_handler')
+            self.assertEqual(job['itemTaskId'], folder['_id'])
+            self.assertEqual(job['kwargs']['outputs']['_stdout']['method'], 'POST')
+            self.assertTrue(job['kwargs']['outputs']['_stdout']['url'].endswith(
+                'folder/%s/item_task_slicer_cli_xml' % folder['_id']))
+            params = job['kwargs']['outputs']['_stdout']['params']
+            self.assertEqual(params['image'], 'johndoe/foo:v5')
+            self.assertEqual(params['args'], '["--foo", "bar"]')
+            self.assertEqual(params['pullImage'], True)
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
+
+        # Task should not be registered until we get the callback
+        resp = self.request('/item_task', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+
+        # Simulate callback from introspection job
+        with open(os.path.join(os.path.dirname(__file__), 'slicer_cli.xml')) as f:
+            xml = f.read()
+
+        resp = self.request(
+            '/folder/%s/item_task_slicer_cli_xml' % folder['_id'], method='POST', params={
+                'image': 'johndoe/foo:v5',
+                'args': json.dumps(['--foo', 'bar']),
+                'pullImage': False
+            },
+            token=token, body=xml, type='application/xml')
+        self.assertStatusOk(resp)
+
+        # We should only be able to see tasks we have read access on
+        resp = self.request('/item_task')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, [])
+
+        resp = self.request('/item_task', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+
+        items = list(self.model('folder').childItems(folder, user=self.admin))
+        self.assertEqual(len(items), 1)
+        item = items[0]
+
+        # Image name and item task flag should be stored in the item metadata
+        self.assertEqual(item['name'], 'PET phantom detector CLI')
+        self.assertEqual(
+            item['description'],
+            u'**Description**: Detects positions of PET/CT pocket phantoms in PET image.\n\n'
+            u'**Author(s)**: Girder Developers\n\n**Version**: 1.0\n\n'
+            u'**License**: Apache 2.0\n\n**Acknowledgements**: *none*\n\n'
+            u'*This description was auto-generated from the Slicer CLI XML specification.*'
+        )
+        self.assertTrue(item['meta']['isItemTask'])
+        self.assertHasKeys(item['meta']['itemTaskSpec'],
+                           ('mode', 'docker_image', 'container_args', 'inputs', 'outputs'))
+        self.assertEqual(item['meta']['itemTaskSpec']['mode'], 'docker')
+        self.assertEqual(item['meta']['itemTaskSpec']['docker_image'], 'johndoe/foo:v5')
+        self.assertEqual(item['meta']['itemTaskSlicerCliArgs'], ['--foo', 'bar'])
+
+    def testConfigureItemTaskFromSlicerCli(self):
         # Create a new item that will become a task
         item = self.model('item').createItem(
             name='placeholder', creator=self.admin, folder=self.privateFolder)
@@ -168,7 +468,7 @@ class TasksTest(base.TestCase):
         # Create task to introspect container
         with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
             resp = self.request(
-                '/item_task/%s/slicer_cli_description' % item['_id'], method='POST', params={
+                '/item/%s/item_task_slicer_cli_description' % item['_id'], method='POST', params={
                     'image': 'johndoe/foo:v5',
                     'args': json.dumps(['--foo', 'bar'])
                 }, user=self.admin)
@@ -178,6 +478,10 @@ class TasksTest(base.TestCase):
             job = scheduleMock.mock_calls[0][1][0]
             self.assertEqual(job['handler'], 'worker_handler')
             self.assertEqual(job['itemTaskId'], item['_id'])
+            self.assertEqual(job['kwargs']['outputs']['_stdout']['method'], 'PUT')
+            self.assertTrue(job['kwargs']['outputs']['_stdout']['url'].endswith(
+                'item/%s/item_task_slicer_cli_xml' % item['_id']))
+            token = job['kwargs']['outputs']['_stdout']['headers']['Girder-Token']
 
         # Task should not be registered until we get the callback
         resp = self.request('/item_task', user=self.admin)
@@ -194,10 +498,10 @@ class TasksTest(base.TestCase):
             xml = f.read()
 
         resp = self.request(
-            '/item_task/%s/slicer_cli_xml' % item['_id'], method='PUT', params={
+            '/item/%s/item_task_slicer_cli_xml' % item['_id'], method='PUT', params={
                 'setName': True,
                 'setDescription': True
-            }, user=self.admin, body=xml, type='application/xml')
+            }, token=token, body=xml, type='application/xml')
         self.assertStatusOk(resp)
 
         # We should only be able to see tasks we have read access on
@@ -215,7 +519,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(
             item['description'],
             u'**Description**: Detects positions of PET/CT pocket phantoms in PET image.\n\n'
-            u'**Author(s)**: D\u017eenan Zuki\u0107\n\n**Version**: 1.0\n\n'
+            u'**Author(s)**: Girder Developers\n\n**Version**: 1.0\n\n'
             u'**License**: Apache 2.0\n\n**Acknowledgements**: *none*\n\n'
             u'*This description was auto-generated from the Slicer CLI XML specification.*'
         )
@@ -224,21 +528,20 @@ class TasksTest(base.TestCase):
             'mode': 'docker',
             'docker_image': 'johndoe/foo:v5',
             'container_args': [
-                '--foo', 'bar', '--InputImage', '$input{--InputImage}',
-                '--MaximumLineStraightnessDeviation',
-                '$input{--MaximumLineStraightnessDeviation}', '--MaximumRadius',
-                '$input{--MaximumRadius}', '--MaximumSphereDistance',
-                '$input{--MaximumSphereDistance}', '--MinimumRadius',
-                '$input{--MinimumRadius}', '--MinimumSphereActivity',
-                '$input{--MinimumSphereActivity}', '--MinimumSphereDistance',
-                '$input{--MinimumSphereDistance}', '--SpheresPerPhantom',
-                '$input{--SpheresPerPhantom}', '$flag{--StrictSorting}',
-                '--DetectedPoints', '/mnt/girder_worker/data/--DetectedPoints'
+                '--foo', 'bar', '--InputImage=$input{--InputImage}',
+                '--MaximumLineStraightnessDeviation=$input{--MaximumLineStraightnessDeviation}',
+                '--MaximumRadius=$input{--MaximumRadius}',
+                '--MaximumSphereDistance=$input{--MaximumSphereDistance}',
+                '--MinimumRadius=$input{--MinimumRadius}',
+                '--MinimumSphereActivity=$input{--MinimumSphereActivity}',
+                '--MinimumSphereDistance=$input{--MinimumSphereDistance}',
+                '--SpheresPerPhantom=$input{--SpheresPerPhantom}', '$flag{--StrictSorting}',
+                '--DetectedPoints=$output{--DetectedPoints}'
             ],
             'inputs': [{
                 'description': 'Input image to be analysed.',
-                'format': 'file',
-                'name': 'InputImage', 'type': 'file', 'id': '--InputImage',
+                'format': 'image',
+                'name': 'InputImage', 'type': 'image', 'id': '--InputImage',
                 'target': 'filepath'
             }, {
                 'description': 'Used for eliminating detections which are not in a straight line. '
@@ -285,11 +588,12 @@ class TasksTest(base.TestCase):
                 'name': 'MinimumSphereDistance'
             }, {
                 'description': 'What kind of phantom are we working with here?',
-                'format': 'integer',
+                'format': 'number-enumeration',
                 'default': {'data': 3},
-                'type': 'integer',
+                'type': 'number-enumeration',
                 'id': '--SpheresPerPhantom',
-                'name': 'SpheresPerPhantom'
+                'name': 'SpheresPerPhantom',
+                'values': [2, 3]
             }, {
                 'description': 'Controls whether spheres within a phantom must have descending '
                                'activities. If OFF, they can have approximately same activities '
@@ -301,7 +605,7 @@ class TasksTest(base.TestCase):
                 'name': 'StrictSorting'
             }],
             'outputs': [{
-                'description': 'Fiducual points, one for each detected sphere. '
+                'description': 'Fiducial points, one for each detected sphere. '
                                'Will be multiple of 3.',
                 'format': 'new-file',
                 'name': 'DetectedPoints',
@@ -419,6 +723,9 @@ class TasksTest(base.TestCase):
         self.assertIn('itemTaskTempToken', job)
 
         from girder.plugins.jobs.constants import JobStatus
+        # Transition through states to SUCCESS
+        job = jobModel.updateJob(job, status=JobStatus.QUEUED)
+        job = jobModel.updateJob(job, status=JobStatus.RUNNING)
         job = jobModel.updateJob(job, status=JobStatus.SUCCESS)
 
         self.assertNotIn('itemTaskTempToken', job)

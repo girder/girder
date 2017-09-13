@@ -3,7 +3,7 @@ import $ from 'jquery';
 import router from 'girder/router';
 import versionInfo from 'girder/version';
 import View from 'girder/views/View';
-import { cancelRestRequests, apiRoot, staticRoot } from 'girder/rest';
+import { cancelRestRequests, getApiRoot } from 'girder/rest';
 import events from 'girder/events';
 import { getCurrentUser } from 'girder/auth';
 
@@ -37,17 +37,18 @@ var FrontPageView = View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
         cancelRestRequests('fetch');
+        this.brandName = settings.brandName || 'Girder';
         this.render();
     },
 
     render: function () {
         this.$el.html(FrontPageTemplate({
-            apiRoot: apiRoot,
-            staticRoot: staticRoot,
+            apiRoot: getApiRoot(),
             currentUser: getCurrentUser(),
-            versionInfo: versionInfo
+            versionInfo: versionInfo,
+            brandName: this.brandName
         }));
 
         return this;

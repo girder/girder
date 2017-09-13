@@ -6,10 +6,29 @@ import requests
 import json
 
 
+def markAsFinished(job):
+    jobInfo = job['kwargs']['jobInfo']
+
+    req = requests.request(
+        method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
+            'status': girder.plugins.jobs.constants.JobStatus.QUEUED
+        })
+    req.raise_for_status()
+    req = requests.request(
+        method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
+            'status': girder.plugins.jobs.constants.JobStatus.RUNNING
+        })
+    req.raise_for_status()
+    req = requests.request(
+        method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
+            'status': girder.plugins.jobs.constants.JobStatus.SUCCESS
+        })
+    req.raise_for_status()
+
+
 def simulateConfigure(job):
     """Simulate worker configuring a docker Slicer CLI item task"""
     output = job['kwargs']['outputs']['_stdout']
-    jobInfo = job['kwargs']['jobInfo']
 
     with open(os.path.join(os.path.dirname(__file__), 'slicer_cli.xml'), 'rb') as f:
         xml = f.read()
@@ -21,17 +40,12 @@ def simulateConfigure(job):
     req.raise_for_status()
 
     # Update the job to mark it as finished
-    req = requests.request(
-        method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
-            'status': girder.plugins.jobs.constants.JobStatus.SUCCESS
-        })
-    req.raise_for_status()
+    markAsFinished(job)
 
 
 def simulateJsonConfigure(job, specs):
     """Simulate worker configuring a docker JSON item task"""
     output = job['kwargs']['outputs']['_stdout']
-    jobInfo = job['kwargs']['jobInfo']
 
     with open(os.path.join(os.path.dirname(__file__), specs), 'rb') as f:
         spec = f.read()
@@ -43,18 +57,18 @@ def simulateJsonConfigure(job, specs):
     req.raise_for_status()
 
     # Update the job to mark it as finished
-    req = requests.request(
-        method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
-            'status': girder.plugins.jobs.constants.JobStatus.SUCCESS
-        })
-    req.raise_for_status()
+    markAsFinished(job)
 
 
 def simulateRun(job):
     """Simulate worker running the demo task"""
     jobInfo = job['kwargs']['jobInfo']
-
     # Write the inputs to the log
+    req = requests.request(
+        method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
+            'status': girder.plugins.jobs.constants.JobStatus.QUEUED
+        })
+    req.raise_for_status()
     req = requests.request(
         method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
             'log': json.dumps(job['itemTaskBindings']['inputs']),
@@ -71,13 +85,16 @@ def simulateRun(job):
 
 
 def mockedSchedule(self, job, *args, **kwargs):
-    if job['type'] == 'item_task.slicer_cli':
+    # Configure item/folder from Slicer CLI
+    if job['type'].endswith('.item_task_slicer_cli_description'):
         simulateConfigure(job)
-    elif job['type'] == 'item_task.json_description' and \
-            job['title'].find('item-tasks-demo') >= 0:
-        simulateJsonConfigure(job, os.path.join('..', 'demo', 'demo.json'))
-    elif job['type'] == 'item_task.json_description':
-        simulateJsonConfigure(job, 'specs.json')
+    # Configure item/folder from JSON
+    elif job['type'].endswith('.item_task_json_description'):
+        if job['title'].find('item-tasks-demo') >= 0:
+            simulateJsonConfigure(job, os.path.join('..', 'demo', 'demo.json'))
+        else:
+            simulateJsonConfigure(job, 'specs.json')
+    # Execute task
     elif job['type'] == 'item_task':
         simulateRun(job)
     else:

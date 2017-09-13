@@ -30,21 +30,25 @@ var PluginsView = View.extend({
         },
         'click .g-rebuild-and-restart': function (e) {
             confirm({
-                text: `Are you sure you want to rebuild web code and restart 
-                the server? This will interrupt all running tasks for all users.`,
+                text: `Are you sure you want to rebuild web code and restart the server? This will interrupt all running tasks for all users.`,
                 yesText: 'Restart',
                 confirmCallback: function () {
                     $(e.currentTarget).girderEnable(false);
-                    rebuildWebClient().then(() => {
-                        events.trigger('g:alert', {
-                            text: 'Web client code built successfully',
-                            type: 'success',
-                            duration: 3000
+                    rebuildWebClient()
+                        .then(() => {
+                            events.trigger('g:alert', {
+                                text: 'Web client code built successfully',
+                                type: 'success',
+                                duration: 3000
+                            });
+
+                            return restartServer();
+                        })
+                        .always(() => {
+                            // Re-enable the button whether the chain succeeds or fails, though if
+                            // it succeeds, the page will probably be refreshed
+                            $(e.currentTarget).girderEnable(true);
                         });
-                        return restartServer();
-                    }).then(() => {
-                        $(e.currentTarget).girderEnable(true);
-                    });
                 }
             });
         }
@@ -53,21 +57,38 @@ var PluginsView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
+            this.cherrypyServer = (_.has(settings, 'cherrypyServer')
+                                   ? settings.cherrypyServer : true);
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.failed = _.has(settings, 'failed') ? settings.failed : null;
             this.render();
         } else {
+            const promises = [
+                restRequest({
+                    url: 'system/plugins',
+                    method: 'GET'
+                }).then((resp) => resp),
+                restRequest({
+                    url: 'system/configuration',
+                    method: 'GET',
+                    data: {
+                        section: 'server',
+                        key: 'cherrypy_server'
+                    }
+                }).then((resp) => resp)
+            ];
+
             // Fetch the plugin list
-            restRequest({
-                path: 'system/plugins',
-                type: 'GET'
-            }).done(_.bind(function (resp) {
-                this.enabled = resp.enabled;
-                this.allPlugins = resp.all;
-                this.failed = _.has(resp, 'failed') ? resp.failed : null;
+            $.when(...promises).done((plugins, cherrypyServer) => {
+                this.cherrypyServer = cherrypyServer;
+                this.enabled = plugins.enabled;
+                this.allPlugins = plugins.all;
+                this.failed = plugins.failed;
                 this.render();
-            }, this));
+            }).fail(() => {
+                router.navigate('/', { trigger: true });
+            });
         }
     },
 
@@ -90,26 +111,41 @@ var PluginsView = View.extend({
         }, this);
 
         this.$el.html(PluginsTemplate({
+            cherrypyServer: this.cherrypyServer,
             allPlugins: this._sortPlugins(this.allPlugins)
         }));
 
-        var view = this;
         this.$('.g-plugin-switch').bootstrapSwitch()
-          .off('switchChange.bootstrapSwitch')
-          .on('switchChange.bootstrapSwitch', function (event, state) {
-              var plugin = $(event.currentTarget).attr('key');
-              if (state === true) {
-                  view.enabled.push(plugin);
-              } else {
-                  var idx;
-                  while ((idx = view.enabled.indexOf(plugin)) >= 0) {
-                      view.enabled.splice(idx, 1);
-                  }
-              }
-              $('button.g-rebuild-and-restart').addClass('btn-danger');
-              $('.g-plugin-rebuild-restart-text').addClass('show');
-              view._updatePlugins();
-          });
+            .off('switchChange.bootstrapSwitch')
+            .on('switchChange.bootstrapSwitch', (event, state) => {
+                var plugin = $(event.currentTarget).attr('key');
+                if (state === true) {
+                    this.enabled.push(plugin);
+                } else {
+                    var idx;
+                    while ((idx = this.enabled.indexOf(plugin)) >= 0) {
+                        this.enabled.splice(idx, 1);
+                    }
+                }
+                this.$('button.g-rebuild-and-restart').addClass('btn-danger');
+
+                if (this.cherrypyServer) {
+                    this.$('.g-plugin-rebuild-restart-text').addClass('show');
+                }
+
+                if (!this.cherrypyServer && !_.has(this, 'displayedCherrypyNotification')) {
+                    this.displayedCherrypyNotification = true;
+
+                    events.trigger('g:alert', {
+                        text: `Enabling and disabling plugins might not take effect until the system administrator has restarted Girder.`,
+                        type: 'info',
+                        timeout: 5000,
+                        icon: 'info'
+                    });
+                }
+
+                this._updatePlugins();
+            });
         this.$('.g-plugin-config-link').tooltip({
             container: this.$el,
             animation: false,
@@ -172,8 +208,8 @@ var PluginsView = View.extend({
         this.enabled = _.intersection(this.enabled, _.keys(this.allPlugins));
 
         restRequest({
-            path: 'system/plugins',
-            type: 'PUT',
+            url: 'system/plugins',
+            method: 'PUT',
             data: {
                 plugins: JSON.stringify(this.enabled)
             }

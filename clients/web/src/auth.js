@@ -64,7 +64,7 @@ function setCurrentToken(token) {
 function fetchCurrentUser() {
     return restRequest({
         method: 'GET',
-        path: '/user/me'
+        url: '/user/me'
     });
 }
 
@@ -87,7 +87,7 @@ function login(username, password, cors) {
 
     return restRequest({
         method: 'GET',
-        path: '/user/authentication',
+        url: '/user/authentication',
         headers: {
             'Girder-Authorization': auth
         },
@@ -108,23 +108,22 @@ function login(username, password, cors) {
         events.trigger('g:login', response);
 
         return response.user;
-    }, function (jqxhr) {
+    }).fail(function (jqxhr) {
         events.trigger('g:login.error', jqxhr.status, jqxhr);
-        return jqxhr;
     });
 }
 
 function logout() {
     return restRequest({
         method: 'DELETE',
-        path: '/user/authentication'
-    }).then(function () {
+        url: '/user/authentication'
+    }).done(function () {
         setCurrentUser(null);
         setCurrentToken(null);
 
         events.trigger('g:login', null);
         events.trigger('g:logout.success');
-    }, function (jqxhr) {
+    }).fail(function (jqxhr) {
         events.trigger('g:logout.error', jqxhr.status, jqxhr);
     });
 }

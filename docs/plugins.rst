@@ -158,6 +158,18 @@ If there is a match, the user is added to the group with the specified access
 level.
 
 
+Download Statistics
+-------------------
+
+This plugin tracks and records file download activity. The recorded information
+(downloads started, downloads completed, and total requests made) is stored on the
+file model: ::
+
+    file['downloadStatistics']['started']
+    file['downloadStatistics']['requested']
+    file['downloadStatistics']['completed']
+
+
 DICOM Viewer
 ------------
 
@@ -175,6 +187,35 @@ images by series and instance.
 .. figure:: images/dicom-viewer.png
 
     DICOM imagery from: https://wiki.cancerimagingarchive.net/display/Public/RIDER+NEURO+MRI
+
+
+LDAP Authentication
+-------------------
+
+This plugin allows administrators to configure the server so that users can
+log in against one or more LDAP servers. If the user fails to authenticate to
+any of the available LDAP servers, they will fall back to normal core
+authentication. Documentation of the LDAP standard in general can be found
+`here <https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol>`_.
+
+Administrators can configure the ordered list of LDAP servers to try on the
+plugin configuration page. Each server in the list has several properties:
+
+* **URI**: The URI of the LDAP server. Example: ``ldaps://my.ldap.org:636``.
+* **Bind name**: The Distinguished Name (DN) to use when connecting to the LDAP
+  server to perform directory searches. Example: ``cn=me,cn=Users,dc=my,dc=ldap,dc=org``.
+* **Password**: (Optional) The password to use when connecting to the LDAP server
+  to perform directory searches.
+* **Base DN**: The Distinguished Name (DN) under which to search for users
+  during login. Example: ``cn=Users,dc=my,dc=ldap,dc=org``.
+* **Search field**: (Optional) This specifies what field should be searched
+  in the directory for the login field entered by the user. The default value is
+  the ``uid`` field, though some implementations would want to use, e.g. ``mail``.
+  It is assumed that the search field will uniquely identify at most one user
+  in the directory under the Base DN.
+
+.. note:: This plugin is known to work against LDAP version 3. Using it with
+  older versions of the protocol might work, but is not tested at this time.
 
 Metadata Extractor
 ------------------
@@ -289,7 +330,7 @@ ready, which admins may approve or reject. The plugin provides a UI along with
 workflow management, notification, and permission support for these actions.
 
 The standard curation workflow works as follows, with any operations affecting
-privacy or permissions being applied to the folder and all of its descendent
+privacy or permissions being applied to the folder and all of its descendant
 folders.
 
 - Site admins can enable curation for any folder, which changes the folder to
@@ -386,6 +427,15 @@ is not set on the user document, instead use the URL ``/user/:id/gravatar`` unde
 the Girder API, which will compute and store the correct Gravatar URL, and then
 redirect to it. The next time that user document is sent over the REST API,
 it should contain the computed ``gravatar_baseUrl`` field.
+
+Terms of Use
+------------
+
+This plugin allows collection admins to define a set of textual "Terms of Use", which other users
+must accept before browsing within the collection. The terms may be set with markdown-formatted
+text, and users will be required to re-accept the terms whenever the content changes. Logged-in
+users have their acceptances stored and remembered permanently, while anonymous users have their
+acceptances stored only on the local browser.
 
 Javascript clients
 ******************
@@ -607,3 +657,15 @@ You can also use the API to download the file based on the hash returned by the 
 with an endpoint ``/api/v1/file/hashsum/sha512/<file sha512 hash>/download``, where the sha512 hash
 comes from the specific file in Girder.
 
+Candela Visualization
+---------------------
+The Candela Visualization plugin uses the `Candela library <http://candela.readthedocs.io/>`_ to
+render table files directly in Girder. To use it, simply upload a CSV or TSV file as an item,
+then set the Candela visualization type and options.
+
+Vega Visualization
+------------------
+The Vega plugin uses the `Vega library <http://trifacta.github.io/vega>`_ to render Vega-formatted
+JSON objects directly in the Girder application. To use it, simply upload the JSON file as an item,
+and then set a "vega: true" metadata field on the item. The visualization will then be rendered
+directly in the item view.

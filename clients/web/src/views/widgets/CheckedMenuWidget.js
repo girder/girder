@@ -37,6 +37,8 @@ var CheckedMenuWidget = View.extend({
             pickedDesc: this.pickedDesc,
             HierarchyWidget: HierarchyWidget
         }));
+
+        return this;
     },
 
     /**

@@ -1,17 +1,5 @@
-get_filename_component(PLUGIN ${CMAKE_CURRENT_LIST_DIR} NAME)
+add_standard_plugin_tests(NO_SERVER_TESTS)
 
-add_python_test(assetstore PLUGIN ${PLUGIN} PY2_ONLY)
-
-add_python_style_test(
-  python_static_analysis_${PLUGIN}
-  "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/server"
-)
-add_python_style_test(
-  python_static_analysis_${PLUGIN}_tests
-  "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/plugin_tests"
-)
-
-add_eslint_test(${PLUGIN}
-    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client")
-add_puglint_test(${PLUGIN}
-    "${PROJECT_SOURCE_DIR}/plugins/${PLUGIN}/web_client/templates")
+get_filename_component(_pluginName "${CMAKE_CURRENT_LIST_DIR}" NAME)
+add_python_test(hdfs_assetstore PLUGIN ${_pluginName} PY2_ONLY)
+add_python_style_test(python_static_analysis_${_pluginName}_tests "${_pluginDir}/plugin_tests")

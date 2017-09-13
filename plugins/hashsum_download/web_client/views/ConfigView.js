@@ -13,7 +13,7 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'hashsum_download.auto_compute',
-                value: this.$('#hashsum-download-auto-compute').is(':checked')
+                value: this.$('#g-hashsum-download-auto-compute').is(':checked')
             }]);
         }
     },
@@ -25,14 +25,14 @@ var ConfigView = View.extend({
         });
 
         restRequest({
-            type: 'GET',
-            path: 'system/setting',
+            method: 'GET',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify([
                     'hashsum_download.auto_compute'
                 ])
             }
-        }).done(resp => {
+        }).done((resp) => {
             this.settings = resp;
             this.render();
         });
@@ -48,8 +48,8 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
-            path: 'system/setting',
+            method: 'PUT',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)
             },
@@ -61,7 +61,7 @@ var ConfigView = View.extend({
                 type: 'success',
                 timeout: 4000
             });
-        }).error(resp => {
+        }).fail((resp) => {
             this.$('#g-hashsum-download-error-message').text(
                 resp.responseJSON.message);
         });

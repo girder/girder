@@ -78,9 +78,9 @@ endfunction()
 
 # Adds a new mirror hosting external data.  The argument passed to this
 # method should be a url template similar to the default mirror:
-# 
+#
 #   https://midas3.kitware.com/midas/api/rest?method=midas.bitstream.download&checksum=%(hash)&algorithm=%(algo)
-# 
+#
 # where "%(algo)" will be replaced by a hashing algorithm such as "md5" or
 # "sha512" and "%(hash)" will be the corresponding hash value.
 #

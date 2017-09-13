@@ -61,12 +61,18 @@ class File(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
-    def getFile(self, file, params):
+    def getFile(self, file):
         return file
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Start a new upload or create an empty or link file.')
+        .notes('Use POST /file/chunk to send the contents of the file.  '
+               'The data for the first chunk of the file can be included with '
+               'this query by sending it as the body of the request using an '
+               'appropriate content-type and with the other parameters as '
+               'part of the query string.  If the entire file is uploaded via '
+               'this call, the resulting file is returned.')
         .responseClass('Upload')
         .param('parentType', 'Type being uploaded into.', enum=['folder', 'item'])
         .param('parentId', 'The ID of the parent.')
@@ -85,7 +91,7 @@ class File(Resource):
         .errorResponse('Failed to create upload.', 500)
     )
     def initUpload(self, parentType, parentId, name, size, mimeType, linkUrl, reference,
-                   assetstoreId, params):
+                   assetstoreId):
         """
         Before any bytes of the actual file are sent, a request should be made
         to initialize the upload. This creates the temporary record of the
@@ -109,7 +115,22 @@ class File(Resource):
                 self.requireAdmin(
                     user, message='You must be an admin to select a destination assetstore.')
                 assetstore = self.model('assetstore').load(assetstoreId)
+
+            chunk = None
+            if size > 0 and cherrypy.request.headers.get('Content-Length'):
+                ct = cherrypy.request.body.content_type.value
+                if (ct not in cherrypy.request.body.processors and
+                        ct.split('/', 1)[0] not in cherrypy.request.body.processors):
+                    chunk = RequestBodyStream(cherrypy.request.body)
+            if chunk is not None and chunk.getSize() <= 0:
+                chunk = None
+
             try:
+                # TODO: This can be made more efficient by adding
+                #    save=chunk is None
+                # to the createUpload call parameters.  However, since this is
+                # a breaking change, that should be deferred until a major
+                # version upgrade.
                 upload = self.model('upload').createUpload(
                     user=user, name=name, parentType=parentType, parent=parent, size=size,
                     mimeType=mimeType, reference=reference, assetstore=assetstore)
@@ -119,6 +140,9 @@ class File(Resource):
                         'Failed to create upload.', 'girder.api.v1.file.create-upload-failed')
                 raise
             if upload['size'] > 0:
+                if chunk:
+                    return self.model('upload').handleChunk(upload, chunk, filter=True, user=user)
+
                 return upload
             else:
                 return self.model('file').filter(
@@ -136,7 +160,7 @@ class File(Resource):
                         'Not enough bytes have been uploaded.'))
         .errorResponse('You are not the user who initiated the upload.', 403)
     )
-    def finalizeUpload(self, upload, params):
+    def finalizeUpload(self, upload):
         user = self.getCurrentUser()
 
         if upload['userId'] != user['_id']:
@@ -160,7 +184,7 @@ class File(Resource):
         .modelParam('uploadId', paramType='formData')
         .errorResponse("The ID was invalid, or the offset did not match the server's record.")
     )
-    def requestOffset(self, upload, params):
+    def requestOffset(self, upload):
         """
         This should be called when resuming an interrupted upload. It will
         report the offset into the upload that should be used to resume.
@@ -179,6 +203,12 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Upload a chunk of a file.')
+        .notes('The data for the chunk should be sent as the body of the '
+               'request using an appropriate content-type and with the other '
+               'parameters as part of the query string.  Alternately, the '
+               'data can be sent as a file in the "chunk" field in multipart '
+               'form data.  Multipart uploads are much less efficient and '
+               'their use is deprecated.')
         .modelParam('uploadId', paramType='formData')
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
                paramType='formData')
@@ -253,7 +283,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
-    def download(self, file, offset, endByte, contentDisposition, extraParameters, params):
+    def download(self, file, offset, endByte, contentDisposition, extraParameters):
         """
         Defers to the underlying assetstore adapter to stream a file out.
         Requires read permission on the folder that contains the file's item.
@@ -295,7 +325,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
-    def deleteFile(self, file, params):
+    def deleteFile(self, file):
         self.model('file').remove(file)
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -305,7 +335,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('You lack permission to cancel this upload.', 403)
     )
-    def cancelUpload(self, upload, params):
+    def cancelUpload(self, upload):
         user = self.getCurrentUser()
 
         if upload['userId'] != user['_id'] and not user['admin']:
@@ -324,7 +354,7 @@ class File(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
-    def updateFile(self, file, name, mimeType, params):
+    def updateFile(self, file, name, mimeType):
         if name is not None:
             file['name'] = name
         if mimeType is not None:
@@ -345,7 +375,7 @@ class File(Resource):
         .notes('After calling this, send the chunks just like you would with a '
                'normal file upload.')
     )
-    def updateFileContents(self, file, size, reference, assetstoreId, params):
+    def updateFileContents(self, file, size, reference, assetstoreId):
         user = self.getCurrentUser()
 
         assetstore = None
@@ -371,7 +401,7 @@ class File(Resource):
         .param('progress', 'Controls whether progress notifications will be sent.',
                dataType='boolean', default=False, required=False)
     )
-    def moveFileToAssetstore(self, file, assetstore, progress, params):
+    def moveFileToAssetstore(self, file, assetstore, progress):
         user = self.getCurrentUser()
         title = 'Moving file "%s" to assetstore "%s"' % (file['name'], assetstore['name'])
 
@@ -387,5 +417,5 @@ class File(Resource):
         .modelParam('itemId', description='The ID of the item to copy the file to.',
                     level=AccessType.WRITE, paramType='formData')
     )
-    def copy(self, file, item, params):
+    def copy(self, file, item):
         return self.model('file').copyFile(file, self.getCurrentUser(), item=item)

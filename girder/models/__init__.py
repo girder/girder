@@ -18,6 +18,7 @@
 ###############################################################################
 
 import pymongo
+from six.moves import urllib
 
 from pymongo.read_preferences import ReadPreference
 from girder import logger, logprint
@@ -40,7 +41,7 @@ def getDbConfig():
         return {}
 
 
-def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
+def getDbConnection(uri=None, replicaSet=None, autoRetry=True, quiet=False, **kwargs):
     """
     Get a MongoClient object that is connected to the configured database.
     We lazy-instantiate a module-level singleton, the MongoClient objects
@@ -56,6 +57,8 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
         the mongo client, so make sure to only disable if you're testing a
         connection.
     :type autoRetry: bool
+    :param quiet: if true, don't logprint warnings and success.
+    :type quiet: bool
     """
     global _dbClients
 
@@ -80,11 +83,18 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
         'replicaSet': replicaSet
     }
     clientOptions.update(kwargs)
+    # if the connection URI overrides any option, honor it above our own
+    # settings.
+    uriParams = urllib.parse.parse_qs(urllib.parse.urlparse(uri).query)
+    for key in uriParams:
+        if key in clientOptions:
+            del clientOptions[key]
 
     if uri is None:
         dbUriRedacted = 'mongodb://localhost:27017/girder'
-        logprint.warning('WARNING: No MongoDB URI specified, using '
-                         'the default value')
+        if not quiet:
+            logprint.warning('WARNING: No MongoDB URI specified, using '
+                             'the default value')
 
         client = pymongo.MongoClient(dbUriRedacted, **clientOptions)
     else:
@@ -96,6 +106,12 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
 
         client = pymongo.MongoClient(uri, **clientOptions)
 
+    if not quiet:
+        desc = ''
+        if replicaSet:
+            desc += ', replica set: %s' % replicaSet
+        logprint.info('Connecting to MongoDB: %s%s' % (dbUriRedacted, desc))
+
     # Make sure we can connect to the mongo server at startup
     client.server_info()
 
@@ -103,8 +119,4 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, **kwargs):
         client = MongoProxy(client, logger=logger)
         _dbClients[origKey] = _dbClients[(uri, replicaSet)] = client
 
-    desc = ''
-    if replicaSet:
-        desc += ', replica set: %s' % replicaSet
-    logprint.info('Connected to MongoDB: %s%s' % (dbUriRedacted, desc))
     return client

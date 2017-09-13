@@ -8,6 +8,7 @@
     girder_always_build_assets: yes
     nginx_vhosts:
       - listen: "8080 default_server"
+        server_name: "girder"
         extra_parameters: |
           location / {
             proxy_set_header Host $proxy_host;

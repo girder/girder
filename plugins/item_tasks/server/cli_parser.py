@@ -1,9 +1,7 @@
 import ctk_cli
 import itertools
-import os
 
 from girder.models.model_base import ValidationException
-from girder.plugins.worker import constants
 
 _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'boolean': 'boolean',
@@ -11,18 +9,19 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'float': 'number',
     'double': 'number',
     'string': 'string',
-    'integer-vector': 'integer_list',
-    'float-vector': 'number_list',
-    'double-vector': 'number_list',
-    'string-vector': 'string_list',
-    'integer-enumeration': 'integer',
-    'float-enumeration': 'number',
-    'double-enumeration': 'number',
-    'string-enumeration': 'string',
+    'integer-vector': 'integer-vector',
+    'float-vector': 'number-vector',
+    'double-vector': 'number-vector',
+    'string-vector': 'string-vector',
+    'integer-enumeration': 'number-enumeration',
+    'float-enumeration': 'number-enumeration',
+    'double-enumeration': 'number-enumeration',
+    'string-enumeration': 'string-enumeration',
     'file': 'file',
     'directory': 'folder',
-    'image': 'file',
-    'pointfile': 'file'
+    'image': 'image',
+    'pointfile': 'file',
+    'region': 'region'
 }
 
 _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP = {
@@ -32,7 +31,7 @@ _SLICER_TO_GIRDER_WORKER_OUTPUT_TYPE_MAP = {
 }
 
 _SLICER_TYPE_TO_GIRDER_MODEL_MAP = {
-    'image': 'file',
+    'image': 'image',
     'file': 'file',
     'directory': 'folder'
 }
@@ -84,8 +83,8 @@ def parseSlicerCliXml(fd):
     args.sort(key=lambda p: p.index)
     opts.sort(key=lambda p: p.flag or p.longflag)
 
-    inputArgs = [a for a in args if a.channel == 'input']
-    inputOpts = [o for o in opts if o.channel == 'input']
+    inputArgs = [a for a in args if a.channel == 'input' or a.channel is None]
+    inputOpts = [o for o in opts if o.channel == 'input' or o.channel is None]
     outputArgs = [a for a in args if a.channel == 'output']
     outputOpts = [o for o in opts if o.channel == 'output']
 
@@ -102,6 +101,9 @@ def parseSlicerCliXml(fd):
             'type': typ,
             'format': typ
         }
+
+        if typ in ('string-enumeration', 'number-enumeration'):
+            spec['values'] = list(param.elements)
 
         if param.isExternalType():
             spec['target'] = 'filepath'
@@ -120,15 +122,12 @@ def parseSlicerCliXml(fd):
         if param.typ == 'boolean':
             info['args'].append('$flag{%s}' % name)
         else:
-            info['args'] += [name, '$input{%s}' % name]
+            info['args'].append('%s=$input{%s}' % (name, name))
 
     for param in outputOpts:
         name = param.flag or param.longflag
         info['outputs'].append(ioSpec(name, param))
-        info['args'] += [
-            param.flag or param.longflag,
-            os.path.join(constants.DOCKER_DATA_VOLUME, name)
-        ]
+        info['args'].append('%s=$output{%s}' % (name, name))
 
     for param in inputArgs:
         info['inputs'].append(ioSpec(param.name, param, True))
@@ -136,6 +135,6 @@ def parseSlicerCliXml(fd):
 
     for param in outputArgs:
         info['outputs'].append(ioSpec(param.name, param))
-        info['args'].append(os.path.join(constants.DOCKER_DATA_VOLUME, param.name))
+        info['args'].append('$output{%s}' % param.name)
 
     return info

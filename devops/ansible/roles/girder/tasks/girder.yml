@@ -6,6 +6,7 @@
   become: yes
   become_user: root
   with_items:
+    - curl
     - git
     - libffi-dev
     - build-essential
@@ -14,6 +15,9 @@
     - libjpeg-dev
     - libssl-dev
     - zlib1g-dev
+    # Needed for LDAP plugin
+    - libsasl2-dev
+    - libldap2-dev
   when: ansible_os_family == "Debian"
 
 - name: Install Girder system dependencies
@@ -32,6 +36,7 @@
     - zlib-devel
     - python2-pip
     - python-devel
+    - openldap-devel
   when: ansible_os_family == "RedHat"
 
 - name: Download Girder

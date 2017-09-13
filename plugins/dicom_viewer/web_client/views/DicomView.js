@@ -1,12 +1,7 @@
-import ViewTemplate from '../templates/view.pug';
-import TagsTemplate from '../templates/tags.pug';
-import '../stylesheets/dicom_viewer.styl';
-
-import { restRequest, apiRoot } from 'girder/rest';
-import View from 'girder/views/View';
-
+import $ from 'jquery';
 import _ from 'underscore';
 import daikon from 'daikon';
+
 import vtkImageSlice from 'vtk.js/Sources/Rendering/Core/ImageSlice';
 import vtkImageData from 'vtk.js/Sources/Common/DataModel/ImageData';
 import vtkDataArray from 'vtk.js/Sources/Common/Core/DataArray';
@@ -16,6 +11,13 @@ import vtkOpenGLRenderWindow from 'vtk.js/Sources/Rendering/OpenGL/RenderWindow'
 import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
+
+import { restRequest, getApiRoot } from 'girder/rest';
+import View from 'girder/views/View';
+
+import ViewTemplate from '../templates/view.pug';
+import TagsTemplate from '../templates/tags.pug';
+import '../stylesheets/dicom_viewer.styl';
 
 var DicomView = View.extend({
     events: {
@@ -130,7 +132,7 @@ var DicomView = View.extend({
 
     loadFileList: function () {
         restRequest({
-            path: '/item/' + this.item.get('_id') + '/dicom',
+            url: `item/${this.item.id}/dicom`,
             data: {
                 // don't need the dicom tags, just want the sorted results
                 filters: 'dummy'
@@ -158,7 +160,7 @@ var DicomView = View.extend({
             this.xhr.abort();
         }
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', apiRoot + '/file/' + file._id + '/download', true);
+        xhr.open('GET', `${getApiRoot()}/file/${file._id}/download`, true);
         xhr.responseType = 'arraybuffer';
         xhr.onload = _.bind(function (event) {
             try {
@@ -314,7 +316,7 @@ var DicomView = View.extend({
 });
 
 function createImageData(image) {
-    const rows = image.getRows()
+    const rows = image.getRows();
     const cols = image.getCols();
     const rowSpacing = image.getPixelSpacing()[0];
     const colSpacing = image.getPixelSpacing()[1];

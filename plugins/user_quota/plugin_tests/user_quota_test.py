@@ -34,6 +34,7 @@ def setUpModule():
 
 def tearDownModule():
     base.stopServer()
+    base.dropAllTestDatabases()
 
 
 class QuotaTestCase(base.TestCase):

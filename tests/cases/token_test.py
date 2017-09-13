@@ -20,7 +20,9 @@
 import random
 
 from .. import base
+from girder.constants import TokenScope
 from girder.models.token import genToken
+from girder.models.model_base import AccessException
 
 
 def setUpModule():
@@ -75,3 +77,24 @@ class TokensTestCase(base.TestCase):
         # Now the token is gone, so it should fail
         resp = self.request(path='/token/session', method='DELETE', token=token)
         self.assertStatus(resp, 401)
+
+    def testHasScope(self):
+        scope = TokenScope.DATA_READ
+        tokenModel = self.model('token')
+        token = tokenModel.createToken(scope=scope)
+
+        # If token is None should return False
+        self.assertFalse(tokenModel.hasScope(None, scope))
+
+        # If scope is None should return True
+        self.assertTrue(tokenModel.hasScope(token, None))
+
+    def testRequireScope(self):
+        scope = TokenScope.DATA_OWN
+        anotherScope = TokenScope.SETTINGS_READ
+        tokenModel = self.model('token')
+        token = tokenModel.createToken(scope=scope)
+
+        # If specified scope does not exist raise an error
+        with self.assertRaises(AccessException):
+            tokenModel.requireScope(token, anotherScope)

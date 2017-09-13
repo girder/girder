@@ -38,6 +38,7 @@ var HdfsAssetstoreImportView = View.extend({
         this.$el.html(HdfsAssetstoreImportViewTemplate({
             assetstore: this.model
         }));
+        return this;
     }
 });
 

@@ -79,7 +79,7 @@ class OAuth(Resource):
         .param('list', 'Whether to return the providers as an ordered list.',
                required=False, dataType='boolean', default=False)
     )
-    def listProviders(self, redirect, list, params):
+    def listProviders(self, redirect, list):
         enabledNames = self.model('setting').get(constants.PluginSettings.PROVIDERS_ENABLED)
 
         enabledProviders = [
@@ -116,7 +116,7 @@ class OAuth(Resource):
         .param('error', 'Error message from provider.', required=False),
         hide=True
     )
-    def callback(self, provider, state, code, error, params):
+    def callback(self, provider, state, code, error):
         if error is not None:
             raise RestException("Provider returned error: '%s'." % error, code=502)
 

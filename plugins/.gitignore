@@ -6,6 +6,7 @@
 !celery_jobs/
 !curation/
 !dicom_viewer/
+!download_statistics/
 !geospatial/
 !google_analytics/
 !gravatar/
@@ -17,10 +18,12 @@
 !item_tasks/
 !jobs/
 !jquery_widgets/
+!ldap/
 !metadata_extractor/
 !mongo_search/
 !oauth/
 !provenance/
+!terms/
 !thumbnails/
 !user_quota/
 !vega/

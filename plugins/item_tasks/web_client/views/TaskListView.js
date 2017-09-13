@@ -1,8 +1,9 @@
 import router from 'girder/router';
 import View from 'girder/views/View';
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
-import TaskListWidget from './TaskListWidget';
+
 import ItemTaskCollection from '../collections/ItemTaskCollection';
+import PaginateTasksWidget from './PaginateTasksWidget';
+import TaskListWidget from './TaskListWidget';
 
 import template from '../templates/taskList.pug';
 import '../stylesheets/taskList.styl';
@@ -26,9 +27,12 @@ var TaskListView = View.extend({
     initialize: function () {
         this.collection = new ItemTaskCollection();
 
-        this.paginateWidget = new PaginateWidget({
-            collection: this.collection,
-            parentView: this
+        this.paginateWidget = new PaginateTasksWidget({
+            el: this.$el,
+            parentView: this,
+            itemUrlFunc: (task) => {
+                return `#item_task/${task.id}/run`;
+            }
         });
 
         this.taskListWidget = new TaskListWidget({
@@ -37,7 +41,7 @@ var TaskListView = View.extend({
         });
 
         this.collection.fetch()
-            .then(() => {
+            .done(() => {
                 this.render();
 
                 // Render PaginateWidget when collection changes

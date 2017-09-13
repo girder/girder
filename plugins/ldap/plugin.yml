@@ -1,0 +1,6 @@
+name: LDAP authentication
+description: Authenticate user credentials against LDAP or Active Directory servers.
+version: 0.1.0
+npm:
+  dependencies:
+    sortablejs: "1.5.1"

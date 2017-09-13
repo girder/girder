@@ -12,7 +12,7 @@ import six
 
 class DicomItem(Resource):
 
-    @access.user(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get DICOM metadata, if any, for all files in the item.')
         .modelParam('id', 'The item ID',
@@ -24,7 +24,7 @@ class DicomItem(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the item.', 403)
     )
-    def getDicom(self, item, filters, force, params):
+    def getDicom(self, item, filters, force):
         if force:
             self.model('item').requireAccess(
                 item, user=self.getCurrentUser(), level=AccessType.WRITE)

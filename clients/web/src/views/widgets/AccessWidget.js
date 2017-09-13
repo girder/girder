@@ -26,7 +26,7 @@ import 'girder/utilities/jquery/girderModal';
 var AccessWidget = View.extend({
     events: {
         'click button.g-save-access-list': function (e) {
-            $(e.currentTarget).attr('disabled', 'disabled');
+            $(e.currentTarget).girderEnable(false);
             this.saveAccessList();
         },
         'click .g-close-flags-popover': function (e) {
@@ -75,7 +75,7 @@ var AccessWidget = View.extend({
         var flagListPromise = null;
         if (!this.noAccessFlag) {
             flagListPromise = restRequest({
-                path: 'system/access_flag'
+                url: 'system/access_flag'
             }).done((resp) => {
                 this.flagList = resp;
             });
@@ -86,7 +86,7 @@ var AccessWidget = View.extend({
         $.when(
             flagListPromise,
             this.model.fetchAccess()
-        ).then(() => {
+        ).done(() => {
             this.render();
         });
     },
@@ -187,7 +187,7 @@ var AccessWidget = View.extend({
 
         // Re-binding popovers actually breaks them, so we make sure to
         // only bind ones that aren't already bound.
-        _.each(this.$('.g-action-manage-flags'), el => {
+        _.each(this.$('.g-action-manage-flags'), (el) => {
             if (!$(el).data('bs.popover')) {
                 $(el).popover({
                     trigger: 'manual',
@@ -208,7 +208,7 @@ var AccessWidget = View.extend({
 
         // Re-binding popovers actually breaks them, so we make sure to
         // only bind ones that aren't already bound.
-        _.each(this.$('.g-action-manage-public-flags'), el => {
+        _.each(this.$('.g-action-manage-public-flags'), (el) => {
             if (!$(el).data('bs.popover')) {
                 $(el).popover({
                     trigger: 'manual',
@@ -310,7 +310,7 @@ var AccessWidget = View.extend({
     saveAccessList: function () {
         var acList = this.getAccessList();
 
-        var publicFlags = _.map(this.$('.g-public-flag-checkbox:checked'), checkbox => {
+        var publicFlags = _.map(this.$('.g-public-flag-checkbox:checked'), (checkbox) => {
             return $(checkbox).attr('flag');
         });
 
@@ -353,9 +353,9 @@ var AccessWidget = View.extend({
                     $el.find('.g-access-col-right>select').val(),
                     10
                 ),
-                flags: _.map($el.find('.g-flag-checkbox:checked'), (checkbox) => {
-                    return $(checkbox).attr('flag');
-                })
+                flags: _.map($el.find('.g-flag-checkbox:checked'),
+                    (checkbox) => $(checkbox).attr('flag')
+                )
             });
         }, this);
 
@@ -369,9 +369,9 @@ var AccessWidget = View.extend({
                     $el.find('.g-access-col-right>select').val(),
                     10
                 ),
-                flags: _.map($el.find('.g-flag-checkbox:checked'), (checkbox) => {
-                    return $(checkbox).attr('flag');
-                })
+                flags: _.map($el.find('.g-flag-checkbox:checked'),
+                    (checkbox) => $(checkbox).attr('flag')
+                )
             });
         }, this);
 

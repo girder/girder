@@ -33,8 +33,8 @@ def setUpModule():
     base.enabledPlugins.append('jobs')
     base.startServer()
 
-    global JobStatus
-    from girder.plugins.jobs.constants import JobStatus
+    global JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
+    from girder.plugins.jobs.constants import JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
 
 
 def tearDownModule():
@@ -271,7 +271,8 @@ class JobsTestCase(base.TestCase):
         self.assertTrue('created' not in resp.json)
 
     def testJobProgressAndNotifications(self):
-        job = self.model('job', 'jobs').createJob(
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(
             title='a job', type='t', user=self.users[1], public=True)
 
         path = '/job/%s' % job['_id']
@@ -284,7 +285,7 @@ class JobsTestCase(base.TestCase):
             'progressCurrent': 3,
             'progressMessage': 'Started',
             'notify': 'false',
-            'status': JobStatus.RUNNING
+            'status': JobStatus.QUEUED
         })
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['progress'], {
@@ -297,17 +298,17 @@ class JobsTestCase(base.TestCase):
         # The status update should make it so we now have a timestamp
         self.assertEqual(len(resp.json['timestamps']), 1)
         self.assertEqual(
-            resp.json['timestamps'][0]['status'], JobStatus.RUNNING)
+            resp.json['timestamps'][0]['status'], JobStatus.QUEUED)
         self.assertIn('time', resp.json['timestamps'][0])
 
         # If the status does not change on update, no timestamp should be added
         resp = self.request(path, method='PUT', user=self.users[1], params={
-            'status': JobStatus.RUNNING
+            'status': JobStatus.QUEUED
         })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['timestamps']), 1)
         self.assertEqual(
-            resp.json['timestamps'][0]['status'], JobStatus.RUNNING)
+            resp.json['timestamps'][0]['status'], JobStatus.QUEUED)
 
         # We passed notify=false, so we should only have the job creation notification
         resp = self.request(path='/notification/stream', method='GET',
@@ -333,8 +334,8 @@ class JobsTestCase(base.TestCase):
         job = self.model('job', 'jobs').load(job['_id'], force=True)
         self.assertEqual(len(messages), 3)
         creationNotify = messages[0]
-        statusNotify = messages[1]
-        progressNotify = messages[2]
+        progressNotify = messages[1]
+        statusNotify = messages[2]
 
         self.assertEqual(creationNotify['type'], 'job_created')
         self.assertEqual(creationNotify['data']['_id'], str(job['_id']))
@@ -363,7 +364,7 @@ class JobsTestCase(base.TestCase):
 
         # Make sure we can update a job and notification creation works
         self.model('job', 'jobs').updateJob(
-            job, status=JobStatus.ERROR, notify=True)
+            job, status=JobStatus.QUEUED, notify=True)
 
         self.assertEqual(job['kwargs'], kwargs)
 
@@ -409,10 +410,15 @@ class JobsTestCase(base.TestCase):
             if event.info == 1234:
                 event.preventDefault().addResponse(True)
 
+        def validTransitions(event):
+            if event.info['status'] == 1234:
+                event.preventDefault().addResponse([JobStatus.INACTIVE])
+
         with self.assertRaises(ValidationException):
             jobModel.updateJob(job, status=1234)  # Should fail
 
-        with events.bound('jobs.status.validate', 'test', validateStatus):
+        with events.bound('jobs.status.validate', 'test', validateStatus), \
+                events.bound('jobs.status.validTransitions', 'test', validTransitions):
             jobModel.updateJob(job, status=1234)  # Should work
 
             with self.assertRaises(ValidationException):
@@ -428,10 +434,15 @@ class JobsTestCase(base.TestCase):
             if event.info in states:
                 event.preventDefault().addResponse(True)
 
+        def validTransitions(event):
+            if event.info['status'] == 'a':
+                event.preventDefault().addResponse([JobStatus.INACTIVE])
+
         with self.assertRaises(ValidationException):
             jobModel.updateJob(job, status='a')
 
-        with events.bound('jobs.status.validate', 'test', validateStatus):
+        with events.bound('jobs.status.validate', 'test', validateStatus), \
+                events.bound('jobs.status.validTransitions', 'test', validTransitions):
             jobModel.updateJob(job, status='a')
             self.assertEqual(job['status'], 'a')
 
@@ -460,6 +471,21 @@ class JobsTestCase(base.TestCase):
         job = jobModel.load(id=job['_id'], force=True, includeLog=True)
         self.assertEqual(job['status'], JobStatus.CANCELED)
         self.assertEqual(len(job.get('log', [])), 1)
+
+    def testCancelJobEndpoint(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(title='test', type='x', user=self.users[0])
+
+        # Ensure requires write perms
+        job_cancel_url = '/job/%s/cancel' % job['_id']
+        resp = self.request(job_cancel_url, user=self.users[1], method='PUT')
+        self.assertStatus(resp, 403)
+
+        # Try again with the right user
+        job_cancel_url = '/job/%s/cancel' % job['_id']
+        resp = self.request(job_cancel_url, user=self.users[0], method='PUT')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['status'], JobStatus.CANCELED)
 
     def testJobsTypesAndStatuses(self):
         self.model('job', 'jobs').createJob(
@@ -495,3 +521,143 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['types']), 2)
         self.assertEqual(len(resp.json['statuses']), 1)
+
+    def testDefaultParentId(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(title='Job', type='Job',
+                                 user=self.users[0])
+        # If not specified parentId should be None
+        self.assertEquals(job['parentId'], None)
+
+    def testIsParentIdCorrect(self):
+        jobModel = self.model('job', 'jobs')
+        parentJob = jobModel.createJob(title='Parent Job', type='Parent Job',
+                                       user=self.users[0])
+
+        childJob = jobModel.createJob(title='Child Job',
+                                      type='Child Job', user=self.users[0],
+                                      parentJob=parentJob)
+        # During initialization parent job should be set correctly
+        self.assertEqual(childJob['parentId'], parentJob['_id'])
+
+    def testSetParentCorrectly(self):
+        jobModel = self.model('job', 'jobs')
+        parentJob = jobModel.createJob(title='Parent Job', type='Parent Job',
+                                       user=self.users[0])
+
+        childJob = jobModel.createJob(title='Child Job', type='Child Job',
+                                      user=self.users[0])
+
+        jobModel.setParentJob(childJob, parentJob)
+
+        # After setParentJob method is called parent job should be set correctly
+        self.assertEqual(childJob['parentId'], parentJob['_id'])
+
+    def testParentCannotBeEqualToChild(self):
+        jobModel = self.model('job', 'jobs')
+        childJob = jobModel.createJob(title='Child Job', type='Child Job',
+                                      user=self.users[0])
+
+        # Cannot set a job as it's own parent
+        with self.assertRaises(ValidationException):
+            childJob = jobModel.setParentJob(childJob, childJob)
+
+    def testParentIdCannotBeOverridden(self):
+        jobModel = self.model('job', 'jobs')
+        parentJob = jobModel.createJob(title='Parent Job', type='Parent Job',
+                                       user=self.users[0])
+
+        anotherParentJob = jobModel.createJob(title='Another Parent Job',
+                                              type='Parent Job',
+                                              user=self.users[0])
+
+        childJob = jobModel.createJob(title='Child Job',
+                                      type='Child Job', user=self.users[0],
+                                      parentJob=parentJob)
+
+        with self.assertRaises(ValidationException):
+            # If parent job is set, cannot be overridden
+            childJob = jobModel.setParentJob(childJob, anotherParentJob)
+
+    def testListChildJobs(self):
+        jobModel = self.model('job', 'jobs')
+        parentJob = jobModel.createJob(title='Parent Job', type='Parent Job',
+                                       user=self.users[0])
+
+        childJob = jobModel.createJob(title='Child Job',
+                                      type='Child Job', user=self.users[0],
+                                      parentJob=parentJob)
+
+        jobModel.createJob(title='Another Child Job',
+                           type='Child Job',
+                           user=self.users[0],
+                           parentJob=parentJob)
+
+        # Should return a list with 2 jobs
+        self.assertEquals(len(list(jobModel.listChildJobs(parentJob))), 2)
+        # Should return an empty list
+        self.assertEquals(len(list(jobModel.listChildJobs(childJob))), 0)
+
+    def testListChildJobsRest(self):
+        jobModel = self.model('job', 'jobs')
+        parentJob = jobModel.createJob(title='Parent Job', type='Parent Job',
+                                       user=self.users[0])
+
+        childJob = jobModel.createJob(title='Child Job',
+                                      type='Child Job', user=self.users[0],
+                                      parentJob=parentJob)
+
+        jobModel.createJob(title='Another Child Job',
+                           type='Child Job',
+                           user=self.users[0],
+                           parentJob=parentJob)
+
+        resp = self.request('/job', user=self.users[0],
+                            params={'parentId': str(parentJob['_id'])})
+        resp2 = self.request('/job', user=self.users[0],
+                             params={'parentId': str(childJob['_id'])})
+
+        self.assertStatusOk(resp)
+        self.assertStatusOk(resp2)
+
+        # Should return a list with 2 jobs
+        self.assertEquals(len(resp.json), 2)
+        # Should return an empty list
+        self.assertEquals(len(resp2.json), 0)
+
+    def testCreateJobRest(self):
+
+        resp = self.request('/job', method='POST',
+                            user=self.users[0],
+                            params={'title': 'job', 'type': 'job'})
+        # If user does not have the necessary token status is 403
+        self.assertStatus(resp, 403)
+
+        token = self.model('token').createToken(scope=REST_CREATE_JOB_TOKEN_SCOPE)
+
+        resp2 = self.request('/job', method='POST',
+                             token=token,
+                             params={'title': 'job', 'type': 'job'})
+        # If user has the necessary token status is 200
+        self.assertStatus(resp2, 200)
+
+    def testJobStateTransitions(self):
+        jobModel = self.model('job', 'jobs')
+        job = jobModel.createJob(
+            title='user 0 job', type='t1', user=self.users[0], public=False)
+
+        # We can't move straight to  SUCCESS
+        with self.assertRaises(ValidationException):
+            job = jobModel.updateJob(job, status=JobStatus.SUCCESS)
+
+        jobModel.updateJob(job, status=JobStatus.QUEUED)
+        jobModel.updateJob(job, status=JobStatus.RUNNING)
+        jobModel.updateJob(job, status=JobStatus.ERROR)
+
+        # We shouldn't be able to move backwards
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status=JobStatus.QUEUED)
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status=JobStatus.RUNNING)
+        with self.assertRaises(ValidationException):
+            jobModel.updateJob(job, status=JobStatus.INACTIVE)

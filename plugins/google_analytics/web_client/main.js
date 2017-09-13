@@ -15,8 +15,8 @@ events.on('g:appload.after', function () {
     /*eslint-enable */
 
     restRequest({
-        type: 'GET',
-        path: 'google_analytics/id'
+        method: 'GET',
+        url: 'google_analytics/id'
     }).done(_.bind(function (resp) {
         if (resp.google_analytics_id) {
             ga('create', resp.google_analytics_id, 'none');
@@ -33,6 +33,6 @@ events.on('g:hierarchy.route', function (args) {
     if (!/^\//.test(curRoute)) {
         curRoute = '/' + curRoute;
     }
-    /*global ga*/
+    /* global ga:false */
     ga('send', 'pageview', curRoute);
 });

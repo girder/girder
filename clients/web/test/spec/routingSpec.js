@@ -1,6 +1,3 @@
-/**
- * Start the girder backbone app.
- */
 girderTest.startApp();
 
 function _getFirstId(Collection, ids, key, fetchParamsFunc) {
@@ -24,61 +21,7 @@ function _getFirstId(Collection, ids, key, fetchParamsFunc) {
 describe('Test routing paths', function () {
     var ids = {};
 
-    /* We need at least one of everything, so create that first */
-    it('register a user',
-        girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!'));
-    it('go to collections page', function () {
-        runs(function () {
-            $("a.g-nav-link[g-target='collections']").click();
-        });
-
-        waitsFor(function () {
-            return $('.g-collection-create-button:visible').length > 0;
-        }, 'navigate to collections page');
-
-        runs(function () {
-            expect($('.g-collection-list-entry').length).toBe(0);
-        });
-    });
-
-    it('create a collection',
-        girderTest.createCollection('Test Collection',
-                                    'Collection Description', 'Private'));
-
-    it('make the collection public', function () {
-        waitsFor(function () {
-            return $('.g-collection-actions-button:visible').is(':enabled');
-        }, 'collection actions link to appear');
-        runs(function () {
-            $('.g-collection-actions-button').click();
-        });
-        waitsFor(function () {
-            return $(".g-collection-access-control[role='menuitem']:visible").length === 1;
-        }, 'access control menu item to appear');
-        runs(function () {
-            $('.g-collection-access-control').click();
-        });
-        girderTest.waitForDialog();
-        waitsFor(function () {
-            return $('#g-dialog-container').hasClass('in') &&
-                   $('#g-access-public:visible').is(':enabled');
-        }, 'dialog and public access radio button to appear');
-        runs(function () {
-            $('#g-access-public').click();
-        });
-        waitsFor(function () {
-            return $('.g-save-access-list:visible').is(':enabled') &&
-                   $('.radio.g-selected').text().match('Public').length > 0;
-        }, 'access save button to appear');
-        runs(function () {
-            $('.g-save-access-list').click();
-        });
-        girderTest.waitForLoad();
-    });
+    it('login', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('go to groups page', girderTest.goToGroupsPage());
     it('Create a public group',
         girderTest.createGroup('Public Group', 'public group', true));
@@ -96,16 +39,6 @@ describe('Test routing paths', function () {
             });
         _getFirstId(girder.collections.GroupCollection, ids, 'group');
         _getFirstId(girder.collections.AssetstoreCollection, ids, 'assetstore');
-    });
-    it('create an item in the private folder of the user', function () {
-        runs(function () {
-            girder.rest.restRequest({type: 'POST', path: 'file', data: {
-                parentType: 'folder',
-                parentId: ids.userFolder,
-                name: 'Link File',
-                linkUrl: 'http://data.kitware.com'
-            }, async: false});
-        });
         _getFirstId(girder.collections.ItemCollection, ids, 'item',
             function () {
                 return {folderId: ids.userFolder};
@@ -120,7 +53,7 @@ describe('Test routing paths', function () {
     it('logout', girderTest.logout());
     it('test routes without being logged in', function () {
         girderTest.testRoute('', false, function () {
-            return $('a.g-login-link:first').text() === ' Log In';
+            return $('a.g-login-link:first').length > 0;
         });
         girderTest.testRoute('useraccount/' + ids.admin + '/info', false,
             function () {

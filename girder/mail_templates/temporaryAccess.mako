@@ -2,7 +2,7 @@
 
 <p>
 A temporary access token was requested on your behalf.  You can access the
-Girder system at
+${brandName} system at
 <a href="${url}">${url}</a>.
 Once you access the system, you will have the option to update your password.
 </p>

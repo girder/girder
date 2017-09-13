@@ -29,7 +29,8 @@ var NewAssetstoreWidget = View.extend({
                 name: this.$('#g-new-gridfs-name').val(),
                 db: this.$('#g-new-gridfs-db').val(),
                 mongohost: this.$('#g-new-gridfs-mongohost').val(),
-                replicaset: this.$('#g-new-gridfs-replicaset').val()
+                replicaset: this.$('#g-new-gridfs-replicaset').val(),
+                shard: this.$('#g-new-gridfs-shard-auto').is(':checked') ? 'auto' : false
             });
         },
 
@@ -42,7 +43,9 @@ var NewAssetstoreWidget = View.extend({
                 accessKeyId: this.$('#g-new-s3-access-key-id').val(),
                 secret: this.$('#g-new-s3-secret').val(),
                 service: this.$('#g-new-s3-service').val(),
-                readOnly: this.$('#g-new-s3-readonly').is(':checked')
+                region: this.$('#g-new-s3-region').val(),
+                readOnly: this.$('#g-new-s3-readonly').is(':checked'),
+                inferCredentials: this.$('#g-new-s3-infercredentials').is(':checked')
             });
         }
     },
@@ -76,4 +79,3 @@ var NewAssetstoreWidget = View.extend({
 });
 
 export default NewAssetstoreWidget;
-

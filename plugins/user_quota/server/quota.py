@@ -190,7 +190,7 @@ class QuotaPolicy(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the collection.', 403)
     )
-    def getCollectionQuota(self, collection, params):
+    def getCollectionQuota(self, collection):
         if QUOTA_FIELD not in collection:
             collection[QUOTA_FIELD] = {}
         collection[QUOTA_FIELD][
@@ -207,7 +207,7 @@ class QuotaPolicy(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the collection.', 403)
     )
-    def setCollectionQuota(self, collection, policy, params):
+    def setCollectionQuota(self, collection, policy):
         return self._setResourceQuota('collection', collection, policy)
 
     @access.public
@@ -217,7 +217,7 @@ class QuotaPolicy(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the user.', 403)
     )
-    def getUserQuota(self, user, params):
+    def getUserQuota(self, user):
         if QUOTA_FIELD not in user:
             user[QUOTA_FIELD] = {}
         user[QUOTA_FIELD]['_currentFileSizeQuota'] = self._getFileSizeQuota('user', user)
@@ -233,7 +233,7 @@ class QuotaPolicy(Resource):
         .errorResponse('ID was invalid.')
         .errorResponse('Read permission denied on the user.', 403)
     )
-    def setUserQuota(self, user, policy, params):
+    def setUserQuota(self, user, policy):
         return self._setResourceQuota('user', user, policy)
 
     def _checkAssetstore(self, assetstoreSpec):
@@ -291,7 +291,7 @@ class QuotaPolicy(Resource):
             resource = self.model(model).load(id=resourceId, force=True)
         if model in ('user', 'collection') and resource:
             # Ensure the base resource has a quota field so we can use the
-            # default quota if apropriate
+            # default quota if appropriate
             if QUOTA_FIELD not in resource:
                 resource[QUOTA_FIELD] = {}
         if not resource or QUOTA_FIELD not in resource:

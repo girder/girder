@@ -336,6 +336,47 @@ class ItemTestCase(base.TestCase):
         item = self.model('item').load(item['_id'])
         self.assertEqual(item, None)
 
+    def testItemMetadataDirect(self):
+        params = {
+            'name': 'item with metadata via POST',
+            'description': ' a description ',
+            'folderId': self.privateFolder['_id'],
+            'metadata': 'not JSON'
+        }
+        resp = self.request(
+            path='/item', method='POST', params=params, user=self.users[0])
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            resp.json['message'], 'Parameter metadata must be valid JSON.')
+
+        # Add some metadata
+        metadata = {
+            'foo': 'bar',
+            'test': 2
+        }
+        params['metadata'] = json.dumps(metadata)
+        resp = self.request(
+            path='/item', method='POST', params=params, user=self.users[0])
+        self.assertStatusOk(resp)
+        item = resp.json
+        self.assertEqual(item['meta']['foo'], metadata['foo'])
+        self.assertEqual(item['meta']['test'], metadata['test'])
+
+        metadata = {
+            'foo': None,
+            'test': 3,
+            'bar': 'baz'
+        }
+        resp = self.request(
+            path='/item/{_id}'.format(**item), method='PUT',
+            user=self.users[0], params={'metadata': json.dumps(metadata)}
+        )
+        self.assertStatusOk(resp)
+        item = resp.json
+        self.assertNotHasKeys(item['meta'], ['foo'])
+        self.assertEqual(item['meta']['test'], metadata['test'])
+        self.assertEqual(item['meta']['bar'], metadata['bar'])
+
     def testItemMetadataCrud(self):
         """
         Test CRUD of metadata.

@@ -30,7 +30,7 @@ function(add_eslint_test name input)
   endif()
 
   if (NOT ESLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
+    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   set(_args ESLINT_IGNORE_FILE ESLINT_CONFIG_FILE)
@@ -45,7 +45,7 @@ function(add_eslint_test name input)
   if(fn_ESLINT_CONFIG_FILE)
     set(config_file "${fn_ESLINT_CONFIG_FILE}")
   else()
-    set(config_file "${PROJECT_SOURCE_DIR}/.eslintrc")
+    set(config_file "${PROJECT_SOURCE_DIR}/.eslintrc.json")
   endif()
 
   add_test(
@@ -62,7 +62,7 @@ function(add_puglint_test name path)
   endif()
 
   if (NOT PUGLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'npm install' or disable JAVASCRIPT_STYLE_TESTS.")
+    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
   endif()
 
   add_test(
@@ -71,6 +71,23 @@ function(add_puglint_test name path)
     COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
   )
   set_property(TEST "puglint_${name}" PROPERTY LABELS girder_static_analysis)
+endfunction()
+
+function(add_stylint_test name path)
+  if (NOT JAVASCRIPT_STYLE_TESTS)
+    return()
+  endif()
+
+  if (NOT STYLINT_EXECUTABLE)
+    message(FATAL_ERROR "CMake variable STYLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
+  endif()
+
+  add_test(
+    NAME "stylint_${name}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${STYLINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/.stylintrc" "${path}"
+  )
+  set_property(TEST "stylint_${name}" PROPERTY LABELS girder_static_analysis)
 endfunction()
 
 function(add_web_client_test case specFile)
@@ -84,7 +101,7 @@ function(add_web_client_test case specFile)
   # PLUGIN_DIR Alternate directory in which to look for plugins.
   # ASSETSTORE (assetstore type) : use the specified assetstore type when
   #     running the test.  Defaults to 'filesystem'
-  # WEBSECURITY (boolean) : if false, don't use CORS validatation.  Defaults to
+  # WEBSECURITY (boolean) : if false, don't use CORS validation.  Defaults to
   #     'true'
   # ENABLEDPLUGINS (list of plugins): A list of plugins to load. This overrides the
   # PLUGIN parameter, so if you intend to load PLUGIN it must be included in this
@@ -97,6 +114,7 @@ function(add_web_client_test case specFile)
   #     "tests.web_client_test"
   # SETUP_MODULES: colon-separated list of python scripts to import at test setup time
   #     for side effects such as mocking, adding API routes, etc.
+  # SETUP_DATABASE: An absolute path to a database initialization spec
   # REQUIRED_FILES: A list of files required to run the test.
   # ENVIRONMENT: A list of key=value pairs to add to the test's runtime environment
   if (NOT BUILD_JAVASCRIPT_TESTS)
@@ -107,7 +125,7 @@ function(add_web_client_test case specFile)
 
   set(_options NOCOVERAGE)
   set(_args PLUGIN ASSETSTORE WEBSECURITY BASEURL PLUGIN_DIR TIMEOUT TEST_MODULE REQUIRED_FILES
-            SETUP_MODULES ENVIRONMENT EXTERNAL_DATA)
+            SETUP_MODULES ENVIRONMENT EXTERNAL_DATA SETUP_DATABASE)
   set(_multival_args RESOURCE_LOCKS ENABLEDPLUGINS)
   cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
@@ -155,10 +173,16 @@ function(add_web_client_test case specFile)
     girder_ExternalData_add_target("${testname}_data")
   endif()
 
+  if(fn_SETUP_DATABASE)
+    set(TEST_DATABASE_FILE "${fn_SETUP_DATABASE}")
+  else()
+    get_test_database_spec("${specFile}")
+  endif()
+
   add_test(
-      NAME ${testname}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v "${test_module}"
+    NAME ${testname}
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v "${test_module}"
   )
 
   # Catch view leaks and report them as test failures.
@@ -181,6 +205,7 @@ function(add_web_client_test case specFile)
     "GIRDER_PORT=${web_client_port}"
     "MONGOD_EXECUTABLE=${MONGOD_EXECUTABLE}"
     "GIRDER_TEST_DATA_PREFIX=${GIRDER_EXTERNAL_DATA_ROOT}"
+    "GIRDER_TEST_DATABASE_CONFIG=${TEST_DATABASE_FILE}"
     "${fn_ENVIRONMENT}"
   )
   math(EXPR next_web_client_port "${web_client_port} + 1")
@@ -193,7 +218,7 @@ function(add_web_client_test case specFile)
 
   if(fn_SETUP_MODULES)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
-        "SETUP_MODULES=${fn_SETUP_MODULES}"
+      "SETUP_MODULES=${fn_SETUP_MODULES}"
     )
   endif()
 
@@ -203,13 +228,13 @@ function(add_web_client_test case specFile)
 
   if(fn_BASEURL)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
-        "BASEURL=${fn_BASEURL}"
+      "BASEURL=${fn_BASEURL}"
     )
   endif()
 
   if (NOT fn_NOCOVERAGE)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
-        "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${case}.cvg"
+      "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${case}.cvg"
     )
     set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
     set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})

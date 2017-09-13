@@ -1,6 +1,0 @@
-{
-    "excludeFiles": [
-        "./tests/test_json_config_merge_script/data/**.js",
-        "./tests/test_json_config_expand_relpaths_script/data/**.js"
-    ]
-}

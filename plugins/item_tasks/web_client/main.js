@@ -1,6 +1,7 @@
+/* eslint-disable import/first, import/order */
+
 import $ from 'jquery';
 import _ from 'underscore';
-import './routes';
 
 import { getCurrentUser } from 'girder/auth';
 import { wrap } from 'girder/utilities/PluginUtils';
@@ -10,6 +11,9 @@ import ItemView from 'girder/views/body/ItemView';
 import { registerPluginNamespace } from 'girder/pluginUtils';
 import JobModel from 'girder_plugins/jobs/models/JobModel';
 import * as itemTasks from 'girder_plugins/item_tasks';
+import router from 'girder/router';
+
+import './routes';
 
 registerPluginNamespace('item_tasks', itemTasks);
 
@@ -36,7 +40,7 @@ wrap(ItemView, 'render', function (render) {
 
         if (this.model.get('createdByJob')) {
             var job = new JobModel({_id: this.model.get('createdByJob')});
-            job.fetch().done(() => {
+            job.fetch({ignoreError: true}).done(() => {
                 this.$('.g-item-info').append(itemInfoModTemplate({
                     job
                 }));
@@ -46,16 +50,32 @@ wrap(ItemView, 'render', function (render) {
     return render.call(this);
 });
 
-import ConfigureTaskDialog from './views/ConfigureTaskDialog';
+// "Configure Task" button in Actions drop down menu
+import ConfigureTasksDialog from './views/ConfigureTasksDialog';
 ItemView.prototype.events['click .g-configure-item-task'] = function () {
     if (!this.configureTaskDialog) {
-        this.configureTaskDialog = new ConfigureTaskDialog({
+        this.configureTaskDialog = new ConfigureTasksDialog({
             model: this.model,
             parentView: this,
             el: $('#g-dialog-container')
         });
     }
     this.configureTaskDialog.render();
+};
+
+// "Select Task" button in Actions drop down menu
+import SelectSingleFileTaskWidget from './views/SelectSingleFileTaskWidget';
+ItemView.prototype.events['click .g-select-item-task'] = function (e) {
+    new SelectSingleFileTaskWidget({
+        el: $('#g-dialog-container'),
+        parentView: this,
+        item: this.model
+    }).once('g:selected', function (params) {
+        let item = params.item;
+        let task = params.task;
+
+        router.navigate(`item_task/${task.id}/run?itemId=${item.id}`, {trigger: true});
+    }, this).render();
 };
 
 import hierarchyMenuModTemplate from './templates/hierarchyMenuMod.pug';
@@ -68,7 +88,6 @@ wrap(HierarchyWidget, 'render', function (render) {
     return this;
 });
 
-import ConfigureTasksDialog from './views/ConfigureTasksDialog';
 HierarchyWidget.prototype.events['click .g-create-docker-tasks'] = function () {
     if (!this.configureTasksDialog) {
         this.configureTasksDialog = new ConfigureTasksDialog({
@@ -81,20 +100,18 @@ HierarchyWidget.prototype.events['click .g-create-docker-tasks'] = function () {
 };
 
 // Show task inputs and outputs on job details view
+import JobDetailsWidget from 'girder_plugins/jobs/views/JobDetailsWidget';
 import JobDetailsInfoView from './views/JobDetailsInfoView';
-/* global girder */
-wrap(girder.plugins.jobs.views.JobDetailsWidget, 'render', function (render) {
+wrap(JobDetailsWidget, 'render', function (render) {
     render.call(this);
 
     if (this.job.has('itemTaskBindings')) {
-        var el = $('<div/>', {class: 'g-item-tasks-job-info-container'}).insertBefore(
-            this.$('.g-job-info-key[property="log"]')
-        );
-
         new JobDetailsInfoView({
-            el,
+            className: 'g-item-tasks-job-info-container',
             parentView: this,
             model: this.job
-        }).render();
+        })
+            .render()
+            .$el.insertBefore(this.$('.g-job-info-key[property="log"]'));
     }
 });

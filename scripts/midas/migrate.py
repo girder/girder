@@ -29,6 +29,7 @@ import logging
 import os
 import pydas
 import random
+import requests
 import sqlite3
 import string
 import tempfile
@@ -188,7 +189,7 @@ def get_or_create(type, id, timestamp, bc, func, args):
         return newObj
     try:
         newObj = func(*args)
-    except girder_client.HttpError as e:
+    except requests.HTTPError as e:
         newObj = lookup_resource(bc)
         if not newObj:
             raise
@@ -212,8 +213,8 @@ def handle_file(item, newItem, bc):
                         newItem['_id'], f, filename, length)
             set_migrated('file', item['item_id'])
             return
-        except girder_client.HttpError as e:
-            logger.exception(e.responseText)
+        except requests.HTTPError as e:
+            logger.exception(e.response.text)
             if i == n - 1:
                 raise
             breadcrumb('RETRY', bc)

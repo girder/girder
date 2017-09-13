@@ -6,6 +6,7 @@
     girder_force: no
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
     girder_always_build_assets: yes
+    girder_web_extra_args: "--dev --all-plugins"
   pre_tasks:
     - name: Update package cache
       apt:
@@ -51,12 +52,6 @@
         chdir: "{{ girder_path }}"
         virtualenv: "{{ girder_virtualenv }}"
 
-    - name: Build Girder with development dependencies
-      command: "npm install"
-      args:
-        chdir: "{{ girder_path }}"
-      when: girder_web
-
     - name: Install development packages
       apt:
         name: "{{ item }}"
@@ -75,3 +70,11 @@
       become: yes
       become_user: root
       when: ansible_os_family == "RedHat"
+
+    - name: Activate virtualenv on login
+      lineinfile:
+        dest: ~/.profile
+        line: 'source {{girder_virtualenv}}/bin/activate'
+        insertafter: 'EOF'
+        regexp: 'source {{girder_virtualenv}}/bin/activate'
+        state: present

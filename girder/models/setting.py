@@ -165,6 +165,12 @@ class Setting(Model):
         return None
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.BRAND_NAME)
+    def validateCoreBrandName(doc):
+        if not doc['value']:
+            raise ValidationException('The brand name may not be empty', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.SECURE_COOKIE)
     def validateSecureCookie(doc):
         if not isinstance(doc['value'], bool):
@@ -279,6 +285,12 @@ class Setting(Model):
             raise ValidationException('Email from address must not be blank.', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.CONTACT_EMAIL_ADDRESS)
+    def validateCoreContactEmailAddress(doc):
+        if not doc['value']:
+            raise ValidationException('Contact email address must not be blank.', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_HOST)
     def validateCoreEmailHost(doc):
         if isinstance(doc['value'], six.string_types):
@@ -317,7 +329,7 @@ class Setting(Model):
         nonEmptyRoutes = [route for route in doc['value'].values() if route]
         for key in [GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID]:
             if key not in doc['value'] or not doc['value'][key]:
-                raise ValidationException('Girder and static root must be routeable.')
+                raise ValidationException('Girder and static root must be routable.')
 
         for key in doc['value']:
             if (key != GIRDER_STATIC_ROUTE_ID and doc['value'][key] and

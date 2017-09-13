@@ -1,3 +1,5 @@
+/* eslint-disable import/first */
+
 // Extends and overrides API
 import './views/FileInfoWidget';
 

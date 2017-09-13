@@ -1,6 +1,6 @@
 {
-"name": "Provenance tracker",
-"description": "Tracks provenance of items in Girder",
-"url": "http://girder.readthedocs.io/en/latest/plugins.html#provenance-tracker",
-"version": "0.1.1"
+    "name": "Provenance tracker",
+    "description": "Tracks provenance of items in Girder",
+    "url": "http://girder.readthedocs.io/en/latest/plugins.html#provenance-tracker",
+    "version": "0.1.1"
 }

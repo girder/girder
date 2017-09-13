@@ -2,4 +2,4 @@ name: Thumbnails
 description: Generate thumbnails from files.
 version: 0.1.0
 dependencies:
-    - jobs
+  - jobs

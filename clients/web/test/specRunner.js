@@ -7,9 +7,14 @@
  * the context of that test application, and afterwards runs our custom coverage
  * handler on the coverage data.
  */
+/* eslint-disable node/no-deprecated-api */
 /* globals phantom, WebPage, jasmine, girderTest */
 
+var fs = require('fs');
+
 var system = require('system');
+require('event-source/global');
+
 var args = phantom.args ? phantom.args : system.args.slice(1);
 
 if (args && args.length < 2) {
@@ -27,9 +32,6 @@ var pageUrl = args[0];
 var spec = args[1];
 var coverageOutput = args[2] || null;
 var page = new WebPage();
-
-var fs = require('fs');
-require('event-source/global');
 
 try {
     fs.remove(coverageOutput);
@@ -68,9 +70,9 @@ page.onConsoleMessage = function (msg) {
         if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === true) {
-            console.log('Dumping ajax trace:');
             console.log(page.evaluate(function () {
-                return JSON.stringify(girderTest.ajaxLog(true), null, '  ');
+                var log = girderTest.ajaxLog(true);
+                return 'XHR log (last ' + log.length + '):\n' + JSON.stringify(log, null, '  ');
             }));
         }
         return;
@@ -126,6 +128,9 @@ page.onCallback = function (data) {
             break;
         case 'exit':
             // The "Testing Finished" string is magical and causes web_client_test.py not to retry
+            if (data.errorMessage) {
+                console.error(data.errorMessage);
+            }
             console.log('Testing Finished with status=' + data.code);
             phantom.exit(data.code);
     }
@@ -170,8 +175,30 @@ page.onLoadFinished = function (status) {
         }
         page.evaluate(function () {
             if (window.girderTest) {
-                girderTest.promise.then(function () {
+                girderTest.promise.done(function () {
+                    // Allow Jasmine to compare RegExp using toEqual, toHaveBeenCalledWith, etc.
+                    jasmine.getEnv().addEqualityTester(function (a, b) {
+                        if (a instanceof RegExp && jasmine.isString_(b)) {
+                            return a.test(b);
+                        } else if (b instanceof RegExp && jasmine.isString_(a)) {
+                            return b.test(a);
+                        }
+                        return jasmine.undefined;
+                    });
+
                     jasmine.getEnv().execute();
+                }).fail(function (err) {
+                    window.callPhantom({
+                        action: 'exit',
+                        code: 1,
+                        errorMessage: err
+                    });
+                });
+            } else {
+                window.callPhantom({
+                    action: 'exit',
+                    code: 1,
+                    errorMessage: 'Girder test utils not loaded into phantom env.'
                 });
             }
         });

@@ -5,24 +5,24 @@
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         h4.modal-title= title
       .modal-body
-        .form-group#g-group-login
+        #g-group-login.form-group
           label.control-label(for="g-login") Choose a login name
-          input.input-sm#g-login.form-control(type="text", placeholder="Login")
-        .form-group#g-group-email
+          input#g-login.input-sm.form-control(type="text", placeholder="Login")
+        #g-group-email.form-group
           label.control-label(for="g-email") Enter email address
-          input.input-sm#g-email.form-control(type="text", placeholder="Email")
-        .form-group#g-group-firstName
+          input#g-email.input-sm.form-control(type="text", placeholder="Email")
+        #g-group-firstName.form-group
           label.control-label(for="g-firstName") Enter first name
-          input.input-sm#g-firstName.form-control(type="text", placeholder="First name")
-        .form-group#g-group-lastName
+          input#g-firstName.input-sm.form-control(type="text", placeholder="First name")
+        #g-group-lastName.form-group
           label.control-label(for="g-lastName") Enter last name
-          input.input-sm#g-lastName.form-control(type="text", placeholder="Last name")
-        .form-group#g-group-password
+          input#g-lastName.input-sm.form-control(type="text", placeholder="Last name")
+        #g-group-password.form-group
           label.control-label(for="g-password") Choose a password
-          input.input-sm#g-password.form-control(type="password", placeholder="Password")
-        .form-group#g-group-password2
+          input#g-password.input-sm.form-control(type="password", placeholder="Password")
+        #g-group-password2.form-group
           label.control-label(for="g-password2") Retype password
-          input.input-sm#g-password2.form-control(type="password", placeholder="Password")
+          input#g-password2.input-sm.form-control(type="password", placeholder="Password")
         .g-validation-failed-message
         if !currentUser
           .g-bottom-message

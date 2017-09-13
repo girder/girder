@@ -1,0 +1,43 @@
+mixin ldapServerEditPanel(server, index)
+  .g-ldap-server-panel.panel.panel-default
+    .panel-heading(data-toggle="collapse",
+        data-parent="#g-ldap-server-accordion",
+        data-target=`#g-ldap-server-${index}-settings`)
+      .panel-title.pull-left
+        a
+          span.g-ldap-server-title= server.uri
+      .panel-title.pull-right
+        a.g-remove-ldap-server(title="Remove this server")
+          i.icon-cancel(id=`g-ldap-server-${index}-remove`)
+      .clearfix
+    .panel-collapse.collapse(id=`g-ldap-server-${index}-settings`,
+        class=server.collapsedClass)
+      .panel-body
+        .form-group
+          label.control-label(for=`g-ldap-server-${index}-uri`) URI
+          input.input-sm.form-control.g-uri-input(id=`g-ldap-server-${index}-uri`,
+              name="uri", value=server.uri, placeholder="URI")
+        .form-group
+          label.control-label(for=`g-ldap-server-${index}-bindName`) Bind name
+          input.input-sm.form-control(id=`g-ldap-server-${index}-bindName`,
+              name="bindName", value=server.bindName, placeholder="Bind name")
+        .form-group
+          label.control-label(for=`g-ldap-server-${index}-baseDn`) Base DN
+          input.input-sm.form-control(id=`g-ldap-server-${index}-baseDn`,
+              name="baseDn", value=server.baseDn, placeholder="Base DN")
+        .form-group
+          label.control-label(for=`g-ldap-server-${index}-password`) Password (optional)
+          input.input-sm.form-control(id=`g-ldap-server-${index}-password`,
+              type="password", name="password", value=server.password, placeholder="Password")
+        .form-group
+          label.control-label(for=`g-ldap-server-${index}-searchField`) Search field (optional)
+          input.input-sm.form-control(id=`g-ldap-server-${index}-searchField`,
+              name="searchField", value=server.searchField, placeholder="Search field (default: uid)")
+        .form-group
+          button.g-ldap-test.btn.btn-sm.btn-default(index=index, type="button") Test connection
+          .g-ldap-test-result.hide(id=`g-ldap-server-${index}-conn-ok`, status="success")
+            i.icon-ok
+            | Connection OK
+          .g-ldap-test-result.hide(id=`g-ldap-server-${index}-conn-fail`, status="failure")
+            i.icon-cancel
+            span.g-msg

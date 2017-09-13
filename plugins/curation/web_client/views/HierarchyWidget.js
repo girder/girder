@@ -6,14 +6,15 @@ import { getCurrentUser } from 'girder/auth';
 import { restRequest } from 'girder/rest';
 import { wrap } from 'girder/utilities/PluginUtils';
 
-import CurationDialog from './CurationDialog';
 import HierarchyWidgetCurationButtonTemplate from '../templates/hierarchyWidgetCurationButton.pug';
+
+import CurationDialog from './CurationDialog';
 
 function _addCurationButton() {
     $('.g-folder-actions-menu').append(HierarchyWidgetCurationButtonTemplate());
 }
 
-// add curation button to hiearchy widget
+// add curation button to hierarchy widget
 wrap(HierarchyWidget, 'render', function (render) {
     render.call(this);
 
@@ -23,7 +24,7 @@ wrap(HierarchyWidget, 'render', function (render) {
             _addCurationButton();
         } else {
             restRequest({
-                path: 'folder/' + this.parentModel.get('_id') + '/curation'
+                url: `folder/${this.parentModel.id}/curation`
             }).done(_.bind(function (resp) {
                 if (resp.enabled) {
                     _addCurationButton();

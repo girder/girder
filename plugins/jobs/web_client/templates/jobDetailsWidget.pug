@@ -1,3 +1,7 @@
+ol.breadcrumb
+  li.breadcrumb-item
+    a(href="#/jobs") Jobs
+  li.breadcrumb-item.active Job detail
 .g-field-container
   .g-job-info-key.inline(property="title") Title:
   .g-job-info-value.inline(property="title")= job.get('title')
@@ -9,9 +13,13 @@
   .g-job-info-value.inline(property="_id")= job.get('_id')
 .g-field-container
   .g-job-info-key.inline(property="status") Status:
-  .g-job-status-badge(status=statusText.toLowerCase(), class=colorClass)
+  .g-job-status-badge(status=statusText.toLowerCase(), style=`color: ${textColor}; background-color: ${color};`)
     i(class=JobStatus.icon(job.get('status')))
     |  #{statusText}
+  if JobStatus.isCancelable(job)
+    button.g-job-cancel.btn.btn-default.btn-sm(type="button")
+      i.icon-cancel
+      | Cancel
 if job.get('timestamps') && job.get('timestamps').length
   .g-field-container
     .g-job-info-key Timeline:

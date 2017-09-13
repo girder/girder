@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import _ from 'underscore';
 
 import ItemView from 'girder/views/body/ItemView';
@@ -31,8 +32,8 @@ wrap(ItemView, 'render', function (render) {
  */
 wrap(ItemView, 'editItem', function (editItem) {
     restRequest({
-        type: 'GET',
-        path: 'item/licenses'
+        method: 'GET',
+        url: 'item/licenses'
     }).done(_.bind(function (resp) {
         this.licenses = resp;
         editItem.call(this);

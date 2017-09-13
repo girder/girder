@@ -14,19 +14,17 @@ wrap(ItemView, 'render', function (render) {
         // to exist until the passthrough call is made.
         render.call(this);
 
-        let candelaDiv = $('<div/>').addClass('g-candela-container');
-        this.$el.append(candelaDiv);
-
         if (this.candelaWidget) {
             this.candelaWidget.remove();
         }
 
         this.candelaWidget = new CandelaWidget({
-            el: candelaDiv,
+            className: 'g-candela-container',
             item: this.model,
             accessLevel: accessLevel,
             parentView: this
         });
+        this.candelaWidget.$el.appendTo(this.$el);
     });
 
     return this;
