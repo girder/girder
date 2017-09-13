@@ -6,6 +6,9 @@
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
     girder_enabled_plugins:
       - item_tasks
+      - oauth
+      - candela
+      - thumbnails
 
     girder_worker_user: "worker"
     docker_group_members:

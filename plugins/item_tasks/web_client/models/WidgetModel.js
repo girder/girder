@@ -417,7 +417,8 @@ var WidgetModel = Backbone.Model.extend({
         'directory',
         'new-file',
         'new-folder',
-        'image'
+        'image',
+        'derived'
     ]
 });
 
