@@ -69,15 +69,12 @@ var CollectionView = View.extend({
                 this.folder.set({
                     _id: settings.folderId
                 }).on('g:fetched', function () {
-                    this._createHierarchyWidget();
                     this.render();
                 }, this).on('g:error', function () {
                     this.folder = null;
-                    this._createHierarchyWidget();
                     this.render();
                 }, this).fetch();
             } else {
-                this._createHierarchyWidget();
                 this.render();
             }
         } else if (settings.id) {
@@ -85,26 +82,9 @@ var CollectionView = View.extend({
             this.model.set('_id', settings.id);
 
             this.model.on('g:fetched', function () {
-                this._createHierarchyWidget();
                 this.render();
             }, this).fetch();
         }
-    },
-
-    _createHierarchyWidget: function () {
-        this.hierarchyWidget = new HierarchyWidget({
-            parentModel: this.folder || this.model,
-            upload: this.upload,
-            folderAccess: this.folderAccess,
-            folderEdit: this.folderEdit,
-            folderCreate: this.folderCreate,
-            itemCreate: this.itemCreate,
-            parentView: this
-        }).on('g:setCurrentModel', function () {
-            // When a user descends into the hierarchy, hide the collection
-            // actions list to avoid confusion.
-            this.$('.g-collection-header .g-collection-actions-button').hide();
-        }, this);
     },
 
     editCollection: function () {
@@ -129,8 +109,27 @@ var CollectionView = View.extend({
             renderMarkdown: renderMarkdown
         }));
 
-        this.hierarchyWidget.setElement(
-            this.$('.g-collection-hierarchy-container')).render();
+        if (!this.hierarchyWidget) {
+            // The HierarchyWidget will self-render when instantiated
+            this.hierarchyWidget = new HierarchyWidget({
+                el: this.$('.g-collection-hierarchy-container'),
+                parentModel: this.folder || this.model,
+                upload: this.upload,
+                folderAccess: this.folderAccess,
+                folderEdit: this.folderEdit,
+                folderCreate: this.folderCreate,
+                itemCreate: this.itemCreate,
+                parentView: this
+            }).on('g:setCurrentModel', () => {
+                // When a user descends into the hierarchy, hide the collection
+                // actions list to avoid confusion.
+                this.$('.g-collection-header .g-collection-actions-button').hide();
+            });
+        } else {
+            this.hierarchyWidget
+                .setElement(this.$('.g-collection-hierarchy-container'))
+                .render();
+        }
 
         this.upload = false;
         this.folderAccess = false;

@@ -20,7 +20,7 @@
 import six
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource as BaseResource, RestException, setResponseHeader
+from ..rest import Resource as BaseResource, RestException, setResponseHeader, setContentDisposition
 from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.utility import parseTimestamp
@@ -175,6 +175,7 @@ class Resource(BaseResource):
                    '"folder": [(folder id 1)]}.', requireObject=True)
         .param('includeMetadata', 'Include any metadata in JSON files in the '
                'archive.', required=False, dataType='boolean', default=False)
+        .produces('application/zip')
         .errorResponse('Unsupported or unknown resource type.')
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
@@ -197,7 +198,7 @@ class Resource(BaseResource):
                 if not model.load(id=id, user=user, level=AccessType.READ):
                     raise RestException('Resource %s %s not found.' % (kind, id))
         setResponseHeader('Content-Type', 'application/zip')
-        setResponseHeader('Content-Disposition', 'attachment; filename="Resources.zip"')
+        setContentDisposition('Resources.zip')
 
         def stream():
             zip = ziputil.ZipGenerator()

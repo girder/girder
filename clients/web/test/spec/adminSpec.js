@@ -53,7 +53,7 @@ describe('Test the settings page', function () {
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to settings page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         waitsFor(function () {
@@ -75,6 +75,8 @@ describe('Test the settings page', function () {
         expect($('#g-core-cookie-lifetime').val()).toBe('');
         expect($('#g-core-smtp-host').val()).toMatch(/^localhost:31/);
         expect($('#g-core-email-from-address').val()).toBe('');
+        expect($('#g-core-brand-name').val()).toBe('');
+        expect($('#g-core-contact-email-address').val()).toBe('');
         expect($('#g-core-registration-policy').val()).toBe('open');
         expect($('#g-core-upload-minimum-chunk-size').val()).toBe('');
         expect(JSON.parse($('#g-core-collection-create-policy').val())).toEqual({
@@ -98,6 +100,20 @@ describe('Test the settings page', function () {
         waitsFor(function () {
             return $('#g-settings-error-message').text() === '';
         }, 'error message to be cleared');
+        runs(function () {
+            $('#g-core-brand-name').val('fooBar');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-core-brand-name').val() === 'fooBar';
+        }, 'brand name to change');
+        runs(function () {
+            $('#g-core-contact-email-address').val('foo@foo.com');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-core-contact-email-address').val() === 'foo@foo.com';
+        }, 'contact email address to change');
     });
     it('Use search to update collection create policy', function () {
         runs(function () {
@@ -190,7 +206,7 @@ describe('Test the assetstore page', function () {
         it('Create, switch to, and delete a ' + assetstore + ' assetstore', function () {
             /* create the assetstore */
             runs(function () {
-                $("[data-target='#" + tab + "']").click();
+                $('[data-target="#' + tab + '"]').click();
             });
             waitsFor(function () {
                 return $('#' + tab + ' .g-new-assetstore-submit:visible').length > 0;
@@ -288,7 +304,7 @@ describe('Test the assetstore page', function () {
 
             /* navigate away and back */
             runs(function () {
-                $("a.g-nav-link[g-target='admin']").click();
+                $('a.g-nav-link[g-target="admin"]').click();
             });
             waitsFor(function () {
                 return $('.g-assetstore-config').length > 0;
@@ -477,11 +493,11 @@ describe('Test the assetstore page', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
 
         waitsFor(function () {
@@ -570,7 +586,7 @@ describe('Test the plugins page', function () {
     it('Login as admin', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('Go to plugins page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
         waitsFor(function () {
             return $('.g-plugins-config').length > 0;
@@ -637,7 +653,7 @@ describe('Test the plugins page', function () {
     });
     it('Go away and back to plugins page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='admin']").click();
+            $('a.g-nav-link[g-target="admin"]').click();
         });
         waitsFor(function () {
             return $('.g-plugins-config').length > 0;
@@ -662,8 +678,8 @@ describe('Test the plugins page', function () {
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/plugins',
-                type: 'GET',
+                url: 'system/plugins',
+                method: 'GET',
                 async: false
             });
             return (resp && resp.responseJSON && resp.responseJSON.enabled &&

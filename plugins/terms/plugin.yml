@@ -1,0 +1,7 @@
+name: Terms of Use
+description: Allows Girder collections to require users to accept terms of use before browsing.
+url: http://girder.readthedocs.io/en/latest/plugins.html#terms-of-use
+version: 0.1.0
+npm:
+  dependencies:
+    sha.js: ~2.4.8

@@ -19,7 +19,7 @@ import os
 import re
 import six
 
-from girder.api.rest import setResponseHeader
+from girder.api.rest import setResponseHeader, setContentDisposition
 from girder.constants import SettingKey
 from girder.models.model_base import GirderException, ValidationException
 from girder.utility import progress, RequestBodyStream
@@ -342,14 +342,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         setResponseHeader(
             'Content-Type',
             file.get('mimeType') or 'application/octet-stream')
-        if contentDisposition == 'inline':
-            setResponseHeader(
-                'Content-Disposition',
-                'inline; filename="%s"' % file['name'])
-        else:
-            setResponseHeader(
-                'Content-Disposition',
-                'attachment; filename="%s"' % file['name'])
+        setContentDisposition(file['name'], contentDisposition or 'attachment')
         setResponseHeader('Content-Length', max(endByte - offset, 0))
 
         if (offset or endByte < file['size']) and file['size']:

@@ -1,14 +1,10 @@
 .g-body-title Plugins
-  .g-rebuild-container
+  .g-rebuild-container(class=cherrypyServer ? '' : 'hide')
     button.g-rebuild-and-restart.btn.btn-primary(title="Rebuild web code and restart the server",
         disabled=!cherrypyServer)
       i.icon-arrows-cw
       | Rebuild and restart
     .g-clear
-if !cherrypyServer
-  p
-    | Note that restarting the Girder server is disabled. As a result, plugins enabled or disabled here
-    | might not take effect until the system administrator has restarted Girder.
 .g-plugin-rebuild-restart-text
   | The selected plugins have changed.
   br

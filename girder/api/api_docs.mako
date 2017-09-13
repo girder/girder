@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${title}</title>
+    <title>${brandName | h} - REST API Documentation</title>
     <link rel="stylesheet" href="${staticRoot}/built/googlefonts.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/fontello.css">
     <link rel="stylesheet" href="${staticRoot}/built/swagger/css/reset.css">
@@ -20,13 +20,13 @@
   </head>
   <body>
     <div class="docs-header">
-      <span>Girder REST API Documentation</span>
+      <span>${brandName | h} REST API Documentation</span>
       <i class="icon-book-alt right"></i>
       <div id="g-global-info-apiroot" style="display: none">${apiRoot}</div>
     </div>
     <div class="docs-body">
       <p>Below you will find the list of all of the resource types exposed by
-      the Girder RESTful Web API. Click any of the resource links to open up a
+      the ${brandName | h} RESTful Web API. Click any of the resource links to open up a
       list of all available endpoints related to each resource type.</p>
       <p>Clicking any of those endpoints will display detailed documentation
       about the purpose of each endpoint and the input parameters and output

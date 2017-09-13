@@ -117,6 +117,8 @@ class ApiKey(Resource):
     def createToken(self, key, duration):
         user, token = self.model('api_key').createToken(key, days=duration)
 
+        self.sendAuthTokenCookie(token=token, days=duration)
+
         # Return the same structure as a normal user login, except do not
         # include the full user document since the key may not authorize
         # reading user information.

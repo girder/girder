@@ -28,16 +28,16 @@ describe('test the provenance plugin', function () {
         });
         girderTest.waitForLoad();
         waitsFor(function () {
-            return $('input#provenance').length > 0;
+            return $('input#g-provenance-resources').length > 0;
         }, 'resource list setting to be shown');
         runs(function () {
-            $('input#provenance').val('folder');
+            $('input#g-provenance-resources').val('folder');
             $('#g-provenance-form input.btn-primary').click();
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
-                path: 'system/setting',
-                type: 'GET',
+                url: 'system/setting',
+                method: 'GET',
                 data: {key: 'provenance.resources'},
                 async: false
             });

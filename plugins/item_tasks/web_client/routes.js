@@ -1,6 +1,7 @@
 /* eslint-disable import/first */
 
 import $ from 'jquery';
+import _ from 'underscore';
 
 import router from 'girder/router';
 import events from 'girder/events';
@@ -17,23 +18,51 @@ router.route('item_tasks', 'itemTaskList', () => {
 });
 
 router.route('item_task/:id/run', (id, params) => {
-    const item = new ItemModel({_id: id});
+    const itemTask = new ItemModel({_id: id});
     let job = null;
-    const promises = [item.fetch()];
+    let inputItem = null;
+    const promises = [itemTask.fetch()];
 
     if (params.fromJob) {
         job = new JobModel({_id: params.fromJob});
         promises.push(job.fetch());
     }
 
-    $.when.apply($, promises).done(() => {
+    if (params.itemId) {
+        inputItem = new ItemModel({_id: params.itemId});
+        promises.push(inputItem.fetch());
+    }
+
+    $.when(...promises).done(() => {
+        let initialValues = {};
+
+        if (params.fromJob && job.has('itemTaskBindings')) {
+            initialValues = job.get('itemTaskBindings');
+        }
+
+        if (params.itemId) {
+            let itemTaskSpec = itemTask.get('meta').itemTaskSpec;
+
+            let fileInputSpecs = _.where(itemTaskSpec.inputs, {'type': 'file'});
+            if (fileInputSpecs.length === 1) {
+                let fileInputSpec = fileInputSpecs[0];
+                initialValues.inputs = initialValues.inputs || {};
+                initialValues.inputs[fileInputSpec.id] = {
+                    mode: 'girder',
+                    resource_type: 'item',
+                    id: params.itemId,
+                    fileName: inputItem.name()
+                };
+            }
+        }
+
         events.trigger('g:navigateTo', TaskRunView, {
-            model: item,
-            initialValues: job && job.get('itemTaskBindings')
+            model: itemTask,
+            initialValues: initialValues
         }, {
             renderNow: true
         });
     }).fail(() => {
-        router.navigate('item_tasks', {trigger: true});
+        router.navigate('item_tasks', {trigger: true, replace: true});
     });
 });

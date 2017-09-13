@@ -39,6 +39,8 @@ var ItemBreadcrumbWidget = View.extend({
             animation: false,
             delay: {show: 100}
         });
+
+        return this;
     }
 });
 

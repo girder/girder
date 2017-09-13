@@ -9,7 +9,7 @@ var FolderModel = AccessControlledModel.extend({
 
     getRootPath: function () {
         return restRequest({
-            path: `${this.resourceName}/${this.id}/rootpath`
+            url: `${this.resourceName}/${this.id}/rootpath`
         });
     }
 });

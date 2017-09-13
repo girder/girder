@@ -1,0 +1,59 @@
+---
+
+- hosts: all
+  vars:
+    girder_update: no
+    girder_force: no
+    girder_always_build_assets: yes
+    girder_web_extra_args: "--all-plugins"
+    girder_hardened: yes
+    nginx_vhosts:
+      - listen: "8080 default_server"
+        ssl_certificate_key: "/etc/ssl/default_server/default_server.key"
+        ssl_certificate: "/etc/ssl/default_server/default_server.pem"
+        server_name: "girder-hardened"
+        extra_parameters: "{{ lookup('file', 'girder-hardened.nginx.conf') }}"
+
+  pre_tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      become: yes
+      become_user: root
+
+  roles:
+    - role: Stouts.mongodb
+      become: yes
+      become_user: root
+    - role: girder
+    - role: jdauphant.ssl-certs
+      ssl_certs_common_name: "default_server"
+      become: yes
+      become_user: root
+    - role: geerlingguy.nginx
+      become: yes
+      become_user: root
+
+  post_tasks:
+    - name: Tweak Girder server configurations
+      ini_file:
+        dest: "{{ girder_path }}/girder/conf/girder.local.cfg"
+        backup: yes
+        section: "{{ item.section }}"
+        option: "{{ item.option }}"
+        value: "{{ item.value }}"
+      with_items:
+        - { section: "global", option: "server.thread_pool", value: "1000" }
+        - { section: "global", option: "server.socket_port", value: "8888" }
+        - { section: "global", option: "tools.proxy.on", value: "True" }
+        - { section: "server", option: "mode", value: '"production"' }
+
+    - name: restart girder/nginx
+      service:
+        state: restarted
+        name: "{{ item }}"
+      with_items:
+        - girder
+        - nginx
+      become: yes
+      become_user: root

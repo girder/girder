@@ -1,5 +1,3 @@
-import $ from 'jquery';
-
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import { wrap } from 'girder/utilities/PluginUtils';
 
@@ -10,17 +8,13 @@ wrap(HierarchyWidget, 'render', function (render) {
 
     // Only on folder views:
     if (this.parentModel.resourceName === 'folder' && this._showItems) {
-        // Add the item-previews-container.
-        var element = $('<div class="g-item-previews-container">');
-        this.$el.append(element);
-
         // Add the item preview widget into the container.
         this.itemPreviewView = new ItemPreviewWidget({
+            className: 'g-item-previews-container',
             folderId: this.parentModel.get('_id'),
-            parentView: this,
-            el: element
-        })
-        .render();
+            parentView: this
+        }).render();
+        this.itemPreviewView.$el.appendTo(this.$el);
     }
 
     return this;

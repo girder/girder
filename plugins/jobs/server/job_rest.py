@@ -21,6 +21,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType, SortDir
+from girder.utility.model_importer import ModelImporter
 from . import constants
 
 
@@ -35,6 +36,7 @@ class Job(Resource):
         self.route('GET', ('all',), self.listAllJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
+        self.route('PUT', (':id', 'cancel'), self.cancelJob)
         self.route('DELETE', (':id',), self.deleteJob)
         self.route('GET', ('typeandstatus', 'all',), self.allJobsTypesAndStatuses)
         self.route('GET', ('typeandstatus',), self.jobsTypesAndStatuses)
@@ -80,8 +82,8 @@ class Job(Resource):
         .param('title', '', required=True)
         .param('type', '', required=True)
         .modelParam('parentId', 'ID of the parent job.', model='job',
-                    plugin='jobs', level=AccessType.ADMIN,
-                    destName='parentJob', paramType='query', required=False)
+                    plugin='jobs', destName='parentJob',
+                    paramType='query', required=False)
         .param('public', '', required=False, dataType='boolean', default=False)
         .param('handler', '', required=False, dataType='string')
         .jsonParam('args', 'Job arguments', required=False, requireArray=True)
@@ -91,16 +93,21 @@ class Job(Resource):
                    requireObject=True, required=False)
     )
     def createJob(self, title, type, parentJob, public, handler, args, kwargs, otherFields):
-        return self.model('job', 'jobs').createJob(
-            title=title,
-            type=type,
-            public=public,
-            handler=handler,
-            user=self.getCurrentUser(),
-            args=args,
-            kwargs=kwargs,
-            parentJob=parentJob,
-            otherFields=otherFields)
+        params = {
+            'title': title,
+            'type': type,
+            'public': public,
+            'handler': handler,
+            'user': self.getCurrentUser(),
+            'args': args,
+            'kwargs': kwargs,
+            'parentJob': parentJob,
+            'otherFields': otherFields
+        }
+        jobModel = ModelImporter.model('job', 'jobs')
+        job = jobModel.createJob(**params)
+
+        return job
 
     @access.admin
     @filtermodel(model='job', plugin='jobs')
@@ -120,12 +127,22 @@ class Job(Resource):
     @filtermodel(model='job', plugin='jobs')
     @autoDescribeRoute(
         Description('Get a job by ID.')
-        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs', level=AccessType.READ,
+        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs', force=True,
                     includeLog=True)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the job.', 403)
     )
     def getJob(self, job):
+        user = self.getCurrentUser()
+
+        # If the job is not public check access
+        if not job.get('public', False):
+            if user:
+                self.model('job', 'jobs').requireAccess(
+                    job, user, level=AccessType.READ)
+            else:
+                self.ensureTokenScopes('jobs.job_' + str(job['_id']))
+
         return job
 
     @access.token
@@ -196,3 +213,14 @@ class Job(Resource):
     def jobsTypesAndStatuses(self):
         currentUser = self.getCurrentUser()
         return self.model('job', 'jobs').getAllTypesAndStatuses(user=currentUser)
+
+    @access.user
+    @filtermodel(model='job', plugin='jobs')
+    @autoDescribeRoute(
+        Description('Cancel a job by ID.')
+        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs', level=AccessType.WRITE,
+                    includeLog=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied for the job.', 403))
+    def cancelJob(self, job, params):
+        return self.model('job', 'jobs').cancelJob(job)

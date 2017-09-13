@@ -13,5 +13,12 @@ ExecStart={{ girder_virtualenv }}/bin/python -m girder
 ExecStart={{ ansible_python.executable }} -m girder
 {% endif %}
 
+{% if girder_hardened %}
+# Hardened systemd options
+ProtectSystem=full
+ProtectHome=read-only
+ReadWriteDirectories={{ girder_path }} -{{ ansible_user_dir }}/.girder {{ girder_virtualenv|default("") }}
+{% endif %}
+
 [Install]
 WantedBy=multi-user.target

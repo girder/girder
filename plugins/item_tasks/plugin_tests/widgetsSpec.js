@@ -341,9 +341,10 @@ describe('widget collection', function () {
 });
 
 describe('control widget view', function () {
-    var $el, hInit, hRender, hProto, parentView = {
-            registerChildView: function () {}
-        };
+    var $el;
+    var parentView = {
+        registerChildView: function () {}
+    };
 
     function checkWidgetCommon(widget) {
         var model = widget.model;
@@ -357,23 +358,17 @@ describe('control widget view', function () {
     }
 
     beforeEach(function () {
-        hProto = girder.views.widgets.BrowserWidget.prototype;
-        hInit = hProto.initialize;
-        hRender = hProto.render;
-
         $el = $('<div/>').appendTo('body');
     });
 
     afterEach(function () {
-        hProto.initialize = hInit;
-        hProto.render = hRender;
         $el.remove();
     });
 
     it('range', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'range',
                 title: 'Title',
@@ -396,7 +391,7 @@ describe('control widget view', function () {
     it('number', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'number',
                 title: 'Title',
@@ -425,7 +420,7 @@ describe('control widget view', function () {
     it('boolean', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'boolean',
                 title: 'Title',
@@ -445,7 +440,7 @@ describe('control widget view', function () {
     it('string', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'string',
                 title: 'Title',
@@ -466,7 +461,7 @@ describe('control widget view', function () {
     it('color', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'color',
                 title: 'Title',
@@ -490,7 +485,7 @@ describe('control widget view', function () {
     it('string-vector', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'string-vector',
                 title: 'Title',
@@ -510,7 +505,7 @@ describe('control widget view', function () {
     it('number-vector', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'number-vector',
                 title: 'Title',
@@ -530,7 +525,7 @@ describe('control widget view', function () {
     it('string-enumeration', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'string-enumeration',
                 title: 'Title',
@@ -555,7 +550,7 @@ describe('control widget view', function () {
     it('number-enumeration', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'number-enumeration',
                 title: 'Title',
@@ -578,17 +573,18 @@ describe('control widget view', function () {
     });
 
     it('file', function () {
-        var item = new girder.models.ItemModel({id: 'model id', name: 'b'}),
-            browser;
+        var item = new girder.models.ItemModel({id: 'model id', name: 'b'});
 
-        hProto.initialize = function () {
-            browser = this;
-        };
-        hProto.render = function () {};
+        var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
+        spyOn(browserWidgetProto, 'initialize');
+        spyOn(browserWidgetProto, 'render').andCallFake(function () {
+            // trigger a response from the mocked widget
+            this.trigger('g:saved', item);
+        });
 
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'file',
                 title: 'Title',
@@ -602,26 +598,24 @@ describe('control widget view', function () {
         w.$('.g-select-file-button').click();
 
         // make sure the browser widget was initialized
-        expect(!!browser).toBe(true);
-
-        // trigger a response from the mocked widget
-        browser.model = item;
-        browser.trigger('g:saved', item);
+        expect(browserWidgetProto.initialize).toHaveBeenCalled();
 
         expect(w.model.get('value')).toBe(item);
     });
 
     it('new-file', function () {
-        var browser,
-            folder = new girder.models.FolderModel({id: 'folder id', name: 'c'});
+        var folder = new girder.models.FolderModel({id: 'folder id', name: 'c'});
 
-        hProto.initialize = function () {
-            browser = this;
-        };
-        hProto.render = function () {};
+        var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
+        spyOn(browserWidgetProto, 'initialize');
+        spyOn(browserWidgetProto, 'render').andCallFake(function () {
+            // trigger a response from the mocked widget
+            this.trigger('g:saved', folder);
+        });
+
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'new-file',
                 title: 'Title',
@@ -635,11 +629,7 @@ describe('control widget view', function () {
         w.$('.g-select-file-button').click();
 
         // make sure the browser widget was initialized
-        expect(!!browser).toBe(true);
-
-        // trigger a response from the mocked widget
-        browser.model = folder;
-        browser.trigger('g:saved', folder);
+        expect(browserWidgetProto.initialize).toHaveBeenCalled();
 
         expect(w.model.get('value')).toBe(folder);
     });
@@ -647,27 +637,24 @@ describe('control widget view', function () {
     it('invalid', function () {
         var w = new itemTasks.views.ControlWidget({
             parentView: parentView,
-            el: $el.get(0),
+            el: $el,
             model: new itemTasks.models.WidgetModel({
                 type: 'invalid',
                 title: 'Title',
                 id: 'invalid-widget'
             })
         });
-        var _warn = console.warn;
-        var message;
-        console.warn = function (m) { message = m; };
 
+        spyOn(console, 'warn');
         w.render();
-        expect(message).toBe('Invalid widget type "invalid"');
-        console.warn = _warn;
+        expect(console.warn).toHaveBeenCalledWith('Invalid widget type "invalid"');
     });
 
     describe('events', function () {
         it('g:itemTaskWidgetSet', function () {
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,
-                el: $el.get(0),
+                el: $el,
                 model: new itemTasks.models.WidgetModel({
                     type: 'number',
                     title: 'Title',
@@ -686,7 +673,7 @@ describe('control widget view', function () {
 
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,
-                el: $el.get(0),
+                el: $el,
                 model: new itemTasks.models.WidgetModel({
                     type: 'number',
                     title: 'Title',
@@ -717,7 +704,7 @@ describe('control widget view', function () {
 
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,
-                el: $el.get(0),
+                el: $el,
                 model: new itemTasks.models.WidgetModel({
                     type: 'number',
                     title: 'Title',
@@ -748,7 +735,7 @@ describe('control widget view', function () {
 
             var w = new itemTasks.views.ControlWidget({
                 parentView: parentView,
-                el: $el.get(0),
+                el: $el,
                 model: new itemTasks.models.WidgetModel({
                     type: 'number',
                     title: 'Title',

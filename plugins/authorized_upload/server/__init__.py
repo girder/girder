@@ -90,7 +90,7 @@ def _uploadComplete(event):
     more than a single upload at a time, and just decrement it here.
     """
     token = getCurrentToken()
-    if 'authorizedUploadId' in token:
+    if token and 'authorizedUploadId' in token:
         user = ModelImporter.model('user').load(token['userId'], force=True)
         item = ModelImporter.model('item').load(event.info['file']['itemId'], force=True)
 

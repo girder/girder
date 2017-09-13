@@ -28,8 +28,9 @@ import os
 import six
 import cherrypy
 
-from girder import constants, logprint
+from girder import constants, events, logprint
 from girder.api.rest import getCurrentUser, RestException, getBodyJson
+from girder.constants import CoreEventHandler, SettingKey
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
@@ -83,6 +84,7 @@ class Description(object):
         self._params = []
         self._responses = {}
         self._consumes = []
+        self._produces = []
         self._responseClass = None
         self._responseClassArray = False
         self._notes = None
@@ -127,6 +129,9 @@ class Description(object):
 
         if self._consumes:
             resp['consumes'] = self._consumes
+
+        if self._produces:
+            resp['produces'] = self._produces
 
         if self._deprecated:
             resp['deprecated'] = True
@@ -377,6 +382,13 @@ class Description(object):
         self._consumes.append(value)
         return self
 
+    def produces(self, value):
+        if isinstance(value, (list, tuple)):
+            self._produces.extend(value)
+        else:
+            self._produces.append(value)
+        return self
+
     def notes(self, notes):
         self._notes = notes
         return self
@@ -436,9 +448,25 @@ class ApiDocs(WebrootBase):
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'title': 'Girder - REST API Documentation',
+            'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
             'mode': mode
         }
+
+        events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
+                    self._onSettingSave)
+        events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
+                    self._onSettingRemove)
+
+    def _onSettingSave(self, event):
+        settingDoc = event.info
+        if settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'brandName': settingDoc['value']})
+
+    def _onSettingRemove(self, event):
+        settingDoc = event.info
+        if settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
+                SettingKey.BRAND_NAME)})
 
 
 class Describe(Resource):
@@ -750,6 +778,6 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         # Enum validation (should be afer type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
             raise RestException('Invalid value for %s: "%s". Allowed values: %s.' % (
-                name, value, ', '.join(descParam['enum'])))
+                name, value, ', '.join(str(v) for v in descParam['enum'])))
 
         return value

@@ -1,0 +1,8 @@
+.g-task-list-header
+  .g-task-pagination
+
+.g-task-list-container.list-group
+  each task in tasks
+    .g-execute-task-link-wrapper.list-group-item
+      a.g-execute-task-link.list-group-item-heading(data-task-id=task.id, href=itemUrlFunc && itemUrlFunc(task))= task.name()
+      .g-execute-task-link-body.list-group-item-text!= renderMarkdown(task.get('description'))

@@ -163,7 +163,7 @@ Download Statistics
 
 This plugin tracks and records file download activity. The recorded information
 (downloads started, downloads completed, and total requests made) is stored on the
-file model: :: 
+file model: ::
 
     file['downloadStatistics']['started']
     file['downloadStatistics']['requested']
@@ -428,6 +428,15 @@ the Girder API, which will compute and store the correct Gravatar URL, and then
 redirect to it. The next time that user document is sent over the REST API,
 it should contain the computed ``gravatar_baseUrl`` field.
 
+Terms of Use
+------------
+
+This plugin allows collection admins to define a set of textual "Terms of Use", which other users
+must accept before browsing within the collection. The terms may be set with markdown-formatted
+text, and users will be required to re-accept the terms whenever the content changes. Logged-in
+users have their acceptances stored and remembered permanently, while anonymous users have their
+acceptances stored only on the local browser.
+
 Javascript clients
 ******************
 
@@ -647,3 +656,16 @@ Girder.
 You can also use the API to download the file based on the hash returned by the previous endpoint,
 with an endpoint ``/api/v1/file/hashsum/sha512/<file sha512 hash>/download``, where the sha512 hash
 comes from the specific file in Girder.
+
+Candela Visualization
+---------------------
+The Candela Visualization plugin uses the `Candela library <http://candela.readthedocs.io/>`_ to
+render table files directly in Girder. To use it, simply upload a CSV or TSV file as an item,
+then set the Candela visualization type and options.
+
+Vega Visualization
+------------------
+The Vega plugin uses the `Vega library <http://trifacta.github.io/vega>`_ to render Vega-formatted
+JSON objects directly in the Girder application. To use it, simply upload the JSON file as an item,
+and then set a "vega: true" metadata field on the item. The visualization will then be rendered
+directly in the item view.

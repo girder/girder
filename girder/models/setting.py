@@ -165,6 +165,12 @@ class Setting(Model):
         return None
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.BRAND_NAME)
+    def validateCoreBrandName(doc):
+        if not doc['value']:
+            raise ValidationException('The brand name may not be empty', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.SECURE_COOKIE)
     def validateSecureCookie(doc):
         if not isinstance(doc['value'], bool):
@@ -277,6 +283,12 @@ class Setting(Model):
     def validateCoreEmailFromAddress(doc):
         if not doc['value']:
             raise ValidationException('Email from address must not be blank.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.CONTACT_EMAIL_ADDRESS)
+    def validateCoreContactEmailAddress(doc):
+        if not doc['value']:
+            raise ValidationException('Contact email address must not be blank.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_HOST)

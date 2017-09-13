@@ -27,10 +27,12 @@ import six
 import uuid
 
 from girder import logger, events
+from girder.api.rest import setContentDisposition
 from girder.models.model_base import GirderException, ValidationException
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
+DEFAULT_REGION = 'us-east-1'
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -70,7 +72,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if not re.match('^((https?)://)?([^:/]+)(:([0-9]+))?$', doc['service']):
                 raise ValidationException(
                     'The service must of the form [http[s]://](host domain)[:(port)].', 'service')
-        params = makeBotoConnectParams(doc['accessKeyId'], doc['secret'], doc['service'])
+        params = makeBotoConnectParams(
+            doc['accessKeyId'], doc['secret'], doc['service'], doc.get('region'),
+            doc.get('inferCredentials'))
         client = S3AssetstoreAdapter._s3Client(params)
         if doc.get('readOnly'):
             try:
@@ -97,12 +101,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):
             self.connectParams = makeBotoConnectParams(
                 self.assetstore['accessKeyId'], self.assetstore['secret'],
-                self.assetstore['service'])
+                self.assetstore['service'], self.assetstore.get('region'),
+                self.assetstore.get('inferCredentials'))
             self.client = S3AssetstoreAdapter._s3Client(self.connectParams)
 
     def _getRequestHeaders(self, upload):
         return {
-            'Content-Disposition': 'attachment; filename="%s"' % upload['name'],
+            'Content-Disposition': setContentDisposition(upload['name'], setHeader=False),
             'Content-Type': upload.get('mimeType', ''),
             'x-amz-acl': 'private',
             'x-amz-meta-uploader-id': str(upload['userId']),
@@ -551,24 +556,37 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return False
 
 
-def makeBotoConnectParams(accessKeyId, secret, service=None):
+def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferCredentials=False):
     """
     Create a dictionary of values to pass to the boto connect_s3 function.
 
     :param accessKeyId: the S3 access key ID
     :param secret: the S3 secret key
     :param service: alternate service URL
+    :param region: the AWS region name of the bucket (if not "us-east-1")
+    :param inferCredentials: Whether or not Boto should infer the credentials
+        without directly using accessKeyId and secret.
     :returns: boto connection parameter dictionary.
     """
-    if accessKeyId and secret:
+    region = region or DEFAULT_REGION
+    if inferCredentials:
+        # Look up credentials through Boto's fallback mechanism, see:
+        # http://boto3.readthedocs.io/en/latest/guide/configuration.html#configuring-credentials
+        params = {
+            'config': botocore.client.Config(signature_version='s3v4', region_name=region)
+        }
+    elif accessKeyId and secret:
+        # Use explicitly passed credentials
         params = {
             'aws_access_key_id': accessKeyId,
             'aws_secret_access_key': secret,
-            'config': botocore.client.Config(signature_version='s3v4')
+            'config': botocore.client.Config(signature_version='s3v4', region_name=region)
         }
     else:
+        # Anonymous access
         params = {
-            'config': botocore.client.Config(signature_version=botocore.UNSIGNED)
+            'config': botocore.client.Config(
+                signature_version=botocore.UNSIGNED, region_name=region)
         }
 
     if service:
@@ -576,7 +594,6 @@ def makeBotoConnectParams(accessKeyId, secret, service=None):
             service = 'https://' + service
         params['endpoint_url'] = service
 
-    # TODO(zach) region parameter? Might not be necessary
     return params
 
 

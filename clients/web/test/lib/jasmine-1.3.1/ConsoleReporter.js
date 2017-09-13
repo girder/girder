@@ -93,7 +93,7 @@
         this.log(resultText, 'red');
 
         var items = spec.results().getItems();
-        _.each(items, function (item) {
+        _.each(items, _.bind(function (item) {
             if (!item.passed()) {
                 this.log('__SCREENSHOT__phantom-' +
                     new Date().toISOString().replace(/:/g, '.') + '.png');
@@ -104,7 +104,7 @@
                     code: 1
                 });
             }
-        }, this);
+        }, this));
     };
 
     proto.reportSuiteResults = function (suite) {

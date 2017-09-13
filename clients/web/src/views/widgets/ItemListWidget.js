@@ -19,6 +19,19 @@ var ItemListWidget = View.extend({
         },
         'click a.g-show-more-items': function () {
             this.collection.fetchNextPage();
+        },
+        'change .g-list-checkbox': function (event) {
+            const target = $(event.currentTarget);
+            const cid = target.attr('g-item-cid');
+            if (target.prop('checked')) {
+                this.checked.push(cid);
+            } else {
+                const idx = this.checked.indexOf(cid);
+                if (idx !== -1) {
+                    this.checked.splice(idx, 1);
+                }
+            }
+            this.trigger('g:checkboxesChanged');
         }
     },
 
@@ -73,19 +86,6 @@ var ItemListWidget = View.extend({
             delay: 100
         });
 
-        var view = this;
-        this.$('.g-list-checkbox').change(function () {
-            var cid = $(this).attr('g-item-cid');
-            if (this.checked) {
-                view.checked.push(cid);
-            } else {
-                var idx = view.checked.indexOf(cid);
-                if (idx !== -1) {
-                    view.checked.splice(idx, 1);
-                }
-            }
-            view.trigger('g:checkboxesChanged');
-        });
         return this;
     },
 

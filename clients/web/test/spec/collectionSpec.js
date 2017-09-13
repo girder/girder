@@ -12,7 +12,7 @@ describe('Test collection actions', function () {
 
     it('go to collections page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='collections']").click();
+            $('a.g-nav-link[g-target="collections"]').click();
         });
 
         waitsFor(function () {
@@ -29,7 +29,7 @@ describe('Test collection actions', function () {
 
     it('go back to collections page', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='collections']").click();
+            $('a.g-nav-link[g-target="collections"]').click();
         });
 
         waitsFor(function () {
@@ -144,7 +144,7 @@ describe('Test collection actions', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
         runs(function () {
-            $("a.g-nav-link[g-target='collections']").click();
+            $('a.g-nav-link[g-target="collections"]').click();
         });
 
         waitsFor(function () {
@@ -168,7 +168,7 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $(".g-collection-access-control[role='menuitem']:visible").length === 1;
+            return $('.g-collection-access-control[role="menuitem"]:visible').length === 1;
         }, 'access control menu item to appear');
 
         runs(function () {
@@ -222,7 +222,7 @@ describe('Test collection actions', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
         runs(function () {
-            $("a.g-nav-link[g-target='collections']").click();
+            $('a.g-nav-link[g-target="collections"]').click();
         });
 
         waitsFor(function () {
@@ -244,7 +244,7 @@ describe('Test collection actions', function () {
 
     it('check if public collection is viewable (and ensure private is not)', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='collections']").click();
+            $('a.g-nav-link[g-target="collections"]').click();
         });
 
         waitsFor(function () {
@@ -265,7 +265,7 @@ describe('Test collection actions', function () {
 
     it('delete the collection', function () {
         runs(function () {
-            $("a.g-nav-link[g-target='collections']").click();
+            $('a.g-nav-link[g-target="collections"]').click();
         });
 
         waitsFor(function () {

@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, filtermodel, setResponseHeader
+from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.models.model_base import AccessException
@@ -112,13 +112,13 @@ class Collection(Resource):
         .modelParam('id', model='collection', level=AccessType.READ)
         .jsonParam('mimeFilter', 'JSON list of MIME types to include.', requireArray=True,
                    required=False)
+        .produces('application/zip')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the collection.', 403)
     )
     def downloadCollection(self, collection, mimeFilter):
         setResponseHeader('Content-Type', 'application/zip')
-        setResponseHeader(
-            'Content-Disposition', 'attachment; filename="%s%s"' % (collection['name'], '.zip'))
+        setContentDisposition(collection['name'] + '.zip')
 
         def stream():
             zip = ziputil.ZipGenerator(collection['name'])

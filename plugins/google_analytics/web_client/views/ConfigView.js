@@ -16,20 +16,20 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'google_analytics.tracking_id',
-                value: this.$('#google_analytics.tracking_id').val().trim()
+                value: this.$('#g-google-analytics-tracking-id').val().trim()
             }]);
         }
     },
     initialize: function () {
         restRequest({
-            type: 'GET',
-            path: 'system/setting',
+            method: 'GET',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(['google_analytics.tracking_id'])
             }
         }).done(_.bind(function (resp) {
             this.render();
-            this.$('#google_analytics.tracking_id').val(
+            this.$('#g-google-analytics-tracking-id').val(
                 resp['google_analytics.tracking_id']
             );
         }, this));
@@ -51,8 +51,8 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
-            path: 'system/setting',
+            method: 'PUT',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)
             },

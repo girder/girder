@@ -79,11 +79,10 @@ var TaskProgressWidget = View.extend({
      * Schedule a hide event to be triggered in the future.
      */
     _scheduleHide: function (ms) {
-        var widget = this;
-        window.setTimeout(function () {
-            widget.$el.fadeOut(500, function () {
-                widget.remove();
-                widget.trigger('g:hide', widget.progress);
+        window.setTimeout(() => {
+            this.$el.fadeOut(500, () => {
+                this.remove();
+                this.trigger('g:hide', this.progress);
             });
         }, ms);
     }

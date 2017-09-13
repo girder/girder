@@ -24,27 +24,27 @@
       form#g-new-hdfs-form(role="form")
         .form-group
           label.control-label(for="g-new-hdfs-name") Assetstore name
-          input.input-sm.form-control#g-new-hdfs-name(
+          input#g-new-hdfs-name.input-sm.form-control(
               type="text", placeholder="Name")
         .form-group
           label.control-label(for="g-new-hdfs-path") Root path
-          input.input-sm.form-control#g-new-hdfs-path(
+          input#g-new-hdfs-path.input-sm.form-control(
               type="text", placeholder="Root path")
         .form-group
           label.control-label(for="g-new-hdfs-host") Namenode host
-          input.input-sm.form-control#g-new-hdfs-host(
+          input#g-new-hdfs-host.input-sm.form-control(
               type="text", placeholder="Host")
         .form-group
           label.control-label(for="g-new-hdfs-port") Namenode RPC port
-          input.input-sm.form-control#g-new-hdfs-port(
+          input#g-new-hdfs-port.input-sm.form-control(
               type="text", placeholder="Port")
         .form-group
-          label.control-label(for="g-new-webhdfs-host") WebHDFS port (default is 50070)
-          input.input-sm.form-control#g-new-hdfs-host(
+          label.control-label(for="g-new-hdfs-webhdfs-port") WebHDFS port (default is 50070)
+          input#g-new-hdfs-webhdfs-port.input-sm.form-control(
               type="text", placeholder="WebHDFS port")
         .form-group
           label.control-label(for="g-new-hdfs-user") Effective user (default is current user)
-          input.input-sm.form-control#g-new-hdfs-user(
+          input#g-new-hdfs-user.input-sm.form-control(
               type="text", placeholder="Username")
         p#g-new-hdfs-error.g-validation-failed-message
         input.g-new-assetstore-submit.btn.btn-sm.btn-primary(

@@ -35,8 +35,8 @@ var FileModel = Model.extend({
         data = this._wrapData(data);
 
         this.upload(null, data, {
-            path: 'file/' + this.get('_id') + '/contents',
-            type: 'PUT',
+            url: `file/${this.id}/contents`,
+            method: 'PUT',
             data: {
                 size: data.size
             }
@@ -100,8 +100,8 @@ var FileModel = Model.extend({
         this.resumeInfo = null;
         this.uploadHandler = null;
         _restParams = _restParams || {
-            path: 'file',
-            type: 'POST',
+            url: 'file',
+            method: 'POST',
             data: _.extend({
                 parentType: parentModel.resourceName,
                 parentId: parentModel.get('_id'),
@@ -183,8 +183,8 @@ var FileModel = Model.extend({
 
         // Request the actual offset we need to resume at
         restRequest({
-            path: 'file/offset',
-            type: 'GET',
+            url: 'file/offset',
+            method: 'GET',
             data: {
                 uploadId: this.resumeInfo.uploadId
             },
@@ -212,8 +212,8 @@ var FileModel = Model.extend({
             return;
         }
         restRequest({
-            path: 'system/uploads',
-            type: 'DELETE',
+            url: 'system/uploads',
+            method: 'DELETE',
             data: {
                 uploadId: this.resumeInfo.uploadId
             },
@@ -228,31 +228,29 @@ var FileModel = Model.extend({
         this.chunkLength = endByte - this.startByte;
         var sliceFn = file.webkitSlice ? 'webkitSlice' : 'slice';
         var blob = file[sliceFn](this.startByte, endByte);
-        var model = this;
 
         restRequest({
-            path: `file/chunk?offset=${this.startByte}&uploadId=${uploadId}`,
-            type: 'POST',
-            dataType: 'json',
+            url: `file/chunk?offset=${this.startByte}&uploadId=${uploadId}`,
+            method: 'POST',
             data: blob,
             contentType: false,
             processData: false,
-            success: function (resp) {
-                model.trigger('g:upload.chunkSent', {
-                    bytes: endByte - model.startByte
+            success: (resp) => {
+                this.trigger('g:upload.chunkSent', {
+                    bytes: endByte - this.startByte
                 });
 
                 if (endByte === file.size) {
-                    model.startByte = 0;
-                    model.resumeInfo = null;
-                    model.set(resp);
-                    model.trigger('g:upload.complete');
+                    this.startByte = 0;
+                    this.resumeInfo = null;
+                    this.set(resp);
+                    this.trigger('g:upload.complete');
                 } else {
-                    model.startByte = endByte;
-                    model._uploadChunk(file, uploadId);
+                    this.startByte = endByte;
+                    this._uploadChunk(file, uploadId);
                 }
             },
-            error: function (resp) {
+            error: (resp) => {
                 var text = 'Error: ', identifier;
 
                 if (resp.status === 0) {
@@ -262,22 +260,22 @@ var FileModel = Model.extend({
                     identifier = resp.responseJSON.identifier;
                 }
 
-                model.resumeInfo = {
+                this.resumeInfo = {
                     uploadId: uploadId,
                     file: file
                 };
 
-                model.trigger('g:upload.error', {
+                this.trigger('g:upload.error', {
                     message: text,
                     identifier: identifier,
                     response: resp
                 });
             },
-            xhr: function () {
+            xhr: () => {
                 // Custom XHR so we can register a progress handler
                 var xhr = new window.XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function (e) {
-                    model._uploadProgress(file, e);
+                xhr.upload.addEventListener('progress', (e) => {
+                    this._uploadProgress(file, e);
                 });
                 return xhr;
             }

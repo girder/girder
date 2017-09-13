@@ -39,6 +39,7 @@ const JobGraphWidget = View.extend({
         this.timingFilterWidget.setItems(this.timingFilter);
         this.timingFilterWidget.setElement(this.$('.g-job-filter-container .timing')).render();
         this.update();
+        return this;
     },
 
     remove: function () {

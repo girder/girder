@@ -39,16 +39,14 @@ var EditFileWidget = View.extend({
     },
 
     render: function () {
-        var view = this;
         if (this.file.get('mimeType') === undefined) {
             this.file.set('mimeType', '');
         }
         this.$el.html(EditFileWidgetTemplate({file: this.file}))
-            .girderModal(this).on('shown.bs.modal', function () {
-                view.$('#g-name').select().focus();
-            }).on('hidden.bs.modal', function () {
-                handleClose('fileedit', undefined,
-                                           view.file.get('_id'));
+            .girderModal(this).on('shown.bs.modal', () => {
+                this.$('#g-name').select().focus();
+            }).on('hidden.bs.modal', () => {
+                handleClose('fileedit', undefined, this.file.get('_id'));
             });
         handleOpen('fileedit', undefined, this.file.get('_id'));
         return this;
