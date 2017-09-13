@@ -46,17 +46,22 @@ def _validateParam(param):
             'Output parameter type %s is currently not supported.' % param.typ)
 
 
-def parseSlicerCliXml(fd):
+def parseSlicerCliXml(fd, multi=False):
     """
     Parse a slicer CLI XML document into a form suitable for use
     in the worker.
 
     :param fd: A file descriptor representing the XML document to parse.
     :type fd: file-like
-    :returns: A dict of information about the CLI.
+    :param multi: If True, return a list of CLIs, otherwise just returns one.
+    :type multi: bool
+    :returns: A dict of information about the CLI, or a list of such dicts.
     """
-    cliSpec = ctk_cli.CLIModule(stream=fd)
+    info = [_parseModule(module) for module in ctk_cli.CLIModuleList(stream=fd).modules]
+    return info if multi else info[0]
 
+
+def _parseModule(cliSpec):
     description = '\n\n'.join((
         '**Description**: %s' % cliSpec.description,
         '**Author(s)**: %s' % cliSpec.contributor,
@@ -73,6 +78,9 @@ def parseSlicerCliXml(fd):
         'inputs': [],
         'outputs': []
     }
+
+    if cliSpec.path is not None:
+        info['args'].append(cliSpec.path)
 
     args, opts, outputs = cliSpec.classifyParameters()
 
