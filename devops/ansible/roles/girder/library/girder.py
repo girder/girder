@@ -20,7 +20,7 @@
 import json
 import os
 import requests
-from inspect import getmembers, ismethod, getargspec
+from inspect import getmembers, ismethod, isfunction, getargspec
 
 # Ansible's module magic requires this to be
 # 'from ansible.module_utils.basic import *' otherwise it will error out. See:
@@ -879,7 +879,7 @@ EXAMPLES = '''
 def class_spec(cls, include=None):
     include = include if include is not None else []
 
-    for fn, method in getmembers(cls, predicate=ismethod):
+    for fn, method in getmembers(cls, predicate=lambda f: ismethod(f) or isfunction(f)):
         if fn in include:
             spec = getargspec(method)
             # Note: must specify the kind of data we accept

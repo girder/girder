@@ -70,3 +70,11 @@
       become: yes
       become_user: root
       when: ansible_os_family == "RedHat"
+
+    - name: Activate virtualenv on login
+      lineinfile:
+        dest: ~/.profile
+        line: 'source {{girder_virtualenv}}/bin/activate'
+        insertafter: 'EOF'
+        regexp: 'source {{girder_virtualenv}}/bin/activate'
+        state: present

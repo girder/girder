@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel, setResponseHeader
+from ..rest import Resource, RestException, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.utility import ziputil
@@ -117,6 +117,7 @@ class Folder(Resource):
         .modelParam('id', model='folder', level=AccessType.READ)
         .jsonParam('mimeFilter', 'JSON list of MIME types to include.', required=False,
                    requireArray=True)
+        .produces('application/zip')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
@@ -126,9 +127,7 @@ class Folder(Resource):
         file containing this folder's contents, filtered by permissions.
         """
         setResponseHeader('Content-Type', 'application/zip')
-        setResponseHeader(
-            'Content-Disposition', 'attachment; filename="%s%s"' % (folder['name'], '.zip'))
-
+        setContentDisposition(folder['name'] + '.zip')
         user = self.getCurrentUser()
 
         def stream():

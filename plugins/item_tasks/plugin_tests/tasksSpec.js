@@ -81,9 +81,8 @@ describe('Run the item task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(1);
-            expect($('.g-execute-task-link .g-execute-task-link-header').text()).toBe(
-                'PET phantom detector CLI');
-            expect($('.g-execute-task-link .g-execute-task-link-body').text()).toContain(
+            expect($('.g-execute-task-link').text()).toBe('PET phantom detector CLI');
+            expect($('.g-execute-task-link-body').text()).toContain(
                 'Detects positions of PET/CT pocket phantoms in PET image.');
             window.location.assign($('a.g-execute-task-link').attr('href'));
         });
@@ -167,6 +166,13 @@ describe('Run the item task', function () {
         runs(function () {
             // check invalid parent
             $('.modal-dialog .g-submit-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-validation-failed-message').text();
+        }, 'validation to fail');
+
+        runs(function() {
             expect($('.g-validation-failed-message').text()).toMatch(/Invalid parent type/);
             $('.modal-dialog .g-folder-list-link:first').click();
         });
@@ -178,6 +184,13 @@ describe('Run the item task', function () {
         runs(function () {
             // check no name provided
             $('.modal-dialog .g-submit-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-validation-failed-message').text();
+        }, 'validation to fail');
+
+        runs(function () {
             expect($('.g-validation-failed-message').text()).toMatch(/Please provide an item name/);
 
             $('#g-input-element').val('out.txt');
@@ -264,10 +277,8 @@ describe('Navigate to the new JSON task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(3);
-            expect($('.g-execute-task-link .g-execute-task-link-header').eq(0).text()).toBe(
-                'me/my_image:latest 0');
-            expect($('.g-execute-task-link .g-execute-task-link-header').eq(1).text()).toBe(
-                'me/my_image:latest 1');
+            expect($('.g-execute-task-link').eq(0).text()).toBe('me/my_image:latest 0');
+            expect($('.g-execute-task-link').eq(1).text()).toBe('me/my_image:latest 1');
             window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
         });
 
@@ -351,7 +362,7 @@ describe('Run task on item from item view', function () {
         }, 'tasks to load in widget');
 
         runs(function () {
-            $('.list-group-item.g-execute-task-link:contains("me/my_image:latest 1")').click();
+            $('.g-execute-task-link:contains("me/my_image:latest 1")').click();
 
             expect($('.g-selected-task-name').text()).toBe('me/my_image:latest 1');
             $('.g-submit-select-task').click();
@@ -441,8 +452,7 @@ describe('Navigate to the demo task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(4);
-            expect($('.g-execute-task-link .g-execute-task-link-header').eq(0).text()).toBe(
-                'item_tasks widget types demo');
+            expect($('.g-execute-task-link').eq(0).text()).toBe('item_tasks widget types demo');
             window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
         });
 
@@ -640,9 +650,8 @@ describe('Navigate to the new Slicer CLI task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(5);
-            expect($('.g-execute-task-link .g-execute-task-link-header').eq(4).text()).toBe(
-                'PET phantom detector CLI');
-            expect($('.g-execute-task-link .g-execute-task-link-body').eq(4).text()).toContain(
+            expect($('.g-execute-task-link').eq(4).text()).toBe('PET phantom detector CLI');
+            expect($('.g-execute-task-link-body').eq(4).text()).toContain(
                 'Detects positions of PET/CT pocket phantoms in PET image.');
             window.location.assign($('a.g-execute-task-link').eq(4).attr('href'));
         });

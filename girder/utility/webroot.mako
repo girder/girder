@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${title}</title>
+    <title>${brandName | h}</title>
     <link rel="stylesheet" href="${staticRoot}/built/googlefonts.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/fontello.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/animation.css">
@@ -23,7 +23,8 @@
             girder.app = new girder.views.App({
                 el: 'body',
                 parentView: null,
-                contactEmail: '${contactEmail | h}'
+                contactEmail: '${contactEmail | js}',
+                brandName: '${brandName | js}'
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });

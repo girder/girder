@@ -64,6 +64,9 @@ class SetupDatabaseTestCase(base.TestCase):
         self.assertDictContains({
             'public': True
         }, folder, 'manually created public folder')
+        self.assertDictContains({
+            'creatorId': user['_id']
+        }, folder, 'folder is created by expected user')
 
     def testUserImportedFolders(self):
         user = self.model('user').findOne({'login': 'importedfolders'})
@@ -233,3 +236,13 @@ class SetupDatabaseTestCase(base.TestCase):
         }, item, 'item.txt')
 
         self.assertImported(folder)
+
+    def testYAMLAliases(self):
+        folderModel = self.model('folder')
+        aliasedFolders = list(folderModel.find({'name': 'Common'}, force=True))
+        self.assertTrue(len(aliasedFolders) == 2)
+
+        for folder in aliasedFolders:
+            self.assertTrue(
+                len(list(folderModel.childItems(folder, force=True))) == 2
+            )

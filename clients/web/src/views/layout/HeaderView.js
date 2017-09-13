@@ -17,7 +17,9 @@ var LayoutHeaderView = View.extend({
         }
     },
 
-    initialize: function () {
+    initialize: function (settings) {
+        this.brandName = settings.brandName || 'Girder';
+
         this.userView = new LayoutHeaderUserView({
             parentView: this
         });
@@ -35,7 +37,9 @@ var LayoutHeaderView = View.extend({
     },
 
     render: function () {
-        this.$el.html(LayoutHeaderTemplate());
+        this.$el.html(LayoutHeaderTemplate({
+            brandName: this.brandName
+        }));
 
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();

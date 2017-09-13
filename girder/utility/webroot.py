@@ -17,9 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+import re
+
 import cherrypy
 import mako
-import os
 
 from girder import constants, events
 from girder.constants import CoreEventHandler, SettingKey
@@ -54,8 +56,20 @@ class WebrootBase(object):
         self.vars.update(vars)
         self.indexHtml = None
 
+    @staticmethod
+    def _escapeJavascript(string):
+        # Per the advice at:
+        # https://www.owasp.org/index.php/XSS_(Cross_Site_Scripting)_Prevention_Cheat_Sheet#Output_Encoding_Rules_Summary
+        # replace all non-alphanumeric characters with "\0uXXXX" unicode escaping:
+        # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Unicode_escape_sequences
+        return re.sub(
+            r'[^a-zA-Z0-9]',
+            lambda match: '\\u%04X' % ord(match.group()),
+            string
+        )
+
     def _renderHTML(self):
-        return mako.template.Template(self.template).render(**self.vars)
+        return mako.template.Template(self.template).render(js=self._escapeJavascript, **self.vars)
 
     def GET(self, **params):
         if self.indexHtml is None or self.config['server']['mode'] == 'development':
@@ -90,17 +104,32 @@ class Webroot(WebrootBase):
             'plugins': [],
             'apiRoot': '',
             'staticRoot': '',
+            # 'title' is depreciated use brandName instead
             'title': 'Girder',
+            'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
             'contactEmail': ModelImporter.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
         }
 
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
                     self._onSettingSave)
+        events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
+                    self._onSettingRemove)
 
     def _onSettingSave(self, event):
         settingDoc = event.info
         if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
             self.updateHtmlVars({'contactEmail': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'brandName': settingDoc['value']})
+
+    def _onSettingRemove(self, event):
+        settingDoc = event.info
+        if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
+            self.updateHtmlVars({'contactEmail': ModelImporter.model('setting').getDefault(
+                SettingKey.CONTACT_EMAIL_ADDRESS)})
+        elif settingDoc['key'] == SettingKey.BRAND_NAME:
+            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
+                SettingKey.BRAND_NAME)})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

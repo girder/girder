@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel, setResponseHeader
+from ..rest import Resource, RestException, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
 from girder.constants import AccessType, TokenScope
 from girder.api import access
@@ -201,9 +201,7 @@ class Item(Resource):
 
     def _downloadMultifileItem(self, item, user):
         setResponseHeader('Content-Type', 'application/zip')
-        setResponseHeader(
-            'Content-Disposition',
-            'attachment; filename="%s%s"' % (item['name'], '.zip'))
+        setContentDisposition(item['name'] + '.zip')
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
@@ -232,7 +230,8 @@ class Item(Resource):
     @autoDescribeRoute(
         Description('Download the contents of an item.')
         .modelParam('id', model='item', level=AccessType.READ)
-        .param('offset', 'Byte offset into the file.', dataType='int', default=0)
+        .param('offset', 'Byte offset into the file.', dataType='int',
+               required=False, default=0)
         .param('format', 'If unspecified, items with one file are downloaded '
                'as that file, and other items are downloaded as a zip '
                'archive.  If \'zip\', a zip archive is always sent.',
@@ -244,6 +243,8 @@ class Item(Resource):
         .param('extraParameters', 'Arbitrary data to send along with the '
                'download request, only applied for single file '
                'items.', required=False)
+        # single file items could produce other types, too.
+        .produces(['application/zip', 'application/octet-stream'])
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )

@@ -31,7 +31,6 @@
     <double>
       <longflag>MinimumSphereActivity</longflag>
       <label>MinimumSphereActivity</label>
-      <channel>input</channel>
       <default>5000.0</default>
       <description>Used for thresholding in blob detection. Unit: becquerels per milliliter [Bq/ml]</description>
     </double>

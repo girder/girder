@@ -75,6 +75,7 @@ describe('Test the settings page', function () {
         expect($('#g-core-cookie-lifetime').val()).toBe('');
         expect($('#g-core-smtp-host').val()).toMatch(/^localhost:31/);
         expect($('#g-core-email-from-address').val()).toBe('');
+        expect($('#g-core-brand-name').val()).toBe('');
         expect($('#g-core-contact-email-address').val()).toBe('');
         expect($('#g-core-registration-policy').val()).toBe('open');
         expect($('#g-core-upload-minimum-chunk-size').val()).toBe('');
@@ -99,6 +100,13 @@ describe('Test the settings page', function () {
         waitsFor(function () {
             return $('#g-settings-error-message').text() === '';
         }, 'error message to be cleared');
+        runs(function () {
+            $('#g-core-brand-name').val('fooBar');
+            $('.g-submit-settings').click();
+        });
+        waitsFor(function () {
+            return $('#g-core-brand-name').val() === 'fooBar';
+        }, 'brand name to change');
         runs(function () {
             $('#g-core-contact-email-address').val('foo@foo.com');
             $('.g-submit-settings').click();

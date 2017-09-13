@@ -27,6 +27,7 @@ Role Variables
 | girder_always_build_assets | no       | no           | Whether to always rebuild client side assets (has no effect if girder_web is disabled).                                                                             |
 | girder_daemonize           | no       | yes          | Whether to install the relevant service files (systemd or upstart). Disabling this can be useful inside of containers which might not have an init system.          |
 | girder_enabled             | no       | yes          | Whether to enable the installed service (requires `girder_daemonize`).                                                                                              |
+| girder_plugins             | no       | []           | List of paths to external plugins to install.                                                                                                                       |
 | girder_web_extra_args      | no       | none         | Any additional arguments to pass to `girder-install web`. Passing `--all-plugins` can be useful if your environment doesn't have access to Mongo at provision time. |
 
 Generated Facts
