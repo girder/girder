@@ -31,4 +31,13 @@
         extra_args: "-e"
         chdir: "{{ girder_path }}"
         executable: "{{ girder_pip | default(omit) }}"
+
+    - name: Find girder-install executable
+      shell: "which girder-install"
+      register: executable
+      environment:
+        PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
+
+    - set_fact:
+        girder_install_executable: "{{ executable.stdout_lines[0] }}"
   when: girder_virtualenv is not defined
