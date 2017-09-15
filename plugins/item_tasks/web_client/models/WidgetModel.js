@@ -39,8 +39,6 @@ import tinycolor from 'tinycolor2';
  * Girder models:
  *   * file:
  *      an input file (evaluates to an file id)
- *   * item:
- *      an input item (evaluates to an item id)
  *   * directory:
  *      an input folder (evaluates to a folder id)
  *   * new-file:
@@ -304,7 +302,7 @@ var WidgetModel = Backbone.Model.extend({
             return 'Empty value';
         } else if (!type) {
             return 'Invalid value';
-        } else if (_.contains(['image', 'item'], this.get('type')) && type !== 'item') {
+        } else if (this.get('type') === 'image' && type !== 'item') {
             return 'Value must be an item';
         } else if (this.get('type') === 'file' && type !== 'file') {
             return 'Value must be a file';
@@ -384,7 +382,7 @@ var WidgetModel = Backbone.Model.extend({
      */
     isGirderModel: function () {
         return _.contains(
-            ['directory', 'new-folder', 'file', 'item', 'new-file', 'image'],
+            ['directory', 'new-folder', 'file', 'new-file', 'image'],
             this.get('type')
         );
     },
@@ -394,13 +392,6 @@ var WidgetModel = Backbone.Model.extend({
      */
     isFile: function () {
         return this.get('type') === 'file';
-    },
-
-    /**
-     * True if the value represents an item stored in girder.
-     */
-    isItem: function () {
-        return this.get('type') === 'item';
     },
 
     /**
@@ -427,7 +418,6 @@ var WidgetModel = Backbone.Model.extend({
         'string-enumeration',
         'string-enumeration-multiple',
         'file',
-        'item',
         'directory',
         'new-file',
         'new-folder',

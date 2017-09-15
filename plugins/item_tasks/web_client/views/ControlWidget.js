@@ -127,9 +127,6 @@ var ControlWidget = View.extend({
         file: {
             template: fileWidget
         },
-        item: {
-            template: fileWidget
-        },
         image: {
             template: fileWidget
         },

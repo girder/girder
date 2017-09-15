@@ -600,7 +600,6 @@ describe('Navigate to the demo task', function () {
         expect($('#string_choice_input').val()).toBe('green');
         expect($('#number_multi_choice_input').val()).toEqual(['3.14', '1.62']);
         expect($('#string_multi_choice_input').val()).toEqual(['green', 'yellow']);
-        expect($('#item_input').val()).toBe('');
         expect($('#file_input').val()).toBe('');
         expect($('#file_output').val()).toBe('');
     });
@@ -619,40 +618,6 @@ describe('Navigate to the demo task', function () {
             $('#string_choice_input').val('cyan').trigger('change');
             $('#number_multi_choice_input').val(['3.14', '1.62']).trigger('change');
             $('#string_multi_choice_input').val(['green', 'blue']).trigger('change');
-            $('#item_input').parent().find('button').click();
-        });
-
-        girderTest.waitForDialog();
-        runs(function () {
-            // Select our collection for the input item
-            var id = $('.modal-dialog #g-root-selector option[data-group="Collections"]').attr('value');
-            $('.modal-dialog #g-root-selector').val(id).trigger('change');
-        });
-
-        waitsFor(function () {
-            return $('.modal-dialog .g-folder-list-link:contains("tasks")').length > 0;
-        }, 'hierarchy widget to update for input root');
-
-        runs(function () {
-            $('.modal-dialog .g-folder-list-link:first').click();
-        });
-
-        waitsFor(function () {
-            return $('.modal-dialog .g-item-list-link').length > 0;
-        }, 'folder nav in input selection widget');
-
-        runs(function () {
-            expect($('.modal-dialog #g-selected-model').val()).toBe('');
-            $('.modal-dialog .g-item-list-link').click();
-            expect($('.modal-dialog #g-selected-model').val()).not.toBe('');
-            $('.modal-dialog .g-submit-button').click();
-        });
-
-        girderTest.waitForLoad();
-
-        // Select new-file
-        runs(function () {
-            // set the output
             $('#file_output').parent().find('button').click();
         });
 
@@ -725,6 +690,7 @@ describe('Navigate to the demo task', function () {
     });
 
     it('run the task', function () {
+        var flag = false;
         runs(function () {
             $('.g-run-task').click();
         });
@@ -738,7 +704,10 @@ describe('Navigate to the demo task', function () {
         }, 'job log to appear');
 
         runs(function () {
-            var args = JSON.parse($('.g-job-log-container').text());
+            // Work around race condition where json data gets dumped into log twice
+            // See issue https://github.com/girder/girder/issues/2350
+            var jsonString = $('.g-job-log-container').text().substring(0,819);
+            var args = JSON.parse(jsonString);
             expect(args.color_input.data).toBe('#b22222');
             expect(args.range_input.data).toBe(6);
             expect(args.number_input.data).toBe(1);
@@ -750,8 +719,6 @@ describe('Navigate to the demo task', function () {
             expect(args.string_choice_input.data).toBe('cyan');
             expect(args.number_multi_choice_input.data).toBe('3.14,1.62');
             expect(args.string_multi_choice_input.data).toBe('green,blue');
-            expect(args.item_input.fileName).toBe('item_tasks widget types demo');
-            expect(args.item_input.resource_type).toBe('item');
             expect(args.file_input.fileName).toBe('oneFileItem.txt');
             expect(args.file_input.resource_type).toBe('file');
         });

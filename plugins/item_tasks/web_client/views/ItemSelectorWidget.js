@@ -21,7 +21,7 @@ var ItemSelectorWidget = View.extend({
             input = false,
             preview = true,
             type = this.model.get('type'),
-            validate = this._validateInputSelection,
+            validate = _.bind(this._validateInputSelection, this),
             title, help;
 
         var validationPromise = function (condition, message) {
@@ -34,7 +34,7 @@ var ItemSelectorWidget = View.extend({
             return isValid.promise();
         };
         // Customize the browser widget according the argument type
-        if (type === 'item' || type === 'file' || type === 'image') {
+        if (type === 'file' || type === 'image') {
             showItems = true;
             title = 'Select an item';
             help = 'Click on an item to select it, then click "Save"';
@@ -79,7 +79,6 @@ var ItemSelectorWidget = View.extend({
             };
             preview = false;
         }
-
         this._browserWidget = new BrowserWidget({
             el: $('#g-dialog-container'),
             parentView: this,
@@ -90,19 +89,17 @@ var ItemSelectorWidget = View.extend({
             helpText: help,
             input: input,
             showPreview: preview,
-            validate: _.bind(validate, this)
+            validate: validate
         });
         this._browserWidget.once('g:saved', (model, inputValue) => {
             this.root = this._browserWidget.root;
             this._browserWidget.$el.modal('hide');
             if (type === 'file') {
-                this._file.once('g:fetched', () => {
-                    this.model.set({
-                        value: this._file,
-                        fileName: inputValue || this._file.name()
-                    });
-                    this.trigger('g:saved');
-                }).fetch();
+                this.model.set({
+                    value: this._file,
+                    fileName: inputValue || this._file.name()
+                });
+                this.trigger('g:saved');
             } else {
                 this.model.set({
                     value: model,
@@ -116,13 +113,15 @@ var ItemSelectorWidget = View.extend({
     },
 
     _validateInputSelection: function (item) {
+        // NOTE: As a side-effect to validating a file, if the file is valid it is fetched to be
+        // saved as the selected model once the BrowserWidget's g:saved event fires.
         if (!item) {
             return $.Deferred().reject('No item selected.').promise();
         }
         switch (this.model.get('type')) {
             case 'file':
                 return restRequest({
-                    path: '/item/' + item.id + '/files',
+                    url: '/item/' + item.id + '/files',
                     data: {
                         limit: 2
                     }
@@ -131,7 +130,7 @@ var ItemSelectorWidget = View.extend({
                     if (resp.length !== 1) {
                         throw 'Please select an item with exactly one file.';
                     }
-                    this._file = new FileModel({_id: resp[0]._id});
+                    this._file = new FileModel(resp[0]);
                     return undefined;
                 }, () => {
                     throw 'There was an error listing files for the selected item.';

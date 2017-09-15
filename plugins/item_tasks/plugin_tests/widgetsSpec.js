@@ -344,7 +344,6 @@ describe('widget collection', function () {
             {type: 'string-enumeration', id: 'string-enumeration', values: ['a'], value: 'a'},
             {type: 'number-enumeration', id: 'number-enumeration', values: [1], value: '1'},
             {type: 'file', id: 'file', value: new Backbone.Model({id: 'a'})},
-            {type: 'item', id: 'item', value: new Backbone.Model({id: 'aa'})},
             {type: 'new-file', id: 'new-file', value: new Backbone.Model({name: 'a', folderId: 'b'})},
             {type: 'image', id: 'image', value: new Backbone.Model({id: 'c'})}
         ]);
@@ -360,7 +359,6 @@ describe('widget collection', function () {
             'string-enumeration': '"a"',
             'number-enumeration': '1',
             'file_girderFileId': 'a',
-            'item_girderItemId': 'aa',
             'new-file_girderFolderId': 'b',
             'new-file_name': 'a',
             'image_girderFileId': 'c'
@@ -370,6 +368,7 @@ describe('widget collection', function () {
 
 describe('control widget view', function () {
     var $el;
+    var w;
     var parentView = {
         registerChildView: function () {}
     };
@@ -390,11 +389,11 @@ describe('control widget view', function () {
     });
 
     afterEach(function () {
-        $el.remove();
+        w.remove();
     });
 
     it('range', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -414,10 +413,12 @@ describe('control widget view', function () {
         expect(w.$('input').val()).toBe('2');
         w.$('input').val('4').trigger('change');
         expect(w.model.value()).toBe(4);
+
+        w.remove();
     });
 
     it('number', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -446,7 +447,7 @@ describe('control widget view', function () {
     });
 
     it('boolean', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -466,7 +467,7 @@ describe('control widget view', function () {
     });
 
     it('string', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -487,7 +488,7 @@ describe('control widget view', function () {
     });
 
     it('color', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -511,7 +512,7 @@ describe('control widget view', function () {
     });
 
     it('string-vector', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -531,7 +532,7 @@ describe('control widget view', function () {
     });
 
     it('number-vector', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -551,7 +552,7 @@ describe('control widget view', function () {
     });
 
     it('string-enumeration', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -576,7 +577,7 @@ describe('control widget view', function () {
     });
 
     it('number-enumeration', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -600,77 +601,51 @@ describe('control widget view', function () {
         expect(w.model.value()).toBe(300);
     });
 
-    it('item', function () {
-        var item = new girder.models.ItemModel({id: 'model id', name: 'b'});
-
-        var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
-        spyOn(browserWidgetProto, 'initialize');
-        spyOn(browserWidgetProto, 'render').andCallFake(function () {
-            // trigger a response from the mocked widget
-            this.trigger('g:saved', item);
-        });
-
-        var w = new itemTasks.views.ControlWidget({
-            parentView: parentView,
-            el: $el,
-            model: new itemTasks.models.WidgetModel({
-                type: 'item',
-                title: 'Title',
-                id: 'item-widget'
-            })
-        });
-
-        w.render();
-        checkWidgetCommon(w);
-
-        w.$('.g-select-file-button').click();
-
-        // make sure the browser widget was initialized
-        expect(browserWidgetProto.initialize).toHaveBeenCalled();
-        expect(browserWidgetProto.render).toHaveBeenCalled();
-
-        expect(w.model.get('value')).toBe(item);
-    });
-
     it('file', function () {
-        var item = new girder.models.ItemModel({id: 'file id', name: 'e'});
-        var file = new girder.models.FileModel({id: 'file id', name: 'd'});
+        var file = new girder.models.FileModel({_id: 'file id', name: 'd'});
+        var item = new girder.models.ItemModel({_id: 'item id', name: 'e'});
+        runs(function () {
+            var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
+            // Browswer widget creates a RootSelectorWidget.
+            // RootSelectorWidget fetches, so we need to mock it.
+            spyOn(girder.views.widgets.RootSelectorWidget.prototype, 'initialize');
+            spyOn(girder.views.widgets.HierarchyWidget.prototype, 'initialize').andCallFake(function () {
+                this.parentModel = 'temp';
+            });
+            spyOn(browserWidgetProto, 'render').andCallFake(function () {
+                // Validate works because there is no input validation, only slected validation.
+                // Set selected item and validate it as to mock a selection via click.
+                this._selected = item;
+                this._validate();
+            });
 
-        var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
-        spyOn(browserWidgetProto, 'initialize');
-        // spyOn(browserWidgetProto, 'render').andCallThrough();
-        spyOn(browserWidgetProto, 'render').andCallFake(function () {
-            // trigger a response from the mocked widget
-            this.trigger('g:saved', item);
-        });
+            w = new itemTasks.views.ControlWidget({
+                parentView: parentView,
+                el: $el,
+                model: new itemTasks.models.WidgetModel({
+                    type: 'file',
+                    title: 'Title',
+                    id: 'file-widget'
+                })
+            });
 
-        var w = new itemTasks.views.ControlWidget({
-            parentView: parentView,
-            el: $el,
-            model: new itemTasks.models.WidgetModel({
-                type: 'file',
-                title: 'Title',
-                id: 'file-widget'
-            })
-        });
-
-        w.render();
-        checkWidgetCommon(w);
-        girder.rest.mockRestRequest(function (opts) {
-            if(opts.path.substr(0, 5) === '/file') {
-                return $.Deferred().resolve(file.toJSON());
-            } else {
+            girder.rest.mockRestRequest(function (opts) {
                 return $.Deferred().resolve([file.toJSON()]);
-            }
+            });
+            w.render();
+            checkWidgetCommon(w);
+            expect(w.model.has('value')).toBe(false);
+            w.$('.g-select-file-button').click();
         });
-        w.$('.g-select-file-button').click();
 
-        // // make sure the browser widget was initialized
-        // expect(browserWidgetProto.initialize).toHaveBeenCalled();
-        // expect(browserWidgetProto.render).toHaveBeenCalled();
+        waitsFor(function () {
+            return w.model.has('value');
+        }, 'file to be fetched.');
 
-        // expect(w.model.get('value')).toBe(file);
-        girder.rest.unmockRestRequest();
+        runs(function () {
+            expect(w.model.get('value').get('_id')).toBe(file.get('_id'));
+            girder.rest.unmockRestRequest();
+        });
     });
 
     it('new-file', function () {
@@ -683,7 +658,7 @@ describe('control widget view', function () {
             this.trigger('g:saved', folder);
         });
 
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -705,7 +680,7 @@ describe('control widget view', function () {
     });
 
     it('invalid', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
