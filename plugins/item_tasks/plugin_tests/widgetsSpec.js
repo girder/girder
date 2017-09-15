@@ -609,12 +609,13 @@ describe('control widget view', function () {
             // Browswer widget creates a RootSelectorWidget.
             // RootSelectorWidget fetches, so we need to mock it.
             spyOn(girder.views.widgets.RootSelectorWidget.prototype, 'initialize');
-            spyOn(girder.views.widgets.HierarchyWidget.prototype, 'initialize').andCallFake(function () {
-                this.parentModel = 'temp';
-            });
             spyOn(browserWidgetProto, 'render').andCallFake(function () {
                 // Validate works because there is no input validation, only slected validation.
                 // Set selected item and validate it as to mock a selection via click.
+                var hv = {
+                    parentModel: 'temp'
+                };
+                this._hierarchyView = hv;
                 this._selected = item;
                 this._validate();
             });
