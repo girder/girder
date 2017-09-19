@@ -538,9 +538,8 @@ var HierarchyWidget = View.extend({
                     public: this.parentModel.get('public'),
                     accessLevel: this.parentModel.getAccessLevel()
                 });
-            } else {
-                this._initFolderViewSubwidgets();
             }
+            this._initFolderViewSubwidgets();
         }
 
         this.render();

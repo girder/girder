@@ -1,0 +1,12 @@
+.g-widget-item-preview
+
+  h4
+    a.g-item-preview-link(data-id=item._id)= item.name
+  
+  each content in contents
+    if content.type==='image'
+      div
+        img(src=content.value)
+
+    else if content.type==='json'
+      textarea.json(data-id=item._id)= JSON.stringify(content.value, null, '\t')
