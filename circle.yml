@@ -42,3 +42,4 @@ deployment:
     commands:
       - curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
       - ./scripts/galaxy_deploy.sh
+      - git push git@github.com:girder/girder.git master:2.x-maintenance
