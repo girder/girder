@@ -143,26 +143,6 @@ def iterBody(length=READ_BUFFER_LEN, strictLength=False):
             yield buf
 
 
-def _cacheAuthUser(fun):
-    """
-    This decorator for getCurrentUser ensures that the authentication procedure
-    is only performed once per request, and is cached on the request for
-    subsequent calls to getCurrentUser().
-    """
-    def inner(returnToken=False, *args, **kwargs):
-        if not returnToken and hasattr(cherrypy.request, 'girderUser'):
-            return cherrypy.request.girderUser
-
-        user = fun(returnToken, *args, **kwargs)
-        if isinstance(user, tuple):
-            setCurrentUser(user[0])
-        else:
-            setCurrentUser(user)
-
-        return user
-    return inner
-
-
 @requestCache.cache_on_arguments(function_key_generator=kwarg_function_key_generator)
 def getCurrentToken(allowCookie=None):
     """
@@ -196,7 +176,6 @@ def getCurrentToken(allowCookie=None):
     return Token().load(tokenStr, force=True, objectId=False)
 
 
-@_cacheAuthUser
 def getCurrentUser(returnToken=False):
     """
     Returns the currently authenticated user based on the token header or
@@ -209,6 +188,9 @@ def getCurrentUser(returnToken=False):
               logged in or the token is invalid or expired.  If
               returnToken=True, returns a tuple of (user, token).
     """
+    if not returnToken and hasattr(cherrypy.request, 'girderUser'):
+        return cherrypy.request.girderUser
+
     event = events.trigger('auth.user.get')
     if event.defaultPrevented and len(event.responses) > 0:
         return event.responses[0]
@@ -216,6 +198,8 @@ def getCurrentUser(returnToken=False):
     token = getCurrentToken()
 
     def retVal(user, token):
+        setCurrentUser(user)
+
         if returnToken:
             return user, token
         else:
