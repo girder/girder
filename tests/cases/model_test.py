@@ -18,7 +18,8 @@
 ###############################################################################
 
 from .. import base
-from girder.models.model_base import AccessControlledModel, Model, AccessType
+from girder.models.model_base import (AccessControlledModel, Model, AccessType,
+                                      _overwriteFields, _removeOverwrittenFields)
 from girder.utility.model_importer import ModelImporter
 
 
@@ -63,6 +64,96 @@ class ModelTestCase(base.TestCase):
 
         ModelImporter.registerModel('fake_ac', FakeAcModel())
         ModelImporter.registerModel('fake', FakeModel())
+
+    def testProjectionUtils(self):
+        inclusionProjDict = {
+            'public': True,
+            'access': True,
+            'email': True,
+            'login': True
+        }
+        inclusionProjList = ['public', 'access', 'email', 'login']
+        exclusionProjDict = {
+            'public': False,
+            'access': False,
+            'email': False,
+            'login': False
+        }
+        overrideFields = ['access', 'public']
+
+        retval = _overwriteFields(inclusionProjDict, overrideFields)
+        self.assertEqual(retval, inclusionProjDict)
+        retval = _overwriteFields(inclusionProjList, overrideFields)
+        self.assertEqual(retval, inclusionProjList)
+        retval = _overwriteFields(exclusionProjDict, ['newValue'])
+        self.assertEqual(retval, exclusionProjDict)
+        retval = _overwriteFields(inclusionProjDict, ['newValue'])
+        self.assertEqual(retval, {
+            'public': True,
+            'access': True,
+            'email': True,
+            'login': True,
+            'newValue': True
+        })
+        retval = _overwriteFields(exclusionProjDict, overrideFields)
+        self.assertEqual(retval, {'email': False, 'login': False})
+
+        doc = {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login',
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'
+        }
+        _removeOverwrittenFields(doc, exclusionProjDict)
+        self.assertEqual(doc, {
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'})
+
+        doc = {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login',
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'
+        }
+        _removeOverwrittenFields(doc, inclusionProjList)
+        self.assertEqual(doc, {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login'})
+        doc = {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login',
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'
+        }
+        _removeOverwrittenFields(doc, inclusionProjDict)
+        self.assertEqual(doc, {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login'})
+
+        # Test None edge cases
+        retval = _overwriteFields(None, ['access', 'public'])
+        self.assertIsNone(retval)
+        copy = dict(doc)
+        _removeOverwrittenFields(doc, None)
+        self.assertEqual(copy, doc)
 
     def testModelFiltering(self):
         users = ({
