@@ -20,13 +20,9 @@
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
-from girder.constants import SettingDefault
-from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
 from . import constants
-
-import six
 
 
 class Homepage(Resource):
@@ -49,42 +45,6 @@ class Homepage(Resource):
             constants.PluginSettings.LOGO: self.model('setting').get(constants.PluginSettings.LOGO),
             'folderId': folder['_id']
         }
-
-@setting_utilities.validator({
-    constants.PluginSettings.MARKDOWN,
-    constants.PluginSettings.HEADER,
-    constants.PluginSettings.SUBHEADER,
-    constants.PluginSettings.WELCOME_TEXT
-})
-def validateHomepageMarkdown(doc):
-    if not isinstance(doc['value'], six.string_types):
-        raise ValidationException('The setting is not a string', 'value')
-
-
-@setting_utilities.validator(constants.PluginSettings.LOGO)
-def validateHomepageLogo(doc):
-    if not isinstance(doc['value'], six.string_types):
-        pass
-
-
-@setting_utilities.default(constants.PluginSettings.MARKDOWN)
-def defaultHomepageMarkdown():
-    return ''
-
-
-@setting_utilities.default(constants.PluginSettings.HEADER)
-def defaultHomepageHeader():
-    return 'Girder'
-
-
-@setting_utilities.default(constants.PluginSettings.SUBHEADER)
-def defaultHomepageSubheader():
-    return 'Data management platform'
-
-
-@setting_utilities.default(constants.PluginSettings.WELCOME_TEXT)
-def defaultHomepageWelcomeText():
-    return 'Welcome to Girder!'
 
 
 def getOrCreateAssetsFolder():
