@@ -20,16 +20,13 @@
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
+from girder.constants import SettingDefault
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 
-MARKDOWN = 'homepage.markdown'
-HEADER = 'homepage.header'
-SUBHEADER = 'homepage.subheader'
-WELCOME_TEXT = 'homepage.welcome_text'
-LOGO = 'homepage.logo'
+from . import constants
 
-NAME = 'Homepage Assets'
+import six
 
 
 class Homepage(Resource):
@@ -45,47 +42,60 @@ class Homepage(Resource):
     def getMarkdown(self, params):
         folder = getOrCreateAssetsFolder()
         return {
-            MARKDOWN: self.model('setting').get(MARKDOWN),
-            HEADER: self.model('setting').get(HEADER),
-            SUBHEADER: self.model('setting').get(SUBHEADER),
-            WELCOME_TEXT: self.model('setting').get(WELCOME_TEXT),
-            LOGO: self.model('setting').get(LOGO),
+            constants.PluginSettings.MARKDOWN: self.model('setting').get(constants.PluginSettings.MARKDOWN),
+            constants.PluginSettings.HEADER: self.model('setting').get(constants.PluginSettings.HEADER),
+            constants.PluginSettings.SUBHEADER: self.model('setting').get(constants.PluginSettings.SUBHEADER),
+            constants.PluginSettings.WELCOME_TEXT: self.model('setting').get(constants.PluginSettings.WELCOME_TEXT),
+            constants.PluginSettings.LOGO: self.model('setting').get(constants.PluginSettings.LOGO),
             'folderId': folder['_id']
         }
 
-
-@setting_utilities.validator(MARKDOWN)
-def validateHomepageMarkdown(event):
-    pass
-
-
-@setting_utilities.validator(HEADER)
-def validateHomepageTitle(event):
-    pass
-
-
-@setting_utilities.validator(SUBHEADER)
-def validateHomepageSubHeadingText(event):
-    pass
+@setting_utilities.validator({
+    constants.PluginSettings.MARKDOWN,
+    constants.PluginSettings.HEADER,
+    constants.PluginSettings.SUBHEADER,
+    constants.PluginSettings.WELCOME_TEXT
+})
+def validateHomepageMarkdown(doc):
+    if not isinstance(doc['value'], six.string_types):
+        raise ValidationException('The setting is not a string', 'value')
 
 
-@setting_utilities.validator(WELCOME_TEXT)
-def validateHomepageWelcomeText(event):
-    pass
+@setting_utilities.validator(constants.PluginSettings.LOGO)
+def validateHomepageLogo(doc):
+    if not isinstance(doc['value'], six.string_types):
+        pass
 
 
-@setting_utilities.validator(LOGO)
-def validateHomepageLogo(event):
-    pass
+@setting_utilities.default(constants.PluginSettings.MARKDOWN)
+def defaultHomepageMarkdown():
+    return ''
+
+
+@setting_utilities.default(constants.PluginSettings.HEADER)
+def defaultHomepageHeader():
+    return 'Girder'
+
+
+@setting_utilities.default(constants.PluginSettings.SUBHEADER)
+def defaultHomepageSubheader():
+    return 'Data management platform'
+
+
+@setting_utilities.default(constants.PluginSettings.WELCOME_TEXT)
+def defaultHomepageWelcomeText():
+    return 'Welcome to Girder!'
 
 
 def getOrCreateAssetsFolder():
     collection = ModelImporter.model('collection').createCollection(
-        NAME, public=False, reuseExisting=True)
+        constants.COLLECTION_NAME, public=False, reuseExisting=True)
     folder = ModelImporter.model('folder').createFolder(
-        collection, NAME, parentType='collection', public=True, reuseExisting=True)
+        collection, constants.COLLECTION_NAME, parentType='collection', public=True, reuseExisting=True)
     return folder
 
 
 def load(info):
     info['apiRoot'].homepage = Homepage()
+
+

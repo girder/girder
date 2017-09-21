@@ -55,11 +55,12 @@ var ConfigView = View.extend({
         },
 
         'click #g-homepage-default-logo-btn': function (event) {
+            this.logoUrl = require('girder/assets/Girder_Mark.png');
             this.$('.g-preview-logo').attr({
-                'src': require('girder/assets/Girder_Mark.png'),
+                'src': this.logoUrl,
                 'width': '50px'
             });
-            this.logoUrl = require('girder/assets/Girder_Mark.png');
+
             this.$('.g-preview-logo').removeClass('hidden');
         },
 
