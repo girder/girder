@@ -110,10 +110,12 @@ var ConfigView = View.extend({
             defaultHeader: 'Girder',
             defaultSubHeader: 'Data management platform'
         }));
-        this.editor.setElement(
-            this.$('.g-homepage-container')).render();
-        this.welcomeText.setElement(
-            this.$('.g-welcome-text-container')).render();
+        this.editor
+            .setElement(this.$('.g-homepage-container'))
+            .render();
+        this.welcomeText
+            .setElement(this.$('.g-homepage-welcome-text-container'))
+            .render();
         this.$('.g-preview-logo').attr({'src': this.logoUrl, 'width': '50px'});
         if (this.logoUrl !== null) {
             this.$('.g-preview-logo').removeClass('hidden');

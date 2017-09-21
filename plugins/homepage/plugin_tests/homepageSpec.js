@@ -129,14 +129,14 @@ describe('homepage plugin test ', function () {
 
             $('#g-homepage-subheader').val('Subheader');
 
-            $('.g-welcome-text-container textarea.g-markdown-text').val(
+            $('.g-homepage-welcome-text-container textarea.g-markdown-text').val(
                 'It\'s very easy to make some words **bold** and other words *italic* with ' +
                 'Markdown. You can even [link to Girder!](https://girder.readthedocs.io/)'
             );
 
-            $('.g-welcome-text-container a.g-preview-link').click();
+            $('.g-homepage-welcome-text-container a.g-preview-link').click();
 
-            _verifyMarkdownContent($('.g-welcome-text-container .g-markdown-preview'));
+            _verifyMarkdownContent($('.g-homepage-welcome-text-container .g-markdown-preview'));
 
             $('#g-homepage-form').submit();
         });
