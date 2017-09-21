@@ -8,6 +8,12 @@
     name: mongodb-org-server
     state: present
 
+- name: Add mongodb configuration
+  template:
+    src: "mongod.conf.j2"
+    dest: "/etc/mongod.conf"
+    backup: yes
+
 - name: Start mongodb
   service:
     name: mongod
