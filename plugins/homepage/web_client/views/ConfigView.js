@@ -4,13 +4,14 @@ import FolderModel from 'girder/models/FolderModel';
 import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
+import UploadWidget from 'girder/views/widgets/UploadWidget';
 import events from 'girder/events';
-import { restRequest } from 'girder/rest';
+import { restRequest, getApiRoot } from 'girder/rest';
 
 import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
 
-var ConfigView = View.extend({
+const ConfigView = View.extend({
     events: {
         'submit #g-homepage-form': function (event) {
             event.preventDefault();
@@ -32,75 +33,93 @@ var ConfigView = View.extend({
             },
             {
                 key: 'homepage.logo',
-                value: this.logoUrl
+                value: this.logoFileId
             }]);
         },
 
-        'change #g-homepage-logo': function (event) {
-            var reader = new FileReader();
-            reader.onload = () => {
-                this.$('.g-preview-logo').attr({
-                    'src': reader.result,
-                    'width': '50px'
-                });
-                this.logoUrl = reader.result;
-            };
-
-            reader.readAsDataURL(event.target.files[0]);
-            this.$('.g-preview-logo').removeClass('hidden');
-            /* Clear the value of the hidden file input to avoid 'Chrome'
-            to not triger the change event when the same image is set,
-            this line fix a bug */
-            this.$('#g-homepage-logo').val(null);
-        },
-
-        'click #g-homepage-default-logo-btn': function (event) {
-            this.logoUrl = require('girder/assets/Girder_Mark.png');
-            this.$('.g-preview-logo').attr({
-                'src': this.logoUrl,
-                'width': '50px'
-            });
-
-            this.$('.g-preview-logo').removeClass('hidden');
-        },
-
-        'click #g-homepage-upload-logo-btn': function () {
-            this.$('#g-homepage-logo').click();
+        'click #g-homepage-logo-reset': function (event) {
+            this.logoFileId = null;
+            this._updateLogoDisplay()
         }
     },
 
     initialize: function () {
-        restRequest({
+        const currentSettingsRequest = restRequest({
             method: 'GET',
-            url: 'homepage/markdown'
-        }).done(_.bind(function (resp) {
-            this.folder = new FolderModel({_id: resp.folderId});
-            this.editor = new MarkdownWidget({
-                prefix: 'homepage',
-                placeholder: 'Enter Markdown for the homepage',
-                parentView: this,
-                parent: this.folder,
-                enableUploads: true,
-                maxUploadSize: 1024 * 1024 * 10,
-                allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
-            });
-            this.welcomeText = new MarkdownWidget({
-                prefix: 'welcome',
-                placeholder: 'Enter Markdown to replace the welcome text.',
-                parentView: this,
-                parent: this.folder,
-                enableUploads: true,
-                maxUploadSize: 1024 * 1024 * 10,
-                allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
-            });
-            this.editor.text = resp['homepage.markdown'];
-            this.header = resp['homepage.header'];
-            this.subHeader = resp['homepage.subheader'];
-            this.welcomeText.text = resp['homepage.welcome_text'];
-            this.logoUrl = resp['homepage.logo'];
+            url: 'system/setting',
+            data: {
+                list: JSON.stringify([
+                    'homepage.markdown',
+                    'homepage.header',
+                    'homepage.subheader',
+                    'homepage.welcome_text',
+                    'homepage.logo'
+                ])
+            }
+        })
+            // Keep only the first argument
+            .then((resp) => resp);
+        const assetsRequest = restRequest({
+            method: 'GET',
+            url: 'homepage/assets'
+        })
+            // Keep only the first argument
+            .then((resp) => resp);
 
-            this.render();
-        }, this));
+        $.when(currentSettingsRequest, assetsRequest)
+            .done((settings, assets) => {
+                // Create sub-widgets
+                this.editor = new MarkdownWidget({
+                    prefix: 'homepage',
+                    placeholder: 'Enter Markdown for the homepage',
+                    parentView: this,
+                    parent: new FolderModel({_id: assets['homepage.markdown']}),
+                    enableUploads: true,
+                    maxUploadSize: 1024 * 1024 * 10,
+                    allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
+                });
+                this.welcomeText = new MarkdownWidget({
+                    prefix: 'welcome',
+                    placeholder: 'Enter Markdown to replace the welcome text.',
+                    parentView: this,
+                    parent: new FolderModel({_id: assets['homepage.welcome_text']}),
+                    enableUploads: true,
+                    maxUploadSize: 1024 * 1024 * 10,
+                    allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
+                });
+
+                // Set current settings
+                this.editor.text = settings['homepage.markdown'];
+                this.header = settings['homepage.header'];
+                this.subHeader = settings['homepage.subheader'];
+                this.welcomeText.text = settings['homepage.welcome_text'];
+                this.logoFileId = settings['homepage.logo'];
+
+                this.logoUploader = new UploadWidget({
+                    parent: new FolderModel({_id: assets['homepage.logo']}),
+                    parentType: 'folder',
+                    title: 'Homepage Logo',
+                    modal: false,
+                    multiFile: false,
+                    parentView: this
+                });
+                this.listenTo(this.logoUploader, 'g:uploadFinished', (event) => {
+                    this.logoFileId = event.files[0].id;
+                    this._updateLogoDisplay();
+                });
+
+                this.render();
+            });
+    },
+
+    _updateLogoDisplay: function () {
+        let logoUrl;
+        if (this.logoFileId) {
+            logoUrl = `${getApiRoot()}/file/${this.logoFileId}/download?contentDisposition=inline`;
+        } else {
+            logoUrl = require('girder/assets/Girder_Mark.png');
+        }
+        this.$('.g-homepage-logo-preview').attr('src', logoUrl);
     },
 
     render: function () {
@@ -116,10 +135,11 @@ var ConfigView = View.extend({
         this.welcomeText
             .setElement(this.$('.g-homepage-welcome-text-container'))
             .render();
-        this.$('.g-preview-logo').attr({'src': this.logoUrl, 'width': '50px'});
-        if (this.logoUrl !== null) {
-            this.$('.g-preview-logo').removeClass('hidden');
-        }
+
+        this.logoUploader
+            .render()
+            .$el.appendTo(this.$('.g-homepage-logo-upload-container'));
+        this._updateLogoDisplay();
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({
@@ -133,6 +153,7 @@ var ConfigView = View.extend({
     },
 
     _saveSettings: function (settings) {
+        this.$('#g-homepage-error-message').text('');
         restRequest({
             method: 'PUT',
             url: 'system/setting',
@@ -140,18 +161,18 @@ var ConfigView = View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).fail(_.bind(function (resp) {
+        }).fail((resp) => {
             this.$('#g-homepage-error-message').text(
                 resp.responseJSON.message
             );
-        }, this));
+        });
     }
 });
 

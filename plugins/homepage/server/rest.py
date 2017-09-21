@@ -18,9 +18,8 @@
 ###############################################################################
 
 from girder.api import access
-from girder.api.describe import Description, describeRoute
+from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
-from girder.utility.model_importer import ModelImporter
 
 from . import constants
 
@@ -29,28 +28,55 @@ class Homepage(Resource):
     def __init__(self):
         super(Homepage, self).__init__()
         self.resourceName = 'homepage'
-        self.route('GET', ('markdown',), self.getMarkdown)
+        self.route('GET', (), self.getSettings)
+        self.route('GET', ('assets',), self.getAssets)
 
     @access.public
-    @describeRoute(
-        Description('Public url for getting the homepage properties including markdown content.')
+    @autoDescribeRoute(
+        Description('Public url for getting the homepage properties.')
     )
-    def getMarkdown(self, params):
-        folder = getOrCreateAssetsFolder()
+    def getSettings(self):
         return {
             constants.PluginSettings.MARKDOWN: self.model('setting').get(constants.PluginSettings.MARKDOWN),
             constants.PluginSettings.HEADER: self.model('setting').get(constants.PluginSettings.HEADER),
             constants.PluginSettings.SUBHEADER: self.model('setting').get(constants.PluginSettings.SUBHEADER),
             constants.PluginSettings.WELCOME_TEXT: self.model('setting').get(constants.PluginSettings.WELCOME_TEXT),
             constants.PluginSettings.LOGO: self.model('setting').get(constants.PluginSettings.LOGO),
-            'folderId': folder['_id']
         }
 
+    @access.admin
+    @autoDescribeRoute(
+        Description('Return the folder IDs for uploaded asset content.')
+    )
+    def getAssets(self):
+        return {
+            # Keep MARKDOWN folder as 'Homepage Assets', for compatibility
+            constants.PluginSettings.MARKDOWN: self._getAssetsFolder('Homepage Assets')['_id'],
+            constants.PluginSettings.WELCOME_TEXT: self._getAssetsFolder('Welcome Text')['_id'],
+            constants.PluginSettings.LOGO: self._getAssetsFolder('Logo')['_id'],
+        }
 
-def getOrCreateAssetsFolder():
-    collection = ModelImporter.model('collection').createCollection(
-        constants.COLLECTION_NAME, public=False, reuseExisting=True)
-    folder = ModelImporter.model('folder').createFolder(
-        collection, constants.COLLECTION_NAME, parentType='collection', public=True, reuseExisting=True)
-    return folder
+    def _getAssetsFolder(self, folderName):
+        """
+        Get or create a public folder, in the private "Homepage Assets" collection.
+
+        This makes the folder effectively "unlisted" as it can't be browsed to by normal users, but
+        its content can still be downloaded directly.
+
+        :param folderName: The name of the folder to get or create.
+        :return: The new folder document.
+        """
+        collection = self.model('collection').createCollection(
+            constants.COLLECTION_NAME,
+            public=False,
+            reuseExisting=True
+        )
+        folder = self.model('folder').createFolder(
+            collection,
+            folderName,
+            parentType='collection',
+            public=True,
+            reuseExisting=True
+        )
+        return folder
 

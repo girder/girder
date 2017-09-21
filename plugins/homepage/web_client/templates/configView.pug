@@ -24,18 +24,13 @@ form.g-settings-form(role="form")
     #g-homepage-welcome-text.g-homepage-welcome-text-container
 
   .form-group
-    label(for="g-homepage-logo") Logo
-    input#g-homepage-logo.g-logo-element.input-sm.hidden(
-        type="file", title="The front page logo.")
-    .g-logo-container
-      .g-logo-btn-container
-        button#g-homepage-upload-logo-btn.g-homepage-logo-btn.btn.btn-sm.btn-default(
-          type="button", title="Upload button") Browse...
-        button#g-homepage-default-logo-btn.g-homepage-logo-btn.btn.btn-sm.btn-default(
-          type="button", title="Default button") Default logo
-      img.g-preview-logo.g-logo-element.hidden(src="#", alt="Branding logo")
+    label Logo
+    img.g-homepage-logo-preview(width=50, alt="Logo")
+    .g-homepage-logo-upload-container
+    button#g-homepage-logo-reset.btn.btn-sm.btn-default(
+        type="button", title="Reset default logo") Use default
 
-  .g-test
+hr
 
 p.g-homepage-description
   | To completely replace the homepage content (ignoring the other settings), enter Markdown here.

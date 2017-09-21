@@ -18,8 +18,11 @@
 ###############################################################################
 
 import six
-from girder.models.model_base import ValidationException
+
+from girder.constants import AccessType
+from girder.models.model_base import AccessException, ValidationException
 from girder.utility import setting_utilities
+from girder.utility.model_importer import ModelImporter
 
 
 COLLECTION_NAME = 'Homepage Assets'
@@ -74,5 +77,14 @@ def _validateStrings(doc):
 
 @setting_utilities.validator(PluginSettings.LOGO)
 def _validateLogo(doc):
-    if not isinstance(doc['value'], six.string_types):
-        raise ValidationException('The setting is not a string', 'value')
+    try:
+        logoFile = ModelImporter.model('file').load(
+            doc['value'], level=AccessType.READ, user=None, exc=True)
+    except ValidationException as e:
+        # Invalid ObjectId, or non-existent document
+        raise ValidationException(e.message, 'value')
+    except AccessException as e:
+        raise ValidationException('Logo must be publicly readable', 'value')
+
+    # Store this field natively as an ObjectId
+    doc['value'] = logoFile['_id']
