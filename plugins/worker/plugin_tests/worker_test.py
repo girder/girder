@@ -66,6 +66,10 @@ class WorkerTestCase(base.TestCase):
         self.adminFolder = six.next(self.model('folder').childFolders(
             parent=self.admin, parentType='user', user=self.admin))
         self.adminToken = self.model('token').createToken(self.admin)
+        sampleData = b'Hello world'
+        self.sampleFile = self.model('upload').uploadFromFile(
+            obj=six.BytesIO(sampleData), size=len(sampleData), name='Sample',
+            parentType='folder', parent=self.adminFolder, user=self.admin)
 
     def testWorker(self):
         # Test the settings
@@ -238,3 +242,27 @@ class WorkerTestCase(base.TestCase):
         job = self.model('job', 'jobs').load(job['_id'], force=True,
                                              includeLog=True)
         self.assertIn('job ran', job['log'])
+
+    def testGirderInputSpec(self):
+        # Set an API_URL so we can use the spec outside of a rest request
+        self.model('setting').set(worker.PluginSettings.API_URL, 'http://127.0.0.1')
+
+        spec = utils.girderInputSpec(self.adminFolder, resourceType='folder')
+        self.assertEqual(spec['id'], str(self.adminFolder['_id']))
+        self.assertEqual(spec['resource_type'], 'folder')
+        self.assertFalse(spec['fetch_parent'])
+        self.assertNotIn('direct_path', spec)
+
+        spec = utils.girderInputSpec(self.sampleFile, resourceType='file')
+        self.assertEqual(spec['id'], str(self.sampleFile['_id']))
+        self.assertEqual(spec['resource_type'], 'file')
+        self.assertFalse(spec['fetch_parent'])
+        self.assertIn('direct_path', spec)
+
+        spec = utils.girderInputSpec(self.sampleFile, resourceType='file', allowDirectPath=False)
+        self.assertFalse(spec['fetch_parent'])
+        self.assertNotIn('direct_path', spec)
+
+        spec = utils.girderInputSpec(self.sampleFile, resourceType='file', fetchParent=True)
+        self.assertTrue(spec['fetch_parent'])
+        self.assertNotIn('direct_path', spec)
