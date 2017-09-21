@@ -17,45 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.api import access
-from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource
-from girder.utility.model_importer import ModelImporter
-
+# Import constants for the side effect of registering settings
 from . import constants
-
-
-class Homepage(Resource):
-    def __init__(self):
-        super(Homepage, self).__init__()
-        self.resourceName = 'homepage'
-        self.route('GET', ('markdown',), self.getMarkdown)
-
-    @access.public
-    @describeRoute(
-        Description('Public url for getting the homepage properties including markdown content.')
-    )
-    def getMarkdown(self, params):
-        folder = getOrCreateAssetsFolder()
-        return {
-            constants.PluginSettings.MARKDOWN: self.model('setting').get(constants.PluginSettings.MARKDOWN),
-            constants.PluginSettings.HEADER: self.model('setting').get(constants.PluginSettings.HEADER),
-            constants.PluginSettings.SUBHEADER: self.model('setting').get(constants.PluginSettings.SUBHEADER),
-            constants.PluginSettings.WELCOME_TEXT: self.model('setting').get(constants.PluginSettings.WELCOME_TEXT),
-            constants.PluginSettings.LOGO: self.model('setting').get(constants.PluginSettings.LOGO),
-            'folderId': folder['_id']
-        }
-
-
-def getOrCreateAssetsFolder():
-    collection = ModelImporter.model('collection').createCollection(
-        constants.COLLECTION_NAME, public=False, reuseExisting=True)
-    folder = ModelImporter.model('folder').createFolder(
-        collection, constants.COLLECTION_NAME, parentType='collection', public=True, reuseExisting=True)
-    return folder
+from . import rest
 
 
 def load(info):
-    info['apiRoot'].homepage = Homepage()
-
-
+    info['apiRoot'].homepage = rest.Homepage()
