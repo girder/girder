@@ -67,7 +67,7 @@ var SystemConfigurationView = View.extend({
         },
         'click #g-restart-server': restartServerPrompt,
         'click #g-core-banner-default-color': function () {
-            this.$('#g-core-banner-color').attr('value', this.defaults['core.banner_color']);
+            this.$('#g-core-banner-color').val(this.defaults['core.banner_color']);
         }
     },
 

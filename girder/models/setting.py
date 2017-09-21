@@ -177,7 +177,7 @@ class Setting(Model):
         if not doc['value']:
             raise ValidationException('The banner color may not be empty', 'value')
         elif not (re.match(r'^#[0-9A-Fa-f]{6}$', doc['value'])):
-            raise ValidationException('The banner color may be save as hexadecimal value', 'value')
+            raise ValidationException('The banner color must be a hex color triplet', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SECURE_COOKIE)
