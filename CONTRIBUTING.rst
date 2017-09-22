@@ -82,10 +82,20 @@ but you won't be confused now, will you?
 How to integrate a PR
 ^^^^^^^^^^^^^^^^^^^^^
 
-Getting your contributions integrated is relatively straightforward, here
-is the checklist:
+Getting your contributions integrated is relatively straightforward, here is the checklist:
 
 - All tests pass
+- Any significant changes are added to the ``CHANGELOG.rst`` with human-readable and understandable
+  text (i.e. not a commit message). Text should be placed in the "Unreleased" section, and grouped
+  into the appropriate sub-section of:
+
+  - Bug fixes
+  - Security fixes
+  - Added features
+  - Changes
+  - Deprecations
+  - Removals
+
 - Consensus is reached. This requires that a reviewer adds an "approved" review via GitHub with no
   changes requested, and a reasonable amount of time passed without anyone objecting.
 
