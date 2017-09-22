@@ -26,11 +26,12 @@ form.g-settings-form(role="form")
   .form-group
     label Logo
     .g-homepage-logo-container
-      .g-homepage-logo-upload-container
       .g-homepage-logo-preview-container
-        img.g-homepage-logo-preview(width=90, alt="Logo")
+        .g-homepage-logo-preview
+          img(alt="Logo")
         button#g-homepage-logo-reset.btn.btn-sm.btn-default(
             type="button", title="Reset default logo") Use default
+      .g-homepage-logo-upload-container
 
 hr
 

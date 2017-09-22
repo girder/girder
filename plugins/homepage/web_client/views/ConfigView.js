@@ -119,7 +119,7 @@ const ConfigView = View.extend({
         } else {
             logoUrl = require('girder/assets/Girder_Mark.png');
         }
-        this.$('.g-homepage-logo-preview').attr('src', logoUrl);
+        this.$('.g-homepage-logo-preview img').attr('src', logoUrl);
     },
 
     render: function () {
