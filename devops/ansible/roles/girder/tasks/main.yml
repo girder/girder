@@ -6,12 +6,20 @@
         (ansible_distribution_release != "xenial") and
         (ansible_os_family == "RedHat" and ansible_distribution_major_version != "7")
 
+- fail:
+    msg="girder_pip and girder_virtualenv are mututally exclusive variables."
+  when: girder_pip is defined and girder_virtualenv is defined
+
+- fail:
+    msg="Setting girder_python requires setting girder_pip."
+  when: girder_python is defined and girder_pip is not defined
+
 - name: Ensure girder base directory exists
   file:
     path: "{{ girder_path }}"
     state: directory
-    group: "{{ ansible_user_id }}"
-    owner: "{{ ansible_user_id }}"
+    group: "{{ girder_user|default(ansible_user_id) }}"
+    owner: "{{ girder_user|default(ansible_user_id) }}"
     mode: 0755
   become: yes
   become_user: root
@@ -26,27 +34,16 @@
     - girder_web
     - ansible_os_family == "Debian"
 
-- name: Install virtualenv
-  apt:
-    name: python-virtualenv
-    state: latest
-  become: yes
-  become_user: root
-  when:
-    - girder_virtualenv is defined
-    - ansible_os_family == "Debian"
-
-- name: Install virtualenv
-  yum:
-    name: python-virtualenv
-    state: latest
-  become: yes
-  become_user: root
-  when:
-    - girder_virtualenv is defined
-    - ansible_os_family == "RedHat"
-
 - include: girder.yml
+
+- name: Install virtualenv
+  pip:
+    name: virtualenv
+    executable: "{{ girder_pip | default(omit) }}"
+    state: latest
+  become: yes
+  become_user: root
+  when: girder_virtualenv is defined
 
 - include: pip.yml
   when: girder_virtualenv is not defined
@@ -59,8 +56,12 @@
 - include: daemon.yml
   when: girder_daemonize
 
+- name: Install Girder Plugins
+  command: "{{ girder_install_executable|default('girder-install') }} plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
+  with_items: "{{ girder_plugins }}"
+
 - name: Build Girder (web)
-  command: "{{ girder_install_executable|default('girder-install') }} web {{ girder_web_extra_args }}"
+  command: "{{ girder_install_executable }} web {{ girder_web_extra_args }}"
   args:
     chdir: "{{ girder_path }}"
   # ensure that the install is one that uses web assets and

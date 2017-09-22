@@ -40,11 +40,8 @@ module.exports = function (grunt) {
             }
         },
 
-        init: {
-            'copy:swagger': {}
-        },
-
         default: {
+            'copy:swagger': {},
             'stylus:swagger': {}
         }
     });

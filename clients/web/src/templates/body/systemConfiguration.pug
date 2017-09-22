@@ -1,5 +1,25 @@
 .g-body-title System configuration
 form.g-settings-form(role="form")
+  .g-settings-form-container
+    h4 Instance Branding
+    .form-group
+      label(for="g-core-brand-name") Brand Name
+      input#g-core-brand-name.form-control.input-sm(
+          type="text", value=settings['core.brand_name'] || '',
+          placeholder=`Default: ${defaults['core.brand_name'] || 'none'}`,
+          title="The brand name of the application.")
+      label(for="g-core-contact-email-address") Contact email address
+      input#g-core-contact-email-address.form-control.input-sm(
+          type="text", value=settings['core.contact_email_address'] || '',
+          placeholder=`Default: ${defaults['core.contact_email_address'] || 'none'}`,
+          title="The contact email address for users to obtain support with this instance.")
+      label(for="g-core-banner-color") Banner Color
+      #g-core-banner-color-container
+        input#g-core-banner-color.form-control.input-sm(
+            type="color", value=settings['core.banner_color'] || defaults['core.banner_color'],
+            title="The banner color of the application.")
+        button#g-core-banner-default-color.form-control.input-sm(
+            type="button", title="Default color") default
   .form-group
     label(for="g-core-cookie-lifetime") Cookie duration (days)
     input#g-core-cookie-lifetime.form-control.input-sm(

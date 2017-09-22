@@ -26,6 +26,7 @@ import posixpath
 import six
 import sys
 import traceback
+import unicodedata
 
 from . import docs
 from girder import events, logger, logprint
@@ -250,6 +251,49 @@ def setCurrentUser(user):
     :type user: dict or None
     """
     cherrypy.request.girderUser = user
+
+
+def setContentDisposition(filename, disposition='attachment', setHeader=True):
+    """
+    Set the content disposition header to either inline or attachment, and
+    specify a filename that is properly escaped.  See
+    developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition,
+    tools.ietf.org/html/rfc2183, tools.ietf.org/html/rfc6266, and
+    tools.ietf.org/html/rfc5987 for specifications and details.
+
+    :param filename: the filename to add to the content disposition header.
+    :param disposition: either 'inline' or 'attachment'.  None is the same as
+        'attachment'.  Any other value skips setting the content disposition
+        header.
+    :param setHeader: if False, return the value that would be set to the
+        Content-Disposition header, but do not set it.
+    :returns: the content-disposition header value.
+    """
+    if (not disposition or (disposition not in ('inline', 'attachment') and
+                            not disposition.startswith('form-data'))):
+        raise RestException(
+            'Error: Content-Disposition (%r) is not a recognized value.' % disposition)
+    if not filename:
+        raise RestException('Error: Content-Disposition filename is empty.')
+    if not isinstance(disposition, six.binary_type):
+        disposition = disposition.encode('iso8859-1', 'ignore')
+    if not isinstance(filename, six.text_type):
+        filename = filename.decode('utf8', 'ignore')
+    # Decompose the name before trying to encode it.  This will de-accent
+    # characters rather than remove them in some instances.
+    safeFilename = unicodedata.normalize('NFKD', filename).encode('iso8859-1', 'ignore')
+    utf8Filename = filename.encode('utf8', 'ignore')
+    value = disposition + b'; filename="' + safeFilename.replace(
+        b'\\', b'\\\\').replace(b'"', b'\\"') + b'"'
+    if safeFilename != utf8Filename:
+        quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
+        if not isinstance(quotedFilename, six.binary_type):
+            quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
+        value += b'; filename*=UTF-8\'\'' + quotedFilename
+    value = value.decode('utf8')
+    if setHeader:
+        setResponseHeader('Content-Disposition', value)
+    return value
 
 
 def requireAdmin(user, message=None):

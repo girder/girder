@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'underscore';
 
 import TaskProgressWidget from 'girder/views/widgets/TaskProgressWidget';
@@ -37,12 +36,8 @@ var ProgressListView = View.extend({
         if (_.has(this._map, progress._id)) {
             this._map[progress._id].update(progress);
         } else {
-            var el = $('<div/>', {
-                class: 'g-progress-widget-container'
-            }).appendTo(this.$('.g-progress-list-container'));
-
             this._map[progress._id] = new TaskProgressWidget({
-                el: el,
+                className: 'g-progress-widget-container',
                 progress: progress,
                 parentView: null
             }).on('g:hide', function (p) {
@@ -50,6 +45,7 @@ var ProgressListView = View.extend({
                 delete this._map[p._id];
                 this._onUpdate();
             }, this).render();
+            this._map[progress._id].$el.appendTo(this.$('.g-progress-list-container'));
         }
         this._onUpdate();
     },

@@ -23,7 +23,7 @@ var OAuthLoginView = View.extend({
         this.providers = null;
 
         restRequest({
-            path: 'oauth/provider',
+            url: 'oauth/provider',
             data: {
                 redirect: redirect,
                 list: true
@@ -36,7 +36,7 @@ var OAuthLoginView = View.extend({
 
     render: function () {
         if (this.providers === null) {
-            return;
+            return this;
         }
 
         var buttons = [];
@@ -58,6 +58,8 @@ var OAuthLoginView = View.extend({
                 buttons: buttons
             }));
         }
+
+        return this;
     },
 
     _buttons: {

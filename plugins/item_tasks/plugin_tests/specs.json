@@ -8,7 +8,16 @@
     {
         "description": "Task 2 description",
         "mode": "docker",
-        "inputs": [],
+        "inputs": [
+            {
+                "name": "Test File",
+                "description": "Test File",
+                "id": "testData",
+                "required": true,
+                "target": "filepath",
+                "type": "file"
+            }
+        ],
         "outputs": []
     }
 ]

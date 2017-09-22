@@ -28,8 +28,8 @@ var ConfigView = View.extend({
     },
     initialize: function () {
         restRequest({
-            type: 'GET',
-            path: 'system/setting',
+            method: 'GET',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify([
                     'user_quota.default_user_quota',
@@ -74,8 +74,8 @@ var ConfigView = View.extend({
 
     _saveSettings: function (settings) {
         restRequest({
-            type: 'PUT',
-            path: 'system/setting',
+            method: 'PUT',
+            url: 'system/setting',
             data: {
                 list: JSON.stringify(settings)
             },

@@ -2,7 +2,7 @@ mixin input(title, type, id, value)
   - var inputType = 'text'
   if type === 'number' || type === 'integer'
     - inputType = 'number'
-  if type.match(/-vector$/)
+  if type.match(/-vector$/) || type === 'region'
     - value = value.join(',')
   input.form-control(name=title, type=inputType, id=id, value=value)&attributes(attributes)
 

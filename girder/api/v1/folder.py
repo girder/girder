@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel, setResponseHeader
+from ..rest import Resource, RestException, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.utility import ziputil
@@ -117,6 +117,7 @@ class Folder(Resource):
         .modelParam('id', model='folder', level=AccessType.READ)
         .jsonParam('mimeFilter', 'JSON list of MIME types to include.', required=False,
                    requireArray=True)
+        .produces('application/zip')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
@@ -126,9 +127,7 @@ class Folder(Resource):
         file containing this folder's contents, filtered by permissions.
         """
         setResponseHeader('Content-Type', 'application/zip')
-        setResponseHeader(
-            'Content-Disposition', 'attachment; filename="%s%s"' % (folder['name'], '.zip'))
-
+        setContentDisposition(folder['name'] + '.zip')
         user = self.getCurrentUser()
 
         def stream():
@@ -151,10 +150,12 @@ class Folder(Resource):
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'], strip=True)
         .param('parentId', 'Parent ID for the new parent of this folder.', required=False)
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='form', requireObject=True, required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the folder or its new parent object.', 403)
     )
-    def updateFolder(self, folder, name, description, parentType, parentId):
+    def updateFolder(self, folder, name, description, parentType, parentId, metadata):
         user = self.getCurrentUser()
         if name is not None:
             folder['name'] = name
@@ -162,6 +163,8 @@ class Folder(Resource):
             folder['description'] = description
 
         folder = self.model('folder').updateFolder(folder)
+        if metadata:
+            folder = self.model('folder').setMetadata(folder, metadata)
 
         if parentType and parentId:
             parent = self.model(parentType).load(
@@ -221,17 +224,23 @@ class Folder(Resource):
                'default, inherits the value from parent folder, or in the '
                'case of user or collection parentType, defaults to False.',
                required=False, dataType='boolean')
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='form', requireObject=True, required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent', 403)
     )
-    def createFolder(self, public, parentType, parentId, name, description, reuseExisting):
+    def createFolder(self, public, parentType, parentId, name, description,
+                     reuseExisting, metadata):
         user = self.getCurrentUser()
         parent = self.model(parentType).load(
             id=parentId, user=user, level=AccessType.WRITE, exc=True)
 
-        return self.model('folder').createFolder(
+        newFolder = self.model('folder').createFolder(
             parent=parent, name=name, parentType=parentType, creator=user,
             description=description, public=public, reuseExisting=reuseExisting)
+        if metadata:
+            newFolder = self.model('folder').setMetadata(newFolder, metadata)
+        return newFolder
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model='folder')

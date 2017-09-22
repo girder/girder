@@ -201,7 +201,7 @@ module.exports = function (grunt) {
             /*
              * Case 2:
              */
-            grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: node_modules_${pluginName}`);
+            grunt.log.writeln(`  >> Installing NPM dependencies to dedicated directory: girder_plugin_${pluginName}/node_modules`);
             addDependencies(deps, getPluginLocalNodePath(pluginName));
             deps = {};
         } else {
@@ -368,17 +368,7 @@ module.exports = function (grunt) {
                             alias: {
                                 [`girder_plugins/${plugin}/node`]: pluginNodeDir,
                                 [`girder_plugins/${plugin}`]: webClient
-                            },
-                            modules: [
-                                path.resolve(process.cwd(), 'node_modules'),
-                                pluginNodeDir
-                            ]
-                        },
-                        resolveLoader: {
-                            modules: [
-                                path.resolve(process.cwd(), 'node_modules'),
-                                pluginNodeDir
-                            ]
+                            }
                         }
                     }
                 }
@@ -389,19 +379,35 @@ module.exports = function (grunt) {
                     entry: {
                         [helperConfig.pluginEntry]: [main]
                     },
+                    module: {
+                        // We set these since webpack.helper.js functions may
+                        // expect these properties to be defined.
+                        loaders: [],
+                        rules: []
+                    },
                     output: {
                         path: path.join(paths.web_built, 'plugins', plugin),
                         filename: `${output}.min.js`,
                         library: `girder_plugin_${plugin}`
                     },
                     resolve: {
+                        alias: {
+                            // Make sure we use the core jquery rather than pulling one
+                            // from a plugin's local node modules. Multiple jquery versions
+                            // breaks due to use of side effects for jquery plugins.
+                            'jquery': path.resolve(paths.node_modules, 'jquery')
+                        },
                         modules: [
-                            path.resolve(dir, 'node_modules')
+                            pluginNodeDir,
+                            path.resolve(dir, 'node_modules'),
+                            paths.node_modules
                         ]
                     },
                     resolveLoader: {
                         modules: [
-                            path.resolve(dir, 'node_modules')
+                            pluginNodeDir,
+                            path.resolve(dir, 'node_modules'),
+                            paths.node_modules
                         ]
                     },
                     plugins: [
@@ -443,8 +449,19 @@ module.exports = function (grunt) {
                         dependencies: ['build'] // plugin builds must run after core build
                     }
                 };
+
+                var baseConfig = configOpts.webpack[`${output}_${plugin}`];
+                var newConfig = webpackHelper(baseConfig, helperConfig);
+                if (_.has(newConfig.module, 'loaders')) {
+                    if (!_.isEmpty(newConfig.module.loaders)) {
+                        grunt.log.writeln(`  >> "module.loaders" is deprecated, use "module.rules" in ${webpackHelperFile} instead.`.yellow);
+                        newConfig.module.rules = newConfig.module.rules || [];
+                        newConfig.module.rules = newConfig.module.rules.concat(newConfig.module.loaders);
+                    }
+                    delete newConfig.module.loaders;
+                }
+                grunt.config.set(`webpack.${output}_${plugin}`, newConfig);
             }
-            grunt.config.merge(configOpts);
 
             // If the plugin config has no webpack section, no defaultLoaders
             // property in the webpack section, or the defaultLoaders is
@@ -469,19 +486,7 @@ module.exports = function (grunt) {
                     grunt.config.set(selector, loaders.concat(loaderIncludes));
                 }
             }
-
-            var baseConfig = grunt.config.getRaw('webpack.options');
-            baseConfig.module.loaders = [];
-            var newConfig = webpackHelper(baseConfig, helperConfig);
-            if (_.has(newConfig.module, 'loaders')) {
-                if (!_.isEmpty(newConfig.module.loaders)) {
-                    grunt.log.writeln(`  >> "module.loaders" is deprecated, use "module.rules" in ${webpackHelperFile} instead.`.yellow);
-                    newConfig.module.rules = newConfig.module.rules || [];
-                    newConfig.module.rules = newConfig.module.rules.concat(newConfig.module.loaders);
-                }
-                delete newConfig.module.loaders;
-            }
-            grunt.config.set('webpack.options', newConfig);
+            grunt.config.merge(configOpts);
         });
 
         if (config.grunt) {
@@ -495,7 +500,6 @@ module.exports = function (grunt) {
                     path.resolve(dir, config.grunt.file || 'Gruntfile.js')
                 )(grunt);
             } catch (e) {
-                // the error can be safely ignored when doing `grunt init`
                 // otherwise a default task will most likely fail later on
                 // write out a warning to help the developers debug errors
                 grunt.log.writeln((

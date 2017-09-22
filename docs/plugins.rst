@@ -428,6 +428,15 @@ the Girder API, which will compute and store the correct Gravatar URL, and then
 redirect to it. The next time that user document is sent over the REST API,
 it should contain the computed ``gravatar_baseUrl`` field.
 
+Terms of Use
+------------
+
+This plugin allows collection admins to define a set of textual "Terms of Use", which other users
+must accept before browsing within the collection. The terms may be set with markdown-formatted
+text, and users will be required to re-accept the terms whenever the content changes. Logged-in
+users have their acceptances stored and remembered permanently, while anonymous users have their
+acceptances stored only on the local browser.
+
 Javascript clients
 ******************
 

@@ -76,12 +76,16 @@ class IncorrectUploadLengthError(RuntimeError):
         self.upload = upload
 
 
-class HttpError(Exception):
+class HttpError(requests.HTTPError):
     """
     Raised if the server returns an error status code from a request.
+    @deprecated This will be removed in a future release of Girder. Raisers of this
+    exception should instead raise requests.HTTPError manually or through another mechanism
+    such as requests.Response.raise_for_status.
     """
-    def __init__(self, status, text, url, method):
-        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url))
+    def __init__(self, status, text, url, method, response=None):
+        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url),
+                                        response=response)
         self.status = status
         self.responseText = text
         self.url = url
@@ -336,12 +340,13 @@ class GirderClient(object):
             url = self.urlBase + 'user/authentication'
             authResponse = self._requestFunc('get')(url, auth=(username, password))
 
-            if authResponse.status_code == 404:
-                raise HttpError(404, authResponse.text, url, 'GET')
+            if authResponse.status_code in (401, 403):
+                raise AuthenticationError()
+            elif not authResponse.ok:
+                raise HttpError(authResponse.status_code, authResponse.text, url, 'GET',
+                                response=authResponse)
 
             resp = authResponse.json()
-            if 'authToken' not in resp:
-                raise AuthenticationError()
 
             self.setToken(resp['authToken']['token'])
 
@@ -484,10 +489,10 @@ class GirderClient(object):
                 return result.json()
             else:
                 return result
-        # TODO handle 300-level status (follow redirect?)
         else:
             raise HttpError(
-                status=result.status_code, url=result.url, method=method, text=result.text)
+                status=result.status_code, url=result.url, method=method, text=result.text,
+                response=result)
 
     def get(self, path, parameters=None, jsonResp=True):
         """
@@ -613,15 +618,28 @@ class GirderClient(object):
             'id': itemId,
         }, limit=limit, offset=offset)
 
-    def createItem(self, parentFolderId, name, description='', reuseExisting=False):
+    def createItem(self, parentFolderId, name, description='', reuseExisting=False,
+                   metadata=None):
         """
         Creates and returns an item.
+
+        :param parentFolderId: the folder this item should be created in.
+        :param name: the item name.
+        :param description: a description of the item.
+        :param reuseExisting: whether to return an existing item if one with
+            same name already exists.
+        :param metadata: JSON metadata to set on item.
         """
+
+        if metadata is not None and not isinstance(metadata, six.string_types):
+            metadata = json.dumps(metadata)
+
         params = {
             'folderId': parentFolderId,
             'name': name,
             'description': description,
-            'reuseExisting': reuseExisting
+            'reuseExisting': reuseExisting,
+            'metadata': metadata
         }
         return self.createResource('item', params)
 
@@ -716,18 +734,30 @@ class GirderClient(object):
         return self.createResource('collection', params)
 
     def createFolder(self, parentId, name, description='', parentType='folder',
-                     public=None, reuseExisting=False):
+                     public=None, reuseExisting=False, metadata=None):
         """
         Creates and returns a folder.
 
+        :param parentId: The id of the parent resource to create the folder in.
+        :param name: The name of the folder.
+        :param description: A description of the folder.
         :param parentType: One of ('folder', 'user', 'collection')
+        :param public: Whether the folder should be marked a public.
+        :param reuseExisting: Whether to return an existing folder if one with
+            the same name exists.
+        :param metadata: JSON metadata to set on the folder.
         """
+
+        if metadata is not None and not isinstance(metadata, six.string_types):
+            metadata = json.dumps(metadata)
+
         params = {
             'parentId': parentId,
             'parentType': parentType,
             'name': name,
             'description': description,
-            'reuseExisting': reuseExisting
+            'reuseExisting': reuseExisting,
+            'metadata': metadata
         }
         if public is not None:
             params['public'] = public
@@ -780,6 +810,10 @@ class GirderClient(object):
         :param access: JSON document specifying access control.
         :param public: Boolean specificying the public value.
         """
+
+        if access is not None and not isinstance(access, six.string_types):
+            access = json.dumps(access)
+
         path = 'folder/' + folderId + '/access'
         params = {
             'access': access,
@@ -912,6 +946,14 @@ class GirderClient(object):
 
         if reference:
             params['reference'] = reference
+
+        if size <= self.MAX_CHUNK_SIZE and self.getServerVersion() >= ['2', '3']:
+            chunk = stream.read(size)
+            if isinstance(chunk, six.text_type):
+                chunk = chunk.encode('utf8')
+            with self.progressReporterCls(label=filename, length=size) as reporter:
+                return self.post(
+                    'file', params, data=_ProgressBytesIO(chunk, reporter=reporter))
 
         obj = self.post('file', params)
 
@@ -1181,7 +1223,7 @@ class GirderClient(object):
         url = '%sfile/%s/download' % (self.urlBase, fileId)
         req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
         if not req.ok:
-            raise HttpError(req.status_code, req.text, url, 'GET')
+            raise HttpError(req.status_code, req.text, url, 'GET', response=req)
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             with self.progressReporterCls(
                     label=progressFileName,
@@ -1436,13 +1478,14 @@ class GirderClient(object):
         """
         self._itemUploadCallbacks.append(callback)
 
-    def loadOrCreateFolder(self, folderName, parentId, parentType):
+    def loadOrCreateFolder(self, folderName, parentId, parentType, metadata=None):
         """Returns a folder in Girder with the given name under the given
         parent. If none exists yet, it will create it and return it.
 
         :param folderName: the name of the folder to look up.
         :param parentId: id of parent in Girder
         :param parentType: one of (collection, folder, user)
+        :param metadata: JSON metadata string to set on folder.
         :returns: The folder that was found or created.
         """
         children = self.listFolder(parentId, parentType, name=folderName)
@@ -1450,7 +1493,8 @@ class GirderClient(object):
         try:
             return six.next(children)
         except StopIteration:
-            return self.createFolder(parentId, folderName, parentType=parentType)
+            return self.createFolder(parentId, folderName, parentType=parentType,
+                                     metadata=metadata)
 
     def _hasOnlyFiles(self, localFolder):
         """Returns whether a folder has only files. This will be false if the
@@ -1460,13 +1504,14 @@ class GirderClient(object):
         return not any(os.path.isdir(os.path.join(localFolder, entry))
                        for entry in os.listdir(localFolder))
 
-    def loadOrCreateItem(self, name, parentFolderId, reuseExisting=True):
+    def loadOrCreateItem(self, name, parentFolderId, reuseExisting=True, metadata=None):
         """Create an item with the given name in the given parent folder.
 
         :param name: The name of the item to load or create.
         :param parentFolderId: id of parent folder in Girder
         :param reuseExisting: boolean indicating whether to load an existing
             item of the same name in the same location, or create a new one.
+        :param metadata: JSON metadata string to set on item.
         """
         item = None
         if reuseExisting:
@@ -1477,7 +1522,7 @@ class GirderClient(object):
                 pass
 
         if item is None:
-            item = self.createItem(parentFolderId, name, description='')
+            item = self.createItem(parentFolderId, name, description='', metadata=metadata)
 
         return item
 

@@ -19,10 +19,11 @@
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel
-from girder.models.model_base import AccessException
-from girder.constants import AccessType, SettingKey
-from girder.utility import mail_utils
 from girder.api import access
+from girder.constants import AccessType, SettingKey
+from girder.models.model_base import AccessException
+from girder.utility import mail_utils
+from girder.utility.model_importer import ModelImporter
 
 
 class Group(Resource):
@@ -247,7 +248,9 @@ class Group(Resource):
                 })
                 mail_utils.sendEmail(
                     to=userToInvite['email'], text=html,
-                    subject="Girder: You've been invited to a group")
+                    subject="%s: You've been invited to a group"
+                    % ModelImporter.model('setting').get(SettingKey.BRAND_NAME)
+                )
 
         group['access'] = groupModel.getFullAccessList(group)
         group['requests'] = list(groupModel.getFullRequestList(group))

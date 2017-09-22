@@ -1,4 +1,16 @@
 ---
+# create a list of common folders that can be inserted in multiple places
+_common: &common
+  folders:
+    - name: 'Common'
+      items:
+        - name: 'Item 1'
+        - name: 'Item 2'
+      folders:
+        - name: 'Common subfolder'
+          items:
+            - name: 'Item 3'
+
 users:
   # a typical admin user
   - login: 'admin'
@@ -44,11 +56,18 @@ users:
         public: true
         creator: 'admin'
 
+  # a user with common folders using a yaml alias
+  - login: 'aliasTest'
+    password: 'aliasTest'
+    firstName: 'User'
+    lastName: 'Four'
+    email: 'user4@email.com'
+    admin: false
+    <<: *common
 
 collections:
   # create a collection with nested folders described manually
   - name: 'Public Collection'
-    creator: 'admin'
     description: 'This is an example collection'
     public: true
     folders:
@@ -89,3 +108,6 @@ collections:
     folders:
       - name: 'Imported folder'
         import: 'setup_database_test/importedCollection'
+
+  - name: 'Common folders'
+    <<: *common

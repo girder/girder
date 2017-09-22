@@ -31,10 +31,6 @@ warnings.warn(
     'https://github.com/girder/girder/tree/master/devops/ansible/roles/girder/library'
 )
 
-#: A module level cache of created users
-users = {}
-userIds = {}
-
 #: A prefix for all relative file paths
 prefix = '.'
 
@@ -98,17 +94,27 @@ def addCreator(spec, parent=None):
     :param parent: The parent of current document
     :type parent: dict
     """
+    userModel = loadModel('user')
     if 'creator' in spec:
-        spec['creator'] = users[spec['creator'].lower()]
+        spec['creator'] = userModel.findOne({'login': spec['creator'].lower()}, force=True)
     elif parent is not None:
 
         if parent.get('_modelType') == 'user':
             # if the parent is a user, then use that as the creator
             # (users don't have creators)
             spec['creator'] = parent
-        else:
+        elif parent.get('creatorId'):
             # otherwise, use the creator of the parent
-            spec['creator'] = userIds[parent['creatorId']]
+            spec['creator'] = userModel.load(parent.get('creatorId'), force=True)
+    else:
+        # if all else fails, just use any user for the creator
+        spec['creator'] = userModel.findOne({}, force=True)
+
+        if spec['creator'] is None:
+            raise Exception('At least one user must be provided in the spec')
+
+    if spec.get('creator') is None:
+        raise Exception('Could not find the requested creator')
 
 
 def createUser(defaultFolders=False, **args):
@@ -134,8 +140,6 @@ def createUser(defaultFolders=False, **args):
     user = userModel.createUser(**args)
     if not defaultFolders:
         settingModel.unset(SettingKey.USER_DEFAULT_FOLDERS)
-    users[user['login']] = user
-    userIds[user['_id']] = user
     return user
 
 
@@ -267,8 +271,9 @@ def createDocument(type, node):
 
     # inject this document as the parent for all child specs
     for childType in children:
-        for childNode in children[childType]:
-            childNode['parent'] = doc
+        children[childType] = [
+            dict(parent=doc, **child) for child in children[childType]
+        ]
 
     return children
 
@@ -300,7 +305,7 @@ def createUsers(users):
     """
     folders = []
     for user in users:
-        for folder in folders:
+        for folder in user.get('folders', []):
             # By default set the creator under a user to that user
             folder.setdefault('creator', user['login'])
 

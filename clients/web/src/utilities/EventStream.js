@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { apiRoot } from 'girder/rest';
+import { getApiRoot } from 'girder/rest';
 
 var timestamp = null;
 
@@ -53,7 +53,7 @@ prototype._heartbeat = function () {
 prototype.open = function () {
     if (window.EventSource) {
         var stream = this,
-            url = apiRoot + this.settings.streamPath,
+            url = getApiRoot() + this.settings.streamPath,
             params = {};
 
         if (this.settings.timeout) {

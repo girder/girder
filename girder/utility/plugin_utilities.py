@@ -65,6 +65,17 @@ def _recordPluginFailureInfo(plugin, traceback):
     }
 
 
+def _clearPluginFailureInfo(plugin):
+    """
+    If a plugin loaded, clear any failure information that may have been set by
+    an earlier failed attempt.
+
+    :param plugin: The name of the plugin that loaded.
+    :type plugin: str
+    """
+    _pluginFailureInfo.pop(plugin, None)
+
+
 def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
     """
     Loads a set of plugins into the application.
@@ -101,6 +112,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
     for plugin in plugins:
         try:
             root, appconf, apiRoot = loadPlugin(plugin, root, appconf, apiRoot)
+            _clearPluginFailureInfo(plugin=plugin)
             logprint.success('Loaded plugin "%s"' % plugin)
         except Exception:
             _recordPluginFailureInfo(plugin=plugin, traceback=traceback.format_exc())
@@ -295,10 +307,23 @@ def findEntryPointPlugins(allPlugins):
                         logprint.exception(
                             'ERROR: Plugin "%s": plugin.yml is not valid '
                             'YAML.' % entry_point.name)
-        except ImportError:
+        except (ImportError, SystemError):
+            # Fall through and just try to load the entry point below.  If
+            # there is still an error, we'll log it there.
             pass
         if data == {}:
-            data = getattr(entry_point.load(), 'config', {})
+            try:
+                data = getattr(entry_point.load(), 'config', {})
+            except (ImportError, SystemError):
+                # If the plugin failed to load via entrypoint, but is in the
+                # plugins directory, it may still load.  We mark and report the
+                # failure; if it loads later, the failure will be cleared, but
+                # the report is still desired.
+                _recordPluginFailureInfo(
+                    plugin=entry_point.name, traceback=traceback.format_exc())
+                logprint.exception(
+                    'ERROR: Plugin "%s": could not be loaded by entrypoint.' % entry_point.name)
+                continue
         allPlugins[entry_point.name].update(data)
         allPlugins[entry_point.name]['dependencies'] = set(
             allPlugins[entry_point.name]['dependencies'])

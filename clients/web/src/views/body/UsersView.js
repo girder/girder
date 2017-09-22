@@ -34,9 +34,9 @@ var UsersView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         this.collection = new UserCollection();
-        this.collection.on('g:changed', function () {
-            this.render();
-        }, this).fetch();
+
+        const promiseArray = [];
+        promiseArray.push(this.collection.fetch());
 
         this.paginateWidget = new PaginateWidget({
             collection: this.collection,
@@ -60,14 +60,28 @@ var UsersView = View.extend({
             parentView: this
         }).on('g:resultClicked', this._gotoUser, this);
 
+        if (getCurrentUser() && getCurrentUser().get('admin')) {
+            const userCountPromise = UserCollection.getTotalCount()
+                .done((count) => {
+                    this.usersCount = count;
+                });
+            promiseArray.push(userCountPromise);
+        }
         this.register = settings.dialog === 'register' && getCurrentUser() &&
                         getCurrentUser().get('admin');
+
+        $.when(...promiseArray)
+            .done(() => {
+                this.listenTo(this.collection, 'g:changed', this.render);
+                this.render();
+            });
     },
 
     render: function () {
         this.$el.html(UserListTemplate({
             users: this.collection.toArray(),
-            getCurrentUser: getCurrentUser,
+            currentUser: getCurrentUser(),
+            usersCount: this.usersCount,
             formatDate: formatDate,
             formatSize: formatSize,
             DATE_DAY: DATE_DAY

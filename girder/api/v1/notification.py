@@ -67,6 +67,7 @@ class Notification(Resource):
                dataType='integer', required=False, default=DEFAULT_STREAM_TIMEOUT)
         .param('since', 'Filter out events before this time stamp.',
                dataType='integer', required=False)
+        .produces('text/event-stream')
         .errorResponse()
         .errorResponse('You are not logged in.', 403)
     )

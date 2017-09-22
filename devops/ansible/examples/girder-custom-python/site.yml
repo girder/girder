@@ -1,0 +1,56 @@
+---
+
+- hosts: all
+  vars:
+    girder_update: no
+    girder_force: no
+    girder_web: yes
+    girder_user: girder
+    girder_path: "/home/{{ girder_user }}/girder"
+    girder_always_build_assets: yes
+
+  pre_tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      become: yes
+      become_user: root
+      when: ansible_os_family == "Debian"
+
+    - name: Install EPEL
+      yum:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+        state: present
+      become: yes
+      become_user: root
+      when: ansible_os_family == "RedHat"
+
+    - name: Create Girder user
+      user:
+        name: "{{ girder_user }}"
+      become: yes
+      become_user: root
+
+  roles:
+    - role: torian.python
+      python_version: 3.6.2
+      python_bin: /usr/local/bin/python3.6
+      python_setuptools_bin: /usr/local/bin/easy_install-3.6
+      become: yes
+      become_user: root
+
+    - role: Stouts.mongodb
+      become: yes
+      become_user: root
+      when: ansible_os_family == "Debian"
+
+    - role: redhat-mongodb
+      become: yes
+      become_user: root
+      when: ansible_os_family == "RedHat"
+
+    - role: girder
+      girder_python: /usr/local/bin/python3.6
+      girder_pip: /usr/local/bin/pip3.6
+      become: yes
+      become_user: "{{ girder_user }}"

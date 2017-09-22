@@ -215,6 +215,18 @@ class WorkerTestCase(base.TestCase):
             job = jobModel.load(job['_id'], force=True)
             self.assertEqual(job['status'], CustomJobStatus.CANCELING)
 
+    def testWorkerWithParent(self):
+        jobModel = self.model('job', 'jobs')
+        parentJob = jobModel.createJob(
+            title='title', type='foo', handler='worker_handler',
+            user=self.admin, public=False, otherFields={'celeryTaskId': '1234'})
+        childJob = jobModel.createJob(
+            title='title', type='foo', handler='worker_handler',
+            user=self.admin, public=False, otherFields={'celeryTaskId': '5678',
+                                                        'celeryParentTaskId': '1234'})
+
+        self.assertEqual(parentJob['_id'], childJob['parentId'])
+
     def testLocalJob(self):
         # Make sure local jobs still work
         job = self.model('job', 'jobs').createLocalJob(

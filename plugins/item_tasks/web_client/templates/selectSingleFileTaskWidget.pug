@@ -1,0 +1,18 @@
+.modal-dialog
+  .modal-content
+    form#g-select-task-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title Select Task
+      .modal-body
+        .g-task-container
+          .g-task-list-container
+          hr
+          h4 Selected task
+          .g-task-selected-container
+            | No task selected
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Close
+        button.g-submit-select-task.btn.btn-small.btn-primary(type="submit")
+          |  Configure

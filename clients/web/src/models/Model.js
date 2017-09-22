@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { restRequest, apiRoot } from 'girder/rest';
+import { restRequest, getApiRoot } from 'girder/rest';
 
 /**
  * All models should descend from this base model, which provides a number
@@ -65,8 +65,8 @@ var Model = Backbone.Model.extend({
         }, this);
 
         return restRequest({
-            path: path,
-            type: type,
+            url: path,
+            method: type,
             data: data,
             error: null // don't do default error behavior (validation may fail)
         }).done(_.bind(function (resp) {
@@ -83,7 +83,7 @@ var Model = Backbone.Model.extend({
      *
      * @param {object|undefined} opts: additional options, which can include:
      *     ignoreError: true - ignore the default error handler
-     *     extraPath - a string to append to the end of the resource path
+     *     extraPath - a string to append to the end of the resource URL
      *     data - a dictionary of parameters to pass to the endpoint.
      */
     fetch: function (opts) {
@@ -93,10 +93,10 @@ var Model = Backbone.Model.extend({
 
         opts = opts || {};
         var restOpts = {
-            path: (this.altUrl || this.resourceName) + '/' + this.get('_id')
+            url: `${this.altUrl || this.resourceName}/${this.id}`
         };
         if (opts.extraPath) {
-            restOpts.path += '/' + opts.extraPath;
+            restOpts.url += '/' + opts.extraPath;
         }
         if (opts.ignoreError) {
             restOpts.error = null;
@@ -123,8 +123,7 @@ var Model = Backbone.Model.extend({
      *    query string.
      */
     downloadUrl: function (params) {
-        var url = apiRoot + '/' + (this.altUrl || this.resourceName) + '/' +
-            this.get('_id') + '/download';
+        let url = `${getApiRoot()}/${this.altUrl || this.resourceName}/${this.id}/download`;
 
         if (params) {
             url += '?' + $.param(params);
@@ -153,13 +152,13 @@ var Model = Backbone.Model.extend({
         }
 
         var args = {
-            path: (this.altUrl || this.resourceName) + '/' + this.get('_id'),
-            type: 'DELETE'
+            url: `${this.altUrl || this.resourceName}/${this.id}`,
+            method: 'DELETE'
         };
 
         opts = opts || {};
         if (opts.progress === true) {
-            args.path += '?progress=true';
+            args.url += '?progress=true';
         }
 
         if (opts.throwError !== false) {

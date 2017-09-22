@@ -321,27 +321,28 @@ girderTest.testMetadata = function () {
 
         if (type === 'tree') {
             if (!_.isObject(value)) {
-                $('.jsoneditor button.contextmenu:first', elem).click();
+                $('.jsoneditor button.jsoneditor-contextmenu:first', elem).click();
+                $('.jsoneditor-contextmenu .jsoneditor-type-object:first').click();
 
-                $('.jsoneditor-contextmenu .type-object:first').click();
-                $('.jsoneditor-contextmenu .type-auto:first').click();
+                $('.jsoneditor button.jsoneditor-contextmenu:first', elem).click();
+                $('.jsoneditor-contextmenu .jsoneditor-type-auto:first').click();
 
-                $('.jsoneditor table.values div.value.empty', elem).text(value);
+                $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).text(value);
 
-                $('.jsoneditor table.values .empty', elem).trigger('keyup');
+                $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).trigger('keyup');
 
                 return;
             }
 
             for (var arrKey in value) {
                 if (value.hasOwnProperty(arrKey)) {
-                    $('.jsoneditor button.contextmenu', elem).click();
-                    $('.jsoneditor-contextmenu button.insert').click();
-                    $('.jsoneditor table.values div.field.empty', elem).text(arrKey);
-                    $('.jsoneditor table.values div.value.empty', elem).text(value[arrKey]);
+                    $('.jsoneditor button.jsoneditor-contextmenu', elem).click();
+                    $('.jsoneditor-contextmenu button.jsoneditor-insert').click();
+                    $('.jsoneditor table.jsoneditor-values div.jsoneditor-field.jsoneditor-empty', elem).text(arrKey);
+                    $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).text(value[arrKey]);
 
                     // trigger update for JSONEditor to do internal tasks
-                    $('.jsoneditor table.values .empty', elem).trigger('keyup');
+                    $('.jsoneditor table.jsoneditor-values .jsoneditor-empty', elem).trigger('keyup');
                 }
             }
         }
@@ -444,7 +445,7 @@ girderTest.testMetadata = function () {
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 1 &&
                 ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 1
-                                     : $('.jsoneditor > .outer > .tree').length === 1);
+                                     : $('.jsoneditor > .jsoneditor-outer > .jsoneditor-tree').length === 1);
         }, 'the add metadata input fields to appear');
         runs(function () {
             if (!elem) {
@@ -503,7 +504,7 @@ girderTest.testMetadata = function () {
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 0 &&
                 ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 0
-                                     : $('.jsoneditor > .outer > .tree').length === 0);
+                                     : $('.jsoneditor > .jsoneditor-outer > .jsoneditor-tree').length === 0);
         }, 'edit fields to disappear');
         waitsFor(function () {
             return $('.g-widget-metadata-row').length === expectedNum;
@@ -762,8 +763,8 @@ girderTest.binaryUpload = function (path) {
         oldLen = $('.g-item-list-entry').length;
 
         girder.rest.restRequest({
-            path: 'webclienttest/file',
-            type: 'POST',
+            url: 'webclienttest/file',
+            method: 'POST',
             data: {
                 path: path,
                 folderId: folderId
@@ -1170,9 +1171,9 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     var MAX_AJAX_LOG_SIZE = 20;
     var logIndex = 0;
     var ajaxCalls = [];
-    var backboneAjax = Backbone.ajax;
+    var backboneAjax = Backbone.$.ajax;
 
-    Backbone.ajax = function () {
+    Backbone.$.ajax = function () {
         var opts = {}, record;
 
         if (arguments.length === 1) {
@@ -1192,7 +1193,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
         ajaxCalls[logIndex] = record;
         logIndex = (logIndex + 1) % MAX_AJAX_LOG_SIZE;
 
-        return backboneAjax(opts).done(
+        return backboneAjax.call(Backbone.$, opts).done(
             function (data, textStatus) {
                 record.status = textStatus;
                 // this data structure has circular references that cannot be serialized.

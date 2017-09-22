@@ -1,5 +1,5 @@
 import UserModel from 'girder/models/UserModel';
-import { apiRoot } from 'girder/rest';
+import { getApiRoot } from 'girder/rest';
 
 UserModel.prototype.getGravatarUrl = function (size) {
     size = size || 64;
@@ -7,7 +7,6 @@ UserModel.prototype.getGravatarUrl = function (size) {
     if (baseUrl) {
         return baseUrl;
     } else {
-        return apiRoot + '/user/' + this.get('_id') +
-            '/gravatar?size=' + size;
+        return `${getApiRoot()}/user/${this.id}/gravatar?size=${size}`;
     }
 };

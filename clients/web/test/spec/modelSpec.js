@@ -1,30 +1,22 @@
 girderTest.startApp();
 
 describe('Test the model class', function () {
-    var lastRequest, triggerRestError = false, requestCount = 0;
+    var triggerRestError = false;
 
     beforeEach(function () {
         // Intercept window.location.assign calls so we can test the behavior of e.g. download
         // directives that occur from js.
         spyOn(window.location, 'assign');
 
-        girder.rest.mockRestRequest(function (opts) {
-            requestCount += 1;
-            lastRequest = opts;
+        spyOn(girder.rest, 'restRequest').andCallFake(function (opts) {
             var resp = $.Deferred();
             if (triggerRestError) {
                 resp.reject('err');
             } else {
                 resp.resolve({});
             }
-            // The jqXHR response of a rest request needs an error function
-            resp.error = resp.fail;
             return resp.promise();
         });
-    });
-
-    afterEach(function () {
-        girder.rest.unmockRestRequest();
     });
 
     it('test the base model', function () {
@@ -48,59 +40,89 @@ describe('Test the model class', function () {
         expect(model.get('count')).toBe(12);
         model.increment('count', 0);
         expect(model.get('count')).toBe(12);
+
         // test save
         model.resourceName = null;
         expect(model.save).toThrow();
-        expect(requestCount).toBe(0);
+        expect(girder.rest.restRequest.callCount).toBe(0);
         model.resourceName = 'sampleResource';
         model.save();
-        expect(requestCount).toBe(1);
-        expect(lastRequest.type).toBe('POST');
-        expect(lastRequest.data).toEqual({count: 12, name: 'sample'});
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource',
+            method: 'POST',
+            data: {
+                count: 12,
+                name: 'sample'
+            },
+            error: null
+        });
+
+        // Test save to update
+        girder.rest.restRequest.reset();
         model.set('_id', '012345678901234567890123');
         model.save();
-        expect(requestCount).toBe(2);
-        expect(lastRequest.type).toBe('PUT');
-        expect(lastRequest.data).toEqual({
-            count: 12, name: 'sample', _id: id});
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource/012345678901234567890123',
+            method: 'PUT',
+            data: {
+                count: 12,
+                name: 'sample',
+                _id: id
+            },
+            error: null
+        });
         triggerRestError = true;
         model.save();
-        expect(requestCount).toBe(3);
+        expect(girder.rest.restRequest.callCount).toBe(2);
         triggerRestError = false;
+
         // test fetch
-        requestCount = 0;
+        girder.rest.restRequest.reset();
         model.resourceName = null;
-        expect(model.fetch).toThrow();
-        expect(requestCount).toBe(0);
+        expect(_.bind(model.fetch, model)).toThrow();
+        expect(girder.rest.restRequest.callCount).toBe(0);
         model.resourceName = 'sampleResource';
         model.fetch();
-        expect(requestCount).toBe(1);
-        expect(lastRequest.type).toBe(undefined);
-        expect(lastRequest.path).toBe('sampleResource/' + id);
-        expect(lastRequest.error).toBe(undefined);
-        expect(lastRequest.data).toBe(undefined);
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource/' + id
+        });
+
+        girder.rest.restRequest.reset();
         model.fetch({extraPath: 'abc'});
-        expect(requestCount).toBe(2);
-        expect(lastRequest.path).toBe('sampleResource/' + id + '/abc');
-        expect(lastRequest.error).toBe(undefined);
-        expect(lastRequest.data).toBe(undefined);
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource/' + id + '/abc'
+        });
+
+        girder.rest.restRequest.reset();
         model.fetch({ignoreError: true});
-        expect(requestCount).toBe(3);
-        expect(lastRequest.path).toBe('sampleResource/' + id);
-        expect(lastRequest.error).toBe(null);
-        expect(lastRequest.data).toBe(undefined);
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource/' + id,
+            error: null
+        });
+
+        girder.rest.restRequest.reset();
         model.fetch({data: {param1: 'value1'}});
-        expect(requestCount).toBe(4);
-        expect(lastRequest.path).toBe('sampleResource/' + id);
-        expect(lastRequest.error).toBe(undefined);
-        expect(lastRequest.data).toEqual({param1: 'value1'});
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource/' + id,
+            data: {param1: 'value1'}
+        });
+
+        girder.rest.restRequest.reset();
         triggerRestError = true;
         model.fetch();
-        expect(requestCount).toBe(5);
+        expect(girder.rest.restRequest.callCount).toBe(1);
         triggerRestError = false;
+
         // test downloadUrl
         expect(model.downloadUrl()).toBe(girder.rest.apiRoot + '/sampleResource/' + id + '/download');
         expect(model.downloadUrl({foo: 'bar'})).toBe(girder.rest.apiRoot + '/sampleResource/' + id + '/download?foo=bar');
+
         // test download
         window.location.assign.reset();
         model.download();
@@ -111,31 +133,45 @@ describe('Test the model class', function () {
             expect(window.location.assign)
                 .toHaveBeenCalledWith(/^http:\/\/.*\/api\/v1\/sampleResource\/.+\/download$/);
         });
+
         // destroy
-        requestCount = 0;
+        girder.rest.restRequest.reset();
         model.resourceName = null;
-        expect(model.destroy).toThrow();
-        expect(requestCount).toBe(0);
+        expect(_.bind(model.destroy, model)).toThrow();
+        expect(girder.rest.restRequest.callCount).toBe(0);
+
         model.resourceName = 'sampleResource';
         model.destroy();
-        expect(requestCount).toBe(1);
-        expect(lastRequest.type).toBe('DELETE');
-        expect(/progress=true/.test(lastRequest.path)).toBe(false);
-        expect(lastRequest.error).toBe(null);
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource/012345678901234567890123',
+            method: 'DELETE',
+            error: null
+        });
+
+        girder.rest.restRequest.reset();
         model.destroy({progress: true});
-        expect(requestCount).toBe(2);
-        expect(lastRequest.type).toBe('DELETE');
-        expect(/progress=true/.test(lastRequest.path)).toBe(true);
-        expect(lastRequest.error).toBe(null);
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource/012345678901234567890123?progress=true',
+            method: 'DELETE',
+            error: null
+        });
+
+        girder.rest.restRequest.reset();
         model.destroy({throwError: false});
-        expect(requestCount).toBe(3);
-        expect(lastRequest.type).toBe('DELETE');
-        expect(/progress=true/.test(lastRequest.path)).toBe(false);
-        expect(lastRequest.error).toBe(undefined);
+        expect(girder.rest.restRequest.callCount).toBe(1);
+        expect(girder.rest.restRequest).toHaveBeenCalledWith({
+            url: 'sampleResource/012345678901234567890123',
+            method: 'DELETE'
+        });
+
+        girder.rest.restRequest.reset();
         triggerRestError = true;
         model.destroy();
-        expect(requestCount).toBe(4);
+        expect(girder.rest.restRequest.callCount).toBe(1);
         triggerRestError = false;
+
         // getAccessLevel
         expect(model.getAccessLevel()).toBe(undefined);
         model.set('_accessLevel', 'abc');

@@ -21,7 +21,7 @@ var FolderInfoWidget = View.extend({
 
     render: function () {
         if (this.needToFetch) {
-            return;
+            return this;
         }
 
         this.$el.html(FolderInfoDialogTemplate({
@@ -31,6 +31,8 @@ var FolderInfoWidget = View.extend({
             renderMarkdown: renderMarkdown,
             DATE_SECOND: DATE_SECOND
         })).girderModal(this);
+
+        return this;
     }
 });
 

@@ -10,14 +10,13 @@ describe('Test the candela UI.', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
             $('.g-user-text>a:first').click();
-        });
-        girderTest.waitForLoad();
-
-        runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(1);
             $('a.g-my-folders').click();
         });
-        girderTest.waitForLoad();
+
+        waitsFor(function () {
+            return $('a.g-folder-list-link').length === 2;
+        }, 'Public and Private folders to appear');
 
         runs(function () {
             $('a.g-folder-list-link:last').click();
@@ -42,7 +41,7 @@ describe('Test the candela UI.', function () {
         }, 'the candela component selector to appear');
 
         runs(function () {
-            expect($('.g-item-candela-component option').length).toBeGreaterThan(10);
+            expect($('.g-item-candela-component option').length).toBeGreaterThan(5);
             $('.g-item-candela-component').val('BarChart').change();
         });
 

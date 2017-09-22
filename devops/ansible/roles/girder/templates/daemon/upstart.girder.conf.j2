@@ -7,14 +7,14 @@ stop on shutdown
 respawn
 respawn limit 20 5
 
-setuid "{{ ansible_user_id }}"
-setgid "{{ ansible_user_id }}"
+setuid "{{ girder_user | default(ansible_user_id) }}"
+setgid "{{ girder_user | default(ansible_user_id) }}"
 
 script
     cd "{{ girder_path }}"
     {% if girder_virtualenv is defined %}
     . "{{ girder_virtualenv }}/bin/activate" && python -m girder
     {% else %}
-    exec python -m girder
+    exec "{{ girder_python | default(ansible_python.executable) }}" -m girder
     {% endif %}
 end script

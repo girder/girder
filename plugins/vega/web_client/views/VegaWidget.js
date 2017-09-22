@@ -26,7 +26,7 @@ var VegaWidget = View.extend({
             $('#g-app-body-container')
                 .append(VegaWidgetTemplate());
             restRequest({
-                path: '/api/v1/item/' + this.item.get('_id') + '/download'
+                url: `item/${this.item.id}/download`
             })
                 .done(function (spec) {
                     vg.parse.spec(spec, function (chart) {
@@ -40,6 +40,8 @@ var VegaWidget = View.extend({
             $('.g-item-vega')
                 .remove();
         }
+
+        return this;
     }
 });
 

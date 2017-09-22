@@ -34,7 +34,8 @@ function fileLoader() {
     return {
         loader: 'file-loader',
         options: {
-            name: 'assets/[name]-[hash:8].[ext]'
+            name: '[name]-[hash:8].[ext]',
+            outputPath: 'assets/'
         }
     };
 }
@@ -60,8 +61,11 @@ var loaderPathsNodeModules = loaderPaths.concat([path.resolve('node_modules')]);
 
 module.exports = {
     output: {
-        path: paths.web_built,
-        filename: '[name].min.js'
+        filename: '[name].min.js',
+        path: paths.web_built
+        // publicPath must be set to Girder's externally-served static path for built outputs
+        // (typically '/static/built/'). This will be done at runtime with
+        // '__webpack_public_path__', since it's not always known at build-time.
     },
     plugins: [
         // Automatically detect jQuery and $ as free var in modules
@@ -215,9 +219,6 @@ module.exports = {
             'girder': paths.web_src
         },
         extensions: ['.js'],
-        modules: [
-            paths.node_modules
-        ],
         symlinks: false
     },
     node: {
