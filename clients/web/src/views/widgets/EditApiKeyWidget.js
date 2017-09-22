@@ -94,11 +94,6 @@ var EditApiKeyWidget = View.extend({
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
 
         this.$('#g-api-key-name').focus();
-        this.$('.g-custom-scope-description').tooltip({
-            placement: 'right',
-            viewport: this.$el,
-            trigger: 'hover'
-        });
 
         return this;
     },

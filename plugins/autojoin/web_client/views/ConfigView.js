@@ -97,13 +97,6 @@ var ConfigView = View.extend({
             parentView: this
         }).render();
 
-        this.$('[title]').tooltip({
-            container: this.$el,
-            placement: 'left',
-            animation: false,
-            delay: {show: 100}
-        });
-
         return this;
     },
 

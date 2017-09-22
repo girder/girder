@@ -13,7 +13,6 @@ import SystemConfigurationTemplate from 'girder/templates/body/systemConfigurati
 import 'girder/stylesheets/body/systemConfig.styl';
 
 import 'bootstrap/js/collapse';
-import 'bootstrap/js/tooltip';
 import 'bootstrap/js/transition';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
 import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
@@ -134,12 +133,6 @@ var SystemConfigurationView = View.extend({
                                 }),
             JSON: window.JSON
         }));
-
-        this.$('input[title]').tooltip({
-            container: this.$el,
-            animation: false,
-            delay: { show: 200 }
-        });
 
         var enableCollectionCrreationPolicy = this.settings['core.collection_create_policy'] ? this.settings['core.collection_create_policy'].open : false;
 

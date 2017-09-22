@@ -80,12 +80,6 @@ var ItemListWidget = View.extend({
             showSizes: this._showSizes
         }));
 
-        this.$('.g-item-list-entry a[title]').tooltip({
-            container: 'body',
-            placement: 'auto',
-            delay: 100
-        });
-
         return this;
     },
 

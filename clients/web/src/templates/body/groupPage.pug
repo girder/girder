@@ -2,7 +2,7 @@
   .btn-group.pull-right
     if (isMember || isInvited || getCurrentUser() || group.get('_accessLevel') >= AccessType.ADMIN)
       button.g-group-actions-button.btn.btn-default.dropdown-toggle(
-          data-toggle="dropdown", title="Group actions")
+          data-toggle="dropdown", title="Group actions", data-placement='left')
         i.icon-users
         |  Actions
         i.icon-down-dir

@@ -1,6 +1,11 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/js/alert';
+import 'bootstrap/js/tooltip';
+
+import 'girder/utilities/jquery/girderModal';
 
 import events from 'girder/events';
 import eventStream from 'girder/utilities/EventStream';
@@ -25,11 +30,6 @@ import 'girder/routes';
 
 import 'girder/stylesheets/layout/global.styl';
 import 'girder/stylesheets/layout/layout.styl';
-
-import 'girder/utilities/jquery/girderModal';
-
-import 'bootstrap/dist/css/bootstrap.css';
-import 'bootstrap/js/alert';
 
 var App = View.extend({
     /**
@@ -180,6 +180,18 @@ var App = View.extend({
             return;
         }
         this.$el.html(LayoutTemplate());
+
+        // Set the default placement to 'auto' for all styled tooltips. Individual elements with
+        // tooltips may override this by setting a "data-placement" attribute on themselves.
+        $.fn.tooltip.Constructor.DEFAULTS.placement = 'auto';
+        // Apply styled tooltip behavior to any elements with a natural tooltip ("title" attribute).
+        this.$el.tooltip({
+            selector: '[title]',
+            // Setting "container" seems to prevent tooltip jitter near the edges of the screen.
+            // Also, placing it inside the "#g-app-body-container" will ensure that broken tooltips
+            // are cleaned up after every page navigation.
+            container: this.$('#g-app-body-container')
+        });
 
         this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
         this.headerView.setElement(this.$('#g-app-header-container')).render();

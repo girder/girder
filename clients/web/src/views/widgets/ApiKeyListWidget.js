@@ -103,7 +103,6 @@ var ApiKeyListWidget = View.extend({
             moment: moment
         }));
 
-        this.$('button').tooltip();
         this.$('.g-show-api-key').popover({
             container: this.$('.g-api-key-table'),
             placement: 'top'

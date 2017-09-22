@@ -6,7 +6,7 @@ ul.g-group-invites
         span #{user.name()} (#{user.get('login')})
       .g-group-member-controls.pull-right
         if level >= accessType.WRITE
-          a.g-group-uninvite(title="Uninvite this user")
+          a.g-group-uninvite(title="Uninvite this user", data-placement='left')
             i.icon-block
   if (!invitees.length)
     .g-member-list-empty

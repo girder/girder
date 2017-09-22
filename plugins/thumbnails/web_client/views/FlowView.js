@@ -56,10 +56,6 @@ var FlowView = View.extend({
             AccessType: AccessType
         }));
 
-        this.$('.g-thumbnail-actions-container a').tooltip({
-            delay: 100
-        });
-
         return this;
     }
 });
