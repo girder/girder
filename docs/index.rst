@@ -78,7 +78,7 @@ Organization of these docs
 These docs are roughly divided by intended task and target audience.
 
 * If you are a **Developer** wanting to build your own Girder plugins, you should start by
-  following the :doc:`development-install`. After you get you development environment
+  following the :doc:`dev-installation`. After you get you development environment
   set up, browse the :doc:`tutorials` to learn about and see examples of common patterns
   of how to extend and modify the Girder platform to meet your specific needs.
 * If you are an **Administrator** attempting to deploy your own instance of Girder into
