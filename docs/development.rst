@@ -29,13 +29,10 @@ For more options for building the web client, run: ::
 Vagrant
 ^^^^^^^
 
-A shortcut to going through the installation steps for development is to use
-`Vagrant <https://www.vagrantup.com>`_ to setup the environment on a
-`VirtualBox <https://www.virtualbox.org>`_ virtual machine. To setup this
-environment run ``vagrant up`` in the root of the repository. This will spin up
-and provision a virtual machine, provided you have Vagrant and VirtualBox
-installed. Vagrant uses `Ansible <https://ansible.com>`_ for provisioning Girder and its various
-dependencies.
+A shortcut to going through the development environment configuration steps is
+to use `Vagrant <https://www.vagrantup.com>`_ to setup the environment on a
+`VirtualBox <https://www.virtualbox.org>`_ virtual machine. For more
+documentation on how to set this up, see `Developer Installation <dev-installation.html>`__
 
 .. seealso::
 
