@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import FolderModel from 'girder/models/FolderModel';
 import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
@@ -39,7 +37,7 @@ const ConfigView = View.extend({
 
         'click #g-homepage-logo-reset': function (event) {
             this.logoFileId = null;
-            this._updateLogoDisplay()
+            this._updateLogoDisplay();
         }
     },
 

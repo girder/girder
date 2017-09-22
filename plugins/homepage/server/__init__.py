@@ -18,7 +18,7 @@
 ###############################################################################
 
 # Import constants for the side effect of registering settings
-from . import constants
+from . import constants  # noqa: F401
 from . import rest
 
 

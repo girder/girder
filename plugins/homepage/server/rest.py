@@ -37,11 +37,16 @@ class Homepage(Resource):
     )
     def getSettings(self):
         return {
-            constants.PluginSettings.MARKDOWN: self.model('setting').get(constants.PluginSettings.MARKDOWN),
-            constants.PluginSettings.HEADER: self.model('setting').get(constants.PluginSettings.HEADER),
-            constants.PluginSettings.SUBHEADER: self.model('setting').get(constants.PluginSettings.SUBHEADER),
-            constants.PluginSettings.WELCOME_TEXT: self.model('setting').get(constants.PluginSettings.WELCOME_TEXT),
-            constants.PluginSettings.LOGO: self.model('setting').get(constants.PluginSettings.LOGO),
+            constants.PluginSettings.MARKDOWN: self.model('setting').get(
+                constants.PluginSettings.MARKDOWN),
+            constants.PluginSettings.HEADER: self.model('setting').get(
+                constants.PluginSettings.HEADER),
+            constants.PluginSettings.SUBHEADER: self.model('setting').get(
+                constants.PluginSettings.SUBHEADER),
+            constants.PluginSettings.WELCOME_TEXT: self.model('setting').get(
+                constants.PluginSettings.WELCOME_TEXT),
+            constants.PluginSettings.LOGO: self.model('setting').get(
+                constants.PluginSettings.LOGO),
         }
 
     @access.admin
@@ -79,4 +84,3 @@ class Homepage(Resource):
             reuseExisting=True
         )
         return folder
-

@@ -60,7 +60,7 @@ def _defaultWelcomeText():
 
 
 @setting_utilities.default(PluginSettings.LOGO)
-def _defaultWelcomeText():
+def _defaultLogo():
     return None
 
 
