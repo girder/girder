@@ -17,46 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.api import access
-from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource
-from girder.utility import setting_utilities
-from girder.utility.model_importer import ModelImporter
-
-KEY = 'homepage.markdown'
-NAME = 'Homepage Assets'
-
-
-class Homepage(Resource):
-    def __init__(self):
-        super(Homepage, self).__init__()
-        self.resourceName = 'homepage'
-        self.route('GET', ('markdown',), self.getMarkdown)
-
-    @access.public
-    @describeRoute(
-        Description('Public url for getting the homepage markdown.')
-    )
-    def getMarkdown(self, params):
-        folder = getOrCreateAssetsFolder()
-        return {
-            KEY: self.model('setting').get(KEY),
-            'folderId': folder['_id']
-        }
-
-
-@setting_utilities.validator(KEY)
-def validateHomepageMarkdown(event):
-    pass
-
-
-def getOrCreateAssetsFolder():
-    collection = ModelImporter.model('collection').createCollection(
-        NAME, public=False, reuseExisting=True)
-    folder = ModelImporter.model('folder').createFolder(
-        collection, NAME, parentType='collection', public=True, reuseExisting=True)
-    return folder
+# Import constants for the side effect of registering settings
+from . import constants  # noqa: F401
+from . import rest
 
 
 def load(info):
-    info['apiRoot'].homepage = Homepage()
+    info['apiRoot'].homepage = rest.Homepage()
