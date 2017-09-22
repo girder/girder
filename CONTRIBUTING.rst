@@ -40,23 +40,6 @@ When submitting a PR, make sure to add a ``Cc: @girder/developers`` comment to n
 developers of your awesome contributions. Based on the
 comments posted by the reviewers, you may have to revisit your patches.
 
-How to integrate a PR
-^^^^^^^^^^^^^^^^^^^^^
-
-Getting your contributions integrated is relatively straightforward, here
-is the checklist:
-
-- All tests pass
-- Consensus is reached. This requires that a reviewer adds an "approved" review via GitHub with no
-  changes requested, and a reasonable amount of time passed without anyone objecting.
-
-Next, there are two scenarios:
-
-- You do NOT have push access: A Girder core developer will integrate your PR.
-- You have push access: Simply click on the "Merge pull request" button.
-
-Then, click on the "Delete branch" button that appears afterward.
-
 Automatic testing of pull requests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -95,3 +78,20 @@ invalid, resulting in the confusing error message::
     AttributeError: 'module' object has no attribute 'assetstore_test'
 
 but you won't be confused now, will you?
+
+How to integrate a PR
+^^^^^^^^^^^^^^^^^^^^^
+
+Getting your contributions integrated is relatively straightforward, here
+is the checklist:
+
+- All tests pass
+- Consensus is reached. This requires that a reviewer adds an "approved" review via GitHub with no
+  changes requested, and a reasonable amount of time passed without anyone objecting.
+
+Next, there are two scenarios:
+
+- You do NOT have push access: A Girder core developer will integrate your PR.
+- You have push access: Simply click on the "Merge pull request" button.
+
+Then, click on the "Delete branch" button that appears afterward.
