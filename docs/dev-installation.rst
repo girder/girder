@@ -39,13 +39,13 @@ To access the VM, run from the Girder directory:
 
     vagrant ssh
 
-This takes you inside of the VM. From here, you might want to restart the server:
+This takes you inside the VM. From here, you might want to restart the server:
 
 .. code-block:: bash
 
     sudo service girder restart
 
-rebuild the web client:
+To rebuild the web client:
 
 .. code-block:: bash
 
