@@ -21,6 +21,7 @@ from collections import OrderedDict
 import cherrypy
 import pymongo
 import six
+import re
 
 from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault, SettingKey
 from .model_base import Model, ValidationException
@@ -169,6 +170,14 @@ class Setting(Model):
     def validateCoreBrandName(doc):
         if not doc['value']:
             raise ValidationException('The brand name may not be empty', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.BANNER_COLOR)
+    def validateCoreBannerColor(doc):
+        if not doc['value']:
+            raise ValidationException('The banner color may not be empty', 'value')
+        elif not (re.match(r'^#[0-9A-Fa-f]{6}$', doc['value'])):
+            raise ValidationException('The banner color must be a hex color triplet', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SECURE_COOKIE)
