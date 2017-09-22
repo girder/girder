@@ -15,7 +15,7 @@ https://girder.readthedocs.io.
 For questions, comments, or to get in touch with the maintainers, head to our `Gitter Forum
 <https://gitter.im/girder/girder>`_.
 
-We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
+We'd love for you to `contribute to Girder <CONTRIBUTING.rst>`_.
 
 .. |logo| image:: clients/web/static/img/Girder_Favicon.png
 
