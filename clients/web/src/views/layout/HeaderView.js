@@ -56,20 +56,22 @@ var LayoutHeaderView = View.extend({
     },
 
     _getTextColor: function (bannerColor) {
-        const red = parseInt(bannerColor.substr(1, 2), 16);
-        const green = parseInt(bannerColor.substr(3, 2), 16);
-        const blue = parseInt(bannerColor.substr(5, 2), 16);
-        const colorArray = _.map([red, green, blue], (component) => {
-            component = component / 255.0;
-            if (component <= 0.03928) {
-                component = component / 12.92;
-            } else {
-                component = Math.pow((component + 0.055) / 1.055, 2.4);
-            }
-            return component;
-        });
-        const L = 0.2126 * colorArray[0] + 0.7152 * colorArray[1] + 0.0722 * colorArray[2];
-        return ((L + 0.05) / (0.0 + 0.05) > (1.0 + 0.05) / (L + 0.05)) ? '#000000' : '#ffffff';
+        // https://stackoverflow.com/a/3943023
+        const hexRed = bannerColor.substr(1, 2);
+        const hexGreen = bannerColor.substr(3, 2);
+        const hexBlue = bannerColor.substr(5, 2);
+        const sRGB = _.map([hexRed, hexGreen, hexBlue], (hexComponent) =>
+            parseInt(hexComponent, 16) / 255.0
+        );
+        const linearRBG = _.map(sRGB, (component) =>
+            (component <= 0.03928)
+                ? component / 12.92
+                : Math.pow((component + 0.055) / 1.055, 2.4)
+        );
+        const L = 0.2126 * linearRBG[0] + 0.7152 * linearRBG[1] + 0.0722 * linearRBG[2];
+        return ((L + 0.05) / (0.0 + 0.05) > (1.0 + 0.05) / (L + 0.05))
+            ? '#000000'
+            : '#ffffff';
     }
 });
 
