@@ -55,10 +55,10 @@ except IOError:  # pragma: no cover
     pass
 
 #: The local directory containing the static content.
-#: Should contain ``clients/web/static``.
-STATIC_ROOT_DIR = ROOT_DIR
-if not os.path.exists(os.path.join(STATIC_ROOT_DIR, 'clients')):
-    STATIC_ROOT_DIR = PACKAGE_DIR
+STATIC_ROOT_DIR = os.environ.get(
+    'GIRDER_STATIC_ROOT',
+    os.path.join(ROOT_DIR, 'clients', 'web', 'static')
+)
 
 
 def registerAccessFlag(key, name, description=None, admin=False):
