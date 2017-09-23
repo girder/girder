@@ -166,15 +166,12 @@ def configureServer(test=False, plugins=None, curConfig=None):
         settings = model_importer.ModelImporter().model('setting')
         plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
 
-    plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
-
     _configureStaticRoutes(root, plugins)
 
     girder.events.bind('model.setting.save.after', '_updateStaticRoutesIfModified',
                        functools.partial(_configureStaticRoutes, root, plugins))
 
-    root, appconf, _ = plugin_utilities.loadPlugins(
-        plugins, root, appconf, root.api.v1, buildDag=False)
+    plugin_utilities.loadPlugins(plugins, root, appconf, root.api.v1)
 
     return root, appconf
 
@@ -190,7 +187,7 @@ def loadRouteTable(reconcileRoutes=False):
     :returns: The non empty routes (as a dict of name -> route) to be mounted by CherryPy
               during Girder's setup phase.
     """
-    pluginWebroots = plugin_utilities.getPluginWebroots()
+    pluginWebroots = {}  # plugin_utilities.getPluginWebroots()
     setting = model_importer.ModelImporter().model('setting')
     routeTable = setting.get(constants.SettingKey.ROUTE_TABLE)
 
@@ -226,7 +223,7 @@ def setup(test=False, plugins=None, curConfig=None):
     """
     logStdoutStderr()
 
-    pluginWebroots = plugin_utilities.getPluginWebroots()
+    pluginWebroots = {}  # plugin_utilities.getPluginWebroots()
     girderWebroot, appconf = configureServer(test, plugins, curConfig)
     routeTable = loadRouteTable(reconcileRoutes=True)
 
