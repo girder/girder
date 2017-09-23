@@ -18,3 +18,4 @@ __pycache__
 .eslintcache
 /npm-debug.log
 **/*.retry
+.cache

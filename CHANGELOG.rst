@@ -12,6 +12,10 @@ Added Features
 --------------
 Web Client
 ^^^^^^^^^^
+* Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
+
+  * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
+
 * New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
 
 Bug fixes
@@ -25,6 +29,7 @@ Changes
 
 Deprecations
 ------------
+* Server side tests should be written using the new ``pytest`` infrastructure.
 
 Removals
 --------

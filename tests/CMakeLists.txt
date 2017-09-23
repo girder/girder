@@ -25,6 +25,7 @@ if(RUN_CORE_TESTS)
 
   add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
   add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
+  add_python_style_test(python_static_analysis_core_pytest_girder "${PROJECT_SOURCE_DIR}/pytest_girder")
   add_python_style_test(python_static_analysis_ansible_client_tests
     "${PROJECT_SOURCE_DIR}/devops/ansible/roles/girder/library")
 
