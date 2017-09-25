@@ -48,7 +48,7 @@ function _verifyHomepageSettings(elem) {
     _verifyMarkdownContent(elem);
 }
 
-describe('homepage plugin test ', function () {
+describe('homepage plugin test', function () {
     it('registers an admin user', girderTest.createUser(
         'admin', 'admin@example.com', 'Mark', 'Down', 'password'
     ));
@@ -66,12 +66,13 @@ describe('homepage plugin test ', function () {
 
             _verifyMarkdownContent($('.g-markdown-preview'));
 
+            $('#g-alerts-container').empty();
             $('#g-homepage-form').submit();
         });
 
         waitsFor(function () {
-            return girder.rest.numberOutstandingRestRequests() === 0;
-        }, 'rest requests to finish');
+            return $('.alert:contains("Settings saved.")').length > 0;
+        }, 'settings to save');
     });
 
     it('verifies homepage content as admin user', function () {
@@ -119,8 +120,13 @@ describe('homepage plugin test ', function () {
 
             expect($('.g-homepage-container .g-markdown-preview').text()).toBe('Nothing to show\n');
 
+            $('#g-alerts-container').empty();
             $('#g-homepage-form').submit();
         });
+
+        waitsFor(function () {
+            return $('.alert:contains("Settings saved.")').length > 0;
+        }, 'settings to save');
     });
 
     it('sets, previews and saves homepage settings', function () {
@@ -138,12 +144,13 @@ describe('homepage plugin test ', function () {
 
             _verifyMarkdownContent($('.g-homepage-welcome-text-container .g-markdown-preview'));
 
+            $('#g-alerts-container').empty();
             $('#g-homepage-form').submit();
         });
 
         waitsFor(function () {
-            return girder.rest.numberOutstandingRestRequests() === 0;
-        }, 'rest requests to finish');
+            return $('.alert:contains("Settings saved.")').length > 0;
+        }, 'settings to save');
     });
 
     it('verifies homepage content as admin user', function () {
