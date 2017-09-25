@@ -22,16 +22,16 @@ if descriptionText
 
 .pull-right
   .g-child-count-container.hide
-    .g-subfolder-count-container
+    .g-subfolder-count-container(title='total folders')
       i.icon-folder
       .g-subfolder-count
 
     if idx > 0
-      .g-item-count-container
+      .g-item-count-container(title='total items')
         i.icon-doc-text-inv
         .g-item-count
 
   if idx > 0
     .g-level-up-button-container
-      a.g-hierarchy-level-up(title="Go up one level", placement="left")
+      a.g-hierarchy-level-up(title="Go up one level", data-placement="left")
         i.icon-level-up

@@ -14,7 +14,6 @@ import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.pu
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/dropdown';
-import 'bootstrap/js/tooltip';
 import 'bootstrap/js/transition';
 
 import 'girder/utilities/jquery/girderModal';
@@ -161,13 +160,6 @@ var GroupMembersWidget = View.extend({
             types: ['user'],
             parentView: this
         }).off().on('g:resultClicked', this._inviteUser, this).render();
-
-        this.$('.g-group-member-remove,.g-group-member-promote').tooltip({
-            container: 'body',
-            placement: 'left',
-            animation: false,
-            delay: {show: 100}
-        });
 
         return this;
     },

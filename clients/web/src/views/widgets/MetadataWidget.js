@@ -19,7 +19,6 @@ import JSONEditor from 'jsoneditor/dist/jsoneditor.js'; // can't 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css';
 
 import 'bootstrap/js/dropdown';
-import 'bootstrap/js/tooltip';
 
 var MetadatumWidget = View.extend({
     className: 'g-widget-metadata-row',
@@ -289,13 +288,6 @@ var MetadatumEditWidget = View.extend({
         }));
         this.$el.find('.g-widget-metadata-key-input').focus();
 
-        this.$('[title]').tooltip({
-            container: this.$el,
-            placement: 'bottom',
-            animation: false,
-            delay: {show: 100}
-        });
-
         return this;
     }
 });
@@ -502,13 +494,6 @@ var MetadataWidget = View.extend({
                 onMetadataAdded: this.onMetadataAdded
             }).render().$el);
         }, this);
-
-        this.$('.g-widget-metadata-add-button').tooltip({
-            container: this.$el,
-            placement: 'left',
-            animation: false,
-            delay: {show: 100}
-        });
 
         return this;
     }

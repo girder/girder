@@ -28,7 +28,7 @@
               | Only allow specific permissions for this key:
           each tokenScope in userTokenScopes
             .checkbox.disabled
-              label.g-custom-scope-description(title=tokenScope.description)
+              label.g-custom-scope-description(title=tokenScope.description, data-placement='right')
                 input.g-custom-scope-checkbox(type="checkbox", value=tokenScope.id, disabled)
                 span= tokenScope.name
           if user.get('admin')

@@ -21,8 +21,6 @@ wrap(FileInfoWidget, 'render', function (render) {
         AccessType
     }));
 
-    this.$('.g-keyfile-download').tooltip();
-
     return this;
 });
 

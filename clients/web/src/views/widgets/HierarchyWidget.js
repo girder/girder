@@ -28,7 +28,6 @@ import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.pu
 import 'girder/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
-import 'bootstrap/js/tooltip';
 
 var pickedResources = null;
 
@@ -92,6 +91,7 @@ var HierarchyWidget = View.extend({
         'click a.g-delete-checked': 'deleteCheckedDialog',
         'click .g-list-checkbox': 'checkboxListener',
         'change .g-select-all': function (e) {
+            $(e.currentTarget).tooltip('hide');
             this.folderListView.checkAll(e.currentTarget.checked);
 
             if (this.itemListView) {
@@ -294,17 +294,6 @@ var HierarchyWidget = View.extend({
                 this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
             }
         }
-
-        this.$('[title]').tooltip({
-            container: this.$el,
-            animation: false,
-            delay: {
-                show: 100
-            },
-            placement: function () {
-                return this.$element.attr('placement') || 'top';
-            }
-        });
 
         if (this.upload) {
             this.uploadDialog();
