@@ -317,7 +317,16 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
         this.editor = new JSONEditor(this.$el.find('.g-json-editor')[0], {
             mode: 'tree',
             modes: ['code', 'tree'],
-            onError: function () {
+            onModeChange: () => {
+                // JSONEditor removes tooltip-containing elements without destroying their
+                // Bootstrap-styled tooltips first. Since this callback is not called until after
+                // the original tooltip-containing element is destroyed, the only way to clean up is
+                // to remove the tooltip from DOM.
+                // When used in an external app with no tooltip styling enabled, this call should
+                // have no effect (assuming there's no other ".tooltip" elements.
+                $('.tooltip').remove();
+            },
+            onError: () => {
                 events.trigger('g:alert', {
                     text: 'The field contains invalid JSON and can not be viewed in Tree Mode.',
                     type: 'warning'
