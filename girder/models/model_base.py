@@ -27,7 +27,7 @@ import six
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from pymongo.errors import WriteError
-from girder import events, logprint
+from girder import events, logprint, logger
 from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
@@ -577,8 +577,7 @@ def _isInclusionProjection(fields):
 
     :param fields: A mask for filtering result documents by key, or None to return the full
         document, passed to MongoDB find() as the `projection` param.
-    :type fields: `str, list of strings or tuple of strings for fields to be included from the
-        document, or dict for an inclusion or exclusion projection`.
+    :type fields: list or dict or None
     """
     if fields is None:
         return False
@@ -605,34 +604,27 @@ def _overwriteFields(fields, overwrite):
 
     :param fields: A mask for filtering result documents by key, or None to return the full
         document, passed to MongoDB find() as the `projection` param.
-    :type fields: `str, list of strings, or tuple of strings for fields to be included from the
-        document, or dict for an inclusion or exclusion projection`.
+    :type fields: list or dict or None
     :param overwrite: Additional document key(s) to be included or not excluded in fields.
-    :type overwrite: `str, list of strings, or tuple of strings for fields to be included from the
-        document.`
+    :type overwrite: set
+    :returns: A copy of fields with the relevant overwrite changes.
     """
     if fields is None:
         return fields
 
-    overwrite = list(overwrite)
     if _isInclusionProjection(fields):
         if not isinstance(fields, dict):
             # Inclusion projection (str, list, or tuple)
-            copy = list(fields)
-            for entry in overwrite:
-                if entry not in copy:
-                    copy.append(entry)
+            copy = list(set(fields) | overwrite)
         else:
             # Inclusion projection (dict)
             copy = dict(fields)
-            for entry in overwrite:
-                copy[entry] = True
+            copy.update(dict.fromkeys(overwrite, True))
     else:
         # Exclusion projection (dict)
         copy = dict(fields)
         for entry in overwrite:
-            if entry in copy.keys():
-                del copy[entry]
+            copy.pop(entry, None)
     return copy
 
 
@@ -643,9 +635,9 @@ def _removeOverwrittenFields(doc, fields):
 
     :param doc: A document returned by MongoDB find()
     :type doc: dict
-    :param fields: The origian mask for filtering result documents by key, as specified by the user.
-    :type fields: `str, list of strings, or tuple of strings for fields to be included from the
-        document, or dict for an inclusion or exclusion projection`.
+    :param fields: The original mask for filtering result documents by key, as specified by the user
+        to be passed to MongoDB find() as the `projection` param.
+    :type fields: list or dict or None
     """
     if fields is None:
         return
@@ -658,12 +650,11 @@ def _removeOverwrittenFields(doc, fields):
             else:
                 whitelist.append(k)
         if whitelist:
-            for k in list(doc.keys()):
+            for k in list(six.viewkeys(doc)):
                 if k not in whitelist:
                     del doc[k]
     else:
-        fields = list(fields)
-        for k in list(doc.keys()):
+        for k in list(six.viewkeys(doc)):
             if k not in fields:
                 del doc[k]
 
@@ -1322,25 +1313,29 @@ class AccessControlledModel(Model):
         :type user: dict or None
         :param objectId: Whether the id should be coerced to ObjectId type.
         :type objectId: bool
-        :param force: If you explicitly want to circumvent access
-                      checking on this resource, set this to True.
+        :param force: If you explicitly want to circumvent access checking on this resource, set
+            this to True.
         :type force: bool
         :param fields: A mask for filtering result documents by key, or None to return the full
             document, passed to MongoDB find() as the `projection` param.
-        :type fields: `str, list of strings or tuple of strings for fields to be included from the
-            document, or dict for an inclusion or exclusion projection`.
-        :param exc: If not found, throw a ValidationException instead of
-            returning None.
+        :type fields: list or dict
+        :param exc: If not found, throw a ValidationException instead of returning None.
         :type exc: bool
         :raises ValidationException: If an invalid ObjectId is passed.
         :returns: The matching document, or None if no match exists.
         """
 
+        # Warn of str type deprecation for `fields` param
+        if isinstance(fields, six.string_types):
+            logger.warning('String data type for fields param is deprecated, \
+                use a list or dict instead.')
+            fields = [fields]
+
         # Ensure we include access and public, they are needed by requireAccess
-        loadFields = copy.copy(fields)
-        overwriteFields = ['access', 'public']
+        loadFields = fields
+        overwriteFields = {'access', 'public'}
         if not force:
-            loadFields = _overwriteFields(loadFields, overwriteFields)
+            loadFields = _overwriteFields(fields, overwriteFields)
 
         doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
 
