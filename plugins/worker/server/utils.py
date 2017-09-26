@@ -34,8 +34,7 @@ def getWorkerApiUrl():
 
 
 def girderInputSpec(resource, resourceType='file', name=None, token=None,
-                    dataType='string', dataFormat='text', fetchParent=False,
-                    allowDirectPath=True):
+                    dataType='string', dataFormat='text', fetchParent=False):
     """
     Downstream plugins that are building Girder worker jobs that use Girder IO
     should use this to generate the input specs more easily.
@@ -58,11 +57,6 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
     :param fetchParent: Whether to fetch the whole parent resource of the
         specified resource as a side effect.
     :type fetchParent: bool
-    :param allowDirectPath: If True and the resource is a file that can be
-        reached via a path (e.g., on a filesystem assetstore), report that path
-        as part of the spec.  If fetchParent is True, this is ignored and the
-        direct path is not included.
-    :type allowDirectPath: bool
     """
     if isinstance(token, dict):
         token = token['_id']
@@ -79,7 +73,8 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
         'fetch_parent': fetchParent
     }
 
-    if allowDirectPath and resourceType == 'file' and not fetchParent:
+    if (resourceType == 'file' and not fetchParent and
+            ModelImporter.model('setting').get(PluginSettings.DIRECT_PATH)):
         # If we are adding a file and it exists on the local filesystem include
         # that location.  This can permit the user of the specification to
         # access the file directly instead of downloading the file.
