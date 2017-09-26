@@ -27,6 +27,14 @@ from girder import logger
 # cache of instantiated models that have been lazy-loaded.
 _modelInstances = {}
 
+_pluginModelClasses = {}
+
+
+def girder_model(cls, name, plugin=None):
+    plugin_registry = _pluginModelClasses.setdefault(plugin, {})
+    plugin_registry[name] = cls
+    logger.info('Registered model %s in plugin %s' % (name, plugin))
+
 
 def _loadModel(model, module, plugin):
     global _modelInstances
@@ -87,10 +95,9 @@ class ModelImporter(object):
         if model not in _modelInstances[plugin]:
             if plugin == '_core':
                 module = 'girder.models.%s' % model
+                _loadModel(model, module, plugin)
             else:
-                module = 'girder.plugins.%s.models.%s' % (plugin, model)
-
-            _loadModel(model, module, plugin)
+                _modelInstances[plugin][model] = _pluginModelClasses[plugin][model]()
 
         return _modelInstances[plugin][model]
 

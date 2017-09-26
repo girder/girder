@@ -24,7 +24,9 @@ from bson import json_util
 from girder import events
 from girder.constants import AccessType, SortDir
 from girder.models.model_base import AccessControlledModel, ValidationException
-from girder.plugins.jobs.constants import JobStatus, JOB_HANDLER_LOCAL
+from girder.utility.model_importer import girder_model
+
+from ..constants import JobStatus, JOB_HANDLER_LOCAL
 
 
 class Job(AccessControlledModel):
@@ -585,3 +587,6 @@ class Job(AccessControlledModel):
                                                 user=user,
                                                 level=AccessType.READ):
             yield r
+
+
+girder_model(Job, 'job', 'jobs')
