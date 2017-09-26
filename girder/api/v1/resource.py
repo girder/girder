@@ -32,6 +32,9 @@ from girder.utility.progress import ProgressContext
 allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
 allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 
+# Plugins can modify this set to allow other search mode
+allowedSearchModes = {'text', 'prefix'}
+allowedNewSearchModes = {}
 
 class Resource(BaseResource):
     """
@@ -41,6 +44,7 @@ class Resource(BaseResource):
         super(Resource, self).__init__()
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
+        self.route('PUT', ('search','mode'), self.addSearchMode)
         self.route('GET', ('lookup',), self.lookup)
         self.route('GET', (':id',), self.getResource)
         self.route('GET', (':id', 'path'), self.path)
@@ -52,27 +56,32 @@ class Resource(BaseResource):
         self.route('DELETE', (), self.delete)
 
     @access.public
-    @autoDescribeRoute(
-        Description('Search for resources in the system.')
-        .param('q', 'The search query.')
-        .param('mode', 'The search mode. Can use either a text search or a '
-               'prefix-based search.', enum=('text', 'prefix'), required=False,
-               default='text')
-        .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
-                   '["user", "folder", "item"].', requireArray=True)
-        .param('level', 'Minimum required access level.', required=False,
-               dataType='integer', default=AccessType.READ)
-        .pagingParams(defaultSort=None, defaultLimit=10)
-        .errorResponse('Invalid type list format.')
-    )
+    # @autoDescribeRoute(
+    #     Description('Search for resources in the system.')
+    #     .param('q', 'The search query.')
+    #     .param('mode', 'The search mode. Can use either a text search or a '
+    #            'prefix-based search.', enum=('text', 'prefix'), required=False,
+    #            default='text')
+    #     .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
+    #                '["user", "folder", "item"].', requireArray=True)
+    #     .param('level', 'Minimum required access level.', required=False,
+    #            dataType='integer', default=AccessType.READ)
+    #     .pagingParams(defaultSort=None, defaultLimit=10)
+    #     .errorResponse('Invalid type list format.')
+    # )
     def search(self, q, mode, types, level, limit, offset):
+        newSearchMode = False
         level = AccessType.validate(level)
         user = self.getCurrentUser()
 
-        if mode == 'text':
-            method = 'textSearch'
-        else:
-            method = 'prefixSearch'
+        if mode in allowedSearchModes:
+            method = '{0}Search'.format(mode)
+        else :
+            if mode in allowedNewSearchModes:
+                method =  allowedNewSearchModes[mode]['handler']
+                newSearchMode = True
+            else :
+                return None
 
         results = {}
         for modelName in types:
@@ -85,12 +94,38 @@ class Resource(BaseResource):
             else:
                 model = self.model(modelName)
 
-            results[modelName] = [
-                model.filter(d, user) for d in getattr(model, method)(
-                    query=q, user=user, limit=limit, offset=offset, level=level)
-            ]
+            if newSearchMode:
+                if modelName not in allowedNewSearchModes[mode]['types']
+                    continue
+                results[modelName] = [
+                    model.filter(d, user) for d in method(query=q, user=user, limit=limit, offset=offset, level=level)
+                ]
+            else :
+                results[modelName] = [
+                    model.filter(d, user) for d in getattr(model, method)(
+                        query=q, user=user, limit=limit, offset=offset, level=level)
+                ]
 
         return results
+
+    @access.public
+    # @autoDescribeRoute(
+    #     Description('Add new mode search in the system.')
+    #     .param('mode', 'The search mode to add')
+    #     .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
+    #                '["user", "folder", "item"].', requireArray=True)
+    #     .errorResponse('Invalid mode name.')
+    #     .errorResponse('Invalid type list format.')
+    # )
+    def addSearchMode(self, mode, types, handler):
+        allowedNewSearchModes.update({
+            mode: {
+                'types': types,
+                'handler': handler
+            }})
+
+    def removeSearchMode(self, mode):
+        return allowedNewSearchModes.pop(mode, None)
 
     def _validateResourceSet(self, resources, allowedModels=None):
         """
