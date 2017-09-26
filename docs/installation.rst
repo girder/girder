@@ -107,7 +107,7 @@ Install from Git repository
 Obtain the Girder source code by cloning the Git repository on
 `GitHub <https://github.com>`_: ::
 
-    git clone -b 2.x-maintenance https://github.com/girder/girder.git
+    git clone --branch 2.x-maintenance https://github.com/girder/girder.git
     cd girder
 
 .. note:: Note, it is strongly recommended that downstream (i.e. for production or to
