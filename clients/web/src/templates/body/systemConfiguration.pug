@@ -8,11 +8,13 @@ form.g-settings-form(role="form")
           type="text", value=settings['core.brand_name'] || '',
           placeholder=`Default: ${defaults['core.brand_name'] || 'none'}`,
           title="The brand name of the application.")
+    .form-group
       label(for="g-core-contact-email-address") Contact email address
       input#g-core-contact-email-address.form-control.input-sm(
           type="text", value=settings['core.contact_email_address'] || '',
           placeholder=`Default: ${defaults['core.contact_email_address'] || 'none'}`,
           title="The contact email address for users to obtain support with this instance.")
+    .form-group
       label(for="g-core-banner-color") Banner Color
       #g-core-banner-color-container
         input#g-core-banner-color.form-control.input-sm(
