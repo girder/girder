@@ -19,7 +19,8 @@
 
 from .. import base
 from girder.models.model_base import (AccessControlledModel, Model, AccessType,
-                                      _overwriteFields, _removeOverwrittenFields)
+                                      _overwriteFields, _removeOverwrittenFields,
+                                      _isInclusionProjection)
 from girder.utility.model_importer import ModelImporter
 
 
@@ -193,6 +194,12 @@ class ModelTestCase(base.TestCase):
             'email': 'email@email.com',
             'firstName': 'fname',
             'lastName': 'lname'})
+
+        # Test _isInclusionProjection edge cases
+        self.assertEqual(_isInclusionProjection(None), False)
+        self.assertEqual(_isInclusionProjection({}), True)
+        self.assertEqual(_isInclusionProjection({'_id': False}), False)
+        self.assertEqual(_isInclusionProjection({'_id': True}), True)
 
     def testModelFiltering(self):
         users = ({
