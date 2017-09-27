@@ -7,6 +7,7 @@ import router from 'girder/router';
 import events from 'girder/events';
 
 import ItemModel from 'girder/models/ItemModel';
+import FileModel from 'girder/models/FileModel';
 import JobModel from 'girder_plugins/jobs/models/JobModel';
 
 import TaskListView from './views/TaskListView';
@@ -20,7 +21,7 @@ router.route('item_tasks', 'itemTaskList', () => {
 router.route('item_task/:id/run', (id, params) => {
     const itemTask = new ItemModel({_id: id});
     let job = null;
-    let inputItem = null;
+    let inputfile = null;
     const promises = [itemTask.fetch()];
 
     if (params.fromJob) {
@@ -28,9 +29,9 @@ router.route('item_task/:id/run', (id, params) => {
         promises.push(job.fetch());
     }
 
-    if (params.itemId) {
-        inputItem = new ItemModel({_id: params.itemId});
-        promises.push(inputItem.fetch());
+    if (params.fileId) {
+        inputfile = new FileModel({_id: params.fileId});
+        promises.push(inputfile.fetch());
     }
 
     $.when(...promises).done(() => {
@@ -40,7 +41,7 @@ router.route('item_task/:id/run', (id, params) => {
             initialValues = job.get('itemTaskBindings');
         }
 
-        if (params.itemId) {
+        if (params.fileId) {
             let itemTaskSpec = itemTask.get('meta').itemTaskSpec;
 
             let fileInputSpecs = _.where(itemTaskSpec.inputs, {'type': 'file'});
@@ -49,9 +50,9 @@ router.route('item_task/:id/run', (id, params) => {
                 initialValues.inputs = initialValues.inputs || {};
                 initialValues.inputs[fileInputSpec.id] = {
                     mode: 'girder',
-                    resource_type: 'item',
-                    id: params.itemId,
-                    fileName: inputItem.name()
+                    resource_type: 'file',
+                    id: params.fileId,
+                    fileName: inputfile.name()
                 };
             }
         }

@@ -8,6 +8,7 @@ import { wrap } from 'girder/utilities/PluginUtils';
 import GlobalNavView from 'girder/views/layout/GlobalNavView';
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import ItemView from 'girder/views/body/ItemView';
+import FileListWidget from 'girder/views/widgets/FileListWidget';
 import { registerPluginNamespace } from 'girder/pluginUtils';
 import JobModel from 'girder_plugins/jobs/models/JobModel';
 import * as itemTasks from 'girder_plugins/item_tasks';
@@ -63,18 +64,29 @@ ItemView.prototype.events['click .g-configure-item-task'] = function () {
     this.configureTaskDialog.render();
 };
 
-// "Select Task" button in Actions drop down menu
+// "Select Task" button on file
+import FileListRunTaskButton from './templates/fileListRunTaskButton.pug';
+wrap(FileListWidget, 'render', function (render) {
+    render.call(this);
+    this.$('.g-file-actions-container').prepend(FileListRunTaskButton());
+
+    return this;
+});
+
+// "Select Task" button on file event
 import SelectSingleFileTaskWidget from './views/SelectSingleFileTaskWidget';
-ItemView.prototype.events['click .g-select-item-task'] = function (e) {
+FileListWidget.prototype.events['click .g-select-item-task'] = function (e) {
+    let cid = $(e.currentTarget).parent().attr('file-cid');
+
     new SelectSingleFileTaskWidget({
         el: $('#g-dialog-container'),
         parentView: this,
-        item: this.model
+        file: this.collection.get(cid)
     }).once('g:selected', function (params) {
-        let item = params.item;
+        let file = params.file;
         let task = params.task;
 
-        router.navigate(`item_task/${task.id}/run?itemId=${item.id}`, {trigger: true});
+        router.navigate(`item_task/${task.id}/run?fileId=${file.id}`, {trigger: true});
     }, this).render();
 };
 

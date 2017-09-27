@@ -247,7 +247,7 @@ describe('Run the item task', function () {
         }, 'hierarchy widget to appear');
 
         runs(function () {
-            // // we should be in the parent folder selected before
+            // we should be in the parent folder selected before
             expect($('.modal-dialog a.g-breadcrumb-link').length).toBe(1);
 
             // go back to the user's main path
@@ -449,7 +449,7 @@ describe('Run task on item from item view', function () {
 
     it('select item', function () {
         runs(function () {
-            $('.g-item-list-link:contains("Test input item")').click();
+            $('.g-item-list-link:contains("oneFileItem")').click();
         });
 
         girderTest.waitForLoad();
@@ -457,7 +457,7 @@ describe('Run task on item from item view', function () {
 
     it('run task on item from modal', function () {
         runs(function () {
-            $('.g-item-actions-menu .g-select-item-task').click();
+            $('.g-file-list-entry .g-select-item-task').click();
         });
 
         girderTest.waitForDialog();
@@ -479,7 +479,7 @@ describe('Run task on item from item view', function () {
             // Expect to be on Run task page.
             expect($('.g-body-title').text()).toBe('Run task me/my_image:latest 1');
             // Expect file input field to be preselected to 'Test input item'.
-            expect($('#testData').attr('value')).toBe('Test input item');
+            expect($('#testData').attr('value')).toBe('oneFileItem.txt');
         });
     });
 });
@@ -716,7 +716,7 @@ describe('Navigate to the demo task', function () {
         runs(function () {
             // Work around race condition where json data gets dumped into log twice
             // See issue https://github.com/girder/girder/issues/2350
-            var jsonString = $('.g-job-log-container').text().substring(0, 819);
+            var jsonString = $('.g-job-log-container').text().substring(0, 878);
             var args = JSON.parse(jsonString);
             expect(args.color_input.data).toBe('#b22222');
             expect(args.range_input.data).toBe(6);
