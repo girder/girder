@@ -302,8 +302,8 @@ var WidgetModel = Backbone.Model.extend({
             return 'Empty value';
         } else if (!type) {
             return 'Invalid value';
-        } else if (this.get('type') === 'image' && type !== 'item') {
-            return 'Value must be an item';
+        } else if (this.get('type') === 'image' && type !== 'file') {
+            return 'Value must be an file';
         } else if (this.get('type') === 'file' && type !== 'file') {
             return 'Value must be a file';
         } else if (this.get('type') === 'directory' && type !== 'folder') {

@@ -60,7 +60,7 @@ const TaskRunView = View.extend({
      */
     _setJobInfo: function (spec, bindings) {
         const match = bindings[spec.id || spec.name] || {};
-        if (match.mode === 'girder' && match.resource_type === 'file') {
+        if (match.mode === 'girder' && (match.resource_type === 'file' || match.resource_type === 'image')) {
             spec.value = new FileModel({
                 _id: match.id,
                 _modelType: 'file',
@@ -140,7 +140,7 @@ const TaskRunView = View.extend({
         const translate = (model) => {
             let val = model.value();
             switch (model.get('type')) {
-                case 'image':
+                case 'image': // This is an input
                 case 'file': // This is an input
                     return {
                         mode: 'girder',

@@ -94,7 +94,7 @@ var ItemSelectorWidget = View.extend({
         this._browserWidget.once('g:saved', (model, inputValue) => {
             this.root = this._browserWidget.root;
             this._browserWidget.$el.modal('hide');
-            if (type === 'file') {
+            if (type === 'file' || type === 'image') {
                 this.model.set({
                     value: this._file,
                     fileName: inputValue || this._file.name()
@@ -119,6 +119,7 @@ var ItemSelectorWidget = View.extend({
             return $.Deferred().reject('No item selected.').promise();
         }
         switch (this.model.get('type')) {
+            case 'image':
             case 'file':
                 return restRequest({
                     url: '/item/' + item.id + '/files',
@@ -126,24 +127,15 @@ var ItemSelectorWidget = View.extend({
                         limit: 2
                     }
                 })
-                .then((resp) => {
-                    if (resp.length !== 1) {
-                        throw 'Please select an item with exactly one file.';
-                    }
-                    this._file = new FileModel(resp[0]);
-                    return undefined;
-                }, () => {
-                    throw 'There was an error listing files for the selected item.';
-                });
-            case 'image':
-                var image = item.get('largeImage');
-                var isImage = $.Deferred();
-                if (!image) {
-                    isImage.reject('Please select a "large_image" item.');
-                } else {
-                    isImage.resolve();
-                }
-                return isImage.promise();
+                    .then((resp) => {
+                        if (resp.length !== 1) {
+                            throw 'Please select an item with exactly one file.';
+                        }
+                        this._file = new FileModel(resp[0]);
+                        return undefined;
+                    }, () => {
+                        throw 'There was an error listing files for the selected item.';
+                    });
             default:
                 return $.Deferred().resolve().promise();
         }
