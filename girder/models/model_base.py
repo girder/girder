@@ -569,94 +569,94 @@ class Model(ModelImporter):
         """
         return 1
 
+    @staticmethod
+    def _isInclusionProjection(fields):
+        """
+        Test whether a projection filter is an inclusion filter (whitelist) or exclusion
+        projection (blacklist) of fields, as defined by MongoDB find() method `projection` param.
 
-def _isInclusionProjection(fields):
-    """
-    Test whether a projection filter is an inclusion filter (whitelist) or exclusion
-    projection (blacklist) of fields, as defined by MongoDB find() method `projection` param.
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: list or dict or None
+        """
+        if fields is None:
+            return False
 
-    :param fields: A mask for filtering result documents by key, or None to return the full
-        document, passed to MongoDB find() as the `projection` param.
-    :type fields: list or dict or None
-    """
-    if fields is None:
-        return False
-
-    if not isinstance(fields, dict):
-        # If this is a list/tuple/set, that means inclusion
-        return True
-
-    for k, v in six.viewitems(fields):
-        if k != '_id':
-            # We are only allowed either inclusion or exclusion keys in a dict, there can be no
-            # mixing of these, with the only exception being that the `_id` key can be set as
-            # an exclusion field in a dict that otherwise holds inclusion fields.
-            return v
-
-    # Empty dict or just _id field
-    return fields.get('_id', True)
-
-
-def _overwriteFields(fields, overwrite):
-    """
-    Overwrite the projection filter to either include (in the case of an inclusion filter) or
-    not exclude (in the case of an exclusion filter) the contents of overwrite.
-
-    :param fields: A mask for filtering result documents by key, or None to return the full
-        document, passed to MongoDB find() as the `projection` param.
-    :type fields: list or dict or None
-    :param overwrite: Additional document key(s) to be included or not excluded in fields.
-    :type overwrite: set
-    :returns: A copy of fields with the relevant overwrite changes.
-    """
-    if fields is None:
-        return fields
-
-    if _isInclusionProjection(fields):
         if not isinstance(fields, dict):
-            # Inclusion projection (str, list, or tuple)
-            copy = list(set(fields) | overwrite)
-        else:
-            # Inclusion projection (dict)
-            copy = dict(fields)
-            copy.update(dict.fromkeys(overwrite, True))
-    else:
-        # Exclusion projection (dict)
-        copy = dict(fields)
-        for entry in overwrite:
-            copy.pop(entry, None)
-    return copy
+            # If this is a list/tuple/set, that means inclusion
+            return True
 
-
-def _removeOverwrittenFields(doc, fields):
-    """
-    Edit the document to be consistent with what the user originally requested, undoing what may
-        have been overwritten by _overwriteFields().
-
-    :param doc: A document returned by MongoDB find()
-    :type doc: dict
-    :param fields: The original mask for filtering result documents by key, as specified by the user
-        to be passed to MongoDB find() as the `projection` param.
-    :type fields: list or dict or None
-    """
-    if fields is None:
-        return
-
-    whitelist = []
-    if isinstance(fields, dict):
         for k, v in six.viewitems(fields):
-            if not v:
-                doc.pop(k, None)
+            if k != '_id':
+                # We are only allowed either inclusion or exclusion keys in a dict, there can be no
+                # mixing of these, with the only exception being that the `_id` key can be set as
+                # an exclusion field in a dict that otherwise holds inclusion fields.
+                return v
+
+        # Empty dict or just _id field
+        return fields.get('_id', True)
+
+    @staticmethod
+    def _overwriteFields(fields, overwrite):
+        """
+        Overwrite the projection filter to either include (in the case of an inclusion filter) or
+        not exclude (in the case of an exclusion filter) the contents of overwrite.
+
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: list or dict or None
+        :param overwrite: Additional document key(s) to be included or not excluded in fields.
+        :type overwrite: set
+        :returns: A copy of fields with the relevant overwrite changes.
+        """
+        if fields is None:
+            return fields
+
+        if Model._isInclusionProjection(fields):
+            if not isinstance(fields, dict):
+                # Inclusion projection (str, list, or tuple)
+                copy = list(set(fields) | overwrite)
             else:
-                whitelist.append(k)
-        if whitelist:
+                # Inclusion projection (dict)
+                copy = dict(fields)
+                copy.update(dict.fromkeys(overwrite, True))
+        else:
+            # Exclusion projection (dict)
+            copy = dict(fields)
+            for entry in overwrite:
+                copy.pop(entry, None)
+        return copy
+
+    @staticmethod
+    def _removeOverwrittenFields(doc, fields):
+        """
+        Edit the document to be consistent with what the user originally requested, undoing what may
+            have been overwritten by _overwriteFields().
+
+        :param doc: A document returned by MongoDB find()
+        :type doc: dict
+        :param fields: The original mask for filtering result documents by key, as specified by the
+            user to be passed to MongoDB find() as the `projection` param.
+        :type fields: list or dict or None
+        """
+        if fields is None:
+            return
+
+        whitelist = []
+        if isinstance(fields, dict):
+            for k, v in six.viewitems(fields):
+                if not v:
+                    doc.pop(k, None)
+                else:
+                    whitelist.append(k)
+            if whitelist:
+                for k in list(six.viewkeys(doc)):
+                    if k not in whitelist:
+                        del doc[k]
+        else:
             for k in list(six.viewkeys(doc)):
-                if k not in whitelist:
+                if k not in fields:
                     del doc[k]
-    else:
-        for k in list(six.viewkeys(doc)):
-            if k not in fields:
-                del doc[k]
 
 
 class AccessControlledModel(Model):
@@ -1335,14 +1335,14 @@ class AccessControlledModel(Model):
         loadFields = fields
         overwriteFields = {'access', 'public'}
         if not force:
-            loadFields = _overwriteFields(fields, overwriteFields)
+            loadFields = self._overwriteFields(fields, overwriteFields)
 
         doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)
 
-            _removeOverwrittenFields(doc, fields)
+            self._removeOverwrittenFields(doc, fields)
 
         return doc
 

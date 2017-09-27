@@ -18,9 +18,7 @@
 ###############################################################################
 
 from .. import base
-from girder.models.model_base import (AccessControlledModel, Model, AccessType,
-                                      _overwriteFields, _removeOverwrittenFields,
-                                      _isInclusionProjection)
+from girder.models.model_base import AccessControlledModel, Model, AccessType
 from girder.utility.model_importer import ModelImporter
 
 
@@ -87,14 +85,14 @@ class ModelTestCase(base.TestCase):
         overrideFields = {'access', 'public'}
 
         copy = dict(inclusionProjDict)
-        retval = _overwriteFields(inclusionProjDict, overrideFields)
+        retval = Model._overwriteFields(inclusionProjDict, overrideFields)
         assertItemsEqual(retval, inclusionProjDict)
         assertItemsEqual(inclusionProjDict, copy)
-        retval = _overwriteFields(inclusionProjList, overrideFields)
+        retval = Model._overwriteFields(inclusionProjList, overrideFields)
         assertItemsEqual(retval, inclusionProjList)
-        retval = _overwriteFields(exclusionProjDict, {'newValue'})
+        retval = Model._overwriteFields(exclusionProjDict, {'newValue'})
         assertItemsEqual(retval, exclusionProjDict)
-        retval = _overwriteFields(inclusionProjDict, {'newValue'})
+        retval = Model._overwriteFields(inclusionProjDict, {'newValue'})
         assertItemsEqual(retval, {
             'public': True,
             'access': True,
@@ -102,7 +100,7 @@ class ModelTestCase(base.TestCase):
             'login': True,
             'newValue': True
         })
-        retval = _overwriteFields(exclusionProjDict, overrideFields)
+        retval = Model._overwriteFields(exclusionProjDict, overrideFields)
         assertItemsEqual(retval, {'email': False, 'login': False})
 
         doc = {
@@ -115,7 +113,7 @@ class ModelTestCase(base.TestCase):
             'firstName': 'first',
             'lastName': 'last'
         }
-        _removeOverwrittenFields(doc, exclusionProjDict)
+        Model._removeOverwrittenFields(doc, exclusionProjDict)
         assertItemsEqual(doc, {
             'password': 'password1',
             'admin': False,
@@ -132,7 +130,7 @@ class ModelTestCase(base.TestCase):
             'firstName': 'first',
             'lastName': 'last'
         }
-        _removeOverwrittenFields(doc, inclusionProjList)
+        Model._removeOverwrittenFields(doc, inclusionProjList)
         assertItemsEqual(doc, {
             'public': True,
             'access': True,
@@ -149,7 +147,7 @@ class ModelTestCase(base.TestCase):
             'firstName': 'first',
             'lastName': 'last'
         }
-        _removeOverwrittenFields(doc, inclusionProjDict)
+        Model._removeOverwrittenFields(doc, inclusionProjDict)
         assertItemsEqual(doc, {
             'public': True,
             'access': True,
@@ -157,10 +155,10 @@ class ModelTestCase(base.TestCase):
             'login': 'login'})
 
         # Test None edge cases
-        retval = _overwriteFields(None, {'access', 'public'})
+        retval = Model._overwriteFields(None, {'access', 'public'})
         self.assertIsNone(retval)
         copy = dict(doc)
-        _removeOverwrittenFields(doc, None)
+        Model._removeOverwrittenFields(doc, None)
         assertItemsEqual(copy, doc)
 
         # Test '_id': False inclusion edge case
@@ -179,7 +177,7 @@ class ModelTestCase(base.TestCase):
             'lastName': True
         }
         overwrite = {'_id', 'login'}
-        retval = _overwriteFields(fields, overwrite)
+        retval = Model._overwriteFields(fields, overwrite)
         assertItemsEqual(retval, overwrittenFields)
         doc = {
             '_id': 'id',
@@ -188,7 +186,7 @@ class ModelTestCase(base.TestCase):
             'firstName': 'fname',
             'lastName': 'lname'
         }
-        _removeOverwrittenFields(doc, fields)
+        Model._removeOverwrittenFields(doc, fields)
         assertItemsEqual(doc, {
             'login': 'login',
             'email': 'email@email.com',
@@ -196,10 +194,10 @@ class ModelTestCase(base.TestCase):
             'lastName': 'lname'})
 
         # Test _isInclusionProjection edge cases
-        self.assertEqual(_isInclusionProjection(None), False)
-        self.assertEqual(_isInclusionProjection({}), True)
-        self.assertEqual(_isInclusionProjection({'_id': False}), False)
-        self.assertEqual(_isInclusionProjection({'_id': True}), True)
+        self.assertEqual(Model._isInclusionProjection(None), False)
+        self.assertEqual(Model._isInclusionProjection({}), True)
+        self.assertEqual(Model._isInclusionProjection({'_id': False}), False)
+        self.assertEqual(Model._isInclusionProjection({'_id': True}), True)
 
     def testModelFiltering(self):
         users = ({
