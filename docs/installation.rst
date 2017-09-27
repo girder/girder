@@ -107,8 +107,13 @@ Install from Git repository
 Obtain the Girder source code by cloning the Git repository on
 `GitHub <https://github.com>`_: ::
 
-    git clone https://github.com/girder/girder.git
+    git clone --branch 2.x-maintenance https://github.com/girder/girder.git
     cd girder
+
+.. note:: Note, it is strongly recommended that downstream (i.e. for production or to
+   support plugin development) users installing from Git track the ``2.x-maintenance`` branch, as
+   this branch will always point to the latest version (which is typically pre-release) in the 2.x.x
+   series.
 
 To run the server, you must install some external Python package
 dependencies: ::
