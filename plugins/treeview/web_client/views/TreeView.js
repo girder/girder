@@ -46,6 +46,7 @@ const TreeView = View.extend({
     render() {
         this._destroy();
         jstree(this.el, this.jstreeConfig);
+        return this;
     },
 
     destroy() {

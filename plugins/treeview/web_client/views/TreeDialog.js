@@ -39,6 +39,7 @@ const TreeDialog = View.extend({
         this.treeView.setElement(
             this.$('.g-treeview-container')
         ).render();
+        return this;
     },
 
     _select(model, node) {
