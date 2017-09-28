@@ -195,6 +195,12 @@ def validateApiUrl(doc):
         raise ValidationException('API URL must start with http:// or https://.', 'value')
 
 
+@setting_utilities.validator(PluginSettings.DIRECT_PATH)
+def _validateAutoCompute(doc):
+    if not isinstance(doc['value'], bool):
+        raise ValidationException('The direct path setting must be true or false.')
+
+
 def validateJobStatus(event):
     """Allow our custom job status values."""
     if CustomJobStatus.isValid(event.info):

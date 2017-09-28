@@ -61,7 +61,7 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
     if isinstance(token, dict):
         token = token['_id']
 
-    return {
+    result = {
         'mode': 'girder',
         'api_url': getWorkerApiUrl(),
         'token': token,
@@ -72,6 +72,17 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
         'format': dataFormat,
         'fetch_parent': fetchParent
     }
+
+    if (resourceType == 'file' and not fetchParent and
+            ModelImporter.model('setting').get(PluginSettings.DIRECT_PATH)):
+        # If we are adding a file and it exists on the local filesystem include
+        # that location.  This can permit the user of the specification to
+        # access the file directly instead of downloading the file.
+        fileModel = ModelImporter.model('file')
+        adapter = fileModel.getAssetstoreAdapter(resource)
+        if callable(getattr(adapter, 'fullPath', None)):
+            result['direct_path'] = adapter.fullPath(resource)
+    return result
 
 
 def girderOutputSpec(parent, token, parentType='folder', name=None,
