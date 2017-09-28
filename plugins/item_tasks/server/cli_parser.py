@@ -99,9 +99,10 @@ def parseSlicerCliXml(fd):
             'name': param.label,
             'description': param.description,
             'type': typ,
-            'format': typ,
-            'extra': {'reference': param.reference}
+            'format': typ
         }
+        if param.reference:
+            spec['extra'] = {'reference': param.reference}
 
         if typ in ('string-enumeration', 'number-enumeration'):
             spec['values'] = list(param.elements)
