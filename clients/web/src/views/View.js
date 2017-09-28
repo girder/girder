@@ -72,6 +72,39 @@ var View = Backbone.View.extend({
      */
     unregisterChildView: function (child) {
         this._childViews = _.without(this._childViews, child);
+    },
+
+    /**
+     * Disable Bootstrap tooltips at and below the level of "targetEl".
+     */
+    _disableBootstrapTooltips: function (targetEl) {
+        // While binding to "show.bs.tooltip" and calling "event.preventDefault()" is sufficient to
+        // prevent Bootstrap tooltips from actually appearing, the default browser-rendered tooltips
+        // will no longer be displayed, due to the fact that Bootstrap still initializes all
+        // tooltip-eligible elements as 'Bootstrap tooltips', which has the side effect of renaming
+        // the "title" attribute.
+        //
+        // For dynamically-created elements, this initialization is done
+        // during the "hover" and "focus" pseudo-events (which Bootstrap translates to the real
+        // "mouseenter", "mouseleave", "focusin", and "focusout" events in the "tooltip" namespace).
+        // Blocking these events from reaching Bootstrap is complicated by the fact that
+        // "mouseenter" and "mouseleave" don't bubble, so they can't be caught at the "targetEl"
+        // and have "stopPropagation()" be called to stop the bubbling up to where the tooltip
+        // handler is attached.
+        //
+        // So, here we add a "[title]" selector, to cause our handler to run when any
+        // tooltip-containing element directly receives one of our target event. Despite the fact
+        // that some of these events do not technically bubble, both this and the Bootstrap event
+        // handlers are delegated, and thus are handled in ascending DOM order from the original
+        // target; accordingly our handler (attached to the "targetEl") will be run first, and able
+        // to "stopPropagation()" up to the Bootstrap tooltip handler (typically attached to the
+        // root element of the App).
+        targetEl.on(
+            'mouseenter.tooltip mouseleave.tooltip focusin.tooltip focusout.tooltip',
+            '[title]',
+            (event) => {
+                event.stopPropagation();
+            });
     }
 });
 

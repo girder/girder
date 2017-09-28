@@ -151,6 +151,8 @@ var MetadatumEditWidget = View.extend({
         'click .g-widget-metadata-save-button': 'save',
         'click .g-widget-metadata-delete-button': 'deleteMetadatum',
         'click .g-widget-metadata-toggle-button': function (event) {
+            const target = $(event.currentTarget);
+            target.tooltip('destroy');
             var editorType;
             // @todo modal
             // in the future this event will have the new editorType (assuming a dropdown)
@@ -189,7 +191,9 @@ var MetadatumEditWidget = View.extend({
 
     deleteMetadatum: function (event) {
         event.stopImmediatePropagation();
-        var metadataList = $(event.currentTarget.parentElement).parent();
+        const target = $(event.currentTarget);
+        target.tooltip('destroy');
+        var metadataList = target.parent().parent();
         var params = {
             text: 'Are you sure you want to delete the metadatum <b>' +
                 _.escape(this.key) + '</b>?',
@@ -209,7 +213,9 @@ var MetadatumEditWidget = View.extend({
 
     cancelEdit: function (event) {
         event.stopImmediatePropagation();
-        var curRow = $(event.currentTarget.parentElement).parent();
+        const target = $(event.currentTarget);
+        target.tooltip('destroy');
+        var curRow = target.parent().parent();
         if (this.newDatum) {
             curRow.remove();
         } else {
@@ -219,7 +225,9 @@ var MetadatumEditWidget = View.extend({
 
     save: function (event, value) {
         event.stopImmediatePropagation();
-        var curRow = $(event.currentTarget.parentElement),
+        const target = $(event.currentTarget);
+        target.tooltip('destroy');
+        var curRow = target.parent(),
             tempKey = curRow.find('.g-widget-metadata-key-input').val(),
             tempValue = (value !== undefined) ? value : curRow.find('.g-widget-metadata-value-input').val();
 
@@ -314,18 +322,10 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
     render: function () {
         MetadatumEditWidget.prototype.render.apply(this, arguments);
 
-        this.editor = new JSONEditor(this.$el.find('.g-json-editor')[0], {
+        const jsonEditorEl = this.$el.find('.g-json-editor');
+        this.editor = new JSONEditor(jsonEditorEl[0], {
             mode: 'tree',
             modes: ['code', 'tree'],
-            onModeChange: () => {
-                // JSONEditor removes tooltip-containing elements without destroying their
-                // Bootstrap-styled tooltips first. Since this callback is not called until after
-                // the original tooltip-containing element is destroyed, the only way to clean up is
-                // to remove the tooltip from DOM.
-                // When used in an external app with no tooltip styling enabled, this call should
-                // have no effect (assuming there's no other ".tooltip" elements.
-                $('.tooltip').remove();
-            },
             onError: () => {
                 events.trigger('g:alert', {
                     text: 'The field contains invalid JSON and can not be viewed in Tree Mode.',
@@ -333,6 +333,10 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
                 });
             }
         });
+        // JSONEditor removes tooltip-containing elements without destroying their
+        // Bootstrap-styled tooltips first. To fix this, disable Bootstrap tooltips within all
+        // JSONEditor elements.
+        this._disableBootstrapTooltips(jsonEditorEl);
 
         if (this.value !== undefined) {
             this.editor.setText(JSON.stringify(this.value));
