@@ -139,7 +139,7 @@ class ItemTask(Resource):
 
         return transformed
 
-    def _transformOutputs(self, outputs, token, job, task):
+    def _transformOutputs(self, outputs, token, job, task, taskId):
         """
         Validates and sanitizes the output bindings. If they are Girder outputs, adds
         the necessary token info. If the token does not allow DATA_WRITE, or if the user
@@ -161,7 +161,8 @@ class ItemTask(Resource):
                     reference=json.dumps({
                         'type': 'item_tasks.output',
                         'id': k,
-                        'jobId': str(job['_id'])
+                        'jobId': str(job['_id']),
+                        'taskId': str(taskId)
                     }))
             else:
                 raise ValidationException('Invalid output mode: %s.' % v['mode'])
@@ -230,7 +231,7 @@ class ItemTask(Resource):
             'kwargs': {
                 'task': task,
                 'inputs': self._transformInputs(inputs, token),
-                'outputs': self._transformOutputs(outputs, token, job, task),
+                'outputs': self._transformOutputs(outputs, token, job, task, item['_id']),
                 'validate': False,
                 'auto_convert': False,
                 'cleanup': True
