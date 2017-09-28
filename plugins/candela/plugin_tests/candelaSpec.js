@@ -19,7 +19,7 @@ describe('Test the candela UI.', function () {
         }, 'Public and Private folders to appear');
 
         runs(function () {
-            $('a.g-folder-list-link:last').click();
+            $('a.g-folder-list-link:contains("Public")').click();
         });
         girderTest.waitForLoad();
 
@@ -104,19 +104,21 @@ describe('Test the candela UI.', function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
             $('.g-user-text>a:first').click();
         });
-        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('#g-user-action-menu.open').length === 1;
+        }, 'menu to open');
 
         runs(function () {
-            expect($('#g-user-action-menu.open').length).toBe(1);
             $('a.g-my-folders').click();
         });
-        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('.g-folder-list-link').length > 0;
+        }, 'user folder list to load');
 
         runs(function () {
-            $('a.g-folder-list-link:last').click();
+            $('a.g-folder-list-link:contains("Public")').click();
         });
         girderTest.waitForLoad();
-
         waitsFor(function () {
             return $('ol.breadcrumb>li.active').text() === 'Public' &&
                    $('.g-item-list-link').length === 1;
