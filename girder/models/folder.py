@@ -127,7 +127,7 @@ class Folder(AccessControlledModel):
         # Ensure we include extra fields to do the migration below
         extraFields = {'baseParentId', 'baseParentType', 'parentId', 'parentCollection',
                        'name', 'lowerName'}
-        loadFields = self._overwriteFields(fields, extraFields)
+        loadFields = self._supplementFields(fields, extraFields)
 
         doc = super(Folder, self).load(
             id=id, level=level, user=user, objectId=objectId, force=force, fields=loadFields,
@@ -149,7 +149,7 @@ class Folder(AccessControlledModel):
                     'lowerName': doc['lowerName']
                 }})
 
-            self._removeOverwrittenFields(doc, fields)
+            self._removeSupplementalFields(doc, fields)
 
         return doc
 

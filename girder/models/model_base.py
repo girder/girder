@@ -597,7 +597,7 @@ class Model(ModelImporter):
         return fields.get('_id', True)
 
     @staticmethod
-    def _overwriteFields(fields, overwrite):
+    def _supplementFields(fields, overwrite):
         """
         Overwrite the projection filter to either include (in the case of an inclusion filter) or
         not exclude (in the case of an exclusion filter) the contents of overwrite.
@@ -628,10 +628,10 @@ class Model(ModelImporter):
         return copy
 
     @staticmethod
-    def _removeOverwrittenFields(doc, fields):
+    def _removeSupplementalFields(doc, fields):
         """
         Edit the document to be consistent with what the user originally requested, undoing what may
-            have been overwritten by _overwriteFields().
+            have been overwritten by _supplementFields().
 
         :param doc: A document returned by MongoDB find()
         :type doc: dict
@@ -1334,14 +1334,14 @@ class AccessControlledModel(Model):
         loadFields = fields
         if not force:
             extraFields = {'access', 'public'}
-            loadFields = self._overwriteFields(fields, extraFields)
+            loadFields = self._supplementFields(fields, extraFields)
 
         doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)
 
-            self._removeOverwrittenFields(doc, fields)
+            self._removeSupplementalFields(doc, fields)
 
         return doc
 

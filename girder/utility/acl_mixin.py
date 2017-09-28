@@ -55,7 +55,7 @@ class AccessControlMixin(object):
             extraFields = {'attachedToId', 'attachedToType'}
             if self.resourceParent:
                 extraFields.add(self.resourceParent)
-            loadFields = self._overwriteFields(fields, extraFields)
+            loadFields = self._supplementFields(fields, extraFields)
 
         doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
 
@@ -68,7 +68,7 @@ class AccessControlMixin(object):
                 loadId = doc.get('attachedToId')
             self.model(loadType).load(loadId, level=level, user=user, exc=exc)
 
-            self._removeOverwrittenFields(doc, fields)
+            self._removeSupplementalFields(doc, fields)
 
         return doc
 

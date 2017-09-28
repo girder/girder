@@ -85,14 +85,14 @@ class ModelTestCase(base.TestCase):
         overrideFields = {'access', 'public'}
 
         copy = dict(inclusionProjDict)
-        retval = Model._overwriteFields(inclusionProjDict, overrideFields)
+        retval = Model._supplementFields(inclusionProjDict, overrideFields)
         assertItemsEqual(retval, inclusionProjDict)
         assertItemsEqual(inclusionProjDict, copy)
-        retval = Model._overwriteFields(inclusionProjList, overrideFields)
+        retval = Model._supplementFields(inclusionProjList, overrideFields)
         assertItemsEqual(retval, inclusionProjList)
-        retval = Model._overwriteFields(exclusionProjDict, {'newValue'})
+        retval = Model._supplementFields(exclusionProjDict, {'newValue'})
         assertItemsEqual(retval, exclusionProjDict)
-        retval = Model._overwriteFields(inclusionProjDict, {'newValue'})
+        retval = Model._supplementFields(inclusionProjDict, {'newValue'})
         assertItemsEqual(retval, {
             'public': True,
             'access': True,
@@ -100,7 +100,7 @@ class ModelTestCase(base.TestCase):
             'login': True,
             'newValue': True
         })
-        retval = Model._overwriteFields(exclusionProjDict, overrideFields)
+        retval = Model._supplementFields(exclusionProjDict, overrideFields)
         assertItemsEqual(retval, {'email': False, 'login': False})
 
         doc = {
@@ -113,7 +113,7 @@ class ModelTestCase(base.TestCase):
             'firstName': 'first',
             'lastName': 'last'
         }
-        Model._removeOverwrittenFields(doc, exclusionProjDict)
+        Model._removeSupplementalFields(doc, exclusionProjDict)
         assertItemsEqual(doc, {
             'password': 'password1',
             'admin': False,
@@ -130,7 +130,7 @@ class ModelTestCase(base.TestCase):
             'firstName': 'first',
             'lastName': 'last'
         }
-        Model._removeOverwrittenFields(doc, inclusionProjList)
+        Model._removeSupplementalFields(doc, inclusionProjList)
         assertItemsEqual(doc, {
             'public': True,
             'access': True,
@@ -147,7 +147,7 @@ class ModelTestCase(base.TestCase):
             'firstName': 'first',
             'lastName': 'last'
         }
-        Model._removeOverwrittenFields(doc, inclusionProjDict)
+        Model._removeSupplementalFields(doc, inclusionProjDict)
         assertItemsEqual(doc, {
             'public': True,
             'access': True,
@@ -155,10 +155,10 @@ class ModelTestCase(base.TestCase):
             'login': 'login'})
 
         # Test None edge cases
-        retval = Model._overwriteFields(None, {'access', 'public'})
+        retval = Model._supplementFields(None, {'access', 'public'})
         self.assertIsNone(retval)
         copy = dict(doc)
-        Model._removeOverwrittenFields(doc, None)
+        Model._removeSupplementalFields(doc, None)
         assertItemsEqual(copy, doc)
 
         # Test '_id': False inclusion edge case
@@ -177,7 +177,7 @@ class ModelTestCase(base.TestCase):
             'lastName': True
         }
         overwrite = {'_id', 'login'}
-        retval = Model._overwriteFields(fields, overwrite)
+        retval = Model._supplementFields(fields, overwrite)
         assertItemsEqual(retval, overwrittenFields)
         doc = {
             '_id': 'id',
@@ -186,7 +186,7 @@ class ModelTestCase(base.TestCase):
             'firstName': 'fname',
             'lastName': 'lname'
         }
-        Model._removeOverwrittenFields(doc, fields)
+        Model._removeSupplementalFields(doc, fields)
         assertItemsEqual(doc, {
             'login': 'login',
             'email': 'email@email.com',
