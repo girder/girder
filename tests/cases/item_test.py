@@ -625,20 +625,22 @@ class ItemTestCase(base.TestCase):
         item = self.model('item').createItem(
             'My Item Name', creator=self.users[0], folder=self.publicFolder,
             description=None)
-        self.assertEqual(item['lowerName'], 'my item name (1)')
+        # test if non-strings are coerced
         self.assertEqual(item['description'], '')
-        # test if non-strings are coerced and if just missing lowerName is
-        # corrected.
         item['description'] = 1
+        item = self.model('item').save(item)
+        item = self.model('item').findOne({'_id': item['_id']})
+        self.assertEqual(item['description'], '1')
+        # test if just missing lowerName is corrected.
+        self.assertEqual(item['lowerName'], 'my item name (1)')
         del item['lowerName']
         item = self.model('item').save(item, validate=False)
-        item = self.model('item').find({'_id': item['_id']})[0]
+        item = self.model('item').findOne({'_id': item['_id']})
         self.assertNotHasKeys(item, ('lowerName', ))
         self.model('item').load(item['_id'], force=True)
-        item = self.model('item').find({'_id': item['_id']})[0]
+        item = self.model('item').findOne({'_id': item['_id']})
         self.assertHasKeys(item, ('lowerName', ))
         self.assertEqual(item['lowerName'], 'my item name (1)')
-        self.assertEqual(item['description'], '1')
 
     def testParentsToRoot(self):
         """
