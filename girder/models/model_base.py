@@ -631,7 +631,7 @@ class Model(ModelImporter):
     def _removeSupplementalFields(doc, fields):
         """
         Edit the document to be consistent with what the user originally requested, undoing what may
-            have been overwritten by _supplementFields().
+        have been overwritten by _supplementFields().
 
         :param doc: A document returned by MongoDB find()
         :type doc: dict
