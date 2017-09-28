@@ -1324,7 +1324,6 @@ class AccessControlledModel(Model):
         :raises ValidationException: If an invalid ObjectId is passed.
         :returns: The matching document, or None if no match exists.
         """
-
         # Warn of str type deprecation for `fields` param
         if isinstance(fields, six.string_types):
             logger.warning('String data type for fields param is deprecated, \
@@ -1333,9 +1332,9 @@ class AccessControlledModel(Model):
 
         # Ensure we include access and public, they are needed by requireAccess
         loadFields = fields
-        overwriteFields = {'access', 'public'}
         if not force:
-            loadFields = self._overwriteFields(fields, overwriteFields)
+            extraFields = {'access', 'public'}
+            loadFields = self._overwriteFields(fields, extraFields)
 
         doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
 

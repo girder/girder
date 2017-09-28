@@ -287,7 +287,7 @@ class Job(AccessControlledModel):
         kwargs['fields'] = self._computeFields(kwargs)
         job = super(Job, self).load(*args, **kwargs)
 
-        if job and isinstance(job['kwargs'], six.string_types):
+        if job and isinstance(job.get('kwargs'), six.string_types):
             job['kwargs'] = json_util.loads(job['kwargs'])
         if job and isinstance(job.get('log'), six.string_types):
             # Legacy support: log used to be just a string, but we want to

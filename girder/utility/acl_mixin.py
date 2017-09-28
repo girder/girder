@@ -50,7 +50,14 @@ class AccessControlMixin(object):
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlledModel.load`.
         """
-        doc = Model.load(self, id=id, objectId=objectId, fields=fields, exc=exc)
+        loadFields = fields
+        if not force:
+            extraFields = {'attachedToId', 'attachedToType'}
+            if self.resourceParent:
+                extraFields.add(self.resourceParent)
+            loadFields = self._overwriteFields(fields, extraFields)
+
+        doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
 
         if not force and doc is not None:
             if doc.get(self.resourceParent):
@@ -60,6 +67,8 @@ class AccessControlMixin(object):
                 loadType = doc.get('attachedToType')
                 loadId = doc.get('attachedToId')
             self.model(loadType).load(loadId, level=level, user=user, exc=exc)
+
+            self._removeOverwrittenFields(doc, fields)
 
         return doc
 
