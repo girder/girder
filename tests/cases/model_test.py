@@ -64,6 +64,141 @@ class ModelTestCase(base.TestCase):
         ModelImporter.registerModel('fake_ac', FakeAcModel())
         ModelImporter.registerModel('fake', FakeModel())
 
+    def testProjectionUtils(self):
+        def assertItemsEqual(a, b):
+            self.assertEqual(len(a), len(b))
+            self.assertEqual(sorted(a), sorted(b))
+
+        inclusionProjDict = {
+            'public': True,
+            'access': True,
+            'email': True,
+            'login': True
+        }
+        inclusionProjList = ['public', 'access', 'email', 'login']
+        exclusionProjDict = {
+            'public': False,
+            'access': False,
+            'email': False,
+            'login': False
+        }
+        overrideFields = {'access', 'public'}
+
+        copy = dict(inclusionProjDict)
+        retval = Model._overwriteFields(inclusionProjDict, overrideFields)
+        assertItemsEqual(retval, inclusionProjDict)
+        assertItemsEqual(inclusionProjDict, copy)
+        retval = Model._overwriteFields(inclusionProjList, overrideFields)
+        assertItemsEqual(retval, inclusionProjList)
+        retval = Model._overwriteFields(exclusionProjDict, {'newValue'})
+        assertItemsEqual(retval, exclusionProjDict)
+        retval = Model._overwriteFields(inclusionProjDict, {'newValue'})
+        assertItemsEqual(retval, {
+            'public': True,
+            'access': True,
+            'email': True,
+            'login': True,
+            'newValue': True
+        })
+        retval = Model._overwriteFields(exclusionProjDict, overrideFields)
+        assertItemsEqual(retval, {'email': False, 'login': False})
+
+        doc = {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login',
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'
+        }
+        Model._removeOverwrittenFields(doc, exclusionProjDict)
+        assertItemsEqual(doc, {
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'})
+
+        doc = {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login',
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'
+        }
+        Model._removeOverwrittenFields(doc, inclusionProjList)
+        assertItemsEqual(doc, {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login'})
+
+        doc = {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login',
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'
+        }
+        Model._removeOverwrittenFields(doc, inclusionProjDict)
+        assertItemsEqual(doc, {
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login'})
+
+        # Test None edge cases
+        retval = Model._overwriteFields(None, {'access', 'public'})
+        self.assertIsNone(retval)
+        copy = dict(doc)
+        Model._removeOverwrittenFields(doc, None)
+        assertItemsEqual(copy, doc)
+
+        # Test '_id': False inclusion edge case
+        fields = {
+            '_id': False,
+            'login': True,
+            'email': True,
+            'firstName': True,
+            'lastName': True
+        }
+        overwrittenFields = {
+            '_id': True,
+            'login': True,
+            'email': True,
+            'firstName': True,
+            'lastName': True
+        }
+        overwrite = {'_id', 'login'}
+        retval = Model._overwriteFields(fields, overwrite)
+        assertItemsEqual(retval, overwrittenFields)
+        doc = {
+            '_id': 'id',
+            'login': 'login',
+            'email': 'email@email.com',
+            'firstName': 'fname',
+            'lastName': 'lname'
+        }
+        Model._removeOverwrittenFields(doc, fields)
+        assertItemsEqual(doc, {
+            'login': 'login',
+            'email': 'email@email.com',
+            'firstName': 'fname',
+            'lastName': 'lname'})
+
+        # Test _isInclusionProjection edge cases
+        self.assertEqual(Model._isInclusionProjection(None), False)
+        self.assertEqual(Model._isInclusionProjection({}), True)
+        self.assertEqual(Model._isInclusionProjection({'_id': False}), False)
+        self.assertEqual(Model._isInclusionProjection({'_id': True}), True)
+
     def testModelFiltering(self):
         users = ({
             'email': 'good@email.com',
