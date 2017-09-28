@@ -74,14 +74,3 @@ class CliParserTest(base.TestCase):
                 break
         else:
             raise Exception('InputImage not added to spec.')
-
-    def test_extra_output_reference(self):
-        """Check that the optional "reference" is added to the spec."""
-        spec = self.parse_file('nuclei_detection.xml')
-        outputs = spec['outputs']
-        for output in outputs:
-            if output['name'] == 'Output Nuclei Annotation File':
-                self.assertEqual(output['extra'].get('reference'), 'inputImageFile')
-                break
-        else:
-            raise Exception('Output file not added to spec.')
