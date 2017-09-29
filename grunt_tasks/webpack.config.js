@@ -205,6 +205,12 @@ module.exports = {
             'girder': paths.web_src
         },
         extensions: ['.js'],
+        // Add 'jsnext:main' as an additional field in 'package.json' for looking up source files.
+        // See https://github.com/jsforum/jsforum/issues/5 for more information on this field.
+        //
+        // In particular, the Moment.js library uses 'jsnext:main' to point to its ES6 modules,
+        // which we should prefer over its UMD-built dist file (referenced by 'main').
+        mainFields: ['jsnext:main', 'browser', 'module', 'main'],
         symlinks: false
     },
     node: {
