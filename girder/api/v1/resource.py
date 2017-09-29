@@ -21,20 +21,13 @@ import six
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource as BaseResource, RestException, setResponseHeader, setContentDisposition
-from girder.constants import AccessType, TokenScope
+from girder.constants import AccessType, ResourceRegistry, TokenScope
 from girder.api import access
 from girder.utility import parseTimestamp
 from girder.utility import ziputil
 from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
 
-# Plugins can modify this set to allow other types to be searched
-allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
-allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
-
-# Plugins can modify this set to allow other search mode
-allowedSearchModes = {'text', 'prefix'}
-allowedNewSearchModes = {}
 
 class Resource(BaseResource):
     """
@@ -44,7 +37,6 @@ class Resource(BaseResource):
         super(Resource, self).__init__()
         self.resourceName = 'resource'
         self.route('GET', ('search',), self.search)
-        self.route('PUT', ('search','mode'), self.addSearchMode)
         self.route('GET', ('lookup',), self.lookup)
         self.route('GET', (':id',), self.getResource)
         self.route('GET', (':id', 'path'), self.path)
@@ -70,22 +62,18 @@ class Resource(BaseResource):
     #     .errorResponse('Invalid type list format.')
     # )
     def search(self, q, mode, types, level, limit, offset):
-        newSearchMode = False
         level = AccessType.validate(level)
         user = self.getCurrentUser()
+        allowedSearchModes = ResourceRegistry.ALLOWED_SEARCH_MODE
 
         if mode in allowedSearchModes:
-            method = '{0}Search'.format(mode)
-        else :
-            if mode in allowedNewSearchModes:
-                method =  allowedNewSearchModes[mode]['handler']
-                newSearchMode = True
-            else :
-                return None
+            method = allowedSearchModes[mode]['method']
+        else:
+            return None
 
         results = {}
         for modelName in types:
-            if modelName not in allowedSearchTypes:
+            if modelName not in allowedSearchModes[mode]['types']:
                 continue
 
             if '.' in modelName:
@@ -94,38 +82,32 @@ class Resource(BaseResource):
             else:
                 model = self.model(modelName)
 
-            if newSearchMode:
-                if modelName not in allowedNewSearchModes[mode]['types']
-                    continue
-                results[modelName] = [
-                    model.filter(d, user) for d in method(query=q, user=user, limit=limit, offset=offset, level=level)
-                ]
-            else :
+            if self._isDefault(mode):
+                print mode
                 results[modelName] = [
                     model.filter(d, user) for d in getattr(model, method)(
+                        query=q, user=user, limit=limit, offset=offset, level=level)
+                ]
+            else:
+                results[modelName] = [
+                    model.filter(d, user) for d in method(
                         query=q, user=user, limit=limit, offset=offset, level=level)
                 ]
 
         return results
 
-    @access.public
-    # @autoDescribeRoute(
-    #     Description('Add new mode search in the system.')
-    #     .param('mode', 'The search mode to add')
-    #     .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
-    #                '["user", "folder", "item"].', requireArray=True)
-    #     .errorResponse('Invalid mode name.')
-    #     .errorResponse('Invalid type list format.')
-    # )
+    def _isDefault(self, mode):
+        return mode in {'text', 'prefix'}
+
     def addSearchMode(self, mode, types, handler):
-        allowedNewSearchModes.update({
+        ResourceRegistry.ALLOWED_SEARCH_MODE.update({
             mode: {
                 'types': types,
-                'handler': handler
+                'method': handler
             }})
 
     def removeSearchMode(self, mode):
-        return allowedNewSearchModes.pop(mode, None)
+        return ResourceRegistry.ALLOWED_SEARCH_MODE.pop(mode, None)
 
     def _validateResourceSet(self, resources, allowedModels=None):
         """
@@ -264,7 +246,7 @@ class Resource(BaseResource):
     )
     def delete(self, resources, progress):
         user = self.getCurrentUser()
-        self._validateResourceSet(resources, allowedDeleteTypes)
+        self._validateResourceSet(resources, ResourceRegistry.ALLOWED_DELETE_TYPES)
         total = sum([len(resources[key]) for key in resources])
         with ProgressContext(
                 progress, user=user, title='Deleting resources',

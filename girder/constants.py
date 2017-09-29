@@ -349,3 +349,19 @@ class CoreEventHandler(object):
 
     # For updating the cached webroot HTML when settings change.
     WEBROOT_SETTING_CHANGE = 'core.updateWebrootSettings'
+
+class ResourceRegistry:
+    # For register all the search mode with the allowed types and the handler as 'method' attribute.
+    # Plugins can modify this set to allow other search mode
+    ALLOWED_SEARCH_MODE =   {
+                                'text':     {
+                                                'types': {'collection', 'folder', 'group', 'item', 'user'},
+                                                'method': 'textSearch'
+                                            },
+                                'prefix':   {
+                                                'types': {'collection', 'folder', 'group', 'item', 'user'},
+                                                'method': 'prefixSearch'
+                                            }
+                            }
+
+    ALLOWED_DELETE_TYPES =  {'collection', 'file', 'folder', 'group', 'item', 'user'}
