@@ -48,19 +48,19 @@ class Resource(BaseResource):
         self.route('DELETE', (), self.delete)
 
     @access.public
-    # @autoDescribeRoute(
-    #     Description('Search for resources in the system.')
-    #     .param('q', 'The search query.')
-    #     .param('mode', 'The search mode. Can use either a text search or a '
-    #            'prefix-based search.', enum=('text', 'prefix'), required=False,
-    #            default='text')
-    #     .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
-    #                '["user", "folder", "item"].', requireArray=True)
-    #     .param('level', 'Minimum required access level.', required=False,
-    #            dataType='integer', default=AccessType.READ)
-    #     .pagingParams(defaultSort=None, defaultLimit=10)
-    #     .errorResponse('Invalid type list format.')
-    # )
+    @autoDescribeRoute(
+        Description('Search for resources in the system.')
+        .param('q', 'The search query.')
+        .param('mode', 'The search mode. Can use either a text search or a '
+               'prefix-based search.', enum=('text', 'prefix'), required=False,
+               default='text')
+        .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
+                   '["user", "folder", "item"].', requireArray=True)
+        .param('level', 'Minimum required access level.', required=False,
+               dataType='integer', default=AccessType.READ)
+        .pagingParams(defaultSort=None, defaultLimit=10)
+        .errorResponse('Invalid type list format.')
+    )
     def search(self, q, mode, types, level, limit, offset):
         level = AccessType.validate(level)
         user = self.getCurrentUser()
