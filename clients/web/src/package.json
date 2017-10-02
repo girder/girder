@@ -19,6 +19,7 @@
         "eonasdan-bootstrap-datetimepicker": "~4.17",
         "jquery": "~3.2.1",
         "jsoneditor": "~5.9.3",
+        "moment": "~2.18.1",
         "remarkable": "~1.7.1",
         "sprintf-js": "~1.0.3",
         "swagger-ui": "~2.2.10",
