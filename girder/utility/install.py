@@ -78,9 +78,10 @@ def _getPluginBuildArgs(buildAll, plugins):
     plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
 
     # include static-only dependencies that are not in the runtime load set
-    staticPlugins = plugin_utilities.getToposortedPlugins(
-        plugins, ignoreMissing=True, keys=('dependencies', 'staticWebDependencies'))
-    staticPlugins = [p for p in staticPlugins if p not in plugins]
+    # staticPlugins = plugin_utilities.getToposortedPlugins(
+    #     plugins, ignoreMissing=True, keys=('dependencies', 'staticWebDependencies'))
+    # staticPlugins = [p for p in staticPlugins if p not in plugins]
+    staticPlugins = []
 
     return [
         '--plugins=%s' % ','.join(plugins),

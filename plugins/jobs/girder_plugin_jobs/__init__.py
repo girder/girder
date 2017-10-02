@@ -19,8 +19,9 @@
 
 import importlib
 
-from girder import events
+from girder import events, plugin
 from . import constants, job_rest
+from .models import job as job_model  # noqa
 
 
 def scheduleLocal(event):
@@ -43,6 +44,12 @@ def scheduleLocal(event):
         fn(job)
 
 
+@plugin.config(
+    name='jobs',
+    description='A general purpose plugin for managing offline jobs.',
+    url='http://girder.readthedocs.io/en/latest/plugins.html#jobs',
+    version='2.0.0'
+)
 def load(info):
     info['apiRoot'].job = job_rest.Job()
     events.bind('jobs.schedule', 'jobs', scheduleLocal)
