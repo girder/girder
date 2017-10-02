@@ -124,18 +124,32 @@ class Folder(AccessControlledModel):
                       checking on this resource, set this to True.
         :type force: bool
         """
-        doc = AccessControlledModel.load(
-            self, id=id, objectId=objectId, level=level, fields=fields,
-            exc=exc, force=force, user=user)
+        # Ensure we include extra fields to do the migration below
+        extraFields = {'baseParentId', 'baseParentType', 'parentId', 'parentCollection',
+                       'name', 'lowerName'}
+        loadFields = self._supplementFields(fields, extraFields)
 
-        if doc is not None and 'baseParentType' not in doc:
-            pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
-            baseParent = pathFromRoot[0]
-            doc['baseParentId'] = baseParent['object']['_id']
-            doc['baseParentType'] = baseParent['type']
-            doc = self.save(doc, triggerEvents=False)
-        if doc is not None and 'lowerName' not in doc:
-            doc = self.save(doc, triggerEvents=False)
+        doc = super(Folder, self).load(
+            id=id, level=level, user=user, objectId=objectId, force=force, fields=loadFields,
+            exc=exc)
+
+        if doc is not None:
+            if 'baseParentType' not in doc:
+                pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
+                baseParent = pathFromRoot[0]
+                doc['baseParentId'] = baseParent['object']['_id']
+                doc['baseParentType'] = baseParent['type']
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'baseParentId': doc['baseParentId'],
+                    'baseParentType': doc['baseParentType']
+                }})
+            if 'lowerName' not in doc:
+                doc['lowerName'] = doc['name'].lower()
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'lowerName': doc['lowerName']
+                }})
+
+            self._removeSupplementalFields(doc, fields)
 
         return doc
 
