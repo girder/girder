@@ -83,7 +83,6 @@ class Resource(BaseResource):
                 model = self.model(modelName)
 
             if self._isDefault(mode):
-                print mode
                 results[modelName] = [
                     model.filter(d, user) for d in getattr(model, method)(
                         query=q, user=user, limit=limit, offset=offset, level=level)
