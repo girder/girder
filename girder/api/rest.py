@@ -21,6 +21,7 @@ import cgi
 import cherrypy
 import collections
 import datetime
+import inspect
 import json
 import posixpath
 import six
@@ -434,7 +435,7 @@ class loadmodel(ModelImporter):  # noqa: class name
         return wrapped
 
 
-class filtermodel(ModelImporter):  # noqa: class name
+class filtermodel(object):  # noqa: class name
     def __init__(self, model, plugin='_core', addFields=None):
         """
         This creates a decorator that will filter a model or list of models
@@ -442,17 +443,20 @@ class filtermodel(ModelImporter):  # noqa: class name
         ``filter`` method. Filters the results for the user making the current
         request (i.e. the value of ``getCurrentUser()``).
 
-        :param model: The model name.
-        :type model: str
-        :param plugin: The plugin name if this is a plugin model.
+        :param model: The model class, or the model name.
+        :type model: class or str
+        :param plugin: The plugin name if this is a plugin model. Only used if the
+            ``model`` param is a str rather than a class.
         :type plugin: str
         :param addFields: Extra fields (key names) that should be included in
             the returned document(s), in addition to any in the model's normal
             whitelist. Only affects top level fields.
         :type addFields: `set, list, tuple, or None`
         """
-        self.modelName = model
-        self.plugin = plugin
+        if inspect.isclass(model):
+            self.model = model()
+        else:
+            self.model = ModelImporter.model(model, plugin)
         self.addFields = addFields
 
     def __call__(self, fun):
@@ -463,15 +467,13 @@ class filtermodel(ModelImporter):  # noqa: class name
                 return None
 
             user = getCurrentUser()
-            model = self.model(self.modelName, self.plugin)
 
             if isinstance(val, (list, tuple)):
-                return [model.filter(m, user, self.addFields) for m in val]
+                return [self.model.filter(m, user, self.addFields) for m in val]
             elif isinstance(val, dict):
-                return model.filter(val, user, self.addFields)
+                return self.model.filter(val, user, self.addFields)
             else:
-                raise Exception(
-                    'Cannot call filtermodel on return type: %s.' % type(val))
+                raise Exception('Cannot call filtermodel on return type: %s.' % type(val))
         return wrapped
 
 
