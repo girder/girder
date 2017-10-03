@@ -30,6 +30,7 @@ from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.models.model_base import GirderException
+from girder.models.setting import Setting
 from girder.utility import config, install, plugin_utilities, system
 from girder.utility.path import NotFoundException
 from girder.utility.progress import ProgressContext
@@ -92,9 +93,9 @@ class System(Resource):
                     pass
 
             if value is None:
-                self.model('setting').unset(key=key)
+                Setting().unset(key=key)
             else:
-                self.model('setting').set(key=key, value=value)
+                Setting().set(key=key, value=value)
 
         return True
 
@@ -139,7 +140,7 @@ class System(Resource):
                 getFuncName = 'getDefault'
             elif default:
                 raise RestException("Default was not 'none', 'default', or blank.")
-        getFunc = getattr(self.model('setting'), getFuncName)
+        getFunc = getattr(Setting(), getFuncName)
         if list is not None:
             return {k: getFunc(k, **funcParams) for k in list}
         else:
@@ -155,7 +156,7 @@ class System(Resource):
     def getPlugins(self):
         plugins = {
             'all': plugin_utilities.findAllPlugins(),
-            'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED)
+            'enabled': Setting().get(SettingKey.PLUGINS_ENABLED)
         }
         failureInfo = plugin_utilities.getPluginFailureInfo()
         if failureInfo:
@@ -183,7 +184,7 @@ class System(Resource):
     )
     def enablePlugins(self, plugins):
         # Determine what plugins have been disabled and remove their associated routes.
-        setting = self.model('setting')
+        setting = Setting()
         routeTable = setting.get(SettingKey.ROUTE_TABLE)
         oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
         reservedRoutes = {GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID}
@@ -212,7 +213,7 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def unsetSetting(self, key):
-        return self.model('setting').unset(key)
+        return Setting().unset(key)
 
     @access.admin(scope=TokenScope.PARTIAL_UPLOAD_READ)
     @autoDescribeRoute(
@@ -494,7 +495,7 @@ class System(Resource):
                'of collection, file, and group')
     )
     def getCollectionCreationPolicyAccess(self):
-        cpp = self.model('setting').get('core.collection_create_policy')
+        cpp = Setting().get('core.collection_create_policy')
 
         acList = {
             'users': [{'id': x} for x in cpp.get('users', [])],
