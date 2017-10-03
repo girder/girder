@@ -38,6 +38,18 @@ _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
                     'modifiers', 'manipulate')
 
 
+class _ModelSingleton(type):
+    def __init__(cls, name, bases, dict):
+        super(_ModelSingleton, cls).__init__(name, bases, dict)
+        cls._instance = None
+
+    def __call__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(_ModelSingleton, cls).__call__(*args, **kwargs)
+        return cls._instance
+
+
+@six.add_metaclass(_ModelSingleton)
 class Model(ModelImporter):
     """
     Model base class. Models are responsible for abstracting away the
