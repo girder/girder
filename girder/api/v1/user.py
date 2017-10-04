@@ -25,6 +25,7 @@ from ..describe import Description, autoDescribeRoute
 from girder.api import access
 from girder.api.rest import Resource, RestException, AccessException, filtermodel, setCurrentUser
 from girder.constants import AccessType, SettingKey, TokenScope
+from girder.models.user import User as UserModel
 from girder.models.token import genToken
 from girder.utility import mail_utils
 from girder.utility.model_importer import ModelImporter
@@ -36,6 +37,7 @@ class User(Resource):
     def __init__(self):
         super(User, self).__init__()
         self.resourceName = 'user'
+        self._model = UserModel()
 
         self.route('DELETE', ('authentication',), self.logout)
         self.route('DELETE', (':id',), self.deleteUser)
@@ -58,7 +60,7 @@ class User(Resource):
         self.route('POST', ('verification',), self.sendVerificationEmail)
 
     @access.public
-    @filtermodel(model='user')
+    @filtermodel(model=UserModel)
     @autoDescribeRoute(
         Description('List or search for users.')
         .responseClass('User', array=True)
@@ -66,15 +68,15 @@ class User(Resource):
         .pagingParams(defaultSort='lastName')
     )
     def find(self, text, limit, offset, sort):
-        return list(self.model('user').search(
+        return list(self._model.search(
             text=text, user=self.getCurrentUser(), offset=offset, limit=limit, sort=sort))
 
     @access.public(scope=TokenScope.USER_INFO_READ)
-    @filtermodel(model='user')
+    @filtermodel(model=UserModel)
     @autoDescribeRoute(
         Description('Get a user by ID.')
         .responseClass('User')
-        .modelParam('id', model='user', level=AccessType.READ)
+        .modelParam('id', model=UserModel, level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to see this user.', 403)
     )
@@ -82,7 +84,7 @@ class User(Resource):
         return user
 
     @access.public(scope=TokenScope.USER_INFO_READ)
-    @filtermodel(model='user')
+    @filtermodel(model=UserModel)
     @autoDescribeRoute(
         Description('Retrieve the currently logged-in user information.')
         .responseClass('User')
@@ -119,13 +121,13 @@ class User(Resource):
                 raise RestException('Invalid HTTP Authorization header', 401)
 
             login, password = credentials.split(':', 1)
-            user = self.model('user').authenticate(login, password)
+            user = self._model.authenticate(login, password)
 
             setCurrentUser(user)
             token = self.sendAuthTokenCookie(user)
 
         return {
-            'user': self.model('user').filter(user, user),
+            'user': self._model.filter(user, user),
             'authToken': {
                 'token': token['_id'],
                 'expires': token['expires'],
@@ -148,7 +150,7 @@ class User(Resource):
         return {'message': 'Logged out.'}
 
     @access.public
-    @filtermodel(model='user', addFields={'authToken'})
+    @filtermodel(model=UserModel, addFields={'authToken'})
     @autoDescribeRoute(
         Description('Create a new user.')
         .responseClass('User')
@@ -174,11 +176,11 @@ class User(Resource):
                     'Registration on this instance is closed. Contact an '
                     'administrator to create an account for you.')
 
-        user = self.model('user').createUser(
+        user = self._model.createUser(
             login=login, password=password, email=email, firstName=firstName,
             lastName=lastName, admin=admin)
 
-        if not currentUser and self.model('user').canLogin(user):
+        if not currentUser and self._model.canLogin(user):
             setCurrentUser(user)
             token = self.sendAuthTokenCookie(user)
             user['authToken'] = {
@@ -190,12 +192,12 @@ class User(Resource):
     @access.user
     @autoDescribeRoute(
         Description('Delete a user by ID.')
-        .modelParam('id', model='user', level=AccessType.ADMIN)
+        .modelParam('id', model=UserModel, level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
         .errorResponse('You do not have permission to delete this user.', 403)
     )
     def deleteUser(self, user):
-        self.model('user').remove(user)
+        self._model.remove(user)
         return {'message': 'Deleted user %s.' % user['login']}
 
     @access.admin
@@ -204,14 +206,14 @@ class User(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def getUsersDetails(self):
-        nUsers = self.model('user').find().count()
+        nUsers = self._model.find().count()
         return {'nUsers': nUsers}
 
     @access.user
-    @filtermodel(model='user')
+    @filtermodel(model=UserModel)
     @autoDescribeRoute(
         Description("Update a user's information.")
-        .modelParam('id', model='user', level=AccessType.WRITE)
+        .modelParam('id', model=UserModel, level=AccessType.WRITE)
         .param('firstName', 'First name of the user.')
         .param('lastName', 'Last name of the user.')
         .param('email', 'The email of the user.')
@@ -241,22 +243,22 @@ class User(Resource):
                 raise AccessException('Only admins may change status.')
             if user['status'] == 'pending' and status == 'enabled':
                 # Send email on the 'pending' -> 'enabled' transition
-                self.model('user')._sendApprovedEmail(user)
+                self._model._sendApprovedEmail(user)
             user['status'] = status
 
-        return self.model('user').save(user)
+        return self._model.save(user)
 
     @access.admin
     @autoDescribeRoute(
         Description('Change a user\'s password.')
         .notes('Only administrators may use this endpoint.')
-        .modelParam('id', model='user', level=AccessType.ADMIN)
+        .modelParam('id', model=UserModel, level=AccessType.ADMIN)
         .param('password', 'The user\'s new password.')
         .errorResponse('You are not an administrator.', 403)
         .errorResponse('The new password is invalid.')
     )
     def changeUserPassword(self, user, password):
-        self.model('user').setPassword(user, password)
+        self._model.setPassword(user, password)
         return {'message': 'Password changed.'}
 
     @access.user
@@ -285,7 +287,7 @@ class User(Resource):
                         token, TokenScope.TEMPORARY_USER_AUTH)):
                 raise AccessException('Old password is incorrect.')
 
-        self.model('user').setPassword(user, new)
+        self._model.setPassword(user, new)
 
         if token:
             # Remove the temporary access token if one was used
@@ -300,7 +302,7 @@ class User(Resource):
         .errorResponse('That email does not exist in the system.')
     )
     def resetPassword(self, email):
-        user = self.model('user').findOne({'email': email.lower()})
+        user = self._model.findOne({'email': email.lower()})
         if user is None:
             raise RestException('That email is not registered.')
 
@@ -314,7 +316,7 @@ class User(Resource):
             % ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
             text=html
         )
-        self.model('user').setPassword(user, randomPass)
+        self._model.setPassword(user, randomPass)
         return {'message': 'Sent password reset email.'}
 
     @access.public
@@ -325,7 +327,7 @@ class User(Resource):
         .errorResponse('That email does not exist in the system.')
     )
     def generateTemporaryPassword(self, email):
-        user = self.model('user').findOne({'email': email.lower()})
+        user = self._model.findOne({'email': email.lower()})
 
         if not user:
             raise RestException('That email is not registered.')
@@ -352,7 +354,7 @@ class User(Resource):
         Description('Check if a specified token is a temporary access token '
                     'for the specified user.  If the token is valid, returns '
                     'information on the token and user.')
-        .modelParam('id', 'The user ID to check.', model='user', force=True)
+        .modelParam('id', 'The user ID to check.', model=UserModel, force=True)
         .param('token', 'The token to check.')
         .errorResponse('The token does not grant temporary access to the specified user.', 401)
     )
@@ -371,7 +373,7 @@ class User(Resource):
         authToken = self.sendAuthTokenCookie(user)
 
         return {
-            'user': self.model('user').filter(user, user),
+            'user': self._model.filter(user, user),
             'authToken': {
                 'token': authToken['_id'],
                 'expires': authToken['expires'],
@@ -383,20 +385,20 @@ class User(Resource):
     @access.public
     @autoDescribeRoute(
         Description('Get detailed information about a user.')
-        .modelParam('id', model='user', level=AccessType.READ)
+        .modelParam('id', model=UserModel, level=AccessType.READ)
         .errorResponse()
         .errorResponse('Read access was denied on the user.', 403)
     )
     def getUserDetails(self, user):
         return {
-            'nFolders': self.model('user').countFolders(
+            'nFolders': self._model.countFolders(
                 user, filterUser=self.getCurrentUser(), level=AccessType.READ)
         }
 
     @access.public
     @autoDescribeRoute(
         Description('Verify an email address using a token.')
-        .modelParam('id', 'The user ID to check.', model='user', force=True)
+        .modelParam('id', 'The user ID to check.', model=UserModel, force=True)
         .param('token', 'The token to check.')
         .errorResponse('The token is invalid or expired.', 401)
     )
@@ -411,13 +413,13 @@ class User(Resource):
 
         user['emailVerified'] = True
         self.model('token').remove(token)
-        user = self.model('user').save(user)
+        user = self._model.save(user)
 
-        if self.model('user').canLogin(user):
+        if self._model.canLogin(user):
             setCurrentUser(user)
             authToken = self.sendAuthTokenCookie(user)
             return {
-                'user': self.model('user').filter(user, user),
+                'user': self._model.filter(user, user),
                 'authToken': {
                     'token': authToken['_id'],
                     'expires': authToken['expires'],
@@ -427,7 +429,7 @@ class User(Resource):
             }
         else:
             return {
-                'user': self.model('user').filter(user, user),
+                'user': self._model.filter(user, user),
                 'message': 'Email verification succeeded.'
             }
 
@@ -439,10 +441,10 @@ class User(Resource):
     )
     def sendVerificationEmail(self, login):
         loginField = 'email' if '@' in login else 'login'
-        user = self.model('user').findOne({loginField: login.lower()})
+        user = self._model.findOne({loginField: login.lower()})
 
         if not user:
             raise RestException('That login is not registered.', 401)
 
-        self.model('user')._sendVerificationEmail(user)
+        self._model._sendVerificationEmail(user)
         return {'message': 'Sent verification email.'}

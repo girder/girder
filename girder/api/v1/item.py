@@ -22,6 +22,9 @@ from ..rest import Resource, RestException, filtermodel, setResponseHeader, setC
 from girder.utility import ziputil
 from girder.constants import AccessType, TokenScope
 from girder.api import access
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item as ItemModel
 
 
 class Item(Resource):
@@ -29,6 +32,8 @@ class Item(Resource):
     def __init__(self):
         super(Item, self).__init__()
         self.resourceName = 'item'
+        self._model = ItemModel()
+
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getItem)
@@ -71,7 +76,7 @@ class Item(Resource):
         user = self.getCurrentUser()
 
         if folderId:
-            folder = self.model('folder').load(
+            folder = Folder().load(
                 id=folderId, user=user, level=AccessType.READ, exc=True)
             filters = {}
             if text:
@@ -81,10 +86,10 @@ class Item(Resource):
             if name:
                 filters['name'] = name
 
-            return list(self.model('folder').childItems(
+            return list(Folder().childItems(
                 folder=folder, limit=limit, offset=offset, sort=sort, filters=filters))
         elif text is not None:
-            return list(self.model('item').textSearch(
+            return list(self._model.textSearch(
                 text, user=user, limit=limit, offset=offset, sort=sort))
         else:
             raise RestException('Invalid search mode.')
@@ -119,11 +124,11 @@ class Item(Resource):
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
     def createItem(self, folder, name, description, reuseExisting, metadata):
-        newItem = self.model('item').createItem(
+        newItem = self._model.createItem(
             folder=folder, name=name, creator=self.getCurrentUser(), description=description,
             reuseExisting=reuseExisting)
         if metadata:
-            newItem = self.model('item').setMetadata(newItem, metadata)
+            newItem = self._model.setMetadata(newItem, metadata)
         return newItem
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -147,13 +152,13 @@ class Item(Resource):
         if description is not None:
             item['description'] = description
 
-        self.model('item').updateItem(item)
+        self._model.updateItem(item)
 
         if folder and folder['_id'] != item['folderId']:
-            self.model('item').move(item, folder)
+            self._model.move(item, folder)
 
         if metadata:
-            item = self.model('item').setMetadata(item, metadata)
+            item = self._model.setMetadata(item, metadata)
 
         return item
 
@@ -174,7 +179,7 @@ class Item(Resource):
         .errorResponse('Write access was denied for the item.', 403)
     )
     def setMetadata(self, item, metadata, allowNull):
-        return self.model('item').setMetadata(item, metadata, allowNull=allowNull)
+        return self._model.setMetadata(item, metadata, allowNull=allowNull)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel('item')
@@ -197,7 +202,7 @@ class Item(Resource):
         .errorResponse('Write access was denied for the item.', 403)
     )
     def deleteMetadata(self, item, fields):
-        return self.model('item').deleteMetadata(item, fields)
+        return self._model.deleteMetadata(item, fields)
 
     def _downloadMultifileItem(self, item, user):
         setResponseHeader('Content-Type', 'application/zip')
@@ -205,7 +210,7 @@ class Item(Resource):
 
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
-            for (path, file) in self.model('item').fileList(item, subpath=False):
+            for (path, file) in self._model.fileList(item, subpath=False):
                 for data in zip.addFile(file, path):
                     yield data
             yield zip.footer()
@@ -222,8 +227,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403)
     )
     def getFiles(self, item, limit, offset, sort):
-        return list(self.model('item').childFiles(
-            item=item, limit=limit, offset=offset, sort=sort))
+        return list(self._model.childFiles(item=item, limit=limit, offset=offset, sort=sort))
 
     @access.cookie
     @access.public(scope=TokenScope.DATA_READ)
@@ -250,14 +254,14 @@ class Item(Resource):
     )
     def download(self, item, offset, format, contentDisposition, extraParameters):
         user = self.getCurrentUser()
-        files = list(self.model('item').childFiles(item=item, limit=2))
+        files = list(self._model.childFiles(item=item, limit=2))
         if format not in (None, '', 'zip'):
             raise RestException('Unsupported format: %s.' % format)
         if len(files) == 1 and format != 'zip':
             if contentDisposition not in {None, 'inline', 'attachment'}:
                 raise RestException(
                     'Unallowed contentDisposition type "%s".' % contentDisposition)
-            return self.model('file').download(
+            return File().download(
                 files[0], offset, contentDisposition=contentDisposition,
                 extraParameters=extraParameters)
         else:
@@ -271,7 +275,7 @@ class Item(Resource):
         .errorResponse('Write access was denied for the item.', 403)
     )
     def deleteItem(self, item):
-        self.model('item').remove(item)
+        self._model.remove(item)
         return {'message': 'Deleted item %s.' % item['name']}
 
     @access.public(scope=TokenScope.DATA_READ)
@@ -282,7 +286,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403)
     )
     def rootpath(self, item):
-        return self.model('item').parentsToRoot(item, self.getCurrentUser())
+        return self._model.parentsToRoot(item, self.getCurrentUser())
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model='item')
@@ -305,7 +309,7 @@ class Item(Resource):
         user = self.getCurrentUser()
 
         if folder is None:
-            folder = self.model('folder').load(
+            folder = Folder().load(
                 id=item['folderId'], user=user, level=AccessType.WRITE, exc=True)
-        return self.model('item').copyItem(
+        return self._model.copyItem(
             item, creator=user, name=name, folder=folder, description=description)

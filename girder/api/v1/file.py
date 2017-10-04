@@ -38,6 +38,7 @@ class File(Resource):
     """
     def __init__(self):
         super(File, self).__init__()
+
         self.resourceName = 'file'
         self.route('DELETE', (':id',), self.deleteFile)
         self.route('DELETE', ('upload', ':id'), self.cancelUpload)

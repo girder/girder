@@ -21,6 +21,7 @@ from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, RestException, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
+from girder.models.folder import Folder as FolderModel
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -31,6 +32,7 @@ class Folder(Resource):
     def __init__(self):
         super(Folder, self).__init__()
         self.resourceName = 'folder'
+        self._model = FolderModel()
         self.route('DELETE', (':id',), self.deleteFolder)
         self.route('DELETE', (':id', 'contents'), self.deleteContents)
         self.route('GET', (), self.find)
@@ -47,7 +49,7 @@ class Folder(Resource):
         self.route('DELETE', (':id', 'metadata'), self.deleteMetadata)
 
     @access.public(scope=TokenScope.DATA_READ)
-    @filtermodel(model='folder')
+    @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Search for folders by certain properties.')
         .responseClass('Folder', array=True)
@@ -87,11 +89,11 @@ class Folder(Resource):
             if name:
                 filters['name'] = name
 
-            return list(self.model('folder').childFolders(
+            return list(self._model.childFolders(
                 parentType=parentType, parent=parent, user=user,
                 offset=offset, limit=limit, sort=sort, filters=filters))
         elif text:
-            return list(self.model('folder').textSearch(
+            return list(self._model.textSearch(
                 text, user=user, limit=limit, offset=offset, sort=sort))
         else:
             raise RestException('Invalid search mode.')
@@ -99,14 +101,14 @@ class Folder(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get detailed information about a folder.')
-        .modelParam('id', model='folder', level=AccessType.READ)
+        .modelParam('id', model=FolderModel, level=AccessType.READ)
         .errorResponse()
         .errorResponse('Read access was denied on the folder.', 403)
     )
     def getFolderDetails(self, folder):
         return {
-            'nItems': self.model('folder').countItems(folder),
-            'nFolders': self.model('folder').countFolders(
+            'nItems': self._model.countItems(folder),
+            'nFolders': self._model.countFolders(
                 folder, user=self.getCurrentUser(), level=AccessType.READ)
         }
 
@@ -114,7 +116,7 @@ class Folder(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Download an entire folder as a zip archive.')
-        .modelParam('id', model='folder', level=AccessType.READ)
+        .modelParam('id', model=FolderModel, level=AccessType.READ)
         .jsonParam('mimeFilter', 'JSON list of MIME types to include.', required=False,
                    requireArray=True)
         .produces('application/zip')
@@ -132,7 +134,7 @@ class Folder(Resource):
 
         def stream():
             zip = ziputil.ZipGenerator(folder['name'])
-            for (path, file) in self.model('folder').fileList(
+            for (path, file) in self._model.fileList(
                     folder, user=user, subpath=False, mimeFilter=mimeFilter):
                 for data in zip.addFile(file, path):
                     yield data
@@ -140,11 +142,11 @@ class Folder(Resource):
         return stream
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='folder')
+    @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Update a folder or move it into a new parent.')
         .responseClass('Folder')
-        .modelParam('id', model='folder', level=AccessType.WRITE)
+        .modelParam('id', model=FolderModel, level=AccessType.WRITE)
         .param('name', 'Name of the folder.', required=False, strip=True)
         .param('description', 'Description for the folder.', required=False, strip=True)
         .param('parentType', "Type of the folder's parent", required=False,
@@ -162,23 +164,23 @@ class Folder(Resource):
         if description is not None:
             folder['description'] = description
 
-        folder = self.model('folder').updateFolder(folder)
+        folder = self._model.updateFolder(folder)
         if metadata:
-            folder = self.model('folder').setMetadata(folder, metadata)
+            folder = self._model.setMetadata(folder, metadata)
 
         if parentType and parentId:
             parent = self.model(parentType).load(
                 parentId, level=AccessType.WRITE, user=user, exc=True)
             if (parentType, parent['_id']) != (folder['parentCollection'], folder['parentId']):
-                folder = self.model('folder').move(folder, parent, parentType)
+                folder = self._model.move(folder, parent, parentType)
 
         return folder
 
     @access.user(scope=TokenScope.DATA_OWN)
-    @filtermodel(model='folder', addFields={'access'})
+    @filtermodel(model=FolderModel, addFields={'access'})
     @autoDescribeRoute(
         Description('Update the access control list for a folder.')
-        .modelParam('id', model='folder', level=AccessType.ADMIN)
+        .modelParam('id', model=FolderModel, level=AccessType.ADMIN)
         .jsonParam('access', 'The JSON-encoded access control list.', requireObject=True)
         .jsonParam('publicFlags', 'JSON list of public access flags.', requireArray=True,
                    required=False)
@@ -199,15 +201,14 @@ class Folder(Resource):
         with ProgressContext(progress, user=user, title='Updating permissions',
                              message='Calculating progress...') as ctx:
             if progress:
-                ctx.update(total=self.model('folder').subtreeCount(
-                    folder, includeItems=False, user=user,
-                    level=AccessType.ADMIN))
-            return self.model('folder').setAccessList(
+                ctx.update(total=self._model.subtreeCount(
+                    folder, includeItems=False, user=user, level=AccessType.ADMIN))
+            return self._model.setAccessList(
                 folder, access, save=True, recurse=recurse, user=user,
                 progress=ctx, setPublic=public, publicFlags=publicFlags)
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='folder')
+    @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Create a new folder.')
         .responseClass('Folder')
@@ -235,19 +236,19 @@ class Folder(Resource):
         parent = self.model(parentType).load(
             id=parentId, user=user, level=AccessType.WRITE, exc=True)
 
-        newFolder = self.model('folder').createFolder(
+        newFolder = self._model.createFolder(
             parent=parent, name=name, parentType=parentType, creator=user,
             description=description, public=public, reuseExisting=reuseExisting)
         if metadata:
-            newFolder = self.model('folder').setMetadata(newFolder, metadata)
+            newFolder = self._model.setMetadata(newFolder, metadata)
         return newFolder
 
     @access.public(scope=TokenScope.DATA_READ)
-    @filtermodel(model='folder')
+    @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Get a folder by ID.')
         .responseClass('Folder')
-        .modelParam('id', model='folder', level=AccessType.READ)
+        .modelParam('id', model=FolderModel, level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
@@ -258,17 +259,17 @@ class Folder(Resource):
     @autoDescribeRoute(
         Description('Get the access control list for a folder.')
         .responseClass('Folder')
-        .modelParam('id', model='folder', level=AccessType.ADMIN)
+        .modelParam('id', model=FolderModel, level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the folder.', 403)
     )
     def getFolderAccess(self, folder):
-        return self.model('folder').getFullAccessList(folder)
+        return self._model.getFullAccessList(folder)
 
     @access.user(scope=TokenScope.DATA_OWN)
     @autoDescribeRoute(
         Description('Delete a folder by ID.')
-        .modelParam('id', model='folder', level=AccessType.ADMIN)
+        .modelParam('id', model=FolderModel, level=AccessType.ADMIN)
         .param('progress', 'Whether to record progress on this task.',
                required=False, dataType='boolean', default=False)
         .errorResponse('ID was invalid.')
@@ -280,17 +281,17 @@ class Folder(Resource):
                              message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
-                ctx.update(total=self.model('folder').subtreeCount(folder))
-            self.model('folder').remove(folder, progress=ctx)
+                ctx.update(total=self._model.subtreeCount(folder))
+            self._model.remove(folder, progress=ctx)
         return {'message': 'Deleted folder %s.' % folder['name']}
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='folder')
+    @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Set metadata fields on an folder.')
         .responseClass('Folder')
         .notes('Set metadata fields to null in order to delete them.')
-        .modelParam('id', model='folder', level=AccessType.WRITE)
+        .modelParam('id', model=FolderModel, level=AccessType.WRITE)
         .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
                    paramType='body', requireObject=True)
         .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
@@ -301,14 +302,15 @@ class Folder(Resource):
         .errorResponse('Write access was denied for the folder.', 403)
     )
     def setMetadata(self, folder, metadata, allowNull):
-        return self.model('folder').setMetadata(folder, metadata, allowNull=allowNull)
+        return self._model.setMetadata(folder, metadata, allowNull=allowNull)
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='folder')
+    @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Copy a folder.')
         .responseClass('Folder')
-        .modelParam('id', 'The ID of the original folder.', model='folder', level=AccessType.READ)
+        .modelParam('id', 'The ID of the original folder.', model=FolderModel,
+                    level=AccessType.READ)
         .param('parentType', "Type of the new folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
         .param('parentId', 'The ID of the parent document.', required=False)
@@ -340,8 +342,8 @@ class Folder(Resource):
                              message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
-                ctx.update(total=self.model('folder').subtreeCount(folder))
-            return self.model('folder').copyFolder(
+                ctx.update(total=self._model.subtreeCount(folder))
+            return self._model.copyFolder(
                 folder, creator=user, name=name, parentType=parentType,
                 parent=parent, description=description, public=public, progress=ctx)
 
@@ -350,7 +352,8 @@ class Folder(Resource):
         Description('Remove all contents from a folder.')
         .notes('Cleans out all the items and subfolders from under a folder, '
                'but does not remove the folder itself.')
-        .modelParam('id', 'The ID of the folder to clean.', model='folder', level=AccessType.WRITE)
+        .modelParam('id', 'The ID of the folder to clean.', model=FolderModel,
+                    level=AccessType.WRITE)
         .param('progress', 'Whether to record progress on this task.',
                required=False, dataType='boolean', default=False)
         .errorResponse('ID was invalid.')
@@ -362,16 +365,16 @@ class Folder(Resource):
                              message='Calculating folder size...') as ctx:
             # Don't do the subtree count if we weren't asked for progress
             if progress:
-                ctx.update(total=self.model('folder').subtreeCount(folder) - 1)
-            self.model('folder').clean(folder, progress=ctx)
+                ctx.update(total=self._model.subtreeCount(folder) - 1)
+            self._model.clean(folder, progress=ctx)
         return {'message': 'Cleaned folder %s.' % folder['name']}
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel('folder')
+    @filtermodel(FolderModel)
     @autoDescribeRoute(
         Description('Delete metadata fields on a folder.')
         .responseClass('Folder')
-        .modelParam('id', model='folder', level=AccessType.WRITE)
+        .modelParam('id', model=FolderModel, level=AccessType.WRITE)
         .jsonParam(
             'fields', 'A JSON list containing the metadata fields to delete',
             paramType='body', schema={
@@ -387,14 +390,14 @@ class Folder(Resource):
         .errorResponse('Write access was denied for the folder.', 403)
     )
     def deleteMetadata(self, folder, fields):
-        return self.model('folder').deleteMetadata(folder, fields)
+        return self._model.deleteMetadata(folder, fields)
 
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get the path to the root of the folder\'s hierarchy.')
-        .modelParam('id', model='folder', level=AccessType.READ)
+        .modelParam('id', model=FolderModel, level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)
     )
     def rootpath(self, folder, params):
-        return self.model('folder').parentsToRoot(folder, user=self.getCurrentUser())
+        return self._model.parentsToRoot(folder, user=self.getCurrentUser())

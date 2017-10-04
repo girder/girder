@@ -30,7 +30,10 @@ from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.models.model_base import GirderException
+from girder.models.group import Group
 from girder.models.setting import Setting
+from girder.models.upload import Upload
+from girder.models.user import User
 from girder.utility import config, install, plugin_utilities, system
 from girder.utility.path import NotFoundException
 from girder.utility.progress import ProgressContext
@@ -249,10 +252,10 @@ class System(Resource):
         if minimumAge is not None:
             filters['minimumAge'] = minimumAge
 
-        uploadList = list(self.model('upload').list(
+        uploadList = list(Upload().list(
             filters=filters, limit=limit, offset=offset, sort=sort))
         if includeUntracked and (limit == 0 or len(uploadList) < limit):
-            untrackedList = self.model('upload').untrackedUploads('list', assetstoreId)
+            untrackedList = Upload().untrackedUploads('list', assetstoreId)
             if limit == 0:
                 uploadList += untrackedList
             elif len(uploadList) < limit:
@@ -294,12 +297,12 @@ class System(Resource):
             filters['parentId'] = parentId
         if minimumAge is not None:
             filters['minimumAge'] = minimumAge
-        uploadList = list(self.model('upload').list(filters=filters))
+        uploadList = list(Upload().list(filters=filters))
         # Move the results to list that isn't a cursor so we don't have to have
         # the cursor sitting around while we work on the data.
         for upload in uploadList:
             try:
-                self.model('upload').cancelUpload(upload)
+                Upload().cancelUpload(upload)
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(
@@ -307,7 +310,7 @@ class System(Resource):
                         'girder.api.v1.system.delete-upload-failed')
                 raise
         if includeUntracked:
-            uploadList += self.model('upload').untrackedUploads('delete', assetstoreId)
+            uploadList += Upload().untrackedUploads('delete', assetstoreId)
         return uploadList
 
     @access.admin
@@ -503,7 +506,7 @@ class System(Resource):
         }
 
         for user in acList['users'][:]:
-            userDoc = self.model('user').load(
+            userDoc = User().load(
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
             if userDoc is None:
@@ -513,7 +516,7 @@ class System(Resource):
                 user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
         for grp in acList['groups'][:]:
-            grpDoc = self.model('group').load(
+            grpDoc = Group().load(
                 grp['id'], force=True, fields=['name', 'description'])
             if grpDoc is None:
                 acList['groups'].remove(grp)
