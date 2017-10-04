@@ -142,6 +142,7 @@ class AsyncEventsThread(threading.Thread):
         self.daemon = True
         self.terminate = False
         self.eventQueue = queue.Queue()
+        self.queueNotEmpty = threading.Condition()
 
     def run(self):
         """
@@ -152,11 +153,16 @@ class AsyncEventsThread(threading.Thread):
         girder.logprint.info('Started asynchronous event manager thread.')
 
         while not self.terminate:
-            eventName, info, callback = self.eventQueue.get(block=True)
             try:
+                eventName, info, callback = self.eventQueue.get(block=False)
+
                 event = trigger(eventName, info, async=True, daemon=True)
                 if callable(callback):
                     callback(event)
+            except queue.Empty:
+                self.queueNotEmpty.acquire()
+                self.queueNotEmpty.wait()
+                self.queueNotEmpty.release()
             except Exception:
                 # Must continue the event loop even if handler failed
                 girder.logger.exception('In handler for event "%s":' % eventName)
@@ -173,14 +179,20 @@ class AsyncEventsThread(threading.Thread):
             all bound event handlers. It takes one argument, which is the
             event object itself.
         """
+        self.queueNotEmpty.acquire()
         self.eventQueue.put((eventName, info, callback))
+        self.queueNotEmpty.notify()
+        self.queueNotEmpty.release()
 
     def stop(self):
         """
         Gracefully stops this thread. Will finish the currently processing
         event before stopping.
         """
+        self.queueNotEmpty.acquire()
         self.terminate = True
+        self.queueNotEmpty.notify()
+        self.queueNotEmpty.release()
 
 
 def bind(eventName, handlerName, handler):
