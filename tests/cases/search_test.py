@@ -19,8 +19,7 @@
 
 from .. import base
 
-from girder.api.v1 import resource
-from girder.constants import AccessType
+from girder.constants import AccessType, ResourceRegistry
 from girder.models.model_base import AccessControlledModel
 from girder.utility.acl_mixin import AccessControlMixin
 
@@ -183,7 +182,7 @@ class SearchTestCase(base.TestCase):
             self.model('assetstore'), AccessControlledModel)
         self.assertNotIsInstance(
             self.model('assetstore'), AccessControlMixin)
-        resource.allowedSearchTypes.add('assetstore')
+        ResourceRegistry.ALLOWED_SEARCH_MODE['prefix']['types'].add('assetstore')
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'prefix',
