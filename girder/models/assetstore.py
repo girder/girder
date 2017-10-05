@@ -71,10 +71,10 @@ class Assetstore(Model):
         :param assetstore: The assetstore document to delete.
         :type assetstore: dict
         """
-        files = self.model('file').findOne({'assetstoreId': assetstore['_id']})
+        from .file import File
+        files = File().findOne({'assetstoreId': assetstore['_id']})
         if files is not None:
-            raise ValidationException('You may not delete an assetstore that '
-                                      'contains files.')
+            raise ValidationException('You may not delete an assetstore that contains files.')
         # delete partial uploads before we delete the store.
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         try:
@@ -114,10 +114,10 @@ class Assetstore(Model):
         :param assetstore: The assetstore object.
         :type assetstore: dict
         """
+        from .file import File
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         assetstore['capacity'] = adapter.capacityInfo()
-        assetstore['hasFiles'] = (self.model('file').findOne(
-            {'assetstoreId': assetstore['_id']}) is not None)
+        assetstore['hasFiles'] = File().findOne({'assetstoreId': assetstore['_id']}) is not None
 
     def createFilesystemAssetstore(self, name, root, perms=None):
         return self.save({

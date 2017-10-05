@@ -33,6 +33,9 @@ from . import docs
 from girder import events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
 from girder.models.model_base import AccessException, GirderException, ValidationException
+from girder.models.setting import Setting
+from girder.models.token import Token
+from girder.models.user import User
 from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
 from girder.utility.model_importer import ModelImporter
 from six.moves import range, urllib
@@ -79,7 +82,7 @@ def getApiUrl(url=None, preferReferer=False):
         if preferReferer and apiStr in cherrypy.request.headers.get('referer', ''):
             url = cherrypy.request.headers['referer']
         else:
-            root = ModelImporter.model('setting').get(SettingKey.SERVER_ROOT)
+            root = Setting().get(SettingKey.SERVER_ROOT)
             if root:
                 return posixpath.join(root, config.getConfig()['server']['api_root'].lstrip('/'))
 
@@ -200,8 +203,7 @@ def getCurrentToken(allowCookie=False):
     if not tokenStr:
         return None
 
-    return ModelImporter.model('token').load(tokenStr, force=True,
-                                             objectId=False)
+    return Token().load(tokenStr, force=True, objectId=False)
 
 
 @_cacheAuthUser
@@ -239,7 +241,7 @@ def getCurrentUser(returnToken=False):
         except AccessException:
             return retVal(None, token)
 
-        user = ModelImporter.model('user').load(token['userId'], force=True)
+        user = User().load(token['userId'], force=True)
         return retVal(user, token)
 
 
@@ -664,7 +666,7 @@ def ensureTokenScopes(token, scope):
     :param scope: The required scope or set of scopes.
     :type scope: `str or list of str`
     """
-    tokenModel = ModelImporter.model('token')
+    tokenModel = Token()
     if tokenModel.hasScope(token, TokenScope.USER_AUTH):
         return
 
@@ -691,7 +693,7 @@ def _setCommonCORSHeaders():
         # If there is no origin header, this is not a cross origin request
         return
 
-    allowed = ModelImporter.model('setting').get(SettingKey.CORS_ALLOW_ORIGIN)
+    allowed = Setting().get(SettingKey.CORS_ALLOW_ORIGIN)
 
     if allowed:
         setResponseHeader('Access-Control-Allow-Credentials', 'true')
@@ -1138,20 +1140,18 @@ class Resource(ModelImporter):
         """
         Helper method to send the authentication cookie
         """
-        setting = self.model('setting')
-
         if days is None:
-            days = float(setting.get(SettingKey.COOKIE_LIFETIME))
+            days = float(Setting().get(SettingKey.COOKIE_LIFETIME))
 
         if token is None:
-            token = self.model('token').createToken(user, days=days, scope=scope)
+            token = Token().createToken(user, days=days, scope=scope)
 
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = str(token['_id'])
         cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = int(days * 3600 * 24)
 
-        if setting.get(SettingKey.SECURE_COOKIE):
+        if Setting().get(SettingKey.SECURE_COOKIE):
             cookie['girderToken']['secure'] = True
 
         return token
@@ -1170,8 +1170,8 @@ class Resource(ModelImporter):
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
 
-        allowHeaders = self.model('setting').get(SettingKey.CORS_ALLOW_HEADERS)
-        allowMethods = self.model('setting').get(SettingKey.CORS_ALLOW_METHODS)\
+        allowHeaders = Setting().get(SettingKey.CORS_ALLOW_HEADERS)
+        allowMethods = Setting().get(SettingKey.CORS_ALLOW_METHODS)\
             or 'GET, POST, PUT, HEAD, DELETE'
 
         setResponseHeader('Access-Control-Allow-Methods', allowMethods)

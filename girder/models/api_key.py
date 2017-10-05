@@ -38,6 +38,9 @@ class ApiKey(AccessControlledModel):
         })
 
     def validate(self, doc):
+        from .token import Token
+        from .user import User
+
         if doc['tokenDuration']:
             doc['tokenDuration'] = float(doc['tokenDuration'])
         else:
@@ -53,7 +56,7 @@ class ApiKey(AccessControlledModel):
                 raise ValidationException('Custom scope list must not be empty.')
 
             # Ensure only registered scopes are being set
-            admin = self.model('user').load(doc['userId'], force=True)['admin']
+            admin = User().load(doc['userId'], force=True)['admin']
             scopes = TokenScope.scopeIds(admin)
             unknownScopes = set(doc['scope']) - scopes
             if unknownScopes:
@@ -61,13 +64,14 @@ class ApiKey(AccessControlledModel):
 
         # Deactivating an already existing token
         if '_id' in doc and not doc['active']:
-            self.model('token').clearForApiKey(doc)
+            Token().clearForApiKey(doc)
 
         return doc
 
     def remove(self, doc):
         # Clear tokens corresponding to this API key.
-        self.model('token').clearForApiKey(doc)
+        from .token import Token
+        Token().clearForApiKey(doc)
         super(ApiKey, self).remove(doc)
 
     def list(self, user, limit=0, offset=0, sort=None):
@@ -126,6 +130,10 @@ class ApiKey(AccessControlledModel):
             of the API key itself, or pass None to use the API key duration.
         :type days: float or None
         """
+        from .setting import Setting
+        from .token import Token
+        from .user import User
+
         apiKey = self.findOne({
             'key': key
         })
@@ -133,15 +141,14 @@ class ApiKey(AccessControlledModel):
         if apiKey is None or not apiKey['active']:
             raise ValidationException('Invalid API key.')
 
-        cap = apiKey['tokenDuration'] or self.model('setting').get(
+        cap = apiKey['tokenDuration'] or Setting().get(
             SettingKey.COOKIE_LIFETIME)
         days = min(float(days or cap), cap)
 
-        user = self.model('user').load(apiKey['userId'], force=True)
+        user = User().load(apiKey['userId'], force=True)
 
         # Mark last used stamp
         apiKey['lastUse'] = datetime.datetime.utcnow()
         apiKey = self.save(apiKey)
-        token = self.model('token').createToken(
-            user=user, days=days, scope=apiKey['scope'], apiKey=apiKey)
+        token = Token().createToken(user=user, days=days, scope=apiKey['scope'], apiKey=apiKey)
         return (user, token)

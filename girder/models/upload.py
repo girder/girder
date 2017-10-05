@@ -48,7 +48,8 @@ class Upload(Model):
         :param minSize: the minimum size to return.
         :return: chunk size to use for file uploads.
         """
-        minChunkSize = self.model('setting').get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
+        from .setting import Setting
+        minChunkSize = Setting().get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
         return max(minChunkSize, minSize)
 
     def uploadFromFile(self, obj, size, name, parentType=None, parent=None,
@@ -139,7 +140,10 @@ class Upload(Model):
         :param user: The current user. Only affects behavior if filter=True.
         :type user: dict or None
         """
-        assetstore = self.model('assetstore').load(upload['assetstoreId'])
+        from .assetstore import Assetstore
+        from .file import File
+
+        assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
 
         upload = adapter.uploadChunk(upload, chunk)
@@ -150,7 +154,7 @@ class Upload(Model):
         if upload['received'] == upload['size']:
             file = self.finalizeUpload(upload, assetstore)
             if filter:
-                return self.model('file').filter(file, user=user)
+                return File().filter(file, user=user)
             else:
                 return file
         else:
@@ -161,7 +165,8 @@ class Upload(Model):
         Requests the offset that should be used to resume uploading. This
         makes the request from the assetstore adapter.
         """
-        assetstore = self.model('assetstore').load(upload['assetstoreId'])
+        from .assetstore import Assetstore
+        assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         return adapter.requestOffset(upload)
 
@@ -176,21 +181,23 @@ class Upload(Model):
         :type assetstore: dict
         :returns: The file object that was created.
         """
+        from .assetstore import Assetstore
+        from .file import File
+        from .item import Item
+
         events.trigger('model.upload.finalize', upload)
         if assetstore is None:
-            assetstore = self.model('assetstore').load(upload['assetstoreId'])
+            assetstore = Assetstore().load(upload['assetstoreId'])
 
         if 'fileId' in upload:  # Updating an existing file's contents
-            file = self.model('file').load(upload['fileId'], force=True)
+            file = File().load(upload['fileId'], force=True)
 
             # Delete the previous file contents from the containing assetstore
             assetstore_utilities.getAssetstoreAdapter(
-                self.model('assetstore').load(
-                    file['assetstoreId'])).deleteFile(file)
+                Assetstore().load(file['assetstoreId'])).deleteFile(file)
 
-            item = self.model('item').load(file['itemId'], force=True)
-            self.model('file').propagateSizeChange(
-                item, upload['size'] - file['size'])
+            item = Item().load(file['itemId'], force=True)
+            File().propagateSizeChange(item, upload['size'] - file['size'])
 
             # Update file info
             file['creatorId'] = upload['userId']
@@ -206,16 +213,15 @@ class Upload(Model):
                 item = None
             elif upload['parentType'] == 'folder':
                 # Create a new item with the name of the file.
-                item = self.model('item').createItem(
+                item = Item().createItem(
                     name=upload['name'], creator={'_id': upload['userId']},
                     folder={'_id': upload['parentId']})
             elif upload['parentType'] == 'item':
-                item = self.model('item').load(
-                    id=upload['parentId'], force=True)
+                item = Item().load(id=upload['parentId'], force=True)
             else:
                 item = None
 
-            file = self.model('file').createFile(
+            file = File().createFile(
                 item=item, name=upload['name'], size=upload['size'],
                 creator={'_id': upload['userId']}, assetstore=assetstore,
                 mimeType=upload['mimeType'], saveFile=False)
@@ -229,7 +235,7 @@ class Upload(Model):
 
         event_document = {'file': file, 'upload': upload}
         events.trigger('model.file.finalizeUpload.before', event_document)
-        file = self.model('file').save(file)
+        file = File().save(file)
         events.trigger('model.file.finalizeUpload.after', event_document)
         if '_id' in upload:
             self.remove(upload)
@@ -260,13 +266,15 @@ class Upload(Model):
             resource should be located.  This may be overridden.
         :returns: the selected assetstore.
         """
+        from .assetstore import Assetstore
+
         eventParams = {'model': modelType, 'resource': resource}
         event = events.trigger('model.upload.assetstore', eventParams)
 
         if event.responses:
             assetstore = event.responses[-1]
         elif not assetstore:
-            assetstore = self.model('assetstore').getCurrent()
+            assetstore = Assetstore().getCurrent()
 
         return assetstore
 
@@ -393,6 +401,8 @@ class Upload(Model):
         :returns: the original file if it is not moved, or the newly 'uploaded'
             file if it is.
         """
+        from .file import File
+
         if file['assetstoreId'] == assetstore['_id']:
             return file
         # Allow an event to cancel the move.  This could be done, for instance,
@@ -407,12 +417,11 @@ class Upload(Model):
         upload = self.createUploadToFile(
             file=file, user=user, size=int(file['size']), assetstore=assetstore)
         if file['size'] == 0:
-            return self.model('file').filter(
-                self.model('upload').finalizeUpload(upload), user)
+            return File().filter(self.finalizeUpload(upload), user)
         # Uploads need to be chunked for some assetstores
         chunkSize = self._getChunkSize()
         chunk = None
-        for data in self.model('file').download(file, headers=False)():
+        for data in File().download(file, headers=False)():
             if chunk is not None:
                 chunk += data
             else:
@@ -467,7 +476,9 @@ class Upload(Model):
         :param upload: The upload document to remove.
         :type upload: dict
         """
-        assetstore = self.model('assetstore').load(upload['assetstoreId'])
+        from .assetstore import Assetstore
+
+        assetstore = Assetstore().load(upload['assetstoreId'])
         # If the assetstore was deleted, the upload may still be in our
         # database
         if assetstore:
@@ -478,7 +489,7 @@ class Upload(Model):
                 # this assetstore is currently unreachable, so skip it
                 pass
         if '_id' in upload:
-            self.model('upload').remove(upload)
+            self.remove(upload)
 
     def untrackedUploads(self, action='list', assetstoreId=None):
         """
@@ -493,10 +504,12 @@ class Upload(Model):
         :type assetstoreId: str
         :returns: a list of items that were removed or could be removed.
         """
+        from .assetstore import Assetstore
+
         results = []
         knownUploads = list(self.list())
         # Iterate through all assetstores
-        for assetstore in self.model('assetstore').list():
+        for assetstore in Assetstore().list():
             if assetstoreId and assetstoreId != assetstore['_id']:
                 continue
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
