@@ -22,6 +22,12 @@ from .. import base
 from girder.api.v1 import resource
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
+from girder.models.assetstore import Assetstore
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.group import Group
+from girder.models.item import Item
+from girder.models.user import User
 from girder.utility.acl_mixin import AccessControlMixin
 
 
@@ -40,15 +46,20 @@ class SearchTestCase(base.TestCase):
         Test resource/search endpoint
         """
         # get expected models from the database
-        admin = self.model('user').findOne({'login': 'adminlogin'})
-        user = self.model('user').findOne({'login': 'goodlogin'})
-        coll1 = self.model('collection').findOne({'name': 'Test Collection'})
-        coll2 = self.model('collection').findOne({'name': 'Magic collection'})
-        item1 = self.model('item').findOne({'name': 'Public object'})
+        admin = User().findOne({'login': 'adminlogin'})
+        user = User().findOne({'login': 'goodlogin'})
+        coll1 = Collection().findOne({'name': 'Test Collection'})
+        coll2 = Collection().findOne({'name': 'Magic collection'})
+        item1 = Item().findOne({'name': 'Public object'})
 
         # set user read permissions on the private collection
-        self.model('collection').setUserAccess(
-            coll2, user, level=AccessType.READ, save=True)
+        Collection().setUserAccess(coll2, user, level=AccessType.READ, save=True)
+
+        # Reconnect the models manually
+        # TODO(zachmullen) this can go away once we have an explicit model registry
+        # that can be used by model_importer.reinitializeAll
+        for model in (Collection, Folder, Item, User, Group):
+            model().reconnect()
 
         # Grab the default user folders
         resp = self.request(
@@ -61,8 +72,7 @@ class SearchTestCase(base.TestCase):
         privateFolder = resp.json[0]
 
         # First test all of the required parameters.
-        self.ensureRequiredParams(
-            path='/resource/search', required=['q', 'types'])
+        self.ensureRequiredParams(path='/resource/search', required=['q', 'types'])
 
         # Now test parameter validation
         resp = self.request(path='/resource/search', params={
@@ -179,10 +189,8 @@ class SearchTestCase(base.TestCase):
         }, resp.json['item'][0])
 
         # Check search for model that is not access controlled
-        self.assertNotIsInstance(
-            self.model('assetstore'), AccessControlledModel)
-        self.assertNotIsInstance(
-            self.model('assetstore'), AccessControlMixin)
+        self.assertNotIsInstance(Assetstore(), AccessControlledModel)
+        self.assertNotIsInstance(Assetstore(), AccessControlMixin)
         resource.allowedSearchTypes.add('assetstore')
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
