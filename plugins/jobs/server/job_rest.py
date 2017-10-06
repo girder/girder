@@ -183,7 +183,7 @@ class Job(Resource):
     @access.user
     @autoDescribeRoute(
         Description('Delete an existing job.')
-        .modelParam('id', 'The ID of the job.', model='job', plugin='jobs', level=AccessType.ADMIN)
+        .modelParam('id', 'The ID of the job.', model=JobModel, level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin access was denied for the job.', 403)
     )
@@ -207,7 +207,7 @@ class Job(Resource):
         return self._model.getAllTypesAndStatuses(user=currentUser)
 
     @access.user
-    @filtermodel(model='job', plugin='jobs')
+    @filtermodel(JobModel)
     @autoDescribeRoute(
         Description('Cancel a job by ID.')
         .modelParam('id', 'The ID of the job.', model=JobModel, level=AccessType.WRITE,

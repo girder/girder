@@ -47,7 +47,7 @@ class Item(Resource):
         self.route('DELETE', (':id', 'metadata'), self.deleteMetadata)
 
     @access.public(scope=TokenScope.DATA_READ)
-    @filtermodel(model='item')
+    @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('List or search for items.')
         .responseClass('Item', array=True)
@@ -95,11 +95,11 @@ class Item(Resource):
             raise RestException('Invalid search mode.')
 
     @access.public(scope=TokenScope.DATA_READ)
-    @filtermodel(model='item')
+    @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('Get an item by ID.')
         .responseClass('Item')
-        .modelParam('id', model='item', level=AccessType.READ)
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -107,11 +107,11 @@ class Item(Resource):
         return item
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='item')
+    @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('Create a new item.')
         .responseClass('Item')
-        .modelParam('folderId', 'The ID of the parent folder.',
+        .modelParam('folderId', 'The ID of the parent folder.', model=Folder,
                     level=AccessType.WRITE, paramType='query')
         .param('name', 'Name for the item.', strip=True)
         .param('description', 'Description for the item.', required=False,
@@ -132,14 +132,14 @@ class Item(Resource):
         return newItem
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='item')
+    @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('Edit an item or move it to another folder.')
         .responseClass('Item')
-        .modelParam('id', model='item', level=AccessType.WRITE)
+        .modelParam('id', model=ItemModel, level=AccessType.WRITE)
         .param('name', 'Name for the item.', required=False, strip=True)
         .param('description', 'Description for the item.', required=False)
-        .modelParam('folderId', 'Pass this to move the item to a new folder.',
+        .modelParam('folderId', 'Pass this to move the item to a new folder.', model=Folder,
                     required=False, paramType='query', level=AccessType.WRITE)
         .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
                    paramType='form', requireObject=True, required=False)
@@ -163,12 +163,12 @@ class Item(Resource):
         return item
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='item')
+    @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('Set metadata fields on an item.')
         .responseClass('Item')
         .notes('Set metadata fields to null in order to delete them.')
-        .modelParam('id', model='item', level=AccessType.WRITE)
+        .modelParam('id', model=ItemModel, level=AccessType.WRITE)
         .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
                    paramType='body', requireObject=True)
         .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
@@ -182,11 +182,11 @@ class Item(Resource):
         return self._model.setMetadata(item, metadata, allowNull=allowNull)
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel('item')
+    @filtermodel(ItemModel)
     @autoDescribeRoute(
         Description('Delete metadata fields on an item.')
         .responseClass('Item')
-        .modelParam('id', model='item', level=AccessType.WRITE)
+        .modelParam('id', model=ItemModel, level=AccessType.WRITE)
         .jsonParam(
             'fields', 'A JSON list containing the metadata fields to delete',
             paramType='body', schema={
@@ -217,11 +217,11 @@ class Item(Resource):
         return stream
 
     @access.public(scope=TokenScope.DATA_READ)
-    @filtermodel(model='file')
+    @filtermodel(model=File)
     @autoDescribeRoute(
         Description('Get the files within an item.')
         .responseClass('File', array=True)
-        .modelParam('id', model='item', level=AccessType.READ)
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
         .pagingParams(defaultSort='name')
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
@@ -233,7 +233,7 @@ class Item(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Download the contents of an item.')
-        .modelParam('id', model='item', level=AccessType.READ)
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
         .param('offset', 'Byte offset into the file.', dataType='int',
                required=False, default=0)
         .param('format', 'If unspecified, items with one file are downloaded '
@@ -259,8 +259,7 @@ class Item(Resource):
             raise RestException('Unsupported format: %s.' % format)
         if len(files) == 1 and format != 'zip':
             if contentDisposition not in {None, 'inline', 'attachment'}:
-                raise RestException(
-                    'Unallowed contentDisposition type "%s".' % contentDisposition)
+                raise RestException('Unallowed contentDisposition type "%s".' % contentDisposition)
             return File().download(
                 files[0], offset, contentDisposition=contentDisposition,
                 extraParameters=extraParameters)
@@ -270,7 +269,7 @@ class Item(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Delete an item by ID.')
-        .modelParam('id', model='item', level=AccessType.WRITE)
+        .modelParam('id', model=ItemModel, level=AccessType.WRITE)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied for the item.', 403)
     )
@@ -281,7 +280,7 @@ class Item(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get the path to the root of the item\'s hierarchy.')
-        .modelParam('id', model='item', level=AccessType.READ)
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)
     )
@@ -289,14 +288,14 @@ class Item(Resource):
         return self._model.parentsToRoot(item, self.getCurrentUser())
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='item')
+    @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('Copy an item.')
         .notes('If no folderId parameter is specified, creates a copy of the item in '
                'its current containing folder.')
         .responseClass('Item')
-        .modelParam('id', 'The ID of the original item.', model='item', level=AccessType.READ)
-        .modelParam('folderId', 'The ID of the parent folder.', required=False,
+        .modelParam('id', 'The ID of the original item.', model=ItemModel, level=AccessType.READ)
+        .modelParam('folderId', 'The ID of the parent folder.', required=False, model=Folder,
                     level=AccessType.WRITE)
         .param('name', 'Name for the new item.', required=False, strip=True)
         .param('description', 'Description for the new item.', required=False, strip=True)

@@ -671,6 +671,9 @@ class ResourceTestCase(base.TestCase):
                 'progress': True
             })
         self.assertStatusOk(resp)
+
+        # TODO(zachmullen) this can be removed when models are registered
+        Folder().reconnect()
         resp = self.request(
             path='/folder', method='GET', user=self.user,
             params={
@@ -680,10 +683,8 @@ class ResourceTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         copiedFolder = resp.json[0]
-        self.assertNotEqual(str(copiedFolder['_id']),
-                            str(self.adminSubFolder['_id']))
-        # We should have reported 2 things copied in the progress (1 folder and
-        # 1 item)
+        self.assertNotEqual(str(copiedFolder['_id']), str(self.adminSubFolder['_id']))
+        # We should have reported 2 things copied in the progress (1 folder and 1 item)
         resp = self.request(
             path='/notification/stream', method='GET', user=self.user,
             isJson=False, params={'timeout': 1})

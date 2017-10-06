@@ -123,7 +123,7 @@ class Group(Resource):
         return group
 
     @access.public
-    @filtermodel(model='user')
+    @filtermodel(model=User)
     @autoDescribeRoute(
         Description('Show outstanding invitations for a group.')
         .responseClass('Group')
@@ -183,7 +183,7 @@ class Group(Resource):
         return group
 
     @access.public
-    @filtermodel(model='user')
+    @filtermodel(model=User)
     @autoDescribeRoute(
         Description('List members of a group.')
         .modelParam('id', model=GroupModel, level=AccessType.READ)
