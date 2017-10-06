@@ -50,6 +50,8 @@ def _loadModel(model, module, plugin):
 def reinitializeAll():
     """
     Force all models to reconnect/rebuild indices (needed for testing).
+
+    .. deprecated
     """
     for pluginModels in list(six.viewvalues(_modelInstances)):
         for model in list(six.viewvalues(pluginModels)):

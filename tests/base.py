@@ -39,6 +39,7 @@ from girder.utility import model_importer, plugin_utilities
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
 from girder.models import getDbConnection
+from girder.models.model_base import _modelSingletons
 from girder.models.assetstore import Assetstore
 from girder.models.file import File
 from girder.models.setting import Setting
@@ -132,7 +133,8 @@ def dropTestDatabase(dropModels=True):
         db_connection.drop_database(dbName)
     usedDBs[dbName] = True
     if dropModels:
-        model_importer.reinitializeAll()
+        for model in _modelSingletons:
+            model.reconnect()
 
 
 def dropGridFSDatabase(dbName):

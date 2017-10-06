@@ -24,8 +24,6 @@ from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
-from girder.models.folder import Folder
-from girder.models.group import Group
 from girder.models.item import Item
 from girder.models.user import User
 from girder.utility.acl_mixin import AccessControlMixin
@@ -54,12 +52,6 @@ class SearchTestCase(base.TestCase):
 
         # set user read permissions on the private collection
         Collection().setUserAccess(coll2, user, level=AccessType.READ, save=True)
-
-        # Reconnect the models manually
-        # TODO(zachmullen) this can go away once we have an explicit model registry
-        # that can be used by model_importer.reinitializeAll
-        for model in (Collection, Folder, Item, User, Group):
-            model().reconnect()
 
         # Grab the default user folders
         resp = self.request(

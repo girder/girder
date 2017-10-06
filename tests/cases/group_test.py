@@ -161,8 +161,6 @@ class GroupTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(publicGroup['_id']))
         # Test searching by name
-        # TODO(zachmullen) remove this once we have model registry
-        Group().reconnect()
         resp = self.request(path='/group', method='GET', user=self.users[0],
                             params={'text': 'private'})
         self.assertStatusOk(resp)

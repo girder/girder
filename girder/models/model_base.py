@@ -36,6 +36,10 @@ from girder.utility.model_importer import ModelImporter
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
                     'modifiers', 'manipulate')
+# This list is only used for testing, where we must reconnect() all models after
+# the database is dropped between each test case. If we find a cleverer way to do
+# that, we don't need to store these here.
+_modelSingletons = []
 
 
 class _ModelSingleton(type):
@@ -46,6 +50,7 @@ class _ModelSingleton(type):
     def __call__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super(_ModelSingleton, cls).__call__(*args, **kwargs)
+            _modelSingletons.append(cls._instance)
         return cls._instance
 
 

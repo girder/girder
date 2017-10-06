@@ -184,17 +184,6 @@ class WebClientTestCase(base.TestCase):
         # phantomjs occasionally fails to load javascript files.  This appears
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
-        # TODO(zachmullen) these reconnects can be removed when models are registered
-        from girder.models.collection import Collection
-        from girder.models.group import Group
-        from girder.models.item import Item
-        from girder.models.user import User
-        Collection().reconnect()
-        Folder().reconnect()
-        Group().reconnect()
-        Item().reconnect()
-        User().reconnect()
-
         retry_count = os.environ.get('PHANTOMJS_RETRY', 3)
         for _ in range(int(retry_count)):
             retry = False

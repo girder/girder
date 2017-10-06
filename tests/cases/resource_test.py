@@ -672,8 +672,6 @@ class ResourceTestCase(base.TestCase):
             })
         self.assertStatusOk(resp)
 
-        # TODO(zachmullen) this can be removed when models are registered
-        Folder().reconnect()
         resp = self.request(
             path='/folder', method='GET', user=self.user,
             params={
