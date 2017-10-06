@@ -17,8 +17,6 @@
 #  limitations under the License.
 #############################################################################
 
-# import cherrypy
-# import logging
 import os
 import shutil
 import six
@@ -28,6 +26,7 @@ import tempfile
 from .. import base
 import girder
 from girder import logger, logprint
+from girder.models.user import User
 from girder.utility import config
 
 
@@ -42,7 +41,6 @@ def setUpModule():
         'error_log_file': errorFile,
         'original_error_log_file': errorFile,  # so we can change error_log_file
     }
-    cfg = config.getConfig()
     base.startServer()
 
 
@@ -68,7 +66,7 @@ class ConfigLoggingTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         }
-        self.admin = self.model('user').createUser(**user)
+        self.admin = User().createUser(**user)
         self.infoMessage = 'Log info message'
         self.errorMessage = 'Log error message'
 

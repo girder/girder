@@ -28,6 +28,8 @@ from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import registerAccessFlag, ROOT_DIR
+from girder.models.folder import Folder
+from girder.models.upload import Upload
 from girder.utility.progress import ProgressContext
 from . import base
 from six.moves import range
@@ -119,14 +121,14 @@ class WebClientTestEndpoints(Resource):
 
         path = os.path.join(ROOT_DIR, params['path'])
         name = os.path.basename(path)
-        folder = self.model('folder').load(params['folderId'], force=True)
+        folder = Folder().load(params['folderId'], force=True)
 
-        upload = self.model('upload').createUpload(
+        upload = Upload().createUpload(
             user=self.getCurrentUser(), name=name, parentType='folder',
             parent=folder, size=os.path.getsize(path))
 
         with open(path, 'rb') as fd:
-            file = self.model('upload').handleChunk(upload, fd)
+            file = Upload().handleChunk(upload, fd)
 
         return file
 

@@ -23,6 +23,8 @@ from .. import base
 
 from girder.models.model_base import ValidationException
 from girder.models.notification import ProgressState
+from girder.models.token import Token
+from girder.models.user import User
 from girder.utility.progress import ProgressContext
 
 
@@ -38,7 +40,7 @@ class NotificationTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.admin = self.model('user').createUser(
+        self.admin = User().createUser(
             email='admin@email.com', login='admin', firstName='first',
             lastName='last', password='mypasswd')
 
@@ -122,9 +124,7 @@ class NotificationTestCase(base.TestCase):
 
         # Test a ValidationException within the progress context
         try:
-            with ProgressContext(
-                    True, user=user, token=token, title='Test',
-                    total=100) as progress:
+            with ProgressContext(True, user=user, token=token, title='Test', total=100):
                 raise ValidationException('Test Message')
         except ValidationException:
             pass
@@ -144,5 +144,5 @@ class NotificationTestCase(base.TestCase):
         resp = self.request(path='/token/session', method='GET')
         self.assertStatusOk(resp)
         token = resp.json['token']
-        tokenDoc = self.model('token').load(token, force=True, objectId=False)
+        tokenDoc = Token().load(token, force=True, objectId=False)
         self._testStream(None, tokenDoc)

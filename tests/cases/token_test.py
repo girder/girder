@@ -21,7 +21,7 @@ import random
 
 from .. import base
 from girder.constants import TokenScope
-from girder.models.token import genToken
+from girder.models.token import genToken, Token
 from girder.models.model_base import AccessException
 
 
@@ -80,7 +80,7 @@ class TokensTestCase(base.TestCase):
 
     def testHasScope(self):
         scope = TokenScope.DATA_READ
-        tokenModel = self.model('token')
+        tokenModel = Token()
         token = tokenModel.createToken(scope=scope)
 
         # If token is None should return False
@@ -92,7 +92,7 @@ class TokensTestCase(base.TestCase):
     def testRequireScope(self):
         scope = TokenScope.DATA_OWN
         anotherScope = TokenScope.SETTINGS_READ
-        tokenModel = self.model('token')
+        tokenModel = Token()
         token = tokenModel.createToken(scope=scope)
 
         # If specified scope does not exist raise an error

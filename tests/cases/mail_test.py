@@ -21,6 +21,8 @@ import os
 
 from .. import base
 from girder.constants import SettingKey
+from girder.models.setting import Setting
+from girder.models.user import User
 from girder.utility import mail_utils
 
 
@@ -43,13 +45,13 @@ class MailTestCase(base.TestCase):
     def testEmailAdmins(self):
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
 
-        admin1, admin2 = [self.model('user').createUser(
-            firstName='Admin%d' % i, lastName='Admin', login='admin%d' % i,
-            password='password', admin=True, email='admin%d@admin.com' % i)
-            for i in range(2)]
+        for i in range(2):
+            User().createUser(
+                firstName='Admin%d' % i, lastName='Admin', login='admin%d' % i,
+                password='password', admin=True, email='admin%d@admin.com' % i)
 
         # Set the email from address
-        self.model('setting').set(SettingKey.EMAIL_FROM_ADDRESS, 'a@test.com')
+        Setting().set(SettingKey.EMAIL_FROM_ADDRESS, 'a@test.com')
 
         # Test sending email to admin users
         mail_utils.sendEmail(text='hello', toAdmins=True)
@@ -64,8 +66,7 @@ class MailTestCase(base.TestCase):
 
         # Test sending email to multiple recipients
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
-        mail_utils.sendEmail(to=('a@abc.com', 'b@abc.com'), text='world',
-                             subject='Email alert')
+        mail_utils.sendEmail(to=('a@abc.com', 'b@abc.com'), text='world', subject='Email alert')
         self.assertTrue(base.mockSmtp.waitForMail())
 
         message = base.mockSmtp.getMail(parse=True)

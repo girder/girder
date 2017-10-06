@@ -26,6 +26,7 @@ import tempfile
 
 from .. import base
 from girder import constants
+from girder.models.user import User
 from girder.utility import install
 
 pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins')
@@ -228,7 +229,7 @@ class InstallTestCase(base.TestCase):
 
     def testWebInstall(self):
         # Test initiation of web install via the REST API
-        user = self.model('user').createUser(
+        user = User().createUser(
             login='admin', firstName='admin', lastName='admin', email='a@foo.com',
             password='passwd', admin=True)
 
@@ -302,7 +303,7 @@ class InstallTestCase(base.TestCase):
             invokeCli(['web', '--watch'])
 
         # Test "--plugins=" and --no-plugins
-        with mock.patch('girder.utility.install.model_importer.ModelImporter.model') as p,\
+        with mock.patch('girder.utility.install.Setting') as p,\
                 mock.patch('subprocess.Popen', return_value=ProcMock()):
             invokeCli(['web', '--no-plugins'])
             invokeCli(['web', '--plugins='])

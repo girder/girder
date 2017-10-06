@@ -30,6 +30,7 @@ from girder import logger, logprint
 from girder.models.model_base import AccessException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
+from girder.models.item import Item
 from girder.models.user import User
 from girder.utility.path import lookUpPath, NotFoundException
 from girder.utility.model_importer import ModelImporter
@@ -84,7 +85,7 @@ def _stat(doc, model):
     return info
 
 
-class _FileHandle(paramiko.SFTPHandle, ModelImporter):
+class _FileHandle(paramiko.SFTPHandle):
     def __init__(self, file):
         """
         Create a file-like object representing a file blob stored in Girder.
@@ -115,7 +116,7 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
         return paramiko.SFTP_OK
 
 
-class _SftpServerAdapter(paramiko.SFTPServerInterface):
+class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
     def __init__(self, server, *args, **kwargs):
         self.server = server
         paramiko.SFTPServerInterface.__init__(self, server, *args, **kwargs)
@@ -131,7 +132,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
             for item in Folder().childItems(document):
                 entries.append(_stat(item, 'item'))
         elif model == 'item':
-            for file in Folder().childFiles(document):
+            for file in Item().childFiles(document):
                 entries.append(_stat(file, 'file'))
 
         return entries
@@ -208,7 +209,7 @@ class _SftpRequestHandler(socketserver.BaseRequestHandler):
         self.transport.start_server(server=_ServerAdapter())
 
 
-class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
+class _ServerAdapter(paramiko.ServerInterface):
     def __init__(self, *args, **kwargs):
         paramiko.ServerInterface.__init__(self, *args, **kwargs)
         self.girderUser = None

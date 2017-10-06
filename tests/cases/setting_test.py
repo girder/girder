@@ -20,6 +20,7 @@
 import six
 from .. import base
 from girder.models.model_base import ValidationException
+from girder.models.setting import Setting
 from girder.utility import setting_utilities
 
 
@@ -37,7 +38,7 @@ class SettingTestCase(base.TestCase):
     """
 
     def testUniqueIndex(self):
-        settingModel = self.model('setting')
+        settingModel = Setting()
         coll = settingModel.collection
         indices = coll.index_information()
         # Make sure we have just one index on key and that it specifies that it
@@ -72,7 +73,7 @@ class SettingTestCase(base.TestCase):
         self.assertEqual(settingModel.find({'key': 'duplicate'}).count(), 1)
 
     def testValidators(self):
-        settingModel = self.model('setting')
+        settingModel = Setting()
 
         @setting_utilities.validator('test.key1')
         def key1v1(doc):
@@ -107,4 +108,4 @@ class SettingTestCase(base.TestCase):
         def default():
             return 'default value'
 
-        self.assertEqual(self.model('setting').get('test.key'), 'default value')
+        self.assertEqual(Setting().get('test.key'), 'default value')
