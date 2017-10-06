@@ -1,3 +1,6 @@
+import dicom
+import six
+
 from dicom.sequence import Sequence
 from dicom.valuerep import PersonName3
 from girder import events
@@ -5,9 +8,8 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
-from girder.utility.model_importer import ModelImporter
-import dicom
-import six
+from girder.models.file import File
+from girder.models.item import Item
 
 
 class DicomItem(Resource):
@@ -15,8 +17,7 @@ class DicomItem(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Get DICOM metadata, if any, for all files in the item.')
-        .modelParam('id', 'The item ID',
-                    model='item', level=AccessType.READ, paramType='path')
+        .modelParam('id', 'The item ID', model=Item, level=AccessType.READ, paramType='path')
         .param('filters', 'Filter returned DICOM tags (comma-separated).',
                required=False, default='')
         .param('force', 'Force re-parsing the DICOM files. Write access required.',
@@ -26,10 +27,9 @@ class DicomItem(Resource):
     )
     def getDicom(self, item, filters, force):
         if force:
-            self.model('item').requireAccess(
-                item, user=self.getCurrentUser(), level=AccessType.WRITE)
+            Item().requireAccess(item, user=self.getCurrentUser(), level=AccessType.WRITE)
         filters = set(filter(None, filters.split(',')))
-        files = list(ModelImporter.model('item').childFiles(item))
+        files = list(Item().childFiles(item))
         # process files if they haven't been processed yet
         for i, f in enumerate(files):
             if force or 'dicom' not in f:
@@ -75,7 +75,7 @@ def parse_file(f):
     data = {}
     try:
         # download file and try to parse dicom
-        with ModelImporter.model('file').open(f) as fp:
+        with File().open(f) as fp:
             ds = dicom.read_file(
                 fp,
                 # some dicom files don't have a valid header
@@ -105,7 +105,7 @@ def parse_file(f):
 
 def process_file(f):
     f['dicom'] = parse_file(f)
-    return ModelImporter.model('file').save(f)
+    return File().save(f)
 
 
 def handler(event):
@@ -115,5 +115,4 @@ def handler(event):
 def load(info):
     events.bind('data.process', 'dicom_viewer', handler)
     dicomItem = DicomItem()
-    info['apiRoot'].item.route(
-        'GET', (':id', 'dicom'), dicomItem.getDicom)
+    info['apiRoot'].item.route('GET', (':id', 'dicom'), dicomItem.getDicom)

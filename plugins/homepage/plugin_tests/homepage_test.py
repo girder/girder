@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+from girder.models.setting import Setting
 from tests import base
 
 
@@ -40,7 +41,7 @@ class HomepageTest(base.TestCase):
         self.assertEquals(resp.json[key], '')
 
         # set markdown
-        self.model('setting').set(key, 'foo')
+        Setting().set(key, 'foo')
 
         # verify we can get the markdown without being authenticated
         resp = self.request('/homepage')

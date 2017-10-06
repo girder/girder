@@ -17,12 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.utility.model_importer import ModelImporter
+from girder.plugins.jobs.models.job import Job
 
 
 def run(job):
-    ModelImporter.model('job', 'jobs').updateJob(job, log='job ran!')
+    Job().updateJob(job, log='job ran!')
 
 
 def fail(job):
-    ModelImporter.model('job', 'jobs').updateJob(job, log='job failed')
+    Job().updateJob(job, log='job failed')

@@ -1,4 +1,6 @@
 from girder.constants import AccessType
+from girder.models.group import Group
+from girder.models.user import User
 from tests import base
 import json
 
@@ -17,7 +19,7 @@ class AutoJoinTest(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.users = [self.model('user').createUser(
+        self.users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
@@ -25,9 +27,9 @@ class AutoJoinTest(base.TestCase):
         admin, user = self.users
 
         # create some groups
-        g1 = self.model('group').createGroup('g1', admin)
-        g2 = self.model('group').createGroup('g2', admin)
-        g3 = self.model('group').createGroup('g3', admin)
+        g1 = Group().createGroup('g1', admin)
+        g2 = Group().createGroup('g2', admin)
+        g3 = Group().createGroup('g3', admin)
 
         # set auto join rules
         rules = [
@@ -50,17 +52,13 @@ class AutoJoinTest(base.TestCase):
         params = {
             'list': json.dumps([{'key': 'autojoin', 'value': rules}])
         }
-        resp = self.request(
-            '/system/setting', user=admin, method='PUT', params=params)
+        resp = self.request('/system/setting', user=admin, method='PUT', params=params)
         self.assertStatusOk(resp)
 
         # create users
-        user1 = self.model('user').createUser(
-            'user1', 'password', 'John', 'Doe', 'user1@example.com')
-        user2 = self.model('user').createUser(
-            'user2', 'password', 'John', 'Doe', 'user2@test.com')
-        user3 = self.model('user').createUser(
-            'user3', 'password', 'John', 'Doe', 'user3@test.co')
+        user1 = User().createUser('user1', 'password', 'John', 'Doe', 'user1@example.com')
+        user2 = User().createUser('user2', 'password', 'John', 'Doe', 'user2@test.com')
+        user3 = User().createUser('user3', 'password', 'John', 'Doe', 'user3@test.co')
 
         # check correct groups were joined
         self.assertEqual(user1['groups'], [g2['_id'], g3['_id']])
@@ -68,9 +66,8 @@ class AutoJoinTest(base.TestCase):
         self.assertEqual(user3['groups'], [])
 
         # check correct access levels
-        g1 = self.model('group').load(g1['_id'], force=True)
-        g2 = self.model('group').load(g2['_id'], force=True)
-        g3 = self.model('group').load(g3['_id'], force=True)
+        g1 = Group().load(g1['_id'], force=True)
+        g3 = Group().load(g3['_id'], force=True)
         self.assertIn(
             {'id': user2['_id'], 'level': AccessType.ADMIN, 'flags': []},
             g1['access']['users'])

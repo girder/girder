@@ -19,7 +19,8 @@
 
 from girder import events
 from girder.constants import SettingDefault, SortDir
-from girder.models.model_base import ModelImporter, ValidationException
+from girder.models.model_base import ValidationException
+from girder.models.user import User
 from girder.utility import setting_utilities
 from . import rest, constants, providers
 
@@ -75,10 +76,10 @@ def checkOauthUser(event):
 
 
 def load(info):
-    ModelImporter.model('user').ensureIndex((
+    User().ensureIndex((
         (('oauth.provider', SortDir.ASCENDING),
          ('oauth.id', SortDir.ASCENDING)), {}))
-    ModelImporter.model('user').reconnect()
+    User().reconnect()
 
     events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
 

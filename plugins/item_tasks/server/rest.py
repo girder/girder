@@ -7,6 +7,9 @@ from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import ensureTokenScopes, filtermodel, Resource
 from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
+from girder.models.item import Item
+from girder.models.token import Token
+from girder.plugins.jobs.models.job import Job
 from girder.plugins.worker import utils
 from . import constants
 from .json_tasks import createItemTasksFromJson, runJsonTasksDescriptionForFolder
@@ -39,16 +42,16 @@ class ItemTask(Resource):
         .param('maxFileInputs', 'Filter tasks by maximum number of file inputs.', required=False,
                dataType='int')
     )
-    @filtermodel(model='item')
+    @filtermodel(model=Item)
     def listTasks(self, limit, offset, sort, minFileInputs, maxFileInputs, params):
-        cursor = self.model('item').find({
+        cursor = Item().find({
             'meta.isItemTask': {'$exists': True}
         }, sort=sort)
 
         if minFileInputs is not None or maxFileInputs is not None:
             cursor = self._filterMinMaxFileInputs(cursor, minFileInputs, maxFileInputs)
 
-        return list(self.model('item').filterResultsByPermission(
+        return list(Item().filterResultsByPermission(
             cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
             flags=constants.ACCESS_FLAG_EXECUTE_TASK))
 
@@ -188,10 +191,10 @@ class ItemTask(Resource):
             raise ValidationException('Invalid output id: %s.' % outputId)
 
     @access.user(scope=constants.TOKEN_SCOPE_EXECUTE_TASK)
-    @filtermodel(model='job', plugin='jobs')
+    @filtermodel(model=Job)
     @autoDescribeRoute(
         Description('Execute a task described by an item.')
-        .modelParam('id', 'The ID of the item representing the task specification.', model='item',
+        .modelParam('id', 'The ID of the item representing the task specification.', model=Item,
                     level=AccessType.READ, requiredFlags=constants.ACCESS_FLAG_EXECUTE_TASK)
         .param('jobTitle', 'Title for this job execution.', required=False)
         .param('includeJobInfo', 'Whether to track the task using a job record.',
@@ -207,13 +210,13 @@ class ItemTask(Resource):
             jobTitle = item['name']
         task, handler = self._validateTask(item)
 
-        jobModel = self.model('job', 'jobs')
+        jobModel = Job()
         job = jobModel.createJob(
             title=jobTitle, type='item_task', handler=handler, user=user)
 
         # If this is a user auth token, we make an IO-enabled token
         token = self.getCurrentToken()
-        tokenModel = self.model('token')
+        tokenModel = Token()
         if tokenModel.hasScope(token, TokenScope.USER_AUTH):
             token = tokenModel.createToken(
                 user=user, days=7, scope=(TokenScope.DATA_READ, TokenScope.DATA_WRITE))
