@@ -28,6 +28,9 @@ import time
 
 from girder import logger, logprint
 from girder.models.model_base import AccessException, ValidationException
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.user import User
 from girder.utility.path import lookUpPath, NotFoundException
 from girder.utility.model_importer import ModelImporter
 from six.moves import socketserver
@@ -92,7 +95,7 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
         super(_FileHandle, self).__init__()
 
         self.file = file
-        self._handle = self.model('file').open(file)
+        self._handle = File().open(file)
 
     def read(self, offset, length):
         if length > MAX_BUF_LEN:
@@ -112,7 +115,7 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
         return paramiko.SFTP_OK
 
 
-class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
+class _SftpServerAdapter(paramiko.SFTPServerInterface):
     def __init__(self, server, *args, **kwargs):
         self.server = server
         paramiko.SFTPServerInterface.__init__(self, server, *args, **kwargs)
@@ -120,15 +123,15 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
     def _list(self, model, document):
         entries = []
         if model in ('collection', 'user', 'folder'):
-            for folder in self.model('folder').childFolders(
+            for folder in Folder().childFolders(
                     parent=document, parentType=model, user=self.server.girderUser):
                 entries.append(_stat(folder, 'folder'))
 
         if model == 'folder':
-            for item in self.model('folder').childItems(document):
+            for item in Folder().childItems(document):
                 entries.append(_stat(item, 'item'))
         elif model == 'item':
-            for file in self.model('item').childFiles(document):
+            for file in Folder().childFiles(document):
                 entries.append(_stat(file, 'file'))
 
         return entries
@@ -229,7 +232,7 @@ class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
             return paramiko.AUTH_SUCCESSFUL
 
         try:
-            self.girderUser = self.model('user').authenticate(username, password)
+            self.girderUser = User().authenticate(username, password)
             return paramiko.AUTH_SUCCESSFUL
         except AccessException:
             return paramiko.AUTH_FAILED

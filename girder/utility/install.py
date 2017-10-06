@@ -33,7 +33,8 @@ import string
 import sys
 
 from girder import constants
-from girder.utility import model_importer, plugin_utilities
+from girder.models.setting import Setting
+from girder.utility import plugin_utilities
 
 version = constants.VERSION['apiVersion']
 webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
@@ -72,8 +73,7 @@ def _getPluginBuildArgs(buildAll, plugins):
         sortedPlugins = plugin_utilities.getToposortedPlugins()
         return ['--plugins=%s' % ','.join(sortedPlugins)]
     elif plugins is None:  # build only the enabled plugins
-        settings = model_importer.ModelImporter().model('setting')
-        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+        plugins = Setting().get(constants.SettingKey.PLUGINS_ENABLED, default=())
 
     plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
 

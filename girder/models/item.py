@@ -183,7 +183,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         for file in self.childFiles(item):
             # We could add a recalculateSize to the file model, in which case
             # this would be:
-            # size += self.model('file').recalculateSize(file)
+            # size += File().recalculateSize(file)
             size += file.get('size', 0)
         delta = size-item.get('size', 0)
         if delta:

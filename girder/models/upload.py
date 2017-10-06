@@ -24,7 +24,6 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.api import rest
 from girder.constants import SettingKey
-from girder.utility import assetstore_utilities
 from .model_base import Model, GirderException, ValidationException
 from girder.utility import RequestBodyStream
 from girder.utility.progress import noProgress
@@ -64,8 +63,7 @@ class Upload(Model):
             size = os.path.getsize(filename)
 
             with open(filename, 'rb') as f:
-                self.model('upload').uploadFromFile(
-                    f, size, filename, 'item', parentItem, user)
+                Upload().uploadFromFile(f, size, filename, 'item', parentItem, user)
 
         :param obj: The object representing the content to upload.
         :type obj: file-like
@@ -81,7 +79,7 @@ class Upload(Model):
         :param mimeType: MIME type of the file.
         :type mimeType: str
         :param reference: An optional reference string that will be sent to the
-                          data.process event.
+            data.process event.
         :param assetstore: An optional assetstore to use to store the file.  If
             unspecified, the current assetstore is used.
         :type reference: str
@@ -142,6 +140,7 @@ class Upload(Model):
         """
         from .assetstore import Assetstore
         from .file import File
+        from girder.utility import assetstore_utilities
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -166,6 +165,8 @@ class Upload(Model):
         makes the request from the assetstore adapter.
         """
         from .assetstore import Assetstore
+        from girder.utility import assetstore_utilities
+
         assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         return adapter.requestOffset(upload)
@@ -184,6 +185,7 @@ class Upload(Model):
         from .assetstore import Assetstore
         from .file import File
         from .item import Item
+        from girder.utility import assetstore_utilities
 
         events.trigger('model.upload.finalize', upload)
         if assetstore is None:
@@ -296,6 +298,8 @@ class Upload(Model):
         :param assetstore: An optional assetstore to use to store the file.  If
             unspecified, the current assetstore is used.
         """
+        from girder.utility import assetstore_utilities
+
         assetstore = self.getTargetAssetstore('file', file, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
@@ -352,6 +356,8 @@ class Upload(Model):
         :type save: boolean
         :returns: The upload document that was created.
         """
+        from girder.utility import assetstore_utilities
+
         assetstore = self.getTargetAssetstore(parentType, parent, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
@@ -477,6 +483,7 @@ class Upload(Model):
         :type upload: dict
         """
         from .assetstore import Assetstore
+        from girder.utility import assetstore_utilities
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         # If the assetstore was deleted, the upload may still be in our
@@ -505,6 +512,7 @@ class Upload(Model):
         :returns: a list of items that were removed or could be removed.
         """
         from .assetstore import Assetstore
+        from girder.utility import assetstore_utilities
 
         results = []
         knownUploads = list(self.list())

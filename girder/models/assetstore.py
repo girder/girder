@@ -20,7 +20,6 @@
 import datetime
 
 from .model_base import Model, ValidationException, GirderException
-from girder.utility import assetstore_utilities
 from girder.constants import AssetstoreType, SortDir
 
 
@@ -32,6 +31,8 @@ class Assetstore(Model):
         self.name = 'assetstore'
 
     def validate(self, doc):
+        from girder.utility import assetstore_utilities
+
         # Ensure no duplicate names
         q = {'name': doc['name']}
         if '_id' in doc:
@@ -72,6 +73,8 @@ class Assetstore(Model):
         :type assetstore: dict
         """
         from .file import File
+        from girder.utility import assetstore_utilities
+
         files = File().findOne({'assetstoreId': assetstore['_id']})
         if files is not None:
             raise ValidationException('You may not delete an assetstore that contains files.')
@@ -115,6 +118,8 @@ class Assetstore(Model):
         :type assetstore: dict
         """
         from .file import File
+        from girder.utility import assetstore_utilities
+
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         assetstore['capacity'] = adapter.capacityInfo()
         assetstore['hasFiles'] = File().findOne({'assetstoreId': assetstore['_id']}) is not None
@@ -174,6 +179,8 @@ class Assetstore(Model):
         """
         Calls the importData method of the underlying assetstore adapter.
         """
+        from girder.utility import assetstore_utilities
+
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         return adapter.importData(
             parent=parent, parentType=parentType, params=params,

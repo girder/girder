@@ -1137,6 +1137,9 @@ class AccessControlledModel(Model):
         :type doc: dict
         :returns: A dict containing `users` and `groups` keys.
         """
+        from .user import User
+        from .group import Group
+
         acList = {
             'users': doc.get('access', {}).get('users', []),
             'groups': doc.get('access', {}).get('groups', [])
@@ -1145,9 +1148,7 @@ class AccessControlledModel(Model):
         dirty = False
 
         for user in acList['users'][:]:
-            userDoc = self.model('user').load(
-                user['id'], force=True,
-                fields=['firstName', 'lastName', 'login'])
+            userDoc = User().load(user['id'], force=True, fields=['firstName', 'lastName', 'login'])
             if not userDoc:
                 dirty = True
                 acList['users'].remove(user)
@@ -1156,8 +1157,7 @@ class AccessControlledModel(Model):
             user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
         for grp in acList['groups'][:]:
-            grpDoc = self.model('group').load(
-                grp['id'], force=True, fields=['name', 'description'])
+            grpDoc = Group().load(grp['id'], force=True, fields=['name', 'description'])
             if not grpDoc:
                 dirty = True
                 acList['groups'].remove(grp)

@@ -25,7 +25,7 @@ from .model_base import Model, ValidationException
 from girder import events
 from girder.constants import AccessType, CoreEventHandler
 from girder.models.model_base import AccessControlledModel
-from girder.utility import assetstore_utilities, acl_mixin
+from girder.utility import acl_mixin
 
 
 class File(acl_mixin.AccessControlMixin, Model):
@@ -33,6 +33,8 @@ class File(acl_mixin.AccessControlMixin, Model):
     This model represents a File, which is stored in an assetstore.
     """
     def initialize(self):
+        from girder.utility import assetstore_utilities
+
         self.name = 'file'
         self.ensureIndices(
             ['itemId', 'assetstoreId', 'exts'] +
@@ -352,6 +354,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         Return the assetstore adapter for the given file.
         """
         from .assetstore import Assetstore
+        from girder.utility import assetstore_utilities
+
         assetstore = Assetstore().load(file['assetstoreId'])
         return assetstore_utilities.getAssetstoreAdapter(assetstore)
 

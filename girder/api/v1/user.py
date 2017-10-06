@@ -25,10 +25,11 @@ from ..describe import Description, autoDescribeRoute
 from girder.api import access
 from girder.api.rest import Resource, RestException, AccessException, filtermodel, setCurrentUser
 from girder.constants import AccessType, SettingKey, TokenScope
+from girder.models.password import Password
+from girder.models.setting import Setting
+from girder.models.token import genToken, Token
 from girder.models.user import User as UserModel
-from girder.models.token import genToken
 from girder.utility import mail_utils
-from girder.utility.model_importer import ModelImporter
 
 
 class User(Resource):
@@ -145,7 +146,7 @@ class User(Resource):
     def logout(self):
         token = self.getCurrentToken()
         if token:
-            self.model('token').remove(token)
+            Token().remove(token)
         self.deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
 
@@ -167,7 +168,7 @@ class User(Resource):
     def createUser(self, login, email, firstName, lastName, password, admin):
         currentUser = self.getCurrentUser()
 
-        regPolicy = self.model('setting').get(SettingKey.REGISTRATION_POLICY)
+        regPolicy = Setting().get(SettingKey.REGISTRATION_POLICY)
 
         if not currentUser or not currentUser['admin']:
             admin = False
@@ -277,21 +278,19 @@ class User(Resource):
         if not old:
             raise RestException('Old password must not be empty.')
 
-        if (not self.model('password').hasPassword(user) or
-                not self.model('password').authenticate(user, old)):
+        if not Password().hasPassword(user) or not Password().authenticate(user, old):
             # If not the user's actual password, check for temp access token
-            token = self.model('token').load(old, force=True, objectId=False, exc=False)
+            token = Token().load(old, force=True, objectId=False, exc=False)
             if (not token or not token.get('userId') or
                     token['userId'] != user['_id'] or
-                    not self.model('token').hasScope(
-                        token, TokenScope.TEMPORARY_USER_AUTH)):
+                    not Token().hasScope(token, TokenScope.TEMPORARY_USER_AUTH)):
                 raise AccessException('Old password is incorrect.')
 
         self._model.setPassword(user, new)
 
         if token:
             # Remove the temporary access token if one was used
-            self.model('token').remove(token)
+            Token().remove(token)
 
         return {'message': 'Password changed.'}
 
@@ -312,10 +311,8 @@ class User(Resource):
             'password': randomPass
         })
         mail_utils.sendEmail(
-            to=email, subject='%s: Password reset'
-            % ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
-            text=html
-        )
+            to=email, subject='%s: Password reset' % Setting().get(SettingKey.BRAND_NAME),
+            text=html)
         self._model.setPassword(user, randomPass)
         return {'message': 'Sent password reset email.'}
 
@@ -332,8 +329,7 @@ class User(Resource):
         if not user:
             raise RestException('That email is not registered.')
 
-        token = self.model('token').createToken(
-            user, days=1, scope=TokenScope.TEMPORARY_USER_AUTH)
+        token = Token().createToken(user, days=1, scope=TokenScope.TEMPORARY_USER_AUTH)
 
         url = '%s#useraccount/%s/token/%s' % (
             mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
@@ -343,8 +339,7 @@ class User(Resource):
             'token': str(token['_id'])
         })
         mail_utils.sendEmail(
-            to=email, subject='%s: Temporary access'
-            % ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
+            to=email, subject='%s: Temporary access' % Setting().get(SettingKey.BRAND_NAME),
             text=html
         )
         return {'message': 'Sent temporary access email.'}
@@ -359,10 +354,10 @@ class User(Resource):
         .errorResponse('The token does not grant temporary access to the specified user.', 401)
     )
     def checkTemporaryPassword(self, user, token):
-        token = self.model('token').load(
+        token = Token().load(
             token, user=user, level=AccessType.ADMIN, objectId=False, exc=True)
         delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
-        hasScope = self.model('token').hasScope(token, TokenScope.TEMPORARY_USER_AUTH)
+        hasScope = Token().hasScope(token, TokenScope.TEMPORARY_USER_AUTH)
 
         if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
             raise AccessException('The token does not grant temporary access to this user.')
@@ -403,16 +398,16 @@ class User(Resource):
         .errorResponse('The token is invalid or expired.', 401)
     )
     def verifyEmail(self, user, token):
-        token = self.model('token').load(
+        token = Token().load(
             token, user=user, level=AccessType.ADMIN, objectId=False, exc=True)
         delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
-        hasScope = self.model('token').hasScope(token, TokenScope.EMAIL_VERIFICATION)
+        hasScope = Token().hasScope(token, TokenScope.EMAIL_VERIFICATION)
 
         if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
             raise AccessException('The token is invalid or expired.')
 
         user['emailVerified'] = True
-        self.model('token').remove(token)
+        Token().remove(token)
         user = self._model.save(user)
 
         if self._model.canLogin(user):

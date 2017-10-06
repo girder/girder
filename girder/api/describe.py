@@ -32,6 +32,7 @@ import cherrypy
 from girder import constants, events, logprint
 from girder.api.rest import getCurrentUser, RestException, getBodyJson
 from girder.constants import CoreEventHandler, SettingKey
+from girder.models.setting import Setting
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
@@ -457,7 +458,7 @@ class ApiDocs(WebrootBase):
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
+            'brandName': Setting().get(SettingKey.BRAND_NAME),
             'mode': mode
         }
 
@@ -474,8 +475,7 @@ class ApiDocs(WebrootBase):
     def _onSettingRemove(self, event):
         settingDoc = event.info
         if settingDoc['key'] == SettingKey.BRAND_NAME:
-            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
-                SettingKey.BRAND_NAME)})
+            self.updateHtmlVars({'brandName': Setting().getDefault(SettingKey.BRAND_NAME)})
 
 
 class Describe(Resource):

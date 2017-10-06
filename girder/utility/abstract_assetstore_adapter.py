@@ -22,6 +22,7 @@ import six
 from girder.api.rest import setResponseHeader, setContentDisposition
 from girder.constants import SettingKey
 from girder.models.model_base import GirderException, ValidationException
+from girder.models.setting import Setting
 from girder.utility import progress, RequestBodyStream
 from .model_importer import ModelImporter
 
@@ -367,9 +368,8 @@ class AbstractAssetstoreAdapter(ModelImporter):
             return
         if upload['received'] + chunkSize > upload['size']:
             raise ValidationException('Received too many bytes.')
-        if upload['received'] + chunkSize != upload['size'] and \
-                chunkSize < self.model('setting').get(
-                SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE):
+        if (upload['received'] + chunkSize != upload['size'] and
+                chunkSize < Setting().get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)):
             raise ValidationException('Chunk is smaller than the minimum size.')
 
     def cancelUpload(self, upload):

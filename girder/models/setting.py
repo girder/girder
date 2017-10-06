@@ -27,7 +27,6 @@ from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault,
 from .model_base import Model, ValidationException
 from girder import logprint
 from girder.utility import config, plugin_utilities, setting_utilities
-from girder.utility.model_importer import ModelImporter
 from bson.objectid import ObjectId
 
 
@@ -216,17 +215,20 @@ class Setting(Model):
     @staticmethod
     @setting_utilities.validator(SettingKey.COLLECTION_CREATE_POLICY)
     def validateCoreCollectionCreatePolicy(doc):
+        from .group import Group
+        from .user import User
+
         value = doc['value']
 
         if not isinstance(value, dict):
             raise ValidationException('Collection creation policy must be a JSON object.')
 
         for i, groupId in enumerate(value.get('groups', ())):
-            ModelImporter.model('group').load(groupId, force=True, exc=True)
+            Group().load(groupId, force=True, exc=True)
             value['groups'][i] = ObjectId(value['groups'][i])
 
         for i, userId in enumerate(value.get('users', ())):
-            ModelImporter.model('user').load(userId, force=True, exc=True)
+            User().load(userId, force=True, exc=True)
             value['users'][i] = ObjectId(value['users'][i])
 
         value['open'] = value.get('open', False)

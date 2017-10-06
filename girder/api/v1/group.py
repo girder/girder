@@ -26,7 +26,6 @@ from girder.models.group import Group as GroupModel
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.utility import mail_utils
-from girder.utility.model_importer import ModelImporter
 
 
 class Group(Resource):
@@ -254,7 +253,7 @@ class Group(Resource):
                 mail_utils.sendEmail(
                     to=userToInvite['email'], text=html,
                     subject="%s: You've been invited to a group"
-                    % ModelImporter.model('setting').get(SettingKey.BRAND_NAME)
+                    % Setting().get(SettingKey.BRAND_NAME)
                 )
 
         group['access'] = groupModel.getFullAccessList(group)
