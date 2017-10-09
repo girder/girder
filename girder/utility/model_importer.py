@@ -29,7 +29,6 @@ _modelInstances = {}
 
 
 def _loadModel(model, module, plugin):
-    global _modelInstances
     className = camelcase(model)
 
     try:
@@ -78,8 +77,6 @@ class ModelImporter(object):
                        set this to the name of the plugin containing the model.
         :returns: The instantiated model, which is a singleton.
         """
-        global _modelInstances
-
         if plugin is None:
             plugin = '_core'
 
