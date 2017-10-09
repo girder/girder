@@ -45,7 +45,8 @@ from girder import logprint
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, PACKAGE_DIR, ROOT_DIR, \
     ROOT_PLUGINS_PACKAGE, SettingKey
 from girder.models.model_base import ValidationException
-from girder.utility import mail_utils, model_importer
+from girder.models.setting import Setting
+from girder.utility import mail_utils
 
 _pluginWebroots = {}
 _pluginFailureInfo = {}
@@ -219,8 +220,7 @@ def loadPlugin(name, root, appconf, apiRoot=None):
     fp = None
     try:
         # @todo this query is run for every plugin that's loaded
-        setting = model_importer.ModelImporter().model('setting')
-        routeTable = setting.get(SettingKey.ROUTE_TABLE)
+        routeTable = Setting().get(SettingKey.ROUTE_TABLE)
 
         info = {
             'name': name,
@@ -233,9 +233,7 @@ def loadPlugin(name, root, appconf, apiRoot=None):
         }
 
         if pluginLoadMethod is None:
-            fp, pathname, description = imp.find_module(
-                'server', [pluginDir]
-            )
+            fp, pathname, description = imp.find_module('server', [pluginDir])
             module = imp.load_module(moduleName, fp, pathname, description)
             module.PLUGIN_ROOT_DIR = pluginDir
             girder.plugins.__dict__[name] = module
@@ -245,8 +243,7 @@ def loadPlugin(name, root, appconf, apiRoot=None):
             sys.modules[moduleName] = module
             pluginLoadMethod(info)
 
-        root, appconf, apiRoot = (
-            info['serverRoot'], info['config'], info['apiRoot'])
+        root, appconf, apiRoot = (info['serverRoot'], info['config'], info['apiRoot'])
 
     finally:
         if fp:

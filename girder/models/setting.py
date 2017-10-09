@@ -26,7 +26,7 @@ import re
 from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault, SettingKey
 from .model_base import Model, ValidationException
 from girder import logprint
-from girder.utility import config, plugin_utilities, setting_utilities
+from girder.utility import config, setting_utilities
 from bson.objectid import ObjectId
 
 
@@ -197,6 +197,8 @@ class Setting(Model):
         names. Removes any invalid plugin names, removes duplicates, and adds
         all transitive dependencies to the enabled list.
         """
+        from girder.utility import plugin_utilities
+
         if not isinstance(doc['value'], list):
             raise ValidationException('Plugins enabled setting must be a list.', 'value')
 
