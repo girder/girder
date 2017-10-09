@@ -101,7 +101,8 @@ class ModelTestCase(base.TestCase):
         retval = Model._supplementFields(exclusionProjDict, overrideFields)
         assertItemsEqual(retval, {'email': False, 'login': False})
 
-        doc = {
+        originalDoc = {
+            '_id': '1234',
             'public': True,
             'access': True,
             'email': 'email@email.com',
@@ -111,42 +112,28 @@ class ModelTestCase(base.TestCase):
             'firstName': 'first',
             'lastName': 'last'
         }
+        doc = dict(originalDoc)
         Model._removeSupplementalFields(doc, exclusionProjDict)
         assertItemsEqual(doc, {
+            '_id': '1234',
             'password': 'password1',
             'admin': False,
             'firstName': 'first',
             'lastName': 'last'})
 
-        doc = {
-            'public': True,
-            'access': True,
-            'email': 'email@email.com',
-            'login': 'login',
-            'password': 'password1',
-            'admin': False,
-            'firstName': 'first',
-            'lastName': 'last'
-        }
+        doc = dict(originalDoc)
         Model._removeSupplementalFields(doc, inclusionProjList)
         assertItemsEqual(doc, {
+            '_id': '1234',
             'public': True,
             'access': True,
             'email': 'email@email.com',
             'login': 'login'})
 
-        doc = {
-            'public': True,
-            'access': True,
-            'email': 'email@email.com',
-            'login': 'login',
-            'password': 'password1',
-            'admin': False,
-            'firstName': 'first',
-            'lastName': 'last'
-        }
+        doc = dict(originalDoc)
         Model._removeSupplementalFields(doc, inclusionProjDict)
         assertItemsEqual(doc, {
+            '_id': '1234',
             'public': True,
             'access': True,
             'email': 'email@email.com',
@@ -155,9 +142,9 @@ class ModelTestCase(base.TestCase):
         # Test None edge cases
         retval = Model._supplementFields(None, {'access', 'public'})
         self.assertIsNone(retval)
-        copy = dict(doc)
+        doc = dict(originalDoc)
         Model._removeSupplementalFields(doc, None)
-        assertItemsEqual(copy, doc)
+        assertItemsEqual(doc, originalDoc)
 
         # Test '_id': False inclusion edge case
         fields = {

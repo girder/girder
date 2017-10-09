@@ -668,11 +668,11 @@ class Model(ModelImporter):
                     whitelist.append(k)
             if whitelist:
                 for k in list(six.viewkeys(doc)):
-                    if k not in whitelist:
+                    if k not in whitelist and k != '_id':
                         del doc[k]
         else:
             for k in list(six.viewkeys(doc)):
-                if k not in fields:
+                if k not in fields and k != '_id':
                     del doc[k]
 
 
