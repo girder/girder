@@ -366,3 +366,34 @@ class ResourceRegistry:
     }
 
     ALLOWED_DELETE_TYPES = {'collection', 'file', 'folder', 'group', 'item', 'user'}
+
+    @classmethod
+    def addSearchMode(cls, mode, types, handler):
+        cls.ALLOWED_SEARCH_MODE.update({
+            mode: {
+                'types': types,
+                'method': handler
+            }})
+
+    @classmethod
+    def addTypesToExistingSearchMode(cls, mode, types):
+        """Types should be a set of value even if there is only one type."""
+        if mode in cls.ALLOWED_SEARCH_MODE:
+            cls.ALLOWED_SEARCH_MODE[mode]['types'].update(types)
+
+    @classmethod
+    def removeSearchMode(cls, mode):
+        return cls.ALLOWED_SEARCH_MODE.pop(mode, None)
+
+    @classmethod
+    def removeOneTypeToExistingSearchMode(cls, mode, type):
+        """Input 'type' is a string"""
+        if mode in cls.ALLOWED_SEARCH_MODE:
+            previousTypes = cls.ALLOWED_SEARCH_MODE[mode]['types']
+            if type in previousTypes:
+                previousTypes.remove(type)
+                del cls.ALLOWED_SEARCH_MODE[mode]['types']
+                cls.ALLOWED_SEARCH_MODE[mode]['types'] = previousTypes
+                return previousTypes
+            else:
+                return None

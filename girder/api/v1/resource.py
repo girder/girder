@@ -98,16 +98,6 @@ class Resource(BaseResource):
     def _isDefault(self, mode):
         return mode in {'text', 'prefix'}
 
-    def addSearchMode(self, mode, types, handler):
-        ResourceRegistry.ALLOWED_SEARCH_MODE.update({
-            mode: {
-                'types': types,
-                'method': handler
-            }})
-
-    def removeSearchMode(self, mode):
-        return ResourceRegistry.ALLOWED_SEARCH_MODE.pop(mode, None)
-
     def _validateResourceSet(self, resources, allowedModels=None):
         """
         Validate a set of resources against a set of allowed models.

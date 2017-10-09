@@ -182,7 +182,7 @@ class SearchTestCase(base.TestCase):
             self.model('assetstore'), AccessControlledModel)
         self.assertNotIsInstance(
             self.model('assetstore'), AccessControlMixin)
-        ResourceRegistry.ALLOWED_SEARCH_MODE['prefix']['types'].add('assetstore')
+        ResourceRegistry.addTypesToExistingSearchMode('prefix', {'assetstore'})
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'prefix',
