@@ -9,12 +9,22 @@ import events from 'girder/events';
 import ItemModel from 'girder/models/ItemModel';
 import JobModel from 'girder_plugins/jobs/models/JobModel';
 
+import TaskListSearchResultsView from './views/TaskListSearchResultsView';
+import TaskListTaggedView from './views/TaskListTaggedView';
 import TaskListView from './views/TaskListView';
 import TaskRunView from './views/TaskRunView';
 
 router.route('item_tasks', 'itemTaskList', () => {
     events.trigger('g:navigateTo', TaskListView);
     events.trigger('g:highlightItem', 'TasksView');
+});
+
+router.route('item_tasks/search', 'itemTaskSearchResults', (params) => {
+    events.trigger('g:navigateTo', TaskListSearchResultsView, params || {});
+});
+
+router.route('item_tasks/tagged', 'itemTaskTagged', (params) => {
+    events.trigger('g:navigateTo', TaskListTaggedView, params || {});
 });
 
 router.route('item_task/:id/run', (id, params) => {

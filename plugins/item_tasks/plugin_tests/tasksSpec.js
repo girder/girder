@@ -76,15 +76,19 @@ describe('Run the item task', function () {
         $('.g-nav-link[g-target="item_tasks"]').click();
 
         waitsFor(function () {
-            return $('.g-execute-task-link').length > 0;
+            return $('.g-task-list-task-container').length > 0;
         }, 'task list to be rendered');
 
         runs(function () {
-            expect($('.g-execute-task-link').length).toBe(1);
-            expect($('.g-execute-task-link').text()).toBe('PET phantom detector CLI');
-            expect($('.g-execute-task-link-body').text()).toContain(
+            expect($('.g-task-list-task-container').length).toBe(1);
+            expect($('.g-task-list-task-container .g-task-list-task-name').length).toBe(1);
+            expect($('.g-task-list-task-container .g-task-list-task-description').length).toBe(1);
+            expect($('.g-task-list-task-container .g-task-list-execute-task-link').length).toBe(1);
+            expect($('.g-task-list-task-name').text()).toBe(
+                'PET phantom detector CLI');
+            expect($('.g-task-list-task-description').text()).toContain(
                 'Detects positions of PET/CT pocket phantoms in PET image.');
-            window.location.assign($('a.g-execute-task-link').attr('href'));
+            window.location.assign($('a.g-task-list-execute-task-link').attr('href'));
         });
 
         waitsFor(function () {
@@ -172,7 +176,7 @@ describe('Run the item task', function () {
             return $('.g-validation-failed-message').text();
         }, 'validation to fail');
 
-        runs(function() {
+        runs(function () {
             expect($('.g-validation-failed-message').text()).toMatch(/Invalid parent type/);
             $('.modal-dialog .g-folder-list-link:first').click();
         });
@@ -272,14 +276,19 @@ describe('Navigate to the new JSON task', function () {
         $('.g-nav-link[g-target="item_tasks"]').click();
 
         waitsFor(function () {
-            return $('.g-execute-task-link').length > 0;
+            return $('.g-task-list-task-container').length > 0;
         }, 'task list to be rendered');
 
         runs(function () {
-            expect($('.g-execute-task-link').length).toBe(3);
-            expect($('.g-execute-task-link').eq(0).text()).toBe('me/my_image:latest 0');
-            expect($('.g-execute-task-link').eq(1).text()).toBe('me/my_image:latest 1');
-            window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
+            expect($('.g-task-list-task-container').length).toBe(3);
+            expect($('.g-task-list-task-container .g-task-list-task-name').length).toBe(3);
+            expect($('.g-task-list-task-container .g-task-list-task-description').length).toBe(3);
+            expect($('.g-task-list-task-container .g-task-list-execute-task-link').length).toBe(3);
+            expect($('.g-task-list-task-name').eq(0).text()).toBe(
+                'me/my_image:latest 0');
+            expect($('.g-task-list-task-name').eq(1).text()).toBe(
+                'me/my_image:latest 1');
+            window.location.assign($('a.g-task-list-execute-task-link').eq(0).attr('href'));
         });
 
         waitsFor(function () {
@@ -316,7 +325,7 @@ describe('Run task on item from item view', function () {
     });
 
     it('navigate to items', function () {
-        runs(function() {
+        runs(function () {
             $('.g-folder-list-link:contains("tasks")').click();
         });
 
@@ -447,13 +456,17 @@ describe('Navigate to the demo task', function () {
         $('.g-nav-link[g-target="item_tasks"]').click();
 
         waitsFor(function () {
-            return $('.g-execute-task-link').length > 0;
+            return $('.g-task-list-task-container').length > 0;
         }, 'task list to be rendered');
 
         runs(function () {
-            expect($('.g-execute-task-link').length).toBe(4);
-            expect($('.g-execute-task-link').eq(0).text()).toBe('item_tasks widget types demo');
-            window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
+            expect($('.g-task-list-task-container').length).toBe(4);
+            expect($('.g-task-list-task-container .g-task-list-task-name').length).toBe(4);
+            expect($('.g-task-list-task-container .g-task-list-task-description').length).toBe(4);
+            expect($('.g-task-list-task-container .g-task-list-execute-task-link').length).toBe(4);
+            expect($('.g-task-list-task-name').eq(0).text()).toBe(
+                'item_tasks widget types demo');
+            window.location.assign($('a.g-task-list-execute-task-link').eq(0).attr('href'));
         });
 
         waitsFor(function () {

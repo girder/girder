@@ -20,6 +20,7 @@ class ItemTask(Resource):
         self.resourceName = 'item_task'
 
         self.route('GET', (), self.listTasks)
+        self.route('GET', ('search',), self.search)
         self.route('POST', (':id', 'execution'), self.executeTask)
         # Deprecated in favor of POST /item/:id/item_task_slicer_cli_description
         self.route('POST', (':id', 'slicer_cli_description'), runSlicerCliTasksDescriptionForItem)
@@ -33,6 +34,8 @@ class ItemTask(Resource):
     @access.public
     @autoDescribeRoute(
         Description('List all available tasks that can be executed.')
+        .jsonParam('tags', 'Constrain list to tasks with all specified tags.', required=False,
+                   requireArray=True)
         .pagingParams(defaultSort='name')
         .param('minFileInputs', 'Filter tasks by minimum number of file inputs.', required=False,
                dataType='int')
@@ -40,16 +43,45 @@ class ItemTask(Resource):
                dataType='int')
     )
     @filtermodel(model='item')
-    def listTasks(self, limit, offset, sort, minFileInputs, maxFileInputs, params):
-        cursor = self.model('item').find({
+    def listTasks(self, tags, limit, offset, sort, minFileInputs, maxFileInputs, params):
+        query = {
             'meta.isItemTask': {'$exists': True}
-        }, sort=sort)
+        }
+
+        if tags:
+            query.update({
+                'meta.itemTaskSpec.tags': {'$all': tags}
+            })
+
+        cursor = self.model('item').find(query, sort=sort)
 
         if minFileInputs is not None or maxFileInputs is not None:
             cursor = self._filterMinMaxFileInputs(cursor, minFileInputs, maxFileInputs)
 
         return list(self.model('item').filterResultsByPermission(
             cursor, self.getCurrentUser(), level=AccessType.READ, limit=limit, offset=offset,
+            flags=constants.ACCESS_FLAG_EXECUTE_TASK))
+
+    @access.public
+    @autoDescribeRoute(
+        Description('Search for tasks that can be executed in the system.')
+        .param('q', 'The search query.')
+        .pagingParams(defaultSort=None, defaultLimit=20)
+    )
+    def search(self, q, limit, offset, params):
+        user = self.getCurrentUser()
+        itemModel = self.model('item')
+
+        filters = {
+            'meta.isItemTask': {'$exists': True}
+        }
+
+        cursor = itemModel.textSearch(query=q, filters=filters, user=user)
+
+        # AccessControlledModel.textSearch() already runs filterResultsByPermission(),
+        # but doesn't accept flags. Filter the results again to apply the flags.
+        return list(itemModel.filterResultsByPermission(
+            cursor, user, level=AccessType.READ, limit=limit, offset=offset,
             flags=constants.ACCESS_FLAG_EXECUTE_TASK))
 
     def _filterMinMaxFileInputs(self, cursor, minFileInputs, maxFileInputs):
