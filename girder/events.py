@@ -124,8 +124,12 @@ class ForegroundEventsDaemon(object):
     def stop(self):
         pass
 
-    def trigger(self, eventName, info=None, callback=None):
-        event = trigger(eventName, info, async=False, daemon=True)
+    def trigger(self, eventName=None, info=None, callback=None):
+        if eventName is None:
+            event = Event(None, info, async=False)
+        else:
+            event = trigger(eventName, info, async=False, daemon=True)
+
         if callable(callback):
             callback(event)
 
@@ -155,8 +159,11 @@ class AsyncEventsThread(threading.Thread):
         while not self.terminate:
             try:
                 eventName, info, callback = self.eventQueue.get(block=False)
+                if eventName is None:
+                    event = Event(None, info, async=True)
+                else:
+                    event = trigger(eventName, info, async=True, daemon=True)
 
-                event = trigger(eventName, info, async=True, daemon=True)
                 if callable(callback):
                     callback(event)
             except queue.Empty:
@@ -169,7 +176,7 @@ class AsyncEventsThread(threading.Thread):
 
         girder.logprint.info('Stopped asynchronous event manager thread.')
 
-    def trigger(self, eventName, info=None, callback=None):
+    def trigger(self, eventName=None, info=None, callback=None):
         """
         Adds a new event on the queue to trigger asynchronously.
 
