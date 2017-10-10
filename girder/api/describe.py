@@ -30,12 +30,13 @@ import six
 import cherrypy
 
 from girder import constants, events, logprint
-from girder.api.rest import getCurrentUser, RestException, getBodyJson
+from girder.api.rest import getCurrentUser, RestException, getBodyJson, Resource
 from girder.constants import CoreEventHandler, SettingKey
 from girder.models.setting import Setting
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
+from girder.utility.resource import _api_route_map
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
 
@@ -494,15 +495,25 @@ class Describe(Resource):
         # List of Tag Objects
         tags = []
 
-        for resource in sorted(six.viewkeys(docs.routes)):
+        route_map = _api_route_map()
+
+        for resource in sorted(six.viewkeys(docs.routes), key=str):
             # Update Definitions Object
             if resource in docs.models:
                 for name, model in six.viewitems(docs.models[resource]):
                     definitions[name] = model
 
+            prefix_path = None
+            tag = resource
+            if isinstance(resource, Resource):
+                if resource not in route_map:
+                    raise RestException('Resource not mounted: %s' % resource)
+                prefix_path = route_map[resource]
+                tag = prefix_path[0]
+
             # Tag Object
             tags.append({
-                'name': resource
+                'name': tag
             })
 
             for route, methods in six.viewitems(docs.routes[resource]):
@@ -511,6 +522,11 @@ class Describe(Resource):
                 for method, operation in six.viewitems(methods):
                     # Operation Object
                     pathItem[method.lower()] = operation
+                    if prefix_path:
+                        operation['tags'] = ['/'.join(prefix_path)]
+
+                if prefix_path:
+                    route = '/'.join([''] + prefix_path + [route[1:]])
 
                 paths[route] = pathItem
 
