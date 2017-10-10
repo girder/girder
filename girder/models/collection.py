@@ -75,19 +75,20 @@ class Collection(AccessControlledModel):
         :param progress: A progress context to record progress on.
         :type progress: girder.utility.progress.ProgressContext or None.
         """
-        # Delete all folders in the community recursively
-        folders = self.model('folder').find({
+        from .folder import Folder
+
+        folderModel = Folder()
+        folders = folderModel.find({
             'parentId': collection['_id'],
             'parentCollection': 'collection'
         })
         for folder in folders:
-            self.model('folder').remove(folder, progress=progress, **kwargs)
+            folderModel.remove(folder, progress=progress, **kwargs)
 
         # Delete this collection
         AccessControlledModel.remove(self, collection)
         if progress:
-            progress.update(increment=1, message='Deleted collection ' +
-                            collection['name'])
+            progress.update(increment=1, message='Deleted collection ' + collection['name'])
 
     def createCollection(self, name, creator=None, description='', public=True,
                          reuseExisting=False):
@@ -171,12 +172,14 @@ class Collection(AccessControlledModel):
             assetstore, otherwise return file document.
         :type data: bool
         """
+        from .folder import Folder
+
         if subpath:
             path = os.path.join(path, doc['name'])
 
-        for folder in self.model('folder').childFolders(parentType='collection',
-                                                        parent=doc, user=user):
-            for (filepath, file) in self.model('folder').fileList(
+        folderModel = Folder()
+        for folder in folderModel.childFolders(parentType='collection', parent=doc, user=user):
+            for (filepath, file) in folderModel.fileList(
                     folder, user, path, includeMetadata, subpath=True,
                     mimeFilter=mimeFilter, data=data):
                 yield (filepath, file)
@@ -193,8 +196,11 @@ class Collection(AccessControlledModel):
         :param level: If filtering by permission, the required permission level.
         :type level: AccessLevel
         """
+        from .folder import Folder
+
         count = 1
-        folders = self.model('folder').find({
+        folderModel = Folder()
+        folders = folderModel.find({
             'parentId': doc['_id'],
             'parentCollection': 'collection'
         }, fields=('access',))
@@ -202,7 +208,7 @@ class Collection(AccessControlledModel):
         if level is not None:
             folders = self.filterResultsByPermission(
                 cursor=folders, user=user, level=level)
-        count += sum(self.model('folder').subtreeCount(
+        count += sum(folderModel.subtreeCount(
             folder, includeItems=includeItems, user=user, level=level)
             for folder in folders)
         return count
@@ -249,7 +255,10 @@ class Collection(AccessControlledModel):
             self, doc, access, user=user, save=save, force=force)
 
         if recurse:
-            cursor = self.model('folder').find({
+            from .folder import Folder
+
+            folderModel = Folder()
+            cursor = folderModel.find({
                 'parentId': doc['_id'],
                 'parentCollection': 'collection'
             })
@@ -258,7 +267,7 @@ class Collection(AccessControlledModel):
                 cursor=cursor, user=user, level=AccessType.ADMIN)
 
             for folder in folders:
-                self.model('folder').setAccessList(
+                folderModel.setAccessList(
                     folder, access, save=True, recurse=True, user=user,
                     progress=progress, setPublic=setPublic, publicFlags=publicFlags)
 
@@ -273,10 +282,12 @@ class Collection(AccessControlledModel):
         :param user: The user to test.
         :returns: bool
         """
+        from .setting import Setting
+
         if user['admin']:
             return True
 
-        policy = self.model('setting').get(SettingKey.COLLECTION_CREATE_POLICY)
+        policy = Setting().get(SettingKey.COLLECTION_CREATE_POLICY)
 
         if policy['open'] is True:
             return True
@@ -301,9 +312,11 @@ class Collection(AccessControlledModel):
         :param level: The required access level, or None to return the raw
             top-level folder count.
         """
+        from .folder import Folder
+
         fields = () if level is None else ('access', 'public')
 
-        folderModel = self.model('folder')
+        folderModel = Folder()
         folders = folderModel.find({
             'parentId': collection['_id'],
             'parentCollection': 'collection'
@@ -323,19 +336,22 @@ class Collection(AccessControlledModel):
         :param doc: The collection.
         :type doc: dict
         """
+        from .folder import Folder
+
         size = 0
         fixes = 0
-        folders = self.model('folder').find({
+        folderModel = Folder()
+        folders = folderModel.find({
             'parentId': doc['_id'],
             'parentCollection': 'collection'
         })
         for folder in folders:
             # fix folder size if needed
-            _, f = self.model('folder').updateSize(folder)
+            _, f = folderModel.updateSize(folder)
             fixes += f
             # get total recursive folder size
-            folder = self.model('folder').load(folder['_id'], force=True)
-            size += self.model('folder').getSizeRecursive(folder)
+            folder = folderModel.load(folder['_id'], force=True)
+            size += folderModel.getSizeRecursive(folder)
         # fix value if incorrect
         if size != doc.get('size'):
             self.update({'_id': doc['_id']}, update={'$set': {'size': size}})

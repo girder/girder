@@ -29,7 +29,6 @@ _modelInstances = {}
 
 
 def _loadModel(model, module, plugin):
-    global _modelInstances
     className = camelcase(model)
 
     try:
@@ -50,6 +49,8 @@ def _loadModel(model, module, plugin):
 def reinitializeAll():
     """
     Force all models to reconnect/rebuild indices (needed for testing).
+
+    .. deprecated
     """
     for pluginModels in list(six.viewvalues(_modelInstances)):
         for model in list(six.viewvalues(pluginModels)):
@@ -76,8 +77,6 @@ class ModelImporter(object):
                        set this to the name of the plugin containing the model.
         :returns: The instantiated model, which is a singleton.
         """
-        global _modelInstances
-
         if plugin is None:
             plugin = '_core'
 

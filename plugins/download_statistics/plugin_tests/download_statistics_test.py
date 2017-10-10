@@ -23,6 +23,11 @@ import json
 
 from tests import base
 from girder.constants import ROOT_DIR
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.upload import Upload
+from girder.models.user import User
 
 
 def setUpModule():
@@ -46,7 +51,7 @@ class DownloadStatisticsTestCase(base.TestCase):
                  'lastName': 'adminLast',
                  'password': 'adminPassword',
                  'admin': True}
-        self.admin = self.model('user').createUser(**admin)
+        self.admin = User().createUser(**admin)
 
         self.filesDir = os.path.join(ROOT_DIR, 'plugins', 'download_statistics',
                                      'plugin_tests', 'files')
@@ -128,15 +133,9 @@ class DownloadStatisticsTestCase(base.TestCase):
                 data
 
     def testDownload(self):
-        # Create collection
-        collection = self.model('collection').createCollection('collection1', public=True)
-
-        # Create folder in collection
-        folder = self.model('folder').createFolder(collection, 'folder1',
-                                                   parentType='collection',
-                                                   public=True, )
-        # Create item
-        item = self.model('item').createItem('item1', self.admin, folder)
+        collection = Collection().createCollection('collection1', public=True)
+        folder = Folder().createFolder(collection, 'folder1', parentType='collection', public=True)
+        item = Item().createItem('item1', self.admin, folder)
 
         # Path to test files
         file1Path = os.path.join(self.filesDir, 'txt1.txt')
@@ -144,15 +143,14 @@ class DownloadStatisticsTestCase(base.TestCase):
 
         # Upload files to item
         with open(file1Path, 'rb') as fp:
-            file1 = self.model('upload').uploadFromFile(fp, os.path.getsize(file1Path),
-                                                        'txt1.txt', parentType='item',
-                                                        parent=item, user=self.admin)
+            file1 = Upload().uploadFromFile(
+                fp, os.path.getsize(file1Path), 'txt1.txt', parentType='item',
+                parent=item, user=self.admin)
 
         with open(file2Path, 'rb') as fp:
-            file2 = self.model('upload').uploadFromFile(fp, os.path.getsize(file2Path),
-                                                        'txt2.txt', mimeType='image/jpeg',
-                                                        parentType='item', parent=item,
-                                                        user=self.admin)
+            file2 = Upload().uploadFromFile(
+                fp, os.path.getsize(file2Path), 'txt2.txt', mimeType='image/jpeg',
+                parentType='item', parent=item, user=self.admin)
 
         # Download item and its files several times and ensure downloads are recorded
         # Each file is downloaded 10 times

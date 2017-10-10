@@ -29,6 +29,9 @@ import uuid
 from girder import logger, events
 from girder.api.rest import setContentDisposition
 from girder.models.model_base import GirderException, ValidationException
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
@@ -398,14 +401,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'Keys cannot be imported directly underneath a %s.' % parentType)
 
             if self.shouldImportFile(obj['Key'], params):
-                item = self.model('item').createItem(
+                item = Item().createItem(
                     name=name, creator=user, folder=parent, reuseExisting=True)
-                file = self.model('file').createFile(
+                file = File().createFile(
                     name=name, creator=user, item=item, reuseExisting=True,
                     assetstore=self.assetstore, mimeType=None, size=obj['Size'])
                 file['s3Key'] = obj['Key']
                 file['imported'] = True
-                self.model('file').save(file)
+                File().save(file)
 
         # Now recurse into subdirectories
         for obj in resp.get('CommonPrefixes', []):
@@ -414,7 +417,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
 
-            folder = self.model('folder').createFolder(
+            folder = Folder().createFolder(
                 parent=parent, name=name, parentType=parentType, creator=user,
                 reuseExisting=True)
             self.importData(parent=folder, parentType='folder', params={
@@ -435,7 +438,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'relpath': file['relpath'],
                 'assetstoreId': self.assetstore['_id']
             }
-            matching = self.model('file').find(q, limit=2, fields=[])
+            matching = File().find(q, limit=2, fields=[])
             if matching.count(True) == 1:
                 events.daemon.trigger('_s3_assetstore_delete_file', {
                     'client': self.client,

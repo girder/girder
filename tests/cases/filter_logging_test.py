@@ -26,6 +26,7 @@ import time
 
 from .. import base
 from girder.api import filter_logging
+from girder.models.user import User
 from girder.utility import config
 
 
@@ -59,7 +60,7 @@ class FilterLoggingTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         }
-        self.admin = self.model('user').createUser(**user)
+        self.admin = User().createUser(**user)
 
     def _checkLogCount(self, numRequests, numLogged, logFile=None, duration=None):
         resp = self.request(path='/system/log', user=self.admin, params={

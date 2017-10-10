@@ -67,6 +67,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return value.strip()
 
     def validate(self, doc):
+        from .folder import Folder
+
         doc['name'] = self._validateString(doc.get('name', ''))
         doc['description'] = self._validateString(doc.get('description', ''))
 
@@ -92,7 +94,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
                 'name': name,
                 'parentCollection': 'folder'
             }
-            dupFolder = self.model('folder').findOne(q, fields=['_id'])
+            dupFolder = Folder().findOne(q, fields=['_id'])
             if dupItem is None and dupFolder is None:
                 doc['name'] = name
                 break
@@ -160,7 +162,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         return self.save(item)
 
     def propagateSizeChange(self, item, inc):
-        self.model('folder').increment(query={
+        from .folder import Folder
+
+        Folder().increment(query={
             '_id': item['folderId']
         }, field='size', amount=inc, multi=False)
 
@@ -179,7 +183,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         for file in self.childFiles(item):
             # We could add a recalculateSize to the file model, in which case
             # this would be:
-            # size += self.model('file').recalculateSize(file)
+            # size += File().recalculateSize(file)
             size += file.get('size', 0)
         delta = size-item.get('size', 0)
         if delta:
@@ -200,12 +204,12 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param offset: Result offset.
         :param sort: The sort structure to pass to pymongo.
         """
+        from .file import File
         q = {
             'itemId': item['_id']
         }
 
-        return self.model('file').find(
-            q, limit=limit, offset=offset, sort=sort, **kwargs)
+        return File().find(q, limit=limit, offset=offset, sort=sort, **kwargs)
 
     def remove(self, item, **kwargs):
         """
@@ -214,23 +218,27 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param item: The item document to delete.
         :type item: dict
         """
+        from .file import File
+        from .upload import Upload
 
         # Delete all files in this item
-        files = self.model('file').find({
+        fileModel = File()
+        files = fileModel.find({
             'itemId': item['_id']
         })
         for file in files:
             fileKwargs = kwargs.copy()
             fileKwargs.pop('updateItemSize', None)
-            self.model('file').remove(file, updateItemSize=False, **fileKwargs)
+            fileModel.remove(file, updateItemSize=False, **fileKwargs)
 
         # Delete pending uploads into this item
-        uploads = self.model('upload').find({
+        uploadModel = Upload()
+        uploads = uploadModel.find({
             'parentId': item['_id'],
             'parentType': 'item'
         })
         for upload in uploads:
-            self.model('upload').remove(upload, **kwargs)
+            uploadModel.remove(upload, **kwargs)
 
         # Delete the item itself
         Model.remove(self, item)
@@ -372,21 +380,23 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :type force: bool
         :returns: an ordered list of dictionaries from root to the current item
         """
-        curFolder = self.model('folder').load(
+        from .folder import Folder
+
+        folderModel = Folder()
+        curFolder = folderModel.load(
             item['folderId'], user=user, level=AccessType.READ, force=force)
-        folderIdsToRoot = self.model('folder').parentsToRoot(
+        folderIdsToRoot = folderModel.parentsToRoot(
             curFolder, user=user, level=AccessType.READ, force=force)
 
         if force:
             folderIdsToRoot.append({'type': 'folder', 'object': curFolder})
         else:
-            filteredFolder = self.model('folder').filter(curFolder, user)
+            filteredFolder = folderModel.filter(curFolder, user)
             folderIdsToRoot.append({'type': 'folder', 'object': filteredFolder})
 
         return folderIdsToRoot
 
-    def copyItem(self, srcItem, creator, name=None, folder=None,
-                 description=None):
+    def copyItem(self, srcItem, creator, name=None, folder=None, description=None):
         """
         Copy an item, including duplicating files and metadata.
 
@@ -402,10 +412,13 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :type description: str
         :returns: the new item.
         """
+        from .file import File
+        from .folder import Folder
+
         if name is None:
             name = srcItem['name']
         if folder is None:
-            folder = self.model('folder').load(srcItem['folderId'], force=True)
+            folder = Folder().load(srcItem['folderId'], force=True)
         if description is None:
             description = srcItem['description']
         newItem = self.createItem(
@@ -422,8 +435,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # Give listeners a chance to change things
         events.trigger('model.item.copy.prepare', (srcItem, newItem))
         # copy files
+        fileModel = File()
         for file in self.childFiles(item=srcItem):
-            self.model('file').copyFile(file, creator=creator, item=newItem)
+            fileModel.copyFile(file, creator=creator, item=newItem)
 
         # Reload to get updated size value
         newItem = self.load(newItem['_id'], force=True)
@@ -467,6 +481,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
                   data or file object).
         :rtype: generator(str, func)
         """
+        from .file import File
+
         if subpath:
             files = list(self.childFiles(item=doc, limit=2))
             if (len(files) != 1 or files[0]['name'] != doc['name'] or
@@ -474,13 +490,14 @@ class Item(acl_mixin.AccessControlMixin, Model):
                 path = os.path.join(path, doc['name'])
         metadataFile = 'girder-item-metadata.json'
 
+        fileModel = File()
         for file in self.childFiles(item=doc):
             if not self._mimeFilter(file, mimeFilter):
                 continue
             if file['name'] == metadataFile:
                 metadataFile = None
             if data:
-                val = self.model('file').download(file, headers=False)
+                val = fileModel.download(file, headers=False)
             else:
                 val = file
             yield (os.path.join(path, file['name']), val)
@@ -505,8 +522,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param item: The item to check.
         :type item: dict
         """
-        return not self.model('folder').load(
-            item.get('folderId'), force=True)
+        from .folder import Folder
+        return not Folder().load(item.get('folderId'), force=True)
 
     def updateSize(self, doc):
         """
@@ -516,11 +533,13 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :param doc: The item.
         :type doc: dict
         """
+        from .file import File
         # get correct size from child files
         size = 0
         fixes = 0
+        fileModel = File()
         for file in self.childFiles(doc):
-            s, f = self.model('file').updateSize(file)
+            s, f = fileModel.updateSize(file)
             size += s
             fixes += f
         # fix value if incorrect

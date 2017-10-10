@@ -20,7 +20,6 @@
 import datetime
 
 from .model_base import Model, ValidationException, GirderException
-from girder.utility import assetstore_utilities
 from girder.constants import AssetstoreType, SortDir
 
 
@@ -32,6 +31,8 @@ class Assetstore(Model):
         self.name = 'assetstore'
 
     def validate(self, doc):
+        from girder.utility import assetstore_utilities
+
         # Ensure no duplicate names
         q = {'name': doc['name']}
         if '_id' in doc:
@@ -71,10 +72,12 @@ class Assetstore(Model):
         :param assetstore: The assetstore document to delete.
         :type assetstore: dict
         """
-        files = self.model('file').findOne({'assetstoreId': assetstore['_id']})
+        from .file import File
+        from girder.utility import assetstore_utilities
+
+        files = File().findOne({'assetstoreId': assetstore['_id']})
         if files is not None:
-            raise ValidationException('You may not delete an assetstore that '
-                                      'contains files.')
+            raise ValidationException('You may not delete an assetstore that contains files.')
         # delete partial uploads before we delete the store.
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         try:
@@ -114,10 +117,12 @@ class Assetstore(Model):
         :param assetstore: The assetstore object.
         :type assetstore: dict
         """
+        from .file import File
+        from girder.utility import assetstore_utilities
+
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         assetstore['capacity'] = adapter.capacityInfo()
-        assetstore['hasFiles'] = (self.model('file').findOne(
-            {'assetstoreId': assetstore['_id']}) is not None)
+        assetstore['hasFiles'] = File().findOne({'assetstoreId': assetstore['_id']}) is not None
 
     def createFilesystemAssetstore(self, name, root, perms=None):
         return self.save({
@@ -174,6 +179,8 @@ class Assetstore(Model):
         """
         Calls the importData method of the underlying assetstore adapter.
         """
+        from girder.utility import assetstore_utilities
+
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         return adapter.importData(
             parent=parent, parentType=parentType, params=params,

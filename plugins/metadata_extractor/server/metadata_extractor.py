@@ -23,12 +23,7 @@ import six
 from hachoir_core.error import HachoirError
 from hachoir_metadata import extractMetadata
 from hachoir_parser import createParser
-
-try:
-    from girder.utility.model_importer import ModelImporter
-
-except ImportError:
-    ModelImporter = None
+from girder.models.item import Item
 
 
 class MetadataExtractor(object):
@@ -59,8 +54,7 @@ class MetadataExtractor(object):
         Extract metadata from file on client or server using hachoir-metadata.
         """
         try:
-            parser = createParser(six.text_type(self.path),
-                                  six.binary_type(self.path))
+            parser = createParser(six.text_type(self.path), six.binary_type(self.path))
 
             if parser is None:
                 raise HachoirError('no parser')
@@ -111,7 +105,7 @@ class ClientMetadataExtractor(MetadataExtractor):
         self.client.addMetadataToItem(str(self.itemId), self.metadata)
 
 
-class ServerMetadataExtractor(MetadataExtractor, ModelImporter):
+class ServerMetadataExtractor(MetadataExtractor):
     def __init__(self, assetstore, uploadedFile):
         """
         Initialize server metadata extractor.
@@ -120,8 +114,7 @@ class ServerMetadataExtractor(MetadataExtractor, ModelImporter):
         :param uploadedFile: file from which to extract metadata
         """
         path = os.path.join(assetstore['root'], uploadedFile['path'])
-        super(ServerMetadataExtractor, self).__init__(path,
-                                                      uploadedFile['itemId'])
+        super(ServerMetadataExtractor, self).__init__(path, uploadedFile['itemId'])
         self.userId = uploadedFile['creatorId']
 
     def _setMetadata(self):
@@ -130,5 +123,5 @@ class ServerMetadataExtractor(MetadataExtractor, ModelImporter):
 
         """
         super(ServerMetadataExtractor, self)._setMetadata()
-        item = self.model('item').load(self.itemId, force=True)
-        self.model('item').setMetadata(item, self.metadata)
+        item = Item().load(self.itemId, force=True)
+        Item().setMetadata(item, self.metadata)

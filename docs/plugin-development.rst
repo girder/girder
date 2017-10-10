@@ -244,14 +244,7 @@ Adding a new model type in your plugin
 
 Most of the time, if you add a new resource type in your plugin, you'll have a
 ``Model`` class backing it. These model classes work just like the core model
-classes as described in the :ref:`models` section. They must live under the
-``server/models`` directory of your plugin, so that they can use the
-``ModelImporter`` behavior. If you make a ``Cat`` model in your plugin, you
-could access it using ::
-
-    self.model('cat', 'cats')
-
-Where the second argument to ``model`` is the name of your plugin.
+classes as described in the :ref:`models` section.
 
 Adding custom access flags
 **************************
@@ -276,13 +269,15 @@ can call ``requireAccessFlags``, e.g.:
 
 .. code-block:: python
 
+    from girder.plugins.cats.models.cat import Cat
+
     @access.user
     @autoDescribeRoute(
         Description('Feed a cat')
-        .modelParam('id', 'ID of the cat', model='cat', plugin='cats', level=AccessType.WRITE)
+        .modelParam('id', 'ID of the cat', model=Cat, level=AccessType.WRITE)
     )
     def feedCats(self, cat, params):
-        self.model('cat').requireAccessFlags(item, user=getCurrentUser(), flags='cats.feed')
+        Cat().requireAccessFlags(item, user=getCurrentUser(), flags='cats.feed')
 
         # Feed the cats ...
 

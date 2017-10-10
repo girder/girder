@@ -14,6 +14,8 @@ Added Features
 * Support S3 buckets in regions other than us-east-1
 * Allow S3 credentials to be inferred by Boto
 * Add a girder-shell console script which drops the user into a python repl with a configured webroot, giving the user the ability to import from any of the plugins specified
+* Support idiomatic use of Girder's model classes. Rather than using ``ModelImporter.model`` with strings for the
+  model and plugin names, you can now use python imports of the model classes and instantiate and use them directly.
 
 Girder 2.3.0
 ============

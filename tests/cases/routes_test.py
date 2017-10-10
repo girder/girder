@@ -22,6 +22,7 @@ from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.models.model_base import GirderException
+from girder.models.setting import Setting
 from girder.constants import SettingKey, SettingDefault
 
 testServer = None
@@ -126,8 +127,7 @@ class RoutesTestCase(base.TestCase):
         self.assertFalse('Access-Control-Allow-Origin' in resp.headers)
 
         # If we allow some origins, we should get the corresponding header
-        self.model('setting').set(SettingKey.CORS_ALLOW_ORIGIN,
-                                  'http://kitware.com')
+        Setting().set(SettingKey.CORS_ALLOW_ORIGIN, 'http://kitware.com')
         resp = self.request(path='/dummy/test', additionalHeaders=[
             ('Origin', 'http://foo.com')
         ])
@@ -137,7 +137,7 @@ class RoutesTestCase(base.TestCase):
                          'true')
 
         # Simulate a preflight request; we should get back several headers
-        self.model('setting').set(SettingKey.CORS_ALLOW_METHODS, 'POST')
+        Setting().set(SettingKey.CORS_ALLOW_METHODS, 'POST')
         resp = self.request(
             path='/dummy/test', method='OPTIONS', additionalHeaders=[
                 ('Origin', 'http://foo.com')
@@ -154,14 +154,12 @@ class RoutesTestCase(base.TestCase):
         self.assertEqual(resp.headers['Access-Control-Allow-Methods'], 'POST')
 
         # Set multiple allowed origins
-        self.model('setting').set(SettingKey.CORS_ALLOW_ORIGIN,
-                                  'http://foo.com, http://bar.com')
+        Setting().set(SettingKey.CORS_ALLOW_ORIGIN, 'http://foo.com, http://bar.com')
         resp = self.request(
             path='/dummy/test', method='GET', additionalHeaders=[
                 ('Origin', 'http://bar.com')
             ], isJson=False)
-        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
-                         'http://bar.com')
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'http://bar.com')
 
         resp = self.request(
             path='/dummy/test', method='GET', additionalHeaders=[

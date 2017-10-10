@@ -19,6 +19,8 @@
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel
+from girder.models.api_key import ApiKey as ApiKeyModel
+from girder.models.user import User
 from girder.constants import AccessType
 from girder.api import access
 
@@ -34,7 +36,7 @@ class ApiKey(Resource):
         self.route('DELETE', (':id',), self.deleteKey)
 
     @access.user
-    @filtermodel('api_key')
+    @filtermodel(ApiKeyModel)
     @autoDescribeRoute(
         Description('List API keys for a given user.')
         .notes('Only site administrators may list keys for other users. If no '
@@ -48,12 +50,12 @@ class ApiKey(Resource):
 
         if userId not in {None, str(user['_id'])}:
             self.requireAdmin(user)
-            user = self.model('user').load(userId, force=True, exc=True)
+            user = User().load(userId, force=True, exc=True)
 
-        return list(self.model('api_key').list(user, offset=offset, limit=limit, sort=sort))
+        return list(ApiKeyModel().list(user, offset=offset, limit=limit, sort=sort))
 
     @access.user
-    @filtermodel('api_key')
+    @filtermodel(ApiKeyModel)
     @autoDescribeRoute(
         Description('Create a new API key.')
         .param('name', 'Name for the API key.', required=False, default='', strip=True)
@@ -65,14 +67,14 @@ class ApiKey(Resource):
         .errorResponse()
     )
     def createKey(self, name, scope, tokenDuration, active):
-        return self.model('api_key').createApiKey(
+        return ApiKeyModel().createApiKey(
             user=self.getCurrentUser(), name=name, scope=scope, days=tokenDuration, active=active)
 
     @access.user
-    @filtermodel('api_key')
+    @filtermodel(ApiKeyModel)
     @autoDescribeRoute(
         Description('Update an API key.')
-        .modelParam('id', 'The ID of the API key.', model='api_key', destName='apiKey',
+        .modelParam('id', 'The ID of the API key.', model=ApiKeyModel, destName='apiKey',
                     level=AccessType.WRITE)
         .param('name', 'Name for the key.', required=False, strip=True)
         .jsonParam('scope', 'JSON list of scopes for this key.', required=False,
@@ -93,17 +95,17 @@ class ApiKey(Resource):
         if scope != ():
             apiKey['scope'] = scope
 
-        return self.model('api_key').save(apiKey)
+        return ApiKeyModel().save(apiKey)
 
     @access.user
     @autoDescribeRoute(
         Description('Delete an API key.')
-        .modelParam('id', 'The ID of the API key to delete.', model='api_key',
+        .modelParam('id', 'The ID of the API key to delete.', model=ApiKeyModel,
                     level=AccessType.ADMIN, destName='apiKey')
         .errorResponse()
     )
     def deleteKey(self, apiKey):
-        self.model('api_key').remove(apiKey)
+        ApiKeyModel().remove(apiKey)
         return {'message': 'Deleted API key %s.' % apiKey['name']}
 
     @access.public
@@ -115,7 +117,7 @@ class ApiKey(Resource):
         .errorResponse()
     )
     def createToken(self, key, duration):
-        user, token = self.model('api_key').createToken(key, days=duration)
+        user, token = ApiKeyModel().createToken(key, days=duration)
 
         self.sendAuthTokenCookie(token=token, days=duration)
 

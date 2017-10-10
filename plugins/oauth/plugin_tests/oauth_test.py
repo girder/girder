@@ -28,6 +28,9 @@ import six
 
 from girder.constants import SettingKey
 from girder.models.model_base import ValidationException
+from girder.models.setting import Setting
+from girder.models.token import Token
+from girder.models.user import User
 from tests import base
 
 
@@ -49,7 +52,7 @@ class OauthTest(base.TestCase):
         global PluginSettings
         from girder.plugins.oauth.constants import PluginSettings
 
-        self.adminUser = self.model('user').createUser(
+        self.adminUser = User().createUser(
             email='rocky@phila.pa.us',
             login='rocky',
             firstName='Robert',
@@ -82,7 +85,7 @@ class OauthTest(base.TestCase):
         self.assertEqual(login, 'rocky1')
 
     def _testSettings(self, providerInfo):
-        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'closed')
+        Setting().set(SettingKey.REGISTRATION_POLICY, 'closed')
         self.accountType = 'new'
 
         # We should get an empty listing when no providers are set up
@@ -208,7 +211,7 @@ class OauthTest(base.TestCase):
             redirectParams = urllib.parse.parse_qs(
                 urllib.parse.urlparse(providerResp['url']).query)
             csrfTokenParts = redirectParams['state'][0].partition('.')
-            token = self.model('token').load(csrfTokenParts[0], force=True, objectId=False)
+            token = Token().load(csrfTokenParts[0], force=True, objectId=False)
             self.assertLess(
                 token['expires'],
                 datetime.datetime.utcnow() + datetime.timedelta(days=0.30))
@@ -263,10 +266,9 @@ class OauthTest(base.TestCase):
 
         # Try callback, with expired CSRF token
         params = getCallbackParams(getProviderResp())
-        token = self.model('token').load(
-            params['state'].partition('.')[0], force=True, objectId=False)
+        token = Token().load(params['state'].partition('.')[0], force=True, objectId=False)
         token['expires'] -= datetime.timedelta(days=1)
-        self.model('token').save(token)
+        Token().save(token)
         resp = self.request('/oauth/%s/callback' % providerInfo['id'], params=params)
         self.assertStatus(resp, 403)
         self.assertTrue(resp.json['message'].startswith('Expired CSRF token'))
@@ -320,10 +322,10 @@ class OauthTest(base.TestCase):
 
         # Hit validation exception on ignore registration policy setting
         with self.assertRaises(ValidationException):
-            self.model('setting').set(PluginSettings.IGNORE_REGISTRATION_POLICY, 'foo')
+            Setting().set(PluginSettings.IGNORE_REGISTRATION_POLICY, 'foo')
 
         # Try callback for the 'new' account, with registration policy ignored
-        self.model('setting').set(PluginSettings.IGNORE_REGISTRATION_POLICY, True)
+        Setting().set(PluginSettings.IGNORE_REGISTRATION_POLICY, True)
         new = doOauthLogin('new')
 
         # Password login for 'new' OAuth-only user should fail gracefully
@@ -348,7 +350,7 @@ class OauthTest(base.TestCase):
         linkParts = link.split('/')
         userId = linkParts[-3]
         tokenId = linkParts[-1]
-        tempToken = self.model('token').load(tokenId, force=True, objectId=False)
+        tempToken = Token().load(tokenId, force=True, objectId=False)
         resp = self.request(
             '/user/password/temporary/' + userId, method='GET', params={'token': tokenId})
         self.assertStatusOk(resp)
@@ -361,7 +363,7 @@ class OauthTest(base.TestCase):
             })
         self.assertStatusOk(resp)
         # The temp token should get deleted on password change
-        token = self.model('token').load(tempToken, force=True, objectId=False)
+        token = Token().load(tempToken, force=True, objectId=False)
         self.assertEqual(token, None)
 
         # Password login for 'new' OAuth-only user should now succeed

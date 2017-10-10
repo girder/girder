@@ -4,19 +4,24 @@ from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import boundHandler, filtermodel, RestException
 from girder.constants import AccessType
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.token import Token
+from girder.models.user import User
+from girder.plugins.jobs.models.job import Job
 from girder.plugins.worker import utils
 from . import cli_parser, constants
 
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
-@filtermodel(model='job', plugin='jobs')
+@filtermodel(model=Job)
 @boundHandler
 @autoDescribeRoute(
     Description('Create an item task spec based on a docker image.')
     .notes('This operates on an existing item, turning it into an item task '
            'using Slicer CLI introspection of a docker image.')
     .modelParam('id', 'The ID of the item that the task spec will be bound to.',
-                model='item', level=AccessType.WRITE)
+                model=Item, level=AccessType.WRITE)
     .param('image', 'The docker image name. If not passed, uses the existing'
            'itemTaskSpec.docker_image metadata value.', required=False, strip=True)
     .jsonParam('args', 'Arguments to be passed to the docker container to output the '
@@ -43,8 +48,8 @@ def runSlicerCliTasksDescriptionForItem(
             'You must pass an image parameter, or set the itemTaskSpec.docker_image '
             'field of the item.')
 
-    jobModel = self.model('job', 'jobs')
-    token = self.model('token').createToken(
+    jobModel = Job()
+    token = Token().createToken(
         days=3, scope='item_task.set_task_spec.%s' % item['_id'])
     job = jobModel.createJob(
         title='Read docker Slicer CLI: %s' % image, type='item.item_task_slicer_cli_description',
@@ -94,7 +99,7 @@ def runSlicerCliTasksDescriptionForItem(
     if args:
         item['meta']['itemTaskSlicerCliArgs'] = args
 
-    self.model('item').save(item)
+    Item().save(item)
 
     job = jobModel.save(job)
     jobModel.scheduleJob(job)
@@ -106,7 +111,7 @@ def runSlicerCliTasksDescriptionForItem(
 @boundHandler
 @autoDescribeRoute(
     Description('Set a task spec on an item from a Slicer CLI XML spec.')
-    .modelParam('id', model='item', force=True)
+    .modelParam('id', model=Item, force=True)
     .param('xml', 'The Slicer CLI XML spec.', paramType='body')
     .param('setName', 'Whether item name should be changed to the title of the CLI.',
            dataType='boolean', required=True)
@@ -116,8 +121,7 @@ def runSlicerCliTasksDescriptionForItem(
     hide=True
 )
 def configureItemTaskFromSlicerCliXml(self, item, xml, setName, setDescription, params):
-    self.model('token').requireScope(
-        self.getCurrentToken(), 'item_task.set_task_spec.%s' % item['_id'])
+    Token().requireScope(self.getCurrentToken(), 'item_task.set_task_spec.%s' % item['_id'])
 
     args = item.get('meta', {}).get('itemTaskSlicerCliArgs') or []
     cliSpec = cli_parser.parseSlicerCliXml(xml)
@@ -134,21 +138,21 @@ def configureItemTaskFromSlicerCliXml(self, item, xml, setName, setDescription, 
     if setDescription:
         item['description'] = cliSpec['description']
 
-    self.model('item').setMetadata(item, {
+    Item().setMetadata(item, {
         'itemTaskSpec': itemTaskSpec,
         'isItemTask': True
     })
 
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
-@filtermodel(model='job', plugin='jobs')
+@filtermodel(model=Job)
 @boundHandler
 @autoDescribeRoute(
     Description('Create item task specs based on a docker image.')
     .notes('This operates on an existing folder, adding item tasks '
            'using Slicer CLI introspection of a docker image.')
     .modelParam('id', 'The ID of the folder that the task specs will be added to.',
-                model='folder', level=AccessType.WRITE)
+                model=Folder, level=AccessType.WRITE)
     .param('image', 'The docker image name.', required=True, strip=True)
     .jsonParam('args', 'Arguments to be passed to the docker container to output the '
                'Slicer CLI spec.', required=False, default=[], requireArray=True)
@@ -157,10 +161,9 @@ def configureItemTaskFromSlicerCliXml(self, item, xml, setName, setDescription, 
            dataType='boolean', required=False, default=True)
 )
 def runSlicerCliTasksDescriptionForFolder(self, folder, image, args, pullImage, params):
-    jobModel = self.model('job', 'jobs')
-    token = self.model('token').createToken(
-        days=3, scope='item_task.set_task_spec.%s' % folder['_id'],
-        user=self.getCurrentUser())
+    jobModel = Job()
+    token = Token().createToken(
+        days=3, scope='item_task.set_task_spec.%s' % folder['_id'], user=self.getCurrentUser())
     job = jobModel.createJob(
         title='Read docker task specs: %s' % image, type='folder.item_task_slicer_cli_description',
         handler='worker_handler', user=self.getCurrentUser())
@@ -212,7 +215,7 @@ def runSlicerCliTasksDescriptionForFolder(self, folder, image, args, pullImage, 
 @boundHandler
 @autoDescribeRoute(
     Description('Create item tasks under a folder using a list of Slicer CLI XML specs.')
-    .modelParam('id', model='folder', force=True)
+    .modelParam('id', model=Folder, force=True)
     .param('xml', 'The Slicer CLI XML spec.', paramType='body')
     .param('image', 'The docker image name.', required=True, strip=True)
     .jsonParam('args', 'Arguments to be passed to the docker container to output the '
@@ -223,10 +226,9 @@ def runSlicerCliTasksDescriptionForFolder(self, folder, image, args, pullImage, 
     hide=True
 )
 def createItemTasksFromSlicerCliXml(self, folder, xml, image, args, pullImage, params):
-    self.model('token').requireScope(
-        self.getCurrentToken(), 'item_task.set_task_spec.%s' % folder['_id'])
+    Token().requireScope(self.getCurrentToken(), 'item_task.set_task_spec.%s' % folder['_id'])
     token = self.getCurrentToken()
-    user = self.model('user').load(token['userId'], force=True)
+    user = User().load(token['userId'], force=True)
 
     # TODO: Update once CLI spec supports multiple executables
     cliSpec = cli_parser.parseSlicerCliXml(xml)
@@ -237,7 +239,7 @@ def createItemTasksFromSlicerCliXml(self, folder, xml, image, args, pullImage, p
         'outputs': cliSpec['outputs']
     }
 
-    item = self.model('item').createItem(
+    item = Item().createItem(
         name=cliSpec['title'],
         creator=user,
         folder=folder,
@@ -247,7 +249,7 @@ def createItemTasksFromSlicerCliXml(self, folder, xml, image, args, pullImage, p
     itemTaskSpec['mode'] = 'docker'
     itemTaskSpec['docker_image'] = image
     itemTaskSpec['pull_image'] = pullImage
-    self.model('item').setMetadata(item, {
+    Item().setMetadata(item, {
         'itemTaskSlicerCliArgs': args,
         'itemTaskSpec': itemTaskSpec,
         'isItemTask': True

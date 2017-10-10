@@ -1,6 +1,12 @@
-from tests import base
 import os
 import time
+
+from tests import base
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.upload import Upload
+from girder.models.user import User
 
 
 def setUpModule():
@@ -17,7 +23,7 @@ class DicomViewerTest(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.users = [self.model('user').createUser(
+        self.users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
@@ -25,11 +31,9 @@ class DicomViewerTest(base.TestCase):
         admin, user = self.users
 
         # create a collection, folder, and item
-        collection = self.model('collection').createCollection(
-            'collection', admin, public=True)
-        folder = self.model('folder').createFolder(
-            collection, 'folder', parentType='collection', public=True)
-        item = self.model('item').createItem('item', admin, folder)
+        collection = Collection().createCollection('collection', admin, public=True)
+        folder = Folder().createFolder(collection, 'folder', parentType='collection', public=True)
+        item = Item().createItem('item', admin, folder)
 
         # test initial values
         path = '/item/%s/dicom' % item.get('_id')
@@ -39,13 +43,11 @@ class DicomViewerTest(base.TestCase):
 
         path = os.path.join(os.path.split(__file__)[0], 'test.dcm')
         with open(path, 'rb') as fp:
-            self.model('upload').uploadFromFile(
-                fp, 25640, 'test.dcm', 'item', item, admin)
+            Upload().uploadFromFile(fp, 25640, 'test.dcm', 'item', item, admin)
 
         path = os.path.join(os.path.split(__file__)[0], 'not-dicom.dcm')
         with open(path, 'rb') as fp:
-            self.model('upload').uploadFromFile(
-                fp, 7590, 'not-dicom.dcm', 'item', item, admin)
+            Upload().uploadFromFile(fp, 7590, 'not-dicom.dcm', 'item', item, admin)
 
         # test dicom endpoint
         start = time.time()

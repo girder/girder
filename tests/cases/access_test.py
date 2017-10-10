@@ -22,6 +22,8 @@ from .. import base
 from girder.api.rest import loadmodel, Resource
 from girder.api import access
 from girder.constants import AccessType, SettingKey, TokenScope
+from girder.models.token import Token
+from girder.models.user import User
 
 CUSTOM_SCOPE = "Some.Exclusive.Scope"
 
@@ -156,7 +158,7 @@ class AccessTestCase(base.TestCase):
             'password': 'adminpassword',
             'admin': True
         }
-        self.admin = self.model('user').createUser(**admin)
+        self.admin = User().createUser(**admin)
 
         user = {
             'email': 'good@email.com',
@@ -166,7 +168,7 @@ class AccessTestCase(base.TestCase):
             'password': 'goodpassword',
             'admin': False
         }
-        self.user = self.model('user').createUser(**user)
+        self.user = User().createUser(**user)
 
     def testAccessEndpoints(self):
         endpoints = [
@@ -233,16 +235,13 @@ class AccessTestCase(base.TestCase):
         self.assertEqual(resp.json['message'], 'Invalid ObjectId: None')
 
     def testGetFullAccessList(self):
-        acl = self.model('user').getFullAccessList(self.admin)
+        acl = User().getFullAccessList(self.admin)
         self.assertEqual(len(acl['users']), 1)
 
     def testAdminTokenScopes(self):
-        adminSettingToken = self.model('token').createToken(
-            user=self.admin, scope=TokenScope.SETTINGS_READ)
-        adminEmailToken = self.model('token').createToken(
-            user=self.admin, scope=TokenScope.DATA_READ)
-        nonadminToken = self.model('token').createToken(
-            user=self.user, scope=TokenScope.SETTINGS_READ)
+        adminSettingToken = Token().createToken(user=self.admin, scope=TokenScope.SETTINGS_READ)
+        adminEmailToken = Token().createToken(user=self.admin, scope=TokenScope.DATA_READ)
+        nonadminToken = Token().createToken(user=self.user, scope=TokenScope.SETTINGS_READ)
 
         # Reading settings as admin should work
         params = {'key': SettingKey.SMTP_PORT}
@@ -287,8 +286,7 @@ class AccessTestCase(base.TestCase):
         resp = self.request(path='/accesstest/fn_admin', user=self.user)
         self.assertStatus(resp, 403)
 
-        token = self.model('token').createToken(
-            user=self.admin, scope=TokenScope.SETTINGS_READ)
+        token = Token().createToken(user=self.admin, scope=TokenScope.SETTINGS_READ)
 
         resp = self.request(path='/accesstest/admin_access', token=token)
         self.assertStatus(resp, 401)
@@ -297,8 +295,7 @@ class AccessTestCase(base.TestCase):
         self.assertStatus(resp, 401)
 
         # Make sure user scoped access works
-        token = self.model('token').createToken(
-            user=self.user, scope=TokenScope.DATA_READ)
+        token = Token().createToken(user=self.user, scope=TokenScope.DATA_READ)
 
         resp = self.request(path='/accesstest/user_access', user=self.user)
         self.assertStatusOk(resp)
@@ -313,7 +310,7 @@ class AccessTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # Test public access
-        authToken = self.model('token').createToken(user=self.user)
+        authToken = Token().createToken(user=self.user)
 
         for route in ('public_access', 'fn_public', 'scoped_public'):
             path = '/accesstest/%s' % route
@@ -328,28 +325,24 @@ class AccessTestCase(base.TestCase):
             self.assertEqual(resp.json['_id'], str(self.user['_id']))
 
         # Make a correctly scoped token, should work.
-        token = self.model('token').createToken(
-            user=self.user, scope=TokenScope.SETTINGS_READ)
+        token = Token().createToken(user=self.user, scope=TokenScope.SETTINGS_READ)
         resp = self.request(path=path, token=token)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_id'], str(self.user['_id']))
 
     def testRequiredScopeExists(self):
-
-        token = self.model('token').createToken(scope=CUSTOM_SCOPE)
+        token = Token().createToken(scope=CUSTOM_SCOPE)
 
         resp = self.request(path='/accesstest/test_required_scope_exists')
         # If not given a user or a valid auth token the status should be 401
         self.assertStatus(resp, 401)
 
-        resp2 = self.request(path='/accesstest/test_required_scope_exists',
-                             user=self.user)
+        resp2 = self.request(path='/accesstest/test_required_scope_exists', user=self.user)
         # If the token does not have the CUSTOM_SCOPE the status should be 403
         self.assertStatus(resp2, 403)
 
         # If user is not given but the token has the correct scope
         # the status should be 200
-        resp3 = self.request(path='/accesstest/test_required_scope_exists',
-                             token=token)
+        resp3 = self.request(path='/accesstest/test_required_scope_exists', token=token)
 
         self.assertStatus(resp3, 200)

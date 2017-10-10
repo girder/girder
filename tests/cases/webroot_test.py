@@ -19,6 +19,7 @@
 
 from .. import base
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
+from girder.models.setting import Setting
 from girder.utility.webroot import WebrootBase
 
 
@@ -52,8 +53,8 @@ class WebRootTestCase(base.TestCase):
         elements in the returned html
         """
         # Check webroot default settings
-        defaultEmailAddress = self.model('setting').getDefault(SettingKey.CONTACT_EMAIL_ADDRESS)
-        defaultBrandName = self.model('setting').getDefault(SettingKey.BRAND_NAME)
+        defaultEmailAddress = Setting().getDefault(SettingKey.CONTACT_EMAIL_ADDRESS)
+        defaultBrandName = Setting().getDefault(SettingKey.BRAND_NAME)
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
@@ -64,8 +65,8 @@ class WebRootTestCase(base.TestCase):
         self.assertIn('girder_lib.min.js', body)
 
         # Change webroot settings
-        self.model('setting').set(SettingKey.CONTACT_EMAIL_ADDRESS, 'foo@bar.com')
-        self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
+        Setting().set(SettingKey.CONTACT_EMAIL_ADDRESS, 'foo@bar.com')
+        Setting().set(SettingKey.BRAND_NAME, 'FooBar')
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
@@ -73,8 +74,8 @@ class WebRootTestCase(base.TestCase):
         self.assertIn('<title>FooBar</title>', body)
 
         # Remove webroot settings
-        self.model('setting').unset(SettingKey.CONTACT_EMAIL_ADDRESS)
-        self.model('setting').unset(SettingKey.BRAND_NAME)
+        Setting().unset(SettingKey.CONTACT_EMAIL_ADDRESS)
+        Setting().unset(SettingKey.BRAND_NAME)
         resp = self.request(path='/', method='GET', isJson=False, prefix='')
         self.assertStatus(resp, 200)
         body = self.getBody(resp)
@@ -82,7 +83,7 @@ class WebRootTestCase(base.TestCase):
         self.assertIn('<title>%s</title>' % defaultBrandName, body)
 
     def testWebRootProperlyHandlesStaticRouteUrls(self):
-        self.model('setting').set(SettingKey.ROUTE_TABLE, {
+        Setting().set(SettingKey.ROUTE_TABLE, {
             GIRDER_ROUTE_ID: '/',
             GIRDER_STATIC_ROUTE_ID: 'http://my-cdn-url.com/static'
         })

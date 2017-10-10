@@ -26,8 +26,9 @@ from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import boundHandler
 from girder.models.model_base import ValidationException
+from girder.models.setting import Setting
+from girder.models.user import User
 from girder.utility import setting_utilities
-from girder.utility.model_importer import ModelImporter
 from .constants import PluginSettings
 
 _LDAP_ATTRS = ('uid', 'mail', 'cn', 'sn', 'givenName', 'distinguishedName')
@@ -93,7 +94,7 @@ def _registerLdapUser(attrs, email, server):
     # use the part before the @.
     try:
         login = attrs[server['searchField']][0].decode('utf8').split('@')[0]
-        return ModelImporter.model('user').createUser(
+        return User().createUser(
             login, password=None, firstName=first, lastName=last, email=email)
     except ValidationException as e:
         if e.field != 'login':
@@ -103,7 +104,7 @@ def _registerLdapUser(attrs, email, server):
     for i in six.moves.range(_MAX_NAME_ATTEMPTS):
         login = ''.join((first, last, str(i) if i else ''))
         try:
-            return ModelImporter.model('user').createUser(
+            return User().createUser(
                 login, password=None, firstName=first, lastName=last, email=email)
         except ValidationException as e:
             if e.field != 'login':
@@ -121,7 +122,7 @@ def _getLdapUser(attrs, server):
         emails = (emails,)
 
     emails = [e.decode('utf8').lower() for e in emails]
-    existing = ModelImporter.model('user').find({
+    existing = User().find({
         'email': {'$in': emails}
     }, limit=1)
     if existing.count():
@@ -132,7 +133,7 @@ def _getLdapUser(attrs, server):
 
 def _ldapAuth(event):
     login, password = event.info['login'], event.info['password']
-    servers = ModelImporter.model('setting').get(PluginSettings.LDAP_SERVERS)
+    servers = Setting().get(PluginSettings.LDAP_SERVERS)
 
     for server in servers:
         try:

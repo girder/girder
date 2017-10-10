@@ -18,6 +18,11 @@
 ###############################################################################
 
 from .. import base
+from girder.models.collection import Collection
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.user import User
 
 
 def setUpModule():
@@ -44,19 +49,19 @@ class SizeTestCase(base.TestCase):
             'password': 'adminpassword',
             'admin': True
         }
-        self.admin = self.model('user').createUser(**admin)
+        self.admin = User().createUser(**admin)
 
         coll1 = {
             'name': 'Coll1',
             'creator': self.admin
         }
-        self.coll1 = self.model('collection').createCollection(**coll1)
+        self.coll1 = Collection().createCollection(**coll1)
 
         coll2 = {
             'name': 'Coll2',
             'creator': self.admin
         }
-        self.coll2 = self.model('collection').createCollection(**coll2)
+        self.coll2 = Collection().createCollection(**coll2)
 
         folder1 = {
             'parent': self.coll1,
@@ -64,7 +69,7 @@ class SizeTestCase(base.TestCase):
             'parentType': 'collection',
             'name': 'Top level folder'
         }
-        self.folder1 = self.model('folder').createFolder(**folder1)
+        self.folder1 = Folder().createFolder(**folder1)
 
         folder2 = {
             'parent': self.folder1,
@@ -72,21 +77,21 @@ class SizeTestCase(base.TestCase):
             'parentType': 'folder',
             'name': 'Subfolder'
         }
-        self.folder2 = self.model('folder').createFolder(**folder2)
+        self.folder2 = Folder().createFolder(**folder2)
 
         item1 = {
             'name': 'Item1',
             'creator': self.admin,
             'folder': self.folder1
         }
-        self.item1 = self.model('item').createItem(**item1)
+        self.item1 = Item().createItem(**item1)
 
         item10 = {
             'name': 'Item10',
             'creator': self.admin,
             'folder': self.folder2
         }
-        self.item10 = self.model('item').createItem(**item10)
+        self.item10 = Item().createItem(**item10)
 
         file1 = {
             'creator': self.admin,
@@ -96,9 +101,9 @@ class SizeTestCase(base.TestCase):
             'assetstore': self.assetstore,
             'mimeType': 'text/plain'
         }
-        self.file1 = self.model('file').createFile(**file1)
+        self.file1 = File().createFile(**file1)
         self.file1['sha512'] = ''
-        self.model('file').save(self.file1, validate=False)
+        File().save(self.file1, validate=False)
 
         file10 = {
             'creator': self.admin,
@@ -108,9 +113,9 @@ class SizeTestCase(base.TestCase):
             'assetstore': self.assetstore,
             'mimeType': 'text/plain'
         }
-        self.file10 = self.model('file').createFile(**file10)
+        self.file10 = File().createFile(**file10)
         self.file10['sha512'] = ''
-        self.model('file').save(self.file10, validate=False)
+        File().save(self.file10, validate=False)
 
     def assertNodeSize(self, resource, collection, size):
         model = self.model(collection).load(resource['_id'], force=True)
