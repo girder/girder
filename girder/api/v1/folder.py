@@ -50,6 +50,10 @@ class Folder(Resource):
     @filtermodel(model='folder')
     @autoDescribeRoute(
         Description('Search for folders by certain properties.')
+        .notes('You must pass either a "folderId" or "text" field'
+               'to specify how you are searching for folders.  '
+               'If you omit one of these parameters the request will fail and respond : '
+               '"Invalid search mode."')
         .responseClass('Folder', array=True)
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
