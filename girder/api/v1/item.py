@@ -50,6 +50,10 @@ class Item(Resource):
     @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('List or search for items.')
+        .notes('You must pass either a "itemId" or "text" field'
+               'to specify how you are searching for items.  '
+               'If you omit one of these parameters the request will fail and respond : '
+               '"Invalid search mode."')
         .responseClass('Item', array=True)
         .param('folderId', 'Pass this to list all items in a folder.',
                required=False)
