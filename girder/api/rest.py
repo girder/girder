@@ -1261,3 +1261,9 @@ def boundHandler(fun, ctx=None):
         return fun(ctx, *args, **kwargs)
 
     return wrapped
+
+class Prefix():
+    '''
+    Utility class used to provide api prefixes.
+    '''
+    exposed = True
