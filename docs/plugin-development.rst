@@ -242,7 +242,7 @@ classes, and we can add it to the API in the ``load()`` method.
 Adding a prefix to an API
 *************************
 
-It is possible to provide a prefix to your API, allowing associate endpoints to
+It is possible to provide a prefix to your API, allowing associated endpoints to
 be grouped together. This is done by passing the resource instance
 when then route is defined and creating a prefix when mounting the resouce.
 
