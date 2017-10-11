@@ -767,6 +767,9 @@ class Resource(ModelImporter):
 
         :type nodoc: bool
         :param resource: The name of the resource at the root of this route.
+            The resource instance (self) can also be passed. This allows the
+            mount path to be lookup. This allows a resource to be mounted at a
+            prefix.
         """
         self._ensureInit()
         # Insertion sort to maintain routes in required order.
