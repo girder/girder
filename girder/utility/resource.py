@@ -22,7 +22,7 @@ def _walkTree(node, path=[]):
 
 
 def _apiRouteMap():
-    '''
+    """
     Returns a map of girder.api.rest.Resource to paths.
 
     The function walks the tree starting at /api and follows any branch attribute
@@ -30,7 +30,7 @@ def _apiRouteMap():
     resource is added to the map.
 
     This map can be used to lookup where a resource has been mounted.
-    '''
+    """
     api = cherrypy.tree.apps['/api']
 
     return _walkTree(api.root.v1)
