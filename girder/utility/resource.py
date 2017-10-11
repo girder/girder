@@ -4,24 +4,24 @@ import six
 from girder.api.rest import Resource
 
 
-def _walk_tree(node, path=[]):
-    route_map = {}
+def _walkTree(node, path=[]):
+    routeMap = {}
     for k, v in six.iteritems(vars(node)):
         if isinstance(v, Resource):
             full_path = list(path)
             full_path.append(k)
-            route_map[v] = full_path
+            routeMap[v] = full_path
             path = []
 
         if hasattr(v, 'exposed'):
             new_path = list(path)
             new_path.append(k)
-            route_map.update(_walk_tree(v, new_path))
+            routeMap.update(_walkTree(v, new_path))
 
-    return route_map
+    return routeMap
 
 
-def _api_route_map():
+def _apiRouteMap():
     '''
     Returns a map of girder.api.rest.Resource to paths.
 
@@ -33,4 +33,4 @@ def _api_route_map():
     '''
     api = cherrypy.tree.apps['/api']
 
-    return _walk_tree(api.root.v1)
+    return _walkTree(api.root.v1)

@@ -36,7 +36,7 @@ from girder.models.setting import Setting
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
-from girder.utility.resource import _api_route_map
+from girder.utility.resource import _apiRouteMap
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
 
@@ -495,7 +495,7 @@ class Describe(Resource):
         # List of Tag Objects
         tags = []
 
-        route_map = _api_route_map()
+        routeMap = _apiRouteMap()
 
         for resource in sorted(six.viewkeys(docs.routes), key=str):
             # Update Definitions Object
@@ -503,13 +503,13 @@ class Describe(Resource):
                 for name, model in six.viewitems(docs.models[resource]):
                     definitions[name] = model
 
-            prefix_path = None
+            prefixPath = None
             tag = resource
             if isinstance(resource, Resource):
-                if resource not in route_map:
+                if resource not in routeMap:
                     raise RestException('Resource not mounted: %s' % resource)
-                prefix_path = route_map[resource]
-                tag = prefix_path[0]
+                prefixPath = routeMap[resource]
+                tag = prefixPath[0]
 
             # Tag Object
             tags.append({
@@ -522,11 +522,11 @@ class Describe(Resource):
                 for method, operation in six.viewitems(methods):
                     # Operation Object
                     pathItem[method.lower()] = operation
-                    if prefix_path:
-                        operation['tags'] = ['/'.join(prefix_path)]
+                    if prefixPath:
+                        operation['tags'] = ['/'.join(prefixPath)]
 
-                if prefix_path:
-                    route = '/'.join([''] + prefix_path + [route[1:]])
+                if prefixPath:
+                    route = '/'.join([''] + prefixPath + [route[1:]])
 
                 paths[route] = pathItem
 
