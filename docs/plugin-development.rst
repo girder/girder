@@ -239,6 +239,37 @@ classes, and we can add it to the API in the ``load()`` method.
     def load(info):
         info['apiRoot'].cat = Cat()
 
+Adding a prefix to an API
+*************************
+
+It is possible to provide a prefix to your API, allowing associate endpoints to
+be grouped together. This is done by passing the resource instance
+when then route is defined and creating a prefix when mounting the resouce.
+
+
+.. code-block:: python
+
+    from girder.api.rest import Resource, Prefix
+
+    class Cat(Resource):
+        def __init__(self):
+            super(Cat, self).__init__()
+
+            self.route('GET', (), self.findCat, resource=self)
+            self.route('GET', (':id',), self.getCat, resource=self)
+            self.route('POST', (), self.createCat, resource=self)
+            self.route('PUT', (':id',), self.updateCat, resource=self)
+            self.route('DELETE', (':id',), self.deleteCat, resource=self)
+
+        def getCat(self, id, params):
+            ...
+
+    def load(info):
+        info['apiRoot'].meow.cat = Cat()
+
+The endpoint are now mounted at meow/cat/
+
+
 Adding a new model type in your plugin
 **************************************
 
