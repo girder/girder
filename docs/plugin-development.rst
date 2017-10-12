@@ -243,8 +243,9 @@ Adding a prefix to an API
 *************************
 
 It is possible to provide a prefix to your API, allowing associated endpoints to
-be grouped together. This is done by passing the resource instance
-when then route is defined and creating a prefix when mounting the resouce.
+be grouped together. This is done by creating a prefix when mounting the resouce.
+Note that ``resourceName`` is **not** provided as the resource name is also derived
+from the mount location.
 
 
 .. code-block:: python
@@ -255,11 +256,11 @@ when then route is defined and creating a prefix when mounting the resouce.
         def __init__(self):
             super(Cat, self).__init__()
 
-            self.route('GET', (), self.findCat, resource=self)
-            self.route('GET', (':id',), self.getCat, resource=self)
-            self.route('POST', (), self.createCat, resource=self)
-            self.route('PUT', (':id',), self.updateCat, resource=self)
-            self.route('DELETE', (':id',), self.deleteCat, resource=self)
+            self.route('GET', (), self.findCat)
+            self.route('GET', (':id',), self.getCat)
+            self.route('POST', (), self.createCat)
+            self.route('PUT', (':id',), self.updateCat)
+            self.route('DELETE', (':id',), self.deleteCat)
 
         def getCat(self, id, params):
             ...
