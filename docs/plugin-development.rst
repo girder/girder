@@ -268,7 +268,7 @@ from the mount location.
     def load(info):
         info['apiRoot'].meow.cat = Cat()
 
-The endpoint are now mounted at meow/cat/
+The endpoints are now mounted at meow/cat/
 
 
 Adding a new model type in your plugin
