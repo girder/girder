@@ -266,6 +266,7 @@ from the mount location.
             ...
 
     def load(info):
+        info['apiRoot'].meow = Prefix()
         info['apiRoot'].meow.cat = Cat()
 
 The endpoints are now mounted at meow/cat/
