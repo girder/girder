@@ -523,7 +523,7 @@ class Describe(Resource):
                     # Operation Object
                     pathItem[method.lower()] = operation
                     if prefixPath:
-                        operation['tags'] = ['/'.join(prefixPath)]
+                        operation['tags'] = prefixPath[:1]
 
                 if prefixPath:
                     route = '/'.join([''] + prefixPath + [route[1:]])
