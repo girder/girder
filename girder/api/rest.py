@@ -767,6 +767,9 @@ class Resource(ModelImporter):
 
         :type nodoc: bool
         :param resource: The name of the resource at the root of this route.
+            The resource instance (self) can also be passed. This allows the
+            mount path to be looked up. This allows a resource to be mounted at a
+            prefix.
         """
         self._ensureInit()
         # Insertion sort to maintain routes in required order.
@@ -782,7 +785,7 @@ class Resource(ModelImporter):
         if resource is None and hasattr(self, 'resourceName'):
             resource = self.resourceName
         elif resource is None:
-            resource = handler.__module__.rsplit('.', 1)[-1]
+            resource = self
 
         if hasattr(handler, 'description'):
             if handler.description is not None:
@@ -1261,3 +1264,10 @@ def boundHandler(fun, ctx=None):
         return fun(ctx, *args, **kwargs)
 
     return wrapped
+
+
+class Prefix(object):
+    """
+    Utility class used to provide api prefixes.
+    """
+    exposed = True

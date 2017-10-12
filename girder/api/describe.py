@@ -36,6 +36,7 @@ from girder.models.setting import Setting
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
+from girder.utility.resource import _apiRouteMap
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
 
@@ -494,15 +495,25 @@ class Describe(Resource):
         # List of Tag Objects
         tags = []
 
-        for resource in sorted(six.viewkeys(docs.routes)):
+        routeMap = _apiRouteMap()
+
+        for resource in sorted(six.viewkeys(docs.routes), key=str):
             # Update Definitions Object
             if resource in docs.models:
                 for name, model in six.viewitems(docs.models[resource]):
                     definitions[name] = model
 
+            prefixPath = None
+            tag = resource
+            if isinstance(resource, Resource):
+                if resource not in routeMap:
+                    raise RestException('Resource not mounted: %s' % resource)
+                prefixPath = routeMap[resource]
+                tag = prefixPath[0]
+
             # Tag Object
             tags.append({
-                'name': resource
+                'name': tag
             })
 
             for route, methods in six.viewitems(docs.routes[resource]):
@@ -511,6 +522,11 @@ class Describe(Resource):
                 for method, operation in six.viewitems(methods):
                     # Operation Object
                     pathItem[method.lower()] = operation
+                    if prefixPath:
+                        operation['tags'] = prefixPath[:1]
+
+                if prefixPath:
+                    route = '/'.join([''] + prefixPath + [route[1:]])
 
                 paths[route] = pathItem
 
