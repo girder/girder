@@ -785,7 +785,7 @@ class Resource(ModelImporter):
         if resource is None and hasattr(self, 'resourceName'):
             resource = self.resourceName
         elif resource is None:
-            resource = handler.__module__.rsplit('.', 1)[-1]
+            resource = self
 
         if hasattr(handler, 'description'):
             if handler.description is not None:
