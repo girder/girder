@@ -192,7 +192,7 @@ class SettingDefault:
     """
     defaults = {
         SettingKey.BRAND_NAME: 'Girder',
-        SettingKey.BANNER_COLOR: '#3F3B3B',
+        SettingKey.BANNER_COLOR: '#FFFFFF',
         SettingKey.PLUGINS_ENABLED: [],
         SettingKey.COOKIE_LIFETIME: 180,
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',

@@ -70,7 +70,7 @@ var LayoutHeaderView = View.extend({
         );
         const L = 0.2126 * linearRBG[0] + 0.7152 * linearRBG[1] + 0.0722 * linearRBG[2];
         return ((L + 0.05) / (0.0 + 0.05) > (1.0 + 0.05) / (L + 0.05))
-            ? '#000000'
+            ? 'inherit'
             : '#ffffff';
     }
 });
