@@ -1,20 +1,23 @@
+@import "../layout/layoutVars"
+
 ul.g-admin-options
-  list-style-type none
-  font-size 18px
   padding-left 0
   margin 0
 
   >li
+    list-style-type none
+    text-decoration none
+    text-transform uppercase
+    font-weight 600
     display block
-    padding 12px 10px
-    font-weight bold
-    color #666
-
-    >a
+    line-height 2.2
+    font-size 14px
+    i
+      margin-right 16px
+      font-size 24px
+    a
       color inherit
-      display block
 
   >li:hover
-    background-color #f4f4f4
+    color $baseColor
     cursor pointer
-    color #222
