@@ -53,8 +53,6 @@ router.on('route', function (route, params) {
     if (!params.slice(-1)[0].dialog) {
         $('.modal').girderModal('close');
     }
-    // get rid of tooltips
-    $('.tooltip').remove();
 });
 
 export default router;

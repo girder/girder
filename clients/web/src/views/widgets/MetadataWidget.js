@@ -151,8 +151,6 @@ var MetadatumEditWidget = View.extend({
         'click .g-widget-metadata-save-button': 'save',
         'click .g-widget-metadata-delete-button': 'deleteMetadatum',
         'click .g-widget-metadata-toggle-button': function (event) {
-            const target = $(event.currentTarget);
-            target.tooltip('destroy');
             var editorType;
             // @todo modal
             // in the future this event will have the new editorType (assuming a dropdown)
@@ -192,7 +190,6 @@ var MetadatumEditWidget = View.extend({
     deleteMetadatum: function (event) {
         event.stopImmediatePropagation();
         const target = $(event.currentTarget);
-        target.tooltip('destroy');
         var metadataList = target.parent().parent();
         var params = {
             text: 'Are you sure you want to delete the metadatum <b>' +
@@ -214,7 +211,6 @@ var MetadatumEditWidget = View.extend({
     cancelEdit: function (event) {
         event.stopImmediatePropagation();
         const target = $(event.currentTarget);
-        target.tooltip('destroy');
         var curRow = target.parent().parent();
         if (this.newDatum) {
             curRow.remove();
@@ -226,7 +222,6 @@ var MetadatumEditWidget = View.extend({
     save: function (event, value) {
         event.stopImmediatePropagation();
         const target = $(event.currentTarget);
-        target.tooltip('destroy');
         var curRow = target.parent(),
             tempKey = curRow.find('.g-widget-metadata-key-input').val(),
             tempValue = (value !== undefined) ? value : curRow.find('.g-widget-metadata-value-input').val();
@@ -333,10 +328,6 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
                 });
             }
         });
-        // JSONEditor removes tooltip-containing elements without destroying their
-        // Bootstrap-styled tooltips first. To fix this, disable Bootstrap tooltips within all
-        // JSONEditor elements.
-        this._disableBootstrapTooltips(jsonEditorEl);
 
         if (this.value !== undefined) {
             this.editor.setText(JSON.stringify(this.value));
