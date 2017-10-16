@@ -337,6 +337,12 @@ class Setting(Model):
                 'Email verification must be "required", "optional", or "disabled".', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.API_KEYS)
+    def validateApiKeys(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('API key setting must be boolean.', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.ROUTE_TABLE)
     def validateCoreRouteTable(doc):
         nonEmptyRoutes = [route for route in doc['value'].values() if route]

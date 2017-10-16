@@ -95,6 +95,13 @@ form.g-settings-form(role="form")
         option(value="public_private",
             selected=((settings['core.user_default_folders'] ||
           defaults['core.user_default_folders']) === "public_private")) Yes, "Public" and "Private"
+    .form-group
+      .checkbox
+        label(for="g-core-api-keys")
+          input#g-core-api-keys(
+              type="checkbox", checked=(
+                settings['core.api_keys'] === null ? defaults['core.api_keys'] : settings['core.api_keys']))
+          | Enable API keys
   .g-settings-form-container
     h4 Email Creation
     .form-group

@@ -159,6 +159,7 @@ class SettingKey:
     Core settings should be enumerated here by a set of constants corresponding
     to sensible strings.
     """
+    API_KEYS = 'core.api_keys'
     BRAND_NAME = 'core.brand_name'
     BANNER_COLOR = 'core.banner_color'
     PLUGINS_ENABLED = 'core.plugins_enabled'
@@ -191,6 +192,7 @@ class SettingDefault:
     SettingKey.
     """
     defaults = {
+        SettingKey.API_KEYS: True,
         SettingKey.BRAND_NAME: 'Girder',
         SettingKey.BANNER_COLOR: '#3F3B3B',
         SettingKey.PLUGINS_ENABLED: [],
