@@ -25,6 +25,8 @@ from .. import base
 from girder.api import access, describe, docs
 from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType, registerAccessFlag, SettingKey
+from girder.models.setting import Setting
+from girder.models.user import User
 
 server = None
 Routes = [
@@ -117,17 +119,17 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertStatusOk(resp)
         body = self.getBody(resp)
 
-        defaultBrandName = self.model('setting').getDefault(SettingKey.BRAND_NAME)
+        defaultBrandName = Setting().getDefault(SettingKey.BRAND_NAME)
         self.assertTrue(('<title>%s - REST API Documentation</title>' % defaultBrandName) in body)
 
-        self.model('setting').set(SettingKey.BRAND_NAME, 'FooBar')
+        Setting().set(SettingKey.BRAND_NAME, 'FooBar')
         # An other request to check if the brand name is set
         resp = self.request(path='', method='GET', isJson=False)
         self.assertStatusOk(resp)
         body = self.getBody(resp)
         self.assertTrue(('<title>%s - REST API Documentation</title>' % 'FooBar') in body)
 
-        self.model('setting').unset(SettingKey.BRAND_NAME)
+        Setting().unset(SettingKey.BRAND_NAME)
         resp = self.request(path='', method='GET', isJson=False)
         self.assertStatusOk(resp)
         body = self.getBody(resp)
@@ -514,7 +516,7 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'Invalid ObjectId: None')
 
-        user = self.model('user').createUser(
+        user = User().createUser(
             firstName='admin', lastName='admin', email='a@admin.com', login='admin',
             password='password')
         resp = self.request(

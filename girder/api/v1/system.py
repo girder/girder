@@ -30,6 +30,10 @@ from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.models.model_base import GirderException
+from girder.models.group import Group
+from girder.models.setting import Setting
+from girder.models.upload import Upload
+from girder.models.user import User
 from girder.utility import config, install, plugin_utilities, system
 from girder.utility.path import NotFoundException
 from girder.utility.progress import ProgressContext
@@ -92,9 +96,9 @@ class System(Resource):
                     pass
 
             if value is None:
-                self.model('setting').unset(key=key)
+                Setting().unset(key=key)
             else:
-                self.model('setting').set(key=key, value=value)
+                Setting().set(key=key, value=value)
 
         return True
 
@@ -139,7 +143,7 @@ class System(Resource):
                 getFuncName = 'getDefault'
             elif default:
                 raise RestException("Default was not 'none', 'default', or blank.")
-        getFunc = getattr(self.model('setting'), getFuncName)
+        getFunc = getattr(Setting(), getFuncName)
         if list is not None:
             return {k: getFunc(k, **funcParams) for k in list}
         else:
@@ -155,7 +159,7 @@ class System(Resource):
     def getPlugins(self):
         plugins = {
             'all': plugin_utilities.findAllPlugins(),
-            'enabled': self.model('setting').get(SettingKey.PLUGINS_ENABLED)
+            'enabled': Setting().get(SettingKey.PLUGINS_ENABLED)
         }
         failureInfo = plugin_utilities.getPluginFailureInfo()
         if failureInfo:
@@ -183,7 +187,7 @@ class System(Resource):
     )
     def enablePlugins(self, plugins):
         # Determine what plugins have been disabled and remove their associated routes.
-        setting = self.model('setting')
+        setting = Setting()
         routeTable = setting.get(SettingKey.ROUTE_TABLE)
         oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
         reservedRoutes = {GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID}
@@ -212,7 +216,7 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def unsetSetting(self, key):
-        return self.model('setting').unset(key)
+        return Setting().unset(key)
 
     @access.admin(scope=TokenScope.PARTIAL_UPLOAD_READ)
     @autoDescribeRoute(
@@ -248,10 +252,10 @@ class System(Resource):
         if minimumAge is not None:
             filters['minimumAge'] = minimumAge
 
-        uploadList = list(self.model('upload').list(
+        uploadList = list(Upload().list(
             filters=filters, limit=limit, offset=offset, sort=sort))
         if includeUntracked and (limit == 0 or len(uploadList) < limit):
-            untrackedList = self.model('upload').untrackedUploads('list', assetstoreId)
+            untrackedList = Upload().untrackedUploads('list', assetstoreId)
             if limit == 0:
                 uploadList += untrackedList
             elif len(uploadList) < limit:
@@ -293,12 +297,12 @@ class System(Resource):
             filters['parentId'] = parentId
         if minimumAge is not None:
             filters['minimumAge'] = minimumAge
-        uploadList = list(self.model('upload').list(filters=filters))
+        uploadList = list(Upload().list(filters=filters))
         # Move the results to list that isn't a cursor so we don't have to have
         # the cursor sitting around while we work on the data.
         for upload in uploadList:
             try:
-                self.model('upload').cancelUpload(upload)
+                Upload().cancelUpload(upload)
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(
@@ -306,7 +310,7 @@ class System(Resource):
                         'girder.api.v1.system.delete-upload-failed')
                 raise
         if includeUntracked:
-            uploadList += self.model('upload').untrackedUploads('delete', assetstoreId)
+            uploadList += Upload().untrackedUploads('delete', assetstoreId)
         return uploadList
 
     @access.admin
@@ -494,7 +498,7 @@ class System(Resource):
                'of collection, file, and group')
     )
     def getCollectionCreationPolicyAccess(self):
-        cpp = self.model('setting').get('core.collection_create_policy')
+        cpp = Setting().get('core.collection_create_policy')
 
         acList = {
             'users': [{'id': x} for x in cpp.get('users', [])],
@@ -502,7 +506,7 @@ class System(Resource):
         }
 
         for user in acList['users'][:]:
-            userDoc = self.model('user').load(
+            userDoc = User().load(
                 user['id'], force=True,
                 fields=['firstName', 'lastName', 'login'])
             if userDoc is None:
@@ -512,7 +516,7 @@ class System(Resource):
                 user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
         for grp in acList['groups'][:]:
-            grpDoc = self.model('group').load(
+            grpDoc = Group().load(
                 grp['id'], force=True, fields=['name', 'description'])
             if grpDoc is None:
                 acList['groups'].remove(grp)

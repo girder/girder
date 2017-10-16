@@ -19,6 +19,7 @@
 
 import time
 
+from girder.models.item import Item
 from tests import base
 from . metadata_extractor_test import MetadataExtractorTestCase
 
@@ -36,7 +37,7 @@ class ServerMetadataExtractorTestCase(MetadataExtractorTestCase):
     def testServerMetadataExtractor(self):
         startTime = time.time()
         while True:
-            item = self.model('item').load(self.item['_id'], user=self.user)
+            item = Item().load(self.item['_id'], user=self.user)
             if 'meta' in item:
                 if 'MIME type' in item['meta']:
                     break

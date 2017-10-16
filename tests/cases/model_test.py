@@ -19,7 +19,8 @@
 
 from .. import base
 from girder.models.model_base import AccessControlledModel, Model, AccessType
-from girder.utility.model_importer import ModelImporter
+from girder.models.group import Group
+from girder.models.user import User
 
 
 class FakeAcModel(AccessControlledModel):
@@ -61,9 +62,6 @@ class ModelTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        ModelImporter.registerModel('fake_ac', FakeAcModel())
-        ModelImporter.registerModel('fake', FakeModel())
-
     def testProjectionUtils(self):
         def assertItemsEqual(a, b):
             self.assertEqual(len(a), len(b))
@@ -103,7 +101,8 @@ class ModelTestCase(base.TestCase):
         retval = Model._supplementFields(exclusionProjDict, overrideFields)
         assertItemsEqual(retval, {'email': False, 'login': False})
 
-        doc = {
+        originalDoc = {
+            '_id': '1234',
             'public': True,
             'access': True,
             'email': 'email@email.com',
@@ -113,42 +112,28 @@ class ModelTestCase(base.TestCase):
             'firstName': 'first',
             'lastName': 'last'
         }
+        doc = dict(originalDoc)
         Model._removeSupplementalFields(doc, exclusionProjDict)
         assertItemsEqual(doc, {
+            '_id': '1234',
             'password': 'password1',
             'admin': False,
             'firstName': 'first',
             'lastName': 'last'})
 
-        doc = {
-            'public': True,
-            'access': True,
-            'email': 'email@email.com',
-            'login': 'login',
-            'password': 'password1',
-            'admin': False,
-            'firstName': 'first',
-            'lastName': 'last'
-        }
+        doc = dict(originalDoc)
         Model._removeSupplementalFields(doc, inclusionProjList)
         assertItemsEqual(doc, {
+            '_id': '1234',
             'public': True,
             'access': True,
             'email': 'email@email.com',
             'login': 'login'})
 
-        doc = {
-            'public': True,
-            'access': True,
-            'email': 'email@email.com',
-            'login': 'login',
-            'password': 'password1',
-            'admin': False,
-            'firstName': 'first',
-            'lastName': 'last'
-        }
+        doc = dict(originalDoc)
         Model._removeSupplementalFields(doc, inclusionProjDict)
         assertItemsEqual(doc, {
+            '_id': '1234',
             'public': True,
             'access': True,
             'email': 'email@email.com',
@@ -157,9 +142,9 @@ class ModelTestCase(base.TestCase):
         # Test None edge cases
         retval = Model._supplementFields(None, {'access', 'public'})
         self.assertIsNone(retval)
-        copy = dict(doc)
+        doc = dict(originalDoc)
         Model._removeSupplementalFields(doc, None)
-        assertItemsEqual(copy, doc)
+        assertItemsEqual(doc, originalDoc)
 
         # Test '_id': False inclusion edge case
         fields = {
@@ -213,8 +198,7 @@ class ModelTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         })
-        adminUser, regUser = [
-            self.model('user').createUser(**user) for user in users]
+        adminUser, regUser = [User().createUser(**user) for user in users]
 
         fields = {
             'hidden': 1,
@@ -225,31 +209,28 @@ class ModelTestCase(base.TestCase):
             'sa': 1
         }
         # Test filter behavior on access controlled model
-        fakeAc = self.model('fake_ac').save(fields)
-        fakeAc = self.model('fake_ac').setUserAccess(
-            fakeAc, regUser, level=AccessType.READ)
+        fakeAc = FakeAcModel().save(fields)
+        fakeAc = FakeAcModel().setUserAccess(fakeAc, regUser, level=AccessType.READ)
 
-        filtered = self.model('fake_ac').filter(fakeAc, adminUser)
+        filtered = FakeAcModel().filter(fakeAc, adminUser)
         self.assertTrue('sa' in filtered)
         self.assertTrue('write' in filtered)
         self.assertFalse('hidden' in filtered)
 
-        self.model('fake_ac').exposeFields(
-            level=AccessType.READ, fields='hidden')
+        FakeAcModel().exposeFields(level=AccessType.READ, fields='hidden')
 
-        filtered = self.model('fake_ac').filter(fakeAc, regUser)
+        filtered = FakeAcModel().filter(fakeAc, regUser)
         self.assertTrue('hidden' in filtered)
         self.assertTrue('read' in filtered)
         self.assertFalse('write' in filtered)
         self.assertFalse('admin' in filtered)
         self.assertFalse('sa' in filtered)
 
-        self.model('fake_ac').hideFields(level=AccessType.READ, fields='read')
+        FakeAcModel().hideFields(level=AccessType.READ, fields='read')
 
-        fakeAc = self.model('fake_ac').setUserAccess(
-            fakeAc, regUser, level=AccessType.ADMIN)
+        fakeAc = FakeAcModel().setUserAccess(fakeAc, regUser, level=AccessType.ADMIN)
 
-        filtered = self.model('fake_ac').filter(fakeAc, regUser)
+        filtered = FakeAcModel().filter(fakeAc, regUser)
         self.assertTrue('hidden' in filtered)
         self.assertTrue('write' in filtered)
         self.assertTrue('admin' in filtered)
@@ -257,11 +238,11 @@ class ModelTestCase(base.TestCase):
         self.assertFalse('sa' in filtered)
 
         # Test Model implementation
-        fake = self.model('fake').save(fields)
-        filtered = self.model('fake').filter(fake, regUser)
+        fake = FakeModel().save(fields)
+        filtered = FakeModel().filter(fake, regUser)
         self.assertEqual(filtered, {'read': 1, '_modelType': 'fake'})
 
-        filtered = self.model('fake').filter(fake, adminUser)
+        filtered = FakeModel().filter(fake, adminUser)
         self.assertEqual(filtered, {
             'read': 1,
             'sa': 1,
@@ -270,21 +251,21 @@ class ModelTestCase(base.TestCase):
 
     def testAccessControlCleanup(self):
         # Create documents
-        user1 = self.model('user').createUser(
+        user1 = User().createUser(
             email='guy@place.com',
             login='someguy',
             firstName='Some',
             lastName='Guy',
             password='mypassword'
         )
-        user2 = self.model('user').createUser(
+        user2 = User().createUser(
             email='other@place.com',
             login='otherguy',
             firstName='Other',
             lastName='Guy',
             password='mypassword2'
         )
-        group1 = self.model('group').createGroup(
+        group1 = Group().createGroup(
             name='agroup',
             creator=user2
         )
@@ -293,34 +274,31 @@ class ModelTestCase(base.TestCase):
             'field1': 'value1',
             'field2': 'value2'
         }
-        doc1 = self.model('fake_ac').setUserAccess(
-            doc1, user1, level=AccessType.ADMIN)
-        doc1 = self.model('fake_ac').setUserAccess(
-            doc1, user2, level=AccessType.READ)
-        doc1 = self.model('fake_ac').setGroupAccess(
-            doc1, group1, level=AccessType.WRITE)
-        doc1 = self.model('fake_ac').save(doc1)
+        doc1 = FakeAcModel().setUserAccess(doc1, user1, level=AccessType.ADMIN)
+        doc1 = FakeAcModel().setUserAccess(doc1, user2, level=AccessType.READ)
+        doc1 = FakeAcModel().setGroupAccess(doc1, group1, level=AccessType.WRITE)
+        doc1 = FakeAcModel().save(doc1)
         doc1Id = doc1['_id']
 
         # Test pre-delete
         # The raw ACL properties must be examined directly, as the
         # "getFullAccessList" method will silently remove leftover invalid
         # references, which this test is supposed to find
-        doc1 = self.model('fake_ac').load(doc1Id, force=True, exc=True)
+        doc1 = FakeAcModel().load(doc1Id, force=True, exc=True)
         self.assertEqual(len(doc1['access']['users']), 2)
         self.assertEqual(len(doc1['access']['groups']), 1)
         self.assertEqual(doc1['creatorId'], user1['_id'])
 
         # Delete user and test post-delete
-        self.model('user').remove(user1)
-        doc1 = self.model('fake_ac').load(doc1Id, force=True, exc=True)
+        User().remove(user1)
+        doc1 = FakeAcModel().load(doc1Id, force=True, exc=True)
         self.assertEqual(len(doc1['access']['users']), 1)
         self.assertEqual(len(doc1['access']['groups']), 1)
         self.assertIsNone(doc1.get('creatorId'))
 
         # Delete group and test post-delete
-        self.model('group').remove(group1)
-        doc1 = self.model('fake_ac').load(doc1Id, force=True, exc=True)
+        Group().remove(group1)
+        doc1 = FakeAcModel().load(doc1Id, force=True, exc=True)
         self.assertEqual(len(doc1['access']['users']), 1)
         self.assertEqual(len(doc1['access']['groups']), 0)
         self.assertIsNone(doc1.get('creatorId'))

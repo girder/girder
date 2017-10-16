@@ -28,6 +28,10 @@ import time
 
 from girder import logger, logprint
 from girder.models.model_base import AccessException, ValidationException
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.user import User
 from girder.utility.path import lookUpPath, NotFoundException
 from girder.utility.model_importer import ModelImporter
 from six.moves import socketserver
@@ -81,7 +85,7 @@ def _stat(doc, model):
     return info
 
 
-class _FileHandle(paramiko.SFTPHandle, ModelImporter):
+class _FileHandle(paramiko.SFTPHandle):
     def __init__(self, file):
         """
         Create a file-like object representing a file blob stored in Girder.
@@ -92,7 +96,7 @@ class _FileHandle(paramiko.SFTPHandle, ModelImporter):
         super(_FileHandle, self).__init__()
 
         self.file = file
-        self._handle = self.model('file').open(file)
+        self._handle = File().open(file)
 
     def read(self, offset, length):
         if length > MAX_BUF_LEN:
@@ -120,15 +124,15 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
     def _list(self, model, document):
         entries = []
         if model in ('collection', 'user', 'folder'):
-            for folder in self.model('folder').childFolders(
+            for folder in Folder().childFolders(
                     parent=document, parentType=model, user=self.server.girderUser):
                 entries.append(_stat(folder, 'folder'))
 
         if model == 'folder':
-            for item in self.model('folder').childItems(document):
+            for item in Folder().childItems(document):
                 entries.append(_stat(item, 'item'))
         elif model == 'item':
-            for file in self.model('item').childFiles(document):
+            for file in Item().childFiles(document):
                 entries.append(_stat(file, 'file'))
 
         return entries
@@ -205,7 +209,7 @@ class _SftpRequestHandler(socketserver.BaseRequestHandler):
         self.transport.start_server(server=_ServerAdapter())
 
 
-class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
+class _ServerAdapter(paramiko.ServerInterface):
     def __init__(self, *args, **kwargs):
         paramiko.ServerInterface.__init__(self, *args, **kwargs)
         self.girderUser = None
@@ -229,7 +233,7 @@ class _ServerAdapter(paramiko.ServerInterface, ModelImporter):
             return paramiko.AUTH_SUCCESSFUL
 
         try:
-            self.girderUser = self.model('user').authenticate(username, password)
+            self.girderUser = User().authenticate(username, password)
             return paramiko.AUTH_SUCCESSFUL
         except AccessException:
             return paramiko.AUTH_FAILED

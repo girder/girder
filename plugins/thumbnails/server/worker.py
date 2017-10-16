@@ -26,13 +26,16 @@ import dicom
 import numpy as np
 
 from girder import events
+from girder.models.file import File
+from girder.models.upload import Upload
 from girder.plugins.jobs.constants import JobStatus
+from girder.plugins.jobs.models.job import Job
 from girder.utility.model_importer import ModelImporter
 from PIL import Image
 
 
 def run(job):
-    jobModel = ModelImporter.model('job', 'jobs')
+    jobModel = Job()
     jobModel.updateJob(job, status=JobStatus.RUNNING)
 
     try:
@@ -51,7 +54,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
     Creates the thumbnail. Validation and access control must be done prior
     to the invocation of this method.
     """
-    fileModel = ModelImporter.model('file')
+    fileModel = File()
     file = fileModel.load(fileId, force=True)
     streamFn = functools.partial(fileModel.download, file, headers=False)
 
@@ -71,8 +74,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
 
         if event.defaultPrevented:
             if resp.get('attach', True):
-                newFile = attachThumbnail(
-                    file, newFile, attachToType, attachToId, width, height)
+                newFile = attachThumbnail(file, newFile, attachToType, attachToId, width, height)
             return newFile
         else:
             file = newFile
@@ -108,20 +110,17 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
 
     image.thumbnail((width, height), Image.ANTIALIAS)
 
-    uploadModel = ModelImporter.model('upload')
-
     out = six.BytesIO()
     image.convert('RGB').save(out, 'JPEG', quality=85)
     size = out.tell()
     out.seek(0)
 
-    thumbnail = uploadModel.uploadFromFile(
+    thumbnail = Upload().uploadFromFile(
         out, size=size, name='_thumb.jpg', parentType=attachToType,
         parent={'_id': ObjectId(attachToId)}, user=None, mimeType='image/jpeg',
         attachParent=True)
 
-    return attachThumbnail(
-        file, thumbnail, attachToType, attachToId, width, height)
+    return attachThumbnail(file, thumbnail, attachToType, attachToId, width, height)
 
 
 def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
@@ -160,7 +159,7 @@ def attachThumbnail(file, thumbnail, attachToType, attachToId, width, height):
         'height': height
     }
 
-    return ModelImporter.model('file').save(thumbnail)
+    return File().save(thumbnail)
 
 
 def _getImage(mimeType, extension, data):

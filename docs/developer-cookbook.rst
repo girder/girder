@@ -165,7 +165,8 @@ corresponding document from the database, it would look like:
 
 .. code-block:: python
 
-    self.model('folder').load(theFolderId, user=self.getCurrentUser(), level=AccessType.READ)
+    from girder.models.folder import Folder
+    folder = Folder().load(theFolderId, user=self.getCurrentUser(), level=AccessType.READ)
 
 The `load <api-docs.html#girder.models.model_base.AccessControlledModel.load>`__
 method of each model class takes the resource's unique ID as its
@@ -180,24 +181,7 @@ requested by a specific user, and in those cases the ``force`` flag should be us
 
 .. code-block:: python
 
-    self.model('folder').load(theFolderId, force=True)
-
-If you need to load a model that is in a plugin rather than a core model, pass
-the plugin name as the second argument to the ``model`` method:
-
-.. code-block:: python
-
-    self.model('cat', 'cats').load(...)
-
-The `ModelImporter <api-docs.html#girder.utility.model_importer.ModelImporter>`__ class
-conveniently exposes a method for retrieving instances of models that are statically
-cached for efficient reuse. You can mix this class into any of your classes to
-enable ``self.model`` semantics. The ``ModelImporter.model`` method is
-static, so you can also just do the following anywhere:
-
-.. code-block:: python
-
-    ModelImporter.model('folder')...
+    Folder().load(theFolderId, force=True)
 
 Send a raw or streaming HTTP response body
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

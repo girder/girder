@@ -23,6 +23,8 @@ import re
 from ..constants import AccessType
 from ..models.model_base import AccessException, GirderException, ValidationException
 from .model_importer import ModelImporter
+from girder.models.collection import Collection
+from girder.models.user import User
 
 
 class NotFoundException(ValidationException):
@@ -146,7 +148,7 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
 
     if model == 'user':
         username = pathArray[1]
-        parent = ModelImporter.model('user').findOne({'login': username})
+        parent = User().findOne({'login': username})
 
         if parent is None:
             if test:
@@ -159,7 +161,7 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
 
     elif model == 'collection':
         collectionName = pathArray[1]
-        parent = ModelImporter.model('collection').findOne({'name': collectionName})
+        parent = Collection().findOne({'name': collectionName})
 
         if parent is None:
             if test:

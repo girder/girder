@@ -36,8 +36,25 @@ from girder.utility.model_importer import ModelImporter
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
                     'modifiers', 'manipulate')
+# This list is only used for testing, where we must reconnect() all models after
+# the database is dropped between each test case. If we find a cleverer way to do
+# that, we don't need to store these here.
+_modelSingletons = []
 
 
+class _ModelSingleton(type):
+    def __init__(cls, name, bases, dict):
+        super(_ModelSingleton, cls).__init__(name, bases, dict)
+        cls._instance = None
+
+    def __call__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(_ModelSingleton, cls).__call__(*args, **kwargs)
+            _modelSingletons.append(cls._instance)
+        return cls._instance
+
+
+@six.add_metaclass(_ModelSingleton)
 class Model(ModelImporter):
     """
     Model base class. Models are responsible for abstracting away the
@@ -651,11 +668,11 @@ class Model(ModelImporter):
                     whitelist.append(k)
             if whitelist:
                 for k in list(six.viewkeys(doc)):
-                    if k not in whitelist:
+                    if k not in whitelist and k != '_id':
                         del doc[k]
         else:
             for k in list(six.viewkeys(doc)):
-                if k not in fields:
+                if k not in fields and k != '_id':
                     del doc[k]
 
 
@@ -1125,6 +1142,9 @@ class AccessControlledModel(Model):
         :type doc: dict
         :returns: A dict containing `users` and `groups` keys.
         """
+        from .user import User
+        from .group import Group
+
         acList = {
             'users': doc.get('access', {}).get('users', []),
             'groups': doc.get('access', {}).get('groups', [])
@@ -1133,9 +1153,7 @@ class AccessControlledModel(Model):
         dirty = False
 
         for user in acList['users'][:]:
-            userDoc = self.model('user').load(
-                user['id'], force=True,
-                fields=['firstName', 'lastName', 'login'])
+            userDoc = User().load(user['id'], force=True, fields=['firstName', 'lastName', 'login'])
             if not userDoc:
                 dirty = True
                 acList['users'].remove(user)
@@ -1144,8 +1162,7 @@ class AccessControlledModel(Model):
             user['name'] = ' '.join((userDoc['firstName'], userDoc['lastName']))
 
         for grp in acList['groups'][:]:
-            grpDoc = self.model('group').load(
-                grp['id'], force=True, fields=['name', 'description'])
+            grpDoc = Group().load(grp['id'], force=True, fields=['name', 'description'])
             if not grpDoc:
                 dirty = True
                 acList['groups'].remove(grp)

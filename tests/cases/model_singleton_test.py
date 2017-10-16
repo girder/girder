@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2016 Kitware Inc.
+#  Copyright 2017 Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -17,33 +17,26 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.models.setting import Setting
-from tests import base
+import mock
+import unittest
+
+from girder.models.item import Item
 
 
-def setUpModule():
-    base.enabledPlugins.append('homepage')
-    base.startServer()
+class ModelSingletonTest(unittest.TestCase):
+    @mock.patch.object(Item, '__init__', return_value=None)
+    def testModelSingletonBehavior(self, initMock):
+        self.assertEqual(len(initMock.mock_calls), 0)
+        Item()
+        Item()
+        self.assertEqual(len(initMock.mock_calls), 1)
 
+        # Make sure it works for subclasses of other models
+        class Subclass(Item):
+            pass
 
-def tearDownModule():
-    base.stopServer()
-
-
-class HomepageTest(base.TestCase):
-
-    def testGetMarkdown(self):
-        key = 'homepage.markdown'
-
-        # test without set
-        resp = self.request('/homepage')
-        self.assertStatusOk(resp)
-        self.assertEquals(resp.json[key], '')
-
-        # set markdown
-        Setting().set(key, 'foo')
-
-        # verify we can get the markdown without being authenticated
-        resp = self.request('/homepage')
-        self.assertStatusOk(resp)
-        self.assertEquals(resp.json[key], 'foo')
+        with mock.patch.object(Subclass, '__init__', return_value=None) as patch:
+            self.assertEqual(len(patch.mock_calls), 0)
+            Subclass()
+            Subclass()
+            self.assertEqual(len(patch.mock_calls), 1)

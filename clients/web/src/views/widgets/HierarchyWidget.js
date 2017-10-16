@@ -91,7 +91,6 @@ var HierarchyWidget = View.extend({
         'click a.g-delete-checked': 'deleteCheckedDialog',
         'click .g-list-checkbox': 'checkboxListener',
         'change .g-select-all': function (e) {
-            $(e.currentTarget).tooltip('hide');
             this.folderListView.checkAll(e.currentTarget.checked);
 
             if (this.itemListView) {

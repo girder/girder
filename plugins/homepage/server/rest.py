@@ -20,6 +20,9 @@
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.setting import Setting
 
 from . import constants
 
@@ -36,17 +39,14 @@ class Homepage(Resource):
         Description('Public url for getting the homepage properties.')
     )
     def getSettings(self):
+        settings = Setting()
         return {
-            constants.PluginSettings.MARKDOWN: self.model('setting').get(
-                constants.PluginSettings.MARKDOWN),
-            constants.PluginSettings.HEADER: self.model('setting').get(
-                constants.PluginSettings.HEADER),
-            constants.PluginSettings.SUBHEADER: self.model('setting').get(
-                constants.PluginSettings.SUBHEADER),
-            constants.PluginSettings.WELCOME_TEXT: self.model('setting').get(
+            constants.PluginSettings.MARKDOWN: settings.get(constants.PluginSettings.MARKDOWN),
+            constants.PluginSettings.HEADER: settings.get(constants.PluginSettings.HEADER),
+            constants.PluginSettings.SUBHEADER: settings.get(constants.PluginSettings.SUBHEADER),
+            constants.PluginSettings.WELCOME_TEXT: settings.get(
                 constants.PluginSettings.WELCOME_TEXT),
-            constants.PluginSettings.LOGO: self.model('setting').get(
-                constants.PluginSettings.LOGO),
+            constants.PluginSettings.LOGO: settings.get(constants.PluginSettings.LOGO),
         }
 
     @access.admin
@@ -71,12 +71,12 @@ class Homepage(Resource):
         :param folderName: The name of the folder to get or create.
         :return: The new folder document.
         """
-        collection = self.model('collection').createCollection(
+        collection = Collection().createCollection(
             constants.COLLECTION_NAME,
             public=False,
             reuseExisting=True
         )
-        folder = self.model('folder').createFolder(
+        folder = Folder().createFolder(
             collection,
             folderName,
             parentType='collection',

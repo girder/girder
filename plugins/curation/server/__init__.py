@@ -21,6 +21,8 @@ from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, loadmodel, RestException
 from girder.constants import AccessType, TokenScope
+from girder.models.folder import Folder
+from girder.models.user import User
 from girder.utility import mail_utils
 from girder.utility.progress import ProgressContext
 import datetime
@@ -165,13 +167,13 @@ class CuratedFolder(Resource):
                 'REJECTED: ' + folder['name'],
                 'curation.rejected.mako')
 
-        folder = self.model('folder').save(folder)
+        folder = Folder().save(folder)
         curation['public'] = folder.get('public')
         return curation
 
     def _progressContext(self, folder, title):
         user = self.getCurrentUser()
-        total = self.model('folder').subtreeCount(folder, includeItems=False)
+        total = Folder().subtreeCount(folder, includeItems=False)
         return ProgressContext(True, user=user, total=total, title=title)
 
     def _setPublic(self, folder, public, pc):
@@ -180,8 +182,8 @@ class CuratedFolder(Resource):
         """
         pc.update(increment=1)
         folder['public'] = public
-        folder = self.model('folder').save(folder)
-        subfolders = self.model('folder').find({
+        folder = Folder().save(folder)
+        subfolders = Folder().find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
         })
@@ -197,8 +199,8 @@ class CuratedFolder(Resource):
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.WRITE:
                 doc['level'] = AccessType.READ
-        folder = self.model('folder').save(folder)
-        subfolders = self.model('folder').find({
+        folder = Folder().save(folder)
+        subfolders = Folder().find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
         })
@@ -214,8 +216,8 @@ class CuratedFolder(Resource):
         for doc in folder['access']['users'] + folder['access']['groups']:
             if doc['level'] == AccessType.READ:
                 doc['level'] = AccessType.WRITE
-        folder = self.model('folder').save(folder)
-        subfolders = self.model('folder').find({
+        folder = Folder().save(folder)
+        subfolders = Folder().find({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
         })
@@ -246,7 +248,7 @@ class CuratedFolder(Resource):
         """
         Loads and returns the email address for the specified user.
         """
-        return self.model('user').load(userId, force=True).get('email')
+        return User().load(userId, force=True).get('email')
 
     def _sendMail(self, folder, userId, subject, template):
         """

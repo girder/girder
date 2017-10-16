@@ -4,6 +4,11 @@ import os
 import time
 
 from girder.constants import AccessType
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.token import Token
+from girder.models.user import User
 from tests import base
 
 
@@ -20,11 +25,11 @@ class TasksTest(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.admin = self.model('user').createUser(
+        self.admin = User().createUser(
             login='admin', firstName='admin', lastName='admin', email='a@a.com', password='123456')
-        self.user = self.model('user').createUser(
+        self.user = User().createUser(
             login='user1', firstName='user', lastName='1', email='u@u.com', password='123456')
-        folders = self.model('folder').childFolders(self.admin, parentType='user', user=self.admin)
+        folders = Folder().childFolders(self.admin, parentType='user', user=self.admin)
         self.privateFolder, self.publicFolder = list(folders)
 
         # show full diff when objects don't match
@@ -35,7 +40,7 @@ class TasksTest(base.TestCase):
         Test adding item tasks to a folder from a JSON spec.
         """
         # Create a new folder that will contain the tasks
-        folder = self.model('folder').createFolder(
+        folder = Folder().createFolder(
             name='placeholder', creator=self.admin, parent=self.admin, parentType='user')
 
         # Create task to introspect container
@@ -77,12 +82,12 @@ class TasksTest(base.TestCase):
 
         self.assertStatusOk(resp)
 
-        items = list(self.model('folder').childItems(folder, user=self.admin))
+        items = list(Folder().childItems(folder, user=self.admin))
         self.assertEqual(len(items), 2)
 
         # Image name and item task flag should be stored in the item metadata
         for itemIndex, item in enumerate(items):
-            item = self.model('item').load(item['_id'], force=True)
+            item = Item().load(item['_id'], force=True)
             self.assertEqual(item['name'], 'johndoe/foo:v5 %s' % (str(itemIndex)))
             self.assertEqual(item['description'], parsedSpecs[itemIndex]['description'])
             self.assertTrue(item['meta']['isItemTask'])
@@ -101,13 +106,13 @@ class TasksTest(base.TestCase):
         self.assertEqual(len(resp.json), 2)
 
         # Test adding single task spec
-        folder2 = self.model('folder').createFolder(
+        folder2 = Folder().createFolder(
             name='placeholder2', creator=self.admin, parent=self.admin, parentType='user')
         with open(os.path.join(os.path.dirname(__file__), 'spec.json')) as f:
             spec = f.read()
         parsedSpec = json.loads(spec)
 
-        token = self.model('token').createToken(
+        token = Token().createToken(
             user=self.admin, scope='item_task.set_task_spec.%s' % folder2['_id'])
         resp = self.request(
             '/folder/%s/item_task_json_specs' % folder2['_id'], method='POST', params={
@@ -116,11 +121,11 @@ class TasksTest(base.TestCase):
             },
             token=token, body=spec, type='application/json')
         self.assertStatusOk(resp)
-        items = list(self.model('folder').childItems(folder2, user=self.admin))
+        items = list(Folder().childItems(folder2, user=self.admin))
         self.assertEqual(len(items), 1)
 
         # Check that the single item has the correct metadata
-        item = self.model('item').load(items[0]['_id'], force=True)
+        item = Item().load(items[0]['_id'], force=True)
         self.assertEqual(item['name'], 'johndoe/foo:v5')
         self.assertEqual(item['description'], parsedSpec['description'])
         self.assertTrue(item['meta']['isItemTask'])
@@ -138,8 +143,7 @@ class TasksTest(base.TestCase):
 
         def createTask(itemName, taskName, specs=specs):
             # Create a new item that will become a task
-            item = self.model('item').createItem(
-                name=itemName, creator=self.admin, folder=self.privateFolder)
+            item = Item().createItem(name=itemName, creator=self.admin, folder=self.privateFolder)
             # Create task to introspect container
             with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
                 resp = self.request(
@@ -195,8 +199,7 @@ class TasksTest(base.TestCase):
         item with a different task from the JSON spec.
         """
         # Create a new item that will become a task
-        item = self.model('item').createItem(
-            name='placeholder', creator=self.admin, folder=self.privateFolder)
+        item = Item().createItem(name='placeholder', creator=self.admin, folder=self.privateFolder)
 
         # Create job to introspect container
         with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
@@ -263,7 +266,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(resp.json[0]['_id'], str(item['_id']))
 
         # Check that the item has the correct metadata
-        item = self.model('item').load(item['_id'], force=True)
+        item = Item().load(item['_id'], force=True)
         self.assertEqual(item['name'], 'Task 2')
         self.assertEqual(item['description'], 'Task 2 description')
         self.assertTrue(item['meta']['isItemTask'])
@@ -316,7 +319,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(resp.json[0]['_id'], str(item['_id']))
 
         # Check that the item has the correct metadata
-        item = self.model('item').load(item['_id'], force=True)
+        item = Item().load(item['_id'], force=True)
         self.assertEqual(item['name'], 'Task 1')
         self.assertEqual(item['description'], 'Task 1 description')
         self.assertTrue(item['meta']['isItemTask'])
@@ -338,7 +341,7 @@ class TasksTest(base.TestCase):
         Test adding item tasks to a folder from Slicer CLI XML.
         """
         # Create a new folder that will contain the tasks
-        folder = self.model('folder').createFolder(
+        folder = Folder().createFolder(
             name='placeholder', creator=self.admin, parent=self.admin, parentType='user')
 
         # Create task to introspect container
@@ -391,7 +394,7 @@ class TasksTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
 
-        items = list(self.model('folder').childItems(folder, user=self.admin))
+        items = list(Folder().childItems(folder, user=self.admin))
         self.assertEqual(len(items), 1)
         item = items[0]
 
@@ -413,8 +416,7 @@ class TasksTest(base.TestCase):
 
     def testConfigureItemTaskFromSlicerCli(self):
         # Create a new item that will become a task
-        item = self.model('item').createItem(
-            name='placeholder', creator=self.admin, folder=self.privateFolder)
+        item = Item().createItem(name='placeholder', creator=self.admin, folder=self.privateFolder)
 
         # Create task to introspect container
         with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
@@ -440,7 +442,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(resp.json, [])
 
         # Image and args should be stored in the item metadata
-        item = self.model('item').load(item['_id'], force=True)
+        item = Item().load(item['_id'], force=True)
         self.assertEqual(item['meta']['itemTaskSpec']['docker_image'], 'johndoe/foo:v5')
         self.assertEqual(item['meta']['itemTaskSlicerCliArgs'], ['--foo', 'bar'])
 
@@ -465,7 +467,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(item['_id']))
 
-        item = self.model('item').load(item['_id'], force=True)
+        item = Item().load(item['_id'], force=True)
         self.assertEqual(item['name'], 'PET phantom detector CLI')
         self.assertEqual(
             item['description'],
@@ -567,7 +569,7 @@ class TasksTest(base.TestCase):
         })
 
         # Shouldn't be able to run the task if we don't have execute permission flag
-        self.model('folder').setUserAccess(
+        Folder().setUserAccess(
             self.privateFolder, user=self.user, level=AccessType.READ, save=True)
         resp = self.request(
             '/item_task/%s/execution' % item['_id'], method='POST', user=self.user)
@@ -575,7 +577,7 @@ class TasksTest(base.TestCase):
 
         # Grant the user permission, and run the task
         from girder.plugins.item_tasks.constants import ACCESS_FLAG_EXECUTE_TASK
-        self.model('folder').setUserAccess(
+        Folder().setUserAccess(
             self.privateFolder, user=self.user, level=AccessType.WRITE,
             flags=ACCESS_FLAG_EXECUTE_TASK, currentUser=self.admin, save=True)
 
@@ -640,7 +642,8 @@ class TasksTest(base.TestCase):
         self.assertEqual(job['_modelType'], 'job')
         self.assertNotIn('kwargs', job)  # ordinary user can't see kwargs
 
-        jobModel = self.model('job', 'jobs')
+        from girder.plugins.jobs.models.job import Job
+        jobModel = Job()
         job = jobModel.load(job['_id'], force=True)
         output = job['kwargs']['outputs']['--DetectedPoints']
 
@@ -667,7 +670,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(file['_modelType'], 'file')
         self.assertEqual(file['size'], 11)
         self.assertEqual(file['mimeType'], 'text/plain')
-        file = self.model('file').load(file['_id'], force=True)
+        file = File().load(file['_id'], force=True)
 
         # Make sure temp token is removed once we change job status to final state
         job = jobModel.load(job['_id'], force=True)

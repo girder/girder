@@ -24,6 +24,8 @@ import six
 
 from girder.api.rest import RestException
 from girder.constants import SettingKey
+from girder.models.setting import Setting
+from girder.models.user import User
 from girder.utility import config, model_importer
 from ..constants import PluginSettings
 
@@ -153,28 +155,27 @@ class ProviderBase(model_importer.ModelImporter):
             # The Google provider was previously stored as capitalized, and
             # legacy databases may still have these entries
             query['oauth.provider'] = {'$in': ['google', 'Google']}
-        user = cls.model('user').findOne(query)
+        user = User().findOne(query)
         setId = not user
 
         # Existing users using OAuth2 for the first time will not have an ID
         if not user:
-            user = cls.model('user').findOne({'email': email})
+            user = User().findOne({'email': email})
 
         dirty = False
         # Create the user if it's still not found
         if not user:
-            policy = cls.model('setting').get(SettingKey.REGISTRATION_POLICY)
+            policy = Setting().get(SettingKey.REGISTRATION_POLICY)
             if policy == 'closed':
-                ignore = cls.model('setting').get(PluginSettings.IGNORE_REGISTRATION_POLICY)
+                ignore = Setting().get(PluginSettings.IGNORE_REGISTRATION_POLICY)
                 if not ignore:
                     raise RestException(
                         'Registration on this instance is closed. Contact an '
                         'administrator to create an account for you.')
             login = cls._deriveLogin(email, firstName, lastName, userName)
 
-            user = cls.model('user').createUser(
-                login=login, password=None, firstName=firstName,
-                lastName=lastName, email=email)
+            user = User().createUser(
+                login=login, password=None, firstName=firstName, lastName=lastName, email=email)
         else:
             # Migrate from a legacy format where only 1 provider was stored
             if isinstance(user.get('oauth'), dict):
@@ -199,7 +200,7 @@ class ProviderBase(model_importer.ModelImporter):
                 })
             dirty = True
         if dirty:
-            user = cls.model('user').save(user)
+            user = User().save(user)
 
         return user
 
@@ -264,5 +265,5 @@ class ProviderBase(model_importer.ModelImporter):
             return False
 
         # See if this is already taken.
-        user = cls.model('user').findOne({'login': login})
+        user = User().findOne({'login': login})
         return not user

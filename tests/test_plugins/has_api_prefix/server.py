@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2016 Kitware Inc.
+#  Copyright Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -16,34 +16,25 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
-from girder.models.setting import Setting
-from tests import base
-
-
-def setUpModule():
-    base.enabledPlugins.append('homepage')
-    base.startServer()
+from girder.api import access
+from girder.api.describe import Description, describeRoute
+from girder.api.rest import Resource, Prefix
 
 
-def tearDownModule():
-    base.stopServer()
+class Resourceful(Resource):
+    def __init__(self):
+        super(Resourceful, self).__init__()
+
+        self.route('GET', (), self.getResource, resource=self)
+
+    @access.public
+    @describeRoute(
+        Description('Get something.')
+    )
+    def getResource(self, params):
+        return ['custom REST route']
 
 
-class HomepageTest(base.TestCase):
-
-    def testGetMarkdown(self):
-        key = 'homepage.markdown'
-
-        # test without set
-        resp = self.request('/homepage')
-        self.assertStatusOk(resp)
-        self.assertEquals(resp.json[key], '')
-
-        # set markdown
-        Setting().set(key, 'foo')
-
-        # verify we can get the markdown without being authenticated
-        resp = self.request('/homepage')
-        self.assertStatusOk(resp)
-        self.assertEquals(resp.json[key], 'foo')
+def load(info):
+    info['apiRoot'].prefix = Prefix()
+    info['apiRoot'].prefix.resourceful = Resourceful()

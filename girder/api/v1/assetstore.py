@@ -22,6 +22,8 @@ from ..rest import Resource, RestException
 from girder import events
 from girder.constants import AccessType, AssetstoreType, TokenScope
 from girder.api import access
+from girder.models.assetstore import Assetstore as AssetstoreModel
+from girder.models.file import File
 from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
@@ -33,6 +35,8 @@ class Assetstore(Resource):
     def __init__(self):
         super(Assetstore, self).__init__()
         self.resourceName = 'assetstore'
+        self._model = AssetstoreModel()
+
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getAssetstore)
         self.route('POST', (), self.createAssetstore)
@@ -44,12 +48,12 @@ class Assetstore(Resource):
     @access.admin
     @autoDescribeRoute(
         Description('Get information about an assetstore.')
-        .modelParam('id', model='assetstore')
+        .modelParam('id', model=AssetstoreModel)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def getAssetstore(self, assetstore):
-        self.model('assetstore').addComputedInfo(assetstore)
+        self._model.addComputedInfo(assetstore)
         return assetstore
 
     @access.admin
@@ -60,7 +64,7 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403)
     )
     def find(self, limit, offset, sort):
-        return list(self.model('assetstore').list(offset=offset, limit=limit, sort=sort))
+        return list(self._model.list(offset=offset, limit=limit, sort=sort))
 
     @access.admin
     @autoDescribeRoute(
@@ -69,18 +73,14 @@ class Assetstore(Resource):
         .notes('You must be an administrator to call this.')
         .param('name', 'Unique name for the assetstore.')
         .param('type', 'Type of the assetstore.', dataType='integer')
-        .param('root', 'Root path on disk (for filesystem type).',
-               required=False)
-        .param('perms', 'File creation permissions (for filesystem type).',
-               required=False)
+        .param('root', 'Root path on disk (for filesystem type).', required=False)
+        .param('perms', 'File creation permissions (for filesystem type).', required=False)
         .param('db', 'Database name (for GridFS type)', required=False)
         .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
-        .param('replicaset', 'Replica set name (for GridFS type)',
-               required=False)
+        .param('replicaset', 'Replica set name (for GridFS type)', required=False)
         .param('shard', 'Shard the collection (for GridFS type).  Set to '
                '"auto" to set up sharding.', required=False)
-        .param('bucket', 'The S3 bucket to store data in (for S3 type).',
-               required=False)
+        .param('bucket', 'The S3 bucket to store data in (for S3 type).', required=False)
         .param('prefix', 'Optional path prefix within the bucket under which '
                'files will be stored (for S3 type).', required=False, default='')
         .param('accessKeyId', 'The AWS access key ID to use for authentication '
@@ -105,15 +105,15 @@ class Assetstore(Resource):
                          prefix, accessKeyId, secret, service, readOnly, region, inferCredentials):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
-            return self.model('assetstore').createFilesystemAssetstore(
+            return self._model.createFilesystemAssetstore(
                 name=name, root=root, perms=perms)
         elif type == AssetstoreType.GRIDFS:
             self.requireParams({'db': db})
-            return self.model('assetstore').createGridFsAssetstore(
+            return self._model.createGridFsAssetstore(
                 name=name, db=db, mongohost=mongohost, replicaset=replicaset, shard=shard)
         elif type == AssetstoreType.S3:
             self.requireParams({'bucket': bucket})
-            return self.model('assetstore').createS3Assetstore(
+            return self._model.createS3Assetstore(
                 name=name, bucket=bucket, prefix=prefix, secret=secret,
                 accessKeyId=accessKeyId, service=service, readOnly=readOnly, region=region,
                 inferCredentials=inferCredentials)
@@ -127,7 +127,7 @@ class Assetstore(Resource):
                'references to it in the Girder data hierarchy. Deleting '
                'those references will not delete the underlying data. This '
                'operation is currently only supported for S3 assetstores.')
-        .modelParam('id', model='assetstore')
+        .modelParam('id', model=AssetstoreModel)
         .param('importPath', 'Root path within the underlying storage system '
                'to import.', required=False)
         .param('destinationId', 'ID of a folder, collection, or user in Girder '
@@ -153,7 +153,7 @@ class Assetstore(Resource):
             destinationId, user=user, level=AccessType.ADMIN, exc=True)
 
         with ProgressContext(progress, user=user, title='Importing data') as ctx:
-            return self.model('assetstore').importData(
+            return self._model.importData(
                 assetstore, parent=parent, parentType=destinationType, params={
                     'fileIncludeRegex': fileIncludeRegex,
                     'fileExcludeRegex': fileExcludeRegex,
@@ -164,7 +164,7 @@ class Assetstore(Resource):
     @autoDescribeRoute(
         Description('Update an existing assetstore.')
         .responseClass('Assetstore')
-        .modelParam('id', model='assetstore')
+        .modelParam('id', model=AssetstoreModel)
         .param('name', 'Unique name for the assetstore.', strip=True)
         .param('root', 'Root path on disk (for Filesystem type)', required=False)
         .param('perms', 'File creation permissions (for Filesystem type)', required=False)
@@ -240,30 +240,29 @@ class Assetstore(Resource):
             })
             if event.defaultPrevented:
                 return
-        return self.model('assetstore').save(assetstore)
+        return self._model.save(assetstore)
 
     @access.admin
     @autoDescribeRoute(
         Description('Delete an assetstore.')
         .notes('This will fail if there are any files in the assetstore.')
-        .modelParam('id', model='assetstore')
+        .modelParam('id', model=AssetstoreModel)
         .errorResponse(('A parameter was invalid.',
                         'The assetstore is not empty.'))
         .errorResponse('You are not an administrator.', 403)
     )
     def deleteAssetstore(self, assetstore):
-        self.model('assetstore').remove(assetstore)
+        self._model.remove(assetstore)
         return {'message': 'Deleted assetstore %s.' % assetstore['name']}
 
     @access.admin
     @autoDescribeRoute(
         Description('Get a list of files controlled by an assetstore.')
-        .modelParam('id', model='assetstore')
+        .modelParam('id', model=AssetstoreModel)
         .pagingParams(defaultSort='_id')
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def getAssetstoreFiles(self, assetstore, limit, offset, sort):
-        return list(self.model('file').find(
-            query={'assetstoreId': assetstore['_id']},
-            offset=offset, limit=limit, sort=sort))
+        return list(File().find(
+            query={'assetstoreId': assetstore['_id']}, offset=offset, limit=limit, sort=sort))

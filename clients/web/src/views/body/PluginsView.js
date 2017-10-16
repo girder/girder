@@ -1,5 +1,8 @@
 import $ from 'jquery';
 import _ from 'underscore';
+// Bootstrap tooltip is required by popover
+import 'bootstrap/js/tooltip';
+import 'bootstrap/js/popover';
 
 import events from 'girder/events';
 import router from 'girder/router';

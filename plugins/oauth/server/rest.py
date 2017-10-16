@@ -26,6 +26,8 @@ from girder.constants import AccessType
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, RestException
 from girder.api import access
+from girder.models.setting import Setting
+from girder.models.token import Token
 from . import constants, providers
 
 
@@ -38,7 +40,7 @@ class OAuth(Resource):
         self.route('GET', (':provider', 'callback'), self.callback)
 
     def _createStateToken(self, redirect):
-        csrfToken = self.model('token').createToken(days=0.25)
+        csrfToken = Token().createToken(days=0.25)
 
         # The delimiter is arbitrary, but a dot doesn't need to be URL-encoded
         state = '%s.%s' % (csrfToken['_id'], redirect)
@@ -52,13 +54,11 @@ class OAuth(Resource):
         """
         csrfTokenId, _, redirect = state.partition('.')
 
-        token = self.model('token').load(
-            csrfTokenId, objectId=False, level=AccessType.READ)
+        token = Token().load(csrfTokenId, objectId=False, level=AccessType.READ)
         if token is None:
-            raise RestException('Invalid CSRF token (state="%s").' % state,
-                                code=403)
+            raise RestException('Invalid CSRF token (state="%s").' % state, code=403)
 
-        self.model('token').remove(token)
+        Token().remove(token)
 
         if token['expires'] < datetime.datetime.utcnow():
             raise RestException('Expired CSRF token (state="%s").' % state,
@@ -80,7 +80,7 @@ class OAuth(Resource):
                required=False, dataType='boolean', default=False)
     )
     def listProviders(self, redirect, list):
-        enabledNames = self.model('setting').get(constants.PluginSettings.PROVIDERS_ENABLED)
+        enabledNames = Setting().get(constants.PluginSettings.PROVIDERS_ENABLED)
 
         enabledProviders = [
             provider

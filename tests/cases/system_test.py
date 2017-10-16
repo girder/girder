@@ -30,6 +30,13 @@ from girder.api.describe import describeRoute, API_VERSION
 from girder.api.rest import getApiUrl, loadmodel, Resource
 from girder.constants import AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR
 from girder.models.model_base import AccessException, ValidationException
+from girder.models.collection import Collection
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.group import Group
+from girder.models.item import Item
+from girder.models.setting import Setting
+from girder.models.user import User
 from girder.utility import config
 
 
@@ -64,11 +71,11 @@ class SystemTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.users = [self.model('user').createUser(
+        self.users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
-        self.group = self.model('group').createGroup('test group', creator=self.users[1])
+        self.group = Group().createGroup('test group', creator=self.users[1])
 
     def tearDown(self):
         # Restore the state of the plugins configuration
@@ -157,12 +164,11 @@ class SystemTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # Setting should now be ()
-        setting = self.model('setting').get(SettingKey.PLUGINS_ENABLED)
+        setting = Setting().get(SettingKey.PLUGINS_ENABLED)
         self.assertEqual(setting, [])
 
         # We should be able to ask for a different default
-        setting = self.model('setting').get(SettingKey.PLUGINS_ENABLED,
-                                            default=None)
+        setting = Setting().get(SettingKey.PLUGINS_ENABLED, default=None)
         self.assertEqual(setting, None)
 
         # We should also be able to put several setting using a JSON list
@@ -356,37 +362,28 @@ class SystemTestCase(base.TestCase):
 
     def testConsistencyCheck(self):
         user = self.users[0]
-        c1 = self.model('collection').createCollection('c1', user)
-        f1 = self.model('folder').createFolder(
-            c1, 'f1', parentType='collection')
-        self.model('folder').createFolder(
-            c1, 'f2', parentType='collection')
-        f3 = self.model('folder').createFolder(
-            user, 'f3', parentType='user')
-        self.model('folder').createFolder(
-            user, 'f4', parentType='user')
-        i1 = self.model('item').createItem('i1', user, f1)
-        i2 = self.model('item').createItem('i2', user, f1)
-        self.model('item').createItem('i3', user, f1)
-        i4 = self.model('item').createItem('i4', user, f3)
-        self.model('item').createItem('i5', user, f3)
-        self.model('item').createItem('i6', user, f3)
+        c1 = Collection().createCollection('c1', user)
+        f1 = Folder().createFolder(c1, 'f1', parentType='collection')
+        Folder().createFolder(c1, 'f2', parentType='collection')
+        f3 = Folder().createFolder(user, 'f3', parentType='user')
+        Folder().createFolder(user, 'f4', parentType='user')
+        i1 = Item().createItem('i1', user, f1)
+        i2 = Item().createItem('i2', user, f1)
+        Item().createItem('i3', user, f1)
+        i4 = Item().createItem('i4', user, f3)
+        Item().createItem('i5', user, f3)
+        Item().createItem('i6', user, f3)
         assetstore = {'_id': 0}
-        self.model('file').createFile(user, i1, 'foo', 7, assetstore)
-        self.model('file').createFile(user, i1, 'foo', 13, assetstore)
-        self.model('file').createFile(user, i2, 'foo', 19, assetstore)
-        self.model('file').createFile(user, i4, 'foo', 23, assetstore)
+        File().createFile(user, i1, 'foo', 7, assetstore)
+        File().createFile(user, i1, 'foo', 13, assetstore)
+        File().createFile(user, i2, 'foo', 19, assetstore)
+        File().createFile(user, i4, 'foo', 23, assetstore)
 
-        self.assertEqual(
-            39, self.model('collection').load(c1['_id'], force=True)['size'])
-        self.assertEqual(
-            39, self.model('folder').load(f1['_id'], force=True)['size'])
-        self.assertEqual(
-            23, self.model('folder').load(f3['_id'], force=True)['size'])
-        self.assertEqual(
-            20, self.model('item').load(i1['_id'], force=True)['size'])
-        self.assertEqual(
-            23, self.model('user').load(user['_id'], force=True)['size'])
+        self.assertEqual(39, Collection().load(c1['_id'], force=True)['size'])
+        self.assertEqual(39, Folder().load(f1['_id'], force=True)['size'])
+        self.assertEqual(23, Folder().load(f3['_id'], force=True)['size'])
+        self.assertEqual(20, Item().load(i1['_id'], force=True)['size'])
+        self.assertEqual(23, User().load(user['_id'], force=True)['size'])
 
         resp = self.request(path='/system/check', user=user, method='PUT')
         self.assertStatusOk(resp)
@@ -394,8 +391,7 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['orphansRemoved'], 0)
         self.assertEqual(resp.json['sizesChanged'], 0)
 
-        self.model('item').update(
-            {'_id': i1['_id']}, update={'$set': {'baseParentId': None}})
+        Item().update({'_id': i1['_id']}, update={'$set': {'baseParentId': None}})
 
         resp = self.request(path='/system/check', user=user, method='PUT')
         self.assertStatusOk(resp)
@@ -403,12 +399,9 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['orphansRemoved'], 0)
         self.assertEqual(resp.json['sizesChanged'], 0)
 
-        self.model('collection').update(
-            {'_id': c1['_id']}, update={'$set': {'size': 0}})
-        self.model('folder').update(
-            {'_id': f1['_id']}, update={'$set': {'size': 0}})
-        self.model('item').update(
-            {'_id': i1['_id']}, update={'$set': {'size': 0}})
+        Collection().update({'_id': c1['_id']}, update={'$set': {'size': 0}})
+        Folder().update({'_id': f1['_id']}, update={'$set': {'size': 0}})
+        Item().update({'_id': i1['_id']}, update={'$set': {'size': 0}})
 
         resp = self.request(path='/system/check', user=user, method='PUT')
         self.assertStatusOk(resp)
@@ -416,18 +409,13 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['orphansRemoved'], 0)
         self.assertEqual(resp.json['sizesChanged'], 3)
 
-        self.assertEqual(
-            39, self.model('collection').load(c1['_id'], force=True)['size'])
-        self.assertEqual(
-            39, self.model('folder').load(f1['_id'], force=True)['size'])
-        self.assertEqual(
-            23, self.model('folder').load(f3['_id'], force=True)['size'])
-        self.assertEqual(
-            20, self.model('item').load(i1['_id'], force=True)['size'])
-        self.assertEqual(
-            23, self.model('user').load(user['_id'], force=True)['size'])
+        self.assertEqual(39, Collection().load(c1['_id'], force=True)['size'])
+        self.assertEqual(39, Folder().load(f1['_id'], force=True)['size'])
+        self.assertEqual(23, Folder().load(f3['_id'], force=True)['size'])
+        self.assertEqual(20, Item().load(i1['_id'], force=True)['size'])
+        self.assertEqual(23, User().load(user['_id'], force=True)['size'])
 
-        self.model('folder').collection.delete_one({'_id': f3['_id']})
+        Folder().collection.delete_one({'_id': f3['_id']})
 
         resp = self.request(path='/system/check', user=user, method='PUT')
         self.assertStatusOk(resp)
@@ -436,7 +424,7 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['sizesChanged'], 0)
 
         self.assertEqual(
-            0, self.model('user').load(user['_id'], force=True)['size'])
+            0, User().load(user['_id'], force=True)['size'])
 
     def testLogRoute(self):
         logRoot = os.path.join(ROOT_DIR, 'tests', 'cases', 'dummylogs')
@@ -557,22 +545,22 @@ class SystemTestCase(base.TestCase):
             }
         })
 
-        self.users[1] = self.model('user').load(self.users[1]['_id'], force=True)
+        self.users[1] = User().load(self.users[1]['_id'], force=True)
         user = self.users[1]
 
         # Manage custom access flags on an access controlled resource
-        self.assertFalse(self.model('user').hasAccessFlags(user, user, flags=['my_key']))
+        self.assertFalse(User().hasAccessFlags(user, user, flags=['my_key']))
 
         # Admin should always have permission
-        self.assertTrue(self.model('user').hasAccessFlags(user, self.users[0], flags=['my_key']))
+        self.assertTrue(User().hasAccessFlags(user, self.users[0], flags=['my_key']))
 
         # Test the requireAccessFlags method
         with self.assertRaises(AccessException):
-            self.model('user').requireAccessFlags(user, user=user, flags='my_key')
+            User().requireAccessFlags(user, user=user, flags='my_key')
 
-        self.model('user').requireAccessFlags(user, user=self.users[0], flags='my_key')
+        User().requireAccessFlags(user, user=self.users[0], flags='my_key')
 
-        acl = self.model('user').getFullAccessList(user)
+        acl = User().getFullAccessList(user)
         self.assertEqual(acl['users'][0]['flags'], [])
 
         # Test loadmodel requiredFlags argument via REST endpoint
@@ -580,7 +568,7 @@ class SystemTestCase(base.TestCase):
             '/test_endpoints/loadmodel_with_flags/%s' % user['_id'], user=self.users[1])
         self.assertStatus(resp, 403)
 
-        user = self.model('user').setAccessList(self.users[0], access={
+        user = User().setAccessList(self.users[0], access={
             'users': [{
                 'id': self.users[1]['_id'],
                 'level': AccessType.ADMIN,
@@ -599,15 +587,15 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json, 'success')
 
         # Only registered flags should be stored
-        acl = self.model('user').getFullAccessList(user)
+        acl = User().getFullAccessList(user)
         self.assertEqual(acl['users'][0]['flags'], ['my_key'])
-        self.assertTrue(self.model('user').hasAccessFlags(user, user, flags=['my_key']))
+        self.assertTrue(User().hasAccessFlags(user, user, flags=['my_key']))
 
         # Create an admin-only access flag
         registerAccessFlag('admin_flag', name='admin flag', admin=True)
 
         # Non-admin shouldn't be able to set it
-        user = self.model('user').setAccessList(self.users[0], access={
+        user = User().setAccessList(self.users[0], access={
             'users': [{
                 'id': self.users[1]['_id'],
                 'level': AccessType.ADMIN,
@@ -616,11 +604,11 @@ class SystemTestCase(base.TestCase):
             'groups': []
         }, save=True, user=self.users[1])
 
-        acl = self.model('user').getFullAccessList(user)
+        acl = User().getFullAccessList(user)
         self.assertEqual(acl['users'][0]['flags'], [])
 
         # Admin user should be able to set it
-        user = self.model('user').setAccessList(self.users[1], access={
+        user = User().setAccessList(self.users[1], access={
             'users': [{
                 'id': self.users[1]['_id'],
                 'level': AccessType.ADMIN,
@@ -633,11 +621,11 @@ class SystemTestCase(base.TestCase):
             }]
         }, save=True, user=self.users[0])
 
-        acl = self.model('user').getFullAccessList(user)
+        acl = User().getFullAccessList(user)
         self.assertEqual(acl['users'][0]['flags'], ['admin_flag'])
 
         # An already-enabled admin-only flag should stay enabled for non-admin user
-        user = self.model('user').setAccessList(self.users[1], access={
+        user = User().setAccessList(self.users[1], access={
             'users': [{
                 'id': self.users[1]['_id'],
                 'level': AccessType.ADMIN,
@@ -650,14 +638,14 @@ class SystemTestCase(base.TestCase):
             }]
         }, save=True, user=self.users[1])
 
-        acl = self.model('user').getFullAccessList(user)
+        acl = User().getFullAccessList(user)
         self.assertEqual(set(acl['users'][0]['flags']), {'my_key', 'admin_flag'})
         self.assertEqual(acl['groups'][0]['flags'], ['admin_flag'])
 
         # Test setting public flags on a collection and folder
-        collectionModel = self.model('collection')
-        folderModel = self.model('folder')
-        itemModel = self.model('item')
+        collectionModel = Collection()
+        folderModel = Folder()
+        itemModel = Item()
         collection = collectionModel.createCollection('coll', creator=self.users[0], public=True)
         folder = folderModel.createFolder(
             collection, 'folder', parentType='collection', creator=self.users[0])
@@ -745,7 +733,7 @@ class SystemTestCase(base.TestCase):
             self.assertEqual(filtered[0]['_id'], doc['_id'])
 
     def testServerRootSetting(self):
-        settingModel = self.model('setting')
+        settingModel = Setting()
         with self.assertRaises(ValidationException):
             settingModel.set(SettingKey.SERVER_ROOT, 'bad_value')
 
@@ -771,8 +759,8 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['groups'][0]['id'], str(self.group['_id']))
 
         # Delete underlying users and groups, should be OK
-        self.model('group').remove(self.group)
-        self.model('user').remove(self.users[1])
+        Group().remove(self.group)
+        User().remove(self.users[1])
         resp = self.request(
             path='/system/setting/collection_creation_policy/access', method='GET',
             user=self.users[0])

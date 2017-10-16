@@ -26,6 +26,10 @@ from ..describe import Description, autoDescribeRoute, describeRoute
 from ..rest import Resource, RestException, filtermodel
 from ...constants import AccessType, TokenScope
 from girder.models.model_base import AccessException, GirderException
+from girder.models.assetstore import Assetstore
+from girder.models.file import File as FileModel
+from girder.models.item import Item
+from girder.models.upload import Upload
 from girder.api import access
 from girder.utility import RequestBodyStream
 from girder.utility.progress import ProgressContext
@@ -38,6 +42,8 @@ class File(Resource):
     """
     def __init__(self):
         super(File, self).__init__()
+        self._model = FileModel()
+
         self.resourceName = 'file'
         self.route('DELETE', (':id',), self.deleteFile)
         self.route('DELETE', ('upload', ':id'), self.cancelUpload)
@@ -54,10 +60,10 @@ class File(Resource):
         self.route('PUT', (':id', 'move'), self.moveFileToAssetstore)
 
     @access.public(scope=TokenScope.DATA_READ)
-    @filtermodel(model='file')
+    @filtermodel(model=FileModel)
     @autoDescribeRoute(
         Description('Get a file\'s information.')
-        .modelParam('id', model='file', level=AccessType.READ)
+        .modelParam('id', model=FileModel, level=AccessType.READ)
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
     )
@@ -104,8 +110,8 @@ class File(Resource):
             id=parentId, user=user, level=AccessType.WRITE, exc=True)
 
         if linkUrl is not None:
-            return self.model('file').filter(
-                self.model('file').createLinkFile(
+            return self._model.filter(
+                self._model.createLinkFile(
                     url=linkUrl, parent=parent, name=name, parentType=parentType, creator=user,
                     size=size, mimeType=mimeType), user)
         else:
@@ -114,7 +120,7 @@ class File(Resource):
             if assetstoreId:
                 self.requireAdmin(
                     user, message='You must be an admin to select a destination assetstore.')
-                assetstore = self.model('assetstore').load(assetstoreId)
+                assetstore = Assetstore().load(assetstoreId)
 
             chunk = None
             if size > 0 and cherrypy.request.headers.get('Content-Length'):
@@ -131,7 +137,7 @@ class File(Resource):
                 # to the createUpload call parameters.  However, since this is
                 # a breaking change, that should be deferred until a major
                 # version upgrade.
-                upload = self.model('upload').createUpload(
+                upload = Upload().createUpload(
                     user=user, name=name, parentType=parentType, parent=parent, size=size,
                     mimeType=mimeType, reference=reference, assetstore=assetstore)
             except OSError as exc:
@@ -141,12 +147,11 @@ class File(Resource):
                 raise
             if upload['size'] > 0:
                 if chunk:
-                    return self.model('upload').handleChunk(upload, chunk, filter=True, user=user)
+                    return Upload().handleChunk(upload, chunk, filter=True, user=user)
 
                 return upload
             else:
-                return self.model('file').filter(
-                    self.model('upload').finalizeUpload(upload), user)
+                return self._model.filter(Upload().finalizeUpload(upload), user)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
@@ -154,7 +159,7 @@ class File(Resource):
         .notes('This is only required in certain non-standard upload '
                'behaviors. Clients should know which behavior models require '
                'the finalize step to be called in their behavior handlers.')
-        .modelParam('uploadId', paramType='formData')
+        .modelParam('uploadId', paramType='formData', model=Upload)
         .errorResponse(('ID was invalid.',
                         'The upload does not require finalization.',
                         'Not enough bytes have been uploaded.'))
@@ -174,14 +179,14 @@ class File(Resource):
                 'Server has only received %s bytes, but the file should be %s bytes.' %
                 (upload['received'], upload['size']))
 
-        file = self.model('upload').finalizeUpload(upload)
+        file = Upload().finalizeUpload(upload)
         extraKeys = file.get('additionalFinalizeKeys', ())
-        return self.model('file').filter(file, user, additionalKeys=extraKeys)
+        return self._model.filter(file, user, additionalKeys=extraKeys)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Request required offset before resuming an upload.')
-        .modelParam('uploadId', paramType='formData')
+        .modelParam('uploadId', paramType='formData', model=Upload)
         .errorResponse("The ID was invalid, or the offset did not match the server's record.")
     )
     def requestOffset(self, upload):
@@ -191,11 +196,11 @@ class File(Resource):
         :param uploadId: The _id of the temp upload record being resumed.
         :returns: The offset in bytes that the client should use.
         """
-        offset = self.model('upload').requestOffset(upload)
+        offset = Upload().requestOffset(upload)
 
         if isinstance(offset, six.integer_types):
             upload['received'] = offset
-            self.model('upload').save(upload)
+            Upload().save(upload)
             return {'offset': offset}
         else:
             return offset
@@ -209,7 +214,7 @@ class File(Resource):
                'data can be sent as a file in the "chunk" field in multipart '
                'form data.  Multipart uploads are much less efficient and '
                'their use is deprecated.')
-        .modelParam('uploadId', paramType='formData')
+        .modelParam('uploadId', paramType='formData', model=Upload)
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
                paramType='formData')
         .errorResponse(('ID was invalid.',
@@ -254,7 +259,7 @@ class File(Resource):
                 'Server has received %s bytes, but client sent offset %s.' % (
                     upload['received'], offset))
         try:
-            return self.model('upload').handleChunk(upload, chunk, filter=True, user=user)
+            return Upload().handleChunk(upload, chunk, filter=True, user=user)
         except IOError as exc:
             if exc.errno == errno.EACCES:
                 raise Exception('Failed to store upload.')
@@ -266,7 +271,7 @@ class File(Resource):
         Description('Download a file.')
         .notes('This endpoint also accepts the HTTP "Range" header for partial '
                'file downloads.')
-        .modelParam('id', model='file', level=AccessType.READ)
+        .modelParam('id', model=FileModel, level=AccessType.READ)
         .param('offset', 'Start downloading at this offset in bytes within '
                'the file.', dataType='integer', required=False, default=0)
         .param('endByte', 'If you only wish to download part of the file, '
@@ -296,7 +301,7 @@ class File(Resource):
             # Currently we only support a single range.
             offset, endByte = rangeHeader[0]
 
-        return self.model('file').download(
+        return self._model.download(
             file, offset, endByte=endByte, contentDisposition=contentDisposition,
             extraParameters=extraParameters)
 
@@ -321,17 +326,17 @@ class File(Resource):
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Delete a file by ID.')
-        .modelParam('id', model='file', level=AccessType.WRITE)
+        .modelParam('id', model=FileModel, level=AccessType.WRITE)
         .errorResponse('ID was invalid.')
         .errorResponse('Write access was denied on the parent folder.', 403)
     )
     def deleteFile(self, file):
-        self.model('file').remove(file)
+        self._model.remove(file)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Cancel a partially completed upload.')
-        .modelParam('id', model='upload')
+        .modelParam('id', model=Upload)
         .errorResponse('ID was invalid.')
         .errorResponse('You lack permission to cancel this upload.', 403)
     )
@@ -341,14 +346,14 @@ class File(Resource):
         if upload['userId'] != user['_id'] and not user['admin']:
             raise AccessException('You did not initiate this upload.')
 
-        self.model('upload').cancelUpload(upload)
+        Upload().cancelUpload(upload)
         return {'message': 'Upload canceled.'}
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='file')
+    @filtermodel(model=FileModel)
     @autoDescribeRoute(
         Description('Change file metadata such as name or MIME type.')
-        .modelParam('id', model='file', level=AccessType.WRITE)
+        .modelParam('id', model=FileModel, level=AccessType.WRITE)
         .param('name', 'The name to set on the file.', required=False, strip=True)
         .param('mimeType', 'The MIME type of the file.', required=False, strip=True)
         .errorResponse('ID was invalid.')
@@ -360,16 +365,15 @@ class File(Resource):
         if mimeType is not None:
             file['mimeType'] = mimeType
 
-        return self.model('file').updateFile(file)
+        return self._model.updateFile(file)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Change the contents of an existing file.')
-        .modelParam('id', model='file', level=AccessType.WRITE)
+        .modelParam('id', model=FileModel, level=AccessType.WRITE)
         .param('size', 'Size in bytes of the new file.', dataType='integer')
         .param('reference', 'If included, this information is passed to the '
-               'data.process event when the upload is complete.',
-               required=False)
+               'data.process event when the upload is complete.', required=False)
         .param('assetstoreId', 'Direct the upload to a specific assetstore (admin-only).',
                required=False)
         .notes('After calling this, send the chunks just like you would with a '
@@ -382,22 +386,23 @@ class File(Resource):
         if assetstoreId:
             self.requireAdmin(
                 user, message='You must be an admin to select a destination assetstore.')
-            assetstore = self.model('assetstore').load(assetstoreId)
+            assetstore = Assetstore().load(assetstoreId)
         # Create a new upload record into the existing file
-        upload = self.model('upload').createUploadToFile(
+        upload = Upload().createUploadToFile(
             file=file, user=user, size=size, reference=reference, assetstore=assetstore)
 
         if upload['size'] > 0:
             return upload
         else:
-            return self.model('file').filter(self.model('upload').finalizeUpload(upload), user)
+            return self._model.filter(Upload().finalizeUpload(upload), user)
 
     @access.admin(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='file')
+    @filtermodel(model=FileModel)
     @autoDescribeRoute(
         Description('Move a file to a different assetstore.')
-        .modelParam('id', model='file', level=AccessType.WRITE)
-        .modelParam('assetstoreId', 'The destination assetstore.', paramType='formData')
+        .modelParam('id', model=FileModel, level=AccessType.WRITE)
+        .modelParam('assetstoreId', 'The destination assetstore.', paramType='formData',
+                    model=Assetstore)
         .param('progress', 'Controls whether progress notifications will be sent.',
                dataType='boolean', default=False, required=False)
     )
@@ -406,16 +411,16 @@ class File(Resource):
         title = 'Moving file "%s" to assetstore "%s"' % (file['name'], assetstore['name'])
 
         with ProgressContext(progress, user=user, title=title, total=file['size']) as ctx:
-            return self.model('upload').moveFileToAssetstore(
+            return Upload().moveFileToAssetstore(
                 file=file, user=user, assetstore=assetstore, progress=ctx)
 
     @access.user(scope=TokenScope.DATA_WRITE)
-    @filtermodel(model='file')
+    @filtermodel(model=FileModel)
     @autoDescribeRoute(
         Description('Copy a file.')
-        .modelParam('id', model='file', level=AccessType.READ)
+        .modelParam('id', model=FileModel, level=AccessType.READ)
         .modelParam('itemId', description='The ID of the item to copy the file to.',
-                    level=AccessType.WRITE, paramType='formData')
+                    level=AccessType.WRITE, paramType='formData', model=Item)
     )
     def copy(self, file, item):
-        return self.model('file').copyFile(file, self.getCurrentUser(), item=item)
+        return self._model.copyFile(file, self.getCurrentUser(), item=item)

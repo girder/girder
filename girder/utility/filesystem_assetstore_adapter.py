@@ -30,6 +30,10 @@ import tempfile
 from girder import events, logger
 from girder.api.rest import setResponseHeader
 from girder.models.model_base import ValidationException, GirderException
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.upload import Upload
 from girder.utility import mkdir, progress
 from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
@@ -209,8 +213,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Moves the file into its permanent content-addressed location within the
         assetstore. Directory hierarchy yields 256^2 buckets.
         """
-        hash = hash_state.restoreHex(upload['sha512state'],
-                                     'sha512').hexdigest()
+        hash = hash_state.restoreHex(upload['sha512state'], 'sha512').hexdigest()
         dir = os.path.join(hash[0:2], hash[2:4])
         absdir = os.path.join(self.assetstore['root'], dir)
 
@@ -221,7 +224,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # this file
         if '_id' in upload:
             upload['sha512'] = hash
-            self.model('upload').update({'_id': upload['_id']}, update={'$set': {'sha512': hash}})
+            Upload().update({'_id': upload['_id']}, update={'$set': {'sha512': hash}})
 
         mkdir(absdir)
 
@@ -304,6 +307,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Deletes the file from disk if it is the only File in this assetstore
         with the given sha512. Imported files are not actually deleted.
         """
+        from girder.models.file import File
+
         if file.get('imported') or 'path' not in file:
             return
 
@@ -314,8 +319,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         path = os.path.join(self.assetstore['root'], file['path'])
         if os.path.isfile(path):
             with filelock.FileLock(path + '.deleteLock'):
-                matching = self.model('file').find(q, limit=2, fields=[])
-                matchingUpload = self.model('upload').findOne(q)
+                matching = File().find(q, limit=2, fields=[])
+                matchingUpload = Upload().findOne(q)
                 if matching.count(True) == 1 and matchingUpload is None:
                     try:
                         os.unlink(path)
@@ -348,18 +353,17 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         stat = os.stat(path)
         name = name or os.path.basename(path)
 
-        file = self.model('file').createFile(
-            name=name, creator=user, item=item, reuseExisting=True,
-            assetstore=self.assetstore, mimeType=mimeType, size=stat.st_size,
-            saveFile=False)
+        file = File().createFile(
+            name=name, creator=user, item=item, reuseExisting=True, assetstore=self.assetstore,
+            mimeType=mimeType, size=stat.st_size, saveFile=False)
         file['path'] = os.path.abspath(os.path.expanduser(path))
         file['mtime'] = stat.st_mtime
         file['imported'] = True
-        return self.model('file').save(file)
+        return File().save(file)
 
     def _importDataAsItem(self, name, user, folder, path, files, reuseExisting=True, params=None):
         params = params or {}
-        item = self.model('item').createItem(
+        item = Item().createItem(
             name=name, creator=user, folder=folder, reuseExisting=reuseExisting)
         events.trigger('filesystem_assetstore_imported',
                        {'id': item['_id'], 'type': 'item',
@@ -377,8 +381,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise ValidationException(
                 'Files cannot be imported directly underneath a %s.' % parentType)
 
-        item = self.model('item').createItem(
-            name=name, creator=user, folder=parent, reuseExisting=True)
+        item = Item().createItem(name=name, creator=user, folder=parent, reuseExisting=True)
         events.trigger('filesystem_assetstore_imported', {
             'id': item['_id'],
             'type': 'item',
@@ -413,7 +416,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 if leafFoldersAsItems and self._hasOnlyFiles(path, localListDir):
                     self._importDataAsItem(name, user, parent, path, localListDir, params=params)
                 else:
-                    folder = self.model('folder').createFolder(
+                    folder = Folder().createFolder(
                         parent=parent, name=name, parentType=parentType,
                         creator=user, reuseExisting=True)
                     events.trigger(
@@ -454,7 +457,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             'assetstoreId': self.assetstore['_id']
         }, **filters)
 
-        cursor = self.model('file').find(q)
+        cursor = File().find(q)
         progress.update(total=cursor.count(), current=0)
 
         for file in cursor:

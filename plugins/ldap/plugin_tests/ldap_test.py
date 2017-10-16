@@ -21,6 +21,8 @@ import ldap
 import mock
 
 from girder.models.model_base import ValidationException
+from girder.models.setting import Setting
+from girder.models.user import User
 from tests import base
 
 
@@ -67,7 +69,7 @@ class MockLdap(object):
 class LdapTestCase(base.TestCase):
     def testLdapLogin(self):
         from girder.plugins.ldap.constants import PluginSettings
-        settings = self.model('setting')
+        settings = Setting()
 
         self.assertEqual(settings.get(PluginSettings.LDAP_SERVERS), [])
 
@@ -108,7 +110,7 @@ class LdapTestCase(base.TestCase):
             self.assertStatus(resp, 401)
 
         # Test fallback to logging in with core auth
-        normalUser = self.model('user').createUser(
+        normalUser = User().createUser(
             login='normal', firstName='Normal', lastName='User', email='normal@user.com',
             password='normaluser')
         with mock.patch('ldap.initialize', return_value=MockLdap(searchFail=True)):
@@ -143,7 +145,7 @@ class LdapTestCase(base.TestCase):
             self.assertEqual(resp.json['user']['lastName'], 'Buzz')
 
     def testLdapStatusCheck(self):
-        admin = self.model('user').createUser(
+        admin = User().createUser(
             login='admin', email='a@a.com', firstName='admin', lastName='admin',
             password='passwd', admin=True)
 

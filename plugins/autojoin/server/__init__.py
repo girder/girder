@@ -3,7 +3,8 @@ import jsonschema
 from girder import events
 from girder.models.model_base import ValidationException
 from girder.utility import setting_utilities
-from girder.utility.model_importer import ModelImporter
+from girder.models.group import Group
+from girder.models.setting import Setting
 
 _autojoinSchema = {
     'type': 'array',
@@ -41,13 +42,13 @@ def userCreated(event):
     """
     user = event.info
     email = user.get('email').lower()
-    rules = ModelImporter.model('setting').get('autojoin', [])
+    rules = Setting().get('autojoin', [])
     for rule in rules:
         if rule['pattern'].lower() not in email:
             continue
-        group = ModelImporter.model('group').load(rule['groupId'], force=True)
+        group = Group().load(rule['groupId'], force=True)
         if group:
-            ModelImporter.model('group').addUser(group, user, rule['level'])
+            Group().addUser(group, user, rule['level'])
 
 
 def load(info):

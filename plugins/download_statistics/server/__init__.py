@@ -20,23 +20,23 @@
 
 from girder import events
 from girder.constants import AccessType
-from girder.utility.model_importer import ModelImporter
+from girder.models.file import File
 
 
 def _onDownloadFileRequest(event):
     if event.info['startByte'] == 0:
-        ModelImporter.model('file').increment(
+        File().increment(
             query={'_id': event.info['file']['_id']},
             field='downloadStatistics.started',
             amount=1)
-    ModelImporter.model('file').increment(
+    File().increment(
         query={'_id': event.info['file']['_id']},
         field='downloadStatistics.requested',
         amount=1)
 
 
 def _onDownloadFileComplete(event):
-    ModelImporter.model('file').increment(
+    File().increment(
         query={'_id': event.info['file']['_id']},
         field='downloadStatistics.completed',
         amount=1)
@@ -48,4 +48,4 @@ def load(info):
     events.bind('model.file.download.complete', 'download_statistics', _onDownloadFileComplete)
 
     # Add download count fields to file model
-    ModelImporter.model('file').exposeFields(level=AccessType.READ, fields='downloadStatistics')
+    File().exposeFields(level=AccessType.READ, fields='downloadStatistics')

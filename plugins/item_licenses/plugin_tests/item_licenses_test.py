@@ -20,6 +20,9 @@
 import six
 
 from girder.models.model_base import ValidationException
+from girder.models.folder import Folder
+from girder.models.setting import Setting
+from girder.models.user import User
 from tests import base
 
 from server.constants import PluginSettings
@@ -48,11 +51,10 @@ class ItemLicensesTestCase(base.TestCase):
             'password': 'user1password',
             'admin': False
         }
-        self.user = self.model('user').createUser(**user)
+        self.user = User().createUser(**user)
 
         # Get user's private folder
-        folders = self.model('folder').childFolders(
-            self.user, 'user', user=self.user)
+        folders = Folder().childFolders(self.user, 'user', user=self.user)
         for folder in folders:
             if folder['name'] == 'Private':
                 self.folder = folder
@@ -267,7 +269,7 @@ class ItemLicensesTestCase(base.TestCase):
         self.assertGreater(len(resp.json[0]['licenses'][1]['name']), 0)
 
         # Change licenses
-        self.model('setting').set(
+        Setting().set(
             PluginSettings.LICENSES,
             [{'category': 'A', 'licenses': [{'name': '1'}]},
              {'category': 'B', 'licenses': [{'name': '2'}, {'name': '3'}]}])
@@ -300,111 +302,51 @@ class ItemLicensesTestCase(base.TestCase):
         Test validation of licenses setting.
         """
         # Test valid settings
-        self.model('setting').set(
+        Setting().set(
             PluginSettings.LICENSES,
             [])
-        self.model('setting').set(
+        Setting().set(
             PluginSettings.LICENSES,
             [{'category': 'A', 'licenses': []}])
-        self.model('setting').set(
+        Setting().set(
             PluginSettings.LICENSES,
             [{'category': 'A', 'licenses': [{'name': '1'}]}])
-        self.model('setting').set(
+        Setting().set(
             PluginSettings.LICENSES,
             [{'category': 'A', 'licenses': [{'name': '1'}, {'name': '2'}]}])
-        self.model('setting').set(
+        Setting().set(
             PluginSettings.LICENSES,
             [{'category': 'A', 'licenses': []},
              {'category': 'B', 'licenses': [{'name': '1'}]}])
-        self.model('setting').set(
+        Setting().set(
             PluginSettings.LICENSES,
             [{'category': 'A', 'licenses': []},
              {'category': 'B', 'licenses': [{'name': '1'}, {'name': '2'}]}])
 
         # Test invalid top-level types
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set, PluginSettings.LICENSES, None)
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set, PluginSettings.LICENSES, 1)
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set, PluginSettings.LICENSES, '')
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set, PluginSettings.LICENSES, {})
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set, PluginSettings.LICENSES, [{}])
+        for val in (None, 1, '', {}, [{}]):
+            self.assertRaises(ValidationException, Setting().set, PluginSettings.LICENSES, val)
 
         # Test invalid category types
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': None, 'licenses': []}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 1, 'licenses': []}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': '', 'licenses': []}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': {}, 'licenses': []}])
+        for category, licenses in ((None, []), (1, []), ('', []), ({}, [])):
+            self.assertRaises(
+                ValidationException,
+                Setting().set,
+                PluginSettings.LICENSES,
+                [{'category': category, 'licenses': licenses}])
 
         # Test invalid licenses types
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': None}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': {}}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': [1]}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': ['']}])
+        for val in (None, {}, [1], ['']):
+            self.assertRaises(
+                ValidationException,
+                Setting().set,
+                PluginSettings.LICENSES,
+                [{'category': 'A', 'licenses': val}])
 
-        # Test invalid license name types
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': [{'name': None}]}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': [{'name': 1}]}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': [{'name': ''}]}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': [{'name': {}}]}])
-        self.assertRaises(
-            ValidationException,
-            self.model('setting').set,
-            PluginSettings.LICENSES,
-            [{'category': 'A', 'licenses': [{'name': []}]}])
+        # Test invalid license names
+        for val in (None, 1, '', {}, []):
+            self.assertRaises(
+                ValidationException,
+                Setting().set,
+                PluginSettings.LICENSES,
+                [{'category': 'A', 'licenses': [{'name': val}]}])

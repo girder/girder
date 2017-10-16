@@ -23,6 +23,13 @@ import six
 from tests import base
 from girder import events
 from girder.constants import AccessType
+from girder.models.collection import Collection
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.setting import Setting
+from girder.models.upload import Upload
+from girder.models.user import User
 from server import constants
 
 
@@ -47,7 +54,7 @@ class ProvenanceTestCase(base.TestCase):
             'password': 'adminpassword',
             'admin': True
         }
-        self.admin = self.model('user').createUser(**admin)
+        self.admin = User().createUser(**admin)
 
         user = {
             'email': 'good@email.com',
@@ -57,11 +64,10 @@ class ProvenanceTestCase(base.TestCase):
             'password': 'goodpassword',
             'admin': False
         }
-        self.user = self.model('user').createUser(**user)
+        self.user = User().createUser(**user)
 
         # Track folder, item, and setting provenance initially
-        self.model('setting').set(
-            constants.PluginSettings.PROVENANCE_RESOURCES, 'folder,setting')
+        Setting().set(constants.PluginSettings.PROVENANCE_RESOURCES, 'folder,setting')
 
         coll1 = {
             'name': 'Test Collection',
@@ -69,7 +75,7 @@ class ProvenanceTestCase(base.TestCase):
             'public': True,
             'creator': self.admin
         }
-        self.coll1 = self.model('collection').createCollection(**coll1)
+        self.coll1 = Collection().createCollection(**coll1)
 
         folder1 = {
             'parent': self.coll1,
@@ -78,17 +84,16 @@ class ProvenanceTestCase(base.TestCase):
             'creator': self.admin
 
         }
-        self.folder1 = self.model('folder').createFolder(**folder1)
-        self.model('folder').setUserAccess(
-            self.folder1, self.user, level=AccessType.WRITE, save=False)
-        self.model('folder').setPublic(self.folder1, True, save=True)
+        self.folder1 = Folder().createFolder(**folder1)
+        Folder().setUserAccess(self.folder1, self.user, level=AccessType.WRITE, save=False)
+        Folder().setPublic(self.folder1, True, save=True)
 
         item1 = {
             'name': 'Public object',
             'creator': self.admin,
             'folder': self.folder1
         }
-        self.item1 = self.model('item').createItem(**item1)
+        self.item1 = Item().createItem(**item1)
 
     def _checkProvenance(self, resp, item, version, user, eventType,
                          matches=None, fileInfo=None, resource='item'):
@@ -302,10 +307,8 @@ class ProvenanceTestCase(base.TestCase):
                               {'new': params1}, resource='folder')
 
         # Turn off folder provenance and make sure asking for it fails
-        self.model('setting').set(
-            constants.PluginSettings.PROVENANCE_RESOURCES, 'setting')
-        resp = self._getProvenance(folder1, user, resource='folder',
-                                   checkOk=False)
+        Setting().set(constants.PluginSettings.PROVENANCE_RESOURCES, 'setting')
+        resp = self._getProvenance(folder1, user, resource='folder', checkOk=False)
         self.assertStatus(resp, 400)
         # While folder provenance is off, create a second folder and edit the
         # first folder
@@ -321,11 +324,10 @@ class ProvenanceTestCase(base.TestCase):
             'name': 'Private test folder',
             'creator': self.admin
         }
-        folder2 = self.model('folder').createFolder(**folder2)
+        folder2 = Folder().createFolder(**folder2)
         # Turn back on folder provenance and check that it didn't record the
         # changes we made.
-        self.model('setting').set(
-            constants.PluginSettings.PROVENANCE_RESOURCES, 'folder,setting')
+        Setting().set(constants.PluginSettings.PROVENANCE_RESOURCES, 'folder,setting')
         self._checkProvenance(None, folder1, 2, user, 'update',
                               {'new': params1}, resource='folder')
         # Changing folder1 again should now show this change, and the old value
@@ -371,9 +373,7 @@ class ProvenanceTestCase(base.TestCase):
 
     def testProvenanceSetting(self):
         # After trying to set this set, only some of them should have events
-        self.model('setting').set(
-            constants.PluginSettings.PROVENANCE_RESOURCES,
-            'file,notification,unknown')
+        Setting().set(constants.PluginSettings.PROVENANCE_RESOURCES, 'file,notification,unknown')
         checkList = {
             'item': True,
             'file': True,
@@ -386,8 +386,7 @@ class ProvenanceTestCase(base.TestCase):
                             is checkList[key])
         # Setting a blank should be okay.  It should also remove all but item
         # event mappings
-        self.model('setting').set(
-            constants.PluginSettings.PROVENANCE_RESOURCES, '')
+        Setting().set(constants.PluginSettings.PROVENANCE_RESOURCES, '')
         for key in checkList:
             eventName = 'model.%s.save' % key
             self.assertTrue((eventName in events._mapping and 'provenance' in
@@ -396,10 +395,10 @@ class ProvenanceTestCase(base.TestCase):
 
     def testProvenanceFileWithoutItem(self):
         fileData = b'this is a test'
-        file = self.model('upload').uploadFromFile(
+        file = Upload().uploadFromFile(
             obj=six.BytesIO(fileData), size=len(fileData), name='test',
             parentType=None, parent=None, user=self.admin)
         self.assertIsNone(file.get('itemId'))
         file['name'] = 'test2'
-        file = self.model('file').save(file)
-        self.model('file').remove(file)
+        file = File().save(file)
+        File().remove(file)

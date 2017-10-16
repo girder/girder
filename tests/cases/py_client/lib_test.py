@@ -30,6 +30,11 @@ import hashlib
 import httmock
 
 from girder import config, events
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.upload import Upload
+from girder.models.user import User
 from tests import base
 
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
@@ -249,10 +254,10 @@ class PythonClientTestCase(base.TestCase):
         self.assertFalse(u2['admin'])
 
     def testUploadCallbacks(self):
-        callbackUser = self.model('user').createUser(
+        callbackUser = User().createUser(
             firstName='Callback', lastName='Last', login='callback',
             password='password', email='Callback@email.com')
-        callbackPublicFolder = six.next(self.model('folder').childFolders(
+        callbackPublicFolder = six.next(Folder().childFolders(
             parentType='user', parent=callbackUser, user=None, limit=1))
         callbackCounts = {'folder': 0, 'item': 0}
         folders = {}
@@ -290,17 +295,17 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(all(six.viewvalues(folders)))
 
         # Upload again with reuseExisting on
-        existingList = list(self.model('folder').childFolders(
+        existingList = list(Folder().childFolders(
             parentType='folder', parent=callbackPublicFolder,
             user=callbackUser, limit=0))
         self.client.upload(self.libTestDir, callbackPublicFolder['_id'],
                            reuseExisting=True)
-        newList = list(self.model('folder').childFolders(
+        newList = list(Folder().childFolders(
             parentType='folder', parent=callbackPublicFolder,
             user=callbackUser, limit=0))
         self.assertEqual(existingList, newList)
         self.assertEqual(len(newList), 1)
-        self.assertEqual([f['name'] for f in self.model('folder').childFolders(
+        self.assertEqual([f['name'] for f in Folder().childFolders(
             parentType='folder', parent=newList[0],
             user=callbackUser, limit=0)], ['sub0', 'sub1', 'sub2'])
 
@@ -321,7 +326,7 @@ class PythonClientTestCase(base.TestCase):
                 except girder_client.IncorrectUploadLengthError as exc:
                     self.assertEqual(
                         exc.upload['received'], exc.upload['size'] - 1)
-                    upload = self.model('upload').load(exc.upload['_id'])
+                    upload = Upload().load(exc.upload['_id'])
                     self.assertEqual(upload, None)
                     raise
 
@@ -340,11 +345,11 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(file['mimeType'], 'application/octet-stream')
 
         items = list(
-            self.model('folder').childItems(folder=callbackPublicFolder))
+            Folder().childItems(folder=callbackPublicFolder))
         self.assertEqual(len(items), 1)
         self.assertEqual(items[0]['name'], 'test')
 
-        files = list(self.model('item').childFiles(items[0]))
+        files = list(Item().childFiles(items[0]))
         self.assertEqual(len(files), 1)
 
         # Make sure MIME type propagates correctly when explicitly passed
@@ -522,15 +527,14 @@ class PythonClientTestCase(base.TestCase):
         stream = StringIO(contents)
         self.client.uploadFileContents(file['_id'], stream, size)
 
-        file = self.model('file').load(file['_id'], force=True)
+        file = File().load(file['_id'], force=True)
         sha = hashlib.sha512()
         sha.update(contents.encode('utf8'))
         self.assertEqual(file['sha512'], sha.hexdigest())
 
     def testListFile(self):
         # Creating item
-        item = self.client.createItem(self.publicFolder['_id'],
-                                      'SomethingUnique')
+        item = self.client.createItem(self.publicFolder['_id'], 'SomethingUnique')
 
         # Upload 2 different files to item
         path = os.path.join(self.libTestDir, 'sub0', 'f')
@@ -555,8 +559,7 @@ class PythonClientTestCase(base.TestCase):
 
     def testDownloadInline(self):
         # Create item
-        item = self.client.createItem(self.publicFolder['_id'],
-                                      'SomethingMoreUnique')
+        item = self.client.createItem(self.publicFolder['_id'], 'SomethingMoreUnique')
         # Upload file to item
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         file = self.client.uploadFileToItem(item['_id'], path)
@@ -573,8 +576,7 @@ class PythonClientTestCase(base.TestCase):
             self.assertEqual(f.read(), obj.read())
 
     def testDownloadCache(self):
-        item = self.client.createItem(
-            self.publicFolder['_id'], 'SomethingEvenMoreUnique')
+        item = self.client.createItem(self.publicFolder['_id'], 'SomethingEvenMoreUnique')
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         file = self.client.uploadFileToItem(item['_id'], path)
 
@@ -644,7 +646,7 @@ class PythonClientTestCase(base.TestCase):
             'nothing': 'to see here!'
         }
         self.client.addMetadataToItem(item['_id'], meta)
-        updatedItem = self.model('item').load(item['_id'], force=True)
+        updatedItem = Item().load(item['_id'], force=True)
         self.assertEqual(updatedItem['meta'], meta)
 
     def testAddMetadataToFolder(self):
@@ -652,7 +654,7 @@ class PythonClientTestCase(base.TestCase):
             'nothing': 'to see here!'
         }
         self.client.addMetadataToFolder(self.publicFolder['_id'], meta)
-        updatedFolder = self.model('folder').load(self.publicFolder['_id'], force=True)
+        updatedFolder = Folder().load(self.publicFolder['_id'], force=True)
         self.assertEqual(updatedFolder['meta'], meta)
 
     def testPatch(self):
@@ -764,17 +766,17 @@ class PythonClientTestCase(base.TestCase):
             self._testUploadWithPath()
 
     def _testUploadWithPath(self):
-        testUser = self.model('user').createUser(
+        testUser = User().createUser(
             firstName='Jeffrey', lastName='Abrams', login='jjabrams',
             password='password', email='jjabrams@email.com')
-        publicFolder = six.next(self.model('folder').childFolders(
+        publicFolder = six.next(Folder().childFolders(
             parentType='user', parent=testUser, user=None, limit=1))
         self.client.upload(self.libTestDir, '/user/jjabrams/Public')
 
-        parent = six.next(self.model('folder').childFolders(
+        parent = six.next(Folder().childFolders(
             parentType='folder', parent=publicFolder,
             user=testUser, limit=0))
-        self.assertEqual([f['name'] for f in self.model('folder').childFolders(
+        self.assertEqual([f['name'] for f in Folder().childFolders(
             parentType='folder', parent=parent,
             user=testUser, limit=0)], ['sub0', 'sub1', 'sub2'])
 
@@ -788,8 +790,7 @@ class PythonClientTestCase(base.TestCase):
 
     def _testUploadFileWithDifferentName(self):
         itemName = 'MyStash'
-        item = self.client.createItem(self.publicFolder['_id'],
-                                      itemName)
+        item = self.client.createItem(self.publicFolder['_id'], itemName)
 
         path = os.path.join(self.libTestDir, 'sub1', 'f1')
         uploadedFile = self.client.uploadFileToItem(item['_id'], path, filename='g1')

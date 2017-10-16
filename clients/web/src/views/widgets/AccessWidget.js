@@ -1,5 +1,8 @@
 import $ from 'jquery';
 import _ from 'underscore';
+// Bootstrap tooltip is required by popover
+import 'bootstrap/js/tooltip';
+import 'bootstrap/js/popover';
 
 import accessEditorNonModalTemplate from 'girder/templates/widgets/accessEditorNonModal.pug';
 import accessEditorTemplate from 'girder/templates/widgets/accessEditor.pug';
@@ -366,7 +369,7 @@ var AccessWidget = View.extend({
 
     removeAccessEntry: function (event) {
         var sel = '.g-user-access-entry,.g-group-access-entry';
-        $(event.currentTarget).tooltip('hide').parents(sel).remove();
+        $(event.currentTarget).parents(sel).remove();
     },
 
     privacyChanged: function () {

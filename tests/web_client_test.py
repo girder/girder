@@ -28,6 +28,8 @@ from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import registerAccessFlag, ROOT_DIR
+from girder.models.folder import Folder
+from girder.models.upload import Upload
 from girder.utility.progress import ProgressContext
 from . import base
 from six.moves import range
@@ -119,14 +121,14 @@ class WebClientTestEndpoints(Resource):
 
         path = os.path.join(ROOT_DIR, params['path'])
         name = os.path.basename(path)
-        folder = self.model('folder').load(params['folderId'], force=True)
+        folder = Folder().load(params['folderId'], force=True)
 
-        upload = self.model('upload').createUpload(
+        upload = Upload().createUpload(
             user=self.getCurrentUser(), name=name, parentType='folder',
             parent=folder, size=os.path.getsize(path))
 
         with open(path, 'rb') as fd:
-            file = self.model('upload').handleChunk(upload, fd)
+            file = Upload().handleChunk(upload, fd)
 
         return file
 
@@ -183,16 +185,14 @@ class WebClientTestCase(base.TestCase):
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
         retry_count = os.environ.get('PHANTOMJS_RETRY', 3)
-        for tries in range(int(retry_count)):
+        for _ in range(int(retry_count)):
             retry = False
-            task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+            task = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             jasmineFinished = False
             for line in iter(task.stdout.readline, b''):
                 if isinstance(line, six.binary_type):
                     line = line.decode('utf8')
-                if ('PHANTOM_TIMEOUT' in line or
-                        'error loading source script' in line):
+                if ('PHANTOM_TIMEOUT' in line or 'error loading source script' in line):
                     task.kill()
                     retry = True
                 elif '__FETCHEMAIL__' in line:

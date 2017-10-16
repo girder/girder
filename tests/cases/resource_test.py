@@ -27,7 +27,11 @@ import zipfile
 from .. import base
 
 import girder.utility.ziputil
-from girder.models.notification import ProgressState
+from girder.models.notification import Notification, ProgressState
+from girder.models.collection import Collection
+from girder.models.item import Item
+from girder.models.folder import Folder
+from girder.models.user import User
 from six.moves import range, urllib
 
 
@@ -49,7 +53,7 @@ class ResourceTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         }
-        self.admin = self.model('user').createUser(**admin)
+        self.admin = User().createUser(**admin)
         user = {
             'email': 'user@email.com',
             'login': 'userlogin',
@@ -57,7 +61,7 @@ class ResourceTestCase(base.TestCase):
             'lastName': 'User',
             'password': 'goodpassword'
         }
-        self.user = self.model('user').createUser(**user)
+        self.user = User().createUser(**user)
 
     def _createFiles(self, user=None):
         """
@@ -76,8 +80,8 @@ class ResourceTestCase(base.TestCase):
             'public': True,
             'creator': user
         }
-        self.collection = self.model('collection').createCollection(**coll)
-        self.collectionPrivateFolder = self.model('folder').createFolder(
+        self.collection = Collection().createCollection(**coll)
+        self.collectionPrivateFolder = Folder().createFolder(
             parent=self.collection, parentType='collection', name='Private',
             creator=user, public=False)
 
@@ -89,10 +93,8 @@ class ResourceTestCase(base.TestCase):
                 'sort': 'name',
                 'sortdir': 1
             })
-        self.adminPrivateFolder = self.model('folder').load(
-            resp.json[0]['_id'], user=user)
-        self.adminPublicFolder = self.model('folder').load(
-            resp.json[1]['_id'], user=user)
+        self.adminPrivateFolder = Folder().load(resp.json[0]['_id'], user=user)
+        self.adminPublicFolder = Folder().load(resp.json[1]['_id'], user=user)
         # Create a folder within the admin public folder
         resp = self.request(
             path='/folder', method='POST', user=user, params={
@@ -101,16 +103,11 @@ class ResourceTestCase(base.TestCase):
         self.adminSubFolder = resp.json
         # Create a series of items
         self.items = []
-        self.items.append(self.model('item').createItem(
-            'Item 1', self.admin, self.adminPublicFolder))
-        self.items.append(self.model('item').createItem(
-            'Item 2', self.admin, self.adminPublicFolder))
-        self.items.append(self.model('item').createItem(
-            'It\\em/3', self.admin, self.adminSubFolder))
-        self.items.append(self.model('item').createItem(
-            'Item 4', self.admin, self.collectionPrivateFolder))
-        self.items.append(self.model('item').createItem(
-            'Item 5', self.admin, self.collectionPrivateFolder))
+        self.items.append(Item().createItem('Item 1', self.admin, self.adminPublicFolder))
+        self.items.append(Item().createItem('Item 2', self.admin, self.adminPublicFolder))
+        self.items.append(Item().createItem('It\\em/3', self.admin, self.adminSubFolder))
+        self.items.append(Item().createItem('Item 4', self.admin, self.collectionPrivateFolder))
+        self.items.append(Item().createItem('Item 5', self.admin, self.collectionPrivateFolder))
         # Upload a series of files
         file, path, contents = self._uploadFile('File 1', self.items[0])
         self.file1 = file
@@ -125,16 +122,16 @@ class ResourceTestCase(base.TestCase):
         self.expectedZip[path] = contents
         # place some metadata on two of the items and one of the folders
         meta = {'key': 'value'}
-        self.model('item').setMetadata(self.items[2], meta)
-        parents = self.model('item').parentsToRoot(self.items[2], self.admin)
+        Item().setMetadata(self.items[2], meta)
+        parents = Item().parentsToRoot(self.items[2], self.admin)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [self.items[2]['name'], 'girder-item-metadata.json']))
         self.expectedZip[path] = meta
 
         meta = {'x': 'y'}
-        self.model('item').setMetadata(self.items[4], meta)
-        parents = self.model('item').parentsToRoot(self.items[4], self.admin)
+        Item().setMetadata(self.items[4], meta)
+        parents = Item().parentsToRoot(self.items[4], self.admin)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [self.items[4]['name'], 'girder-item-metadata.json']))
@@ -144,9 +141,8 @@ class ResourceTestCase(base.TestCase):
         # mongo rounds to millisecond, so adjust our expectations
         meta['date'] -= datetime.timedelta(
             microseconds=meta['date'].microsecond % 1000)
-        self.model('folder').setMetadata(self.adminPublicFolder, meta)
-        parents = self.model('folder').parentsToRoot(self.adminPublicFolder,
-                                                     user=user)
+        Folder().setMetadata(self.adminPublicFolder, meta)
+        parents = Folder().parentsToRoot(self.adminPublicFolder, user=user)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [self.adminPublicFolder['name'], 'girder-folder-metadata.json']))
@@ -178,7 +174,7 @@ class ResourceTestCase(base.TestCase):
             path='/file/chunk', user=self.admin, fields=fields, files=files)
         self.assertStatusOk(resp)
         file = resp.json
-        parents = self.model('item').parentsToRoot(item, user=self.admin)
+        parents = Item().parentsToRoot(item, user=self.admin)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [item['name'], name]))
@@ -269,7 +265,7 @@ class ResourceTestCase(base.TestCase):
             }, isJson=False)
         self.assertStatusOk(resp)
         # Make sure progress record exists and that it is set to expire soon
-        notifs = list(self.model('notification').get(self.admin))
+        notifs = list(Notification().get(self.admin))
         self.assertEqual(len(notifs), 1)
         self.assertEqual(notifs[0]['type'], 'progress')
         self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
@@ -307,8 +303,7 @@ class ResourceTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 0)
 
         # Add a file under the admin private folder
-        item = self.model('item').createItem(
-            'Private Item', self.admin, self.adminPrivateFolder)
+        item = Item().createItem('Private Item', self.admin, self.adminPrivateFolder)
         _, path, contents = self._uploadFile('private_file', item)
         self.assertEqual(path, 'goodlogin/Private/Private Item/private_file')
 
@@ -676,6 +671,7 @@ class ResourceTestCase(base.TestCase):
                 'progress': True
             })
         self.assertStatusOk(resp)
+
         resp = self.request(
             path='/folder', method='GET', user=self.user,
             params={
@@ -685,10 +681,8 @@ class ResourceTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         copiedFolder = resp.json[0]
-        self.assertNotEqual(str(copiedFolder['_id']),
-                            str(self.adminSubFolder['_id']))
-        # We should have reported 2 things copied in the progress (1 folder and
-        # 1 item)
+        self.assertNotEqual(str(copiedFolder['_id']), str(self.adminSubFolder['_id']))
+        # We should have reported 2 things copied in the progress (1 folder and 1 item)
         resp = self.request(
             path='/notification/stream', method='GET', user=self.user,
             isJson=False, params={'timeout': 1})
@@ -790,7 +784,7 @@ class ResourceTestCase(base.TestCase):
             })
         self.assertStatus(resp, 403)
 
-        c = self.model('collection').load(self.collection['_id'], force=True)
+        c = Collection().load(self.collection['_id'], force=True)
         self.assertNotEqual(c['created'], created)
         self.assertNotEqual(c['updated'], updated)
 
@@ -806,6 +800,6 @@ class ResourceTestCase(base.TestCase):
             })
         self.assertStatusOk(resp)
 
-        c = self.model('collection').load(self.collection['_id'], force=True)
+        c = Collection().load(self.collection['_id'], force=True)
         self.assertEqual(c['created'], created)
         self.assertEqual(c['updated'], updated)

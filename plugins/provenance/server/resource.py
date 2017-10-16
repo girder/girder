@@ -28,6 +28,10 @@ from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
+from girder.models.file import File
+from girder.models.item import Item
+from girder.models.setting import Setting
+from girder.models.user import User
 from girder.utility import acl_mixin
 from . import constants
 
@@ -58,13 +62,11 @@ class ResourceExt(Resource):
         elif event.name == 'model.setting.save.after':
             if not hasattr(event, "info"):
                 return
-            if (event.info.get('key', '') !=
-                    constants.PluginSettings.PROVENANCE_RESOURCES):
+            if event.info.get('key', '') != constants.PluginSettings.PROVENANCE_RESOURCES:
                 return
         else:
             return
-        resources = self.model('setting').get(
-            constants.PluginSettings.PROVENANCE_RESOURCES)
+        resources = Setting().get(constants.PluginSettings.PROVENANCE_RESOURCES)
         if resources:
             resources = resources.replace(',', ' ').strip().split()
         else:
@@ -80,10 +82,9 @@ class ResourceExt(Resource):
         self.unbindModels(resources)
         for resource in resources:
             if resource not in self.boundResources:
-                events.bind('model.%s.save' % resource, 'provenance',
-                            self.resourceSaveHandler)
-                events.bind('model.%s.copy.prepare' % resource,
-                            'provenance', self.resourceCopyHandler)
+                events.bind('model.%s.save' % resource, 'provenance', self.resourceSaveHandler)
+                events.bind(
+                    'model.%s.copy.prepare' % resource, 'provenance', self.resourceCopyHandler)
                 if hasattr(self.loadInfo['apiRoot'], resource):
                     getattr(self.loadInfo['apiRoot'], resource).route(
                         'GET', (':id', 'provenance'),
@@ -221,7 +222,7 @@ class ResourceExt(Resource):
             if not user:
                 user = obj.get('creatorId', None)
         if isinstance(user, tuple([ObjectId] + list(six.string_types))):
-            user = self.model('user').load(user, force=True)
+            user = User().load(user, force=True)
         return user
 
     def createExistingProvenance(self, obj, resource):
@@ -333,10 +334,10 @@ class ResourceExt(Resource):
         if not curFile.get('itemId') or '_id' not in curFile:
             return
         user = self.getProvenanceUser(curFile)
-        item = self.model('item').load(id=curFile['itemId'], force=True)
+        item = Item().load(id=curFile['itemId'], force=True)
         if not item:
             return
-        prevFile = self.model('file').load(curFile['_id'], force=True)
+        prevFile = File().load(curFile['_id'], force=True)
         if prevFile is None:
             oldData = None
             newData = self.snapshotResource(curFile)
@@ -357,7 +358,7 @@ class ResourceExt(Resource):
         if user is not None:
             updateEvent['eventUser'] = user['_id']
         self.addProvenanceEvent(item, updateEvent, 'item')
-        self.model('item').save(item, triggerEvents=False)
+        Item().save(item, triggerEvents=False)
 
     def fileSaveCreatedHandler(self, event):
         """
@@ -369,7 +370,7 @@ class ResourceExt(Resource):
         if not file.get('itemId') or '_id' not in file:
             return
         user = self.getProvenanceUser(file)
-        item = self.model('item').load(id=file['itemId'], force=True)
+        item = Item().load(id=file['itemId'], force=True)
         if not item:
             return
         updateEvent = {
@@ -383,7 +384,7 @@ class ResourceExt(Resource):
         if user is not None:
             updateEvent['eventUser'] = user['_id']
         self.addProvenanceEvent(item, updateEvent, 'item')
-        self.model('item').save(item, triggerEvents=False)
+        Item().save(item, triggerEvents=False)
 
     def fileRemoveHandler(self, event):
         """
@@ -398,7 +399,7 @@ class ResourceExt(Resource):
         if not itemId:
             return
         user = self.getProvenanceUser(file)
-        item = self.model('item').load(id=itemId, force=True)
+        item = Item().load(id=itemId, force=True)
         if not item:
             return
         updateEvent = {
@@ -412,7 +413,7 @@ class ResourceExt(Resource):
         if user is not None:
             updateEvent['eventUser'] = user['_id']
         self.addProvenanceEvent(item, updateEvent, 'item')
-        self.model('item').save(item, triggerEvents=False)
+        Item().save(item, triggerEvents=False)
 
     def resourceCopyHandler(self, event):
         # Use the old item's provenance, but add a copy record.

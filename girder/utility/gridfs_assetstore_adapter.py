@@ -30,6 +30,7 @@ from girder.api.rest import setResponseHeader
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.models.model_base import ValidationException
+from girder.models.file import File
 from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
@@ -353,7 +354,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             'chunkUuid': file['chunkUuid'],
             'assetstoreId': self.assetstore['_id']
         }
-        matching = self.model('file').find(q, limit=2, projection=[])
+        matching = File().find(q, limit=2, projection=[])
         if matching.count(True) == 1:
             # If we can't reach the database, we return anyway.  A system check
             # will be necessary to remove the abandoned file.  Since we already

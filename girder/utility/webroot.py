@@ -25,8 +25,8 @@ import mako
 
 from girder import constants, events
 from girder.constants import CoreEventHandler, SettingKey
+from girder.models.setting import Setting
 from girder.utility import config
-from girder.utility.model_importer import ModelImporter
 
 
 class WebrootBase(object):
@@ -99,6 +99,7 @@ class Webroot(WebrootBase):
             templatePath = os.path.join(constants.PACKAGE_DIR,
                                         'utility', 'webroot.mako')
         super(Webroot, self).__init__(templatePath)
+        settings = Setting()
 
         self.vars = {
             'plugins': [],
@@ -106,9 +107,9 @@ class Webroot(WebrootBase):
             'staticRoot': '',
             # 'title' is depreciated use brandName instead
             'title': 'Girder',
-            'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
-            'bannerColor': ModelImporter.model('setting').get(SettingKey.BANNER_COLOR),
-            'contactEmail': ModelImporter.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
+            'brandName': settings.get(SettingKey.BRAND_NAME),
+            'bannerColor': settings.get(SettingKey.BANNER_COLOR),
+            'contactEmail': settings.get(SettingKey.CONTACT_EMAIL_ADDRESS)
         }
 
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
@@ -128,10 +129,10 @@ class Webroot(WebrootBase):
     def _onSettingRemove(self, event):
         settingDoc = event.info
         if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
-            self.updateHtmlVars({'contactEmail': ModelImporter.model('setting').getDefault(
+            self.updateHtmlVars({'contactEmail': Setting().getDefault(
                 SettingKey.CONTACT_EMAIL_ADDRESS)})
         elif settingDoc['key'] == SettingKey.BRAND_NAME:
-            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
+            self.updateHtmlVars({'brandName': Setting().getDefault(
                 SettingKey.BRAND_NAME)})
         elif settingDoc['key'] == SettingKey.BANNER_COLOR:
             self.updateHtmlVars({'bannerColor': settingDoc['value']})

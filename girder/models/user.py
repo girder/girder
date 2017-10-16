@@ -138,6 +138,8 @@ class User(AccessControlledModel):
         :returns: The corresponding user if the login was successful.
         :rtype: dict
         """
+        from .password import Password
+
         event = events.trigger('model.user.authenticate', {
             'login': login,
             'password': password
@@ -149,11 +151,11 @@ class User(AccessControlledModel):
         login = login.lower().strip()
         loginField = 'email' if '@' in login else 'login'
 
-        user = self.model('user').findOne({loginField: login})
+        user = self.findOne({loginField: login})
         if user is None:
             raise AccessException('Login failed.')
 
-        if not self.model('password').authenticate(user, password):
+        if not Password().authenticate(user, password):
             raise AccessException('Login failed.')
 
         # This has the same behavior as User.canLogin, but returns more
@@ -161,11 +163,11 @@ class User(AccessControlledModel):
         if user.get('status', 'enabled') == 'disabled':
             raise AccessException('Account is disabled.', extra='disabled')
 
-        if self.model('user').emailVerificationRequired(user):
+        if self.emailVerificationRequired(user):
             raise AccessException(
                 'Email verification required.', extra='emailVerification')
 
-        if self.model('user').adminApprovalRequired(user):
+        if self.adminApprovalRequired(user):
             raise AccessException('Account approval required.', extra='accountApproval')
 
         return user
@@ -179,28 +181,32 @@ class User(AccessControlledModel):
         :param progress: A progress context to record progress on.
         :type progress: girder.utility.progress.ProgressContext or None.
         """
+        from .folder import Folder
+        from .group import Group
+        from .token import Token
+
         # Delete all authentication tokens owned by this user
-        self.model('token').removeWithQuery({'userId': user['_id']})
+        Token().removeWithQuery({'userId': user['_id']})
 
         # Delete all pending group invites for this user
-        self.model('group').update(
+        Group().update(
             {'requests': user['_id']},
             {'$pull': {'requests': user['_id']}}
         )
 
         # Delete all of the folders under this user
-        folders = self.model('folder').find({
+        folderModel = Folder()
+        folders = folderModel.find({
             'parentId': user['_id'],
             'parentCollection': 'user'
         })
         for folder in folders:
-            self.model('folder').remove(folder, progress=progress, **kwargs)
+            folderModel.remove(folder, progress=progress, **kwargs)
 
         # Finally, delete the user document itself
         AccessControlledModel.remove(self, user)
         if progress:
-            progress.update(increment=1, message='Deleted user ' +
-                            user['login'])
+            progress.update(increment=1, message='Deleted user ' + user['login'])
 
     def getAdmins(self):
         """
@@ -244,10 +250,11 @@ class User(AccessControlledModel):
                          where an external system is responsible for
                          authenticating the user.
         """
+        from .password import Password
         if password is None:
             user['salt'] = None
         else:
-            salt, alg = self.model('password').encryptAndStore(password)
+            salt, alg = Password().encryptAndStore(password)
             user['salt'] = salt
             user['hashAlg'] = alg
 
@@ -266,8 +273,8 @@ class User(AccessControlledModel):
         :type public: bool
         :returns: The user document that was created.
         """
-        requireApproval = self.model('setting').get(
-            SettingKey.REGISTRATION_POLICY) == 'approve'
+        from .setting import Setting
+        requireApproval = Setting().get(SettingKey.REGISTRATION_POLICY) == 'approve'
         if admin:
             requireApproval = False
 
@@ -290,8 +297,7 @@ class User(AccessControlledModel):
 
         user = self.save(user)
 
-        verifyEmail = self.model('setting').get(
-            SettingKey.EMAIL_VERIFICATION) != 'disabled'
+        verifyEmail = Setting().get(SettingKey.EMAIL_VERIFICATION) != 'disabled'
         if verifyEmail:
             self._sendVerificationEmail(user)
 
@@ -318,7 +324,8 @@ class User(AccessControlledModel):
         Returns True if email verification is required and this user has not
         yet verified their email address.
         """
-        return (not user['emailVerified']) and self.model('setting').get(
+        from .setting import Setting
+        return (not user['emailVerified']) and Setting().get(
             SettingKey.EMAIL_VERIFICATION) == 'required'
 
     def adminApprovalRequired(self, user):
@@ -326,9 +333,9 @@ class User(AccessControlledModel):
         Returns True if the registration policy requires admin approval and
         this user is pending approval.
         """
+        from .setting import Setting
         return user.get('status', 'enabled') == 'pending' and \
-            self.model('setting').get(
-                SettingKey.REGISTRATION_POLICY) == 'approve'
+            Setting().get(SettingKey.REGISTRATION_POLICY) == 'approve'
 
     def _sendApprovalEmail(self, user):
         url = '%s#user/%s' % (
@@ -353,7 +360,9 @@ class User(AccessControlledModel):
             text=text)
 
     def _sendVerificationEmail(self, user):
-        token = self.model('token').createToken(
+        from .token import Token
+
+        token = Token().createToken(
             user, days=1, scope=TokenScope.EMAIL_VERIFICATION)
         url = '%s#useraccount/%s/verification/%s' % (
             mail_utils.getEmailUrlPrefix(), str(user['_id']), str(token['_id']))
@@ -384,23 +393,21 @@ class User(AccessControlledModel):
         This generally should not be called or overridden directly, but it may
         be unregistered from the `model.user.save.created` event.
         """
-        if self.model('setting').get(
-                SettingKey.USER_DEFAULT_FOLDERS, 'public_private') \
-                == 'public_private':
+        from .folder import Folder
+        from .setting import Setting
+
+        if Setting().get(SettingKey.USER_DEFAULT_FOLDERS, 'public_private') == 'public_private':
             user = event.info
 
-            publicFolder = self.model('folder').createFolder(
+            publicFolder = Folder().createFolder(
                 user, 'Public', parentType='user', public=True, creator=user)
-            privateFolder = self.model('folder').createFolder(
+            privateFolder = Folder().createFolder(
                 user, 'Private', parentType='user', public=False, creator=user)
             # Give the user admin access to their own folders
-            self.model('folder').setUserAccess(
-                publicFolder, user, AccessType.ADMIN, save=True)
-            self.model('folder').setUserAccess(
-                privateFolder, user, AccessType.ADMIN, save=True)
+            Folder().setUserAccess(publicFolder, user, AccessType.ADMIN, save=True)
+            Folder().setUserAccess(privateFolder, user, AccessType.ADMIN, save=True)
 
-    def fileList(self, doc, user=None, path='', includeMetadata=False,
-                 subpath=True, data=True):
+    def fileList(self, doc, user=None, path='', includeMetadata=False, subpath=True, data=True):
         """
         This function generates a list of 2-tuples whose first element is the
         relative path to the file from the user's folders root and whose second
@@ -422,13 +429,14 @@ class User(AccessControlledModel):
             assetstore, otherwise return file document.
         :type data: bool
         """
+        from .folder import Folder
+
         if subpath:
             path = os.path.join(path, doc['login'])
-        for folder in self.model('folder').childFolders(parentType='user',
-                                                        parent=doc, user=user):
-            for (filepath, file) in self.model('folder').fileList(
-                    folder, user, path, includeMetadata, subpath=True,
-                    data=data):
+        folderModel = Folder()
+        for folder in folderModel.childFolders(parentType='user', parent=doc, user=user):
+            for (filepath, file) in folderModel.fileList(
+                    folder, user, path, includeMetadata, subpath=True, data=data):
                 yield (filepath, file)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):
@@ -443,8 +451,11 @@ class User(AccessControlledModel):
         :param level: If filtering by permission, the required permission level.
         :type level: AccessLevel
         """
+        from .folder import Folder
+
         count = 1
-        folders = self.model('folder').find({
+        folderModel = Folder()
+        folders = folderModel.find({
             'parentId': doc['_id'],
             'parentCollection': 'user'
         }, fields=('access',))
@@ -453,7 +464,7 @@ class User(AccessControlledModel):
             folders = self.filterResultsByPermission(
                 cursor=folders, user=user, level=level)
 
-        count += sum(self.model('folder').subtreeCount(
+        count += sum(folderModel.subtreeCount(
             folder, includeItems=includeItems, user=user, level=level)
             for folder in folders)
         return count
@@ -471,9 +482,11 @@ class User(AccessControlledModel):
         :param level: The required access level, or None to return the raw
             top-level folder count.
         """
+        from .folder import Folder
+
         fields = () if level is None else ('access', 'public')
 
-        folderModel = self.model('folder')
+        folderModel = Folder()
         folders = folderModel.find({
             'parentId': user['_id'],
             'parentCollection': 'user'
@@ -493,19 +506,22 @@ class User(AccessControlledModel):
         :param doc: The user.
         :type doc: dict
         """
+        from .folder import Folder
+
         size = 0
         fixes = 0
-        folders = self.model('folder').find({
+        folderModel = Folder()
+        folders = folderModel.find({
             'parentId': doc['_id'],
             'parentCollection': 'user'
         })
         for folder in folders:
             # fix folder size if needed
-            _, f = self.model('folder').updateSize(folder)
+            _, f = folderModel.updateSize(folder)
             fixes += f
             # get total recursive folder size
-            folder = self.model('folder').load(folder['_id'], force=True)
-            size += self.model('folder').getSizeRecursive(folder)
+            folder = folderModel.load(folder['_id'], force=True)
+            size += folderModel.getSizeRecursive(folder)
         # fix value if incorrect
         if size != doc.get('size'):
             self.update({'_id': doc['_id']}, update={'$set': {'size': size}})

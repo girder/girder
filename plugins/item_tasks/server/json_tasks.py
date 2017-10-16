@@ -2,19 +2,24 @@ from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import boundHandler, filtermodel, RestException
 from girder.constants import AccessType
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.token import Token
+from girder.models.user import User
+from girder.plugins.jobs.models.job import Job
 from girder.plugins.worker import utils
 from . import constants
 
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
-@filtermodel(model='job', plugin='jobs')
+@filtermodel(model=Job)
 @boundHandler
 @autoDescribeRoute(
     Description('Create item task spec based on a task in a docker image.')
     .notes('This operates on an existing item, turning it into an item task '
            'using introspection of a docker image.')
     .modelParam('id', 'The ID of the item that the task spec will be bound to.',
-                model='item', level=AccessType.WRITE)
+                model=Item, level=AccessType.WRITE)
     .param('image', 'The docker image name. If not passed, uses the existing'
            'itemTaskSpec.docker_image metadata value.', required=False, strip=True)
     .param('taskName', 'The task name.', required=True, strip=True)
@@ -39,8 +44,8 @@ def runJsonTasksDescriptionForItem(self, item, image, taskName, setName, setDesc
             'You must pass an image parameter, or set the itemTaskSpec.docker_image '
             'field of the item.')
 
-    jobModel = self.model('job', 'jobs')
-    token = self.model('token').createToken(
+    jobModel = Job()
+    token = Token().createToken(
         days=3, scope='item_task.set_task_spec.%s' % item['_id'],
         user=self.getCurrentUser())
     job = jobModel.createJob(
@@ -93,7 +98,7 @@ def runJsonTasksDescriptionForItem(self, item, image, taskName, setName, setDesc
 @boundHandler
 @autoDescribeRoute(
     Description('Set a task spec on an item from a JSON specification.')
-    .modelParam('id', model='item', force=True)
+    .modelParam('id', model=Item, force=True)
     .jsonParam('json', 'The JSON specifications as a list or a single object.',
                paramType='body')
     .param('image', 'The docker image name.', required=True, strip=True)
@@ -109,8 +114,7 @@ def runJsonTasksDescriptionForItem(self, item, image, taskName, setName, setDesc
 )
 def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDescription,
                               pullImage):
-    self.model('token').requireScope(
-        self.getCurrentToken(), 'item_task.set_task_spec.%s' % item['_id'])
+    Token().requireScope(self.getCurrentToken(), 'item_task.set_task_spec.%s' % item['_id'])
 
     if not isinstance(json, list):
         json = [json]
@@ -125,7 +129,7 @@ def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDes
 
             itemTaskSpec['docker_image'] = image
             itemTaskSpec['pull_image'] = pullImage
-            self.model('item').setMetadata(item, {
+            Item().setMetadata(item, {
                 'itemTaskName': taskName,
                 'itemTaskSpec': itemTaskSpec,
                 'isItemTask': True
@@ -136,14 +140,14 @@ def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDes
 
 
 @access.admin(scope=constants.TOKEN_SCOPE_AUTO_CREATE_CLI)
-@filtermodel(model='job', plugin='jobs')
+@filtermodel(model=Job)
 @boundHandler
 @autoDescribeRoute(
     Description('Create item task specs based on a docker image.')
     .notes('This operates on an existing folder, adding item tasks '
            'using introspection of a docker image.')
     .modelParam('id', 'The ID of the folder that the task specs will be added to.',
-                model='folder', level=AccessType.WRITE)
+                model=Folder, level=AccessType.WRITE)
     .param('image', 'The docker image name.', required=True, strip=True)
     .param('pullImage', 'Whether the image should be pulled from Docker Hub. '
            'Set to false to use local images only.',
@@ -151,8 +155,8 @@ def configureItemTaskFromJson(self, item, json, image, taskName, setName, setDes
     .deprecated()
 )
 def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
-    jobModel = self.model('job', 'jobs')
-    token = self.model('token').createToken(
+    jobModel = Job()
+    token = Token().createToken(
         days=3, scope='item_task.set_task_spec.%s' % folder['_id'],
         user=self.getCurrentUser())
     job = jobModel.createJob(
@@ -202,7 +206,7 @@ def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
 @boundHandler
 @autoDescribeRoute(
     Description('Create item tasks under a folder using a list of JSON specifications.')
-    .modelParam('id', model='folder', force=True)
+    .modelParam('id', model=Folder, force=True)
     .jsonParam('json', 'The JSON specifications as a list or a single object.',
                paramType='body')
     .param('image', 'The docker image name.', required=True, strip=True)
@@ -213,10 +217,9 @@ def runJsonTasksDescriptionForFolder(self, folder, image, pullImage, params):
     hide=True
 )
 def createItemTasksFromJson(self, folder, json, image, pullImage, params):
-    self.model('token').requireScope(
-        self.getCurrentToken(), 'item_task.set_task_spec.%s' % folder['_id'])
+    Token().requireScope(self.getCurrentToken(), 'item_task.set_task_spec.%s' % folder['_id'])
     token = self.getCurrentToken()
-    user = self.model('user').load(token['userId'], force=True)
+    user = User().load(token['userId'], force=True)
 
     if not isinstance(json, list):
         json = [json]
@@ -229,7 +232,7 @@ def createItemTasksFromJson(self, folder, json, image, pullImage, params):
             if len(json) > 1:
                 name += ' ' + str(itemIndex)
 
-        item = self.model('item').createItem(
+        item = Item().createItem(
             name=name,
             creator=user,
             folder=folder,
@@ -238,7 +241,7 @@ def createItemTasksFromJson(self, folder, json, image, pullImage, params):
 
         itemTaskSpec['docker_image'] = image
         itemTaskSpec['pull_image'] = pullImage
-        self.model('item').setMetadata(item, {
+        Item().setMetadata(item, {
             'itemTaskName': origName or '',
             'itemTaskSpec': itemTaskSpec,
             'isItemTask': True

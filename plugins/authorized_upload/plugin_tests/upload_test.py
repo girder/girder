@@ -18,6 +18,11 @@
 ###############################################################################
 
 from girder.constants import SettingKey
+from girder.models.folder import Folder
+from girder.models.setting import Setting
+from girder.models.token import Token
+from girder.models.upload import Upload
+from girder.models.user import User
 from tests import base
 
 TOKEN_SCOPE_AUTHORIZED_UPLOAD = None
@@ -39,7 +44,7 @@ class AuthorizedUploadTest(base.TestCase):
     def setUp(self):
         super(AuthorizedUploadTest, self).setUp()
 
-        self.admin = self.model('user').createUser(
+        self.admin = User().createUser(
             login='admin',
             password='passwd',
             firstName='admin',
@@ -47,15 +52,14 @@ class AuthorizedUploadTest(base.TestCase):
             email='admin@admin.org'
         )
 
-        for folder in self.model('folder').childFolders(
-                parent=self.admin, parentType='user', user=self.admin):
+        for folder in Folder().childFolders(parent=self.admin, parentType='user', user=self.admin):
             if folder['public'] is True:
                 self.publicFolder = folder
             else:
                 self.privateFolder = folder
 
     def testAuthorizedUpload(self):
-        self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 1)
+        Setting().set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 1)
 
         # Anon access should not work
         resp = self.request('/authorized_upload', method='POST', params={
@@ -71,7 +75,7 @@ class AuthorizedUploadTest(base.TestCase):
         parts = resp.json['url'].rsplit('/', 3)
         tokenId, folderId = parts[-1], parts[-2]
 
-        token = self.model('token').load(tokenId, force=True, objectId=False)
+        token = Token().load(tokenId, force=True, objectId=False)
 
         self.assertIsNotNone(token)
         self.assertEqual(folderId, str(self.privateFolder['_id']))
@@ -98,8 +102,8 @@ class AuthorizedUploadTest(base.TestCase):
         self.assertStatusOk(resp)
 
         # We should remove the scope that allows further uploads
-        upload = self.model('upload').load(resp.json['_id'])
-        token = self.model('token').load(tokenId, force=True, objectId=False)
+        upload = Upload().load(resp.json['_id'])
+        token = Token().load(tokenId, force=True, objectId=False)
         self.assertEqual(token['scope'], [
             'authorized_upload_folder_%s' % self.privateFolder['_id']
         ])
@@ -138,4 +142,4 @@ class AuthorizedUploadTest(base.TestCase):
         self.assertStatus(resp, 401)
 
         # The token should be destroyed
-        self.assertIsNone(self.model('token').load(tokenId, force=True, objectId=False))
+        self.assertIsNone(Token().load(tokenId, force=True, objectId=False))

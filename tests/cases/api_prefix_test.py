@@ -17,32 +17,35 @@
 #  limitations under the License.
 ###############################################################################
 
-from server.constants import PluginSettings
-from tests import base
-from girder.models.setting import Setting
+import os
+import types
+
+from .. import base
 
 
-def setUpModule():
-    base.enabledPlugins.append('google_analytics')
-    base.startServer()
+class ApiPrefixTestCase(base.TestCase):
 
+    def setUp(self):
+        self.mockPluginDir(
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
+        base.enabledPlugins.append('has_api_prefix')
 
-def tearDownModule():
-    base.stopServer()
+        base.startServer()
 
+        from girder.plugins import has_api_prefix
+        self.assertIsInstance(has_api_prefix, types.ModuleType)
 
-class GoogleAnalyticsTest(base.TestCase):
+    def tearDown(self):
+        base.stopServer()
+        self.unmockPluginDir()
+        base.dropAllTestDatabases()
 
-    def testGetAnalytics(self):
-        # test without set
-        resp = self.request('/google_analytics/id')
+    def testCustomWebRoot(self):
+        """
+        Tests the ability of plugins to serve their own custom server roots.
+        """
+        # Root (/) should serve our custom route
+        resp = self.request('/prefix/resourceful')
         self.assertStatusOk(resp)
-        self.assertIs(resp.json['google_analytics_id'], None)
 
-        # set tracking id
-        Setting().set(PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID, 'testing-tracking-id')
-
-        # verify we can get the tracking id without being authenticated.
-        resp = self.request('/google_analytics/id')
-        self.assertStatusOk(resp)
-        self.assertEquals(resp.json['google_analytics_id'], 'testing-tracking-id')
+        self.assertEqual(resp.json, ['custom REST route'])
