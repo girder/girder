@@ -2,11 +2,11 @@
 
 ul.g-global-nav
   padding-left 0
-  width 260px
 
   .g-nav-link
     display block
-    line-height 2.2
+    line-height 52px
+    vertical-align middle
     font-size 14px
     color $lightColor
     i
@@ -18,14 +18,16 @@ ul.g-global-nav
     text-decoration none
     text-transform uppercase
     font-weight 600
+    padding-left 20px
 
   >li:hover:not(.g-active)
     .g-nav-link
-      color $normalColor
+      color $baseColor
 
   >li.g-active
     pointer-events none
     cursor default
+    background white
     .g-nav-link
       color $baseColor
 
