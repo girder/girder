@@ -1,4 +1,3 @@
-
 .. _python-client:
 
 Python Client and Girder CLI
@@ -182,6 +181,15 @@ To download the file(s) associated with a Girder Item with if `58b8eb798d777f0ae
 the local folder `download_folder`::
 
     girder-cli download --parent-type item 8b8eb798d777f0aef5d0f78 download_folder
+
+File
+""""
+
+To download a specific file from girder with id `58b8eb798d777f0aef5d0f78` to
+the local file `local_file` ::
+
+    girder-cli download --parent-type file 8b8eb798d777f0aef5d0f78  local_file
+
 
 Auto-detecting parent-type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

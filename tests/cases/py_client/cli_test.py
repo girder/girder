@@ -30,6 +30,7 @@ import httmock
 from girder import config
 from girder.models.api_key import ApiKey
 from girder.models.folder import Folder
+from girder.models.item import Item
 from girder.models.user import User
 from tests import base
 from six import StringIO
@@ -344,6 +345,20 @@ class PythonCliTestCase(base.TestCase):
         self.assertEqual(ret['exitVal'], 0)
         self.assertTrue(
             os.path.isfile(os.path.join(downloadDir, item_name)))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
+        # Test download of a file
+        os.makedirs(downloadDir)
+        items = list(Folder().childItems(folder=subfolder))
+        file_name, file_doc = next(Item().fileList(items[0], data=False))
+
+        ret = invokeCli(
+            ('download', '--parent-type=file', '%s' % file_doc['_id'],
+             os.path.join(downloadDir, file_name)),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, file_name)))
         shutil.rmtree(downloadDir, ignore_errors=True)
 
         # Test download of an item auto-detecting parent-type
