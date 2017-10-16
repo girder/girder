@@ -181,7 +181,7 @@ def _lookup_parent_type(client, object_id):
 
     object_id = client._checkResourcePath(object_id)
 
-    for parent_type in ['folder', 'collection', 'user', 'item']:
+    for parent_type in ['folder', 'collection', 'user', 'item', 'file']:
         try:
             client.get('resource/%s/path' % object_id, parameters={'type': parent_type})
             return parent_type
@@ -232,13 +232,16 @@ _short_help = 'Download files from Girder'
 
 @main.command('download', short_help=_short_help, help='%s\n\n%s' % (
     _short_help, _common_help.replace('LOCAL_FOLDER', 'LOCAL_FOLDER (default: ".")')))
-@_CommonParameters(additional_parent_types=['collection', 'user', 'item'], path_default='.')
+@_CommonParameters(additional_parent_types=[
+    'collection', 'user', 'item', 'file'], path_default='.')
 @click.pass_obj
 def _download(gc, parent_type, parent_id, local_folder):
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
     if parent_type == 'item':
         gc.downloadItem(parent_id, local_folder)
+    elif parent_type == 'file':
+        gc.downloadFile(parent_id, local_folder)
     else:
         gc.downloadResource(parent_id, local_folder, parent_type)
 
