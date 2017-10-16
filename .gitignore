@@ -19,3 +19,4 @@ __pycache__
 /npm-debug.log
 **/*.retry
 .cache
+.tox
