@@ -417,7 +417,7 @@ follows:
 
 The ``EXTERNAL_DATA`` keyword argument can take a list of files or even directories.
 When a directory is provided, it will download all files that exist in the given path.
-Inside your unit test, you can access these artifact files under the path given
+Inside your test, you can access these artifact files under the path given
 by the environment variable ``GIRDER_TEST_DATA_PREFIX`` as follows
 
 .. code-block:: python
