@@ -258,9 +258,9 @@ class HashsumDownloadTest(base.TestCase):
         resp = self.request(template % (self.publicFile['_id'], 'sha512'),
                             isJson=False)
         self.assertStatusOk(resp)
-        hash = self.getBody(resp)
-        self.assertEqual(hash, self.publicFile['sha512'])
-        self.assertEqual(len(hash), 128)
+        respBody = self.getBody(resp)
+        self.assertEqual(respBody, '%s\n' % self.publicFile['sha512'])
+        self.assertEqual(len(respBody), 129)
 
         # Should not work with private file
         resp = self.request(template % (self.privateFile['_id'], 'sha512'))
