@@ -30,16 +30,17 @@ class GirderCli(GirderClient):
     """
 
     def __init__(self, username, password, host=None, port=None, apiRoot=None,
-                 scheme=None, apiUrl=None, apiKey=None):
+                 scheme=None, apiUrl=None, apiKey=None, sslVerify=True):
         """
         Initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance. Aside from username, password,
-        and apiKey, all other kwargs are passed directly through to the
+        apiKey, and sslVerify, all other kwargs are passed directly through to the
         :py:class:`girder_client.GirderClient` base class constructor.
 
         :param username: username to authenticate to Girder instance.
         :param password: password to authenticate to Girder instance, leave
             this blank to be prompted.
+        :param sslVerify: enable or disable SSL verification on :class:`requests.Session` object.
         """
         def _progressBar(*args, **kwargs):
             bar = click.progressbar(*args, **kwargs)
@@ -76,10 +77,17 @@ class GirderCli(GirderClient):
             progressReporterCls=_progressBar)
         interactive = password is None
 
+        self.sslVerify = sslVerify
+
         if apiKey:
             self.authenticate(apiKey=apiKey)
         elif username:
             self.authenticate(username, password, interactive=interactive)
+
+    def _requestFunc(self, *args, **kwargs):
+        with self.session() as session:
+            session.verify = self.sslVerify
+            return super(GirderCli, self)._requestFunc(*args, **kwargs)
 
 
 class _HiddenOption(click.Option):
@@ -146,9 +154,16 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
                    '[default: %s]' % GirderClient.DEFAULT_API_ROOT,
               show_default=True,
               cls=_AdvancedOption)
+@click.option('--ssl-verify/--no-ssl-verify', default=True,
+              help='Enable or disable SSL Verification',
+              show_default=True,
+              cls=_AdvancedOption
+              )
 @click.version_option(version=__version__, prog_name='Girder command line interface')
 @click.pass_context
-def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root):
+def main(ctx, username, password,
+         api_key, api_url, scheme, host, port, api_root,
+         ssl_verify):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -174,7 +189,7 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
 
     ctx.obj = GirderCli(
         username, password, host=host, port=port, apiRoot=api_root,
-        scheme=scheme, apiUrl=api_url, apiKey=api_key)
+        scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify)
 
 
 def _lookup_parent_type(client, object_id):

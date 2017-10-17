@@ -95,6 +95,13 @@ The client also supports ``username`` and ``password`` args. If only the
 ``username`` is specified, the client will prompt the user to interactively
 input their password.
 
+Disabling SSL verification
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specifying ``--no-ssl-verify`` allows to ignore SSL verification. This is
+usually required when using the client behind a proxy that is not configured to
+accept the certificate of the given host.
+
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
