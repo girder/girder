@@ -1,5 +1,5 @@
 # This module provides an interface for girder tests to include data
-# files that are hosted externally.  The current standard storage
+# artifacts that are hosted externally.  The current standard storage
 # location is https://data.kitware.com, but any site that supports
 # content-addressed URL's can be used.  This module is largely a
 # thin wrapper arround the core CMake ExternalData module.
