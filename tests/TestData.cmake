@@ -1,6 +1,6 @@
 # This module provides an interface for girder tests to include data
 # files that are hosted externally.  The current standard storage
-# location is https://midas3.kitware.com, but any site that supports
+# location is https://data.kitware.com, but any site that supports
 # content-addressed URL's can be used.  This module is largely a
 # thin wrapper arround the core CMake ExternalData module.
 include(ExternalData)
@@ -79,7 +79,7 @@ endfunction()
 # Adds a new mirror hosting external data.  The argument passed to this
 # method should be a url template similar to the default mirror:
 #
-#   https://midas3.kitware.com/midas/api/rest?method=midas.bitstream.download&checksum=%(hash)&algorithm=%(algo)
+#   https://data.kitware.com/api/v1/file/hashsum/%(algo)/%(hash)/download
 #
 # where "%(algo)" will be replaced by a hashing algorithm such as "md5" or
 # "sha512" and "%(hash)" will be the corresponding hash value.

@@ -393,19 +393,22 @@ run.
 Downloading external data files for test cases
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In some cases, it is necessary to perform a test on a file that is too big store
+In some cases, it is necessary to perform a test on a file that is too big to store
 inside a repository.  For tests such as these, Girder provides a way to link to
-test files served at `<https://midas3.kitware.com>`_ and have them automatically
-downloaded and cached during the build stage.  To add a new external file, first
-make an account at `<https://midas3.kitware.com>`_ and upload a publicly accessible
-file.  When viewing the items containing those files on Midas, there will be a
-link to "Download key file" appearing as a key icon.  This file contains
-the MD5 hash of the file contents and can be committed inside the
-``tests/data/`` directory of Girder's repository.  This file can then be
-listed as an optional ``EXTERNAL_DATA`` argument to the ``add_python_test``
-function to have the file downloaded as an extra build step.  As an example,
-consider the file currently used for testing called ``tests/data/test_file.txt.md5``.
-To use this file in you test, you would add the test as follows
+test files served at `<https://data.kitware.com>`_ (or any Girder instance with the
+``hashsum_download`` plugin enabled) and have them automatically downloaded and cached during the
+build stage, while storing only the SHA512 hashsum of the test file in the source repository as a
+"key file".
+
+To add a new external file, first make an account at `<https://data.kitware.com>`_ and upload a
+publicly accessible file (ideally to the ``Girder`` collection, which you can request access to in
+your feature's GitHub pull request). Then, while viewing the newly created item page, open the file
+info dialog for the test file (by clicking the "i" icon to "Show info", next to the file), then
+click the "SHA-512" field's key icon to "Download key file". Save and commit this downloaded key
+file to the ``tests/data/`` directory of Girder's repository. This file can then be listed as an
+optional ``EXTERNAL_DATA`` argument to the ``add_python_test`` function to have the file downloaded
+as an extra build step.  As an example, consider the file currently used for testing called
+``tests/data/test_file.txt.md5``. To use this file in you test, you would add the test as follows:
 
 .. code-block:: cmake
 
