@@ -73,15 +73,15 @@ class HashedFile(File):
 
         if algo not in file:
             raise RestException('This file does not have the %s hash computed.' % algo)
-        hash = file[algo]
+        keyFileBody = '%s\n' % file[algo]
         name = '.'.join((file['name'], algo))
 
-        setResponseHeader('Content-Length', len(hash))
+        setResponseHeader('Content-Length', len(keyFileBody))
         setResponseHeader('Content-Type', 'text/plain')
         setContentDisposition(name)
         setRawResponse()
 
-        return hash
+        return keyFileBody
 
     @access.cookie
     @access.public(scope=TokenScope.DATA_READ)

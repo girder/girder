@@ -17,7 +17,7 @@ provide helpful development tools and to allow the test suite to run: ::
 
     pip install -r requirements-dev.txt
 
-Install front-end web client development dependencies. This will install npm modules eslint and pug-lint, which are needed to run unit tests. This will also build the web client code: ::
+Install front-end web client development dependencies. This will install npm modules eslint and pug-lint, which are needed to run tests. This will also build the web client code: ::
 
     girder-install web --dev
 

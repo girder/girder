@@ -960,21 +960,21 @@ For example, the cats plugin would define tests in a ``plugin_tests/catSpec.js``
 Using External Data Artifacts
 *****************************
 
-Plugin tests can also use the external data interface provided by Girder as described in
-:ref:`use_external_data`.  The data key files should be placed inside a directory
-called ``plugin_tests/data/``.  Tests which depend on these files should be explicitly added using
-the ``EXTERNAL_DATA`` option, with arguments of data file names (without the hash file extension)
-prefixed by ``plugins/<plugin_name>``. For example:
+Plugin tests can also use the external data artifact interface provided by Girder as described in
+:ref:`use_external_data`.  The artifact key files should be placed inside a directory
+called ``plugin_tests/data/``.  Tests which depend on these artifacts should be explicitly added
+using the ``EXTERNAL_DATA`` option, with arguments of data artifact names (without the hash file
+extension) prefixed by ``plugins/<plugin_name>``. For example:
 
 .. code-block:: cmake
 
     add_standard_plugin_tests(NO_SERVER_TESTS)
     add_python_test(cats_server_test PLUGIN cats EXTERNAL_DATA plugins/cats/test_file.txt)
 
-Then, within your test environment, the file will be available
+Then, within your test environment, the artifact will be available
 under the a location specified by the ``GIRDER_TEST_DATA_PREFIX`` environment variable, in the
-subdirectory ``plugins/<plugin_name>``. For example, in the same ``cats_server_test``, the file
-can be loaded at the path:
+subdirectory ``plugins/<plugin_name>``. For example, in the same ``cats_server_test``, the artifact
+file can be loaded at the path:
 
 .. code-block:: python
 
