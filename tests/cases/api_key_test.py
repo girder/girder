@@ -69,14 +69,12 @@ class ApiKeyTestCase(base.TestCase):
 
     def testListKeys(self):
         # Normal users shouldn't be able to request other users' keys
-        resp = self.request('/api_key', params={'userId': self.admin['_id']},
-                            user=self.user)
+        resp = self.request('/api_key', params={'userId': self.admin['_id']}, user=self.user)
         self.assertStatus(resp, 403)
         self.assertEqual(resp.json['message'], 'Administrator access required.')
 
         # Users should be able to request their own keys
-        resp = self.request('/api_key', params={'userId': self.user['_id']},
-                            user=self.user)
+        resp = self.request('/api_key', params={'userId': self.user['_id']}, user=self.user)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, [])
 
@@ -86,8 +84,7 @@ class ApiKeyTestCase(base.TestCase):
         self.assertEqual(resp.json, [])
 
         # Admins should be able to see other users' keys
-        resp = self.request('/api_key', params={'userId': self.user['_id']},
-                            user=self.admin)
+        resp = self.request('/api_key', params={'userId': self.user['_id']}, user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, [])
 
@@ -210,3 +207,36 @@ class ApiKeyTestCase(base.TestCase):
         msg = 'Invalid scopes: nonsense.$'
         with six.assertRaisesRegex(self, ValidationException, msg):
             ApiKey().createApiKey(user=self.admin, name='', scope=requestedScopes)
+
+    def testDisableApiKeysSetting(self):
+        errMsg = 'API key functionality is disabled on this instance.'
+
+        resp = self.request('/api_key', method='POST', params={
+            'name': 'test key'
+        }, user=self.user)
+        self.assertStatusOk(resp)
+
+        # Disable API keys
+        Setting().set(SettingKey.API_KEYS, False)
+
+        # Key should still exist
+        key = ApiKey().load(resp.json['_id'], force=True, exc=True)
+
+        # No longer possible to authenticate with existing key
+        resp = self.request('/api_key/token', method='POST', params={
+            'key': key['key']
+        })
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], errMsg)
+
+        # No longer possible to create new keys
+        resp = self.request('/api_key', method='POST', params={
+            'name': 'should not work'
+        }, user=self.user)
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], errMsg)
+
+        # Still possible to delete key
+        resp = self.request('/api_key/%s' % key['_id'], method='DELETE', user=self.user)
+        self.assertStatusOk(resp)
+        self.assertIsNone(ApiKey().load(key['_id'], force=True))
