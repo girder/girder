@@ -18,10 +18,11 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, filtermodel
+from ..rest import Resource, RestException, filtermodel
 from girder.models.api_key import ApiKey as ApiKeyModel
+from girder.models.setting import Setting
 from girder.models.user import User
-from girder.constants import AccessType
+from girder.constants import AccessType, SettingKey
 from girder.api import access
 
 
@@ -67,8 +68,12 @@ class ApiKey(Resource):
         .errorResponse()
     )
     def createKey(self, name, scope, tokenDuration, active):
-        return ApiKeyModel().createApiKey(
-            user=self.getCurrentUser(), name=name, scope=scope, days=tokenDuration, active=active)
+        if Setting().get(SettingKey.API_KEYS):
+            return ApiKeyModel().createApiKey(
+                user=self.getCurrentUser(), name=name, scope=scope, days=tokenDuration,
+                active=active)
+        else:
+            raise RestException('API key functionality is disabled on this instance.')
 
     @access.user
     @filtermodel(ApiKeyModel)
@@ -117,6 +122,9 @@ class ApiKey(Resource):
         .errorResponse()
     )
     def createToken(self, key, duration):
+        if not Setting().get(SettingKey.API_KEYS):
+            raise RestException('API key functionality is disabled on this instance.')
+
         user, token = ApiKeyModel().createToken(key, days=duration)
 
         self.sendAuthTokenCookie(token=token, days=duration)

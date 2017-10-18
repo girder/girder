@@ -42,7 +42,7 @@ var SystemConfigurationView = View.extend({
                     return {
                         key,
                         value: element.is(':checked')
-                    }
+                    };
                 } else {  // all other settings use $.fn.val()
                     return {
                         key,
