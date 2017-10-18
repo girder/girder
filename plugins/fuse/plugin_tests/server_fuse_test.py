@@ -452,6 +452,13 @@ class ServerFuseTestCase(base.TestCase):
             with self.assertRaises(fuse.FuseOSError):
                 op.open(self.publicFileName, flag)
 
+    def testFunctionCreate(self):
+        from girder.plugins.fuse import server_fuse
+        op = server_fuse.ServerFuse()
+
+        with self.assertRaises(fuse.FuseOSError):
+            op.create(self.publicFileName, 0)
+
     def testFunctionRelease(self):
         from girder.plugins.fuse import server_fuse
         op = server_fuse.ServerFuse()

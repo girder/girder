@@ -84,7 +84,7 @@ class ServerFuse(fuse.Operations, ModelImporter):
         except Exception as e:
             # Log all exceptions and then reraise them
             if self.log:
-                if getattr(e, 'errno', None) == errno.ENOENT:
+                if getattr(e, 'errno', None) in (errno.ENOENT, errno.EACCES):
                     self.log.debug('-- %s %r', op, e)
                 else:
                     self.log.exception('-- %s', op)
@@ -94,7 +94,7 @@ class ServerFuse(fuse.Operations, ModelImporter):
                 if op != 'read':
                     self.log.debug('<- %s %s', op, repr(ret))
                 else:
-                    self.log.debug('<- %s (length %d) %s', op, len(ret), repr(ret[:16]))
+                    self.log.debug('<- %s (length %d) %r', op, len(ret), ret[:16])
 
     def _getPath(self, path):
         """
@@ -231,6 +231,20 @@ class ServerFuse(fuse.Operations, ModelImporter):
                     resource['document'], self.user, level=AccessType.ADMIN)
         return 0
 
+    def create(self, path, mode):
+        """
+        This is a read-only system, so don't allow create.
+        """
+        raise fuse.FuseOSError(errno.EROFS)
+
+    def flush(self, path, fh=None):
+        """
+        We may want to disallow flush, since his is a read-only system:
+            raise fuse.FuseOSError(errno.EACCES)
+        For now, always succeed.
+        """
+        return 0
+
     def getattr(self, path, fh=None):
         """
         Get the attributes dictionary of a path.
@@ -292,7 +306,6 @@ class ServerFuse(fuse.Operations, ModelImporter):
                 docList = self.model(model).find({}, sort=None)
             else:
                 docList = self.model(model).list(user=self.user)
-
             for doc in docList:
                 result.append(self._name(doc, model))
         else:
@@ -317,7 +330,7 @@ class ServerFuse(fuse.Operations, ModelImporter):
             raise fuse.FuseOSError(errno.EROFS)
         info = {
             'path': path,
-            'handle': ModelImporter.model('file').open(resource['document']),
+            'handle': self.model('file').open(resource['document']),
             'lock': threading.Lock(),
         }
         with self.openFilesLock:
