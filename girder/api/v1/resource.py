@@ -21,12 +21,15 @@ import six
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource as BaseResource, RestException, setResponseHeader, setContentDisposition
-from girder.constants import AccessType, ResourceRegistry, TokenScope
+from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.utility import parseTimestamp
+from girder.utility import search_mode_utilities
 from girder.utility import ziputil
 from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
+
+_allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 
 
 class Resource(BaseResource):
@@ -64,7 +67,7 @@ class Resource(BaseResource):
     def search(self, q, mode, types, level, limit, offset):
         level = AccessType.validate(level)
         user = self.getCurrentUser()
-        allowedSearchModes = ResourceRegistry.ALLOWED_SEARCH_MODE
+        allowedSearchModes = search_mode_utilities.getSearchMode()
 
         if mode in allowedSearchModes:
             method = allowedSearchModes[mode]['method']
@@ -235,7 +238,7 @@ class Resource(BaseResource):
     )
     def delete(self, resources, progress):
         user = self.getCurrentUser()
-        self._validateResourceSet(resources, ResourceRegistry.ALLOWED_DELETE_TYPES)
+        self._validateResourceSet(resources, _allowedDeleteTypes)
         total = sum([len(resources[key]) for key in resources])
         with ProgressContext(
                 progress, user=user, title='Deleting resources',
