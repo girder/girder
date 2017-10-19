@@ -22,6 +22,7 @@ import os
 
 from .. import base
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
+from girder.models.user import User
 
 
 def setUpModule():
@@ -38,7 +39,7 @@ class RouteTableTestCase(base.TestCase):
     def setUp(self):
         super(RouteTableTestCase, self).setUp()
 
-        self.admin = self.model('user').createUser(
+        self.admin = User().createUser(
             email='admin@email.com', login='admin', firstName='Admin',
             lastName='Admin', password='password', admin=True)
 

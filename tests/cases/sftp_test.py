@@ -25,6 +25,10 @@ import threading
 
 from .. import base
 from girder.api import sftp
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.upload import Upload
+from girder.models.user import User
 from six.moves import StringIO
 
 server = None
@@ -90,7 +94,7 @@ class SftpTestCase(base.TestCase):
             'password': 'passwd'
         })
 
-        admin, user = [self.model('user').createUser(**user) for user in users]
+        admin, user = [User().createUser(**user) for user in users]
 
         collections = ({
             'name': 'public collection',
@@ -102,19 +106,19 @@ class SftpTestCase(base.TestCase):
             'creator': admin
         })
 
-        privateFolder = self.model('folder').findOne({
+        privateFolder = Folder().findOne({
             'parentCollection': 'user',
             'parentId': user['_id'],
             'name': 'Private'
         })
         self.assertIsNotNone(privateFolder)
 
-        self.model('upload').uploadFromFile(
+        Upload().uploadFromFile(
             six.BytesIO(b'hello world'), size=11, name='test.txt', parentType='folder',
             parent=privateFolder, user=user)
 
         for coll in collections:
-            self.model('collection').createCollection(**coll)
+            Collection().createCollection(**coll)
 
         client = paramiko.SSHClient()
         client.load_system_host_keys()

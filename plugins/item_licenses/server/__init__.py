@@ -22,8 +22,9 @@ import six
 from girder import events
 from girder.constants import AccessType, SettingDefault
 from girder.models.model_base import ValidationException
+from girder.models.item import Item
+from girder.models.setting import Setting
 from girder.utility import setting_utilities
-from girder.utility.model_importer import ModelImporter
 
 from .constants import PluginSettings, PluginSettingsDefaults
 from .rest import getLicenses
@@ -51,9 +52,8 @@ def updateItemLicense(event):
     if 'license' not in params:
         return
 
-    itemModel = ModelImporter.model('item')
-    item = itemModel.load(event.info['returnVal']['_id'], force=True,
-                          exc=True)
+    itemModel = Item()
+    item = itemModel.load(event.info['returnVal']['_id'], force=True, exc=True)
     newLicense = validateString(params['license'])
     if item['license'] == newLicense:
         return
@@ -63,16 +63,14 @@ def updateItemLicense(event):
     # Enforcing this here, instead of when validating the item, avoids an extra
     # database lookup (for the settings) on every future item save.
     if newLicense:
-        licenseSetting = ModelImporter.model('setting').get(
-            PluginSettings.LICENSES)
+        licenseSetting = Setting().get(PluginSettings.LICENSES)
         validLicense = any(
             license['name'] == newLicense
             for group in licenseSetting
             for license in group['licenses'])
         if not validLicense:
             raise ValidationException(
-                'License name must be in configured list of licenses.',
-                'license')
+                'License name must be in configured list of licenses.', 'license')
 
     item['license'] = newLicense
     item = itemModel.save(item)
@@ -129,7 +127,7 @@ def load(info):
     events.bind('model.item.validate', 'item_licenses', validateItem)
 
     # Add license field to item model
-    ModelImporter.model('item').exposeFields(level=AccessType.READ, fields='license')
+    Item().exposeFields(level=AccessType.READ, fields='license')
 
     # Add endpoint to get list of licenses
     info['apiRoot'].item.route('GET', ('licenses',), getLicenses)

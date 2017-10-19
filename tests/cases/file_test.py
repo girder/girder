@@ -33,6 +33,12 @@ from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.models.model_base import AccessException, GirderException
+from girder.models.assetstore import Assetstore
+from girder.models.collection import Collection
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.setting import Setting
+from girder.models.user import User
 from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
@@ -66,8 +72,8 @@ class FileTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         }
-        self.user = self.model('user').createUser(**user)
-        folders = self.model('folder').childFolders(
+        self.user = User().createUser(**user)
+        folders = Folder().childFolders(
             parent=self.user, parentType='user', user=self.user)
         for folder in folders:
             if folder['public'] is True:
@@ -81,7 +87,7 @@ class FileTestCase(base.TestCase):
             'lastName': 'User',
             'password': 'secondpassword'
         }
-        self.secondUser = self.model('user').createUser(**secondUser)
+        self.secondUser = User().createUser(**secondUser)
 
         self.testForFinalizeUpload = False
         self.finalizeUploadBeforeCalled = False
@@ -111,7 +117,7 @@ class FileTestCase(base.TestCase):
         self.assertEqual(file['name'], name)
         self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
 
-        return self.model('file').load(file['_id'], force=True)
+        return File().load(file['_id'], force=True)
 
     def _testFinalizeUploadBefore(self, event):
         self.finalizeUploadBeforeCalled = True
@@ -167,7 +173,7 @@ class FileTestCase(base.TestCase):
 
         # Sending the first chunk should fail because the default minimum chunk
         # size is larger than our chunk.
-        self.model('setting').unset(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
+        Setting().unset(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)
         fields = [('offset', 0), ('uploadId', uploadId)]
         files = [('chunk', 'helloWorld.txt', chunk1)]
         resp = self.multipartRequest(
@@ -179,7 +185,7 @@ class FileTestCase(base.TestCase):
         })
 
         # Send the first chunk (use multipart)
-        self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
+        Setting().set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
@@ -326,7 +332,7 @@ class FileTestCase(base.TestCase):
 
         # Test reading via the model layer file-like API
         contents = contents.encode('utf8')
-        with self.model('file').open(file) as handle:
+        with File().open(file) as handle:
             self.assertEqual(handle.tell(), 0)
             handle.seek(0)
             buf = _readFile(handle)
@@ -412,9 +418,9 @@ class FileTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # List files in the folder
-        testFolder = self.model('folder').load(test['_id'], force=True)
+        testFolder = Folder().load(test['_id'], force=True)
         fileList = [(path, file['name'])
-                    for (path, file) in self.model('folder').fileList(
+                    for (path, file) in Folder().fileList(
                         testFolder, user=self.user,
                         subpath=True, data=False)]
         self.assertEqual(fileList, [(u'Test/random.bin', u'random.bin')])
@@ -528,10 +534,9 @@ class FileTestCase(base.TestCase):
         self.assertEqual(extracted, contents)
 
         # Make collection public
-        collection = self.model('collection').load(collection['_id'],
-                                                   force=True)
+        collection = Collection().load(collection['_id'], force=True)
         collection['public'] = True
-        collection = self.model('collection').save(collection)
+        collection = Collection().save(collection)
 
         # Download the collection as anonymous
         path = '/collection/%s/download' % str(collection['_id'])
@@ -636,7 +641,7 @@ class FileTestCase(base.TestCase):
         """
         Test usage of the Filesystem assetstore type.
         """
-        self.assetstore = self.model('assetstore').getCurrent()
+        self.assetstore = Assetstore().getCurrent()
         root = self.assetstore['root']
 
         # Clean out the test assetstore on disk
@@ -663,7 +668,7 @@ class FileTestCase(base.TestCase):
         self.assertNotIn('path', file)
         self.assertEqual(file['_modelType'], 'file')
 
-        file = self.model('file').load(file['_id'], force=True)
+        file = File().load(file['_id'], force=True)
 
         # We want to make sure the file got uploaded correctly into
         # the assetstore and stored at the right location
@@ -707,7 +712,7 @@ class FileTestCase(base.TestCase):
 
         # Ensure the model layer raises an exception when trying to access
         # the file within a private folder
-        self.assertRaises(AccessException, self.model('file').load, file['_id'])
+        self.assertRaises(AccessException, File().load, file['_id'])
 
         self._testDownloadFile(file, chunk1 + chunk2)
         self._testDownloadFolder()
@@ -740,7 +745,7 @@ class FileTestCase(base.TestCase):
         resp = self.multipartRequest(
             path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
-        file = self.model('file').load(resp.json['_id'], force=True)
+        file = File().load(resp.json['_id'], force=True)
 
         # Old contents should now be destroyed, new contents should be present
         self.assertFalse(os.path.isfile(abspath))
@@ -789,7 +794,7 @@ class FileTestCase(base.TestCase):
                    u'\u043e\u0431\u0440\u0430\u0437\u0435\u0446 ' + \
                    u'\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'
         file = self._testUploadFile(filename)
-        file = self.model('file').load(file['_id'], force=True)
+        file = File().load(file['_id'], force=True)
         testval = 'filename="Unicode \\"sample\\"     "; filename*=UTF-8\'\'' \
             'Unicode%20%22sample%22%20%F0%90%82%88%20%D0%BE%D0%B1%D1%80%D0' \
             '%B0%D0%B7%D0%B5%D1%86%20%D8%B9%D9%8A%D9%86%D8%A9%20%E6%A8%A3%E5' \
@@ -809,8 +814,8 @@ class FileTestCase(base.TestCase):
         conn = getDbConnection()
         conn.drop_database('girder_test_file_assetstore')
 
-        self.model('assetstore').remove(self.model('assetstore').getCurrent())
-        assetstore = self.model('assetstore').createGridFsAssetstore(
+        Assetstore().remove(Assetstore().getCurrent())
+        assetstore = Assetstore().createGridFsAssetstore(
             name='Test', db='girder_test_file_assetstore')
         self.assetstore = assetstore
 
@@ -819,7 +824,7 @@ class FileTestCase(base.TestCase):
         # Upload the two-chunk file
         file = self._testUploadFile('helloWorld1.txt')
         hash = sha512(chunkData).hexdigest()
-        file = self.model('file').load(file['_id'], force=True)
+        file = File().load(file['_id'], force=True)
         self.assertEqual(hash, file['sha512'])
 
         # We should have two chunks in the database
@@ -851,8 +856,8 @@ class FileTestCase(base.TestCase):
         botoParams = makeBotoConnectParams('access', 'secret')
         mock_s3.createBucket(botoParams, 'b')
 
-        self.model('assetstore').remove(self.model('assetstore').getCurrent())
-        assetstore = self.model('assetstore').createS3Assetstore(
+        Assetstore().remove(Assetstore().getCurrent())
+        assetstore = Assetstore().createS3Assetstore(
             name='test', bucket='b', accessKeyId='access', secret='secret',
             prefix='test')
         self.assetstore = assetstore
@@ -942,7 +947,7 @@ class FileTestCase(base.TestCase):
                 path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
 
-        file = self.model('file').load(resp.json['_id'], force=True)
+        file = File().load(resp.json['_id'], force=True)
 
         self.assertHasKeys(file, ['itemId'])
         self.assertEqual(file['assetstoreId'], self.assetstore['_id'])

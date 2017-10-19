@@ -21,8 +21,10 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.api import access
 from girder.api.rest import getCurrentToken, setCurrentUser
+from girder.models.item import Item
+from girder.models.token import Token
+from girder.models.user import User
 from girder.utility import mail_utils
-from girder.utility.model_importer import ModelImporter
 
 from .constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
 from .rest import AuthorizedUpload
@@ -37,13 +39,13 @@ def _authorizeInitUpload(event):
     """
     token = getCurrentToken()
     params = event.info['params']
-    tokenModel = ModelImporter.model('token')
+    tokenModel = Token()
     parentType = params.get('parentType')
     parentId = params.get('parentId', '')
     requiredScopes = {TOKEN_SCOPE_AUTHORIZED_UPLOAD, 'authorized_upload_folder_%s' % parentId}
 
     if parentType == 'folder' and tokenModel.hasScope(token=token, scope=requiredScopes):
-        user = ModelImporter.model('user').load(token['userId'], force=True)
+        user = User().load(token['userId'], force=True)
         setCurrentUser(user)
 
 
@@ -54,7 +56,7 @@ def _storeUploadId(event):
     """
     returnVal = event.info['returnVal']
     token = getCurrentToken()
-    tokenModel = ModelImporter.model('token')
+    tokenModel = Token()
     isAuthorizedUpload = tokenModel.hasScope(token, TOKEN_SCOPE_AUTHORIZED_UPLOAD)
 
     if isAuthorizedUpload and returnVal.get('_modelType', 'upload') == 'upload':
@@ -77,7 +79,7 @@ def _authorizeUploadStep(event):
     uploadId = ObjectId(event.info['params'].get('uploadId'))
 
     if token and 'authorizedUploadId' in token and token['authorizedUploadId'] == uploadId:
-        user = ModelImporter.model('user').load(token['userId'], force=True)
+        user = User().load(token['userId'], force=True)
         setCurrentUser(user)
 
 
@@ -91,13 +93,13 @@ def _uploadComplete(event):
     """
     token = getCurrentToken()
     if token and 'authorizedUploadId' in token:
-        user = ModelImporter.model('user').load(token['userId'], force=True)
-        item = ModelImporter.model('item').load(event.info['file']['itemId'], force=True)
+        user = User().load(token['userId'], force=True)
+        item = Item().load(event.info['file']['itemId'], force=True)
 
         # Save the metadata on the item
         item['description'] = token['authorizedUploadDescription']
         item['authorizedUploadEmail'] = token['authorizedUploadEmail']
-        ModelImporter.model('item').save(item)
+        Item().save(item)
 
         text = mail_utils.renderTemplate('authorized_upload.uploadFinished.mako', {
             'itemId': item['_id'],
@@ -105,7 +107,7 @@ def _uploadComplete(event):
             'itemDescription': item.get('description', '')
         })
         mail_utils.sendEmail(to=user['email'], subject='Authorized upload complete', text=text)
-        ModelImporter.model('token').remove(token)
+        Token().remove(token)
 
 
 def load(info):

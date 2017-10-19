@@ -58,8 +58,10 @@ class Token(AccessControlledModel):
         :type apiKey: dict
         :returns: The token document that was created.
         """
+        from .setting import Setting
+
         now = datetime.datetime.utcnow()
-        days = days or self.model('setting').get(SettingKey.COOKIE_LIFETIME)
+        days = days or Setting().get(SettingKey.COOKIE_LIFETIME)
 
         if scope is None:
             scope = (TokenScope.USER_AUTH,)

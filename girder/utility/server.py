@@ -27,7 +27,8 @@ import six
 
 import girder.events
 from girder import constants, logprint, __version__, logStdoutStderr
-from girder.utility import plugin_utilities, model_importer, config
+from girder.models.setting import Setting
+from girder.utility import plugin_utilities, config
 from . import webroot
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
@@ -163,8 +164,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
     if plugins is None:
-        settings = model_importer.ModelImporter().model('setting')
-        plugins = settings.get(constants.SettingKey.PLUGINS_ENABLED, default=())
+        plugins = Setting().get(constants.SettingKey.PLUGINS_ENABLED, default=())
 
     plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
 
@@ -191,8 +191,7 @@ def loadRouteTable(reconcileRoutes=False):
               during Girder's setup phase.
     """
     pluginWebroots = plugin_utilities.getPluginWebroots()
-    setting = model_importer.ModelImporter().model('setting')
-    routeTable = setting.get(constants.SettingKey.ROUTE_TABLE)
+    routeTable = Setting().get(constants.SettingKey.ROUTE_TABLE)
 
     def reconcileRouteTable(routeTable):
         hasChanged = False
@@ -203,7 +202,7 @@ def loadRouteTable(reconcileRoutes=False):
                 hasChanged = True
 
         if hasChanged:
-            setting.set(constants.SettingKey.ROUTE_TABLE, routeTable)
+            Setting().set(constants.SettingKey.ROUTE_TABLE, routeTable)
 
         return routeTable
 

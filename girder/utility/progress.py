@@ -21,13 +21,12 @@ import cherrypy
 import datetime
 import time
 
-from .model_importer import ModelImporter
-from girder.models.notification import ProgressState
+from girder.models.notification import Notification, ProgressState
 from girder.models.model_base import ValidationException
 from girder.api.rest import RestException
 
 
-class ProgressContext(ModelImporter):
+class ProgressContext(object):
     """
     This class is a context manager that can be used to update progress in a way
     that rate-limits writes to the database and guarantees a flush when the
@@ -53,7 +52,7 @@ class ProgressContext(ModelImporter):
 
         if on:
             self._lastSave = time.time()
-            self.progress = self.model('notification').initProgress(**kwargs)
+            self.progress = Notification().initProgress(**kwargs)
 
     def __enter__(self):
         return self
@@ -76,7 +75,7 @@ class ProgressContext(ModelImporter):
             if isinstance(excValue, (ValidationException, RestException)):
                 message = 'Error: '+excValue.message
 
-        self.model('notification').updateProgress(
+        Notification().updateProgress(
             self.progress, state=state, message=message,
             expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=30)
         )
@@ -97,8 +96,7 @@ class ProgressContext(ModelImporter):
         if not self.on:
             return
         save = (time.time() - self._lastSave > self.interval) or force
-        self.progress = self.model('notification').updateProgress(
-            self.progress, save, **kwargs)
+        self.progress = Notification().updateProgress(self.progress, save, **kwargs)
 
         if save:
             self._lastSave = time.time()

@@ -21,6 +21,8 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import filtermodel, Resource, RestException
 from girder.constants import AccessType
+from girder.models.file import File
+from girder.plugins.jobs.models.job import Job
 from . import utils
 
 
@@ -31,12 +33,12 @@ class Thumbnail(Resource):
         self.route('POST', (), self.createThumbnail)
 
     @access.user
-    @filtermodel(model='job', plugin='jobs')
+    @filtermodel(model=Job)
     @autoDescribeRoute(
         Description('Create a new thumbnail from an existing image file.')
         .notes('Setting a width or height parameter of 0 will preserve the '
                'original aspect ratio.')
-        .modelParam('fileId', 'The ID of the source file.', model='file', paramType='formData',
+        .modelParam('fileId', 'The ID of the source file.', model=File, paramType='formData',
                     level=AccessType.READ)
         .param('width', 'The desired width.', required=False, dataType='integer', default=0)
         .param('height', 'The desired height.', required=False, dataType='integer', default=0)

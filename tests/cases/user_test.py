@@ -28,6 +28,11 @@ from .. import base
 from girder import events
 from girder.constants import AccessType, SettingKey, TokenScope
 from girder.models.model_base import ValidationException
+from girder.models.folder import Folder
+from girder.models.group import Group
+from girder.models.setting import Setting
+from girder.models.token import Token
+from girder.models.user import User
 
 
 def setUpModule():
@@ -44,7 +49,7 @@ class UserTestCase(base.TestCase):
         self.assertTrue('girderToken' in resp.cookie)
         self.cookieVal = resp.cookie['girderToken'].value
         self.assertFalse(not self.cookieVal)
-        lifetime = int(self.model('setting').get(SettingKey.COOKIE_LIFETIME))
+        lifetime = int(Setting().get(SettingKey.COOKIE_LIFETIME))
         self.assertEqual(
             resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)
@@ -111,7 +116,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self._verifyUserDocument(resp.json)
 
-        user = self.model('user').load(resp.json['_id'], force=True)
+        user = User().load(resp.json['_id'], force=True)
         self.assertEqual(user['hashAlg'], 'bcrypt')
 
         # Try logging in without basic auth, should get 401
@@ -167,9 +172,9 @@ class UserTestCase(base.TestCase):
 
         # Test secure cookie validation
         with self.assertRaises(ValidationException):
-            self.model('setting').set(SettingKey.SECURE_COOKIE, 'bad value')
+            Setting().set(SettingKey.SECURE_COOKIE, 'bad value')
         # Set secure cookie value
-        self.model('setting').set(SettingKey.SECURE_COOKIE, True)
+        Setting().set(SettingKey.SECURE_COOKIE, True)
 
         # Login successfully with login
         resp = self.request(path='/user/authentication', method='GET',
@@ -200,7 +205,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self._verifyUserDocument(resp.json)
 
-        user = self.model('user').load(resp.json['_id'], force=True)
+        user = User().load(resp.json['_id'], force=True)
         self.assertEqual(user['hashAlg'], 'sha512')
 
         # Login unsuccessfully
@@ -220,8 +225,7 @@ class UserTestCase(base.TestCase):
         # Make sure we got a nice cookie
         self._verifyAuthCookie(resp)
 
-        token = self.model('token').load(
-            self.cookieVal, objectId=False, force=True)
+        token = Token().load(self.cookieVal, objectId=False, force=True)
         self.assertEqual(str(token['userId']), resp.json['user']['_id'])
 
         # Hit the logout endpoint
@@ -229,8 +233,7 @@ class UserTestCase(base.TestCase):
                             token=token['_id'])
         self._verifyDeletedCookie(resp)
 
-        token = self.model('token').load(
-            token['_id'], objectId=False, force=True)
+        token = Token().load(token['_id'], objectId=False, force=True)
         self.assertEqual(token, None)
 
     def testGetAndUpdateUser(self):
@@ -244,11 +247,11 @@ class UserTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         }
-        user = self.model('user').createUser(**params)
+        user = User().createUser(**params)
 
         params['email'] = 'notasgood@email.com'
         params['login'] = 'notasgoodlogin'
-        nonAdminUser = self.model('user').createUser(**params)
+        nonAdminUser = User().createUser(**params)
 
         # Test that invalid objectID gives us a 400
         resp = self.request(path='/user/bad_id')
@@ -301,25 +304,25 @@ class UserTestCase(base.TestCase):
         Test the behavior of deleting users.
         """
         # Create a couple of users
-        users = [self.model('user').createUser(
+        users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
         # Create a folder and give both users some access on it
-        folder = self.model('folder').createFolder(
+        folder = Folder().createFolder(
             parent=users[0], name='x', parentType='user', public=False,
             creator=users[0])
-        self.model('folder').setUserAccess(folder, users[0], AccessType.WRITE)
-        self.model('folder').setUserAccess(folder, users[1], AccessType.READ)
-        folder = self.model('folder').save(folder)
+        Folder().setUserAccess(folder, users[0], AccessType.WRITE)
+        Folder().setUserAccess(folder, users[1], AccessType.READ)
+        folder = Folder().save(folder)
 
         self.assertEqual(len(folder['access']['users']), 2)
 
         # Create a token for user 1
-        token = self.model('token').createToken(users[1])
+        token = Token().createToken(users[1])
 
         # Create a group, and have user 1 request to join it
-        group = self.model('group').createGroup('test', users[0], public=True)
+        group = Group().createGroup('test', users[0], public=True)
         resp = self.request(path='/group/%s/member' % group['_id'],
                             method='POST', user=users[1])
         self.assertStatusOk(resp)
@@ -336,19 +339,17 @@ class UserTestCase(base.TestCase):
         self.assertEqual(
             resp.json['message'], 'Deleted user %s.' % users[1]['login'])
 
-        users[1] = self.model('user').load(users[1]['_id'], force=True)
-        folder = self.model('folder').load(folder['_id'], force=True)
-        token = self.model('token').load(token['_id'], force=True,
-                                         objectId=False)
-        group = self.model('group').load(group['_id'], force=True)
+        users[1] = User().load(users[1]['_id'], force=True)
+        folder = Folder().load(folder['_id'], force=True)
+        token = Token().load(token['_id'], force=True, objectId=False)
+        group = Group().load(group['_id'], force=True)
 
         # Make sure user and token were deleted
         self.assertEqual(users[1], None)
         self.assertEqual(token, None)
 
         # Make sure pending invite to group was deleted
-        self.assertEqual(
-            len(list(self.model('group').getFullRequestList(group))), 0)
+        self.assertEqual(len(list(Group().getFullRequestList(group))), 0)
 
         # Make sure access control references for the user were deleted
         self.assertEqual(len(folder['access']['users']), 1)
@@ -359,7 +360,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # Make sure the user's folder was deleted
-        folder = self.model('folder').load(folder['_id'], force=True)
+        folder = Folder().load(folder['_id'], force=True)
         self.assertEqual(folder, None)
 
     def testUserIndex(self):
@@ -368,7 +369,7 @@ class UserTestCase(base.TestCase):
         """
         # Create some users.
         for x in ('c', 'a', 'b'):
-            self.model('user').createUser(
+            User().createUser(
                 'usr%s' % x, 'passwd', 'tst', '%s_usr' % x, 'u%s@u.com' % x)
         resp = self.request(path='/user', method='GET', params={
             'limit': 2,
@@ -383,10 +384,8 @@ class UserTestCase(base.TestCase):
         self.assertEqual(resp.json[1]['lastName'], 'c_usr')
 
     def testPasswordChangeAndReset(self):
-        user = self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
-                                             'user@user.com')
-        user2 = self.model('user').createUser('user2', 'passwd', 'tst', 'usr',
-                                              'user2@user.com')
+        user = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@user.com')
+        user2 = User().createUser('user2', 'passwd', 'tst', 'usr', 'user2@user.com')
 
         # Reset password should require email param
         self.ensureRequiredParams(path='/user/password', method='DELETE', required={'email'})
@@ -503,15 +502,13 @@ class UserTestCase(base.TestCase):
         self._verifyAuthCookie(resp)
 
     def testAccountApproval(self):
-        admin = self.model('user').createUser(
-            'admin', 'password', 'Admin', 'Admin', 'admin@example.com')
+        admin = User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@example.com')
 
-        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'approve')
+        Setting().set(SettingKey.REGISTRATION_POLICY, 'approve')
 
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
 
-        user = self.model('user').createUser(
-            'user', 'password', 'User', 'User', 'user@example.com')
+        user = User().createUser('user', 'password', 'User', 'User', 'user@example.com')
 
         # pop email
         self.assertTrue(base.mockSmtp.waitForMail())
@@ -567,18 +564,16 @@ class UserTestCase(base.TestCase):
         self.assertEqual(resp.json['extra'], 'disabled')
 
     def testEmailVerification(self):
-        self.model('setting').set(SettingKey.EMAIL_VERIFICATION, 'required')
+        Setting().set(SettingKey.EMAIL_VERIFICATION, 'required')
 
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
 
-        self.model('user').createUser(
-            'admin', 'password', 'Admin', 'Admin', 'admin@example.com')
+        User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@example.com')
 
         self.assertTrue(base.mockSmtp.waitForMail())
         base.mockSmtp.getMail(parse=True)
 
-        self.model('user').createUser(
-            'user', 'password', 'User', 'User', 'user@example.com')
+        User().createUser('user', 'password', 'User', 'User', 'user@example.com')
 
         self.assertTrue(base.mockSmtp.waitForMail())
         msg = base.mockSmtp.getMail(parse=True)
@@ -605,8 +600,7 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
     def testTemporaryPassword(self):
-        self.model('user').createUser('user1', 'passwd', 'tst', 'usr',
-                                      'user@user.com')
+        User().createUser('user1', 'passwd', 'tst', 'usr', 'user@user.com')
         # Temporary password should require email param
         self.ensureRequiredParams(
             path='/user/password/temporary', method='PUT', required={'email'})
@@ -643,20 +637,20 @@ class UserTestCase(base.TestCase):
         # We should have a real auth token now
         self.assertTrue('girderToken' in resp.cookie)
         authToken = resp.cookie['girderToken'].value
-        token = self.model('token').load(authToken, force=True, objectId=False)
+        token = Token().load(authToken, force=True, objectId=False)
         self.assertEqual(str(token['userId']), userId)
-        self.assertFalse(self.model('token').hasScope(token, [
+        self.assertFalse(Token().hasScope(token, [
             TokenScope.TEMPORARY_USER_AUTH
         ]))
-        self.assertTrue(self.model('token').hasScope(token, [
+        self.assertTrue(Token().hasScope(token, [
             TokenScope.USER_AUTH
         ]))
 
         # Artificially adjust the token to have expired.
-        token = self.model('token').load(tokenId, force=True, objectId=False)
+        token = Token().load(tokenId, force=True, objectId=False)
         token['expires'] = (datetime.datetime.utcnow() -
                             datetime.timedelta(days=1))
-        self.model('token').save(token)
+        Token().save(token)
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatus(resp, 401)
 
@@ -668,16 +662,15 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # The token should have been deleted
-        token = self.model('token').load(tokenId, force=True, objectId=False)
+        token = Token().load(tokenId, force=True, objectId=False)
         self.assertEqual(token, None)
 
     def testUserCreation(self):
-        admin = self.model('user').createUser(
-            'user1', 'passwd', 'tst', 'usr', 'user@user.com')
+        admin = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@user.com')
         self.assertTrue(admin['admin'])
 
         # Close registration
-        self.model('setting').set(SettingKey.REGISTRATION_POLICY, 'closed')
+        Setting().set(SettingKey.REGISTRATION_POLICY, 'closed')
 
         params = {
             'email': 'some.email@email.com',
@@ -724,11 +717,9 @@ class UserTestCase(base.TestCase):
         self.assertTrue(resp.json['admin'])
 
     def testDefaultUserFolders(self):
-        self.model('setting').set(SettingKey.USER_DEFAULT_FOLDERS,
-                                  'public_private')
-        user1 = self.model('user').createUser(
-            'folderuser1', 'passwd', 'tst', 'usr', 'folderuser1@user.com')
-        user1Folders = self.model('folder').find({
+        Setting().set(SettingKey.USER_DEFAULT_FOLDERS, 'public_private')
+        user1 = User().createUser('folderuser1', 'passwd', 'tst', 'usr', 'folderuser1@user.com')
+        user1Folders = Folder().find({
             'parentId': user1['_id'],
             'parentCollection': 'user'})
         self.assertSetEqual(
@@ -737,8 +728,7 @@ class UserTestCase(base.TestCase):
         )
 
         # User should be able to see that 2 folders exist
-        resp = self.request(path='/user/%s/details' % user1['_id'],
-                            user=user1)
+        resp = self.request(path='/user/%s/details' % user1['_id'], user=user1)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nFolders'], 2)
 
@@ -747,11 +737,9 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nFolders'], 1)
 
-        self.model('setting').set(SettingKey.USER_DEFAULT_FOLDERS,
-                                  'none')
-        user2 = self.model('user').createUser(
-            'folderuser2', 'mypass', 'First', 'Last', 'folderuser2@user.com')
-        user2Folders = self.model('folder').find({
+        Setting().set(SettingKey.USER_DEFAULT_FOLDERS, 'none')
+        user2 = User().createUser('folderuser2', 'mypass', 'First', 'Last', 'folderuser2@user.com')
+        user2Folders = Folder().find({
             'parentId': user2['_id'],
             'parentCollection': 'user'})
         self.assertSetEqual(
@@ -760,8 +748,7 @@ class UserTestCase(base.TestCase):
         )
 
     def testAdminFlag(self):
-        admin = self.model('user').createUser(
-            'user1', 'passwd', 'tst', 'usr', 'user@user.com')
+        admin = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@user.com')
         self.assertTrue(admin['admin'])
 
         params = {
@@ -794,7 +781,7 @@ class UserTestCase(base.TestCase):
 
         count = collections.defaultdict(int)
         with events.bound('model.user.save.created', 'test', createdSave):
-            user = self.model('user').createUser(
+            user = User().createUser(
                 login='myuser', password='passwd', firstName='A', lastName='A',
                 email='email@email.com')
             self.assertEqual(count['created'], 1)
@@ -802,13 +789,13 @@ class UserTestCase(base.TestCase):
             count = collections.defaultdict(int)
             with events.bound('model.user.save', 'test', preSave), \
                     events.bound('model.user.save.after', 'test', postSave):
-                user = self.model('user').save(user, triggerEvents=False)
+                user = User().save(user, triggerEvents=False)
                 self.assertEqual(count['pre'], 0)
                 self.assertEqual(count['created'], 0)
                 self.assertEqual(count['post'], 0)
 
                 count = collections.defaultdict(int)
-                self.model('user').save(user)
+                User().save(user)
                 self.assertEqual(count['pre'], 1)
                 self.assertEqual(count['created'], 0)
                 self.assertEqual(count['post'], 1)
@@ -818,19 +805,18 @@ class UserTestCase(base.TestCase):
         Make sure private users behave correctly.
         """
         # Create an admin user
-        self.model('user').createUser(
+        User().createUser(
             firstName='Admin', lastName='Admin', login='admin',
             email='admin@admin.com', password='adminadmin')
 
         # Register a private user (non-admin)
-        pvt = self.model('user').createUser(
+        pvt = User().createUser(
             firstName='Guy', lastName='Noir', login='guynoir',
             email='guy.noir@email.com', password='guynoir', public=False)
 
         self.assertEqual(pvt['public'], False)
 
-        folder = six.next(self.model('folder').childFolders(
-            parentType='user', parent=pvt))
+        folder = six.next(Folder().childFolders(parentType='user', parent=pvt))
 
         # Private users should be able to upload files
         resp = self.request(path='/item', method='POST', user=pvt, params={
@@ -862,11 +848,11 @@ class UserTestCase(base.TestCase):
         Test that the user count is correct.
         """
         # Create an admin user
-        admin = self.model('user').createUser(
+        admin = User().createUser(
             firstName='Admin', lastName='Admin', login='admin',
             email='admin@admin.com', password='adminadmin')
         # Create a couple of users
-        users = [self.model('user').createUser(
+        users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
         resp = self.request(path='/user/details', user=admin, method='GET')

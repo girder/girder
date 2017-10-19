@@ -22,6 +22,9 @@ import posixpath
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, loadmodel, RestException
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
 from girder.utility.progress import ProgressContext
 from snakebite.client import Client as HdfsClient
 from snakebite.errors import FileNotFoundException
@@ -33,9 +36,9 @@ class HdfsAssetstoreResource(Resource):
         self.resourceName = 'hdfs_assetstore'
         self.route('PUT', (':id', 'import'), self.importData)
 
-        self.folderModel = self.model('folder')  # Save to avoid many lookups
-        self.itemModel = self.model('item')
-        self.fileModel = self.model('file')
+        self.folderModel = Folder()  # Save to avoid many lookups
+        self.itemModel = Item()
+        self.fileModel = File()
 
     def _importFile(self, parent, name, user, assetstore, node):
         item = self.itemModel.findOne({
@@ -108,19 +111,15 @@ class HdfsAssetstoreResource(Resource):
         if parentType not in ('user', 'collection', 'folder'):
             raise RestException('Invalid parentType.')
 
-        parent = self.model(parentType).load(params['parentId'], force=True,
-                                             exc=True)
+        parent = self.model(parentType).load(params['parentId'], force=True, exc=True)
 
         progress = self.boolParam('progress', params, default=False)
         client = HdfsClient(
-            host=assetstore['hdfs']['host'], port=assetstore['hdfs']['port'],
-            use_trash=False)
+            host=assetstore['hdfs']['host'], port=assetstore['hdfs']['port'], use_trash=False)
         path = params['path']
 
-        with ProgressContext(progress, user=user,
-                             title='Importing data from HDFS') as ctx:
+        with ProgressContext(progress, user=user, title='Importing data from HDFS') as ctx:
             try:
-                self._importData(
-                    parentType, parent, assetstore, client, path, ctx, user)
+                self._importData(parentType, parent, assetstore, client, path, ctx, user)
             except FileNotFoundException:
                 raise RestException('File not found: %s.' % path)

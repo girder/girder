@@ -27,7 +27,6 @@ from mako.lookup import TemplateLookup
 from girder import events
 from girder import logger
 from girder.constants import SettingKey, PACKAGE_DIR
-from .model_importer import ModelImporter
 
 
 def getEmailUrlPrefix():
@@ -36,7 +35,9 @@ def getEmailUrlPrefix():
     server root, so Girder-level path information and any query parameters or
     fragment value should be appended to this value.
     """
-    host = ModelImporter.model('setting').get(SettingKey.EMAIL_HOST, '')
+    from girder.models.setting import Setting
+
+    host = Setting().get(SettingKey.EMAIL_HOST, '')
     if not host:
         host = '://'.join((cherrypy.request.scheme,
                            cherrypy.request.local.name))
@@ -55,13 +56,15 @@ def renderTemplate(name, params=None):
     :type params: dict
     :returns: The rendered template as a string of HTML.
     """
+    from girder.models.setting import Setting
+
     if not params:
         params = {}
 
     if 'host' not in params:
         params['host'] = getEmailUrlPrefix()
     if 'brandName' not in params:
-        params['brandName'] = ModelImporter.model('setting').get(SettingKey.BRAND_NAME)
+        params['brandName'] = Setting().get(SettingKey.BRAND_NAME)
 
     template = _templateLookup.get_template(name)
     return template.render(**params)
@@ -85,11 +88,14 @@ def sendEmail(to=None, subject=None, text=None, toAdmins=False, bcc=None):
         Bcc header.
     :type bcc: str, list/tuple, or None
     """
+    from girder.models.setting import Setting
+    from girder.models.user import User
+
     to = to or ()
     bcc = bcc or ()
 
     if toAdmins:
-        to = [u['email'] for u in ModelImporter.model('user').getAdmins()]
+        to = [u['email'] for u in User().getAdmins()]
     else:
         if isinstance(to, six.string_types):
             to = (to,)
@@ -111,8 +117,7 @@ def sendEmail(to=None, subject=None, text=None, toAdmins=False, bcc=None):
     if bcc:
         msg['Bcc'] = ', '.join(bcc)
 
-    msg['From'] = ModelImporter.model('setting').get(
-        SettingKey.EMAIL_FROM_ADDRESS, 'Girder <no-reply@girder.org>')
+    msg['From'] = Setting().get(SettingKey.EMAIL_FROM_ADDRESS, 'Girder <no-reply@girder.org>')
 
     events.daemon.trigger('_sendmail', info={
         'message': msg,
@@ -164,10 +169,12 @@ class _SMTPConnection(object):
 
 
 def _sendmail(event):
+    from girder.models.setting import Setting
+
     msg = event.info['message']
     recipients = event.info['recipients']
 
-    setting = ModelImporter.model('setting')
+    setting = Setting()
     smtp = _SMTPConnection(
         host=setting.get(SettingKey.SMTP_HOST, 'localhost'),
         port=setting.get(SettingKey.SMTP_PORT, None),
@@ -176,8 +183,7 @@ def _sendmail(event):
         password=setting.get(SettingKey.SMTP_PASSWORD, None)
     )
 
-    logger.info('Sending email to %s through %s',
-                ', '.join(recipients), smtp.host)
+    logger.info('Sending email to %s through %s', ', '.join(recipients), smtp.host)
 
     with smtp:
         smtp.send(msg['From'], recipients, msg.as_string())

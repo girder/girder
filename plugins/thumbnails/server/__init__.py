@@ -20,6 +20,11 @@
 import json
 from girder import events
 from girder.constants import AccessType
+from girder.models.collection import Collection
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.user import User
 from girder.utility.model_importer import ModelImporter
 from . import rest, utils
 
@@ -30,7 +35,7 @@ def removeThumbnails(event):
     all of the thumbnails that are attached to it.
     """
     thumbs = event.info.get('_thumbnails', ())
-    fileModel = ModelImporter.model('file')
+    fileModel = File()
 
     for fileId in thumbs:
         file = fileModel.load(fileId, force=True)
@@ -89,7 +94,7 @@ def _onUpload(event):
     if not isinstance(width, int) or not isinstance(height, int):
         return
 
-    item = ModelImporter.model('item').load(file['itemId'], force=True)
+    item = Item().load(file['itemId'], force=True)
     crop = bool(ref['thumbnail'].get('crop', True))
     utils.scheduleThumbnailJob(
         file=file, attachToType='item', attachToId=item['_id'], user=event.info['currentUser'],
@@ -99,9 +104,9 @@ def _onUpload(event):
 def load(info):
     info['apiRoot'].thumbnail = rest.Thumbnail()
 
-    for model in ('item', 'collection', 'folder', 'user'):
-        ModelImporter.model(model).exposeFields(level=AccessType.READ, fields='_thumbnails')
-        events.bind('model.%s.remove' % model, info['name'], removeThumbnails)
+    for model in (Item(), Collection(), Folder(), User()):
+        model.exposeFields(level=AccessType.READ, fields='_thumbnails')
+        events.bind('model.%s.remove' % model.name, info['name'], removeThumbnails)
 
     events.bind('model.file.remove', info['name'], removeThumbnailLink)
     events.bind('data.process', info['name'], _onUpload)

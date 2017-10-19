@@ -39,6 +39,11 @@ from girder.utility import model_importer, plugin_utilities
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
 from girder.models import getDbConnection
+from girder.models.model_base import _modelSingletons
+from girder.models.assetstore import Assetstore
+from girder.models.file import File
+from girder.models.setting import Setting
+from girder.models.token import Token
 from girder.api.rest import setContentDisposition
 from . import mock_smtp
 from . import mock_s3
@@ -128,7 +133,8 @@ def dropTestDatabase(dropModels=True):
         db_connection.drop_database(dbName)
     usedDBs[dbName] = True
     if dropModels:
-        model_importer.reinitializeAll()
+        for model in _modelSingletons:
+            model.reconnect()
 
 
 def dropGridFSDatabase(dbName):
@@ -199,13 +205,12 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             # within test methods
             gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName
             dropGridFSDatabase(gridfsDbName)
-            self.assetstore = self.model('assetstore').createGridFsAssetstore(
-                name='Test', db=gridfsDbName)
+            self.assetstore = Assetstore().createGridFsAssetstore(name='Test', db=gridfsDbName)
         elif assetstoreType == 'gridfsrs':
             gridfsDbName = 'girder_test_%s_rs_assetstore_auto' % assetstoreName
             self.replicaSetConfig = mongo_replicaset.makeConfig()
             mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
-            self.assetstore = self.model('assetstore').createGridFsAssetstore(
+            self.assetstore = Assetstore().createGridFsAssetstore(
                 name='Test', db=gridfsDbName,
                 mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
                 '127.0.0.1:27072', replicaset='replicaset')
@@ -214,22 +219,23 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             self.replicaSetConfig = mongo_replicaset.makeConfig(
                 port=27073, shard=True, sharddb=None)
             mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
-            self.assetstore = self.model('assetstore').createGridFsAssetstore(
+            self.assetstore = Assetstore().createGridFsAssetstore(
                 name='Test', db=gridfsDbName,
                 mongohost='mongodb://127.0.0.1:27073', shard='auto')
         elif assetstoreType == 's3':
-            self.assetstore = self.model('assetstore').createS3Assetstore(
+            self.assetstore = Assetstore().createS3Assetstore(
                 name='Test', bucket='bucketname', accessKeyId='test',
                 secret='test', service=mockS3Server.service)
         else:
             dropFsAssetstore(assetstorePath)
-            self.assetstore = self.model('assetstore').createFilesystemAssetstore(
+            self.assetstore = Assetstore().createFilesystemAssetstore(
                 name='Test', root=assetstorePath)
 
         addr = ':'.join(map(str, mockSmtp.address or ('localhost', 25)))
-        self.model('setting').set(SettingKey.SMTP_HOST, addr)
-        self.model('setting').set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
-        self.model('setting').set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
+        settings = Setting()
+        settings.set(SettingKey.SMTP_HOST, addr)
+        settings.set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
+        settings.set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
         if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
             setup_database.main(os.environ['GIRDER_TEST_DATABASE_CONFIG'])
@@ -427,7 +433,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         self.assertEqual(file['size'], len(contents))
         self.assertEqual(file['mimeType'], mimeType)
 
-        return self.model('file').load(file['_id'], force=True)
+        return File().load(file['_id'], force=True)
 
     def ensureRequiredParams(self, path='/', method='GET', required=(), user=None):
         """
@@ -447,7 +453,8 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         """
         Helper method for creating an authentication token for the user.
         """
-        token = self.model('token').createToken(user)
+
+        token = Token().createToken(user)
         return str(token['_id'])
 
     def _buildHeaders(self, headers, cookie, user, token, basicAuth,

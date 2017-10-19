@@ -21,8 +21,8 @@ import six
 
 from girder.api import rest
 from girder.models.model_base import AccessException
+from girder.models.token import Token
 from girder.utility import optionalArgumentDecorator
-from girder.utility.model_importer import ModelImporter
 
 
 @optionalArgumentDecorator
@@ -84,7 +84,7 @@ def token(fun, scope=None, required=False):
         if not rest.getCurrentToken():
             raise AccessException('You must be logged in or have a valid auth token.')
         if required:
-            ModelImporter.model('token').requireScope(rest.getCurrentToken(), scope)
+            Token().requireScope(rest.getCurrentToken(), scope)
         return fun(*args, **kwargs)
     wrapped.accessLevel = 'token'
     wrapped.requiredScopes = scope

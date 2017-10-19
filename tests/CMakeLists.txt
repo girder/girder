@@ -47,9 +47,11 @@ if(RUN_CORE_TESTS)
   add_python_test(logging_config)
   add_python_test(mail)
   add_python_test(model)
+  add_python_test(model_singleton)
   add_python_test(routetable)
   add_python_test(notification TIMEOUT 50)
   add_python_test(plugin_load_failure)
+  add_python_test(api_prefix)
   add_python_test(resource)
   add_python_test(rest_decorator BIND_SERVER)
   add_python_test(rest_util)
@@ -106,7 +108,7 @@ if(RUN_CORE_TESTS)
     EXTERNAL_DATA "test_file.txt"
   )
   add_python_test(external_data_plugin
-    EXTERNAL_DATA "plugins/has_external_data/test_file.txt"
+    EXTERNAL_DATA "plugins/has_external_data/plugin_test_file.txt"
   )
   set_property(TEST server_external_data_core PROPERTY LABELS girder_devel)
   set_property(TEST server_external_data_plugin PROPERTY LABELS girder_devel)

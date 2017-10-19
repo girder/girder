@@ -24,6 +24,9 @@ from bson import json_util
 from girder import events
 from girder.constants import AccessType, SortDir
 from girder.models.model_base import AccessControlledModel, ValidationException
+from girder.models.notification import Notification
+from girder.models.token import Token
+from girder.models.user import User
 from girder.plugins.jobs.constants import JobStatus, JOB_HANDLER_LOCAL
 
 
@@ -246,7 +249,7 @@ class Job(AccessControlledModel):
             deserialized_kwargs = job['kwargs']
             job['kwargs'] = json_util.dumps(job['kwargs'])
 
-            self.model('notification').createNotification(
+            Notification().createNotification(
                 type='job_created', data=job, user=user,
                 expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=30))
 
@@ -312,8 +315,7 @@ class Job(AccessControlledModel):
         Create a token that can be used just for the management of an individual
         job, e.g. updating job info, progress, logs, status.
         """
-        return self.model('token').createToken(
-            days=days, scope='jobs.job_' + str(job['_id']))
+        return Token().createToken(days=days, scope='jobs.job_' + str(job['_id']))
 
     def updateJob(self, job, log=None, overwrite=False, status=None,
                   progressTotal=None, progressCurrent=None, notify=True,
@@ -356,7 +358,7 @@ class Job(AccessControlledModel):
         user = None
         otherFields = otherFields or {}
         if job['userId']:
-            user = self.model('user').load(job['userId'], force=True)
+            user = User().load(job['userId'], force=True)
 
         query = {
             '_id': job['_id']
@@ -419,7 +421,7 @@ class Job(AccessControlledModel):
             updates['$push']['log'] = log
         if notify and user:
             expires = now + datetime.timedelta(seconds=30)
-            self.model('notification').createNotification(
+            Notification().createNotification(
                 type='job_log', data={
                     '_id': job['_id'],
                     'overwrite': overwrite,
@@ -431,9 +433,8 @@ class Job(AccessControlledModel):
         filtered = self.filter(job, user)
         filtered.pop('kwargs', None)
         filtered.pop('log', None)
-        self.model('notification').createNotification(type='job_status',
-                                                      data=filtered, user=user,
-                                                      expires=expires)
+        Notification().createNotification(
+            type='job_status', data=filtered, user=user, expires=expires)
 
     def _updateStatus(self, job, status, now, query, updates):
         """Helper for updating job progress information."""
@@ -503,10 +504,9 @@ class Job(AccessControlledModel):
                     job['progress']['notificationId'] = nid
                     updates['$set']['progress.notificationId'] = nid
                 else:
-                    notification = self.model('notification').load(
-                        job['progress']['notificationId'])
+                    notification = Notification().load(job['progress']['notificationId'])
 
-                self.model('notification').updateProgress(
+                Notification().updateProgress(
                     notification, state=state,
                     message=job['progress']['message'],
                     current=job['progress']['current'],
@@ -515,10 +515,10 @@ class Job(AccessControlledModel):
     def _createProgressNotification(self, job, total, current, state, message,
                                     user=None):
         if not user:
-            user = self.model('user').load(job['userId'], force=True)
+            user = User().load(job['userId'], force=True)
         # TODO support channel-based notifications for jobs. For
         # right now we'll just go through the user.
-        return self.model('notification').initProgress(
+        return Notification().initProgress(
             user, job['title'], total, state=state, current=current,
             message=message, estimateTime=False, resource=job, resourceName=self.name)
 
@@ -580,8 +580,6 @@ class Job(AccessControlledModel):
         """
         query = {'parentId': job['_id']}
         cursor = self.find(query)
-        user = self.model('user').load(job['userId'], force=True)
-        for r in self.filterResultsByPermission(cursor=cursor,
-                                                user=user,
-                                                level=AccessType.READ):
+        user = User().load(job['userId'], force=True)
+        for r in self.filterResultsByPermission(cursor=cursor, user=user, level=AccessType.READ):
             yield r

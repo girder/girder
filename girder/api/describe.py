@@ -23,6 +23,7 @@ try:
     from inspect import signature, Parameter
 except ImportError:
     from funcsigs import signature, Parameter
+import inspect
 import jsonschema
 import os
 import six
@@ -31,9 +32,11 @@ import cherrypy
 from girder import constants, events, logprint
 from girder.api.rest import getCurrentUser, RestException, getBodyJson
 from girder.constants import CoreEventHandler, SettingKey
+from girder.models.setting import Setting
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
+from girder.utility.resource import _apiRouteMap
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
 
@@ -259,7 +262,8 @@ class Description(object):
         and the model should be loaded and passed into the route handler. For example,
         if you have a route like ``GET /item/:id``, you could do:
 
-        >>> modelParam('id', model='item', level=AccessType.READ)
+        >>> from girder.models.item import Item
+        >>> modelParam('id', model=Item, level=AccessType.READ)
 
         Which would cause the ``id`` parameter in the path to be mapped to an
         item model parameter named ``item``, and ensure that the calling user
@@ -267,7 +271,7 @@ class Description(object):
         the query string or form data, for example a request like
         ``POST /item?folderId=...``, you must specify the ``paramType``.
 
-        >>> modelParam('folderId', 'The ID of the parent folder.',
+        >>> modelParam('folderId', 'The ID of the parent folder.', model=Folder,
         ...            level=AccessType.WRITE, paramType='query')
 
         Note that in the above example, ``model`` is omitted; in this case, the
@@ -283,11 +287,12 @@ class Description(object):
         :type destName: str
         :param paramType: how is the parameter sent.  One of 'query', 'path',
             'body', 'header', or 'formData'.
-        :param model: The model name, e.g. 'folder'. If not passed, defaults to stripping
-            the last two characters from the name, such that e.g. 'folderId' would make
-            the model become 'folder'.
-        :type model: str
-        :param plugin: Plugin name, if loading a plugin model.
+        :param model: The model class to use for loading, or a name, e.g. 'folder'. If not passed,
+            defaults to stripping the last two characters from the name, such that e.g. 'folderId'
+            would make the model become 'folder'.
+        :type model: class or str
+        :param plugin: Plugin name, if loading a plugin model. Only used when the ``model``
+            param is a string rather than a class.
         :type plugin: str
         :param level: Access level, if this is an access controlled model.
         :type level: AccessType
@@ -303,17 +308,23 @@ class Description(object):
         if model is None:
             model = name[:-2]  # strip off "Id"
 
+        if inspect.isclass(model):
+            modelInst = model()
+            modelName = modelInst.name
+        else:
+            modelName = model
+            modelInst = ModelImporter.model(model, plugin)
+
         if description is None:
-            description = 'The ID of the %s.' % model
+            description = 'The ID of the %s.' % modelName
 
         self.param(name=name, description=description, paramType=paramType, required=required)
 
         self.modelParams[name] = {
-            'destName': destName or model,
+            'destName': destName or modelName,
             'level': level,
             'force': force,
-            'model': model,
-            'plugin': plugin,
+            'model': modelInst,
             'exc': exc,
             'required': required,
             'requiredFlags': requiredFlags,
@@ -448,7 +459,7 @@ class ApiDocs(WebrootBase):
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
+            'brandName': Setting().get(SettingKey.BRAND_NAME),
             'mode': mode
         }
 
@@ -465,8 +476,7 @@ class ApiDocs(WebrootBase):
     def _onSettingRemove(self, event):
         settingDoc = event.info
         if settingDoc['key'] == SettingKey.BRAND_NAME:
-            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
-                SettingKey.BRAND_NAME)})
+            self.updateHtmlVars({'brandName': Setting().getDefault(SettingKey.BRAND_NAME)})
 
 
 class Describe(Resource):
@@ -485,15 +495,25 @@ class Describe(Resource):
         # List of Tag Objects
         tags = []
 
-        for resource in sorted(six.viewkeys(docs.routes)):
+        routeMap = _apiRouteMap()
+
+        for resource in sorted(six.viewkeys(docs.routes), key=str):
             # Update Definitions Object
             if resource in docs.models:
                 for name, model in six.viewitems(docs.models[resource]):
                     definitions[name] = model
 
+            prefixPath = None
+            tag = resource
+            if isinstance(resource, Resource):
+                if resource not in routeMap:
+                    raise RestException('Resource not mounted: %s' % resource)
+                prefixPath = routeMap[resource]
+                tag = prefixPath[0]
+
             # Tag Object
             tags.append({
-                'name': resource
+                'name': tag
             })
 
             for route, methods in six.viewitems(docs.routes[resource]):
@@ -502,6 +522,11 @@ class Describe(Resource):
                 for method, operation in six.viewitems(methods):
                     # Operation Object
                     pathItem[method.lower()] = operation
+                    if prefixPath:
+                        operation['tags'] = prefixPath[:1]
+
+                if prefixPath:
+                    route = '/'.join([''] + prefixPath + [route[1:]])
 
                 paths[route] = pathItem
 
@@ -703,7 +728,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         return val
 
     def _loadModel(self, name, info, id):
-        model = ModelImporter.model(info['model'], info['plugin'])
+        model = info['model']
+
         if info['force']:
             doc = model.load(id, force=True, **info['kwargs'])
         elif info['level'] is not None:

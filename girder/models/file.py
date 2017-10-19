@@ -25,7 +25,7 @@ from .model_base import Model, ValidationException
 from girder import events
 from girder.constants import AccessType, CoreEventHandler
 from girder.models.model_base import AccessControlledModel
-from girder.utility import assetstore_utilities, acl_mixin
+from girder.utility import acl_mixin
 
 
 class File(acl_mixin.AccessControlMixin, Model):
@@ -33,6 +33,8 @@ class File(acl_mixin.AccessControlMixin, Model):
     This model represents a File, which is stored in an assetstore.
     """
     def initialize(self):
+        from girder.utility import assetstore_utilities
+
         self.name = 'file'
         self.ensureIndices(
             ['itemId', 'assetstoreId', 'exts'] +
@@ -61,11 +63,13 @@ class File(acl_mixin.AccessControlMixin, Model):
             to False if you plan to delete the item and do not care about
             updating its size.
         """
+        from .item import Item
+
         if file.get('assetstoreId'):
             self.getAssetstoreAdapter(file).deleteFile(file)
 
         if file['itemId']:
-            item = self.model('item').load(file['itemId'], force=True)
+            item = Item().load(file['itemId'], force=True)
             # files that are linkUrls might not have a size field
             if 'size' in file:
                 self.propagateSizeChange(item, -file['size'], updateItemSize)
@@ -187,10 +191,11 @@ class File(acl_mixin.AccessControlMixin, Model):
             this location, return it rather than creating a new file.
         :type reuseExisting: bool
         """
+        from .item import Item
 
         if parentType == 'folder':
             # Create a new item with the name of the file.
-            item = self.model('item').createItem(
+            item = Item().createItem(
                 name=name, creator=creator, folder=parent, reuseExisting=reuseExisting)
         elif parentType == 'item':
             item = parent
@@ -228,7 +233,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             return file
         except ValidationException:
             if parentType == 'folder':
-                self.model('item').remove(item)
+                Item().remove(item)
             raise
 
     def propagateSizeChange(self, item, sizeIncrement, updateItemSize=True):
@@ -247,14 +252,17 @@ class File(acl_mixin.AccessControlMixin, Model):
             False if you plan to delete the item immediately and don't care to
             update its size.
         """
+        from .folder import Folder
+        from .item import Item
+
         if updateItemSize:
             # Propagate size up to item
-            self.model('item').increment(query={
+            Item().increment(query={
                 '_id': item['_id']
             }, field='size', amount=sizeIncrement, multi=False)
 
         # Propagate size to direct parent folder
-        self.model('folder').increment(query={
+        Folder().increment(query={
             '_id': item['folderId']
         }, field='size', amount=sizeIncrement, multi=False)
 
@@ -319,10 +327,12 @@ class File(acl_mixin.AccessControlMixin, Model):
         # certain that the file will actually be saved. It is also possible for
         # "model.file.save" to set "defaultPrevented", which would prevent the
         # item from being saved initially.
+        from .item import Item
+
         fileDoc = event.info
         itemId = fileDoc.get('itemId')
         if itemId and fileDoc.get('size'):
-            item = self.model('item').load(itemId, force=True)
+            item = Item().load(itemId, force=True)
             self.propagateSizeChange(item, fileDoc['size'])
 
     def updateFile(self, file):
@@ -343,7 +353,10 @@ class File(acl_mixin.AccessControlMixin, Model):
         """
         Return the assetstore adapter for the given file.
         """
-        assetstore = self.model('assetstore').load(file['assetstoreId'])
+        from .assetstore import Assetstore
+        from girder.utility import assetstore_utilities
+
+        assetstore = Assetstore().load(file['assetstoreId'])
         return assetstore_utilities.getAssetstoreAdapter(assetstore)
 
     def copyFile(self, srcFile, creator, item=None):
@@ -398,8 +411,8 @@ class File(acl_mixin.AccessControlMixin, Model):
                 attachedDoc = modelType.load(
                     file.get('attachedToId'))
         else:
-            attachedDoc = self.model('item').load(
-                file.get('itemId'), force=True)
+            from .item import Item
+            attachedDoc = Item().load(file.get('itemId'), force=True)
         return not attachedDoc
 
     def updateSize(self, file):
@@ -420,7 +433,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         system file with ``'rb'`` mode. This can also be used as a context
         manager, e.g.:
 
-        >>> with self.model('file').open(file) as fh:
+        >>> with File().open(file) as fh:
         >>>    while True:
         >>>        chunk = fh.read(CHUNK_LEN)
         >>>        if not chunk:

@@ -39,7 +39,13 @@ def _toRoutePath(resource, route):
         '{%s}' % token[1:] if token[0] == ':' else token
         for token in route
     ]
-    path = '/'.join(['', resource] + convRoute)
+
+    prefix = ['']
+    # If resource is a string then use this as the prefix to the route.
+    if isinstance(resource, str):
+        prefix.append(resource)
+
+    path = '/'.join(prefix + convRoute)
     return path
 
 
@@ -54,7 +60,7 @@ def _toOperation(info, resource, handler):
     # Unique string used to identify the operation. The id MUST be unique among
     # all operations described in the API.
     if 'operationId' not in operation:
-        operation['operationId'] = resource + '_' + handler.__name__
+        operation['operationId'] = str(resource) + '_' + handler.__name__
     return operation
 
 

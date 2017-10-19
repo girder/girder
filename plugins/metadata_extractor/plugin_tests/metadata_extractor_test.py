@@ -21,7 +21,12 @@ import os.path
 import time
 
 from tests import base
+from girder import events
 from girder.constants import ROOT_DIR
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.upload import Upload
+from girder.models.user import User
 
 
 class MetadataExtractorTestCase(base.TestCase):
@@ -41,40 +46,33 @@ class MetadataExtractorTestCase(base.TestCase):
         super(MetadataExtractorTestCase, self).setUp()
 
         self.processedCount = 0
-        from girder import events
-        events.bind('data.process', 'metadata_extractor_test',
-                    self._postUpload)
+        events.bind('data.process', 'metadata_extractor_test', self._postUpload)
 
         self.password = '3achAst5jaWRaCrU'
-        self.user = self.model('user').createUser(
+        self.user = User().createUser(
             'metadataextractor', self.password, 'Metadata', 'Extractor',
             'metadataextractor@girder.org')
-        folders = self.model('folder').childFolders(self.user, 'user',
-                                                    user=self.user)
+        folders = Folder().childFolders(self.user, 'user', user=self.user)
         publicFolders = [folder for folder in folders if folder['public']]
         self.assertIsNotNone(publicFolders)
         self.name = 'Girder_Favicon.png'
         self.mimeType = 'image/png'
-        self.item = self.model('item').createItem(self.name, self.user,
-                                                  publicFolders[0])
-        self.path = os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'img',
-                                 self.name)
-        upload = self.model('upload').createUpload(
+        self.item = Item().createItem(self.name, self.user, publicFolders[0])
+        self.path = os.path.join(ROOT_DIR, 'clients', 'web', 'static', 'img', self.name)
+        upload = Upload().createUpload(
             self.user, self.name, 'item', self.item, os.path.getsize(self.path),
             self.mimeType)
         with open(self.path, 'rb') as fd:
-            uploadedFile = self.model('upload').handleChunk(upload, fd)
+            uploadedFile = Upload().handleChunk(upload, fd)
         self.assertHasKeys(uploadedFile,
                            ['assetstoreId', 'created', 'creatorId', 'itemId',
                             'mimeType', 'name', 'size'])
         self._waitForProcessCount(1)
 
         self.name2 = 'small.tiff'
-        self.item2 = self.model('item').createItem(self.name2, self.user,
-                                                   publicFolders[0])
+        self.item2 = Item().createItem(self.name2, self.user, publicFolders[0])
         self.mimeType2 = 'image/tiff'
         file2 = os.path.join(os.path.dirname(__file__), 'files', 'small.tiff')
-        self.model('upload').uploadFromFile(
-            open(file2), os.path.getsize(file2), self.name2, 'item',
-            self.item2, self.user)
+        Upload().uploadFromFile(
+            open(file2), os.path.getsize(file2), self.name2, 'item', self.item2, self.user)
         self._waitForProcessCount(2)

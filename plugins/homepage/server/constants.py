@@ -21,8 +21,8 @@ import six
 
 from girder.constants import AccessType
 from girder.models.model_base import AccessException, ValidationException
+from girder.models.file import File
 from girder.utility import setting_utilities
-from girder.utility.model_importer import ModelImporter
 
 
 COLLECTION_NAME = 'Homepage Assets'
@@ -78,8 +78,7 @@ def _validateStrings(doc):
 @setting_utilities.validator(PluginSettings.LOGO)
 def _validateLogo(doc):
     try:
-        logoFile = ModelImporter.model('file').load(
-            doc['value'], level=AccessType.READ, user=None, exc=True)
+        logoFile = File().load(doc['value'], level=AccessType.READ, user=None, exc=True)
     except ValidationException as e:
         # Invalid ObjectId, or non-existent document
         raise ValidationException(e.message, 'value')
