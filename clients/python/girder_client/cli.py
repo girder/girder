@@ -40,7 +40,8 @@ class GirderCli(GirderClient):
         :param username: username to authenticate to Girder instance.
         :param password: password to authenticate to Girder instance, leave
             this blank to be prompted.
-        :param sslVerify: enable or disable SSL verification on :class:`requests.Session` object.
+        :param sslVerify: disable SSL verification or specify path to certfile on
+            :class:`requests.Session` object.
         """
         def _progressBar(*args, **kwargs):
             bar = click.progressbar(*args, **kwargs)
@@ -154,8 +155,13 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
                    '[default: %s]' % GirderClient.DEFAULT_API_ROOT,
               show_default=True,
               cls=_AdvancedOption)
-@click.option('--ssl-verify/--no-ssl-verify', default=True,
-              help='Enable or disable SSL Verification',
+@click.option('--insecure', is_flag=True, default=False,
+              help='Disable SSL Verification',
+              show_default=True,
+              cls=_AdvancedOption
+              )
+@click.option('--certfile', default=None,
+              help='Specify path to SSL certfile',
               show_default=True,
               cls=_AdvancedOption
               )
@@ -163,7 +169,7 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def main(ctx, username, password,
          api_key, api_url, scheme, host, port, api_root,
-         ssl_verify):
+         insecure, certfile):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -186,6 +192,15 @@ def main(ctx, username, password,
             raise click.BadArgumentUsage(
                 'Option "--api-url" and option "--%s" are mutually exclusive.' %
                 name.replace("_", "-"))
+    if certfile and insecure:
+        raise click.BadArgumentUsage(
+            'Option "--insecure" and option "--certfile" are mutually exclusive.')
+
+    ssl_verify = True
+    if certfile:
+        ssl_verify = certfile
+    if insecure:
+        ssl_verify = False
 
     ctx.obj = GirderCli(
         username, password, host=host, port=port, apiRoot=api_root,
