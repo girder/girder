@@ -67,38 +67,17 @@ class Resource(BaseResource):
     def search(self, q, mode, types, level, limit, offset):
         level = AccessType.validate(level)
         user = self.getCurrentUser()
-        allowedSearchModes = search_mode_utilities.getSearchMode()
 
-        if mode in allowedSearchModes:
-            method = allowedSearchModes[mode]['method']
+        if self._isDefaultSearchMode(mode):
+            return search_mode_utilities.defaultSearchModeHandler(
+                q, mode, types, user, level, limit, offset
+            )
         else:
-            return None
+            return search_mode_utilities.searchModeHandler(
+                q, mode, types, user, level, limit, offset
+            )
 
-        results = {}
-        for modelName in types:
-            if modelName not in allowedSearchModes[mode]['types']:
-                continue
-
-            if '.' in modelName:
-                name, plugin = modelName.rsplit('.', 1)
-                model = self.model(name, plugin)
-            else:
-                model = self.model(modelName)
-
-            if self._isDefault(mode):
-                results[modelName] = [
-                    model.filter(d, user) for d in getattr(model, method)(
-                        query=q, user=user, limit=limit, offset=offset, level=level)
-                ]
-            else:
-                results[modelName] = [
-                    model.filter(d, user) for d in method(
-                        query=q, user=user, limit=limit, offset=offset, level=level)
-                ]
-
-        return results
-
-    def _isDefault(self, mode):
+    def _isDefaultSearchMode(self, mode):
         return mode in {'text', 'prefix'}
 
     def _validateResourceSet(self, resources, allowedModels=None):

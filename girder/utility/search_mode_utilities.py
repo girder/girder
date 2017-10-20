@@ -16,7 +16,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
+from girder.models.assetstore import Assetstore
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.group import Group
+from girder.models.item import Item
+from girder.models.user import User
 
 """This is the search mode registry for register all the search mode
 with the allowed types and the handler as a 'method' attribute.
@@ -24,31 +29,50 @@ Plugins can modify this set to allow other search mode.
 By Default only two modes are allowed :
   - text: to search in plain text
   - prefix: to search with a prefix
-Their handlers are directly define in the model base.
+Their handlers are directly define in the base model.
 """
-_allowedSearchMode = {
-    'text': {
-        'types': {'collection', 'folder', 'group', 'item', 'user'},
-        'method': 'textSearch'
-    },
-    'prefix': {
-        'types': {'collection', 'folder', 'group', 'item', 'user'},
-        'method': 'prefixSearch'
-    }
-}
+_allowedSearchMode = {}
 
 
-def getSearchMode():
-    return _allowedSearchMode
+def defaultSearchModeHandler(q, mode, types, user, level, limit, offset):
+    method = getSearchModeHandler(mode)
+    results = {}
+
+    for modelName in types:
+        model = _getModel(modelName)
+
+        if model is not None:
+            results[modelName] = [
+                model.filter(d, user) for d in getattr(model, method)(
+                    query=q, user=user, limit=limit, offset=offset, level=level)
+            ]
+    return results
 
 
-def addSearchMode(mode, types, handler):
+def searchModeHandler(q, mode, types, user, level, limit, offset):
+    """This function return an empty dict if the mode isn't in the search mode
+    registry, else it call the search mode handler.
+    """
+    results = {}
+    method = getSearchModeHandler(mode)
+
+    if method is not None:
+        results = method(query=q, types=types, user=user, limit=limit, offset=offset, level=level)
+
+    return results
+
+
+def getSearchModeHandler(mode):
+    if mode in _allowedSearchMode:
+        return _allowedSearchMode[mode]
+    return None
+
+
+def addSearchMode(mode, handler):
     """This function is able to modify an existing search mode."""
     _allowedSearchMode.update({
-        mode: {
-            'types': types,
-            'method': handler
-        }})
+        mode: handler
+    })
 
 
 def removeSearchMode(mode):
@@ -56,16 +80,23 @@ def removeSearchMode(mode):
     return _allowedSearchMode.pop(mode, False)
 
 
-def addTypesToExistingSearchMode(mode, types):
-    """Input 'types' should be a set of value even if there is only one type."""
-    if mode in _allowedSearchMode:
-        _allowedSearchMode[mode]['types'] = _allowedSearchMode[mode]['types'].union(types)
+def _getModel(name):
+    if name == 'assetstore':
+        return Assetstore()
+    elif name == 'collection':
+        return Collection()
+    elif name == 'folder':
+        return Folder()
+    elif name == 'group':
+        return Group()
+    elif name == 'item':
+        return Item()
+    elif name == 'user':
+        return User()
+    else:
+        return None
 
 
-def removeTypesToExistingSearchMode(mode, types):
-    """Input 'types' should be a set of value even if there is only one type.
-    This function remove only the types which are in the allowed type search.
-    If more are given they will be ignored.
-    """
-    if mode in _allowedSearchMode:
-        _allowedSearchMode[mode]['types'] = _allowedSearchMode[mode]['types'].difference(types)
+# Add dynamically the default search mode
+addSearchMode('text', 'textSearch')
+addSearchMode('prefix', 'prefixSearch')

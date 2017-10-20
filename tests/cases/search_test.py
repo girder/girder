@@ -25,7 +25,6 @@ from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.item import Item
 from girder.models.user import User
-from girder.utility import search_mode_utilities
 from girder.utility.acl_mixin import AccessControlMixin
 
 
@@ -183,7 +182,6 @@ class SearchTestCase(base.TestCase):
         # Check search for model that is not access controlled
         self.assertNotIsInstance(Assetstore(), AccessControlledModel)
         self.assertNotIsInstance(Assetstore(), AccessControlMixin)
-        search_mode_utilities.addTypesToExistingSearchMode('prefix', {'assetstore'})
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'prefix',
