@@ -455,11 +455,10 @@ class filtermodel(object):  # noqa: class name
             whitelist. Only affects top level fields.
         :type addFields: `set, list, tuple, or None`
         """
-        if inspect.isclass(model):
-            self.model = model()
-        else:
-            self.model = ModelImporter.model(model, plugin)
         self.addFields = addFields
+        self.model = model
+        self.plugin = plugin
+        self._isModelClass = inspect.isclass(model)
 
     def __call__(self, fun):
         @six.wraps(fun)
@@ -468,12 +467,17 @@ class filtermodel(object):  # noqa: class name
             if val is None:
                 return None
 
+            if self._isModelClass:
+                model = self.model()
+            else:
+                model = ModelImporter.model(self.model, self.plugin)
+
             user = getCurrentUser()
 
             if isinstance(val, (list, tuple)):
-                return [self.model.filter(m, user, self.addFields) for m in val]
+                return [model.filter(m, user, self.addFields) for m in val]
             elif isinstance(val, dict):
-                return self.model.filter(val, user, self.addFields)
+                return model.filter(val, user, self.addFields)
             else:
                 raise Exception('Cannot call filtermodel on return type: %s.' % type(val))
         return wrapped
