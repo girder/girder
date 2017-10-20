@@ -206,6 +206,10 @@ def main(ctx, username, password,
         username, password, host=host, port=port, apiRoot=api_root,
         scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify)
 
+    if certfile and ctx.obj.scheme != 'https':
+        raise click.BadArgumentUsage(
+            'A URI scheme of "https" is required for option "--certfile"')
+
 
 def _lookup_parent_type(client, object_id):
 
