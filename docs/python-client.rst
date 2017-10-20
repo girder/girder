@@ -98,9 +98,19 @@ input their password.
 Disabling SSL verification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Specifying ``--no-ssl-verify`` allows to ignore SSL verification. This is
+Specifying ``--insecure`` allows to ignore SSL verification. This is
 usually required when using the client behind a proxy that is not configured to
 accept the certificate of the given host.
+
+Specifying a custom SSL certificate
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specifying ``--certfile /path/to/custom_bundle.pem`` allows to use a custom "bundle" of
+Certificate Authority (CA) public keys (CA certs) for performing the SSL verification
+applied when the ``https`` scheme is associated with the API url.
+
+By default, the carefully curated collection of Root Certificates from Mozilla is used. 
+See https://pypi.python.org/pypi/certifi
 
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
