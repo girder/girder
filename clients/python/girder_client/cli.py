@@ -160,8 +160,8 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               show_default=True,
               cls=_AdvancedOption
               )
-@click.option('--certfile', default=None,
-              help='Specify path to SSL certfile',
+@click.option('--certificate', default=None,
+              help='Specify path to SSL certificate',
               show_default=True,
               cls=_AdvancedOption
               )
@@ -169,7 +169,7 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def main(ctx, username, password,
          api_key, api_url, scheme, host, port, api_root,
-         no_ssl_verify, certfile):
+         no_ssl_verify, certificate):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -192,13 +192,13 @@ def main(ctx, username, password,
             raise click.BadArgumentUsage(
                 'Option "--api-url" and option "--%s" are mutually exclusive.' %
                 name.replace("_", "-"))
-    if certfile and no_ssl_verify:
+    if certificate and no_ssl_verify:
         raise click.BadArgumentUsage(
-            'Option "--no-ssl-verify" and option "--certfile" are mutually exclusive.')
+            'Option "--no-ssl-verify" and option "--certificate" are mutually exclusive.')
 
     ssl_verify = True
-    if certfile:
-        ssl_verify = certfile
+    if certificate:
+        ssl_verify = certificate
     if no_ssl_verify:
         ssl_verify = False
 
@@ -206,9 +206,9 @@ def main(ctx, username, password,
         username, password, host=host, port=port, apiRoot=api_root,
         scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify)
 
-    if certfile and ctx.obj.scheme != 'https':
+    if certificate and ctx.obj.scheme != 'https':
         raise click.BadArgumentUsage(
-            'A URI scheme of "https" is required for option "--certfile"')
+            'A URI scheme of "https" is required for option "--certificate"')
 
 
 def _lookup_parent_type(client, object_id):
