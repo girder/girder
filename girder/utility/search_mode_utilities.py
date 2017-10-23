@@ -16,6 +16,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+from functools import partial
+
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.folder import Folder
@@ -34,8 +36,8 @@ Their handlers are directly define in the base model.
 _allowedSearchMode = {}
 
 
-def defaultSearchModeHandler(q, mode, types, user, level, limit, offset):
-    method = getSearchModeHandler(mode)
+def defaultSearchModeHandler(query, mode, types, user, level, limit, offset):
+    method = '%sSearch' % mode
     results = {}
 
     for modelName in types:
@@ -44,21 +46,8 @@ def defaultSearchModeHandler(q, mode, types, user, level, limit, offset):
         if model is not None:
             results[modelName] = [
                 model.filter(d, user) for d in getattr(model, method)(
-                    query=q, user=user, limit=limit, offset=offset, level=level)
+                    query=query, user=user, limit=limit, offset=offset, level=level)
             ]
-    return results
-
-
-def searchModeHandler(q, mode, types, user, level, limit, offset):
-    """This function return an empty dict if the mode isn't in the search mode
-    registry, else it call the search mode handler.
-    """
-    results = {}
-    method = getSearchModeHandler(mode)
-
-    if method is not None:
-        results = method(query=q, types=types, user=user, limit=limit, offset=offset, level=level)
-
     return results
 
 
@@ -70,14 +59,14 @@ def getSearchModeHandler(mode):
 
 def addSearchMode(mode, handler):
     """This function is able to modify an existing search mode."""
-    _allowedSearchMode.update({
-        mode: handler
-    })
+    _allowedSearchMode[mode] = handler
 
 
 def removeSearchMode(mode):
-    """Return False if the mode wasn't in the search mode registry."""
-    return _allowedSearchMode.pop(mode, False)
+    """Return a boolean to know if the mode was removed from the search mode registry or not."""
+    if _allowedSearchMode.pop(mode, None) is not None:
+        return True
+    return False
 
 
 def _getModel(name):
@@ -98,5 +87,5 @@ def _getModel(name):
 
 
 # Add dynamically the default search mode
-addSearchMode('text', 'textSearch')
-addSearchMode('prefix', 'prefixSearch')
+addSearchMode('text', partial(defaultSearchModeHandler, mode='text'))
+addSearchMode('prefix', partial(defaultSearchModeHandler, mode='prefix'))
