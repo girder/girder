@@ -308,23 +308,20 @@ class Description(object):
         if model is None:
             model = name[:-2]  # strip off "Id"
 
-        if inspect.isclass(model):
-            modelInst = model()
-            modelName = modelInst.name
-        else:
-            modelName = model
-            modelInst = ModelImporter.model(model, plugin)
+        isModelClass = inspect.isclass(model)
 
         if description is None:
-            description = 'The ID of the %s.' % modelName
+            description = 'The ID of the document.'
 
         self.param(name=name, description=description, paramType=paramType, required=required)
 
         self.modelParams[name] = {
-            'destName': destName or modelName,
+            'destName': destName,
             'level': level,
             'force': force,
-            'model': modelInst,
+            'model': model,
+            'plugin': plugin,
+            'isModelClass': isModelClass,
             'exc': exc,
             'required': required,
             'requiredFlags': requiredFlags,
@@ -650,7 +647,9 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 # We need either a type or a schema ( for message body )
                 if 'type' not in descParam and 'schema' not in descParam:
                     continue
+
                 name = descParam['name']
+                model = self._getModel(name, self.description.modelParams)
                 if name in params:
                     if name in self.description.jsonParams:
                         info = self.description.jsonParams[name]
@@ -659,8 +658,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     elif name in self.description.modelParams:
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
-                        val = self._loadModel(name, info, params[name])
-                        self._passArg(fun, kwargs, info['destName'], val)
+                        val = self._loadModel(name, info, params[name], model)
+                        self._passArg(fun, kwargs, info['destName'] or model.name, val)
                     else:
                         val = self._validateParam(name, descParam, params[name])
                         self._passArg(fun, kwargs, name, val)
@@ -681,7 +680,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                     if name in self.description.modelParams:
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
-                        self._passArg(fun, kwargs, info['destName'], None)
+                        self._passArg(fun, kwargs, info['destName'] or model.name, None)
                     else:
                         self._passArg(fun, kwargs, name, None)
 
@@ -727,9 +726,17 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
 
         return val
 
-    def _loadModel(self, name, info, id):
-        model = info['model']
+    def _getModel(self, name, modelParams):
+        if name not in self.description.modelParams:
+            return
+        info = self.description.modelParams[name]
 
+        if info['isModelClass']:
+            return info['model']()
+        else:
+            return ModelImporter.model(info['model'], info['plugin'])
+
+    def _loadModel(self, name, info, id, model):
         if info['force']:
             doc = model.load(id, force=True, **info['kwargs'])
         elif info['level'] is not None:
