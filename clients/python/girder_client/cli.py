@@ -155,7 +155,7 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
                    '[default: %s]' % GirderClient.DEFAULT_API_ROOT,
               show_default=True,
               cls=_AdvancedOption)
-@click.option('--insecure', is_flag=True, default=False,
+@click.option('--no-ssl-verify', is_flag=True, default=False,
               help='Disable SSL Verification',
               show_default=True,
               cls=_AdvancedOption
@@ -169,7 +169,7 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def main(ctx, username, password,
          api_key, api_url, scheme, host, port, api_root,
-         insecure, certfile):
+         no_ssl_verify, certfile):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -192,14 +192,14 @@ def main(ctx, username, password,
             raise click.BadArgumentUsage(
                 'Option "--api-url" and option "--%s" are mutually exclusive.' %
                 name.replace("_", "-"))
-    if certfile and insecure:
+    if certfile and no_ssl_verify:
         raise click.BadArgumentUsage(
-            'Option "--insecure" and option "--certfile" are mutually exclusive.')
+            'Option "--no-ssl-verify" and option "--certfile" are mutually exclusive.')
 
     ssl_verify = True
     if certfile:
         ssl_verify = certfile
-    if insecure:
+    if no_ssl_verify:
         ssl_verify = False
 
     ctx.obj = GirderCli(

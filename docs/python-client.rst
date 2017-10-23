@@ -98,7 +98,7 @@ input their password.
 Disabling SSL verification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Specifying ``--insecure`` allows to ignore SSL verification. This is
+Specifying ``--no-ssl-verify`` allows to ignore SSL verification. This is
 usually required when using the client behind a proxy that is not configured to
 accept the certificate of the given host.
 
