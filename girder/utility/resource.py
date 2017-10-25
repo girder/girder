@@ -4,7 +4,7 @@ import six
 from girder.api.rest import Resource
 
 
-def _walkTree(node, path=[]):
+def _walkTree(node, path=()):
     routeMap = {}
     for k, v in six.iteritems(vars(node)):
         if isinstance(v, Resource):
