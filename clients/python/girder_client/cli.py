@@ -20,6 +20,7 @@ import click
 import requests
 import sys
 import types
+import json
 from girder_client import GirderClient, __version__
 
 
@@ -122,6 +123,15 @@ class _Group(click.Group):
         self.format_commands(ctx, formatter)
 
 
+def _parseConfigFile(path):
+    try:
+        with open(path, 'r') as configFile:
+            jsonDict = json.load(configFile)
+        return jsonDict
+    except ValueError:
+        raise Exception('Error reading cli configuration file.')
+
+
 _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
@@ -155,6 +165,7 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
                    '[default: %s]' % GirderClient.DEFAULT_API_ROOT,
               show_default=True,
               cls=_AdvancedOption)
+<<<<<<< HEAD
 @click.option('--no-ssl-verify', is_flag=True, default=False,
               help='Disable SSL Verification',
               show_default=True,
@@ -170,6 +181,15 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 def main(ctx, username, password,
          api_key, api_url, scheme, host, port, api_root,
          no_ssl_verify, certificate):
+=======
+@click.option('--config', default=None,
+              help='full path to the config file',
+              show_default=True,
+              cls=_AdvancedOption)
+@click.version_option(version=__version__, prog_name='Girder command line interface')
+@click.pass_context
+def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root, config):
+>>>>>>> acc7f3c... Cache cli config options in config json file
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -184,6 +204,16 @@ def main(ctx, username, password,
     input his/her password.
     """
     # --api-url and URL by part arguments are mutually exclusive
+    if config:
+        ctx.params.update(_parseConfigFile(config))
+        username = ctx.params.get('username')
+        password = ctx.params.get('password')
+        api_key = ctx.params.get('api_key')
+        api_url = ctx.params.get('api_url')
+        scheme = ctx.params.get('scheme')
+        host = ctx.params.get('host')
+        port = ctx.params.get('port')
+        api_root = ctx.params.get('api_root')
     url_part_options = ['host', 'scheme', 'port', 'api_root']
     has_api_url = ctx.params.get('api_url', None)
     for name in url_part_options:
@@ -192,6 +222,7 @@ def main(ctx, username, password,
             raise click.BadArgumentUsage(
                 'Option "--api-url" and option "--%s" are mutually exclusive.' %
                 name.replace("_", "-"))
+<<<<<<< HEAD
     if certificate and no_ssl_verify:
         raise click.BadArgumentUsage(
             'Option "--no-ssl-verify" and option "--certificate" are mutually exclusive.')
@@ -202,6 +233,8 @@ def main(ctx, username, password,
     if no_ssl_verify:
         ssl_verify = False
 
+=======
+>>>>>>> acc7f3c... Cache cli config options in config json file
     ctx.obj = GirderCli(
         username, password, host=host, port=port, apiRoot=api_root,
         scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify)
