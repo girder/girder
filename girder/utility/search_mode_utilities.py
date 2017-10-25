@@ -20,38 +20,57 @@ from functools import partial
 
 from girder.models.model_base import ModelImporter, GirderException
 
-"""
-This is the search mode registry for register all the search mode
-with the allowed types and the handler as a 'method' attribute.
-Plugins can modify this set to allow other search mode.
-By Default only two modes are allowed :
-  - text: to search in plain text
-  - prefix: to search with a prefix
-Their handlers are directly define in the base model.
-"""
 _allowedSearchMode = {}
 
 
 def getSearchModeHandler(mode):
+    """
+    Get the handler function for a search mode
+
+    :param mode: A search mode identifier.
+    :type mode: str
+    :returns A search mode handler function, or None.
+    :rtype function or None
+    """
     return _allowedSearchMode.get(mode)
 
 
 def addSearchMode(mode, handler):
     """
-    This function is enable to modify an existing search mode.
-    To modify an existing search mode, you must delete it before adding a new handler.
+    Register a search mode.
+
+    New searches made for the registered mode will call the handler function. The handler function
+    must take parameters: `query`, `types`, `user`, `level`, `limit`, `offset`, and return the
+    search results.
+
+    :param mode: A search mode identifier.
+    :type mode: str
+    :param handler: A search mode handler function.
+    :type handler: function
     """
     if _allowedSearchMode.get(mode) is not None:
-        raise GirderException('Try to modify an existing search mode.')
+        raise GirderException('A search mode %r already exists.' % mode)
     _allowedSearchMode[mode] = handler
 
 
 def removeSearchMode(mode):
-    """Return a boolean to know if the mode was removed from the search mode registry or not."""
+    """
+    Remove a search mode.
+
+    This will fail gracefully (returning `False`) if no search mode `mode` was registered.
+
+    :param mode: A search mode identifier.
+    :type mode: str
+    :returns Whether the search mode was actually removed.
+    :rtype bool
+    """
     return _allowedSearchMode.pop(mode, None) is not None
 
 
 def defaultSearchModeHandler(query, mode, types, user, level, limit, offset):
+    """
+    The common handler for `text` and `prefix` search modes.
+    """
     method = '%sSearch' % mode
     results = {}
 

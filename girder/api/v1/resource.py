@@ -65,15 +65,14 @@ class Resource(BaseResource):
         .errorResponse('Invalid type list format.')
     )
     def search(self, q, mode, types, level, limit, offset):
-        """This function return an empty dict if the mode isn't in the search mode
-        registry, else it call the search mode handler.
         """
-        results = {}
+        Perform a search using one of the registered search modes.
+        """
         level = AccessType.validate(level)
         user = self.getCurrentUser()
         handler = search_mode_utilities.getSearchModeHandler(mode)
         if handler is None:
-            raise RestException('Search mode handler not found: %s.' % mode)
+            raise RestException('Search mode handler %r not found.' % mode)
         results = handler(
             query=q,
             types=types,
