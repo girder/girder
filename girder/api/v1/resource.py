@@ -72,16 +72,16 @@ class Resource(BaseResource):
         level = AccessType.validate(level)
         user = self.getCurrentUser()
         handler = search_mode_utilities.getSearchModeHandler(mode)
-
-        if handler is not None:
-            results = handler(
-                query=q,
-                types=types,
-                user=user,
-                limit=limit,
-                offset=offset,
-                level=level
-            )
+        if handler is None:
+            raise RestException('Search mode handler not found: %s.' % mode)
+        results = handler(
+            query=q,
+            types=types,
+            user=user,
+            limit=limit,
+            offset=offset,
+            level=level
+        )
         return results
 
     def _validateResourceSet(self, resources, allowedModels=None):

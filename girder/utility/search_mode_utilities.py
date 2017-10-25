@@ -18,14 +18,10 @@
 ###############################################################################
 from functools import partial
 
-from girder.models.assetstore import Assetstore
-from girder.models.collection import Collection
-from girder.models.folder import Folder
-from girder.models.group import Group
-from girder.models.item import Item
-from girder.models.user import User
+from girder.models.model_base import ModelImporter, GirderException
 
-"""This is the search mode registry for register all the search mode
+"""
+This is the search mode registry for register all the search mode
 with the allowed types and the handler as a 'method' attribute.
 Plugins can modify this set to allow other search mode.
 By Default only two modes are allowed :
@@ -36,12 +32,31 @@ Their handlers are directly define in the base model.
 _allowedSearchMode = {}
 
 
+def getSearchModeHandler(mode):
+    return _allowedSearchMode.get(mode)
+
+
+def addSearchMode(mode, handler):
+    """
+    This function is enable to modify an existing search mode.
+    To modify an existing search mode, you must delete it before adding a new handler.
+    """
+    if _allowedSearchMode.get(mode) is not None:
+        raise GirderException('Try to modify an existing search mode.')
+    _allowedSearchMode[mode] = handler
+
+
+def removeSearchMode(mode):
+    """Return a boolean to know if the mode was removed from the search mode registry or not."""
+    return _allowedSearchMode.pop(mode, None) is not None
+
+
 def defaultSearchModeHandler(query, mode, types, user, level, limit, offset):
     method = '%sSearch' % mode
     results = {}
 
     for modelName in types:
-        model = _getModel(modelName)
+        model = ModelImporter().model(modelName)
 
         if model is not None:
             results[modelName] = [
@@ -49,41 +64,6 @@ def defaultSearchModeHandler(query, mode, types, user, level, limit, offset):
                     query=query, user=user, limit=limit, offset=offset, level=level)
             ]
     return results
-
-
-def getSearchModeHandler(mode):
-    if mode in _allowedSearchMode:
-        return _allowedSearchMode[mode]
-    return None
-
-
-def addSearchMode(mode, handler):
-    """This function is able to modify an existing search mode."""
-    _allowedSearchMode[mode] = handler
-
-
-def removeSearchMode(mode):
-    """Return a boolean to know if the mode was removed from the search mode registry or not."""
-    if _allowedSearchMode.pop(mode, None) is not None:
-        return True
-    return False
-
-
-def _getModel(name):
-    if name == 'assetstore':
-        return Assetstore()
-    elif name == 'collection':
-        return Collection()
-    elif name == 'folder':
-        return Folder()
-    elif name == 'group':
-        return Group()
-    elif name == 'item':
-        return Item()
-    elif name == 'user':
-        return User()
-    else:
-        return None
 
 
 # Add dynamically the default search mode
