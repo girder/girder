@@ -34,6 +34,7 @@ class Resourceful(Resource):
     def getResource(self, params):
         return ['custom REST route']
 
+
 def load(info):
     info['apiRoot'].prefix = Prefix()
     info['apiRoot'].prefix.resourceful = Resourceful()
