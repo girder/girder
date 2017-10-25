@@ -24,13 +24,12 @@ from ..rest import Resource as BaseResource, RestException, setResponseHeader, s
 from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.utility import parseTimestamp
+from girder.utility import search_mode_utilities
 from girder.utility import ziputil
 from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
 
-# Plugins can modify this set to allow other types to be searched
-allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
-allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
+_allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 
 
 class Resource(BaseResource):
@@ -55,9 +54,8 @@ class Resource(BaseResource):
     @autoDescribeRoute(
         Description('Search for resources in the system.')
         .param('q', 'The search query.')
-        .param('mode', 'The search mode. Can use either a text search or a '
-               'prefix-based search.', enum=('text', 'prefix'), required=False,
-               default='text')
+        .param('mode', 'The search mode. Can always use either a text search or a '
+               'prefix-based search.', required=False, default='text')
         .jsonParam('types', 'A JSON list of resource types to search for, e.g. '
                    '["user", "folder", "item"].', requireArray=True)
         .param('level', 'Minimum required access level.', required=False,
@@ -66,30 +64,22 @@ class Resource(BaseResource):
         .errorResponse('Invalid type list format.')
     )
     def search(self, q, mode, types, level, limit, offset):
+        """
+        Perform a search using one of the registered search modes.
+        """
         level = AccessType.validate(level)
         user = self.getCurrentUser()
-
-        if mode == 'text':
-            method = 'textSearch'
-        else:
-            method = 'prefixSearch'
-
-        results = {}
-        for modelName in types:
-            if modelName not in allowedSearchTypes:
-                continue
-
-            if '.' in modelName:
-                name, plugin = modelName.rsplit('.', 1)
-                model = self.model(name, plugin)
-            else:
-                model = self.model(modelName)
-
-            results[modelName] = [
-                model.filter(d, user) for d in getattr(model, method)(
-                    query=q, user=user, limit=limit, offset=offset, level=level)
-            ]
-
+        handler = search_mode_utilities.getSearchModeHandler(mode)
+        if handler is None:
+            raise RestException('Search mode handler %r not found.' % mode)
+        results = handler(
+            query=q,
+            types=types,
+            user=user,
+            limit=limit,
+            offset=offset,
+            level=level
+        )
         return results
 
     def _validateResourceSet(self, resources, allowedModels=None):
@@ -229,7 +219,7 @@ class Resource(BaseResource):
     )
     def delete(self, resources, progress):
         user = self.getCurrentUser()
-        self._validateResourceSet(resources, allowedDeleteTypes)
+        self._validateResourceSet(resources, _allowedDeleteTypes)
         total = sum([len(resources[key]) for key in resources])
         with ProgressContext(
                 progress, user=user, title='Deleting resources',

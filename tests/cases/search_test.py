@@ -16,10 +16,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+import json
 
 from .. import base
 
-from girder.api.v1 import resource
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
 from girder.models.assetstore import Assetstore
@@ -27,6 +27,7 @@ from girder.models.collection import Collection
 from girder.models.item import Item
 from girder.models.user import User
 from girder.utility.acl_mixin import AccessControlMixin
+from girder.utility import search_mode_utilities
 
 
 def setUpModule():
@@ -183,10 +184,40 @@ class SearchTestCase(base.TestCase):
         # Check search for model that is not access controlled
         self.assertNotIsInstance(Assetstore(), AccessControlledModel)
         self.assertNotIsInstance(Assetstore(), AccessControlMixin)
-        resource.allowedSearchTypes.add('assetstore')
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'prefix',
             'types': '["assetstore"]'
         }, user=user)
         self.assertEqual(1, len(resp.json['assetstore']))
+
+    def testSearchModeRegistry(self):
+        def testSearchHandler(query, types, user, level, limit, offset):
+            return {
+                'query': query,
+                'types': types
+            }
+
+        search_mode_utilities.addSearchMode('testSearch', testSearchHandler)
+
+        # Use the new search mode.
+        resp = self.request(path='/resource/search', params={
+            'q': 'Test',
+            'mode': 'testSearch',
+            'types': json.dumps(["collection"])
+        })
+        self.assertStatusOk(resp)
+        self.assertDictEqual(resp.json, {
+            'query': 'Test',
+            'types': ["collection"]
+        })
+
+        search_mode_utilities.removeSearchMode('testSearch')
+
+        # Use the deleted search mode.
+        resp = self.request(path='/resource/search', params={
+            'q': 'Test',
+            'mode': 'testSearch',
+            'types': json.dumps(["collection"])
+        })
+        self.assertStatus(resp, 400)
