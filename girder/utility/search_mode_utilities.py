@@ -67,7 +67,7 @@ def removeSearchMode(mode):
     return _allowedSearchMode.pop(mode, None) is not None
 
 
-def defaultSearchModeHandler(query, mode, types, user, level, limit, offset):
+def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
     """
     The common handler for `text` and `prefix` search modes.
     """
@@ -86,5 +86,5 @@ def defaultSearchModeHandler(query, mode, types, user, level, limit, offset):
 
 
 # Add dynamically the default search mode
-addSearchMode('text', partial(defaultSearchModeHandler, mode='text'))
-addSearchMode('prefix', partial(defaultSearchModeHandler, mode='prefix'))
+addSearchMode('text', partial(_commonSearchModeHandler, mode='text'))
+addSearchMode('prefix', partial(_commonSearchModeHandler, mode='prefix'))
