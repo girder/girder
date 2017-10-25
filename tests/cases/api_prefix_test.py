@@ -49,3 +49,8 @@ class ApiPrefixTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         self.assertEqual(resp.json, ['custom REST route'])
+
+        resp = self.request('/prefix/sibling')
+        self.assertStatusOk(resp)
+
+        self.assertEqual(resp.json, ['custom REST route'])

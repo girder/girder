@@ -11,7 +11,6 @@ def _walkTree(node, path=[]):
             full_path = list(path)
             full_path.append(k)
             routeMap[v] = full_path
-            path = []
 
         if hasattr(v, 'exposed'):
             new_path = list(path)
