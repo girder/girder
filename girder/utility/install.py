@@ -214,6 +214,30 @@ def install_web(opts=None):
             plugins=opts.plugins, noPlugins=opts.no_plugins)
 
 
+def _install_plugin_reqs(pluginPath, name, dev=False):
+    setupPath = os.path.join(pluginPath, 'setup.py')
+    requirementsPath = os.path.join(pluginPath, 'requirements.txt')
+    devRequirementsPath = os.path.join(pluginPath, 'requirements-dev.txt')
+
+    # Install plugin dependencies
+    if os.path.isfile(setupPath):
+        print(constants.TerminalColor.info('Installing %s as a package.' % name))
+        if pip.main(['install', '-e', pluginPath]) != 0:
+            raise Exception('Failed to install package at %s.' % pluginPath)
+    elif os.path.isfile(requirementsPath):
+        print(constants.TerminalColor.info('Installing requirements.txt for %s.' % name))
+        if pip.main(['install', '-r', requirementsPath]) != 0:
+            raise Exception('Failed to install requirements file at %s.' % requirementsPath)
+
+    # Install plugin development dependencies
+    if dev and os.path.isfile(devRequirementsPath):
+        print(constants.TerminalColor.info(
+            'Installing requirements-dev.txt for %s.' % name))
+        if pip.main(['install', '-r', devRequirementsPath]) != 0:
+            raise Exception(
+                'Failed to install requirements file at %s.' % devRequirementsPath)
+
+
 def install_plugin(opts):
     """
     Install a list of plugins into a packaged Girder environment. This first copies the plugin dir
@@ -236,27 +260,7 @@ def install_plugin(opts):
             raise Exception('Invalid plugin directory: %s' % pluginPath)
 
         if not opts.skip_requirements:
-            setupPath = os.path.join(pluginPath, 'setup.py')
-            requirementsPath = os.path.join(pluginPath, 'requirements.txt')
-            devRequirementsPath = os.path.join(pluginPath, 'requirements-dev.txt')
-
-            # Install plugin dependencies
-            if os.path.isfile(setupPath):
-                print(constants.TerminalColor.info('Installing %s as a package.' % name))
-                if pip.main(['install', '-e', pluginPath]) != 0:
-                    raise Exception('Failed to install package at %s.' % pluginPath)
-            elif os.path.isfile(requirementsPath):
-                print(constants.TerminalColor.info('Installing requirements.txt for %s.' % name))
-                if pip.main(['install', '-r', requirementsPath]) != 0:
-                    raise Exception('Failed to install requirements file at %s.' % requirementsPath)
-
-            # Install plugin development dependencies
-            if opts.development and os.path.isfile(devRequirementsPath):
-                print(constants.TerminalColor.info(
-                    'Installing requirements-dev.txt for %s.' % name))
-                if pip.main(['install', '-r', devRequirementsPath]) != 0:
-                    raise Exception(
-                        'Failed to install requirements file at %s.' % devRequirementsPath)
+            _install_plugin_reqs(pluginPath, name, opts.development)
 
         targetPath = os.path.join(plugin_utilities.getPluginDir(), name)
 
