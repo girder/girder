@@ -126,30 +126,46 @@ class _Group(click.Group):
 
 def _parseConfigFile(path):
     config = six.moves.configparser.ConfigParser(allow_no_value=True)
-    params = ['username', 'password', 'api_key', 'api_url', 'scheme', 'host', 'port', 'api_root']
+    params = ['username', 'password', 'api_key', 'api_url', 'scheme', 'host', 'port', 'api_root',
+              'no_ssl_verify', 'certificate']
     data = {}
-    with open(path, 'r') as configFile:
-        config.readfp(configFile)
-        for key in params:
-            value = config.get('CLI', key)
-            if value:
-                data[key] = value
-    return data
+    try:
+        with open(path, 'r') as configFile:
+            config.readfp(configFile)
+            for key in params:
+                try:
+                    value = config.get('CLI', key)
+                    if value:
+                        data[key] = value
+                except six.moves.configparser.NoOptionError:
+                    continue
+        return data
+    except six.moves.configparser.NoSectionError:
+        return []
 
 
-def _loadConfigPaths():
-    paths = []
-    if 'GIRDER_CLIENT_CONFIG' in os.environ:
-        paths.append(os.environ['GIRDER_CONFIG'])
-
+def _loadConfigPaths(ctx, configOption):
     configFiles = []
+    paths = []
+    # Check '/etc/girder_cliecnt.cfg' and '~/.girder/girder_client.cfg' for config files
     configFiles.append(os.path.join('/etc', 'girder_client.cfg'))
     configFiles.append(os.path.join(os.path.expanduser('~'), '.girder', 'girder_client.cfg'))
+    # Check girder client environment variable
+    if 'GIRDER_CLIENT_CONFIG' in os.environ:
+        configFiles.append(os.environ['GIRDER_CONFIG'])
+    # Check if path to config file was provided by user
+    if configOption:
+        configFiles.append(configOption)
 
+    # Update click context for each config file
     for path in configFiles:
         if os.path.exists(path):
             paths.append(path)
-    return paths
+    for path in paths:
+        data = _parseConfigFile(path)
+        for key in data:
+            if not ctx.params.get(key, None):
+                ctx.params[key] = data[key]
 
 
 _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -217,16 +233,7 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
     input his/her password.
     """
     # --api-url and URL by part arguments are mutually exclusive
-    if not config:
-        paths = _loadConfigPaths()
-        if paths:
-            config = paths[0]
-
-    if config:
-        data = _parseConfigFile(config)
-        for key in data:
-            if not ctx.params.get(key, None):
-                ctx.params[key] = data[key]
+    _loadConfigPaths(ctx, config)
 
     username = ctx.params.get('username')
     password = ctx.params.get('password')
@@ -236,6 +243,8 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
     host = ctx.params.get('host')
     port = ctx.params.get('port')
     api_root = ctx.params.get('api_root')
+    no_ssl_verify = ctx.params.get('no_ssl_verify')
+    certificate = ctx.params.get('certificate')
 
     url_part_options = [host, scheme, port, api_root]
     for name in url_part_options:
