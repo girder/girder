@@ -18,22 +18,14 @@ wrap(ItemView, 'render', function (render) {
             }));
         }
 
-        restRequest({
-            url: `item/${this.model.id}/dicom`,
-            data: {
-                // don't need the dicom tags, just want the sorted results
-                filters: 'dummy'
-            }
-        }).done((resp) => {
-            if (resp.length) {
-                new DicomItemView({
-                    parentView: this,
-                    files: resp
-                })
-                    .render()
-                    .$el.insertAfter(this.$('.g-item-info'));
-            }
-        });
+        if (this.model.has('dicom')) {
+            new DicomItemView({
+                parentView: this,
+                item: this.model
+            })
+                .render()
+                .$el.insertAfter(this.$('.g-item-info'));
+        }
     });
     return render.call(this);
 });
