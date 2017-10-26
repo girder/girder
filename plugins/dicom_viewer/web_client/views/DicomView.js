@@ -367,10 +367,10 @@ const DicomItemView = View.extend({
 
     /**
      *
-     * @param settings.files An array of Girder files.
+     * @param {ItemModel} settings.item An item with its `dicom` attribute set.
      */
     initialize: function (settings) {
-        this._files = new DicomFileCollection(settings.files);
+        this._files = new DicomFileCollection(settings.item.get('dicom').files);
 
         this._sliceMetadataView = null;
         this._sliceImageView = null;
