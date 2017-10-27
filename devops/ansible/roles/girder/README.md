@@ -45,8 +45,6 @@ Generated Facts
 | fact name                 | comments                                                                                                                                                |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | girder_files_updated      | Whether or not the files installed for Girder changed during provisioning. This can be useful for determining if client side assets need to be rebuilt. |
-| girder_use_upstart        | Whether Girder decided to use upstart as the init system.                                                                                               |
-| girder_use_systemd        | Whether Girder decided to use systemd as the init system.                                                                                               |
 
 Examples
 --------
