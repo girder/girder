@@ -1,0 +1,57 @@
+---
+- name: Install Girder system dependencies
+  apt:
+    name:
+      - build-essential
+      - curl
+      - gcc
+      - git
+      # Needed for 'ldap' plugin
+      - libldap2-dev
+      - libsasl2-dev
+  become: true
+  become_user: root
+
+- name: Download/Install NodeJS
+  unarchive:
+    src: https://nodejs.org/dist/v10.11.0/node-v10.11.0-linux-x64.tar.xz
+    dest: /usr/local
+    remote_src: true
+    extra_opts:
+      - "--strip-components=1"
+    exclude:
+      - "CHANGELOG.md"
+      - "LICENSE"
+      - "README.md"
+    creates: "/usr/local/bin/node"
+  become: true
+  become_user: root
+  when: girder_web
+
+- name: Install Girder
+  pip:
+    name: "{{ girder_package }}"
+    version: "{{ girder_version|default(omit) }}"
+    extra_args: "{{ girder_pip_extra_args }}"
+    virtualenv: "{{ girder_virtualenv }}"
+  notify:
+    - Build Girder web assets
+    - Restart Girder
+
+# Setup systemd service
+- block:
+    - name: Install service
+      template:
+        src: "daemon/girder.service.j2"
+        dest: "/etc/systemd/system/girder.service"
+      notify: Restart Girder
+
+    - name: Enable/Disable Girder service on boot
+      systemd:
+        name: girder
+        daemon_reload: true
+        state: "{{ 'started' if girder_start else 'stopped' }}"
+        enabled: "{{ girder_enabled }}"
+  become: true
+  become_user: root
+  when: girder_daemonize

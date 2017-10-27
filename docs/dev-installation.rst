@@ -25,8 +25,10 @@ Inside of the Girder directory, simply run:
 .. code-block:: bash
 
     vagrant up
+    vagrant ssh
+    girder serve
 
-This creates a VM running Ubuntu 14.04, then automatically installs Girder
+This creates a VM running Ubuntu 18.04, then automatically installs Girder
 within it. After it completes, Girder will be up and running at
 http://localhost:9080/ on the host machine.
 
@@ -38,12 +40,6 @@ To access the VM, run from the Girder directory:
 .. code-block:: bash
 
     vagrant ssh
-
-This takes you inside the VM. From here, you might want to restart the server:
-
-.. code-block:: bash
-
-    sudo service girder restart
 
 To rebuild the web client:
 

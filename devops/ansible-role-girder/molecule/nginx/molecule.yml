@@ -1,0 +1,28 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+lint:
+  name: yamllint
+platforms:
+  - name: instance
+    box: bento/ubuntu-18.04
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+scenario:
+  name: nginx
+verifier:
+  name: testinfra
+  # Running pytest with setup.cfg in the project root tries to compute coverage and fails.
+  # pytest doesn't currently have a "no config file" flag, so passing /dev/null works.
+  # See: https://stackoverflow.com/a/52389250
+  options:
+    c: "/dev/null"
+    verbose: true
+  lint:
+    name: flake8

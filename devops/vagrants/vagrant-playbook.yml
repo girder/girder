@@ -2,8 +2,9 @@
 
 - hosts: all
   vars:
-    bind_node_modules: yes
-  tasks:
+    girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
+
+  pre_tasks:
     - name: Create / remove a local girder_node_modules directory
       file:
         path: "{{ ansible_user_dir }}/girder_node_modules"
@@ -24,4 +25,61 @@
       lineinfile:
         line: "export WATCH_USEPOLLING=true"
         path: "{{ ansible_user_dir }}/.bashrc"
+        state: present
+
+    - name: Update package cache
+      apt:
+        update_cache: true
+      changed_when: false
+      become: true
+
+    - name: Install python prerequisites
+      apt:
+        name:
+          - python3-venv
+          - python3-dev
+      become: true
+
+    - name: Install MongoDB
+      apt:
+        name: mongodb-server
+      become: true
+
+    - name: Create virtualenv
+      command: |
+        /usr/bin/python3.6 -m venv "{{ girder_virtualenv }}"
+      args:
+        creates: "{{ girder_virtualenv }}"
+
+  roles:
+    - role: ansible-role-girder
+      girder_package: "{{ ansible_user_dir }}/girder"
+      girder_pip_extra_args: "--editable"
+      girder_daemonize: false
+
+  post_tasks:
+    - name: Configure Girder to bind to public interface
+      ini_file:
+        dest: "{{ ansible_user_dir }}/.girder/girder.cfg"
+        section: "global"
+        option: "server.socket_host"
+        value: '"0.0.0.0"'
+
+    - name: Install Girder Python development requirements
+      pip:
+        requirements: "requirements-dev.txt"
+        chdir: "{{ ansible_user_dir }}/girder"
+        virtualenv: "{{ girder_virtualenv }}"
+
+    - name: Install development packages
+      apt:
+        name:
+          - cmake
+          - cmake-curses-gui
+      become: true
+
+    - name: Activate virtualenv on login
+      lineinfile:
+        dest: "{{ ansible_user_dir }}/.profile"
+        line: 'source {{ girder_virtualenv }}/bin/activate'
         state: present

@@ -1,0 +1,12 @@
+[Unit]
+Description=Girder
+After=network.target
+
+[Service]
+User={{ ansible_user_id }}
+Group={{ ansible_user_id }}
+Restart=always
+ExecStart={{ girder_virtualenv }}/bin/girder serve
+
+[Install]
+WantedBy=multi-user.target

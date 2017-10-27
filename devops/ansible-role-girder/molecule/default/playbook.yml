@@ -1,0 +1,25 @@
+---
+- name: Converge
+  hosts: all
+
+  vars:
+    girder_virtualenv: "{{ ansible_user_dir }}/.venvs/girder"
+
+  pre_tasks:
+    - name: Install python prereqs
+      apt:
+        name:
+          - python-setuptools
+          - python3-venv
+          - python3-dev
+      become: true
+
+    - name: Create virtualenv
+      command: |
+        /usr/bin/python3.6 -m venv "{{ girder_virtualenv }}"
+      args:
+        creates: "{{ girder_virtualenv }}"
+
+  roles:
+    - role: ansible-role-girder
+      girder_daemonize: false
