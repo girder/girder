@@ -12,6 +12,13 @@ Requirements
 
 Ubuntu 14.04/16.04 or CentOS 7.
 
+Installing against a custom python or in a virtualenv:
+
+This role always installs in a virtualenv against the ansible_python_interpreter unless girder_virtualenv is specified and pre-created.
+
+This role requires virtualenv already be installed.
+
+
 Role Variables
 --------------
 
@@ -20,8 +27,6 @@ Role Variables
 | girder_path                | no       | $HOME/girder                         | Path to download and build Girder in.                                                                                                                               |
 | girder_repo                | no       | https://github.com/girder/girder.git | Git origin for fetching Girder.                                                                                                                                     |
 | girder_version             | no       | master                               | Git commit-ish for fetching Girder.                                                                                                                                 |
-| girder_python              | no       | ansible_python                       | Path to a specific Python to install and run Girder against. Requires `girder_pip` be specified.                                                                    |
-| girder_pip                 | no       | pip2                                 | Path to a specific pip executable to install against, can't be specified with `girder_virtualenv`.                                                                  |
 | girder_virtualenv          | no       | none                                 | Path to a Python virtual environment to install Girder in.                                                                                                          |
 | girder_clone               | no       | yes                                  | Whether provisioning should clone Girder into `girder_path`.                                                                                                        |
 | girder_update              | no       | yes                                  | Whether provisioning should fetch new versions via git.                                                                                                             |
@@ -42,7 +47,6 @@ Generated Facts
 | girder_files_updated      | Whether or not the files installed for Girder changed during provisioning. This can be useful for determining if client side assets need to be rebuilt. |
 | girder_use_upstart        | Whether Girder decided to use upstart as the init system.                                                                                               |
 | girder_use_systemd        | Whether Girder decided to use systemd as the init system.                                                                                               |
-| girder_install_executable | The full path to the `girder-install` executable.                                                                                                       |
 
 Examples
 --------
