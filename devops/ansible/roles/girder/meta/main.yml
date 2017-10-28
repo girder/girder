@@ -8,13 +8,13 @@ galaxy_info:
   min_ansible_version: 2.0
 
   platforms:
-  - name: Ubuntu
-    versions:
-      - trusty
-      - xenial
-  - name: EL
-    versions:
-      - 7
+    - name: Ubuntu
+      versions:
+        - trusty
+        - xenial
+    - name: EL
+      versions:
+        - 7
 
   galaxy_tags:
     - girder
