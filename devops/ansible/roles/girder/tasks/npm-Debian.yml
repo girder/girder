@@ -20,6 +20,9 @@
   become_user: root
 
 - name: NodeJS | Update npm
-  command: "npm install -g npm"
+  npm:
+    name: npm
+    global: yes
+    state: latest
   become: yes
   become_user: root
