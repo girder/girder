@@ -4,12 +4,8 @@
       template:
         src: "daemon/upstart.girder.conf.j2"
         dest: "/etc/init/girder.conf"
-
-    - name: (Re)start service
-      service:
-        name: girder
-        state: restarted
-      when: girder_start
+      notify:
+        - Restart Girder
 
     - name: Enable/Disable Girder service on boot
       service:
@@ -25,13 +21,9 @@
       template:
         src: "daemon/girder.service.j2"
         dest: "/etc/systemd/system/girder.service"
-
-    - name: (Re)start service
-      systemd:
-        name: girder
-        daemon_reload: yes
-        state: restarted
-      when: girder_start
+      notify:
+        - Reload systemd
+        - Restart Girder
 
     - name: Enable/Disable Girder service on boot
       systemd:

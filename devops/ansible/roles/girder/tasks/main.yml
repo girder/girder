@@ -36,11 +36,3 @@
 - name: Install Girder Plugins
   command: "{{ girder_virtualenv }}/bin/girder-install plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
   with_items: "{{ girder_plugins }}"
-
-- name: Build Girder (web)
-  command: "{{ girder_install_executable }} web {{ girder_web_extra_args }}"
-  args:
-    chdir: "{{ girder_path }}"
-  # ensure that the install is one that uses web assets and
-  # the assets are always supposed to be rebuilt, or the files have changed (from git)
-  when: girder_web and (girder_always_build_assets or girder_files_updated)

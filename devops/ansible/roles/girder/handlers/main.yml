@@ -1,0 +1,15 @@
+---
+- name: Build Girder (web)
+  command: "{{ girder_virtualenv }}/bin/girder-install web {{ girder_web_extra_args }}"
+  when: girder_web
+
+- name: Restart Girder
+  service:
+    name: girder
+    state: restarted
+  become: yes
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: yes
+  become: yes
