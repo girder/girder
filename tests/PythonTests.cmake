@@ -1,6 +1,5 @@
 set(server_port 20200)
 set(flake8_config "${PROJECT_SOURCE_DIR}/tests/flake8.cfg")
-set(coverage_html_dir "${PROJECT_SOURCE_DIR}/clients/web/dev/built/py_coverage")
 
 if(PYTHON_BRANCH_COVERAGE)
   set(_py_branch_cov True)
@@ -46,13 +45,13 @@ function(python_tests_init)
     add_test(
       NAME py_coverage_html
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html "--rcfile=${PYTHON_COVERAGE_CONFIG}" -d "${coverage_html_dir}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html "--rcfile=${PYTHON_COVERAGE_CONFIG}" -d "${PROJECT_SOURCE_DIR}/build/test/coverage/server_html"
               "--title=Girder Coverage Report"
     )
     add_test(
       NAME py_coverage_xml
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml "--rcfile=${PYTHON_COVERAGE_CONFIG}" -o "${PROJECT_BINARY_DIR}/coverage.xml"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml "--rcfile=${PYTHON_COVERAGE_CONFIG}" -o "${PROJECT_SOURCE_DIR}/build/test/coverage/server.xml"
     )
     set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
     set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
