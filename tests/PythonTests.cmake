@@ -72,7 +72,7 @@ function(add_python_style_test name input)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${FLAKE8_EXECUTABLE}" "--config=${flake8_config}" "${input}"
     )
-    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis)
+    set_property(TEST "${name}" PROPERTY LABELS girder_python)
   endif()
 endfunction()
 
