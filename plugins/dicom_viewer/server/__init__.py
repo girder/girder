@@ -29,6 +29,7 @@ from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
 from girder.models.item import Item
 from girder.models.file import File
+from girder.utility import search
 
 
 class DicomItem(Resource):
@@ -195,9 +196,44 @@ def _uploadHandler(event):
     events.trigger('dicom_viewer.upload.success')
 
 
+def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, offset=0):
+    """
+    Provide a substring search on both keys and values.
+    """
+    if types != ['item']:
+        raise TypeError('The dicom search is only able to search in Item.')
+
+    # The insensitive Case is not perfect
+    # We will need to search into object value as improvment.
+    jsQuery = """
+        return Object.keys(obj.dicom.meta).some(
+            function(key) {
+                return (key.toLowerCase().indexOf('%(key)s'.toLowerCase()) !== -1)  ||
+                    obj.dicom.meta[key].toString().toLowerCase()
+                        .indexOf('%(value)s'.toLowerCase()) !== -1;
+            })
+        """ % {'key': query, 'value': query}
+    mongoQuery = {'dicom': {'$exists': True}, '$where': jsQuery}
+
+    # Sort the documents inside MongoDB
+    cursor = Item().find(mongoQuery)
+
+    # Filter the result
+    result = {
+        'item': [Item().filter(d, user) for d in cursor]
+    }
+
+    return result
+
+
 def load(info):
     Item().exposeFields(level=AccessType.READ, fields={'dicom'})
     events.bind('data.process', 'dicom_viewer', _uploadHandler)
+
+    # Add the DICOM search mode only once
+    if search.getSearchModeHandler('dicom') is None:
+        search.addSearchMode('dicom', dicomSubstringSearchHandler)
+
     dicomItem = DicomItem()
     info['apiRoot'].item.route(
         'POST', (':id', 'parseDicom'), dicomItem.makeDicomItem)
