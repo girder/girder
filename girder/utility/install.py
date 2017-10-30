@@ -214,13 +214,37 @@ def install_web(opts=None):
             plugins=opts.plugins, noPlugins=opts.no_plugins)
 
 
+def _install_plugin_reqs(pluginPath, name, dev=False):
+    setupPath = os.path.join(pluginPath, 'setup.py')
+    requirementsPath = os.path.join(pluginPath, 'requirements.txt')
+    devRequirementsPath = os.path.join(pluginPath, 'requirements-dev.txt')
+
+    # Install plugin dependencies
+    if os.path.isfile(setupPath):
+        print(constants.TerminalColor.info('Installing %s as a package.' % name))
+        if pip.main(['install', '-e', pluginPath]) != 0:
+            raise Exception('Failed to install package at %s.' % pluginPath)
+    elif os.path.isfile(requirementsPath):
+        print(constants.TerminalColor.info('Installing requirements.txt for %s.' % name))
+        if pip.main(['install', '-r', requirementsPath]) != 0:
+            raise Exception('Failed to install requirements file at %s.' % requirementsPath)
+
+    # Install plugin development dependencies
+    if dev and os.path.isfile(devRequirementsPath):
+        print(constants.TerminalColor.info(
+            'Installing requirements-dev.txt for %s.' % name))
+        if pip.main(['install', '-r', devRequirementsPath]) != 0:
+            raise Exception(
+                'Failed to install requirements file at %s.' % devRequirementsPath)
+
+
 def install_plugin(opts):
     """
-    Install a list of plugins into a packaged Girder environment. This first
-    copies the plugin dir recursively into the Girder primary plugin directory,
-    then installs all of its pip requirements from its requirements.txt file if
-    one exists. After all plugins have finished installing, we run
-    `npm install` to build all of the web client code.
+    Install a list of plugins into a packaged Girder environment. This first copies the plugin dir
+    recursively into the Girder primary plugin directory, then installs the plugin using pip (if
+    setup.py exists) or installs dependencies from a requirements.txt file (otherwise, and if that
+    file exists). After all plugins have finished installing, we run `npm install` to build all of
+    the web client code.
 
     :param opts: Options controlling the behavior of this function. Must be an
         object with a "plugin" attribute containing a list of plugin paths, and
@@ -236,16 +260,7 @@ def install_plugin(opts):
             raise Exception('Invalid plugin directory: %s' % pluginPath)
 
         if not opts.skip_requirements:
-            requirements = [os.path.join(pluginPath, 'requirements.txt')]
-            if opts.development:
-                requirements.append(os.path.join(pluginPath, 'requirements-dev.txt'))
-            for reqs in requirements:
-                if os.path.isfile(reqs):
-                    print(constants.TerminalColor.info(
-                        'Installing pip requirements for %s from %s.' % (name, reqs)))
-
-                    if pip.main(['install', '-r', reqs]) != 0:
-                        raise Exception('Failed to install pip requirements at %s.' % reqs)
+            _install_plugin_reqs(pluginPath, name, opts.development)
 
         targetPath = os.path.join(plugin_utilities.getPluginDir(), name)
 
@@ -300,7 +315,7 @@ def main():
                         help='Install by symlinking to the plugin directory.')
 
     plugin.add_argument('--skip-requirements', action='store_true',
-                        help='Skip the step of pip installing the requirements.txt file.')
+                        help='Skip the step of pip installing the plugin dependencies.')
 
     plugin.add_argument('--dev', action='store_true',
                         dest='development',
