@@ -142,8 +142,8 @@ module.exports = function (grunt) {
                     new GoogleFontsPlugin({
                         filename: 'googlefonts.css',
                         fonts: [{
-                            family: 'Droid Sans',
-                            variants: ['regular', '700']
+                            family: 'Open Sans',
+                            variants: ['regular', '700', 'italic', '700italic']
                         }]
                     })
                 ]
