@@ -1,14 +1,15 @@
 ---
+- name: Converge
+  hosts: all
 
-- hosts: all
   vars:
     girder_update: no
-    girder_force: no
-    girder_always_build_assets: yes
+
   pre_tasks:
     - name: Update package cache
       apt:
         update_cache: yes
+      changed_when: false
       become: yes
       become_user: root
       when: ansible_os_family == "Debian"
@@ -20,6 +21,11 @@
       become: yes
       become_user: root
       when: ansible_os_family == "RedHat"
+
+    - name: Install virtualenv
+      package:
+        name: python-virtualenv
+      become: yes
 
   roles:
     - role: Stouts.mongodb
@@ -38,8 +44,12 @@
     - name: Install girder-client
       pip:
         name: girder-client
-      become: yes
-      become_user: root
+        virtualenv: "{{ girder_virtualenv }}"
+
+    # The remaining tasks require the Girder module, which needs to run
+    # in an environment where girder-client is installed (see previous task).
+    - set_fact:
+        ansible_python_interpreter: "{{ girder_virtualenv }}/bin/python"
 
     - name: Create admin user
       girder:
@@ -51,7 +61,7 @@
           password: "girder"
           email: "girder@girder.girder"
           admin: yes
-        state: present
+          state: present
 
     - name: Setup filesystem assetstore
       girder:
@@ -72,4 +82,4 @@
         password: "girder"
         plugins:
           - gravatar
-        state: present
+      state: present
