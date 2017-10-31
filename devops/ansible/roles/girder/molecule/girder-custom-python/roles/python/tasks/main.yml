@@ -1,0 +1,13 @@
+---
+- name: Install virtualenv
+  pip:
+    name: virtualenv
+    executable: /usr/local/bin/pip3.6
+  become: yes
+
+- name: Create virtualenv
+  pip:
+    name: pip  # pip is more of a dummy placeholder to ensure the auto-creation of virtualenv occurs
+    virtualenv: "{{ python_virtualenv }}"
+    virtualenv_command: "/usr/local/bin/virtualenv"
+    virtualenv_python: "{{ python_bin }}"

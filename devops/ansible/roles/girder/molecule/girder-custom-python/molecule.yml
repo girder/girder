@@ -1,0 +1,39 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+lint:
+  name: yamllint
+platforms:
+  - name: instance-ubuntu-14.04
+    box: ubuntu/trusty64
+    memory: 1024
+    cpus: 2
+  - name: instance-ubuntu-16.04
+    box: bento/ubuntu-16.04
+    memory: 1024
+    cpus: 2
+  - name: instance-cento-7
+    box: bento/centos-7.3
+    memory: 1024
+    cpus: 2
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+scenario:
+  name: girder-custom-python
+  test_sequence:
+    - destroy
+    - dependency
+    - syntax
+    - create
+    - converge
+    - verify
+verifier:
+  name: testinfra
+  lint:
+    name: flake8

@@ -1,0 +1,3 @@
+- src: torian.python
+- src: https://github.com/Stouts/Stouts.mongodb
+  version: 2.3.4
