@@ -1,11 +1,11 @@
 ---
-
-- hosts: all
+- name: Converge
+  hosts: all
   vars:
     girder_update: no
     girder_force: no
     girder_start: no
-    girder_always_build_assets: yes
+
     nginx_vhosts:
       - listen: "8080 default_server"
         server_name: "girder"
@@ -30,6 +30,7 @@
     - name: Update package cache
       apt:
         update_cache: yes
+      changed_when: false
       become: yes
       become_user: root
       when: ansible_os_family == "Debian"
@@ -41,6 +42,11 @@
       become: yes
       become_user: root
       when: ansible_os_family == "RedHat"
+
+    - name: Install virtualenv
+      package:
+        name: python-virtualenv
+      become: yes
 
   roles:
     - role: Stouts.mongodb
@@ -75,15 +81,18 @@
 
     # nginx and apache both use the httpd label in SELinux
     - name: Allow nginx to connect to the local network via SELinux
-      command: "setsebool httpd_can_network_connect 1"
+      seboolean:
+        name: "httpd_can_network_connect"
+        state: yes
+        persistent: yes
       become: yes
       become_user: root
       when: ansible_os_family == "RedHat"
 
     - name: restart girder/nginx
       service:
-        state=restarted
-        name={{ item }}
+        state: started
+        name: "{{ item }}"
       with_items:
         - girder
         - nginx
