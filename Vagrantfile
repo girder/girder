@@ -58,10 +58,10 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "devops/ansible/roles/girder/library/test/site.yml"
       ansible.galaxy_role_file = "devops/ansible/roles/girder/library/test/requirements.yml"
     else
-      ansible.playbook = "devops/ansible/examples/#{ansible_example_name}/site.yml"
+      ansible.playbook = "devops/ansible/roles/girder/molecule/#{ansible_example_name}/site.yml"
 
       if File.exist?("devops/ansible/examples/#{ansible_example_name}/requirements.yml")
-        ansible.galaxy_role_file = "devops/ansible/examples/#{ansible_example_name}/requirements.yml"
+        ansible.galaxy_role_file = "devops/ansible/role/girder/molecule/#{ansible_example_name}/requirements.yml"
       end
     end
 
