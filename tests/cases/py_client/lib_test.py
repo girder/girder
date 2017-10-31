@@ -892,3 +892,50 @@ class PythonClientTestCase(base.TestCase):
                                           'meta-dict', metadata=testMeta)
 
         self.assertEquals(self.client.getFolder(folder['_id'])['meta'], testMeta)
+
+    def assertClientEquals(self, client1, client2):
+        self.assertEquals(client1.urlBase, client2.urlBase)
+        self.assertEquals(client1.token, client2.token)
+
+    def testSerializeClientDict(self):
+        client1 = girder_client.GirderClient(apiUrl='https://my-girder.org/girder/api/v1')
+        data = client1.toDict()
+        client2 = girder_client.GirderClient.fromDict(data)
+        self.assertClientEquals(client1, client2)
+
+    def testSerializeClientDictWithAuth(self):
+        client1 = girder_client.GirderClient(apiUrl='https://my-girder.org/girder/api/v1')
+        client1.token = 'girder-token'
+        data = client1.toDict()
+        client2 = girder_client.GirderClient.fromDict(data)
+        self.assertClientEquals(client1, client2)
+
+    def testJSONEncoder(self):
+        client1 = girder_client.GirderClient(apiUrl='https://my-girder.org/girder/api/v1')
+        client1.token = 'girder-token'
+        data = json.dumps({'client': client1, 'dict': {}}, cls=girder_client.JSONEncoder)
+        client2 = json.loads(data, object_hook=girder_client.object_hook)['client']
+        self.assertClientEquals(client1, client2)
+
+    def testDecodedClientInstance(self):
+        client = girder_client.GirderClient.fromDict(self.client.toDict())
+        collection = client.createCollection('collection', public=False)
+        collections = list(client.listCollection())
+        self.assertEquals(len(collections), 1)
+        self.assertEquals(collections[0]['_id'], collection['_id'])
+
+    def testInvalidClientSerialization(self):
+        r = '.*not a girder client serialization.*'
+        with self.assertRaisesRegexp(ValueError, r):
+            girder_client.GirderClient.fromDict({})
+
+    @mock.patch.object(girder_client._logger, 'warn')
+    def testOldVersionWarning(self, warn):
+        client1 = girder_client.GirderClient()
+        data = client1.toDict()
+        data['__girder_client__'] = '999.999.999'
+        client2 = girder_client.GirderClient.fromDict(data)
+        warn.assert_called_with(
+            'The serialization was generated from a newer version of girder-client'
+        )
+        self.assertClientEquals(client1, client2)
