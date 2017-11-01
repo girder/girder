@@ -20,6 +20,7 @@ import json
 
 from .. import base
 
+from girder.api.v1 import resource
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
 from girder.models.assetstore import Assetstore
@@ -184,6 +185,7 @@ class SearchTestCase(base.TestCase):
         # Check search for model that is not access controlled
         self.assertNotIsInstance(Assetstore(), AccessControlledModel)
         self.assertNotIsInstance(Assetstore(), AccessControlMixin)
+        resource.allowedSearchTypes.add('assetstore')
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'prefix',
