@@ -81,7 +81,11 @@ def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
         if modelName not in allowedSearchTypes:
             continue
 
-        model = ModelImporter.model(modelName)
+        if '.' in modelName:
+            name, plugin = modelName.rsplit('.', 1)
+            model = ModelImporter.model(name, plugin)
+        else:
+            model = ModelImporter.model(modelName)
 
         if model is not None:
             results[modelName] = [
