@@ -20,6 +20,7 @@ import json
 
 from .. import base
 
+from girder.api.v1 import resource
 from girder.constants import AccessType
 from girder.models.model_base import AccessControlledModel
 from girder.models.assetstore import Assetstore
@@ -27,7 +28,7 @@ from girder.models.collection import Collection
 from girder.models.item import Item
 from girder.models.user import User
 from girder.utility.acl_mixin import AccessControlMixin
-from girder.utility import search_mode_utilities
+from girder.utility import search
 
 
 def setUpModule():
@@ -80,6 +81,7 @@ class SearchTestCase(base.TestCase):
             'q': 'gibberish',
             'types': '["folder", "user", "collection", "group"]'
         })
+        self.assertStatusOk(resp)
         self.assertEqual(resp.json, {
             'folder': [],
             'user': [],
@@ -92,6 +94,7 @@ class SearchTestCase(base.TestCase):
             'q': 'private',
             'types': '["folder", "user", "collection"]'
         })
+        self.assertStatusOk(resp)
         self.assertEqual(resp.json, {
             'folder': [],
             'user': [],
@@ -103,6 +106,7 @@ class SearchTestCase(base.TestCase):
             'mode': 'prefix',
             'types': '["folder", "user", "collection"]'
         })
+        self.assertStatusOk(resp)
         self.assertEqual(resp.json, {
             'folder': [],
             'user': [],
@@ -113,6 +117,7 @@ class SearchTestCase(base.TestCase):
             'q': 'private',
             'types': '["folder", "user", "collection"]'
         }, user=user)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['folder']))
         self.assertDictContainsSubset({
             '_id': str(privateFolder['_id']),
@@ -130,6 +135,7 @@ class SearchTestCase(base.TestCase):
             'mode': 'prefix',
             'types': '["folder", "user", "collection", "item"]'
         }, user=user)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['folder']))
         self.assertDictContainsSubset({
             '_id': str(privateFolder['_id']),
@@ -145,6 +151,7 @@ class SearchTestCase(base.TestCase):
             'q': 'magic',
             'types': '["collection"]'
         }, user=admin)
+        self.assertStatusOk(resp)
         self.assertEqual(2, len(resp.json['collection']))
         self.assertDictContainsSubset({
             '_id': str(coll2['_id']),
@@ -162,6 +169,7 @@ class SearchTestCase(base.TestCase):
             'q': 'goodlogin',
             'types': '["user"]'
         }, user=admin)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['user']))
         self.assertDictContainsSubset({
             '_id': str(user['_id']),
@@ -175,6 +183,7 @@ class SearchTestCase(base.TestCase):
             'q': 'object',
             'types': '["item"]'
         }, user=user)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['item']))
         self.assertDictContainsSubset({
             '_id': str(item1['_id']),
@@ -184,11 +193,13 @@ class SearchTestCase(base.TestCase):
         # Check search for model that is not access controlled
         self.assertNotIsInstance(Assetstore(), AccessControlledModel)
         self.assertNotIsInstance(Assetstore(), AccessControlMixin)
+        resource.allowedSearchTypes.add('assetstore')
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'prefix',
             'types': '["assetstore"]'
         }, user=user)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['assetstore']))
 
     def testSearchModeRegistry(self):
@@ -198,7 +209,7 @@ class SearchTestCase(base.TestCase):
                 'types': types
             }
 
-        search_mode_utilities.addSearchMode('testSearch', testSearchHandler)
+        search.addSearchMode('testSearch', testSearchHandler)
 
         # Use the new search mode.
         resp = self.request(path='/resource/search', params={
@@ -212,7 +223,7 @@ class SearchTestCase(base.TestCase):
             'types': ["collection"]
         })
 
-        search_mode_utilities.removeSearchMode('testSearch')
+        search.removeSearchMode('testSearch')
 
         # Use the deleted search mode.
         resp = self.request(path='/resource/search', params={

@@ -71,11 +71,21 @@ def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
     """
     The common handler for `text` and `prefix` search modes.
     """
+    # Avoid circular import
+    from girder.api.v1.resource import allowedSearchTypes
+
     method = '%sSearch' % mode
     results = {}
 
     for modelName in types:
-        model = ModelImporter().model(modelName)
+        if modelName not in allowedSearchTypes:
+            continue
+
+        if '.' in modelName:
+            name, plugin = modelName.rsplit('.', 1)
+            model = ModelImporter.model(name, plugin)
+        else:
+            model = ModelImporter.model(modelName)
 
         if model is not None:
             results[modelName] = [

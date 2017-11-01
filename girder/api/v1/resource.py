@@ -24,12 +24,14 @@ from ..rest import Resource as BaseResource, RestException, setResponseHeader, s
 from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.utility import parseTimestamp
-from girder.utility import search_mode_utilities
+from girder.utility.search import getSearchModeHandler
 from girder.utility import ziputil
 from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
 
-_allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
+# Plugins can modify this set to allow other types to be searched
+allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
+allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 
 
 class Resource(BaseResource):
@@ -69,7 +71,7 @@ class Resource(BaseResource):
         """
         level = AccessType.validate(level)
         user = self.getCurrentUser()
-        handler = search_mode_utilities.getSearchModeHandler(mode)
+        handler = getSearchModeHandler(mode)
         if handler is None:
             raise RestException('Search mode handler %r not found.' % mode)
         results = handler(
@@ -219,7 +221,7 @@ class Resource(BaseResource):
     )
     def delete(self, resources, progress):
         user = self.getCurrentUser()
-        self._validateResourceSet(resources, _allowedDeleteTypes)
+        self._validateResourceSet(resources, allowedDeleteTypes)
         total = sum([len(resources[key]) for key in resources])
         with ProgressContext(
                 progress, user=user, title='Deleting resources',
