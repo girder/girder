@@ -27,7 +27,7 @@ from girder.models.collection import Collection
 from girder.models.item import Item
 from girder.models.user import User
 from girder.utility.acl_mixin import AccessControlMixin
-from girder.utility import search_mode_utilities
+from girder.utility import search
 
 
 def setUpModule():
@@ -198,7 +198,7 @@ class SearchTestCase(base.TestCase):
                 'types': types
             }
 
-        search_mode_utilities.addSearchMode('testSearch', testSearchHandler)
+        search.addSearchMode('testSearch', testSearchHandler)
 
         # Use the new search mode.
         resp = self.request(path='/resource/search', params={
@@ -212,7 +212,7 @@ class SearchTestCase(base.TestCase):
             'types': ["collection"]
         })
 
-        search_mode_utilities.removeSearchMode('testSearch')
+        search.removeSearchMode('testSearch')
 
         # Use the deleted search mode.
         resp = self.request(path='/resource/search', params={

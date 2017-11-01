@@ -24,7 +24,7 @@ from ..rest import Resource as BaseResource, RestException, setResponseHeader, s
 from girder.constants import AccessType, TokenScope
 from girder.api import access
 from girder.utility import parseTimestamp
-from girder.utility import search_mode_utilities
+from girder.utility.search import getSearchModeHandler
 from girder.utility import ziputil
 from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
@@ -71,7 +71,7 @@ class Resource(BaseResource):
         """
         level = AccessType.validate(level)
         user = self.getCurrentUser()
-        handler = search_mode_utilities.getSearchModeHandler(mode)
+        handler = getSearchModeHandler(mode)
         if handler is None:
             raise RestException('Search mode handler %r not found.' % mode)
         results = handler(
