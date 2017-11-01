@@ -81,6 +81,7 @@ class SearchTestCase(base.TestCase):
             'q': 'gibberish',
             'types': '["folder", "user", "collection", "group"]'
         })
+        self.assertStatusOk(resp)
         self.assertEqual(resp.json, {
             'folder': [],
             'user': [],
@@ -93,6 +94,7 @@ class SearchTestCase(base.TestCase):
             'q': 'private',
             'types': '["folder", "user", "collection"]'
         })
+        self.assertStatusOk(resp)
         self.assertEqual(resp.json, {
             'folder': [],
             'user': [],
@@ -104,6 +106,7 @@ class SearchTestCase(base.TestCase):
             'mode': 'prefix',
             'types': '["folder", "user", "collection"]'
         })
+        self.assertStatusOk(resp)
         self.assertEqual(resp.json, {
             'folder': [],
             'user': [],
@@ -114,6 +117,7 @@ class SearchTestCase(base.TestCase):
             'q': 'private',
             'types': '["folder", "user", "collection"]'
         }, user=user)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['folder']))
         self.assertDictContainsSubset({
             '_id': str(privateFolder['_id']),
@@ -131,6 +135,7 @@ class SearchTestCase(base.TestCase):
             'mode': 'prefix',
             'types': '["folder", "user", "collection", "item"]'
         }, user=user)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['folder']))
         self.assertDictContainsSubset({
             '_id': str(privateFolder['_id']),
@@ -146,6 +151,7 @@ class SearchTestCase(base.TestCase):
             'q': 'magic',
             'types': '["collection"]'
         }, user=admin)
+        self.assertStatusOk(resp)
         self.assertEqual(2, len(resp.json['collection']))
         self.assertDictContainsSubset({
             '_id': str(coll2['_id']),
@@ -163,6 +169,7 @@ class SearchTestCase(base.TestCase):
             'q': 'goodlogin',
             'types': '["user"]'
         }, user=admin)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['user']))
         self.assertDictContainsSubset({
             '_id': str(user['_id']),
@@ -176,6 +183,7 @@ class SearchTestCase(base.TestCase):
             'q': 'object',
             'types': '["item"]'
         }, user=user)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['item']))
         self.assertDictContainsSubset({
             '_id': str(item1['_id']),
@@ -191,6 +199,7 @@ class SearchTestCase(base.TestCase):
             'mode': 'prefix',
             'types': '["assetstore"]'
         }, user=user)
+        self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['assetstore']))
 
     def testSearchModeRegistry(self):
