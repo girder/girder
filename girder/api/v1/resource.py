@@ -29,7 +29,9 @@ from girder.utility import ziputil
 from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
 
-_allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
+# Plugins can modify this set to allow other types to be searched
+allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
+allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 
 
 class Resource(BaseResource):
@@ -219,7 +221,7 @@ class Resource(BaseResource):
     )
     def delete(self, resources, progress):
         user = self.getCurrentUser()
-        self._validateResourceSet(resources, _allowedDeleteTypes)
+        self._validateResourceSet(resources, allowedDeleteTypes)
         total = sum([len(resources[key]) for key in resources])
         with ProgressContext(
                 progress, user=user, title='Deleting resources',
