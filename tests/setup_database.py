@@ -45,7 +45,7 @@ def resolvePath(path):
 
 def loadModel(kind):
     """Load a model class from its name."""
-    return ModelImporter().model(kind)
+    return ModelImporter.model(kind)
 
 
 def setAssetstore(name=None):

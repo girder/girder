@@ -75,7 +75,7 @@ def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
     results = {}
 
     for modelName in types:
-        model = ModelImporter().model(modelName)
+        model = ModelImporter.model(modelName)
 
         if model is not None:
             results[modelName] = [
