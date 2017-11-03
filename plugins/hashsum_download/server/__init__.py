@@ -24,7 +24,8 @@ import warnings
 from girder import events
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
-from girder.api.rest import RestException, setRawResponse, setResponseHeader, setContentDisposition
+from girder.api.rest import (
+    RestException, filtermodel, setRawResponse, setResponseHeader, setContentDisposition)
 from girder.api.v1.file import File
 from girder.constants import AccessType, TokenScope
 from girder.models.model_base import ValidationException
@@ -52,6 +53,7 @@ class HashedFile(File):
     def __init__(self, node):
         super(HashedFile, self).__init__()
 
+        node.route('GET', ('hashsum', ':algo', ':hash'), self.getByHash)
         node.route('GET', ('hashsum', ':algo', ':hash', 'download'), self.downloadWithHash)
         node.route('GET', (':id', 'hashsum_file', ':algo'), self.downloadKeyFile)
         node.route('POST', (':id', 'hashsum'), self.computeHashes)
@@ -100,6 +102,24 @@ class HashedFile(File):
 
         return self.download(id=file['_id'], params=params)
 
+    @access.cookie
+    @access.public(scope=TokenScope.DATA_READ)
+    @filtermodel(FileModel)
+    @autoDescribeRoute(
+        Description('Return a list of files matching a hash sum.')
+        .param('algo', 'The type of the given hash sum (case insensitive).',
+               paramType='path', lower=True, enum=SUPPORTED_ALGORITHMS)
+        .param('hash', 'The hexadecimal hash sum of the file to download (case insensitive).',
+               paramType='path', lower=True)
+    )
+    def getByHash(self, algo, hash):
+        self._validateAlgo(algo)
+
+        model = FileModel()
+        user = self.getCurrentUser()
+        cursor = model.find({algo: hash})
+        return [file for file in cursor if model.hasAccess(file, user, AccessType.READ)]
+
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Manually compute the checksum values for a given file.')
@@ -137,7 +157,7 @@ class HashedFile(File):
         """
         self._validateAlgo(algo)
 
-        query = {algo: hash}  # Always convert to lower case
+        query = {algo: hash}
         fileModel = FileModel()
         cursor = fileModel.find(query)
 
