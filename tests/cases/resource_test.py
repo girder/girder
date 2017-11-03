@@ -298,7 +298,7 @@ class ResourceTestCase(base.TestCase):
         self.assertStatusOk(resp)
         # All of the items should be gone now
         resp = self.request(path='/item', method='GET', user=self.admin,
-                            params={'text': 'Item'})
+                            params={'query': 'Item'})
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 0)
 
@@ -677,7 +677,7 @@ class ResourceTestCase(base.TestCase):
             params={
                 'parentType': 'user',
                 'parentId': str(self.user['_id']),
-                'text': 'Folder 1'})
+                'query': 'Folder 1'})
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         copiedFolder = resp.json[0]

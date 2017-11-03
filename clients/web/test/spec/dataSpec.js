@@ -893,7 +893,7 @@ describe('Test FileModel static upload functions', function () {
                 method: 'GET',
                 data: {
                     folderId: folder.get('_id'),
-                    text: filename
+                    query: filename
                 },
                 async: false
             });

@@ -243,8 +243,8 @@ class ItemTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json[0]['_id'], item['_id'])
 
-        # Test finding the item using a text string with and without a folderId
-        params['text'] = 'my item name'
+        # Test finding the item using a query string with and without a folderId
+        params['query'] = 'my item name'
         resp = self.request(path='/item', method='GET', user=self.users[0],
                             params=params)
         self.assertStatusOk(resp)
@@ -713,13 +713,13 @@ class ItemTestCase(base.TestCase):
         # Check to make sure the original item is still present
         resp = self.request(path='/item', method='GET', user=self.users[0],
                             params={'folderId': self.publicFolder['_id'],
-                                    'text': 'test_for_copy'})
+                                    'query': 'test_for_copy'})
         self.assertStatusOk(resp)
         self.assertEqual(origItem['_id'], resp.json[0]['_id'])
         # Check to make sure the new item is still present
         resp = self.request(path='/item', method='GET', user=self.users[0],
                             params={'folderId': self.publicFolder['_id'],
-                                    'text': 'copied_item'})
+                                    'query': 'copied_item'})
         self.assertStatusOk(resp)
         self.assertEqual(newItem['_id'], resp.json[0]['_id'])
         # Check that the provenance tag correctly points back

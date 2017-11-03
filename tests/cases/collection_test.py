@@ -115,7 +115,7 @@ class CollectionTestCase(base.TestCase):
 
         # Test text search
         resp = self.request(path='/collection', user=self.admin, params={
-            'text': 'new'
+            'query': 'new'
         })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
