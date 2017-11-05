@@ -219,7 +219,7 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             var results = $('.g-quick-search-container li.g-search-result');
-            expect(results.length).toBe(2);
+            expect(results.length).toBe(3);
 
             expect(results.find('a[resourcetype="folder"]').length).toBe(1);
             expect(results.find('a[resourcetype="user"]').length).toBe(1);
@@ -251,7 +251,7 @@ describe('Create a data hierarchy', function () {
             sendKeyDown(38, '.g-quick-search-container input.g-search-field');
             sendKeyDown(38, '.g-quick-search-container input.g-search-field');
             sendKeyDown(38, '.g-quick-search-container input.g-search-field');
-            sendKeyDown(40, '.g-quick-search-container input.g-search-field');
+            sendKeyDown(38, '.g-quick-search-container input.g-search-field');
             sendKeyDown(40, '.g-quick-search-container input.g-search-field');
             sendKeyDown(13, '.g-quick-search-container input.g-search-field');
             expect(Backbone.history.fragment).toBe(
@@ -589,7 +589,7 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             var results = $('.g-quick-search-container li.g-search-result');
-            expect(results.length).toBe(2);
+            expect(results.length).toBe(3);
 
             expect(results.find('a[resourcetype="folder"]').length).toBe(1);
             expect(results.find('a[resourcetype="user"]').length).toBe(1);

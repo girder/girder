@@ -24,7 +24,7 @@ function _invite(name, level, action, check) {
     }, 'search to return (' + name + ')');
     runs(function () {
         var results = $('.g-group-invite-container li.g-search-result');
-        expect(results.length).toBe(1);
+        expect(results.length).toBe(2); // 1 + '...' element
 
         expect(results.find('a[resourcetype="user"]').length).toBe(1);
 
