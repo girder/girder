@@ -30,7 +30,7 @@ var LayoutHeaderView = View.extend({
 
         this.searchWidget = new SearchFieldWidget({
             placeholder: 'Quick search...',
-            types: ['item', 'folder', 'group', 'collection', 'user'],
+            types: ['collection', 'group', 'user', 'folder', 'item'],
             parentView: this
         }).on('g:resultClicked', function (result) {
             this.searchWidget.resetState();
