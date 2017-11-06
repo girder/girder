@@ -20,32 +20,103 @@
 import itertools
 import six
 
-from ..models.model_base import Model, AccessException
+from ..models.model_base import Model, AccessException, GirderException
 from ..constants import AccessType
 
 
 class AccessControlMixin(object):
     """
-    This mixin is intended to be used for resources which aren't access
-    controlled by default, but resolve their access controls through other
-    resources. As such, the overridden methods retain the same parameters and
-    only alter functionality related to access control resolution.
+    This mixin is intended to be used for Model types which aren't access controlled by default,
+    but resolve their access controls through another "resource" model object. As such, the
+    overridden methods retain the same parameters and only alter functionality related to access
+    control resolution.
 
-    resourceColl corresponds to the resource collection that needs to be used
-    for resolution, for example the Item model has a resourceColl of folder.
+    The "resource" object can be specified in two different ways:
 
-    resourceParent corresponds to the field in which the parent resource
-    belongs, so for an item it would be the folderId.
+    First:
+      * By setting `resourceColl` on the AccessControlMixin model class, to the "model type
+        identifier" of the resource model.
+      * By setting `resourceParent` on the AccessControlMixin model class, to the name of a field
+        containing the ID of the "resource" object to use for permission checking. This field must
+        be set in every object of the AccessControlMixin model collection.
+    For example:
+    ```
+        class Item(AccessControlMixin, Model):
+            resourceColl = 'folder'
+            resourceParent = 'folderId'
+            ...
+
+        class Folder(AccessControlledModel):
+            ...
+
+        itemInstance = {
+            'folderId': folderInstance['_id'],
+            ...
+        }
+        Item.hasAccess(itemInstance, ...)  # This will check permissions for folderInstance
+    ```
+
+    Second (taking precedence over the first):
+      * By setting `attachedToType` on an object of the AccessControlMixin model collection, to the
+        "model type identifier" of the resource model.
+      * By setting `attachedToId` on an object of the AccessControlMixin model collection, to the
+        the ID of the "resource" object to use for permission checking.
+    For example:
+    ```
+    class File(AccessControlMixin, Model):
+        ...
+
+    class Person(AccessControlledModel):
+        ...
+
+    fileInstance = {
+        'attachedToType': 'person',
+        'attachedToId': personInstance['_id']
+        ...
+    }
+    File.hasAccess(fileInstance, ...)  # This will check permissions for personInstance
+    ```
+
+    The "model type identifier" is typically a string with the name of the resource model, exactly
+    as passed to `ModelImporter.model`. To reference resource models from plugins, the "model type
+    identifier" may also be a list of two strings, for example: ['model_name', 'plugin_name'].
     """
     resourceColl = None
     resourceParent = None
 
-    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
-             force=False, fields=None, exc=False):
+    def _resourceModelandId(self, doc, returnType=False):
         """
-        Calls Model.load on the current item, and then attempts to load the
-        resourceParent which the user must have access to in order to load this
-        model.
+        Returns the Model instance and ID of the resource for the given object.
+
+        :param returnType: If True, returns the type identifier for the resource, instead of the
+                           resource Model instance.
+        """
+        if 'attachedToType' in doc and 'attachedToId' in doc:
+            # Check 'attachedToType' first, allowing it to override a collection-wide
+            # 'resourceParent'.
+            resourceType = doc.get('attachedToType')
+            resourceId = doc.get('attachedToId')
+        else:
+            resourceType = self.resourceColl
+            resourceId = doc.get(self.resourceParent)
+
+        if returnType:
+            return resourceType, resourceId
+
+        if isinstance(resourceType, six.string_types):
+            resourceModel = self.model(resourceType)
+        elif isinstance(resourceType, list) and len(resourceType) == 2:
+            resourceModel = self.model(*resourceType)
+        else:
+            raise GirderException('Invalid resource parent type.')
+
+        return resourceModel, resourceId
+
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True, force=False, fields=None,
+             exc=False):
+        """
+        Calls Model.load for the passed object ID, also ensuring that the resource can be loaded
+        with the same credentials.
 
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlledModel.load`.
@@ -60,45 +131,48 @@ class AccessControlMixin(object):
         doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
 
         if not force and doc is not None:
-            if doc.get(self.resourceParent):
-                loadType = self.resourceColl
-                loadId = doc[self.resourceParent]
-            else:
-                loadType = doc.get('attachedToType')
-                loadId = doc.get('attachedToId')
-            self.model(loadType).load(loadId, level=level, user=user, exc=exc)
+            resourceModel, resourceId = self._resourceModelandId(doc)
+            # Exclude all fields, as no data is actually required from the resource
+            # "exc=True" is crucial, so a missing resource doesn't allow access
+            resourceModel.load(resourceId, fields=[], level=level, user=user, exc=True)
 
             self._removeSupplementalFields(doc, fields)
 
         return doc
 
-    def hasAccess(self, resource, user=None, level=AccessType.READ):
+    def hasAccess(self, doc, user=None, level=AccessType.READ):
         """
-        Determines if a user has access to a resource based on their access to
-        the resourceParent.
+        Determines if a user has access to an object, based on their access to the resource.
 
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlledModel.hasAccess`.
         """
-        resource = self.model(self.resourceColl) \
-                       .load(resource[self.resourceParent], force=True)
-        return self.model(self.resourceColl).hasAccess(
-            resource, user=user, level=level)
+        resourceModel, resourceId = self._resourceModelandId(doc)
+
+        resource = resourceModel.load(resourceId, force=True)
+
+        return resourceModel.hasAccess(resource, user=user, level=level)
 
     def hasAccessFlags(self, doc, user=None, flags=None):
         """
         See the documentation of AccessControlledModel.hasAccessFlags, which this wraps.
         """
+        if user and user['admin']:
+            return True
+
         if not flags:
             return True
 
-        resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
-        return self.model(self.resourceColl).hasAccessFlags(resource, user, flags)
+        resourceModel, resourceId = self._resourceModelandId(doc)
+
+        resource = resourceModel.load(resourceId, force=True)
+
+        return resourceModel.hasAccessFlags(resource, user, flags)
 
     def requireAccess(self, doc, user=None, level=AccessType.READ):
         """
-        This wrapper just provides a standard way of throwing an
-        access denied exception if the access check fails.
+        This wrapper just provides a standard way of throwing an access denied exception if the
+        access check fails.
         """
         if not self.hasAccess(doc, user, level):
             if level == AccessType.READ:
@@ -113,51 +187,58 @@ class AccessControlMixin(object):
                 userid = str(user.get('_id', ''))
             else:
                 userid = None
-            raise AccessException("%s access denied for %s %s (user %s)." %
-                                  (perm, self.name, doc.get('_id', 'unknown'),
-                                   userid))
+            raise AccessException('%s access denied for %s %s (user %s).' %
+                                  (perm, self.name, doc.get('_id', 'unknown'), userid))
 
     def requireAccessFlags(self, doc, user=None, flags=None):
         """
-        See the documentation of AccessControlledModel.requireAccessFlags, which this wraps.
+        Provides a standard way of throwing an access exception if a flag access check fails.
         """
-        if not flags:
-            return
+        if not self.hasAccessFlags(doc, user, flags):
+            if user:
+                uid = str(user.get('_id', ''))
+            else:
+                uid = None
 
-        resource = self.model(self.resourceColl).load(doc[self.resourceParent], force=True)
-        return self.model(self.resourceColl).requireAccessFlags(resource, user, flags)
+            raise AccessException('Access denied for %s %s (user %s).' %
+                                  (self.name, doc.get('_id', 'unknown'), uid))
 
     def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,
                                   removeKeys=(), flags=None):
         """
-        Yields filtered results from the cursor based on the access control
-        existing for the resourceParent.
+        Yields filtered results from the cursor based on the access control for the resource.
 
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlledModel.filterResultsByPermission`.
         """
-        # Cache mapping resourceIds -> access granted (bool)
+        # Cache mapping (resourceModelName, resourceId) -> access granted (bool)
         resourceAccessCache = {}
 
         def hasAccess(_result):
-            resourceId = _result[self.resourceParent]
+            # Calling "_resourceModelandId" with "returnType=True" returns the type of the resource
+            # as a hashable string or list, and doesn't call ModelImporter (so it's fast)
+            resourceType, resourceId = self._resourceModelandId(_result, returnType=True)
+
+            if isinstance(resourceType, list):
+                # lists cannot be used as a dict key
+                resourceType = tuple(resourceType)
+            cacheKey = (resourceType, resourceId)
 
             # return cached check if it exists
-            if resourceId in resourceAccessCache:
-                return resourceAccessCache[resourceId]
+            if cacheKey in resourceAccessCache:
+                return resourceAccessCache[cacheKey]
 
-            # if the resourceId is not cached, check for permission "level"
-            # and set the cache
-            resource = self.model(self.resourceColl).load(resourceId, force=True)
-            val = self.model(self.resourceColl).hasAccess(
-                resource, user=user, level=level)
-
+            # Get the resource's Model instance this time
+            resourceModel, resourceId = self._resourceModelandId(_result)
+            # Since the resourceId is not cached, check for permissions and set the cache
+            resource = resourceModel.load(resourceId, force=True)
+            resourceAccess = resourceModel.hasAccess(resource, user=user, level=level)
             if flags:
-                val = val and self.model(self.resourceColl).hasAccessFlags(
+                resourceAccess = resourceAccess and resourceModel.hasAccessFlags(
                     resource, user=user, flags=flags)
 
-            resourceAccessCache[resourceId] = val
-            return val
+            resourceAccessCache[cacheKey] = resourceAccess
+            return resourceAccess
 
         endIndex = offset + limit if limit else None
         filteredCursor = six.moves.filter(hasAccess, cursor)
