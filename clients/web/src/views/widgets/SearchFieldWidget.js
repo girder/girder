@@ -84,7 +84,7 @@ var SearchFieldWidget = View.extend({
         this.placeholder = settings.placeholder || 'Search...';
         this.getInfoCallback = settings.getInfoCallback || null;
         this.types = settings.types || [];
-        this.modes = settings.modes || ['text', 'prefix'];
+        this.modes = settings.modes || SearchFieldWidget.getListMode();
 
         if (!_.isArray(this.modes)) {
             this.modes = [this.modes];
@@ -135,7 +135,8 @@ var SearchFieldWidget = View.extend({
             },
             content: _.bind(function () {
                 return SearchHelpTemplate({
-                    mode: this.currentMode
+                    mode: this.currentMode,
+                    descriptionHelp: SearchFieldWidget.getHelpDescription(this.currentMode)
                 });
             }, this)
         }).click(function () {
@@ -152,7 +153,8 @@ var SearchFieldWidget = View.extend({
             content: _.bind(function () {
                 return SearchModeSelectTemplate({
                     modes: this.modes,
-                    currentMode: this.currentMode
+                    currentMode: this.currentMode,
+                    descriptionModes: SearchFieldWidget.getModeDescription
                 });
             }, this)
         }).click(function () {
@@ -195,7 +197,7 @@ var SearchFieldWidget = View.extend({
             data: {
                 q: q,
                 mode: this.currentMode,
-                types: JSON.stringify(this.types)
+                types: JSON.stringify(SearchFieldWidget.getListType(this.types, this.currentMode))
             }
         }).done(_.bind(function (results) {
             this.ajaxLock = false;
@@ -253,6 +255,65 @@ var SearchFieldWidget = View.extend({
             }
         }, this));
     }
+}, {
+    _allowedSearchMode: {},
+
+    addSearchMode: function (mode, types, modeDescription, helpDescription) {
+        if (!SearchFieldWidget._allowedSearchMode[mode]) {
+            SearchFieldWidget._allowedSearchMode[mode] = {
+                'types': types,
+                'modeDescription': modeDescription,
+                'helpDescription': helpDescription
+            };
+        } else {
+            throw `Error: the mode "${mode}" exist already. You can't change it`;
+        }
+    },
+
+    removeSearchMode: function (mode) {
+        delete SearchFieldWidget._allowedSearchMode[mode];
+    },
+
+    getListType: function (types, currentMode) {
+        const allowedTypes = _.intersection(
+            types,
+            SearchFieldWidget._allowedSearchMode[currentMode].types
+        );
+        return allowedTypes;
+    },
+
+    getListMode: function () {
+        const modeList = [];
+        for (let mode in SearchFieldWidget._allowedSearchMode) {
+            modeList.push(mode);
+        }
+        return modeList;
+    },
+
+    getModeDescription: function (mode) {
+        return SearchFieldWidget._allowedSearchMode[mode].modeDescription;
+    },
+
+    getHelpDescription: function (mode) {
+        return SearchFieldWidget._allowedSearchMode[mode].helpDescription;
+    }
 });
+
+SearchFieldWidget.addSearchMode(
+    'text',
+    ['item', 'folder', 'group', 'collection', 'user'],
+    'Full text search',
+    `By default, search results will be returned if they contain
+     any of the terms of the search. If you wish to search for documents
+     containing all of the terms, place them in quotes.
+     Examples:`
+);
+SearchFieldWidget.addSearchMode(
+    'prefix',
+    ['item', 'folder', 'group', 'collection', 'user'],
+    'Search by prefix',
+    `You are searching by prefix.
+     Start typing the first letters of whatever you are searching for.`
+);
 
 export default SearchFieldWidget;
