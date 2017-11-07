@@ -72,3 +72,11 @@
         dest: "{{ ansible_user_dir }}/.profile"
         line: 'source {{ girder_virtualenv }}/bin/activate'
         state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Activate virtualenv on login
+      lineinfile:
+        dest: "{{ ansible_user_dir }}/.bash_profile"
+        line: 'source {{ girder_virtualenv }}/bin/activate'
+        state: present
+      when: ansible_os_family == "RedHat"
