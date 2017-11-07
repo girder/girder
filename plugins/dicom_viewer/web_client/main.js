@@ -1,9 +1,12 @@
+
 import { getCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
 import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 import { wrap } from 'girder/utilities/PluginUtils';
+
 import ItemView from 'girder/views/body/ItemView';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 
 import DicomItemView from './views/DicomView';
 import ParseDicomItemTemplate from './templates/parseDicomItem.pug';
@@ -54,3 +57,13 @@ ItemView.prototype.events['click .g-dicom-parse-item'] = function () {
             });
         });
 };
+
+SearchFieldWidget.addSearchMode(
+        'dicom',
+        ['item'],
+        'DICOM substring search',
+        `The DICOM substring search allows you to search in DICOM metadata.
+         This allows you to search for both keys or values.
+         Start typing any substring to find the associated DICOM item.
+         This mode is restricted to search in item only.`
+    );
