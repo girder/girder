@@ -659,7 +659,13 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
                         val = self._loadModel(name, info, params[name], model)
-                        self._passArg(fun, kwargs, info['destName'] or model.name, val)
+                        destName = info['destName']
+                        if destName is None:
+                            if info['isModelClass']:
+                                destName = model.name
+                            else:
+                                destName = info['model']
+                        self._passArg(fun, kwargs, destName, val)
                     else:
                         val = self._validateParam(name, descParam, params[name])
                         self._passArg(fun, kwargs, name, val)
