@@ -46,10 +46,6 @@ var LayoutHeaderView = View.extend({
             textColor: textColor
         }));
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
-        if (textColor !== '#ffffff') {
-            // We will lose the hover color by setting this, so only do that if necessary
-            this.userView.$('.g-user-text a').css('color', textColor);
-        }
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
 
         return this;
