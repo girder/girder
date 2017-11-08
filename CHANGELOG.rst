@@ -13,6 +13,9 @@ Added Features
 
 Bug fixes
 ---------
+Server
+^^^^^^
+* Support range requests of S3 non-redirected data handling.  This fixes seeking on S3 assetstore files in the file context handler.
 
 Security Fixes
 --------------
