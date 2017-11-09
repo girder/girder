@@ -17,10 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+import copy
 import diskcache
 import errno
 import getpass
 import glob
+import importlib
+import inspect
 import json
 import mimetypes
 import os
@@ -190,6 +193,47 @@ class GirderClient(object):
         else:
             return "https"
 
+
+    def __json__(self):
+        data = self.serialize()
+        data['__class_hint__'] = {
+            'module': inspect.getmodule(self.__class__).__name__,
+            'cls': self.__class__.__name__,
+            'func': 'deserialize'
+        }
+
+        return data
+
+    def serialize(self):
+        data = copy.deepcopy(self.__initargs__)
+
+        if data['progressReporterCls'] is not None:
+            data['progressReporterCls'] = (
+                inspect.getmodule(data['progressReporterCls']).__name__,
+                data['progressReporterCls'].__name__)
+
+        data['token'] = self.token
+        return data
+
+    @classmethod
+    def deserialize(cls, data):
+        token = data.pop('token', '')
+
+        try:
+            if data['progressReporterCls'] is not None:
+                module_string, cls_string =  data['progressReporterCls']
+
+                data['progressReporterCls'] = getattr(
+                    importlib.import_module(module_string), cls_string)
+        except (ImportError, AttributeError):
+            data['progressReporterCls'] = None
+
+        self = cls(**data)
+        self.token = token
+
+        return self
+
+
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
                  cacheSettings=None, progressReporterCls=None):
         """
@@ -220,6 +264,18 @@ class GirderClient(object):
             initialized using `sys.stdout.isatty()`).
             This defaults to :class:`_NoopProgressReporter`.
         """
+
+        # Capture initialization arguments so these can be serialized
+        self.__initargs__ = {
+            'host': host,
+            'port': port,
+            'apiRoot': apiRoot,
+            'scheme': scheme,
+            'apiUrl': apiUrl,
+            'cacheSettings': cacheSettings,
+            'progressReporterCls': progressReporterCls
+        }
+
         self.host = None
         self.scheme = None
         self.port = None
