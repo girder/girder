@@ -661,7 +661,8 @@ Candela Visualization
 ---------------------
 The Candela Visualization plugin uses the `Candela library <http://candela.readthedocs.io/>`_ to
 render table files directly in Girder. To use it, simply upload a CSV or TSV file as an item,
-then set the Candela visualization type and options.
+then set the Candela visualization type and options. Note: The item name (not just file name) must
+end in .csv or .tsv to activate the plugin.
 
 Vega Visualization
 ------------------
