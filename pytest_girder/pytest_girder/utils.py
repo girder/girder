@@ -6,8 +6,6 @@ import six
 from six import BytesIO
 from six.moves import urllib
 
-from girder.models.token import Token
-
 
 def getResponseBody(response, text=True):
     """
@@ -124,6 +122,7 @@ def request(path='/', method='GET', params=None, user=None,
 
 
 def buildHeaders(headers, cookie, user, token, basicAuth, authHeader):
+    from girder.models.token import Token
     headers = headers[:]
     if cookie is not None:
         headers.append(('Cookie', cookie))

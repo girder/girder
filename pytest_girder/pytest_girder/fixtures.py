@@ -1,11 +1,6 @@
 import cherrypy
 import pytest
 
-from girder.models import _dbClients, getDbConnection
-from girder.models.user import User
-from girder.models.model_base import _modelSingletons
-from girder.utility.server import setup as setupServer
-
 from .utils import request
 
 
@@ -18,6 +13,9 @@ def db(request):
     created/destroyed based on the URI provided with the --mongo-uri option and tear-down
     semantics are handled by the --drop-db option.
     """
+    from girder.models import _dbClients, getDbConnection
+    from girder.models.model_base import _modelSingletons
+
     dbUri = request.config.getoption('--mongo-uri')
     dbName = 'girder_test_%s' % request.node.name
     dropDb = request.config.getoption('--drop-db')
@@ -53,6 +51,8 @@ def server(db):
     # effect on import. We have to hack around this by creating a unique event daemon
     # each time we startup the server and assigning it to the global.
     import girder.events
+    from girder.utility.server import setup as setupServer
+
     girder.events.daemon = girder.events.AsyncEventsThread()
 
     server = setupServer(test=True)
@@ -79,6 +79,7 @@ def admin(db):
 
     Provides a user with the admin flag set to True.
     """
+    from girder.models.user import User
     u = User().createUser(email='admin@email.com', login='admin', firstName='Admin',
                           lastName='Admin', password='password', admin=True)
 
@@ -95,6 +96,7 @@ def user(db, admin):
     Provides a regular user with no additional privileges. Note this fixture requires
     the admin fixture since an administrative user must exist before a regular user can.
     """
+    from girder.models.user import User
     u = User().createUser(email='user@email.com', login='user', firstName='user',
                           lastName='user', password='password', admin=False)
 
