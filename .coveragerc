@@ -1,5 +1,5 @@
 [run]
 omit =
-    girder/external
-    girder/test
+    girder/external/*
+    girder/test/*
 parallel = True
