@@ -4,7 +4,7 @@ docs/_build
 docs/_output
 .coverage
 .coverage.*
-girder.egg-info
+*.egg-info
 .DS_Store
 .*.swp
 .*.swo
@@ -13,6 +13,7 @@ phantom-*.png
 phantom_*.png
 girder-*.tar.gz
 __pycache__
+htmlcov
 ### PyCharm ###
 .idea/
 .PyCharm50/
