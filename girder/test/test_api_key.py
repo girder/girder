@@ -29,6 +29,18 @@ from girder.models.token import Token
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 
+@pytest.fixture
+def apiKey(server, user):
+    # Create a new API key with full access
+    resp = server.request('/api_key', method='POST', params={
+        'name': 'test key'
+    }, user=user)
+    assertStatusOk(resp)
+    apiKey = ApiKey().load(resp.json['_id'], force=True)
+
+    yield apiKey
+
+
 def testListScopes(server):
     resp = server.request('/token/scopes')
     assertStatusOk(resp)
@@ -45,24 +57,30 @@ def testListScopes(server):
         assert 'description' in scope
 
 
-def testListKeys(server, admin, user):
+def testUserCannotAccessOtherApiKeys(server, admin, user):
     # Normal users shouldn't be able to request other users' keys
     resp = server.request('/api_key', params={'userId': admin['_id']},
                           user=user)
     assertStatus(resp, 403)
     assert resp.json['message'] == 'Administrator access required.'
 
+
+def testUserCanAccessTheirOwnApiKeys(server, user):
     # Users should be able to request their own keys
     resp = server.request('/api_key', params={'userId': user['_id']},
                           user=user)
     assertStatusOk(resp)
     assert resp.json == []
 
+
+def testUserCanAccessApiKeysWithoutUserId(server, user):
     # Passing no user ID should work
     resp = server.request('/api_key', user=user)
     assertStatusOk(resp)
     assert resp.json == []
 
+
+def testAdminCanAccessOtherUsersKeys(server, admin, user):
     # Admins should be able to see other users' keys
     resp = server.request('/api_key', params={'userId': user['_id']},
                           user=admin)
@@ -70,20 +88,16 @@ def testListKeys(server, admin, user):
     assert resp.json == []
 
 
-def testKeyPolicies(server, user):
-    defaultDuration = Setting().get(SettingKey.COOKIE_LIFETIME)
-    # Create a new API key with full access
-    resp = server.request('/api_key', method='POST', params={
-        'name': 'test key'
-    }, user=user)
-    assertStatusOk(resp)
-    apiKey = ApiKey().load(resp.json['_id'], force=True)
+def testApiKeyCreation(server, user, apiKey):
     assert apiKey['scope'] is None
     assert apiKey['name'] == 'test key'
     assert apiKey['lastUse'] is None
     assert apiKey['tokenDuration'] is None
     assert apiKey['active'] is True
 
+
+def testTokenCreation(server, user, apiKey):
+    defaultDuration = Setting().get(SettingKey.COOKIE_LIFETIME)
     # Create a token using the key
     resp = server.request('/api_key/token', method='POST', params={
         'key': apiKey['key'],
@@ -102,6 +116,9 @@ def testKeyPolicies(server, user):
     duration = token['expires'] - token['created']
     assert duration == datetime.timedelta(days=defaultDuration)
 
+
+def testTokenCreationDuration(server, user, apiKey):
+    defaultDuration = Setting().get(SettingKey.COOKIE_LIFETIME)
     # We should be able to request a duration shorter than default
     resp = server.request('/api_key/token', method='POST', params={
         'key': apiKey['key'],
@@ -113,6 +130,14 @@ def testKeyPolicies(server, user):
     duration = token['expires'] - token['created']
     assert duration == datetime.timedelta(days=defaultDuration - 1)
 
+
+def testTokenCreatesUniqueTokens(server, user, apiKey):
+    for _ in range(0, 2):
+        resp = server.request('/api_key/token', method='POST', params={
+            'key': apiKey['key']
+        })
+        assertStatusOk(resp)
+
     # We should have two tokens for this key
     q = {
         'userId': user['_id'],
@@ -121,7 +146,8 @@ def testKeyPolicies(server, user):
     count = Token().find(q).count()
     assert count == 2
 
-    # Deactivate the key and change the token duration and scope
+
+def testInactiveKeyStructure(server, user, apiKey):
     newScopes = [TokenScope.DATA_READ, TokenScope.DATA_WRITE]
     resp = server.request('/api_key/%s' % apiKey['_id'], params={
         'active': False,
@@ -129,14 +155,45 @@ def testKeyPolicies(server, user):
         'scope': json.dumps(newScopes)
     }, method='PUT', user=user)
     assertStatusOk(resp)
+
     # Make sure key itself didn't change
     assert resp.json['key'] == apiKey['key']
     apiKey = ApiKey().load(resp.json['_id'], force=True)
     assert not apiKey['active']
     assert apiKey['tokenDuration'] == 10
     assert set(apiKey['scope']) == set(newScopes)
-    # Should now have a last used timestamp
-    assert isinstance(apiKey['lastUse'], datetime.datetime)
+
+
+def testInactiveKeysCannotCreateTokens(server, user, apiKey):
+    newScopes = [TokenScope.DATA_READ, TokenScope.DATA_WRITE]
+    resp = server.request('/api_key/%s' % apiKey['_id'], params={
+        'active': False,
+        'tokenDuration': 10,
+        'scope': json.dumps(newScopes)
+    }, method='PUT', user=user)
+    assertStatusOk(resp)
+
+    # We should not be able to create tokens for this key anymore
+    resp = server.request('/api_key/token', method='POST', params={
+        'key': apiKey['key']
+    })
+    assertStatus(resp, 400)
+    assert resp.json['message'] == 'Invalid API key.'
+
+
+def testDeactivatingKeyDeletesAssociatedTokens(server, user, apiKey):
+    resp = server.request('/api_key/token', method='POST', params={
+        'key': apiKey['key']
+    })
+    assertStatusOk(resp)
+
+    newScopes = [TokenScope.DATA_READ, TokenScope.DATA_WRITE]
+    resp = server.request('/api_key/%s' % apiKey['_id'], params={
+        'active': False,
+        'tokenDuration': 10,
+        'scope': json.dumps(newScopes)
+    }, method='PUT', user=user)
+    assertStatusOk(resp)
 
     # This should have deleted all corresponding tokens
     q = {
@@ -146,14 +203,16 @@ def testKeyPolicies(server, user):
     count = Token().find(q).count()
     assert count == 0
 
-    # We should not be able to create tokens for this key anymore
-    resp = server.request('/api_key/token', method='POST', params={
-        'key': apiKey['key']
-    })
-    assertStatus(resp, 400)
-    assert resp.json['message'] == 'Invalid API key.'
 
-    # Reactivate key
+def testReactivatedKeyCanCreateTokens(server, user, apiKey):
+    newScopes = [TokenScope.DATA_READ, TokenScope.DATA_WRITE]
+    resp = server.request('/api_key/%s' % apiKey['_id'], params={
+        'active': False,
+        'tokenDuration': 10,
+        'scope': json.dumps(newScopes)
+    }, method='PUT', user=user)
+    assertStatusOk(resp)
+
     resp = server.request('/api_key/%s' % apiKey['_id'], params={
         'active': True
     }, method='PUT', user=user)
@@ -171,6 +230,18 @@ def testKeyPolicies(server, user):
     duration = token['expires'] - token['created']
     assert duration == datetime.timedelta(days=10)
     assert set(token['scope']) == set(newScopes)
+
+
+def testApiKeyDeletionDeletesAssociatedTokens(server, user, apiKey):
+    resp = server.request('/api_key/token', method='POST', params={
+        'key': apiKey['key']
+    })
+    assertStatusOk(resp)
+
+    q = {
+        'userId': user['_id'],
+        'apiKeyId': apiKey['_id']
+    }
 
     # Deleting the API key should delete the tokens made with it
     count = Token().find(q).count()

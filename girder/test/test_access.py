@@ -146,60 +146,113 @@ def server(server):
     yield server
 
 
-def testAccessEndpoints(server, admin, user):
-    endpoints = [
-        ("/accesstest/default_access", "admin"),
-        ("/accesstest/admin_access", "admin"),
-        ("/accesstest/user_access", "user"),
-        ("/accesstest/public_access", "public"),
-        ("/accesstest/default_function_access", "admin"),
-        ("/accesstest/admin_function_access", "admin"),
-        ("/accesstest/user_function_access", "user"),
-        ("/accesstest/public_function_access", "public"),
-    ]
-    for endpoint in endpoints:
-        resp = server.request(path=endpoint[0], method='GET', user=None)
-        if endpoint[1] in ("public", ):
-            assertStatusOk(resp)
-        else:
-            assertStatus(resp, 401)
-        resp = server.request(path=endpoint[0], method='GET', user=user)
-        if endpoint[1] in ("public", "user"):
-            assertStatusOk(resp)
-        else:
-            assertStatus(resp, 403)
-        resp = server.request(path=endpoint[0], method='GET', user=admin)
-        if endpoint[1] in ("public", "user", "admin"):
-            assertStatusOk(resp)
-        else:
-            assertStatus(resp, 403)
+@pytest.fixture
+def cookie(user):
+    yield 'girderToken=%s' % str(Token().createToken(user)['_id'])
 
 
-def testCookieAuth(server, user):
-    # No auth should always be rejected
-    for decorator in ['cookie_auth', 'cookie_force_auth']:
-        for method in ['GET', 'POST']:
-            resp = server.request(path='/accesstest/%s' % decorator,
-                                  method=method)
-            assertStatus(resp, 401)
+@pytest.fixture
+def adminSettingToken(db, admin):
+    yield Token().createToken(user=admin, scope=TokenScope.SETTINGS_READ)
 
-    # Token auth should always still succeed
-    for decorator in ['cookie_auth', 'cookie_force_auth']:
-        for method in ['GET', 'POST']:
-            resp = server.request(path='/accesstest/%s' % decorator,
-                                  method=method, user=user)
-            assertStatusOk(resp)
 
-    # Cookie auth should succeed unless POSTing to non-force endpoint
-    cookie = 'girderToken=%s' % str(Token().createToken(user)['_id'])
-    for decorator in ['cookie_auth', 'cookie_force_auth']:
-        for method in ['GET', 'POST']:
-            resp = server.request(path='/accesstest/%s' % decorator,
-                                  method=method, cookie=cookie)
-            if decorator == 'cookie_auth' and method != 'GET':
-                assertStatus(resp, 401)
-            else:
-                assertStatusOk(resp)
+@pytest.fixture
+def adminEmailToken(db, admin):
+    yield Token().createToken(user=admin, scope=TokenScope.DATA_READ)
+
+
+@pytest.fixture
+def userDataReadToken(db, user):
+    yield Token().createToken(user=user, scope=TokenScope.DATA_READ)
+
+
+@pytest.fixture
+def userSettingToken(db, user):
+    yield Token().createToken(user=user, scope=TokenScope.SETTINGS_READ)
+
+
+@pytest.fixture
+def userToken(db, user):
+    yield Token().createToken(user=user)
+
+
+public_endpoints = ['/accesstest/public_function_access', '/accesstest/public_access',
+                    '/accesstest/fn_public', '/accesstest/scoped_public']
+user_endpoints = ['/accesstest/user_access', '/accesstest/scoped_user',
+                  '/accesstest/user_function_access']
+admin_endpoints = ['/accesstest/default_access',
+                   '/accesstest/admin_access',
+                   '/accesstest/fn_admin',
+                   '/accesstest/default_function_access',
+                   '/accesstest/admin_function_access']
+
+
+@pytest.mark.parametrize('endpoint', public_endpoints)
+def testPublicCanAccessPublicEndpoints(server, endpoint):
+    resp = server.request(path=endpoint, method='GET')
+    assertStatusOk(resp)
+    assert resp.json is None
+
+
+@pytest.mark.parametrize('endpoint', user_endpoints + admin_endpoints)
+def testPublicCannotAccessNonPublicEndpoints(server, endpoint):
+    resp = server.request(path=endpoint, method='GET')
+    assertStatus(resp, 401)
+
+
+@pytest.mark.parametrize('endpoint', public_endpoints + user_endpoints)
+def testUserCanAccessUserEndpoints(server, user, endpoint):
+    resp = server.request(path=endpoint, method='GET', user=user)
+    assertStatusOk(resp)
+
+
+@pytest.mark.parametrize('endpoint', admin_endpoints)
+def testUserCannotAccessAdminEndpoints(server, user, endpoint):
+    resp = server.request(path=endpoint, method='GET', user=user)
+    assertStatus(resp, 403)
+
+
+@pytest.mark.parametrize('endpoint', public_endpoints + user_endpoints + admin_endpoints)
+def testAdminCanAccessAllEndpoints(server, admin, endpoint):
+    resp = server.request(path=endpoint, method='GET', user=admin)
+    assertStatusOk(resp)
+
+
+cookie_auth_endpoints = ['cookie_auth', 'cookie_force_auth']
+
+
+@pytest.mark.parametrize('endpoint', cookie_auth_endpoints)
+@pytest.mark.parametrize('method', ['GET', 'POST'])
+def testCookieAuthFailsWithNoAuth(server, endpoint, method):
+    resp = server.request(path='/accesstest/%s' % endpoint,
+                          method=method)
+    assertStatus(resp, 401)
+
+
+@pytest.mark.parametrize('endpoint', cookie_auth_endpoints)
+@pytest.mark.parametrize('method', ['GET', 'POST'])
+def testTokenAuthSucceedsOnCookieAuthEndpoints(server, user, endpoint, method):
+    resp = server.request(path='/accesstest/%s' % endpoint,
+                          method=method, user=user)
+    assertStatusOk(resp)
+
+
+def testCookieAuthFailsOnPost(server, user, cookie):
+    resp = server.request(path='/accesstest/cookie_auth',
+                          method='POST', cookie=cookie)
+    assertStatus(resp, 401)
+
+
+@pytest.mark.parametrize('endpoint', cookie_auth_endpoints)
+def testCookieAuthWorksOnGet(server, user, cookie, endpoint):
+    resp = server.request(path='/accesstest/%s' % endpoint, cookie=cookie)
+    assertStatusOk(resp)
+
+
+@pytest.mark.parametrize('method', ['GET', 'POST'])
+def testCookieForceAuthWorks(server, user, cookie, method):
+    resp = server.request(path='/accesstest/cookie_force_auth', method=method, cookie=cookie)
+    assertStatusOk(resp)
 
 
 def testLoadModelDecorator(server, user):
@@ -218,95 +271,78 @@ def testGetFullAccessList(db, admin):
     assert len(acl['users']) == 1
 
 
-def testAdminTokenScopes(server, admin, user):
-    adminSettingToken = Token().createToken(
-        user=admin, scope=TokenScope.SETTINGS_READ)
-    adminEmailToken = Token().createToken(
-        user=admin, scope=TokenScope.DATA_READ)
-    nonadminToken = Token().createToken(
-        user=user, scope=TokenScope.SETTINGS_READ)
-
+def testReadingSettingsAsAdmin(server, admin):
     # Reading settings as admin should work
-    params = {'key': SettingKey.SMTP_PORT}
-    path = '/system/setting'
-    resp = server.request(path=path, params=params, user=admin)
+    resp = server.request(path='/system/setting', params={
+        'key': SettingKey.SMTP_PORT}, user=admin)
     assertStatusOk(resp)
     assert resp.json == 25
 
+
+def testReadingSettingsAsUserShouldFail(server, user):
     # Reading setting as non-admin should fail
-    resp = server.request(path=path, params=params, user=user)
+    resp = server.request(path='/system/setting', params={
+        'key': SettingKey.SMTP_PORT}, user=user)
     assertStatus(resp, 403)
 
+
+def testReadingSettingsWithAdminScopedToken(server, adminSettingToken):
     # Reading settings with a properly scoped token should work
-    resp = server.request(path=path, params=params, token=adminSettingToken)
+    resp = server.request(path='/system/setting', params={
+        'key': SettingKey.SMTP_PORT}, token=adminSettingToken)
     assertStatusOk(resp)
     assert resp.json == 25
 
+
+def testReadingSettingsWithAdminEmailToken(server, adminEmailToken):
     # Reading settings with an improperly scoped token should fail
-    resp = server.request(path=path, params=params, token=adminEmailToken)
+    resp = server.request(path='/system/setting', params={
+        'key': SettingKey.SMTP_PORT}, token=adminEmailToken)
     assertStatus(resp, 401)
 
+
+def testReadingSettingsWithUserToken(server, userSettingToken):
     # Non-admin user with this token scope should still not work
-    resp = server.request(path=path, params=params, token=nonadminToken)
+    resp = server.request(path='/system/setting', params={
+        'key': SettingKey.SMTP_PORT}, token=userSettingToken)
     assertStatus(resp, 403)
     assert resp.json['message'] == 'Administrator access required.'
 
+
+def testReadingAssetstoreWithSettingScopedToken(server, adminSettingToken):
     # The setting-scope token should not grant access to other endpoints
     resp = server.request(path='/assetstore', token=adminSettingToken)
     assertStatus(resp, 401)
 
 
-def testArtificialScopedAccess(server, admin, user):
-    # Make sure raw decorator is equivalent to returned decorator.
-    resp = server.request(path='/accesstest/admin_access', user=admin)
-    assertStatusOk(resp)
-
-    resp = server.request(path='/accesstest/admin_access', user=user)
-    assertStatus(resp, 403)
-
-    resp = server.request(path='/accesstest/fn_admin', user=admin)
-    assertStatusOk(resp)
-
-    resp = server.request(path='/accesstest/fn_admin', user=user)
-    assertStatus(resp, 403)
-
-    token = Token().createToken(
-        user=admin, scope=TokenScope.SETTINGS_READ)
-
-    resp = server.request(path='/accesstest/admin_access', token=token)
+@pytest.mark.parametrize('endpoint', ['/accesstest/admin_access',
+                                      '/accesstest/fn_admin'])
+def testAdminRawDecoratorIsEquivalentToReturnedDecorator(server, adminSettingToken, endpoint):
+    resp = server.request(path=endpoint, token=adminSettingToken)
     assertStatus(resp, 401)
 
-    resp = server.request(path='/accesstest/fn_admin', token=token)
+
+def testUserAccessToken(server, userDataReadToken):
+    resp = server.request(path='/accesstest/user_access', token=userDataReadToken)
     assertStatus(resp, 401)
 
-    # Make sure user scoped access works
-    token = Token().createToken(
-        user=user, scope=TokenScope.DATA_READ)
 
-    resp = server.request(path='/accesstest/user_access', user=user)
+def testUserAccessTokenOnScopedEndpoint(server, userDataReadToken):
+    resp = server.request(path='/accesstest/scoped_user', token=userDataReadToken)
     assertStatusOk(resp)
 
-    resp = server.request(path='/accesstest/scoped_user', user=user)
-    assertStatusOk(resp)
 
-    resp = server.request(path='/accesstest/user_access', token=token)
-    assertStatus(resp, 401)
-
-    resp = server.request(path='/accesstest/scoped_user', token=token)
-    assertStatusOk(resp)
-
+def testArtificialScopedAccess(server, admin, user, userDataReadToken, userToken):
     # Test public access
-    authToken = Token().createToken(user=user)
-
     for route in ('public_access', 'fn_public', 'scoped_public'):
         path = '/accesstest/%s' % route
 
-        for t in (token, None):
+        for t in (userDataReadToken, None):
             resp = server.request(path=path, token=t)
             assertStatusOk(resp)
             assert resp.json is None
 
-        resp = server.request(path=path, token=authToken)
+        resp = server.request(path=path, token=userToken)
         assertStatusOk(resp)
         assert resp.json['_id'] == str(user['_id'])
 
