@@ -1,5 +1,6 @@
 import cherrypy
 import hashlib
+import mongomock
 import pytest
 
 from .utils import request
@@ -14,12 +15,21 @@ def db(request):
     created/destroyed based on the URI provided with the --mongo-uri option and tear-down
     semantics are handled by the --drop-db option.
     """
-    from girder.models import _dbClients, getDbConnection
+    from girder.models import _dbClients, getDbConnection, pymongo
     from girder.models.model_base import _modelSingletons
+    from girder.external import mongodb_proxy
 
+    mockDb = request.config.getoption('--mock-db')
     dbUri = request.config.getoption('--mongo-uri')
     dbName = 'girder_test_%s' % hashlib.md5(request.node.name.encode('utf8')).hexdigest()
     dropDb = request.config.getoption('--drop-db')
+    executable_methods = mongodb_proxy.EXECUTABLE_MONGO_METHODS
+    realMongoClient = pymongo.MongoClient
+
+    if mockDb:
+        mongodb_proxy.EXECUTABLE_MONGO_METHODS = set()
+        pymongo.MongoClient = mongomock.MongoClient
+
     connection = getDbConnection(uri='%s/%s' % (dbUri, dbName), quiet=False)
 
     # Force getDbConnection from models to return our connection
@@ -37,6 +47,10 @@ def db(request):
         connection.drop_database(dbName)
 
     connection.close()
+
+    if mockDb:
+        mongodb_proxy.EXECUTABLE_MONGO_METHODS = executable_methods
+        pymongo.MongoClient = realMongoClient
 
 
 @pytest.fixture

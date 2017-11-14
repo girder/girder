@@ -12,7 +12,9 @@ setup(
     ],
     install_requires=[
         'girder',
-        'pytest'
+        'mongomock',
+        'pytest',
+        'pymongo'
     ],
     entry_points={
         'pytest11': [

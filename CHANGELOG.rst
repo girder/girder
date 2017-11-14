@@ -15,6 +15,7 @@ Web Client
 * Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
 
   * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
+  * Added support for the ``mongomock`` package in the new ``pytest`` suite.
 
 * New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
 

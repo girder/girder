@@ -123,6 +123,7 @@ def request(path='/', method='GET', params=None, user=None,
 
 def buildHeaders(headers, cookie, user, token, basicAuth, authHeader):
     from girder.models.token import Token
+
     headers = headers[:]
     if cookie is not None:
         headers.append(('Cookie', cookie))
