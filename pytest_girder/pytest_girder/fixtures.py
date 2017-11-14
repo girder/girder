@@ -1,4 +1,5 @@
 import cherrypy
+import hashlib
 import pytest
 
 from .utils import request
@@ -17,7 +18,7 @@ def db(request):
     from girder.models.model_base import _modelSingletons
 
     dbUri = request.config.getoption('--mongo-uri')
-    dbName = 'girder_test_%s' % request.node.name
+    dbName = 'girder_test_%s' % hashlib.md5(request.node.name.encode('utf8')).hexdigest()
     dropDb = request.config.getoption('--drop-db')
     connection = getDbConnection(uri='%s/%s' % (dbUri, dbName), quiet=False)
 
