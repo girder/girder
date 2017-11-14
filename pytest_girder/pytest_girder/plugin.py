@@ -1,4 +1,4 @@
-from .fixtures import server, db, admin, user
+from .fixtures import server, db, admin, user, bcrypt  # noqa
 
 
 def pytest_addoption(parser):
