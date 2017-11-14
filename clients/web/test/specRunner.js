@@ -60,7 +60,8 @@ page.viewportSize = {
 
 page.onConsoleMessage = function (msg) {
     if (msg.indexOf('__SCREENSHOT__') === 0) {
-        var imageFile = msg.substring('__SCREENSHOT__'.length) || 'phantom_screenshot.png';
+        var imageFileName = msg.substring('__SCREENSHOT__'.length) || 'phantom-screenshot.png';
+        var imageFile = 'build/test/artifacts/' + imageFileName;
         page.render(imageFile);
         console.log('Created screenshot: ' + imageFile);
 

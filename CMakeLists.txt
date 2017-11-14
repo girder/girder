@@ -26,7 +26,7 @@ set(TEST_PLUGINS "" CACHE STRING "List of plugins to test. Leave empty to test a
 
 if(PYTHON_COVERAGE)
   find_program(PYTHON_COVERAGE_EXECUTABLE NAMES coverage python-coverage)
-  set(girder_py_coverage_rc "${PROJECT_BINARY_DIR}/tests/girder.coveragerc")
+  set(girder_py_coverage_rc "${PROJECT_SOURCE_DIR}/build/test/coverage/girder.coveragerc")
   set(PYTHON_COVERAGE_CONFIG "${girder_py_coverage_rc}" CACHE FILEPATH "Custom python coverage configuration file")
   mark_as_advanced(PYTHON_COVERAGE_CONFIG)
 endif()

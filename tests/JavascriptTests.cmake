@@ -7,7 +7,7 @@ function(javascript_tests_init)
 
   add_test(
     NAME js_coverage_reset
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${PROJECT_BINARY_DIR}/js_coverage"
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${PROJECT_SOURCE_DIR}/build/test/coverage/server_html"
   )
   add_test(
     NAME js_coverage_combine_report
@@ -15,9 +15,9 @@ function(javascript_tests_init)
     COMMAND "${ISTANBUL_EXECUTABLE}"
             "report"
             "--config" "${PROJECT_SOURCE_DIR}/.istanbul.yml"
-            "--root" "${PROJECT_BINARY_DIR}/js_coverage"
+            "--root" "${PROJECT_SOURCE_DIR}/build/test/coverage/web_temp"
             "--include" "*.cvg"
-            "--dir" "${PROJECT_BINARY_DIR}/coverage"
+            "--dir" "${PROJECT_SOURCE_DIR}/build/test/coverage/web"
             "text-summary" "lcovonly" "cobertura" "html"
   )
   set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser)
@@ -53,7 +53,7 @@ function(add_eslint_test name input)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${ESLINT_EXECUTABLE}" --ignore-path "${ignore_file}" --config "${config_file}" "${input}"
   )
-  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_static_analysis)
+  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser)
 endfunction()
 
 function(add_puglint_test name path)
@@ -70,7 +70,7 @@ function(add_puglint_test name path)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
   )
-  set_property(TEST "puglint_${name}" PROPERTY LABELS girder_static_analysis)
+  set_property(TEST "puglint_${name}" PROPERTY LABELS girder_browser)
 endfunction()
 
 function(add_stylint_test name path)
@@ -87,7 +87,7 @@ function(add_stylint_test name path)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${STYLINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/.stylintrc" "${path}"
   )
-  set_property(TEST "stylint_${name}" PROPERTY LABELS girder_static_analysis)
+  set_property(TEST "stylint_${name}" PROPERTY LABELS girder_browser)
 endfunction()
 
 function(add_web_client_test case specFile)
@@ -234,7 +234,7 @@ function(add_web_client_test case specFile)
 
   if (NOT fn_NOCOVERAGE)
     set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
-      "COVERAGE_FILE=${PROJECT_BINARY_DIR}/js_coverage/${case}.cvg"
+      "COVERAGE_FILE=${PROJECT_SOURCE_DIR}/build/test/coverage/web_temp/${case}.cvg"
     )
     set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
     set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
