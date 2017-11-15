@@ -10,6 +10,9 @@ Unreleased
 
 Added Features
 --------------
+Web Client
+^^^^^^^^^^
+* New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
 
 Bug fixes
 ---------
