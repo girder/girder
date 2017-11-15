@@ -277,12 +277,9 @@ describe('Navigate to the new JSON task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(3);
-            // get the position of the alphabetized entry; depending on locale
-            // it may be in different positions
-            var position = $('.g-execute-task-link').index($(':contains("me/my_image:latest 0"):last') );
-            expect($('.g-execute-task-link').eq(position).text()).toBe('me/my_image:latest 0');
-            expect($('.g-execute-task-link').eq(position + 1).text()).toBe('me/my_image:latest 1');
-            window.location.assign($('a.g-execute-task-link').eq(position).attr('href'));
+            expect($('.g-execute-task-link:contains("me/my_image:latest 0")').length).toBe(1);
+            expect($('.g-execute-task-link:contains("me/my_image:latest 1")').length).toBe(1);
+            window.location.assign($('a.g-execute-task-link:contains("me/my_image:latest 0")').attr('href'));
         });
 
         waitsFor(function () {
@@ -455,11 +452,8 @@ describe('Navigate to the demo task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(4);
-            // get the position of the alphabetized entry; depending on locale
-            // it may be in different positions
-            var position = $('.g-execute-task-link').index($(':contains("item_tasks widget types demo"):last') );
-            expect($('.g-execute-task-link').eq(position).text()).toBe('item_tasks widget types demo');
-            window.location.assign($('a.g-execute-task-link').eq(position).attr('href'));
+            expect($('.g-execute-task-link:contains("item_tasks widget types demo")').length).toBe(1);
+            window.location.assign($('a.g-execute-task-link:contains("item_tasks widget types demo")').attr('href'));
         });
 
         waitsFor(function () {
