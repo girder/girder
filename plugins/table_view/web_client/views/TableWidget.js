@@ -16,34 +16,43 @@ var TableWidget = View.extend({
     },
 
     initialize: function (settings) {
-        this.item = settings.item;
-        this.accessLevel = settings.accessLevel;
-
-        this.listenTo(this.item, 'change', function () {
-            this.updateData();
-        }, this);
-
+        this.file = settings.files.at(0);
         this.showData = false;
         this.page = 0;
-        this.data = [];
-        this.columns = [];
+        this.data = null;
+        this.columns = null;
+        if (this.tableParser(this.file)) {
+            this.render();
+        }
+    },
 
-        this.render();
+    tableParser: function (file) {
+        if (!file) {
+            return null;
+        }
+        const ext = file.get('exts')[file.get('exts').length - 1];
+        if (file.get('mimeType') === 'text/csv' || ext === 'csv') {
+            return datalib.csv;
+        }
+        if (file.get('mimeType') === 'text/tab-separated-values' || _.contains(['tsv', 'tab'], ext)) {
+            return datalib.tsv;
+        }
+        return null;
     },
 
     updateData: function () {
-        let parser = null;
-        let name = this.item.get('name').toLowerCase();
-        if (name.endsWith('.csv')) {
-            parser = datalib.csv;
-        } else if (name.endsWith('.tsv') || name.endsWith('.tab')) {
-            parser = datalib.tsv;
-        } else {
+        // If we already have the data, just render.
+        if (this.data) {
+            this.render();
+            return;
+        }
+
+        const parser = this.tableParser(this.file);
+        if (!parser) {
             this.$('.g-item-table-view').remove();
             return this;
         }
-
-        parser(this.item.downloadUrl(), (error, data) => {
+        parser(this.file.downloadUrl(), (error, data) => {
             if (error) {
                 events.trigger('g:alert', {
                     text: 'An error occurred while attempting to read and ' +

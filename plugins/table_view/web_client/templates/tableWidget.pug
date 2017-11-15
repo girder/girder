@@ -11,7 +11,7 @@
           a &laquo; Prev
         li.active
           a.g-page-number
-            | Rows #{(page * pageSize + 1).toLocaleString()}-#{((page + 1) * pageSize).toLocaleString()}
+            | Rows #{Math.min(rows.length, page * pageSize + 1).toLocaleString()}-#{Math.min(rows.length, (page + 1) * pageSize).toLocaleString()}
             | of #{rows.length.toLocaleString()}
         li.g-table-view-page-next(class=rows.length > (page + 1) * pageSize ? '' : 'disabled')
           a Next &raquo;
