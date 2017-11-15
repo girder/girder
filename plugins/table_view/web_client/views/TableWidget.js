@@ -10,6 +10,7 @@ import '../stylesheets/tableWidget.styl';
 
 var TableWidget = View.extend({
     events: {
+        'click .g-item-table-view-header': 'toggleView',
         'click .g-table-view-page-prev:not(.disabled)': 'previousPage',
         'click .g-table-view-page-next:not(.disabled)': 'nextPage'
     },
@@ -22,11 +23,12 @@ var TableWidget = View.extend({
             this.updateData();
         }, this);
 
+        this.showData = false;
         this.page = 0;
         this.data = [];
         this.columns = [];
 
-        this.updateData();
+        this.render();
     },
 
     updateData: function () {
@@ -60,6 +62,15 @@ var TableWidget = View.extend({
         });
     },
 
+    toggleView: function () {
+        this.showData = !this.showData;
+        if (this.showData) {
+            this.updateData();
+        } else {
+            this.render();
+        }
+    },
+
     previousPage: function () {
         this.page -= 1;
         this.render();
@@ -72,6 +83,7 @@ var TableWidget = View.extend({
 
     render: function () {
         this.$el.html(TableWidgetTemplate({
+            showData: this.showData,
             columns: this.columns,
             rows: this.data,
             page: this.page,

@@ -37,6 +37,14 @@ describe('Test the table UI.', function () {
 
     it('renders the table', function () {
         waitsFor(function () {
+            return $('.g-item-table-view-header').length === 1;
+        }, 'the table view section header to appear');
+
+        runs(function () {
+            $('.g-item-table-view-header').click();
+        });
+
+        waitsFor(function () {
             return $('.g-item-table-view-container').length === 1;
         }, 'the table view component selector to appear');
 
@@ -79,6 +87,14 @@ describe('Test the table UI.', function () {
 
         runs(function () {
             $('.g-item-list-link').eq(1).click();
+        });
+
+        waitsFor(function () {
+            return $('.g-item-table-view-header').length === 1;
+        }, 'the table view section header to appear');
+
+        runs(function () {
+            $('.g-item-table-view-header').click();
         });
 
         waitsFor(function () {
