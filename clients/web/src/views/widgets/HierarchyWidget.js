@@ -19,7 +19,7 @@ import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import { confirm, handleClose } from 'girder/dialog';
 import events from 'girder/events';
-import { getModelClassByName, renderMarkdown, formatCount, capitalize } from 'girder/misc';
+import { getModelClassByName, renderMarkdown, formatCount, capitalize, formatSize } from 'girder/misc';
 import { restRequest, getApiRoot } from 'girder/rest';
 
 import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.pug';
@@ -435,6 +435,17 @@ var HierarchyWidget = View.extend({
                 });
             }, this)
         };
+        if (type === 'collection' &&
+           !(this.parentModel['nFolders'] === 0 && this.parentModel['size'] === 0)) {
+            params = _.extend({
+                name: this.parentModel.escape('name'),
+                additionalText: '<b>' + this.parentModel.escape('name') + '</b>' +
+                                ' contains <b>' + this.parentModel.escape('nFolders') +
+                                ' folders</b> taking up <b>' +
+                                formatSize(this.parentModel.escape('size')) + '</b>',
+                msgConfirmation: true
+            }, params);
+        }
         confirm(params);
     },
 
