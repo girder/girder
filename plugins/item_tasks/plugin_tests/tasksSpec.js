@@ -277,9 +277,12 @@ describe('Navigate to the new JSON task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(3);
-            expect($('.g-execute-task-link').eq(0).text()).toBe('me/my_image:latest 0');
-            expect($('.g-execute-task-link').eq(1).text()).toBe('me/my_image:latest 1');
-            window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
+            // get the position of the alphabetized entry; depending on locale
+            // it may be in different positions
+            var position = $('.g-execute-task-link').index($(':contains("me/my_image:latest 0"):last') );
+            expect($('.g-execute-task-link').eq(position).text()).toBe('me/my_image:latest 0');
+            expect($('.g-execute-task-link').eq(position + 1).text()).toBe('me/my_image:latest 1');
+            window.location.assign($('a.g-execute-task-link').eq(position).attr('href'));
         });
 
         waitsFor(function () {
@@ -452,8 +455,11 @@ describe('Navigate to the demo task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(4);
-            expect($('.g-execute-task-link').eq(0).text()).toBe('item_tasks widget types demo');
-            window.location.assign($('a.g-execute-task-link').eq(0).attr('href'));
+            // get the position of the alphabetized entry; depending on locale
+            // it may be in different positions
+            var position = $('.g-execute-task-link').index($(':contains("item_tasks widget types demo"):last') );
+            expect($('.g-execute-task-link').eq(position).text()).toBe('item_tasks widget types demo');
+            window.location.assign($('a.g-execute-task-link').eq(position).attr('href'));
         });
 
         waitsFor(function () {
@@ -650,10 +656,13 @@ describe('Navigate to the new Slicer CLI task', function () {
 
         runs(function () {
             expect($('.g-execute-task-link').length).toBe(5);
-            expect($('.g-execute-task-link').eq(4).text()).toBe('PET phantom detector CLI');
-            expect($('.g-execute-task-link-body').eq(4).text()).toContain(
+            // get the position of the alphabetized entry; depending on locale
+            // it may be in different positions
+            var position = $('.g-execute-task-link').index($(':contains("PET phantom detector CLI"):last') );
+            expect($('.g-execute-task-link').eq(position).text()).toBe('PET phantom detector CLI');
+            expect($('.g-execute-task-link-body').eq(position).text()).toContain(
                 'Detects positions of PET/CT pocket phantoms in PET image.');
-            window.location.assign($('a.g-execute-task-link').eq(4).attr('href'));
+            window.location.assign($('a.g-execute-task-link').eq(position).attr('href'));
         });
 
         waitsFor(function () {
