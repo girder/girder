@@ -636,7 +636,7 @@ girderTest.addScript = function (url) {
     girderTest.promise = girderTest.promise
         .then(_.partial($.getScript, url))
         .catch(function () {
-            throw 'Failed to load script: ' + url;
+            throw new Error('Failed to load script: ' + url);
         });
 };
 
