@@ -26,6 +26,7 @@ from .. import base
 from girder import events
 from girder.constants import AccessType, SortDir
 from girder.models.notification import Notification, ProgressState
+from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
@@ -746,3 +747,38 @@ class FolderTestCase(base.TestCase):
             path='/folder/%s/copy' % subFolder['_id'], method='POST',
             user=self.admin, params={'public': 'false', 'progress': True})
         self.assertStatusOk(resp)
+
+    def testSearchFolder(self):
+        # create a collection, folder
+        collection = Collection().createCollection('collection', self.admin, public=True)
+        folder = Folder().createFolder(
+            collection,
+            'New folder',
+            parentType='collection',
+            public=True
+        )
+
+        # test full text search
+        resp = self.request(
+            path='/folder', method='GET',
+            user=self.admin, params={
+                'query': 'new'
+            }
+        )
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(folder['_id']))
+        self.assertEqual(resp.json[0]['name'], 'New folder')
+
+        # Test prefix search
+        resp = self.request(
+            path='/folder', method='GET',
+            user=self.admin, params={
+                'query': 'n',
+                'mode': 'prefix'
+            }
+        )
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(folder['_id']))
+        self.assertEqual(resp.json[0]['name'], 'New folder')

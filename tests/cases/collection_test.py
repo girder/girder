@@ -122,6 +122,16 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(resp.json[0]['_id'], newCollId)
         self.assertEqual(resp.json[0]['name'], 'New collection')
 
+        # Test prefix search
+        resp = self.request(path='/collection', user=self.admin, params={
+            'query': 'n',
+            'mode': 'prefix'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], newCollId)
+        self.assertEqual(resp.json[0]['name'], 'New collection')
+
         # Test collection get
         resp = self.request(path='/collection/%s' % newCollId, user=self.admin)
         self.assertStatusOk(resp)

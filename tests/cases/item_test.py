@@ -28,6 +28,7 @@ from .. import base
 
 from girder.constants import AccessType
 from girder.models.assetstore import Assetstore
+from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.token import Token
@@ -777,3 +778,34 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item1['_id'], item3['_id'])
         self.assertEqual(item2['name'], 'to be reused (1)')
         self.assertEqual(item3['name'], 'to be reused')
+
+    def testSearchItem(self):
+        # create a collection, folder, and item
+        collection = Collection().createCollection('collection', self.users[0], public=True)
+        folder = Folder().createFolder(collection, 'folder', parentType='collection', public=True)
+        item = Item().createItem('New item', self.users[0], folder)
+
+        # test full text search
+        resp = self.request(
+            path='/item', method='GET',
+            user=self.users[0], params={
+                'query': 'new'
+            }
+        )
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(item['_id']))
+        self.assertEqual(resp.json[0]['name'], 'New item')
+
+        # Test prefix search
+        resp = self.request(
+            path='/item', method='GET',
+            user=self.users[0], params={
+                'query': 'n',
+                'mode': 'prefix'
+            }
+        )
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['_id'], str(item['_id']))
+        self.assertEqual(resp.json[0]['name'], 'New item')
