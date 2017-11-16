@@ -17,22 +17,211 @@
 #  limitations under the License.
 ###############################################################################
 
+import pytest
+
 from girder.models.model_base import AccessControlledModel, Model, AccessType
 from girder.models.group import Group
 from girder.models.user import User
 
 
-class FakeAcModel(AccessControlledModel):
-    def initialize(self):
-        self.name = 'fake_ac'
+@pytest.fixture
+def inclusionProjDict():
+    yield {
+        'public': True,
+        'access': True,
+        'email': True,
+        'login': True
+    }
 
-        self.exposeFields(level=AccessType.READ, fields='read')
-        self.exposeFields(level=AccessType.WRITE, fields=('write', 'write2'))
-        self.exposeFields(level=AccessType.ADMIN, fields='admin')
-        self.exposeFields(level=AccessType.SITE_ADMIN, fields='sa')
 
-    def validate(self, doc):
-        return doc
+@pytest.fixture
+def overrideFields():
+    yield {'access', 'public'}
+
+
+@pytest.fixture
+def inclusionProjList():
+    yield ['public', 'access', 'email', 'login']
+
+
+@pytest.fixture
+def exclusionProjDict():
+    yield {
+        'public': False,
+        'access': False,
+        'email': False,
+        'login': False
+    }
+
+
+class TestProjectionUtilsSupplementFields(object):
+
+    def testInclusionProjectDictOverride(self, inclusionProjDict, overrideFields):
+        copy = dict(inclusionProjDict)
+        retval = Model._supplementFields(inclusionProjDict, overrideFields)
+        assert retval == inclusionProjDict
+        assert inclusionProjDict == copy
+
+    def testInclusionProjListOverride(self, inclusionProjList, overrideFields):
+        retval = Model._supplementFields(inclusionProjList, overrideFields)
+        assert set(retval) == set(inclusionProjList)
+
+    def testExclusionProjDictNewValue(self, exclusionProjDict):
+        retval = Model._supplementFields(exclusionProjDict, {'newValue'})
+        assert retval == exclusionProjDict
+
+    def testInclusionProjDictNewValue(self, inclusionProjDict):
+        retval = Model._supplementFields(inclusionProjDict, {'newValue'})
+        assert retval == {
+            'public': True,
+            'access': True,
+            'email': True,
+            'login': True,
+            'newValue': True
+        }
+
+    def testExclusionProjDictOverride(self, exclusionProjDict, overrideFields):
+        retval = Model._supplementFields(exclusionProjDict, overrideFields)
+        assert retval == {'email': False, 'login': False}
+
+    def testNoneEdgeCase(self):
+        # Test None edge cases
+        retval = Model._supplementFields(None, {'access', 'public'})
+        assert retval is None
+
+    def testFalseInclusionEdgeCase(self):
+        fields = {
+            '_id': False,
+            'login': True,
+            'email': True,
+            'firstName': True,
+            'lastName': True
+        }
+        overwrittenFields = {
+            '_id': True,
+            'login': True,
+            'email': True,
+            'firstName': True,
+            'lastName': True
+        }
+        overwrite = {'_id', 'login'}
+        retval = Model._supplementFields(fields, overwrite)
+        assert retval == overwrittenFields
+
+
+class TestProjectionUtilsRemoveSupplementalFields(object):
+    def testExclusionProjDict(self, doc, exclusionProjDict):
+        Model._removeSupplementalFields(doc, exclusionProjDict)
+        assert doc == {
+            '_id': '1234',
+            'password': 'password1',
+            'admin': False,
+            'firstName': 'first',
+            'lastName': 'last'}
+
+    def testInclusionProjList(self, doc, inclusionProjList):
+        Model._removeSupplementalFields(doc, inclusionProjList)
+        assert doc == {
+            '_id': '1234',
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login'}
+
+    def testInclusionProjDict(self, doc, inclusionProjDict):
+        Model._removeSupplementalFields(doc, inclusionProjDict)
+        assert doc == {
+            '_id': '1234',
+            'public': True,
+            'access': True,
+            'email': 'email@email.com',
+            'login': 'login'}
+
+    def testNoneEdgeCase(self, doc):
+        originalDoc = dict(doc)
+        Model._removeSupplementalFields(doc, None)
+        assert doc == originalDoc
+
+    def testFlaseInclusionEdgeCase(self):
+        doc = {
+            '_id': 'id',
+            'login': 'login',
+            'email': 'email@email.com',
+            'firstName': 'fname',
+            'lastName': 'lname'
+        }
+        fields = {
+            '_id': False,
+            'login': True,
+            'email': True,
+            'firstName': True,
+            'lastName': True
+        }
+        Model._removeSupplementalFields(doc, fields)
+        assert doc == {
+            'login': 'login',
+            'email': 'email@email.com',
+            'firstName': 'fname',
+            'lastName': 'lname'}
+
+
+class TestProjectionIsInclusionProjection(object):
+
+    def testNone(self):
+        assert Model._isInclusionProjection(None) is False
+
+    def testEmptyDict(self):
+        assert Model._isInclusionProjection({}) is True
+
+    def testIdFalse(self):
+        assert Model._isInclusionProjection({'_id': False}) is False
+
+    def testIdTrue(self):
+        assert Model._isInclusionProjection({'_id': True}) is True
+
+
+@pytest.fixture
+def doc():
+    yield {
+        '_id': '1234',
+        'public': True,
+        'access': True,
+        'email': 'email@email.com',
+        'login': 'login',
+        'password': 'password1',
+        'admin': False,
+        'firstName': 'first',
+        'lastName': 'last'
+    }
+
+
+@pytest.fixture
+def fields():
+    yield {
+        'hidden': 1,
+        'read': 1,
+        'write': 1,
+        'write2': 1,
+        'admin': 1,
+        'sa': 1
+    }
+
+
+@pytest.fixture
+def FakeAcModel():
+    class FakeAcModelClass(AccessControlledModel):
+        def initialize(self):
+            self.name = 'fake_ac'
+
+            self.exposeFields(level=AccessType.READ, fields='read')
+            self.exposeFields(level=AccessType.WRITE, fields=('write', 'write2'))
+            self.exposeFields(level=AccessType.ADMIN, fields='admin')
+            self.exposeFields(level=AccessType.SITE_ADMIN, fields='sa')
+
+        def validate(self, doc):
+            return doc
+
+    return FakeAcModelClass
 
 
 class FakeModel(Model):
@@ -46,211 +235,69 @@ class FakeModel(Model):
         return doc
 
 
-def testProjectionUtils(db):
-    inclusionProjDict = {
-        'public': True,
-        'access': True,
-        'email': True,
-        'login': True
-    }
-    inclusionProjList = ['public', 'access', 'email', 'login']
-    exclusionProjDict = {
-        'public': False,
-        'access': False,
-        'email': False,
-        'login': False
-    }
-    overrideFields = {'access', 'public'}
+class TestModelFiltering(object):
+    def testFilterOnACLModel(self, admin, user, fields, FakeAcModel):
+        # Test filter behavior on access controlled model
+        fakeAc = FakeAcModel().save(fields)
+        fakeAc = FakeAcModel().setUserAccess(fakeAc, user, level=AccessType.READ)
 
-    copy = dict(inclusionProjDict)
-    retval = Model._supplementFields(inclusionProjDict, overrideFields)
-    assert retval == inclusionProjDict
-    assert inclusionProjDict == copy
-    retval = Model._supplementFields(inclusionProjList, overrideFields)
-    assert set(retval) == set(inclusionProjList)
-    retval = Model._supplementFields(exclusionProjDict, {'newValue'})
-    assert retval == exclusionProjDict
-    retval = Model._supplementFields(inclusionProjDict, {'newValue'})
-    assert retval == {
-        'public': True,
-        'access': True,
-        'email': True,
-        'login': True,
-        'newValue': True
-    }
-    retval = Model._supplementFields(exclusionProjDict, overrideFields)
-    assert retval == {'email': False, 'login': False}
+        filtered = FakeAcModel().filter(fakeAc, admin)
+        assert 'sa' in filtered
+        assert 'write' in filtered
+        assert 'hidden' not in filtered
 
-    originalDoc = {
-        '_id': '1234',
-        'public': True,
-        'access': True,
-        'email': 'email@email.com',
-        'login': 'login',
-        'password': 'password1',
-        'admin': False,
-        'firstName': 'first',
-        'lastName': 'last'
-    }
-    doc = dict(originalDoc)
-    Model._removeSupplementalFields(doc, exclusionProjDict)
-    assert doc == {
-        '_id': '1234',
-        'password': 'password1',
-        'admin': False,
-        'firstName': 'first',
-        'lastName': 'last'}
+    def testExposeFields(self, admin, user, fields, FakeAcModel):
+        fakeAc = FakeAcModel().save(fields)
+        fakeAc = FakeAcModel().setUserAccess(fakeAc, user, level=AccessType.READ)
+        FakeAcModel().exposeFields(level=AccessType.READ, fields='hidden')
 
-    doc = dict(originalDoc)
-    Model._removeSupplementalFields(doc, inclusionProjList)
-    assert doc == {
-        '_id': '1234',
-        'public': True,
-        'access': True,
-        'email': 'email@email.com',
-        'login': 'login'}
+        filtered = FakeAcModel().filter(fakeAc, user)
+        assert 'hidden' in filtered
+        assert 'read' in filtered
+        assert 'write' not in filtered
+        assert 'admin' not in filtered
+        assert 'sa' not in filtered
 
-    doc = dict(originalDoc)
-    Model._removeSupplementalFields(doc, inclusionProjDict)
-    assert doc == {
-        '_id': '1234',
-        'public': True,
-        'access': True,
-        'email': 'email@email.com',
-        'login': 'login'}
+    def testHideFields(self, admin, user, fields, FakeAcModel):
+        fakeAc = FakeAcModel().save(fields)
+        FakeAcModel().hideFields(level=AccessType.READ, fields='read')
+        fakeAc = FakeAcModel().setUserAccess(fakeAc, user, level=AccessType.ADMIN)
+        filtered = FakeAcModel().filter(fakeAc, user)
+        assert 'hidden' not in filtered
+        assert 'write' in filtered
+        assert 'admin' in filtered
+        assert 'read' not in filtered
+        assert 'sa' not in filtered
 
-    # Test None edge cases
-    retval = Model._supplementFields(None, {'access', 'public'})
-    assert retval is None
-    doc = dict(originalDoc)
-    Model._removeSupplementalFields(doc, None)
-    assert doc == originalDoc
+    def testFilterNonACLModel(self, admin, user, fields):
+        fake = FakeModel().save(fields)
+        filtered = FakeModel().filter(fake, user)
+        assert filtered == {'read': 1, '_modelType': 'fake'}
 
-    # Test '_id': False inclusion edge case
-    fields = {
-        '_id': False,
-        'login': True,
-        'email': True,
-        'firstName': True,
-        'lastName': True
-    }
-    overwrittenFields = {
-        '_id': True,
-        'login': True,
-        'email': True,
-        'firstName': True,
-        'lastName': True
-    }
-    overwrite = {'_id', 'login'}
-    retval = Model._supplementFields(fields, overwrite)
-    assert retval == overwrittenFields
-    doc = {
-        '_id': 'id',
-        'login': 'login',
-        'email': 'email@email.com',
-        'firstName': 'fname',
-        'lastName': 'lname'
-    }
-    Model._removeSupplementalFields(doc, fields)
-    assert doc == {
-        'login': 'login',
-        'email': 'email@email.com',
-        'firstName': 'fname',
-        'lastName': 'lname'}
-
-    # Test _isInclusionProjection edge cases
-    assert Model._isInclusionProjection(None) is False
-    assert Model._isInclusionProjection({}) is True
-    assert Model._isInclusionProjection({'_id': False}) is False
-    assert Model._isInclusionProjection({'_id': True}) is True
+        filtered = FakeModel().filter(fake, admin)
+        assert filtered == {
+            'read': 1,
+            'sa': 1,
+            '_modelType': 'fake'
+        }
 
 
-def testModelFiltering(db):
-    users = ({
-        'email': 'good@email.com',
-        'login': 'goodlogin',
-        'firstName': 'First',
-        'lastName': 'Last',
-        'password': 'goodpassword'
-    }, {
-        'email': 'regularuser@email.com',
-        'login': 'regularuser',
-        'firstName': 'First',
-        'lastName': 'Last',
-        'password': 'goodpassword'
-    })
-    adminUser, regUser = [User().createUser(**user) for user in users]
-
-    fields = {
-        'hidden': 1,
-        'read': 1,
-        'write': 1,
-        'write2': 1,
-        'admin': 1,
-        'sa': 1
-    }
-    # Test filter behavior on access controlled model
-    fakeAc = FakeAcModel().save(fields)
-    fakeAc = FakeAcModel().setUserAccess(fakeAc, regUser, level=AccessType.READ)
-
-    filtered = FakeAcModel().filter(fakeAc, adminUser)
-    assert 'sa' in filtered
-    assert 'write' in filtered
-    assert not ('hidden' in filtered)
-
-    FakeAcModel().exposeFields(level=AccessType.READ, fields='hidden')
-
-    filtered = FakeAcModel().filter(fakeAc, regUser)
-    assert 'hidden' in filtered
-    assert 'read' in filtered
-    assert not ('write' in filtered)
-    assert not ('admin' in filtered)
-    assert not ('sa' in filtered)
-
-    FakeAcModel().hideFields(level=AccessType.READ, fields='read')
-
-    fakeAc = FakeAcModel().setUserAccess(fakeAc, regUser, level=AccessType.ADMIN)
-
-    filtered = FakeAcModel().filter(fakeAc, regUser)
-    assert 'hidden' in filtered
-    assert 'write' in filtered
-    assert 'admin' in filtered
-    assert not ('read' in filtered)
-    assert not ('sa' in filtered)
-
-    # Test Model implementation
-    fake = FakeModel().save(fields)
-    filtered = FakeModel().filter(fake, regUser)
-    assert filtered == {'read': 1, '_modelType': 'fake'}
-
-    filtered = FakeModel().filter(fake, adminUser)
-    assert filtered == {
-        'read': 1,
-        'sa': 1,
-        '_modelType': 'fake'
-    }
-
-
-def testAccessControlCleanup(db):
-    # Create documents
-    user1 = User().createUser(
-        email='guy@place.com',
-        login='someguy',
-        firstName='Some',
-        lastName='Guy',
-        password='mypassword'
-    )
-    user2 = User().createUser(
-        email='other@place.com',
-        login='otherguy',
-        firstName='Other',
-        lastName='Guy',
-        password='mypassword2'
-    )
-    group1 = Group().createGroup(
+@pytest.fixture
+def group(user):
+    g = Group().createGroup(
         name='agroup',
-        creator=user2
+        creator=user
     )
+    yield g
+    Group().remove(g)
+
+
+@pytest.fixture
+def documentWithGroup(group, admin, user, FakeAcModel):
+    # Create documents
+    user1 = admin
+    user2 = user
+    group1 = group
     doc1 = {
         'creatorId': user1['_id'],
         'field1': 'value1',
@@ -260,27 +307,31 @@ def testAccessControlCleanup(db):
     doc1 = FakeAcModel().setUserAccess(doc1, user2, level=AccessType.READ)
     doc1 = FakeAcModel().setGroupAccess(doc1, group1, level=AccessType.WRITE)
     doc1 = FakeAcModel().save(doc1)
-    doc1Id = doc1['_id']
+    yield doc1
+    FakeAcModel().remove(doc1)
 
-    # Test pre-delete
-    # The raw ACL properties must be examined directly, as the
-    # "getFullAccessList" method will silently remove leftover invalid
-    # references, which this test is supposed to find
-    doc1 = FakeAcModel().load(doc1Id, force=True, exc=True)
-    assert len(doc1['access']['users']) == 2
-    assert len(doc1['access']['groups']) == 1
-    assert doc1['creatorId'] == user1['_id']
 
-    # Delete user and test post-delete
-    User().remove(user1)
-    doc1 = FakeAcModel().load(doc1Id, force=True, exc=True)
-    assert len(doc1['access']['users']) == 1
-    assert len(doc1['access']['groups']) == 1
-    assert doc1.get('creatorId') is None
+class TestAccessControlCleanup(object):
+    def testAccessControlPreDelete(self, admin, documentWithGroup, FakeAcModel):
+        docId = documentWithGroup['_id']
+        doc1 = FakeAcModel().load(docId, force=True, exc=True)
+        assert len(doc1['access']['users']) == 2
+        assert len(doc1['access']['groups']) == 1
+        assert doc1['creatorId'] == admin['_id']
 
-    # Delete group and test post-delete
-    Group().remove(group1)
-    doc1 = FakeAcModel().load(doc1Id, force=True, exc=True)
-    assert len(doc1['access']['users']) == 1
-    assert len(doc1['access']['groups']) == 0
-    assert doc1.get('creatorId') is None
+    def testUserPostDeleteCleanup(self, admin, documentWithGroup, FakeAcModel):
+        docId = documentWithGroup['_id']
+        User().remove(admin)
+        doc1 = FakeAcModel().load(docId, force=True, exc=True)
+        assert len(doc1['access']['users']) == 1
+        assert len(doc1['access']['groups']) == 1
+        assert doc1.get('creatorId') is None
+
+    def testGroupPostDeleteCleanup(self, group, documentWithGroup, FakeAcModel):
+        # Delete group and test post-delete
+        docId = documentWithGroup['_id']
+        Group().remove(group)
+        doc1 = FakeAcModel().load(docId, force=True, exc=True)
+        assert len(doc1['access']['users']) == 2
+        assert len(doc1['access']['groups']) == 0
+        assert doc1.get('creatorId') is not None
