@@ -20,6 +20,7 @@
 import collections
 import functools
 import six
+import inspect
 from girder import logprint
 
 models = collections.defaultdict(dict)
@@ -53,8 +54,13 @@ def _toOperation(info, resource, handler):
     """
     Augment route info, returning a Swagger-compatible operation description.
     """
+    module_name = inspect.getmodule(handler).__name__
+    if module_name.startswith('girder.plugins'):
+        module_tag = 'plugin:' + module_name.split('.')[2]
+    else:
+        module_tag = 'core'
     operation = dict(info)
-    operation['tags'] = [resource]
+    operation['tags'] = [resource, module_tag]
 
     # Operation Object spec:
     # Unique string used to identify the operation. The id MUST be unique among
