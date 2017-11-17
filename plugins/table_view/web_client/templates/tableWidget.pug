@@ -1,11 +1,12 @@
 .g-item-table-view
-  .g-item-table-view-header
+  .g-item-table-view-header(class=state === states.VIEW_COLLAPSED || state === states.DATA_READY ? '' : 'g-item-table-view-header-inactive')
     .g-item-table-view-title
-      i.icon-table
+      i(class=state === states.DATA_LOADING ? 'icon-spin3 animate-spin' : 'icon-table')
       = ' '
       = fileName
       span.g-item-table-view-subtitle= message
-    i.g-item-table-view-collapse(class=state === states.DATA_READY ? 'icon-up-dir' : 'icon-down-dir')
+    if state === states.VIEW_COLLAPSED || state === states.DATA_READY
+      i.g-item-table-view-collapse(class=state === states.DATA_READY ? 'icon-up-dir' : 'icon-down-dir')
   if state === states.DATA_READY
     .g-item-table-view-container
       ul.pagination.pagination-sm
