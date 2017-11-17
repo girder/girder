@@ -2,9 +2,11 @@
   .g-item-table-view-header
     .g-item-table-view-title
       i.icon-table
-      |  Data table
-    i.g-item-table-view-collapse(class=showData ? 'icon-up-dir' : 'icon-down-dir')
-  if showData
+      = ' '
+      = fileName
+      span.g-item-table-view-subtitle= message
+    i.g-item-table-view-collapse(class=state === states.DATA_READY ? 'icon-up-dir' : 'icon-down-dir')
+  if state === states.DATA_READY
     .g-item-table-view-container
       ul.pagination.pagination-sm
         li.g-table-view-page-prev(class=page === 0 ? 'disabled' : '')

@@ -1,7 +1,6 @@
 import _ from 'underscore';
 
 import View from 'girder/views/View';
-import events from 'girder/events';
 
 import datalib from 'datalib';
 
@@ -21,6 +20,18 @@ var TableWidget = View.extend({
         this.page = 0;
         this.data = null;
         this.columns = null;
+        this.states = {
+            VIEW_COLLAPSED: 0,
+            DATA_TOO_LARGE: 1,
+            DATA_LOADING: 2,
+            DATA_ERROR: 3,
+            DATA_READY: 4
+        };
+        const MAX_FILE_SIZE = 30e6; // 30MB
+        this.state = this.states.VIEW_COLLAPSED;
+        if (this.file.get('size') > MAX_FILE_SIZE) {
+            this.state = this.states.DATA_TOO_LARGE;
+        }
         if (this.tableParser(this.file)) {
             this.render();
         }
@@ -43,6 +54,7 @@ var TableWidget = View.extend({
     updateData: function () {
         // If we already have the data, just render.
         if (this.data) {
+            this.state = this.states.DATA_READY;
             this.render();
             return;
         }
@@ -54,28 +66,26 @@ var TableWidget = View.extend({
         }
         parser(this.file.downloadUrl(), (error, data) => {
             if (error) {
-                events.trigger('g:alert', {
-                    text: 'An error occurred while attempting to read and ' +
-                          'parse the data file. Details have been logged in the console.',
-                    type: 'danger',
-                    timeout: 5000,
-                    icon: 'attention'
-                });
                 console.error(error);
+                this.state = this.states.DATA_ERROR;
+                this.render();
                 return;
             }
             datalib.read(data, {parse: 'auto'});
             this.data = data;
             this.columns = _.keys(data.__types__);
+            this.state = this.states.DATA_READY;
             this.render();
         });
     },
 
     toggleView: function () {
-        this.showData = !this.showData;
-        if (this.showData) {
+        if (this.state === this.states.VIEW_COLLAPSED) {
+            this.state = this.states.DATA_LOADING;
+            this.render();
             this.updateData();
-        } else {
+        } else if (this.state === this.states.DATA_READY) {
+            this.state = this.states.VIEW_COLLAPSED;
             this.render();
         }
     },
@@ -91,8 +101,19 @@ var TableWidget = View.extend({
     },
 
     render: function () {
+        let message = '';
+        if (this.state === this.states.DATA_ERROR) {
+            message = 'An error occurred while attempting to read and parse the data file';
+        } else if (this.state === this.states.DATA_TOO_LARGE) {
+            message = 'Data is too large to preview';
+        } else if (this.state === this.states.DATA_LOADING) {
+            message = 'Loading...';
+        }
         this.$el.html(TableWidgetTemplate({
-            showData: this.showData,
+            state: this.state,
+            states: this.states,
+            message: message,
+            fileName: this.file.get('name'),
             columns: this.columns,
             rows: this.data,
             page: this.page,

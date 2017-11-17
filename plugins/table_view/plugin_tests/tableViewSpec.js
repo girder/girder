@@ -58,7 +58,7 @@ describe('Test the table UI.', function () {
         });
     });
 
-    it('uploads a bad data file', function () {
+    it('uploads a tab-delimited data file', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
             $('.g-user-text>a:first').click();
@@ -83,7 +83,7 @@ describe('Test the table UI.', function () {
                    $('.g-item-list-link').length === 1;
         }, 'descending into Public folder');
 
-        girderTest.binaryUpload('clients/web/test/testFileBad.csv');
+        girderTest.binaryUpload('clients/web/test/testFile.tsv');
 
         runs(function () {
             $('.g-item-list-link').eq(1).click();
@@ -98,11 +98,64 @@ describe('Test the table UI.', function () {
         });
 
         waitsFor(function () {
-            return $('.alert-danger').length === 1;
+            return $('.g-item-table-view-container').length === 1;
+        }, 'the table view component selector to appear');
+
+        runs(function () {
+            var table = $('.g-item-table-view-container').children().eq(1);
+            expect(table.prop('tagName')).toBe('TABLE');
+            var headers = table.children().eq(0).children().eq(0).children();
+            expect(headers.length === 3);
+            var rows = table.children().eq(1).children();
+            expect(rows.length === 2);
+        });
+    });
+
+    it('uploads a bad data file', function () {
+        runs(function () {
+            expect($('#g-user-action-menu.open').length).toBe(0);
+            $('.g-user-text>a:first').click();
+        });
+        waitsFor(function () {
+            return $('#g-user-action-menu.open').length === 1;
+        }, 'menu to open');
+
+        runs(function () {
+            $('a.g-my-folders').click();
+        });
+        waitsFor(function () {
+            return $('.g-folder-list-link').length > 0;
+        }, 'user folder list to load');
+
+        runs(function () {
+            $('a.g-folder-list-link:contains("Public")').click();
+        });
+        girderTest.waitForLoad();
+        waitsFor(function () {
+            return $('ol.breadcrumb>li.active').text() === 'Public' &&
+                   $('.g-item-list-link').length === 2;
+        }, 'descending into Public folder');
+
+        girderTest.binaryUpload('clients/web/test/testFileBad.csv');
+
+        runs(function () {
+            $('.g-item-list-link').eq(2).click();
+        });
+
+        waitsFor(function () {
+            return $('.g-item-table-view-header').length === 1;
+        }, 'the table view section header to appear');
+
+        runs(function () {
+            $('.g-item-table-view-header').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-item-table-view-subtitle').text().length > 20;
         }, 'the error message to appear');
 
         runs(function () {
-            expect($('.alert-danger').text()).toContain('An error occurred while attempting to read and parse the data file.');
+            expect($('.g-item-table-view-subtitle').text()).toContain('An error occurred while attempting to read and parse the data file');
         });
     });
 });
