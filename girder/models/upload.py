@@ -108,10 +108,13 @@ class Upload(Model):
         return upload
 
     def validate(self, doc):
-        if doc['size'] < 0:
-            raise ValidationException('File size must not be negative.')
-        if doc['received'] > doc['size']:
-            raise ValidationException('Received too many bytes.')
+        size = doc.get('size')
+
+        if size is not None:
+            if size < 0:
+                raise ValidationException('File size must not be negative.')
+            if doc['received'] > size:
+                raise ValidationException('Received too many bytes.')
 
         doc['updated'] = datetime.datetime.utcnow()
 
@@ -187,6 +190,8 @@ class Upload(Model):
         from .item import Item
         from girder.utility import assetstore_utilities
 
+        size = upload['size'] if upload['size'] is not None else upload['received']
+
         events.trigger('model.upload.finalize', upload)
         if assetstore is None:
             assetstore = Assetstore().load(upload['assetstoreId'])
@@ -205,7 +210,7 @@ class Upload(Model):
             file['creatorId'] = upload['userId']
             file['created'] = datetime.datetime.utcnow()
             file['assetstoreId'] = assetstore['_id']
-            file['size'] = upload['size']
+            file['size'] = size
             # If the file was previously imported, it is no longer.
             if file.get('imported'):
                 file['imported'] = False
@@ -224,7 +229,7 @@ class Upload(Model):
                 item = None
 
             file = File().createFile(
-                item=item, name=upload['name'], size=upload['size'],
+                item=item, name=upload['name'], size=size,
                 creator={'_id': upload['userId']}, assetstore=assetstore,
                 mimeType=upload['mimeType'], saveFile=False)
             if upload.get('attachParent'):
@@ -320,7 +325,7 @@ class Upload(Model):
         upload = adapter.initUpload(upload)
         return self.save(upload)
 
-    def createUpload(self, user, name, parentType, parent, size, mimeType=None,
+    def createUpload(self, user, name, parentType, parent, size=None, mimeType=None,
                      reference=None, assetstore=None, attachParent=False,
                      save=True):
         """

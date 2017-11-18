@@ -78,12 +78,15 @@ class File(Resource):
                'this query by sending it as the body of the request using an '
                'appropriate content-type and with the other parameters as '
                'part of the query string.  If the entire file is uploaded via '
-               'this call, the resulting file is returned.')
+               'this call, the resulting file is returned, to ensure that Girder '
+               'knows the entire file was uploaded, the size parameter is required. '
+               'If the size parameter is omitted, Girder will not finalize the file '
+               'upload until an empty chunk is POSTed.')
         .responseClass('Upload')
         .param('parentType', 'Type being uploaded into.', enum=['folder', 'item'])
         .param('parentId', 'The ID of the parent.')
         .param('name', 'Name of the file being created.')
-        .param('size', 'Size in bytes of the file.', dataType='integer', required=False)
+        .param('size', 'Size in bytes of the file.', required=False)
         .param('mimeType', 'The MIME type of the file.', required=False)
         .param('linkUrl', 'If this is a link file, pass its URL instead '
                'of size and mimeType using this parameter.', required=False)
@@ -115,7 +118,9 @@ class File(Resource):
                     url=linkUrl, parent=parent, name=name, parentType=parentType, creator=user,
                     size=size, mimeType=mimeType), user)
         else:
-            self.requireParams({'size': size})
+            if size is not None:
+                size = int(size)
+
             assetstore = None
             if assetstoreId:
                 self.requireAdmin(
@@ -123,7 +128,7 @@ class File(Resource):
                 assetstore = Assetstore().load(assetstoreId)
 
             chunk = None
-            if size > 0 and cherrypy.request.headers.get('Content-Length'):
+            if cherrypy.request.headers.get('Content-Length'):
                 ct = cherrypy.request.body.content_type.value
                 if (ct not in cherrypy.request.body.processors and
                         ct.split('/', 1)[0] not in cherrypy.request.body.processors):
@@ -145,13 +150,14 @@ class File(Resource):
                     raise GirderException(
                         'Failed to create upload.', 'girder.api.v1.file.create-upload-failed')
                 raise
-            if upload['size'] > 0:
-                if chunk:
-                    return Upload().handleChunk(upload, chunk, filter=True, user=user)
 
-                return upload
-            else:
+            if size is not None and size <= 0:
                 return self._model.filter(Upload().finalizeUpload(upload), user)
+
+            if chunk:
+                return Upload().handleChunk(upload, chunk, filter=True, user=user)
+            else:
+                return upload
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
@@ -174,10 +180,11 @@ class File(Resource):
         # If we don't have as much data as we were told would be uploaded and
         # the upload hasn't specified it has an alternate behavior, refuse to
         # complete the upload.
-        if upload['received'] != upload['size'] and 'behavior' not in upload:
-            raise RestException(
-                'Server has only received %s bytes, but the file should be %s bytes.' %
-                (upload['received'], upload['size']))
+        if 'behavior' not in upload and upload['size'] is not None:
+            if upload['received'] != upload['size']:
+                raise RestException(
+                    'Server has only received %s bytes, but the file should be %s bytes.' %
+                    (upload['received'], upload['size']))
 
         file = Upload().finalizeUpload(upload)
         extraKeys = file.get('additionalFinalizeKeys', ())
