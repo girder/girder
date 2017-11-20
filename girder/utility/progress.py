@@ -116,6 +116,8 @@ def setResponseTimeLimit(duration=600, onlyExtend=True):
     ``yield`` is reached.  As such, long running generator responses do not
     generally need to call this function.
 
+    @deprecated - remove this function once we pin to CherryPy >= 12.0
+
     :param duration: additional duration in seconds to allow for the response.
     :param onlyExtend: if True, only ever increase the timeout.  If False, the
                        new duration always replaces the old one.
