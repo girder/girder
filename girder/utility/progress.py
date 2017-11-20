@@ -108,8 +108,8 @@ noProgress = ProgressContext(False)
 def setResponseTimeLimit(duration=600, onlyExtend=True):
     """
     If we are currently within a cherrypy response, extend the time limit.  By
-    default, cherrypy responses will timeout after 300 seconds, so any activity
-    which can take longer should call this function.
+    default, cherrypy (version < 12.0) responses will timeout after 300
+    seconds, so any activity which can take longer should call this function.
 
     Note that for cherrypy responses that include streaming generator
     functions, such as downloads, the timeout is only relevant until the first
@@ -120,7 +120,11 @@ def setResponseTimeLimit(duration=600, onlyExtend=True):
     :param onlyExtend: if True, only ever increase the timeout.  If False, the
                        new duration always replaces the old one.
     """
-    if cherrypy.response and getattr(cherrypy.response, 'time'):
+    # CherryPy 12.0 no longer has a timeout propery on a response.  Since we
+    # had only been using this to extend the time, if the timeout property is
+    # not present, do nothing.
+    if (cherrypy.response and getattr(cherrypy.response, 'time', None) and
+            getattr(cherrypy.response, 'timeout', None)):
         newTimeout = time.time() - cherrypy.response.time + duration
         if not onlyExtend or newTimeout > cherrypy.response.timeout:
             cherrypy.response.timeout = newTimeout
