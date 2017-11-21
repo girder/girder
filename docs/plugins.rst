@@ -664,6 +664,12 @@ render table files directly in Girder. To use it, simply upload a CSV or TSV fil
 then set the Candela visualization type and options. Note: The item name (not just file name) must
 end in .csv or .tsv to activate the plugin.
 
+Table View
+----------
+The Table View plugin displays a simple data table on the item page for tabular files.
+To use it, simply upload a CSV or TSV file as an item, navigate to it, and expand the
+"Data table" section.
+
 Vega Visualization
 ------------------
 The Vega plugin uses the `Vega library <http://trifacta.github.io/vega>`_ to render Vega-formatted
