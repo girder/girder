@@ -54,7 +54,41 @@ describe('Test the table UI.', function () {
             var headers = table.children().eq(0).children().eq(0).children();
             expect(headers.length === 3);
             var rows = table.children().eq(1).children();
-            expect(rows.length === 2);
+            expect(rows.length === 10);
+
+            // Second page
+            $('.g-table-view-page-next').click();
+            table = $('.g-item-table-view-container').children().eq(1);
+            rows = table.children().eq(1).children();
+            expect(rows.length === 5);
+
+            // Still on second page
+            $('.g-table-view-page-next').click();
+            table = $('.g-item-table-view-container').children().eq(1);
+            rows = table.children().eq(1).children();
+            expect(rows.length === 5);
+
+            // Back to first page
+            $('.g-table-view-page-prev').click();
+            table = $('.g-item-table-view-container').children().eq(1);
+            rows = table.children().eq(1).children();
+            expect(rows.length === 10);
+
+            // Still on first page
+            $('.g-table-view-page-prev').click();
+            table = $('.g-item-table-view-container').children().eq(1);
+            rows = table.children().eq(1).children();
+            expect(rows.length === 10);
+
+            // Collapse view
+            $('.g-item-table-view-header').click();
+            expect($('.g-item-table-view-container').length === 0);
+
+            // Reopen view, should render immediately
+            $('.g-item-table-view-header').click();
+            table = $('.g-item-table-view-container').children().eq(1);
+            rows = table.children().eq(1).children();
+            expect(rows.length === 10);
         });
     });
 
