@@ -890,6 +890,8 @@ documentation.
 Testing Server-Side Code
 ************************
 
+.. note:: Support for ``pytest`` tests has not yet been added to plugins.
+
 The ``plugin_tests/cat_test.py`` file should look like:
 
 .. code-block:: python

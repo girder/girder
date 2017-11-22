@@ -322,8 +322,11 @@ behaviors, use the following examples:
     # Will log a message to the info log.
     logger.info('Test')
 
-Adding Automated Tests
-^^^^^^^^^^^^^^^^^^^^^^
+Adding Automated Tests with CTest
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note:: Girder is transitioning towards using `pytest <https://pytest.org>`_ for its testing.
+          The section below describes how to add automated tests using ``pytest``.
 
 The server side Python tests are run using
 `unittest <https://docs.python.org/2/library/unittest.html>`_. All of the actual
@@ -387,6 +390,39 @@ run.
    ``mongo`` resource. For example: ::
 
        add_python_test(my_test RESOURCE_LOCKS cherrypy mongo)
+
+Adding Automated Tests with pytest
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Test cases for pytest are stored in girder/test.
+
+**Provided Fixtures**
+
+All helper utilities for developing tests with ``pytest`` are stored in the
+``pytest_girder`` package within Girder. A list of fixtures provided can be viewed
+by running ``pytest --fixtures`` from the Girder directory.
+
+**Adding to an Existing Test Case**
+
+If you want to add tests to an existing test case, just create a new
+function in the file. The function name must start with **test**.
+
+**Creating a New Test Case**
+
+To create an entirely new test, create a new file in **girder/test** that starts
+with **test_**. To start off, put the following code in the module (with
+appropriate function name of course):
+
+.. code-block:: python
+
+    def testCase(server):
+        pass
+
+.. note:: If your test case does not need to communicate with the
+   server, you do not need include server as an argument to your
+   test. Refer to `pytest fixtures
+   <https://docs.pytest.org/en/latest/fixture.html>`_ for more
+   information on using dependency injection in this manner.
 
 .. _use_external_data:
 
