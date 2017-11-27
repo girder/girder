@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 setup(
     name='pytest-girder',
@@ -10,6 +10,7 @@ setup(
     classifiers=[
         'Framework :: Pytest'
     ],
+    packages=find_packages(),
     install_requires=[
         'girder',
         'mongomock',
