@@ -58,7 +58,10 @@ if(RUN_CORE_TESTS)
   add_python_test(sftp)
   add_python_test(size)
   add_python_test(stream BIND_SERVER TIMEOUT 90)
+  # The system test depends on javascript-generate version information, so add
+  # it to the integration group.
   add_python_test(system)
+  set_property(TEST server_system PROPERTY LABELS girder_integration)
   # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
   add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
   set_property(TEST server_upload PROPERTY LABELS girder_integration)

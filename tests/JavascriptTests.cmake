@@ -20,8 +20,8 @@ function(javascript_tests_init)
             "--dir" "${PROJECT_SOURCE_DIR}/build/test/coverage/web"
             "text-summary" "lcovonly" "cobertura" "html"
   )
-  set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser)
-  set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_browser)
+  set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser girder_integration)
+  set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_coverage)
 endfunction()
 
 function(add_eslint_test name input)

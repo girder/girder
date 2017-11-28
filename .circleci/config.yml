@@ -1,4 +1,5 @@
 version: 2
+
 jobs:
   py2_serverInstall_serverTest:
     docker:
@@ -25,17 +26,12 @@ jobs:
           name: Upgrade Python toolchain
           command: pip install --upgrade pip setuptools virtualenv
       - run:
-          name: Install Codecov client
-          command: pip install codecov
-      - run:
-          name: Install CTest output formatter
-          command: pip install scikit-ci-addons==0.15.0
-      - run:
           name: Install Girder
           command: |
-            pip install -e girder[plugins,sftp]
-            pip install -e girder/clients/python
-            pip install -r girder/requirements-dev.txt
+            pip install -e .[plugins,sftp]
+            pip install -e clients/python
+            pip install -r requirements-dev.txt
+          working_directory: girder
       - save_cache:
           paths: girder_env
           key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
@@ -53,8 +49,17 @@ jobs:
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/virtualenv
           working_directory: girder_build
       - run:
-          name: Output CTest results in JUnit format
-          command: ci_addons ctest_junit_formatter girder_build > girder/build/test/coverage/CTest.xml
+          name: Reduce workspace size
+          command: |
+            pyclean girder
+            pyclean girder_env
+            pyclean girder_build
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - girder
+            - girder_env
+            - girder_build
 
   py3_serverInstall:
     docker:
@@ -79,21 +84,20 @@ jobs:
           name: Upgrade Python toolchain
           command: pip install --upgrade pip setuptools
       - run:
-          name: Install Codecov client
-          command: pip install codecov
-      - run:
-          name: Install CMake output formatter
-          command: pip install scikit-ci-addons==0.15.0
-      - run:
           name: Install Girder
           command: |
-            pip install -e girder[plugins,sftp]
-            pip install -e girder/clients/python
-            pip install -r girder/requirements-dev.txt
+            pip install -e .[plugins,sftp]
+            pip install -e clients/python
+            pip install -r requirements-dev.txt
+          working_directory: girder
+      - run:
+          name: Reduce workspace size
+          command: |
+            pyclean girder
+            pyclean girder_env
       - save_cache:
           paths: girder_env
           key: venv-py3-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-test1
-
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -127,9 +131,11 @@ jobs:
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
-      - run:
-          name: Output CTest results in JUnit format
-          command: ci_addons ctest_junit_formatter girder_build > girder/build/test/coverage/CTest.xml
+
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - girder
 
   py3_webBuild_webTest:
     docker:
@@ -148,10 +154,14 @@ jobs:
       - restore_cache:
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
+          name: Link node into the /usr/local/bin directory so packaging tests will use the default python
+          command: sudo ln /usr/bin/node /usr/local/bin/node
+      - run:
           name: Build Girder web client
           command: girder-install web --all-plugins --dev | cat
           environment:
             - npm_config_cache: /home/circleci/project/npm_cache
+            - BABEL_ENV: cover
       - save_cache:
           paths: npm_cache
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
@@ -166,23 +176,290 @@ jobs:
             TEST_GROUP: browser
             PYTHON_VERSION: 3.4
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
+            VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
             JASMINE_TIMEOUT: 15000
             BABEL_ENV: cover
           working_directory: girder_build
-      - run:
-          name: Output CTest results in JUnit format
-          command: ci_addons ctest_junit_formatter girder_build > girder/build/test/coverage/CTest.xml
 
-      #- run:
-      #    name: Upload coverage
-      #    command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder_build/coverage.xml
-      #    working_directory: girder
+      - run:
+          name: Rename javascript coverage files to avoid conflicts
+          command: for file in *.cvg; do mv "$file" "${file%.cvg}webbuild.cvg"; done
+          working_directory: girder/build/test/coverage/web_temp
+      - run:
+          name: Reduce workspace size
+          command: |
+            find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+            pyclean girder
+            pyclean girder_build
+            pyclean girder_env
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - girder/.coverage.*
+            - girder/node_modules
+            - girder/build/test/coverage/web_temp/*.cvg
+            - girder_build
+            - girder_env
+
+  py2_integrationTests:
+    machine: true
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Get rid of existing versions of Mongo
+          command: sudo rm -f /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
+      - run:
+          # This has to be done in a python 2 context
+          name: install node-gyp
+          command: npm install -g node-gyp
+      - run:
+          name: allow boto to work with python 3
+          command: sudo rm -f /etc/boto.cfg
+      - run:
+          name: Install ansible
+          command: pip install ansible
+      - run:
+          name: Install Galaxy requirements
+          command: ansible-galaxy install -r examples/girder-dev-environment/requirements.yml
+          working_directory: girder/devops/ansible
+          environment:
+            ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
+      - run:
+          name: Install Girder via ansible
+          command: pyenv exec ansible-playbook -i "localhost," -c local examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'2.6.12'}"
+          working_directory: girder/devops/ansible
+          environment:
+            ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
+      - run:
+          name: Activate virtualenv
+          command: echo '. /home/circleci/.virtualenvs/girder/bin/activate' >> $BASH_ENV
+      - run:
+          name: Install all pip modules
+          # sftp and python client aren't installed by the ansible example
+          command: pip install -e .[plugins,sftp] clients/python -r requirements-dev.txt
+          working_directory: girder
+      - run:
+          name: Create Girder build directory
+          command: mkdir girder_build
+      - run:
+          name: Create various subdirectories
+          command: mkdir -p build/test/coverage/web_temp && mkdir -p build/test/coverage/web
+          working_directory: girder
+      - run:
+          name: Build Girder web client with coverage turned on
+          command: girder-install web --all-plugins --dev | cat
+          environment:
+            - BABEL_ENV: cover
+      - run:
+          name: CMake
+          command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
+          working_directory: girder_build
+          environment:
+            JASMINE_TIMEOUT: 15000
+            BABEL_ENV: cover
+      - run:
+          name: make
+          command: make -j 3
+          working_directory: girder_build
+      - run:
+          name: CTest
+          command: ctest -j 3 -VV -L girder_integration
+          working_directory: girder_build
+          environment:
+            JASMINE_TIMEOUT: 15000
+            BABEL_ENV: cover
+      # - run:
+      #     name: CTest full
+      #     command: ctest -j 3 --output-on-failure
+      #     working_directory: girder_build
+      #    environment:
+      #      JASMINE_TIMEOUT: 15000
+      #      BABEL_ENV: cover
+      - run:
+          name: Rename javascript coverage files to avoid conflicts
+          command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
+          working_directory: girder/build/test/coverage/web_temp
+
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - girder/.coverage.*
+            - girder/build/test/coverage/web_temp/*.cvg
+
+  py2_coverage:
+    docker:
+      # This image uses the oldest version of many dependencies
+      - image: girder/girder_test_py2:latest
+      # Use the oldest supported MongoDB
+      - image: mongo:2.6
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+    steps:
+      - attach_workspace:
+          at: /home/circleci/project
+      - run:
+          name: Activate virtual environment
+          command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      # - run:
+      #     # We should be able to alter the ci_test.cmake to do this
+      #     name: Run CMake
+      #     command: cmake ../girder -DPYTHON_VERSION=3.4 -DPYTHON_EXECUTABLE=/home/circleci/project/girder_env/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/project/girder_env/bin/virtualenv
+      - run:
+          name: Run CTest
+          command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          environment:
+            TEST_GROUP: coverage
+            PYTHON_VERSION: 2.7
+            PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
+            JASMINE_TIMEOUT: 15000
+            BABEL_ENV: cover
+            BUILD_JAVASCRIPT_TESTS: OFF
+          working_directory: girder_build
+      - run:
+          name: Install Codecov client
+          command: pip install codecov
+      - run:
+          name: Upload coverage
+          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml
+          working_directory: girder
+
+  py3_integrationTests:
+    machine: true
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Get rid of existing versions of Mongo
+          command: sudo rm -f /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
+      - run:
+          # This has to be done in a python 2 context
+          name: install node-gyp
+          command: npm install -g node-gyp
+      - run:
+          name: allow boto to work with python 3
+          command: sudo rm -f /etc/boto.cfg
+      - run:
+          name: Set up Python 3.5
+          command: |
+             # 3.5.2 is already installed in circle, so use it
+             pyenv install 3.5.2 || true
+             pyenv global 3.5.2
+      - run:
+          name: Set up virtualenv
+          command: |
+             pip install virtualenv
+             virtualenv /home/circleci/.virtualenvs/girder
+      - run:
+          name: Install ansible
+          command: pip install ansible
+      - run:
+          name: Install Galaxy requirements
+          command: ansible-galaxy install -r examples/girder-dev-environment/requirements.yml
+          working_directory: girder/devops/ansible
+          environment:
+            ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
+      - run:
+          name: Install Girder via ansible
+          # Use the latest mongo that Stouts supports
+          command: pyenv exec ansible-playbook -i "localhost," -c local examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.4'}"
+          working_directory: girder/devops/ansible
+          environment:
+            ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
+      - run:
+          name: Activate virtualenv
+          command: echo '. /home/circleci/.virtualenvs/girder/bin/activate' >> $BASH_ENV
+      - run:
+          name: Install all pip modules
+          # sftp and python client aren't installed by the ansible example
+          command: pip install -e .[plugins,sftp] clients/python -r requirements-dev.txt
+          working_directory: girder
+      - run:
+          name: Create Girder build directory
+          command: mkdir girder_build
+      - run:
+          name: Create various subdirectories
+          command: mkdir -p build/test/coverage/web_temp && mkdir -p build/test/coverage/web
+          working_directory: girder
+      - run:
+          name: Build Girder web client with coverage turned on
+          command: girder-install web --all-plugins --dev | cat
+          environment:
+            - BABEL_ENV: cover
+      - run:
+          name: CMake
+          command: cmake ../girder -DPYTHON_VERSION=3.4 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
+          working_directory: girder_build
+          environment:
+            JASMINE_TIMEOUT: 15000
+            BABEL_ENV: cover
+      - run:
+          name: make
+          command: make -j 3
+          working_directory: girder_build
+      - run:
+          name: CTest
+          command: ctest -j 3 -VV -L girder_integration
+          working_directory: girder_build
+          environment:
+            JASMINE_TIMEOUT: 15000
+            BABEL_ENV: cover
+      - run:
+          name: Rename javascript coverage files to avoid conflicts
+          command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
+          working_directory: girder/build/test/coverage/web_temp
+
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - girder/.coverage.*
+            - girder/build/test/coverage/web_temp/*.cvg
+
+  py3_coverage:
+    docker:
+      # This image uses the oldest version of many dependencies
+      - image: girder/girder_test_py3:latest
+      # Use the latest MongoDB
+      - image: circleci/mongo:3.4
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+    steps:
+      - attach_workspace:
+          at: /home/circleci/project
+      - run:
+          name: Activate virtual environment
+          command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - run:
+          name: Run CTest
+          command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          environment:
+            TEST_GROUP: coverage
+            PYTHON_VERSION: 3.4
+            PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
+            JASMINE_TIMEOUT: 15000
+            BABEL_ENV: cover
+            BUILD_JAVASCRIPT_TESTS: ON
+          working_directory: girder_build
+      - run:
+          name: Install Codecov client
+          command: pip install codecov
+      - run:
+          name: Upload coverage
+          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml
+          working_directory: girder
 
 workflows:
   version: 2
   test_all:
     jobs:
       - py2_serverInstall_serverTest
+      - py2_integrationTests
+      - py2_coverage:
+          requires:
+            - py2_serverInstall_serverTest
+            - py2_integrationTests
       - py3_serverInstall
       - py3_serverTest:
           requires:
@@ -190,3 +467,9 @@ workflows:
       - py3_webBuild_webTest:
           requires:
             - py3_serverInstall
+      - py3_integrationTests
+      - py3_coverage:
+          requires:
+            - py3_serverTest
+            - py3_webBuild_webTest
+            - py3_integrationTests
