@@ -243,7 +243,7 @@ Adding a prefix to an API
 *************************
 
 It is possible to provide a prefix to your API, allowing associated endpoints to
-be grouped together. This is done by creating a prefix when mounting the resouce.
+be grouped together. This is done by creating a prefix when mounting the resource.
 Note that ``resourceName`` is **not** provided as the resource name is also derived
 from the mount location.
 
