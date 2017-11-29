@@ -122,7 +122,7 @@ def loadPlugins(plugins, root, appconf, apiRoot=None, buildDag=True):
     return root, appconf, apiRoot
 
 
-def getToposortedPlugins(plugins=None, ignoreMissing=False, keys=('dependencies',), logNew=False):
+def getToposortedPlugins(plugins=None, ignoreMissing=False, keys=('dependencies',)):
     """
     Given a set of plugins to load, construct the full DAG of required plugins
     to load and yields them in toposorted order.
@@ -136,8 +136,6 @@ def getToposortedPlugins(plugins=None, ignoreMissing=False, keys=('dependencies'
     :type ignoreMissing: bool
     :param keys: Keys that should be used to determine dependencies.
     :type keys: list of str
-    :param logNew: if True, log plugins added because of dependencies.
-    :type logNew: boolean
     """
     allPlugins = findAllPlugins()
     dag = {}
@@ -166,7 +164,7 @@ def getToposortedPlugins(plugins=None, ignoreMissing=False, keys=('dependencies'
             if dep in visited:
                 continue
             visited.add(dep)
-            if dep not in plugins and logNew:
+            if dep not in plugins:
                 logger.info('Adding plugin %s because %s requires it' % (dep, plugin))
             addDeps(dep)
 

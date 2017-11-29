@@ -203,7 +203,7 @@ class Setting(Model):
             raise ValidationException('Plugins enabled setting must be a list.', 'value')
 
         # Add all transitive dependencies and store in toposorted order
-        doc['value'] = list(plugin_utilities.getToposortedPlugins(doc['value'], logNew=True))
+        doc['value'] = list(plugin_utilities.getToposortedPlugins(doc['value']))
 
     @staticmethod
     @setting_utilities.validator(SettingKey.ADD_TO_GROUP_POLICY)
