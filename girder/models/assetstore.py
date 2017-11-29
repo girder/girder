@@ -120,7 +120,16 @@ class Assetstore(Model):
         from .file import File
         from girder.utility import assetstore_utilities
 
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        try:
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        except GirderException as e:
+            if e.identifier != assetstore_utilities.EXCEPTION_ID_NO_ADAPTER:
+                raise
+            # If the adapter doesn't exist, use the abstract adapter, since
+            # this will just give the default capacity information
+            from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
+
+            adapter = AbstractAssetstoreAdapter(assetstore)
         assetstore['capacity'] = adapter.capacityInfo()
         assetstore['hasFiles'] = File().findOne({'assetstoreId': assetstore['_id']}) is not None
 

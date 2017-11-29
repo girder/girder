@@ -17,10 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
+from ..constants import AssetstoreType
+from ..models.model_base import GirderException
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
 from .s3_assetstore_adapter import S3AssetstoreAdapter
-from girder.constants import AssetstoreType
 
 
 _assetstoreTable = {
@@ -28,6 +29,8 @@ _assetstoreTable = {
     AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
     AssetstoreType.S3: S3AssetstoreAdapter
 }
+
+EXCEPTION_ID_NO_ADAPTER = 'girder.utility.assetstore.no-adapter'
 
 
 def getAssetstoreAdapter(assetstore, instance=True):
@@ -48,7 +51,9 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
     cls = _assetstoreTable.get(storeType)
     if cls is None:
-        raise Exception('No AssetstoreAdapter for type: %s.' % storeType)
+        raise GirderException(
+            'No AssetstoreAdapter for type: %s.' % storeType,
+            EXCEPTION_ID_NO_ADAPTER)
 
     if instance:
         return cls(assetstore)
