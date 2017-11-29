@@ -280,6 +280,16 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json['message'],
                          ("Required plugin a_plugin_that_does_not_exist"
                           " does not exist."))
+        resp = self.request(
+            path='/system/plugins', method='PUT', user=self.users[0],
+            params={'plugins': '["has_deps", "has_sub_deps"]'})
+        self.assertStatusOk(resp)
+        enabled = resp.json['value']
+        self.assertEqual(len(enabled), 6)
+        self.assertTrue('test_plugin' in enabled)
+        self.assertTrue('does_nothing' in enabled)
+        self.assertTrue('has_other_deps' in enabled)
+        self.assertTrue('plugin_yaml' in enabled)
         self.unmockPluginDir()
 
     def testBadPlugin(self):
