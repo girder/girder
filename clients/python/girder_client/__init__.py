@@ -1197,6 +1197,22 @@ class GirderClient(object):
             # assume `path` is a file-like object
             shutil.copyfileobj(fp, path)
 
+    def _streamingFileDownload(self, fileId):
+        """
+        Download a file streaming the contents
+
+        :param fileId: The ID of the Girder file to download.
+
+        :returns: The request
+        """
+
+        url = '%sfile/%s/download' % (self.urlBase, fileId)
+        req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
+        if not req.ok:
+            raise HttpError(req.status_code, req.text, url, 'GET', response=req)
+
+        return req
+
     def downloadFile(self, fileId, path, created=None):
         """
         Download a file to the given local path or file-like object.
@@ -1220,10 +1236,7 @@ class GirderClient(object):
         if isinstance(path, six.string_types):
             progressFileName = os.path.basename(path)
 
-        url = '%sfile/%s/download' % (self.urlBase, fileId)
-        req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
-        if not req.ok:
-            raise HttpError(req.status_code, req.text, url, 'GET', response=req)
+        req = self._streamingFileDownload(fileId)
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             with self.progressReporterCls(
                     label=progressFileName,
@@ -1247,6 +1260,20 @@ class GirderClient(object):
                 shutil.copyfileobj(fp, path)
             # delete the temp file
             os.remove(tmp.name)
+
+    def downloadFileAsIterator(self, fileId, chunkSize=REQ_BUFFER_SIZE):
+        """
+        Download a file streaming the contents as an iterator.
+
+        :param fileId: The ID of the Girder file to download.
+        :param chunkSize: The chunk size to download the contents in.
+
+        :returns: The request content iterator.
+        """
+
+        req = self._streamingFileDownload(fileId)
+
+        return req.iter_content(chunk_size=chunkSize)
 
     def downloadItem(self, itemId, dest, name=None):
         """
