@@ -27,12 +27,12 @@ import sys
 import time
 
 from girder import logger, logprint
-from girder.exceptions import AccessException, ValidationException
+from girder.exceptions import AccessException, ValidationException, ResourcePathNotFound
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
-from girder.utility.path import lookUpPath, NotFoundException
+from girder.utility.path import lookUpPath
 from girder.utility.model_importer import ModelImporter
 from six.moves import socketserver
 
@@ -45,7 +45,7 @@ def _handleErrors(fun):
     def wrapped(*args, **kwargs):
         try:
             return fun(*args, **kwargs)
-        except NotFoundException:
+        except ResourcePathNotFound:
             return paramiko.SFTP_NO_SUCH_FILE
         except ValidationException:
             return paramiko.SFTP_FAILURE

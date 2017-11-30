@@ -1,4 +1,11 @@
-class AccessException(Exception):
+class GirderBaseException(Exception):
+    """
+    A class from which all Girder exceptions are based.
+    """
+    pass
+
+
+class AccessException(GirderBaseException):
     """
     Represents denial of access to a resource.
     """
@@ -6,10 +13,10 @@ class AccessException(Exception):
         self.message = message
         self.extra = extra
 
-        Exception.__init__(self, message)
+        super(AccessException, self).__init__(message)
 
 
-class GirderException(Exception):
+class GirderException(GirderBaseException):
     """
     Represents a general exception that might occur in regular use.  From the
     user perspective, these are failures, but not catastrophic ones.  An
@@ -23,7 +30,7 @@ class GirderException(Exception):
         self.identifier = identifier
         self.message = message
 
-        Exception.__init__(self, message)
+        super(GirderException, self).__init__(message)
 
 
 class NoAssetstoreAdapter(GirderException):
@@ -33,10 +40,10 @@ class NoAssetstoreAdapter(GirderException):
     identifier = 'girder.utility.assetstore.no-adapter'
 
     def __init__(self, message='No assetstore adapter'):
-        return super(NoAssetstoreAdapter, self).__init__(message, self.identifier)
+        super(NoAssetstoreAdapter, self).__init__(message, self.identifier)
 
 
-class ValidationException(Exception):
+class ValidationException(GirderBaseException):
     """
     Represents validation failure in the model layer. Raise this with
     a message and an optional field property. If one of these is thrown
@@ -46,4 +53,27 @@ class ValidationException(Exception):
         self.field = field
         self.message = message
 
-        Exception.__init__(self, message)
+        super(ValidationException, self).__init__(message)
+
+
+class ResourcePathNotFound(ValidationException):
+    """
+    A special case of ValidationException representing the case when the resource at a
+    given path does not exist.
+    """
+    pass
+
+
+class RestException(GirderBaseException):
+    """
+    Throw a RestException in the case of any sort of incorrect
+    request (i.e. user/client error). Login and permission failures
+    should set a 403 code; almost all other validation errors
+    should use status 400, which is the default.
+    """
+    def __init__(self, message, code=400, extra=None):
+        self.code = code
+        self.extra = extra
+        self.message = message
+
+        super(RestException, self).__init__(message)

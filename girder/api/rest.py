@@ -32,7 +32,8 @@ import unicodedata
 from . import docs
 from girder import events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
-from girder.exceptions import AccessException, GirderException, ValidationException
+from girder.exceptions import AccessException, GirderException, ValidationException, \
+    RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
@@ -709,21 +710,6 @@ def _setCommonCORSHeaders():
             setResponseHeader(key, allowed_list[0])
         elif origin in allowed_list:
             setResponseHeader(key, origin)
-
-
-class RestException(Exception):
-    """
-    Throw a RestException in the case of any sort of incorrect
-    request (i.e. user/client error). Login and permission failures
-    should set a 403 code; almost all other validation errors
-    should use status 400, which is the default.
-    """
-    def __init__(self, message, code=400, extra=None):
-        self.code = code
-        self.extra = extra
-        self.message = message
-
-        Exception.__init__(self, message)
 
 
 class Resource(ModelImporter):

@@ -29,13 +29,12 @@ import logging
 from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
-from girder.exceptions import GirderException
+from girder.exceptions import GirderException, ResourcePathNotFound
 from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
 from girder.utility import config, install, plugin_utilities, system
-from girder.utility.path import NotFoundException
 from girder.utility.progress import ProgressContext
 from ..describe import API_VERSION, Description, autoDescribeRoute
 from ..rest import Resource, RestException
@@ -115,9 +114,9 @@ class System(Resource):
         configSection = config.getConfig().get(section)
 
         if configSection is None:
-            raise NotFoundException('No section with that name exists.')
+            raise ResourcePathNotFound('No section with that name exists.')
         elif key not in configSection:
-            raise NotFoundException('No key with that name exists.')
+            raise ResourcePathNotFound('No key with that name exists.')
         else:
             return configSection.get(key)
 

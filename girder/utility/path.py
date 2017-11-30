@@ -22,17 +22,10 @@
 import re
 from ..constants import AccessType
 from ..exceptions import AccessException, GirderException, ValidationException
+from ..exceptions import ResourcePathNotFound as NotFoundException
 from .model_importer import ModelImporter
 from girder.models.collection import Collection
 from girder.models.user import User
-
-
-class NotFoundException(ValidationException):
-    """
-    A special case of ValidationException representing the case when the resource at a
-    given path does not exist.
-    """
-    pass
 
 
 def encode(token):
