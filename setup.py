@@ -55,13 +55,16 @@ class InstallWithOptions(install):
         self.mergeDir('grunt_tasks', dest)
         self.mergeDir('plugins', dest)
 
+
 with open('README.rst') as f:
     readme = f.read()
 
 install_reqs = [
     'bcrypt',
     'boto3',
-    'CherryPy',
+    # CherryPy version is restricted due to a bug in versions >=11.1
+    # https://github.com/cherrypy/cherrypy/issues/1662
+    'CherryPy<11.1',
     'click',
     'filelock',
     'jsonschema',
