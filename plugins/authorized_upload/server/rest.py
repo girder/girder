@@ -21,7 +21,7 @@ from girder.api import access
 from girder.api.describe import describeRoute, Description
 from girder.api.rest import loadmodel, Resource
 from girder.constants import AccessType, SettingKey, TokenScope
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.utility import mail_utils

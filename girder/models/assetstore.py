@@ -19,8 +19,9 @@
 
 import datetime
 
-from .model_base import Model, ValidationException, GirderException
+from .model_base import Model
 from girder.constants import AssetstoreType, SortDir
+from girder.exceptions import ValidationException, GirderException, NoAssetstoreAdapter
 from girder.utility import assetstore_utilities
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
@@ -120,7 +121,7 @@ class Assetstore(Model):
 
         try:
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        except assetstore_utilities.GirderNoAssetstoreAdapterException:
+        except NoAssetstoreAdapter:
             # If the adapter doesn't exist, use the abstract adapter, since
             # this will just give the default capacity information
             adapter = AbstractAssetstoreAdapter(assetstore)

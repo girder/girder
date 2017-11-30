@@ -20,7 +20,8 @@
 import itertools
 import six
 
-from ..models.model_base import Model, AccessException
+from ..models.model_base import Model
+from ..exceptions import AccessException
 from ..constants import AccessType
 
 

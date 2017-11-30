@@ -28,7 +28,7 @@ import uuid
 
 from girder import logger, events
 from girder.api.rest import setContentDisposition
-from girder.models.model_base import GirderException, ValidationException
+from girder.exceptions import GirderException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item

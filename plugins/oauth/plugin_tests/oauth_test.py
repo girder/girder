@@ -27,7 +27,7 @@ import requests
 import six
 
 from girder.constants import SettingKey
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User

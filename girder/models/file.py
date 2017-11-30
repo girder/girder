@@ -21,10 +21,10 @@ import cherrypy
 import datetime
 import six
 
-from .model_base import Model, ValidationException
+from .model_base import Model, AccessControlledModel
 from girder import events
 from girder.constants import AccessType, CoreEventHandler
-from girder.models.model_base import AccessControlledModel
+from girder.exceptions import ValidationException
 from girder.utility import acl_mixin
 
 

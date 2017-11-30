@@ -27,7 +27,7 @@ from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import RestException, setRawResponse, setResponseHeader, setContentDisposition
 from girder.api.v1.file import File
 from girder.constants import AccessType, TokenScope
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.file import File as FileModel
 from girder.models.setting import Setting
 from girder.utility import setting_utilities

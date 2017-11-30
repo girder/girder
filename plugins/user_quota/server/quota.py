@@ -25,7 +25,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, RestException
 from girder.constants import AccessType
-from girder.models.model_base import GirderException, ValidationException
+from girder.exceptions import GirderException, ValidationException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.file import File

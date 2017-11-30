@@ -29,7 +29,7 @@ from girder.api import access
 from girder.api.describe import describeRoute, API_VERSION
 from girder.api.rest import getApiUrl, loadmodel, Resource
 from girder.constants import AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR
-from girder.models.model_base import AccessException, ValidationException
+from girder.exceptions import AccessException, ValidationException
 from girder.models.collection import Collection
 from girder.models.file import File
 from girder.models.folder import Folder

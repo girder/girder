@@ -27,7 +27,7 @@ import sys
 import time
 
 from girder import logger, logprint
-from girder.models.model_base import AccessException, ValidationException
+from girder.exceptions import AccessException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item

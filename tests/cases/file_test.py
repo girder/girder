@@ -32,7 +32,7 @@ from .. import base, mock_s3
 from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
-from girder.models.model_base import AccessException, GirderException
+from girder.exceptions import AccessException, GirderException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.file import File

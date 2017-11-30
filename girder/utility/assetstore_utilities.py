@@ -18,7 +18,7 @@
 ###############################################################################
 
 from ..constants import AssetstoreType
-from ..models.model_base import GirderException
+from ..exceptions import NoAssetstoreAdapter
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
 from .s3_assetstore_adapter import S3AssetstoreAdapter
@@ -29,16 +29,6 @@ _assetstoreTable = {
     AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
     AssetstoreType.S3: S3AssetstoreAdapter
 }
-
-
-class GirderNoAssetstoreAdapterException(GirderException):
-    """
-    Raised when no assetstore adapter is available.
-    """
-    identifier = 'girder.utility.assetstore.no-adapter'
-
-    def __init__(self, message='No assetstore adapter'):
-        return super(GirderNoAssetstoreAdapterException, self).__init__(message, self.identifier)
 
 
 def getAssetstoreAdapter(assetstore, instance=True):
@@ -59,8 +49,7 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
     cls = _assetstoreTable.get(storeType)
     if cls is None:
-        raise GirderNoAssetstoreAdapterException(
-            'No AssetstoreAdapter for type: %s.' % storeType)
+        raise NoAssetstoreAdapter('No AssetstoreAdapter for type: %s.' % storeType)
 
     if instance:
         return cls(assetstore)

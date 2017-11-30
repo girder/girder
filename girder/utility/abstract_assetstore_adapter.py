@@ -21,7 +21,7 @@ import six
 
 from girder.api.rest import setResponseHeader, setContentDisposition
 from girder.constants import SettingKey
-from girder.models.model_base import GirderException, ValidationException
+from girder.exceptions import GirderException, ValidationException
 from girder.models.setting import Setting
 from girder.utility import progress, RequestBodyStream
 from .model_importer import ModelImporter

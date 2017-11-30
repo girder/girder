@@ -26,7 +26,7 @@ import uuid
 
 from girder import logger
 from girder.api.rest import setResponseHeader
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 

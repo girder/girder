@@ -32,7 +32,7 @@ import unicodedata
 from . import docs
 from girder import events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
-from girder.models.model_base import AccessException, GirderException, ValidationException
+from girder.exceptions import AccessException, GirderException, ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User

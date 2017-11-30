@@ -29,7 +29,7 @@ import logging
 from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
-from girder.models.model_base import GirderException
+from girder.exceptions import GirderException
 from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.models.upload import Upload

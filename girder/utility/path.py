@@ -21,7 +21,7 @@
 
 import re
 from ..constants import AccessType
-from ..models.model_base import AccessException, GirderException, ValidationException
+from ..exceptions import AccessException, GirderException, ValidationException
 from .model_importer import ModelImporter
 from girder.models.collection import Collection
 from girder.models.user import User
