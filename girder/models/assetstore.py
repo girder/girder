@@ -21,6 +21,8 @@ import datetime
 
 from .model_base import Model, ValidationException, GirderException
 from girder.constants import AssetstoreType, SortDir
+from girder.utility import assetstore_utilities
+from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 
 class Assetstore(Model):
@@ -31,8 +33,6 @@ class Assetstore(Model):
         self.name = 'assetstore'
 
     def validate(self, doc):
-        from girder.utility import assetstore_utilities
-
         # Ensure no duplicate names
         q = {'name': doc['name']}
         if '_id' in doc:
@@ -73,7 +73,6 @@ class Assetstore(Model):
         :type assetstore: dict
         """
         from .file import File
-        from girder.utility import assetstore_utilities
 
         files = File().findOne({'assetstoreId': assetstore['_id']})
         if files is not None:
@@ -118,17 +117,12 @@ class Assetstore(Model):
         :type assetstore: dict
         """
         from .file import File
-        from girder.utility import assetstore_utilities
 
         try:
             adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        except GirderException as e:
-            if e.identifier != assetstore_utilities.EXCEPTION_ID_NO_ADAPTER:
-                raise
+        except assetstore_utilities.GirderNoAssetstoreAdapterException:
             # If the adapter doesn't exist, use the abstract adapter, since
             # this will just give the default capacity information
-            from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
-
             adapter = AbstractAssetstoreAdapter(assetstore)
         assetstore['capacity'] = adapter.capacityInfo()
         assetstore['hasFiles'] = File().findOne({'assetstoreId': assetstore['_id']}) is not None
@@ -188,8 +182,6 @@ class Assetstore(Model):
         """
         Calls the importData method of the underlying assetstore adapter.
         """
-        from girder.utility import assetstore_utilities
-
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         return adapter.importData(
             parent=parent, parentType=parentType, params=params,

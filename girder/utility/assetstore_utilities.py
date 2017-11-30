@@ -30,7 +30,15 @@ _assetstoreTable = {
     AssetstoreType.S3: S3AssetstoreAdapter
 }
 
-EXCEPTION_ID_NO_ADAPTER = 'girder.utility.assetstore.no-adapter'
+
+class GirderNoAssetstoreAdapterException(GirderException):
+    """
+    Raised when no assetstore adapter is available.
+    """
+    identifier = 'girder.utility.assetstore.no-adapter'
+
+    def __init__(self, message='No assetstore adapter'):
+        return super(GirderNoAssetstoreAdapterException, self).__init__(message, self.identifier)
 
 
 def getAssetstoreAdapter(assetstore, instance=True):
@@ -51,9 +59,8 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
     cls = _assetstoreTable.get(storeType)
     if cls is None:
-        raise GirderException(
-            'No AssetstoreAdapter for type: %s.' % storeType,
-            EXCEPTION_ID_NO_ADAPTER)
+        raise GirderNoAssetstoreAdapterException(
+            'No AssetstoreAdapter for type: %s.' % storeType)
 
     if instance:
         return cls(assetstore)
