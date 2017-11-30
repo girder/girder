@@ -665,8 +665,8 @@ The build process will search for the ``'foobar'`` module in the following locat
 3. Within Girder's own ``node_modules`` directory.
 
 .. note:: One notable exception to this rule is for the jQuery library; having multiple versions of jQuery from
-different targets often breaks things at runtime, so plugins will always use the same jQuery
-as Girder core.
+          different targets often breaks things at runtime, so plugins will always use the same jQuery
+          as Girder core.
 
 If for some reason you need to modify this search order for your plugin, you can do so via the ``webpack.helper.js``
 file documented in the :ref:`webpackhelper` section. To do so, you can override the ``resolve.modules`` field of
