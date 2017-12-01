@@ -30,6 +30,7 @@ Security Fixes
 
 Changes
 -------
+* Exceptions are now all accessible in the ``exceptions`` module and are descended from the ``GirderBaseException`` class.
 
 Deprecations
 ------------

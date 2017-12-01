@@ -1,7 +1,7 @@
 import jsonschema
 
 from girder import events
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 from girder.models.group import Group
 from girder.models.setting import Setting

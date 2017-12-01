@@ -22,7 +22,7 @@ import json
 import pytest
 
 from girder.constants import SettingKey, TokenScope
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.api_key import ApiKey
 from girder.models.setting import Setting
 from girder.models.token import Token

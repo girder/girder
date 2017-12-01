@@ -22,7 +22,7 @@ from ..rest import Resource, filtermodel, setResponseHeader, setContentDispositi
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.models.collection import Collection as CollectionModel
-from girder.models.model_base import AccessException
+from girder.exceptions import AccessException
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 

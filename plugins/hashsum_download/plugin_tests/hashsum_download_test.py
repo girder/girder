@@ -21,7 +21,7 @@ import hashlib
 import six
 import time
 
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.setting import Setting

@@ -27,7 +27,7 @@ from .. import base
 
 from girder import events
 from girder.constants import AccessType, SettingKey, TokenScope
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.folder import Folder
 from girder.models.group import Group
 from girder.models.setting import Setting

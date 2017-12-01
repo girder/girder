@@ -24,8 +24,9 @@ import six
 import re
 
 from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault, SettingKey
-from .model_base import Model, ValidationException
+from .model_base import Model
 from girder import logprint
+from girder.exceptions import ValidationException
 from girder.utility import config, setting_utilities
 from bson.objectid import ObjectId
 

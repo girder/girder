@@ -44,7 +44,7 @@ from pkg_resources import iter_entry_points
 from girder import logprint, logger
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, PACKAGE_DIR, ROOT_DIR, \
     ROOT_PLUGINS_PACKAGE, SettingKey
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.utility import mail_utils
 
