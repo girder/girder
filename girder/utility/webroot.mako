@@ -25,7 +25,8 @@
                 parentView: null,
                 contactEmail: '${contactEmail | js}',
                 brandName: '${brandName | js}',
-                bannerColor: '${bannerColor | js}'
+                bannerColor: '${bannerColor | js}',
+                registrationPolicy: '${registrationPolicy | js}'
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });
