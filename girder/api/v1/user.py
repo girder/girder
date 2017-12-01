@@ -23,9 +23,9 @@ import datetime
 
 from ..describe import Description, autoDescribeRoute
 from girder.api import access
-from girder.api.rest import Resource, AccessException, filtermodel, setCurrentUser
+from girder.api.rest import Resource, filtermodel, setCurrentUser
 from girder.constants import AccessType, SettingKey, TokenScope
-from girder.exceptions import RestException
+from girder.exceptions import RestException, AccessException
 from girder.models.password import Password
 from girder.models.setting import Setting
 from girder.models.token import genToken, Token
