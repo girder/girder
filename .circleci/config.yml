@@ -13,7 +13,6 @@ jobs:
     steps:
       - checkout:
           path: girder
-
       - restore_cache:
           key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
       - run:
@@ -29,13 +28,12 @@ jobs:
           name: Install Girder
           command: |
             pip install -e .[plugins,sftp]
-            pip install -e clients/python
-            pip install -r requirements-dev.txt
+            pip install -e ./clients/python
+            pip install -r ./requirements-dev.txt
           working_directory: girder
       - save_cache:
           paths: girder_env
           key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
-
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -71,7 +69,6 @@ jobs:
     steps:
       - checkout:
           path: girder
-
       - restore_cache:
           key: venv-py3-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-test1
       - run:
@@ -87,8 +84,8 @@ jobs:
           name: Install Girder
           command: |
             pip install -e .[plugins,sftp]
-            pip install -e clients/python
-            pip install -r requirements-dev.txt
+            pip install -e ./clients/python
+            pip install -r ./requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -118,7 +115,6 @@ jobs:
       - run:
           name: Activate virtual environment
           command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -131,7 +127,6 @@ jobs:
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
-
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -150,7 +145,6 @@ jobs:
       - run:
           name: Activate virtual environment
           command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-
       - restore_cache:
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
@@ -165,7 +159,6 @@ jobs:
       - save_cache:
           paths: npm_cache
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
-
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -180,7 +173,6 @@ jobs:
             JASMINE_TIMEOUT: 15000
             BABEL_ENV: cover
           working_directory: girder_build
-
       - run:
           name: Rename javascript coverage files to avoid conflicts
           command: for file in *.cvg; do mv "$file" "${file%.cvg}webbuild.cvg"; done
@@ -282,7 +274,6 @@ jobs:
           name: Rename javascript coverage files to avoid conflicts
           command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
           working_directory: girder/build/test/coverage/web_temp
-
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -411,7 +402,6 @@ jobs:
           name: Rename javascript coverage files to avoid conflicts
           command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
           working_directory: girder/build/test/coverage/web_temp
-
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
