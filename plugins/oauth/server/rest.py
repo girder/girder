@@ -23,8 +23,9 @@ import six
 
 from girder import events
 from girder.constants import AccessType
+from girder.exceptions import RestException
 from girder.api.describe import Description, autoDescribeRoute
-from girder.api.rest import Resource, RestException
+from girder.api.rest import Resource
 from girder.api import access
 from girder.models.setting import Setting
 from girder.models.token import Token

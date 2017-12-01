@@ -29,7 +29,7 @@ import logging
 from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
-from girder.exceptions import GirderException, ResourcePathNotFound
+from girder.exceptions import GirderException, ResourcePathNotFound, RestException
 from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.models.upload import Upload
@@ -37,7 +37,7 @@ from girder.models.user import User
 from girder.utility import config, install, plugin_utilities, system
 from girder.utility.progress import ProgressContext
 from ..describe import API_VERSION, Description, autoDescribeRoute
-from ..rest import Resource, RestException
+from ..rest import Resource
 
 ModuleStartTime = datetime.datetime.utcnow()
 LOG_BUF_SIZE = 65536

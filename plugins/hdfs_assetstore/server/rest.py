@@ -21,7 +21,8 @@ import posixpath
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, loadmodel, RestException
+from girder.api.rest import Resource, loadmodel
+from girder.exceptions import RestException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item

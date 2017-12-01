@@ -20,8 +20,8 @@
 from .. import base
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, RestException
-from girder.exceptions import GirderException
+from girder.api.rest import Resource
+from girder.exceptions import GirderException, RestException
 from girder.models.setting import Setting
 from girder.constants import SettingKey, SettingDefault
 

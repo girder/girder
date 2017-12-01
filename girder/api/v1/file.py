@@ -23,9 +23,9 @@ import os
 import six
 
 from ..describe import Description, autoDescribeRoute, describeRoute
-from ..rest import Resource, RestException, filtermodel
+from ..rest import Resource, filtermodel
 from ...constants import AccessType, TokenScope
-from girder.exceptions import AccessException, GirderException
+from girder.exceptions import AccessException, GirderException, RestException
 from girder.models.assetstore import Assetstore
 from girder.models.file import File as FileModel
 from girder.models.item import Item

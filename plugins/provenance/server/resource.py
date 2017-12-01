@@ -25,8 +25,9 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, RestException
+from girder.api.rest import Resource
 from girder.constants import AccessType
+from girder.exceptions import RestException
 from girder.models.model_base import AccessControlledModel
 from girder.models.file import File
 from girder.models.item import Item

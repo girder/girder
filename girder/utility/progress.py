@@ -22,8 +22,7 @@ import datetime
 import time
 
 from girder.models.notification import Notification, ProgressState
-from girder.exceptions import ValidationException
-from girder.api.rest import RestException
+from girder.exceptions import ValidationException, RestException
 
 
 class ProgressContext(object):

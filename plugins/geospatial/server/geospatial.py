@@ -25,8 +25,9 @@ from pymongo.errors import OperationFailure
 
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
-from girder.api.rest import Resource, RestException, filtermodel
+from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType
+from girder.exceptions import RestException
 from girder.models.folder import Folder
 from girder.models.item import Item
 
