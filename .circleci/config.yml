@@ -155,7 +155,6 @@ jobs:
           command: girder-install web --all-plugins --dev | cat
           environment:
             - npm_config_cache: /home/circleci/project/npm_cache
-            - BABEL_ENV: cover
       - save_cache:
           paths: npm_cache
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
@@ -171,7 +170,6 @@ jobs:
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
             JASMINE_TIMEOUT: 15000
-            BABEL_ENV: cover
           working_directory: girder_build
       - run:
           name: Rename javascript coverage files to avoid conflicts
@@ -243,15 +241,12 @@ jobs:
       - run:
           name: Build Girder web client with coverage turned on
           command: girder-install web --all-plugins --dev | cat
-          environment:
-            - BABEL_ENV: cover
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-            BABEL_ENV: cover
       - run:
           name: make
           command: make -j 3
@@ -262,14 +257,12 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-            BABEL_ENV: cover
       # - run:
       #     name: CTest full
       #     command: ctest -j 3 --output-on-failure
       #     working_directory: girder_build
       #    environment:
       #      JASMINE_TIMEOUT: 15000
-      #      BABEL_ENV: cover
       - run:
           name: Rename javascript coverage files to avoid conflicts
           command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
@@ -305,7 +298,6 @@ jobs:
             PYTHON_VERSION: 2.7
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             JASMINE_TIMEOUT: 15000
-            BABEL_ENV: cover
             BUILD_JAVASCRIPT_TESTS: OFF
           working_directory: girder_build
       - run:
@@ -378,15 +370,12 @@ jobs:
       - run:
           name: Build Girder web client with coverage turned on
           command: girder-install web --all-plugins --dev | cat
-          environment:
-            - BABEL_ENV: cover
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_VERSION=3.4 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-            BABEL_ENV: cover
       - run:
           name: make
           command: make -j 3
@@ -397,7 +386,6 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-            BABEL_ENV: cover
       - run:
           name: Rename javascript coverage files to avoid conflicts
           command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
@@ -429,7 +417,6 @@ jobs:
             PYTHON_VERSION: 3.4
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             JASMINE_TIMEOUT: 15000
-            BABEL_ENV: cover
             BUILD_JAVASCRIPT_TESTS: ON
           working_directory: girder_build
       - run:
