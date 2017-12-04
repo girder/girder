@@ -24,10 +24,11 @@ import os
 import six
 
 from bson.objectid import ObjectId
-from .model_base import Model, ValidationException, GirderException
+from .model_base import Model
 from girder import events
 from girder import logger
 from girder.constants import AccessType
+from girder.exceptions import ValidationException, GirderException
 from girder.utility import acl_mixin
 
 

@@ -21,7 +21,7 @@ import datetime
 import six
 
 from girder.constants import AccessType, SettingKey, TokenScope
-from girder.models.model_base import AccessException
+from girder.exceptions import AccessException
 from girder.utility import genToken
 from .model_base import AccessControlledModel
 

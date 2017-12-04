@@ -21,9 +21,10 @@ import bson.json_util
 
 from girder import events
 from girder.constants import AccessType
+from girder.exceptions import RestException
 from girder.utility.model_importer import ModelImporter
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, RestException
+from girder.api.rest import Resource
 from girder.api import access
 
 

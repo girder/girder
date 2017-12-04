@@ -21,18 +21,15 @@
 
 import re
 from ..constants import AccessType
-from ..models.model_base import AccessException, GirderException, ValidationException
+from ..exceptions import AccessException, GirderException, ValidationException
+from ..exceptions import ResourcePathNotFound
 from .model_importer import ModelImporter
 from girder.models.collection import Collection
 from girder.models.user import User
 
 
-class NotFoundException(ValidationException):
-    """
-    A special case of ValidationException representing the case when the resource at a
-    given path does not exist.
-    """
-    pass
+# Expose the ResourcePathNotFound exception as its original name
+NotFoundException = ResourcePathNotFound
 
 
 def encode(token):
@@ -123,7 +120,7 @@ def lookUpToken(token, parentType, parent):
             return candidateChild, candidateModel
 
     # if no folder, item, or file matches, give up
-    raise NotFoundException('Child resource not found: %s(%s)->%s' % (
+    raise ResourcePathNotFound('Child resource not found: %s(%s)->%s' % (
         parentType, parent.get('name', parent.get('_id')), token))
 
 
@@ -157,7 +154,7 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
                     'document': None
                 }
             else:
-                raise NotFoundException('User not found: %s' % username)
+                raise ResourcePathNotFound('User not found: %s' % username)
 
     elif model == 'collection':
         collectionName = pathArray[1]
@@ -170,7 +167,7 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
                     'document': None
                 }
             else:
-                raise NotFoundException('Collection not found: %s' % collectionName)
+                raise ResourcePathNotFound('Collection not found: %s' % collectionName)
 
     else:
         raise ValidationException('Invalid path format')
@@ -193,7 +190,7 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
                 'document': None
             }
         else:
-            raise NotFoundException('Path not found: %s' % path)
+            raise ResourcePathNotFound('Path not found: %s' % path)
 
     if filter:
         document = ModelImporter.model(model).filter(document, user)

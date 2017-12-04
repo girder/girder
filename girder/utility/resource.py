@@ -4,14 +4,13 @@ import six
 from girder.api.rest import Resource
 
 
-def _walkTree(node, path=[]):
+def _walkTree(node, path=()):
     routeMap = {}
     for k, v in six.iteritems(vars(node)):
         if isinstance(v, Resource):
             full_path = list(path)
             full_path.append(k)
             routeMap[v] = full_path
-            path = []
 
         if hasattr(v, 'exposed'):
             new_path = list(path)

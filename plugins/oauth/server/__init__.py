@@ -19,7 +19,7 @@
 
 from girder import events
 from girder.constants import SettingDefault, SortDir
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.user import User
 from girder.utility import setting_utilities
 from . import rest, constants, providers

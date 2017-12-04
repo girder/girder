@@ -38,3 +38,4 @@ class Resourceful(Resource):
 def load(info):
     info['apiRoot'].prefix = Prefix()
     info['apiRoot'].prefix.resourceful = Resourceful()
+    info['apiRoot'].prefix.sibling = Resourceful()

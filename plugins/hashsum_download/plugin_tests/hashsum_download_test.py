@@ -21,7 +21,7 @@ import hashlib
 import six
 import time
 
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.setting import Setting
@@ -258,9 +258,9 @@ class HashsumDownloadTest(base.TestCase):
         resp = self.request(template % (self.publicFile['_id'], 'sha512'),
                             isJson=False)
         self.assertStatusOk(resp)
-        hash = self.getBody(resp)
-        self.assertEqual(hash, self.publicFile['sha512'])
-        self.assertEqual(len(hash), 128)
+        respBody = self.getBody(resp)
+        self.assertEqual(respBody, '%s\n' % self.publicFile['sha512'])
+        self.assertEqual(len(respBody), 129)
 
         # Should not work with private file
         resp = self.request(template % (self.privateFile['_id'], 'sha512'))

@@ -26,8 +26,9 @@ import time
 from girder import config
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, RestException
+from girder.api.rest import Resource
 from girder.constants import registerAccessFlag, ROOT_DIR
+from girder.exceptions import RestException
 from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.utility.progress import ProgressContext

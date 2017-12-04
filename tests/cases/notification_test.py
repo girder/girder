@@ -21,7 +21,7 @@ import time
 
 from .. import base
 
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.notification import ProgressState
 from girder.models.token import Token
 from girder.models.user import User

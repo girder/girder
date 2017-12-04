@@ -68,9 +68,9 @@ module.exports = {
         // '__webpack_public_path__', since it's not always known at build-time.
     },
     plugins: [
-        // Exclude all of Moment.js's extra locale files (from where they're imported in either the
-        // ES6-source or UMD-built imports), to reduce build size.
-        new webpack.IgnorePlugin(/^\.\/locale$/, /moment(?:\/src\/lib\/locale)?$/),
+        // Exclude all of Moment.js's extra locale files except English
+        // to reduce build size.  See https://webpack.js.org/plugins/context-replacement-plugin/
+        new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
 
         // Automatically detect jQuery and $ as free var in modules
         // and inject the jquery library. This is required by many jquery plugins

@@ -9,7 +9,7 @@ else()
 endif()
 
 if(RUN_CORE_TESTS)
-  set(_omit_python_covg "girder/external/*")
+  set(_omit_python_covg "girder/external/*,girder/test/*")
 else()
   set(_omit_python_covg "girder/*,clients/python/*")
 endif()

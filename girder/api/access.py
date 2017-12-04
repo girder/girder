@@ -20,7 +20,7 @@
 import six
 
 from girder.api import rest
-from girder.models.model_base import AccessException
+from girder.exceptions import AccessException
 from girder.models.token import Token
 from girder.utility import optionalArgumentDecorator
 

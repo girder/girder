@@ -18,9 +18,10 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException
+from ..rest import Resource
 from girder import events
 from girder.constants import AccessType, AssetstoreType, TokenScope
+from girder.exceptions import RestException
 from girder.api import access
 from girder.models.assetstore import Assetstore as AssetstoreModel
 from girder.models.file import File

@@ -13,9 +13,10 @@
           input#g-password.input-sm.form-control(type="password", placeholder="Enter password")
         .g-validation-failed-message
         .g-bottom-message
-          | Don't have an account yet?
-          a.g-register-link  Register here.
-          |  |
+          if registrationPolicy !== 'closed'
+            | Don't have an account yet?
+            a.g-register-link  Register here.
+            |  |
           a.g-forgot-password  Forgot your password?
       .modal-footer
         a.btn.btn-default(data-dismiss="modal") Close

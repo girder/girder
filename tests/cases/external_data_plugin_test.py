@@ -29,7 +29,7 @@ class ExternalDataPluginTest(ExternalDataCoreTest):
             os.environ['GIRDER_TEST_DATA_PREFIX'],
             'plugins',
             'has_external_data',
-            'test_file.txt'
+            'plugin_test_file.txt'
         )
         self.assertTrue(
             os.path.exists(filepath),

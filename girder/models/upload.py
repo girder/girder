@@ -24,7 +24,8 @@ from bson.objectid import ObjectId
 from girder import events
 from girder.api import rest
 from girder.constants import SettingKey
-from .model_base import Model, GirderException, ValidationException
+from .model_base import Model
+from girder.exceptions import GirderException, ValidationException
 from girder.utility import RequestBodyStream
 from girder.utility.progress import noProgress
 

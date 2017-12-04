@@ -63,8 +63,14 @@ var LoginView = View.extend({
         }
     },
 
+    initialize: function (settings) {
+        this.registrationPolicy = settings.registrationPolicy;
+    },
+
     render: function () {
-        this.$el.html(LoginDialogTemplate()).girderModal(this)
+        this.$el.html(LoginDialogTemplate({
+            registrationPolicy: this.registrationPolicy
+        })).girderModal(this)
             .on('shown.bs.modal', () => {
                 this.$('#g-login').focus();
             }).on('hidden.bs.modal', () => {

@@ -17,10 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
+from ..constants import AssetstoreType
+from ..exceptions import NoAssetstoreAdapter
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
 from .s3_assetstore_adapter import S3AssetstoreAdapter
-from girder.constants import AssetstoreType
 
 
 _assetstoreTable = {
@@ -48,7 +49,7 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
     cls = _assetstoreTable.get(storeType)
     if cls is None:
-        raise Exception('No AssetstoreAdapter for type: %s.' % storeType)
+        raise NoAssetstoreAdapter('No AssetstoreAdapter for type: %s.' % storeType)
 
     if instance:
         return cls(assetstore)

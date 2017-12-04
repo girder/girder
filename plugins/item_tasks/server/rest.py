@@ -6,7 +6,7 @@ from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import ensureTokenScopes, filtermodel, Resource
 from girder.constants import AccessType, TokenScope
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.item import Item
 from girder.models.token import Token
 from girder.plugins.jobs.models.job import Job

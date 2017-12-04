@@ -109,7 +109,8 @@ class Webroot(WebrootBase):
             'title': 'Girder',
             'brandName': settings.get(SettingKey.BRAND_NAME),
             'bannerColor': settings.get(SettingKey.BANNER_COLOR),
-            'contactEmail': settings.get(SettingKey.CONTACT_EMAIL_ADDRESS)
+            'contactEmail': settings.get(SettingKey.CONTACT_EMAIL_ADDRESS),
+            'registrationPolicy': settings.get(SettingKey.REGISTRATION_POLICY)
         }
 
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
@@ -125,6 +126,8 @@ class Webroot(WebrootBase):
             self.updateHtmlVars({'brandName': settingDoc['value']})
         elif settingDoc['key'] == SettingKey.BANNER_COLOR:
             self.updateHtmlVars({'bannerColor': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.REGISTRATION_POLICY:
+            self.updateHtmlVars({'registrationPolicy': settingDoc['value']})
 
     def _onSettingRemove(self, event):
         settingDoc = event.info
@@ -136,6 +139,9 @@ class Webroot(WebrootBase):
                 SettingKey.BRAND_NAME)})
         elif settingDoc['key'] == SettingKey.BANNER_COLOR:
             self.updateHtmlVars({'bannerColor': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.REGISTRATION_POLICY:
+            self.updateHtmlVars({'registrationPolicy': Setting().getDefault(
+                SettingKey.REGISTRATION_POLICY)})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

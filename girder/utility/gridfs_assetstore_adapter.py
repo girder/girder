@@ -29,7 +29,7 @@ from girder import logger
 from girder.api.rest import setResponseHeader
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.file import File
 from . import hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
