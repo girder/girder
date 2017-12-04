@@ -1,0 +1,7 @@
+{
+    "plugin_nice_name": "My Girder Plugin",
+    "plugin_name": "{{ cookiecutter.plugin_nice_name.lower().replace(' ', '_') }}",
+    "plugin_camel_case": "{{ cookiecutter.plugin_nice_name.lower()|title|replace(' ', '') }}",
+    "plugin_description": "Do Girder things.",
+    "version": "0.0.1"
+}

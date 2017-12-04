@@ -1,0 +1,13 @@
+{% set plugin_name_dashed = cookiecutter.plugin_name|replace("_", "-") -%}
+.g-config-breadcrumb-container
+
+p.
+  Configure settings for {{ cookiecutter.plugin_nice_name }}.
+
+form#{{ plugin_name_dashed}}-settings-form(role="form")
+  .form-group
+    label.control-label(for="{{ plugin_name_dashed}}-item-metadata") Item metadata value
+    input.input-sm.form-control#{{ plugin_name_dashed}}-item-metadata(
+      type="text", placeholder="My Setting (default: default_value)")
+  p#{{ plugin_name_dashed}}-settings-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")
