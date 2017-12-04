@@ -16,7 +16,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 
@@ -52,14 +51,17 @@ class Item(Resource):
     @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('List or search for items.')
-        .notes('You must pass either a "itemId" or "query" field'
+        .notes('You must pass either a "itemId" or "query" field '
                'to specify how you are searching for items.  '
                'If you omit one of these parameters the request will fail and respond : '
-               '"Invalid search mode.". If you pass a "query" field, you can also pass'
-               'a "mode" field to select a different search mode. By default a full-text search'
-               'is provided.')
+               '"Invalid search mode.". By default the search mode is "text" and specifying '
+               'the "query" field performs a full text-search. Setting the "mode" allows to '
+               'change the search behavior. Available modes are %s.'
+               % search.listAllowedSearchMode())
         .responseClass('Item', array=True)
         .param('folderId', 'Pass this to list all items in a folder.', required=False)
+        .param('text', 'Pass this to perform a text search for collections. This is deprecated',
+               required=False)
         .param('query', 'Pass this to perform a search for items.', required=False)
         .param('mode', 'Pass to search with a different search mode.', required=False)
         .param('name', 'Pass to lookup an item by exact name match. Must '
@@ -68,7 +70,7 @@ class Item(Resource):
         .errorResponse()
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
-    def find(self, folderId, query, mode, name, limit, offset, sort):
+    def find(self, folderId, text, query, mode, name, limit, offset, sort):
         """
         Get a list of items with given search parameters. Currently accepted
         search modes are:
@@ -86,7 +88,11 @@ class Item(Resource):
             folder = Folder().load(
                 id=folderId, user=user, level=AccessType.READ, exc=True)
             filters = {}
-            if query:
+            if text:
+                filters['$text'] = {
+                    '$search': text
+                }
+            elif query:
                 filters['$text'] = {
                     '$search': query
                 }
@@ -95,6 +101,10 @@ class Item(Resource):
 
             return list(Folder().childItems(
                 folder=folder, limit=limit, offset=offset, sort=sort, filters=filters))
+        # text is deprecate use query instead
+        elif text is not None:
+            return list(self._model.textSearch(
+                text, user=user, limit=limit, offset=offset, sort=sort))
         elif query is not None:
             if mode is None:
                 mode = 'text'

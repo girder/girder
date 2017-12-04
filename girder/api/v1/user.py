@@ -16,7 +16,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
 import base64
 import cherrypy
 import datetime
@@ -65,18 +64,23 @@ class User(Resource):
     @filtermodel(model=UserModel)
     @autoDescribeRoute(
         Description('List or search for users.')
-        .notes('If you pass a "query" field, you can also pass'
-               'a "mode" field to select a different search mode. By default a full-text search'
-               'is provided.')
+        .notes('By default the search mode is "text" and specifying the "query" field performs '
+               'a full text-search. Setting the "mode" allows to change the search behavior. '
+               'Available modes are %s.' % search.listAllowedSearchMode())
         .responseClass('User', array=True)
+        .param('text', 'Pass this to perform a text search for collections. This is deprecated',
+               required=False)
         .param('query', 'Pass this to perform a search for users.', required=False)
         .param('mode', 'Pass to search with a different search mode.', required=False)
         .pagingParams(defaultSort='lastName')
     )
-    def find(self, query, mode, limit, offset, sort):
+    def find(self, text, query, mode, limit, offset, sort):
         user = self.getCurrentUser()
-
-        if query is not None:
+        # text is deprecate use query instead
+        if text is not None:
+            return list(self._model.textSearch(
+                text, user=user, limit=limit, offset=offset, sort=sort))
+        elif query is not None:
             if mode is None:
                 mode = 'text'
             if mode in search._allowedSearchMode:

@@ -16,7 +16,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel
 from girder.api import access
@@ -55,9 +54,11 @@ class Group(Resource):
     @filtermodel(model=GroupModel)
     @autoDescribeRoute(
         Description('Search for groups or list all groups.')
-        .notes('If you pass a "query" field, you can also pass'
-               'a "mode" field to select a different search mode. By default a full-text search'
-               'is provided.')
+        .notes('By default the search mode is "text" and specifying the "query" field performs '
+               'a full text-search. Setting the "mode" allows to change the search behavior. '
+               'Available modes are %s.' % search.listAllowedSearchMode())
+        .param('text', 'Pass this to perform a text search for collections. This is deprecated',
+               required=False)
         .param('query', 'Pass this to perform a search for groups.', required=False)
         .param('mode', 'Pass to search with a different search mode.', required=False)
         .param('exact', 'If true, only return exact name matches. This is '
@@ -65,13 +66,17 @@ class Group(Resource):
         .pagingParams(defaultSort='name')
         .errorResponse()
     )
-    def find(self, query, mode, exact, limit, offset, sort):
+    def find(self, text, query, mode, exact, limit, offset, sort):
         user = self.getCurrentUser()
-
-        if query is not None:
+        # text is deprecate use query instead
+        if text is not None:
             if exact:
                 return list(self._model.find(
-                    {'name': query}, offset=offset, limit=limit, sort=sort))
+                    {'name': text}, offset=offset, limit=limit, sort=sort))
+            else:
+                return list(self._model.textSearch(
+                    text, user=user, limit=limit, offset=offset, sort=sort))
+        elif query is not None:
             if mode is None:
                 mode = 'text'
             if mode in search._allowedSearchMode:

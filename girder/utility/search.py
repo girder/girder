@@ -16,12 +16,18 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+import six
+
 from functools import partial
 
 from girder.models.model_base import ModelImporter
 from girder.exceptions import GirderException
 
 _allowedSearchMode = {}
+
+
+def listAllowedSearchMode():
+    return list(six.viewkeys(_allowedSearchMode))
 
 
 def getSearchModeHandler(mode):
