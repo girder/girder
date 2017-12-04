@@ -23,7 +23,7 @@ from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.models.folder import Folder as FolderModel
-from girder.utility import ziputil
+from girder.utility import search, ziputil
 from girder.utility.progress import ProgressContext
 
 
@@ -53,22 +53,25 @@ class Folder(Resource):
     @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Search for folders by certain properties.')
-        .notes('You must pass either a "folderId" or "text" field'
+        .notes('You must pass either a "folderId" or "query" field'
                'to specify how you are searching for folders.  '
                'If you omit one of these parameters the request will fail and respond : '
-               '"Invalid search mode."')
+               '"Invalid search mode.". If you pass a "query" field, you can also pass'
+               'a "mode" field to select a different search mode. By default a full-text search'
+               'is provided.')
         .responseClass('Folder', array=True)
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
-        .param('text', 'Pass to perform a text search.', required=False)
+        .param('query', 'Pass to perform a search for folders.', required=False)
+        .param('mode', 'Pass to search with a different search mode.', required=False)
         .param('name', 'Pass to lookup a folder by exact name match. Must '
                'pass parentType and parentId as well when using this.', required=False)
         .pagingParams(defaultSort='lowerName')
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403)
     )
-    def find(self, parentType, parentId, text, name, limit, offset, sort):
+    def find(self, parentType, parentId, query, mode, name, limit, offset, sort):
         """
         Get a list of folders with given search parameters. Currently accepted
         search modes are:
@@ -87,9 +90,9 @@ class Folder(Resource):
                 parentId, user=user, level=AccessType.READ, exc=True)
 
             filters = {}
-            if text:
+            if query:
                 filters['$text'] = {
-                    '$search': text
+                    '$search': query
                 }
             if name:
                 filters['name'] = name
@@ -97,9 +100,23 @@ class Folder(Resource):
             return list(self._model.childFolders(
                 parentType=parentType, parent=parent, user=user,
                 offset=offset, limit=limit, sort=sort, filters=filters))
-        elif text:
-            return list(self._model.textSearch(
-                text, user=user, limit=limit, offset=offset, sort=sort))
+        elif query is not None:
+            if mode is None:
+                mode = 'text'
+            if mode in search._allowedSearchMode:
+                modeHandler = search.getSearchModeHandler(mode)
+                result = modeHandler(
+                    mode=mode,
+                    query=query,
+                    types=[self.resourceName],
+                    user=user,
+                    level=AccessType.READ,
+                    limit=limit,
+                    offset=offset
+                )
+                return result[self.resourceName]
+
+            raise ValueError('The search mode is wrong or not allowed.')
         else:
             raise RestException('Invalid search mode.')
 

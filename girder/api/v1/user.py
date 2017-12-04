@@ -30,7 +30,7 @@ from girder.models.password import Password
 from girder.models.setting import Setting
 from girder.models.token import genToken, Token
 from girder.models.user import User as UserModel
-from girder.utility import mail_utils
+from girder.utility import mail_utils, search
 
 
 class User(Resource):
@@ -65,13 +65,36 @@ class User(Resource):
     @filtermodel(model=UserModel)
     @autoDescribeRoute(
         Description('List or search for users.')
+        .notes('If you pass a "query" field, you can also pass'
+               'a "mode" field to select a different search mode. By default a full-text search'
+               'is provided.')
         .responseClass('User', array=True)
-        .param('text', "Pass this to perform a full text search for items.", required=False)
+        .param('query', 'Pass this to perform a search for users.', required=False)
+        .param('mode', 'Pass to search with a different search mode.', required=False)
         .pagingParams(defaultSort='lastName')
     )
-    def find(self, text, limit, offset, sort):
+    def find(self, query, mode, limit, offset, sort):
+        user = self.getCurrentUser()
+
+        if query is not None:
+            if mode is None:
+                mode = 'text'
+            if mode in search._allowedSearchMode:
+                modeHandler = search.getSearchModeHandler(mode)
+                result = modeHandler(
+                    mode=mode,
+                    query=query,
+                    types=[self.resourceName],
+                    user=user,
+                    level=AccessType.READ,
+                    limit=limit,
+                    offset=offset
+                )
+                return result[self.resourceName]
+            raise ValueError('The search mode is wrong or not allowed.')
+        # Has to change code redondance.
         return list(self._model.search(
-            text=text, user=self.getCurrentUser(), offset=offset, limit=limit, sort=sort))
+            text=query, user=user, offset=offset, limit=limit, sort=sort))
 
     @access.public(scope=TokenScope.USER_INFO_READ)
     @filtermodel(model=UserModel)

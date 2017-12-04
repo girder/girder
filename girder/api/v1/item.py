@@ -19,7 +19,8 @@
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
-from girder.utility import ziputil
+
+from girder.utility import search, ziputil
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.api import access
@@ -51,22 +52,23 @@ class Item(Resource):
     @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('List or search for items.')
-        .notes('You must pass either a "itemId" or "text" field'
+        .notes('You must pass either a "itemId" or "query" field'
                'to specify how you are searching for items.  '
                'If you omit one of these parameters the request will fail and respond : '
-               '"Invalid search mode."')
+               '"Invalid search mode.". If you pass a "query" field, you can also pass'
+               'a "mode" field to select a different search mode. By default a full-text search'
+               'is provided.')
         .responseClass('Item', array=True)
-        .param('folderId', 'Pass this to list all items in a folder.',
-               required=False)
-        .param('text', 'Pass this to perform a full text search for items.',
-               required=False)
+        .param('folderId', 'Pass this to list all items in a folder.', required=False)
+        .param('query', 'Pass this to perform a search for items.', required=False)
+        .param('mode', 'Pass to search with a different search mode.', required=False)
         .param('name', 'Pass to lookup an item by exact name match. Must '
                'pass folderId as well when using this.', required=False)
         .pagingParams(defaultSort='lowerName')
         .errorResponse()
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
-    def find(self, folderId, text, name, limit, offset, sort):
+    def find(self, folderId, query, mode, name, limit, offset, sort):
         """
         Get a list of items with given search parameters. Currently accepted
         search modes are:
@@ -84,18 +86,32 @@ class Item(Resource):
             folder = Folder().load(
                 id=folderId, user=user, level=AccessType.READ, exc=True)
             filters = {}
-            if text:
+            if query:
                 filters['$text'] = {
-                    '$search': text
+                    '$search': query
                 }
             if name:
                 filters['name'] = name
 
             return list(Folder().childItems(
                 folder=folder, limit=limit, offset=offset, sort=sort, filters=filters))
-        elif text is not None:
-            return list(self._model.textSearch(
-                text, user=user, limit=limit, offset=offset, sort=sort))
+        elif query is not None:
+            if mode is None:
+                mode = 'text'
+            if mode in search._allowedSearchMode:
+                modeHandler = search.getSearchModeHandler(mode)
+                result = modeHandler(
+                    mode=mode,
+                    query=query,
+                    types=[self.resourceName],
+                    user=user,
+                    level=AccessType.READ,
+                    limit=limit,
+                    offset=offset
+                )
+                return result[self.resourceName]
+
+            raise ValueError('The search mode is wrong or not allowed.')
         else:
             raise RestException('Invalid search mode.')
 

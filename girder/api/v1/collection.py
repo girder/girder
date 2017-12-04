@@ -24,6 +24,7 @@ from girder.constants import AccessType, TokenScope
 from girder.models.collection import Collection as CollectionModel
 from girder.exceptions import AccessException
 from girder.utility import ziputil
+from girder.utility import search, ziputil
 from girder.utility.progress import ProgressContext
 
 
@@ -48,15 +49,34 @@ class Collection(Resource):
     @filtermodel(model=CollectionModel)
     @autoDescribeRoute(
         Description('List or search for collections.')
+        .notes('If you pass a "query" field, you can also pass a "mode" field'
+               'to select a different search mode. By default a full-text search'
+               'is provided.')
         .responseClass('Collection', array=True)
-        .param('text', 'Pass this to perform a text search for collections.', required=False)
+        .param('query', 'Pass this to perform a search for collections.', required=False)
+        .param('mode', 'Pass to search with a different search mode.', required=False)
         .pagingParams(defaultSort='name')
     )
-    def find(self, text, limit, offset, sort):
+    def find(self, query, mode, limit, offset, sort):
         user = self.getCurrentUser()
 
-        if text is not None:
-            return list(self._model.textSearch(text, user=user, limit=limit, offset=offset))
+        if query is not None:
+            if mode is None:
+                mode = 'text'
+            if mode in search._allowedSearchMode:
+                modeHandler = search.getSearchModeHandler(mode)
+                result = modeHandler(
+                    mode=mode,
+                    query=query,
+                    types=[self.resourceName],
+                    user=user,
+                    level=AccessType.READ,
+                    limit=limit,
+                    offset=offset
+                )
+                return result[self.resourceName]
+
+            raise ValueError('The search mode is wrong or not allowed.')
 
         return list(self._model.list(user=user, offset=offset, limit=limit, sort=sort))
 
