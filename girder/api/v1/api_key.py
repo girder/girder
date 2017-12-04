@@ -18,7 +18,8 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel
+from ..rest import Resource, filtermodel
+from girder.exceptions import RestException
 from girder.models.api_key import ApiKey as ApiKeyModel
 from girder.models.setting import Setting
 from girder.models.user import User
