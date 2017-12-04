@@ -265,3 +265,37 @@ def testScopeValidation(db, admin, user):
 
     with pytest.raises(ValidationException, match='Invalid scopes: nonsense.$'):
         ApiKey().createApiKey(user=admin, name='', scope=requestedScopes)
+
+
+def testDisableApiKeysSetting(server, user):
+    errMsg = 'API key functionality is disabled on this instance.'
+
+    resp = server.request('/api_key', method='POST', user=user, params={
+        'name': 'test key'
+    })
+    assertStatusOk(resp)
+
+    # Disable API keys
+    Setting().set(SettingKey.API_KEYS, False)
+
+    # Key should still exist
+    key = ApiKey().load(resp.json['_id'], force=True, exc=True)
+
+    # No longer possible to authenticate with existing key
+    resp = server.request('/api_key/token', method='POST', params={
+        'key': key['key']
+    })
+    assertStatus(resp, 400)
+    assert resp.json['message'] == errMsg
+
+    # No longer possible to create new keys
+    resp = server.request('/api_key', method='POST', user=user, params={
+        'name': 'should not work'
+    })
+    assertStatus(resp, 400)
+    assert resp.json['message'] == errMsg
+
+    # Still possible to delete key
+    resp = server.request('/api_key/%s' % key['_id'], method='DELETE', user=user)
+    assertStatusOk(resp)
+    assert ApiKey().load(key['_id'], force=True) is None
