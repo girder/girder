@@ -344,6 +344,12 @@ class Setting(Model):
             raise ValidationException('API key setting must be boolean.', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.ENABLE_PASSWORD_LOGIN)
+    def validateEnablePasswordLogin(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('Enable password login setting must be boolean.', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.ROUTE_TABLE)
     def validateCoreRouteTable(doc):
         nonEmptyRoutes = [route for route in doc['value'].values() if route]

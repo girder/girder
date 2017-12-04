@@ -102,6 +102,13 @@ form.g-settings-form(role="form")
               type="checkbox", checked=(
                 settings['core.api_keys'] === null ? defaults['core.api_keys'] : settings['core.api_keys']))
           | Enable API keys
+    .form-group
+      .checkbox
+        label(for="g-core-enable-password-login")
+          input#g-core-enable-password-login(
+              type="checkbox", checked=(
+                settings['core.enable_password_login'] === null ? defaults['core.enable_password_login'] : settings['core.enable_password_login']))
+          | Enable password login
   .g-settings-form-container
     h4 Email Creation
     .form-group
