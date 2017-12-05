@@ -27,6 +27,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
+from girder.exceptions import RestException
 from girder.models.item import Item
 from girder.models.file import File
 from girder.utility import search
@@ -201,26 +202,29 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
     Provide a substring search on both keys and values.
     """
     if types != ['item']:
-        raise TypeError('The dicom search is only able to search in Item.')
+        raise RestException('The dicom search is only able to search in Item.')
 
-    # The insensitive Case is not perfect
-    # We will need to search into object value as improvment.
     jsQuery = """
-        return Object.keys(obj.dicom.meta).some(
-            function(key) {
-                return (key.toLowerCase().indexOf('%(key)s'.toLowerCase()) !== -1)  ||
-                    obj.dicom.meta[key].toString().toLowerCase()
-                        .indexOf('%(value)s'.toLowerCase()) !== -1;
-            })
-        """ % {'key': query, 'value': query}
-    mongoQuery = {'dicom': {'$exists': True}, '$where': jsQuery}
+        function() {
+            var queryKey = '%(queryKey)s'.toLowerCase();
+            var queryValue = '%(queryValue)s'.toLowerCase();
+            var dicomMeta = obj.dicom.meta;
+            return Object.keys(dicomMeta).some(
+                function(key) {
+                    return (key.toLowerCase().indexOf(queryKey) !== -1)  ||
+                        dicomMeta[key].toString().toLowerCase().indexOf(queryValue) !== -1;
+                })
+            }
+        """ % {'queryKey': query, 'queryValue': query}
 
     # Sort the documents inside MongoDB
-    cursor = Item().find(mongoQuery)
-
+    cursor = Item().find({'dicom': {'$exists': True}, '$where': jsQuery})
     # Filter the result
     result = {
-        'item': [Item().filter(d, user) for d in cursor]
+        'item': [
+            Item().filter(doc, user)
+            for doc in Item().filterResultsByPermission(cursor, user, level, limit, offset)
+        ]
     }
 
     return result
@@ -231,8 +235,7 @@ def load(info):
     events.bind('data.process', 'dicom_viewer', _uploadHandler)
 
     # Add the DICOM search mode only once
-    if search.getSearchModeHandler('dicom') is None:
-        search.addSearchMode('dicom', dicomSubstringSearchHandler)
+    search.addSearchMode('dicom', dicomSubstringSearchHandler)
 
     dicomItem = DicomItem()
     info['apiRoot'].item.route(
