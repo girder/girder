@@ -6,4 +6,4 @@ for mode in modes
       input.g-search-mode-radio(
           type="radio", name="search-mode", value=mode,
           checked=(mode === currentMode ? 'checked' : undefined))
-      = descriptionModes(mode)
+      = getModeDescription(mode)

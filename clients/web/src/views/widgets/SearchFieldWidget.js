@@ -84,7 +84,7 @@ var SearchFieldWidget = View.extend({
         this.placeholder = settings.placeholder || 'Search...';
         this.getInfoCallback = settings.getInfoCallback || null;
         this.types = settings.types || [];
-        this.modes = settings.modes || SearchFieldWidget.getListMode();
+        this.modes = settings.modes || SearchFieldWidget.getModes();
 
         if (!_.isArray(this.modes)) {
             this.modes = [this.modes];
@@ -136,7 +136,7 @@ var SearchFieldWidget = View.extend({
             content: _.bind(function () {
                 return SearchHelpTemplate({
                     mode: this.currentMode,
-                    descriptionHelp: SearchFieldWidget.getHelpDescription(this.currentMode)
+                    modeHelp: SearchFieldWidget.getModeHelp(this.currentMode)
                 });
             }, this)
         }).click(function () {
@@ -154,7 +154,7 @@ var SearchFieldWidget = View.extend({
                 return SearchModeSelectTemplate({
                     modes: this.modes,
                     currentMode: this.currentMode,
-                    descriptionModes: SearchFieldWidget.getModeDescription
+                    getModeDescription: SearchFieldWidget.getModeDescription
                 });
             }, this)
         }).click(function () {
@@ -197,7 +197,10 @@ var SearchFieldWidget = View.extend({
             data: {
                 q: q,
                 mode: this.currentMode,
-                types: JSON.stringify(SearchFieldWidget.getListType(this.types, this.currentMode))
+                types: JSON.stringify(_.intersection(
+                    this.types,
+                    SearchFieldWidget.getModeTypes(this.currentMode))
+                )
             }
         }).done(_.bind(function (results) {
             this.ajaxLock = false;
@@ -258,48 +261,39 @@ var SearchFieldWidget = View.extend({
 }, {
     _allowedSearchMode: {},
 
-    addSearchMode: function (mode, types, modeDescription, helpDescription) {
-        if (!SearchFieldWidget._allowedSearchMode[mode]) {
-            SearchFieldWidget._allowedSearchMode[mode] = {
-                'types': types,
-                'modeDescription': modeDescription,
-                'helpDescription': helpDescription
-            };
-        } else {
-            throw `Error: the mode "${mode}" exist already. You can't change it`;
+    addMode: function (mode, types, description, help) {
+        if (_.has(SearchFieldWidget._allowedSearchMode, mode)) {
+            throw new Error(`The mode "${mode}" exist already. You can't change it`);
         }
+        SearchFieldWidget._allowedSearchMode[mode] = {
+            'types': types,
+            'description': description,
+            'help': help
+        };
     },
 
-    removeSearchMode: function (mode) {
-        delete SearchFieldWidget._allowedSearchMode[mode];
+    getModes: function () {
+        return _.keys(SearchFieldWidget._allowedSearchMode);
     },
 
-    getListType: function (types, currentMode) {
-        const allowedTypes = _.intersection(
-            types,
-            SearchFieldWidget._allowedSearchMode[currentMode].types
-        );
-        return allowedTypes;
-    },
-
-    getListMode: function () {
-        const modeList = [];
-        for (let mode in SearchFieldWidget._allowedSearchMode) {
-            modeList.push(mode);
-        }
-        return modeList;
+    getModeTypes: function (mode) {
+        return SearchFieldWidget._allowedSearchMode[mode].types;
     },
 
     getModeDescription: function (mode) {
-        return SearchFieldWidget._allowedSearchMode[mode].modeDescription;
+        return SearchFieldWidget._allowedSearchMode[mode].description;
     },
 
-    getHelpDescription: function (mode) {
-        return SearchFieldWidget._allowedSearchMode[mode].helpDescription;
+    getModeHelp: function (mode) {
+        return SearchFieldWidget._allowedSearchMode[mode].help;
+    },
+
+    removeMode: function (mode) {
+        delete SearchFieldWidget._allowedSearchMode[mode];
     }
 });
 
-SearchFieldWidget.addSearchMode(
+SearchFieldWidget.addMode(
     'text',
     ['item', 'folder', 'group', 'collection', 'user'],
     'Full text search',
@@ -308,7 +302,7 @@ SearchFieldWidget.addSearchMode(
      containing all of the terms, place them in quotes.
      Examples:`
 );
-SearchFieldWidget.addSearchMode(
+SearchFieldWidget.addMode(
     'prefix',
     ['item', 'folder', 'group', 'collection', 'user'],
     'Search by prefix',

@@ -58,12 +58,11 @@ ItemView.prototype.events['click .g-dicom-parse-item'] = function () {
         });
 };
 
-SearchFieldWidget.addSearchMode(
+SearchFieldWidget.addMode(
         'dicom',
         ['item'],
-        'DICOM substring search',
-        `The DICOM substring search allows you to search in DICOM metadata.
-         This allows you to search for both keys or values.
-         Start typing any substring to find the associated DICOM item.
-         This mode is restricted to search in item only.`
+        'DICOM metadata search',
+        `You are searching for text in DICOM metadata. Only Girder items which have been preprocessed to
+        extract DICOM images will be searched. The search text may appear anywhere within the common (i.e.
+        shared across slices) metadata keys or values of a DICOM image.`
     );
