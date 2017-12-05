@@ -10,6 +10,12 @@ Unreleased
 
 Added Features
 --------------
+
+* Added a new system setting that will allow admins to disable logging in via a password. If disabled,
+  the login dialog in the web client will no longer show the password login form. (`#2504 <https://github.com/girder/girder/pull/2504>`_)
+* Added a new system setting that will allow admins to disable the API key authentication functionality.
+  (`#2438 <https://github.com/girder/girder/pull/2438>`_)
+
 Web Client
 ^^^^^^^^^^
 * Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
