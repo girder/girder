@@ -48,10 +48,6 @@ var LayoutHeaderView = View.extend({
             textColor: textColor
         }));
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
-        if (textColor !== '#ffffff') {
-            // We will lose the hover color by setting this, so only do that if necessary
-            this.userView.$('.g-user-text a').css('color', textColor);
-        }
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
 
         return this;
@@ -72,7 +68,7 @@ var LayoutHeaderView = View.extend({
         );
         const L = 0.2126 * linearRBG[0] + 0.7152 * linearRBG[1] + 0.0722 * linearRBG[2];
         return ((L + 0.05) / (0.0 + 0.05) > (1.0 + 0.05) / (L + 0.05))
-            ? '#000000'
+            ? 'inherit'
             : '#ffffff';
     }
 });

@@ -1,17 +1,21 @@
 @import "layoutVars"
 
 .g-header-wrapper
+  display flex
   height $headerHeight
   vertical-align middle
-  padding 0 15px
+  padding 0 20px
+  background white
+  border-bottom $border
 
 .g-app-title
   display inline
-  font-size 25px
-  font-weight bold
+  font-size 20px
+  font-weight 600
   margin-right 35px
   line-height $headerHeight
   cursor pointer
+  flex 1
 
 .g-quick-search-form
   display inline-block
@@ -22,7 +26,6 @@
 
 .g-current-user-wrapper
   display inline
-  float right
 
 @media (max-width: 720px)
   .g-app-title

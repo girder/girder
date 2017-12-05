@@ -2,11 +2,14 @@
  * Place global styles in this file.
  */
 
+@import "layoutVars"
+
 body
   // Override the default font from Bootstrap
   font-family "Open Sans", sans-serif !important
   padding 0
   word-wrap break-word
+  color $normalColor !important
 
 i
   font-smoothing antialiased
@@ -14,6 +17,9 @@ i
 a
   cursor pointer
   text-decoration none !important
+
+b
+  font-weight 600 !important
 
 .g-clear-both
   clear both
@@ -111,7 +117,7 @@ textarea
   display inline-block
   overflow hidden
   white-space nowrap
-  width calc(100% - 350px)
+  width calc(100% - 380px)
   position relative
 
   .g-text-fade
@@ -128,21 +134,20 @@ textarea
   display inline-block
   line-height 40px
   vertical-align top
-  color #888
   margin-right 10px
-  border-right 1px solid #dedede
   padding-right 5px
   font-size 18px
   margin-left -5px
 
 .g-top-level-list-entry
   padding 11px 14px
-  margin 2px 0
-  border-radius 3px
-  background-color #fafafc
-  border 1px solid #eaeaea
-  box-shadow inset 0 0 2px 2px #f4f4f4
+  background-color white
+  border-bottom $border
+  border-left $border
+  border-right $border
 
   &[public="false"]
-    box-shadow inset 0 0 2px 2px #fff0e0
-    background-color #fff9ea
+    background-color $privateColor
+
+.g-top-level-list-entry:nth-child(2)
+  border-top $border

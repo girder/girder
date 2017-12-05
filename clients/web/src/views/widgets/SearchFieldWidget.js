@@ -129,6 +129,7 @@ var SearchFieldWidget = View.extend({
         this.$('.g-search-options-button').popover({
             trigger: 'manual',
             html: true,
+            placement: 'bottom',
             viewport: {
                 selector: 'body',
                 padding: 10
@@ -145,6 +146,7 @@ var SearchFieldWidget = View.extend({
         this.$('.g-search-mode-choose').popover({
             trigger: 'manual',
             html: true,
+            placement: 'bottom',
             viewport: {
                 selector: 'body',
                 padding: 10
