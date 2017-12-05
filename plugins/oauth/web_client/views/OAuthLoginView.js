@@ -21,6 +21,7 @@ var OAuthLoginView = View.extend({
         var redirect = settings.redirect || splitRoute(window.location.href).base;
         this.modeText = settings.modeText || 'log in';
         this.providers = null;
+        this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
 
         restRequest({
             url: 'oauth/provider',
@@ -28,10 +29,10 @@ var OAuthLoginView = View.extend({
                 redirect: redirect,
                 list: true
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.providers = resp;
             this.render();
-        }, this));
+        });
     },
 
     render: function () {
@@ -55,7 +56,8 @@ var OAuthLoginView = View.extend({
         if (buttons.length) {
             this.$el.append(OAuthLoginViewTemplate({
                 modeText: this.modeText,
-                buttons: buttons
+                buttons: buttons,
+                enablePasswordLogin: this.enablePasswordLogin
             }));
         }
 
