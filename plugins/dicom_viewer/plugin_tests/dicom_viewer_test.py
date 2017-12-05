@@ -222,3 +222,6 @@ class DicomViewerTest(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['item']), 1)
         self.assertEqual(resp.json['item'][0]['name'], 'item3')
+
+        # TODO: Add test to search for a private DICOM item with an other user
+        # this test should not found anything
