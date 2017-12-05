@@ -20,6 +20,8 @@ esac
 
 mkdir $HOME/build
 
+ctest -R '^py_coverage_reset$' -VV -S $HOME/girder/cmake/circle_continuous.cmake
+
 if [ "$TEST_GROUP" == "python" ]; then
     if ! pytest --tb=long --junit-xml=$CIRCLE_TEST_REPORTS/pytest-${CIRCLE_NODE_INDEX}.xml; then
         touch $HOME/build/test_failed
@@ -27,7 +29,7 @@ if [ "$TEST_GROUP" == "python" ]; then
 fi
 
 # pytest also generates coverage, so don't reset coverage at the start of the run
-ctest -E '^py_coverage_reset$' -VV -S $HOME/girder/cmake/circle_continuous.cmake
+ctest -E '^(py_coverage_reset|server_pytest_core)$' -VV -S $HOME/girder/cmake/circle_continuous.cmake
 
 # Convert CTest output to Junit and ensure CircleCI will include it in its summary
 pip install scikit-ci-addons==0.15.0
