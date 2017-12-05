@@ -103,6 +103,9 @@ class User(Resource):
         .errorResponse('Invalid login or password.', 403)
     )
     def login(self):
+        if not Setting().get(SettingKey.ENABLE_PASSWORD_LOGIN):
+            raise RestException('Password login is disabled on this instance.')
+
         user, token = self.getCurrentUser(returnToken=True)
 
         # Only create and send new cookie if user isn't already sending a valid one.
