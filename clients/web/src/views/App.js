@@ -42,6 +42,7 @@ var App = View.extend({
         this.brandName = settings.brandName || null;
         this.bannerColor = settings.bannerColor || null;
         this.registrationPolicy = settings.registrationPolicy || null;
+        this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
 
         if (settings.start === undefined || settings.start) {
             this.start();
@@ -268,7 +269,8 @@ var App = View.extend({
             this.loginView = new LoginView({
                 el: this.$('#g-dialog-container'),
                 parentView: this,
-                registrationPolicy: this.registrationPolicy
+                registrationPolicy: this.registrationPolicy,
+                enablePasswordLogin: this.enablePasswordLogin
             });
         }
         this.loginView.render();

@@ -236,6 +236,14 @@ class UserTestCase(base.TestCase):
         token = Token().load(token['_id'], objectId=False, force=True)
         self.assertEqual(token, None)
 
+        # Test disabling password login
+        Setting().set(SettingKey.ENABLE_PASSWORD_LOGIN, False)
+
+        resp = self.request(
+            path='/user/authentication', method='GET', basicAuth='goodlogin:goodpassword')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Password login is disabled on this instance.')
+
     def testGetAndUpdateUser(self):
         """
         Tests for the GET and PUT user endpoints.

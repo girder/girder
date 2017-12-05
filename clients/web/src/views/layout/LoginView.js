@@ -65,11 +65,13 @@ var LoginView = View.extend({
 
     initialize: function (settings) {
         this.registrationPolicy = settings.registrationPolicy;
+        this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
     },
 
     render: function () {
         this.$el.html(LoginDialogTemplate({
-            registrationPolicy: this.registrationPolicy
+            registrationPolicy: this.registrationPolicy,
+            enablePasswordLogin: this.enablePasswordLogin
         })).girderModal(this)
             .on('shown.bs.modal', () => {
                 this.$('#g-login').focus();

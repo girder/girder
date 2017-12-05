@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
 import os
 import re
 
@@ -69,7 +70,8 @@ class WebrootBase(object):
         )
 
     def _renderHTML(self):
-        return mako.template.Template(self.template).render(js=self._escapeJavascript, **self.vars)
+        return mako.template.Template(self.template).render(
+            js=self._escapeJavascript, json=json.dumps, **self.vars)
 
     def GET(self, **params):
         if self.indexHtml is None or self.config['server']['mode'] == 'development':
@@ -96,8 +98,7 @@ class Webroot(WebrootBase):
     """
     def __init__(self, templatePath=None):
         if not templatePath:
-            templatePath = os.path.join(constants.PACKAGE_DIR,
-                                        'utility', 'webroot.mako')
+            templatePath = os.path.join(constants.PACKAGE_DIR, 'utility', 'webroot.mako')
         super(Webroot, self).__init__(templatePath)
         settings = Setting()
 
@@ -110,7 +111,8 @@ class Webroot(WebrootBase):
             'brandName': settings.get(SettingKey.BRAND_NAME),
             'bannerColor': settings.get(SettingKey.BANNER_COLOR),
             'contactEmail': settings.get(SettingKey.CONTACT_EMAIL_ADDRESS),
-            'registrationPolicy': settings.get(SettingKey.REGISTRATION_POLICY)
+            'registrationPolicy': settings.get(SettingKey.REGISTRATION_POLICY),
+            'enablePasswordLogin': settings.get(SettingKey.ENABLE_PASSWORD_LOGIN)
         }
 
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
@@ -128,6 +130,8 @@ class Webroot(WebrootBase):
             self.updateHtmlVars({'bannerColor': settingDoc['value']})
         elif settingDoc['key'] == SettingKey.REGISTRATION_POLICY:
             self.updateHtmlVars({'registrationPolicy': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.ENABLE_PASSWORD_LOGIN:
+            self.updateHtmlVars({'enablePasswordLogin': settingDoc['value']})
 
     def _onSettingRemove(self, event):
         settingDoc = event.info
@@ -142,6 +146,10 @@ class Webroot(WebrootBase):
         elif settingDoc['key'] == SettingKey.REGISTRATION_POLICY:
             self.updateHtmlVars({'registrationPolicy': Setting().getDefault(
                 SettingKey.REGISTRATION_POLICY)})
+        elif settingDoc['key'] == SettingKey.ENABLE_PASSWORD_LOGIN:
+            self.updateHtmlVars({'enablePasswordLogin': Setting().getDefault(
+                SettingKey.ENABLE_PASSWORD_LOGIN
+            )})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

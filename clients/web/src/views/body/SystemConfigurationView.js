@@ -38,7 +38,7 @@ var SystemConfigurationView = View.extend({
                             return [$(el).data('webrootName'), $(el).val()];
                         }))
                     };
-                } else if (key === 'core.api_keys') {  // booleans via checkboxes
+                } else if (_.contains(['core.api_keys', 'core.enable_password_login'], key)) {  // booleans via checkboxes
                     return {
                         key,
                         value: element.is(':checked')
@@ -86,6 +86,7 @@ var SystemConfigurationView = View.extend({
             'core.brand_name',
             'core.banner_color',
             'core.cookie_lifetime',
+            'core.enable_password_login',
             'core.email_from_address',
             'core.email_host',
             'core.registration_policy',
