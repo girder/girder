@@ -88,10 +88,10 @@ class HashedFile(File):
     @access.cookie
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
-        Description('Download a file by its hash sum.')
-        .param('algo', 'The type of the given hash sum (case insensitive).',
+        Description('Download a file by its hashsum.')
+        .param('algo', 'The type of the given hashsum (case insensitive).',
                paramType='path', lower=True, enum=SUPPORTED_ALGORITHMS)
-        .param('hash', 'The hexadecimal hash sum of the file to download (case insensitive).',
+        .param('hash', 'The hexadecimal hashsum of the file to download (case insensitive).',
                paramType='path', lower=True)
         .errorResponse('No file with the given hash exists.')
     )
@@ -106,10 +106,10 @@ class HashedFile(File):
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(FileModel)
     @autoDescribeRoute(
-        Description('Return a list of files matching a hash sum.')
-        .param('algo', 'The type of the given hash sum (case insensitive).',
+        Description('Return a list of files matching a hashsum.')
+        .param('algo', 'The type of the given hashsum (case insensitive).',
                paramType='path', lower=True, enum=SUPPORTED_ALGORITHMS)
-        .param('hash', 'The hexadecimal hash sum of the file to download (case insensitive).',
+        .param('hash', 'The hexadecimal hashsum of the file to download (case insensitive).',
                paramType='path', lower=True)
     )
     def getByHash(self, algo, hash):
@@ -147,7 +147,7 @@ class HashedFile(File):
     def _getFirstFileByHash(self, algo, hash, user=None):
         """
         Return the first file that the user has access to given its hash and its
-        associated hash sum algorithm name.
+        associated hashsum algorithm name.
 
         :param algo: Algorithm the given hash is encoded with.
         :param hash: Hash of the file to find.
