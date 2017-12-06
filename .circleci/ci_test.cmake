@@ -56,9 +56,6 @@ ctest_test(
   PARALLEL_LEVEL 4 RETURN_VALUE res
   INCLUDE_LABEL "${_test_labels}"
 )
-if(test_group STREQUAL coverage)
-  ctest_submit()
-endif()
 
 if(NOT res EQUAL 0)
   file(WRITE "${CTEST_BINARY_DIRECTORY}/test_failed" "error")
