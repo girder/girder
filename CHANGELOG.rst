@@ -15,6 +15,8 @@ Added Features
   the login dialog in the web client will no longer show the password login form. (`#2504 <https://github.com/girder/girder/pull/2504>`_)
 * Added a new system setting that will allow admins to disable the API key authentication functionality.
   (`#2438 <https://github.com/girder/girder/pull/2438>`_)
+* API endpoint in the hashsum_download plugin that returns a list of files matching a given hash sum.
+  (`#2548 <https://github.com/girder/girder/pull/2458>`_)
 
 Web Client
 ^^^^^^^^^^
