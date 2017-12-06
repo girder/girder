@@ -328,3 +328,39 @@ class HashsumDownloadTest(base.TestCase):
         self.assertEqual(file['sha256'], expected.hexdigest())
 
         hashsum_download.SUPPORTED_ALGORITHMS = old
+
+    def testGetByHash(self):
+        hashAlgorithm = 'sha512'
+        publicDataHash = self._hashSum(self.userData, hashAlgorithm)
+        privateDataHash = self._hashSum(self.privateOnlyData, hashAlgorithm)
+
+        # There are three files with publicDataHash for self.user .
+        resp = self.request(
+            '/file/hashsum/%s/%s' % (hashAlgorithm, publicDataHash), user=self.user)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 3)
+        for file in resp.json:
+            self.assertEqual(file['sha512'], publicDataHash)
+
+        # There is one file with privateDataHash for self.user .
+        resp = self.request(
+            '/file/hashsum/%s/%s' % (hashAlgorithm, privateDataHash), user=self.user)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        for file in resp.json:
+            self.assertEqual(file['sha512'], privateDataHash)
+
+        # There are two files with publicDataHash for self.otherUser .
+        # There is one private file with this hash that otherUser lacks access to.
+        resp = self.request(
+            '/file/hashsum/%s/%s' % (hashAlgorithm, publicDataHash), user=self.otherUser)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+        for file in resp.json:
+            self.assertEqual(file['sha512'], publicDataHash)
+
+        # No files with privateDataHash for self.otherUser .
+        resp = self.request(
+            '/file/hashsum/%s/%s' % (hashAlgorithm, privateDataHash), user=self.otherUser)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 0)
