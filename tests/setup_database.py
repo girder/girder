@@ -22,7 +22,8 @@ import os
 import tempfile
 import warnings
 
-from girder.models.model_base import ModelImporter, GirderException
+from girder.models.model_base import ModelImporter
+from girder.exceptions import GirderException
 from girder.constants import SettingKey
 
 warnings.warn(

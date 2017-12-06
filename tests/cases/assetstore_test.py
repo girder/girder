@@ -36,6 +36,7 @@ from girder.models.assetstore import Assetstore
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
+from girder.exceptions import GirderException
 from girder.models.upload import Upload
 from girder.models.user import User
 from girder.utility import assetstore_utilities
@@ -1004,3 +1005,10 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(
             path='/file/%s/download' % file['_id'], user=self.admin, isJson=False)
         self.assertStatusOk(resp)
+
+    def testUnknownAssetstoreType(self):
+        assetstore = Assetstore().save({'name': 'Sample', 'type': 'unknown'}, validate=False)
+        with self.assertRaises(GirderException):
+            assetstore_utilities.getAssetstoreAdapter(assetstore)
+        Assetstore().addComputedInfo(assetstore)
+        self.assertEqual(assetstore['capacity']['total'], None)

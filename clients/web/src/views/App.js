@@ -41,6 +41,8 @@ var App = View.extend({
         this.contactEmail = settings.contactEmail || null;
         this.brandName = settings.brandName || null;
         this.bannerColor = settings.bannerColor || null;
+        this.registrationPolicy = settings.registrationPolicy || null;
+        this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
 
         if (settings.start === undefined || settings.start) {
             this.start();
@@ -128,7 +130,8 @@ var App = View.extend({
         this.headerView = new LayoutHeaderView({
             parentView: this,
             brandName: this.brandName,
-            bannerColor: this.bannerColor
+            bannerColor: this.bannerColor,
+            registrationPolicy: this.registrationPolicy
         });
 
         this.globalNavView = new LayoutGlobalNavView({
@@ -265,7 +268,9 @@ var App = View.extend({
         if (!this.loginView) {
             this.loginView = new LoginView({
                 el: this.$('#g-dialog-container'),
-                parentView: this
+                parentView: this,
+                registrationPolicy: this.registrationPolicy,
+                enablePasswordLogin: this.enablePasswordLogin
             });
         }
         this.loginView.render();
@@ -291,7 +296,8 @@ var App = View.extend({
         if (!this.resetPasswordView) {
             this.resetPasswordView = new ResetPasswordView({
                 el: this.$('#g-dialog-container'),
-                parentView: this
+                parentView: this,
+                registrationPolicy: this.registrationPolicy
             });
         }
         this.resetPasswordView.render();

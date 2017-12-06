@@ -20,7 +20,7 @@
 import six
 
 from girder.constants import AccessType
-from girder.models.model_base import AccessException, ValidationException
+from girder.exceptions import AccessException, ValidationException
 from girder.models.file import File
 from girder.utility import setting_utilities
 

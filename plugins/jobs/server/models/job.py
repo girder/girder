@@ -23,7 +23,8 @@ from bson import json_util
 
 from girder import events
 from girder.constants import AccessType, SortDir
-from girder.models.model_base import AccessControlledModel, ValidationException
+from girder.exceptions import ValidationException
+from girder.models.model_base import AccessControlledModel
 from girder.models.notification import Notification
 from girder.models.token import Token
 from girder.models.user import User

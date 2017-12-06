@@ -1849,10 +1849,7 @@ class GirderClientModule(GirderClient):
 
             params = {
                 'key': key,
-                'value': (
-                    json.dumps(value)
-                    if isinstance(value, (list, dict)) else value
-                )
+                'value': json.dumps(value)
             }
 
             try:

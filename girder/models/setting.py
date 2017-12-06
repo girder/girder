@@ -24,8 +24,9 @@ import six
 import re
 
 from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault, SettingKey
-from .model_base import Model, ValidationException
+from .model_base import Model
 from girder import logprint
+from girder.exceptions import ValidationException
 from girder.utility import config, setting_utilities
 from bson.objectid import ObjectId
 
@@ -335,6 +336,18 @@ class Setting(Model):
         if doc['value'] not in ('required', 'optional', 'disabled'):
             raise ValidationException(
                 'Email verification must be "required", "optional", or "disabled".', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.API_KEYS)
+    def validateApiKeys(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('API key setting must be boolean.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.ENABLE_PASSWORD_LOGIN)
+    def validateEnablePasswordLogin(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('Enable password login setting must be boolean.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.ROUTE_TABLE)

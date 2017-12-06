@@ -23,7 +23,7 @@ import time
 from tests import base
 from girder import events
 from girder.constants import AccessType
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.user import User
 from girder.models.token import Token
 

@@ -2,8 +2,9 @@
 node_modules
 docs/_build
 docs/_output
-.coverage*
-girder.egg-info
+.coverage
+.coverage.*
+*.egg-info
 .DS_Store
 .*.swp
 .*.swo
@@ -12,9 +13,12 @@ phantom-*.png
 phantom_*.png
 girder-*.tar.gz
 __pycache__
+htmlcov
 ### PyCharm ###
 .idea/
 .PyCharm50/
 .eslintcache
 /npm-debug.log
 **/*.retry
+.cache
+.tox

@@ -28,7 +28,7 @@ import uuid
 
 from girder import logger, events
 from girder.api.rest import setContentDisposition
-from girder.models.model_base import GirderException, ValidationException
+from girder.exceptions import GirderException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
@@ -371,8 +371,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if headers:
             raise cherrypy.HTTPRedirect(url)
         else:
+            headers = {}
+            if offset or endByte is not None:
+                if endByte is None or endByte > file['size']:
+                    endByte = file['size']
+                headers = {'Range': 'bytes=%d-%d' % (offset, endByte - 1)}
+
             def stream():
-                pipe = requests.get(url, stream=True)
+                pipe = requests.get(url, stream=True, headers=headers)
                 for chunk in pipe.iter_content(chunk_size=BUF_LEN):
                     if chunk:
                         yield chunk
@@ -403,9 +409,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             if self.shouldImportFile(obj['Key'], params):
                 item = Item().createItem(
                     name=name, creator=user, folder=parent, reuseExisting=True)
+                # Create a file record; delay saving it until we have added the
+                # import information.
                 file = File().createFile(
                     name=name, creator=user, item=item, reuseExisting=True,
-                    assetstore=self.assetstore, mimeType=None, size=obj['Size'])
+                    assetstore=self.assetstore, mimeType=None, size=obj['Size'],
+                    saveFile=False)
                 file['s3Key'] = obj['Key']
                 file['imported'] = True
                 File().save(file)

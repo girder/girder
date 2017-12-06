@@ -27,7 +27,7 @@ from .. import base
 
 from girder import events
 from girder.constants import AccessType, SettingKey, TokenScope
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.folder import Folder
 from girder.models.group import Group
 from girder.models.setting import Setting
@@ -235,6 +235,14 @@ class UserTestCase(base.TestCase):
 
         token = Token().load(token['_id'], objectId=False, force=True)
         self.assertEqual(token, None)
+
+        # Test disabling password login
+        Setting().set(SettingKey.ENABLE_PASSWORD_LOGIN, False)
+
+        resp = self.request(
+            path='/user/authentication', method='GET', basicAuth='goodlogin:goodpassword')
+        self.assertStatus(resp, 400)
+        self.assertEqual(resp.json['message'], 'Password login is disabled on this instance.')
 
     def testGetAndUpdateUser(self):
         """

@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 from . import constants, rest
 

@@ -19,8 +19,9 @@
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, loadmodel, RestException
+from girder.api.rest import Resource, loadmodel
 from girder.constants import AccessType, TokenScope
+from girder.exceptions import RestException
 from girder.models.folder import Folder
 from girder.models.user import User
 from girder.utility import mail_utils

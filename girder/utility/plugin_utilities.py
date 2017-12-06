@@ -41,10 +41,10 @@ import traceback
 import pkg_resources
 from pkg_resources import iter_entry_points
 
-from girder import logprint
+from girder import logprint, logger
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, PACKAGE_DIR, ROOT_DIR, \
     ROOT_PLUGINS_PACKAGE, SettingKey
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.utility import mail_utils
 
@@ -162,8 +162,10 @@ def getToposortedPlugins(plugins=None, ignoreMissing=False, keys=('dependencies'
 
         for dep in deps:
             if dep in visited:
-                return
+                continue
             visited.add(dep)
+            if dep not in plugins:
+                logger.info('Adding plugin %s because %s requires it' % (dep, plugin))
             addDeps(dep)
 
     for plugin in plugins:

@@ -22,8 +22,8 @@ import re
 import requests
 import six
 
-from girder.api.rest import RestException
 from girder.constants import SettingKey
+from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.utility import config, model_importer

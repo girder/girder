@@ -20,8 +20,9 @@
 import six
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource as BaseResource, RestException, setResponseHeader, setContentDisposition
+from ..rest import Resource as BaseResource, setResponseHeader, setContentDisposition
 from girder.constants import AccessType, TokenScope
+from girder.exceptions import RestException
 from girder.api import access
 from girder.utility import parseTimestamp
 from girder.utility.search import getSearchModeHandler

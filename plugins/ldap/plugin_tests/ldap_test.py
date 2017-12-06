@@ -20,7 +20,7 @@
 import ldap
 import mock
 
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.user import User
 from tests import base

@@ -23,9 +23,10 @@ import hashlib
 from girder import events
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
-from girder.api.rest import boundHandler, RestException
+from girder.api.rest import boundHandler
 from girder.api.v1.collection import Collection
 from girder.constants import AccessType, TokenScope
+from girder.exceptions import RestException
 from girder.models.collection import Collection as CollectionModel
 from girder.models.user import User
 

@@ -30,8 +30,9 @@ import six
 import cherrypy
 
 from girder import constants, events, logprint
-from girder.api.rest import getCurrentUser, RestException, getBodyJson
+from girder.api.rest import getCurrentUser, getBodyJson
 from girder.constants import CoreEventHandler, SettingKey
+from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
@@ -630,6 +631,17 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 # VAR_KEYWORD is the **kwargs parameter
                 self._funHasKwargs = True
 
+    @staticmethod
+    def _destName(info, model):
+        destName = info['destName']
+        if destName is None:
+            if info['isModelClass']:
+                destName = model.name
+            else:
+                destName = info['model']
+
+        return destName
+
     def __call__(self, fun):
         self._inspectFunSignature(fun)
 
@@ -659,7 +671,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                         info = self.description.modelParams[name]
                         kwargs.pop(name, None)  # Remove from path params
                         val = self._loadModel(name, info, params[name], model)
-                        self._passArg(fun, kwargs, info['destName'] or model.name, val)
+                        self._passArg(fun, kwargs, self._destName(info, model), val)
                     else:
                         val = self._validateParam(name, descParam, params[name])
                         self._passArg(fun, kwargs, name, val)

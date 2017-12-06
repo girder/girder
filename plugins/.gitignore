@@ -23,6 +23,7 @@
 !mongo_search/
 !oauth/
 !provenance/
+!table_view/
 !terms/
 !thumbnails/
 !user_quota/
