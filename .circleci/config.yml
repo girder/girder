@@ -20,7 +20,7 @@ jobs:
           command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
       - run:
           name: Activate virtual environment
-          command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Upgrade Python toolchain
           command: pip install --upgrade pip setuptools virtualenv
@@ -76,7 +76,7 @@ jobs:
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
       - run:
           name: Activate virtual environment
-          command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Upgrade Python toolchain
           command: pip install --upgrade pip setuptools
@@ -114,7 +114,7 @@ jobs:
           at: /home/circleci/project
       - run:
           name: Activate virtual environment
-          command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -144,7 +144,7 @@ jobs:
           at: /home/circleci/project
       - run:
           name: Activate virtual environment
-          command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - restore_cache:
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
@@ -206,6 +206,9 @@ jobs:
           name: install node-gyp
           command: npm install -g node-gyp
       - run:
+          # boto doesn't work as a library if there is a /etc/boto.cfg file
+          # from a different version of python, so remove the file.
+          # https://github.com/boto/boto/issues/3741
           name: allow boto to work with python 3
           command: sudo rm -f /etc/boto.cfg
       - run:
@@ -239,7 +242,7 @@ jobs:
           command: mkdir -p build/test/coverage/web_temp && mkdir -p build/test/coverage/web
           working_directory: girder
       - run:
-          name: Build Girder web client with coverage turned on
+          name: Build Girder web client
           command: girder-install web --all-plugins --dev | cat
       - run:
           name: CMake
@@ -285,7 +288,7 @@ jobs:
           at: /home/circleci/project
       - run:
           name: Activate virtual environment
-          command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       # - run:
       #     # We should be able to alter the ci_test.cmake to do this
       #     name: Run CMake
@@ -348,7 +351,7 @@ jobs:
       - run:
           name: Install Girder via ansible
           # Use the latest mongo that Stouts supports
-          command: pyenv exec ansible-playbook -i "localhost," -c local examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.4'}"
+          command: pyenv exec ansible-playbook -i "localhost," -c local examples/girder-dev-environment/site.yml --extra-vars="{'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.4'}"
           working_directory: girder/devops/ansible
           environment:
             ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
@@ -368,14 +371,12 @@ jobs:
           command: mkdir -p build/test/coverage/web_temp && mkdir -p build/test/coverage/web
           working_directory: girder
       - run:
-          name: Build Girder web client with coverage turned on
+          name: Build Girder web client
           command: girder-install web --all-plugins --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_VERSION=3.4 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
           working_directory: girder_build
-          environment:
-            JASMINE_TIMEOUT: 15000
       - run:
           name: make
           command: make -j 3
@@ -408,7 +409,7 @@ jobs:
           at: /home/circleci/project
       - run:
           name: Activate virtual environment
-          command: echo "source $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Run CTest
           command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
