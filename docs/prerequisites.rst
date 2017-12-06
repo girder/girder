@@ -51,7 +51,7 @@ Debian / Ubuntu
 
 Install the prerequisites using APT: ::
 
-    sudo apt-get install curl g++ git libffi-dev libsasl2-dev make python-dev python-pip libssl-dev libjpeg-dev zlib1g-dev
+    sudo apt-get install curl g++ git libffi-dev libjpeg-dev libsasl2-dev libssl-dev make python-dev python-pip zlib1g-dev
 
 MongoDB 2.6 requires a special incantation to install at this time. Install
 the APT key with the following: ::
