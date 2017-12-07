@@ -26,6 +26,8 @@ else()
   set(_separator ":")
 endif()
 
+find_program(PYTEST_EXECUTABLE NAMES pytest)
+
 function(python_tests_init)
   if(PYTHON_COVERAGE)
     add_test(
@@ -183,5 +185,20 @@ function(add_python_test case)
     girder_ExternalData_add_target("${name}_data")
   endif()
 
+  set_property(TEST ${name} PROPERTY LABELS girder_python)
+endfunction()
+
+function(add_pytest_test case)
+  set(name "server_pytest_${case}")
+
+  add_test(
+    NAME ${name}
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTEST_EXECUTABLE}" --tb=long --cov-append
+  )
+  if(PYTHON_COVERAGE)
+    set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
+    set_property(TEST py_coverage_combine APPEND PROPERTY DEPENDS ${name})
+  endif()
   set_property(TEST ${name} PROPERTY LABELS girder_python)
 endfunction()
