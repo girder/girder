@@ -2,7 +2,9 @@ import cherrypy
 import hashlib
 import mock
 import mongomock
+import os
 import pytest
+import shutil
 
 from .utils import request
 
@@ -129,3 +131,27 @@ def user(db, admin):
     yield u
 
     User().remove(u)
+
+
+@pytest.fixture
+def fsAssetstore(db, request):
+    """
+    Require a filesystem assetstore. Its location will be derived from the test function name.
+    """
+    from girder.constants import ROOT_DIR
+    from girder.models.assetstore import Assetstore
+
+    name = '_'.join((
+        request.node.module.__name__,
+        request.node.cls.__name__ if request.node.cls else '',
+        request.node.name))
+
+    path = os.path.join(ROOT_DIR, 'tests', 'assetstore', name)
+
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+
+    yield Assetstore().createFilesystemAssetstore(name=name, root=path)
+
+    if os.path.isdir(path):
+        shutil.rmtree(path)

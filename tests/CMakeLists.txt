@@ -55,7 +55,6 @@ if(RUN_CORE_TESTS)
   add_python_test(search)
   add_python_test(setting)
   add_python_test(sftp)
-  add_python_test(size)
   add_python_test(stream BIND_SERVER TIMEOUT 90)
   add_python_test(system)
   # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
