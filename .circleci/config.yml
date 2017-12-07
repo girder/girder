@@ -182,6 +182,8 @@ jobs:
             pyclean girder
             pyclean girder_build
             pyclean girder_env
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -270,6 +272,8 @@ jobs:
           name: Rename javascript coverage files to avoid conflicts
           command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
           working_directory: girder/build/test/coverage/web_temp
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -391,6 +395,8 @@ jobs:
           name: Rename javascript coverage files to avoid conflicts
           command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
           working_directory: girder/build/test/coverage/web_temp
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
