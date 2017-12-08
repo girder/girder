@@ -29,8 +29,8 @@ Vagrant.configure("2") do |config|
 
   # Disable port forwarding for ansible testing, since it makes running VMs in parallel harder.
   unless is_testing
-    config.vm.network "forwarded_port", guest: 8080, host: 9080
-    config.vm.post_up_message = "Girder is running at http://localhost:9080"
+    config.vm.network "forwarded_port", guest: 8080, host: 9070
+    config.vm.post_up_message = "Girder is running at http://localhost:9070"
 
     config.vm.synced_folder ".", "/vagrant", disabled: true
     config.vm.synced_folder ".", "/home/vagrant/girder"
