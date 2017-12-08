@@ -38,16 +38,10 @@ def hierarchy(admin, fsAssetstore):
     f2 = Folder().createFolder(parent=f1, creator=admin, parentType='folder', name='Subfolder')
     i1 = Item().createItem(name='Item1', creator=admin, folder=f1)
     i2 = Item().createItem(name='Item10', creator=admin, folder=f2)
-
     file1 = File().createFile(
         name='File1', creator=admin, item=i1, size=1, assetstore=fsAssetstore, mimeType='text/csv')
-    file1['sha512'] = ''  # TODO IS THIS NECESSARY?
-    File().save(file1, validate=False)
-
     file2 = File().createFile(
         name='File2', creator=admin, item=i2, size=10, assetstore=fsAssetstore, mimeType='text/csv')
-    file2['sha512'] = ''
-    File().save(file2, validate=False)
 
     yield Hierarchy(collections=(c1, c2), folders=(f1, f2), items=(i1, i2), files=(file1, file2))
 
@@ -56,34 +50,33 @@ def hierarchy(admin, fsAssetstore):
 
 
 def assertNodeSize(resource, model, size):
+    __tracebackhide__ = True
     model = model().load(resource['_id'], force=True)
     assert model['size'] == size
 
 
-def testMoveAndDeleteItem(server, admin, hierarchy):
+def testMoveItemToSubfolder(server, admin, hierarchy):
     assertNodeSize(hierarchy.items[0], Item, 1)
     assertNodeSize(hierarchy.items[1], Item, 10)
     assertNodeSize(hierarchy.folders[0], Folder, 1)
     assertNodeSize(hierarchy.folders[1], Folder, 10)
     assertNodeSize(hierarchy.collections[0], Collection, 11)
 
-    # Move item1 down from top level folder to subfolder
     resp = server.request(
         path='/item/%s' % hierarchy.items[0]['_id'], method='PUT',
         user=admin, params={
             'folderId': hierarchy.folders[1]['_id']
         })
     assertStatusOk(resp)
-
     assertNodeSize(hierarchy.items[0], Item, 1)
     assertNodeSize(hierarchy.items[1], Item, 10)
     assertNodeSize(hierarchy.folders[0], Folder, 0)
     assertNodeSize(hierarchy.folders[1], Folder, 11)
     assertNodeSize(hierarchy.collections[0], Collection, 11)
 
-    # Delete item1
-    resp = server.request(
-        path='/item/%s' % hierarchy.items[0]['_id'], method='DELETE', user=admin)
+
+def testDeleteItemUpdatesSize(server, admin, hierarchy):
+    resp = server.request(path='/item/%s' % hierarchy.items[0]['_id'], method='DELETE', user=admin)
     assertStatusOk(resp)
 
     assertNodeSize(hierarchy.folders[0], Folder, 0)
@@ -91,8 +84,7 @@ def testMoveAndDeleteItem(server, admin, hierarchy):
     assertNodeSize(hierarchy.collections[0], Collection, 10)
 
 
-def testMoveAndDeleteFolder(server, admin, hierarchy):
-    # Ensure we cannot move a folder under itself
+def testMoveFolderUnderItselfFails(server, admin, hierarchy):
     resp = server.request(
         path='/folder/%s' % hierarchy.folders[0]['_id'], method='PUT',
         user=admin, params={
@@ -102,10 +94,11 @@ def testMoveAndDeleteFolder(server, admin, hierarchy):
     assertStatus(resp, 400)
     assert resp.json['message'] == 'You may not move a folder underneath itself.'
 
+
+def testMoveFolderToNewCollection(server, admin, hierarchy):
     assertNodeSize(hierarchy.collections[0], Collection, 11)
     assertNodeSize(hierarchy.collections[1], Collection, 0)
 
-    # Move top level folder from coll1 to coll2
     resp = server.request(
         path='/folder/%s' % hierarchy.folders[0]['_id'], method='PUT',
         user=admin, params={
@@ -113,11 +106,11 @@ def testMoveAndDeleteFolder(server, admin, hierarchy):
             'parentType': 'collection'
         })
     assertStatusOk(resp)
-
     assertNodeSize(hierarchy.collections[0], Collection, 0)
     assertNodeSize(hierarchy.collections[1], Collection, 11)
 
-    # Move subfolder as top level folder under admin user
+
+def testMoveSubfolderToUser(server, admin, hierarchy):
     resp = server.request(
         path='/folder/%s' % hierarchy.folders[1]['_id'], method='PUT',
         user=admin, params={
@@ -126,11 +119,11 @@ def testMoveAndDeleteFolder(server, admin, hierarchy):
         })
     assertStatusOk(resp)
     assertNodeSize(admin, User, 10)
-    assertNodeSize(hierarchy.collections[1], Collection, 1)
+    assertNodeSize(hierarchy.collections[0], Collection, 1)
 
-    # Delete the sub folder
+
+def testDeleteFolderUpdatesSize(server, admin, hierarchy):
     resp = server.request(
         path='/folder/%s' % hierarchy.folders[1]['_id'], method='DELETE', user=admin)
     assertStatusOk(resp)
-    assertNodeSize(admin, User, 0)
-    assertNodeSize(hierarchy.collections[1], Collection, 1)
+    assertNodeSize(hierarchy.collections[0], Collection, 1)

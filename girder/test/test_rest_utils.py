@@ -110,16 +110,20 @@ def testCustomJsonEncoderEvent():
         assert json.loads(resp) == {'key': date.replace(tzinfo=pytz.UTC).isoformat()}
 
 
-def testRequireParamsDictMode():
+@pytest.mark.parametrize('params', [
+    {'hello': 'world'},
+    {'hello': None}
+])
+def testRequireParamsDictMode(params):
     resource = rest.Resource()
-    resource.requireParams('hello', {'hello': 'world'})
-    resource.requireParams('hello', {'hello': None})
+    resource.requireParams('hello', params)
 
-    with pytest.raises(rest.RestException, match='Parameter "hello" is required.$'):
-        resource.requireParams(['hello'], {'foo': 'bar'})
 
+@pytest.mark.parametrize('params', [{'foo': 'bar'}, None])
+def testRequireParamsDictModeFailure(params):
+    resource = rest.Resource()
     with pytest.raises(rest.RestException, match='Parameter "hello" is required.$'):
-        resource.requireParams(['hello'], None)
+        resource.requireParams(['hello'], params)
 
 
 @pytest.mark.parametrize('name,disp,msg', [
