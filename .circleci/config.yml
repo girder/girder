@@ -431,7 +431,13 @@ jobs:
           command: pip install codecov
       - run:
           name: Upload coverage
-          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml
+          # Including lcov.info has two effects on Codecov's javascript
+          # coverage reporting: it adds function definitions to the list of
+          # statements that are considered for coverage (this substantially
+          # increases the reported coverage), and it functionally disables
+          # branch coverage reporting (thus considering all partially coveraged
+          # statements as completely covered).
+          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/lcov.info
           working_directory: girder
 
 workflows:
