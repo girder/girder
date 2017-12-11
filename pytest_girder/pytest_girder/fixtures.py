@@ -6,7 +6,7 @@ import os
 import pytest
 import shutil
 
-from .utils import MockSmtpReceiver, request
+from .utils import MockSmtpReceiver, request as restRequest
 
 
 @pytest.fixture(autouse=True)
@@ -67,7 +67,7 @@ def db(request):
 
 
 @pytest.fixture
-def server(db):
+def server(db, request):
     """
     Require a CherryPy embedded server.
 
@@ -79,12 +79,25 @@ def server(db):
     # effect on import. We have to hack around this by creating a unique event daemon
     # each time we startup the server and assigning it to the global.
     import girder.events
+    from girder.constants import ROOT_DIR
+    from girder.utility import plugin_utilities
     from girder.utility.server import setup as setupServer
+
+    oldPluginDir = plugin_utilities.getPluginDir
 
     girder.events.daemon = girder.events.AsyncEventsThread()
 
-    server = setupServer(test=True)
-    server.request = request
+    if request.node.get_marker('testPlugins'):
+        # Load plugins from the test path
+        path = os.path.join(ROOT_DIR, 'tests', 'test_plugins')
+
+        plugin_utilities.getPluginDir = mock.Mock(return_value=path)
+        plugins = request.node.get_marker('testPlugins').args[0]
+    else:
+        plugins = []
+
+    server = setupServer(test=True, plugins=plugins)
+    server.request = restRequest
 
     cherrypy.server.unsubscribe()
     cherrypy.config.update({'environment': 'embedded',
@@ -98,6 +111,7 @@ def server(db):
     cherrypy.engine.stop()
     cherrypy.engine.exit()
     cherrypy.tree.apps = {}
+    plugin_utilities.getPluginDir = oldPluginDir
 
 
 @pytest.fixture
@@ -181,21 +195,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-@pytest.fixture
-def testPlugins():
-    """
-    Make plugins load from the test_plugins dir rather than the normal location.
-    """
-    from girder.constants import ROOT_DIR
-    from girder.utility import plugin_utilities
-
-    path = os.path.join(ROOT_DIR, 'tests', 'test_plugins')
-    old = plugin_utilities.getPluginDir
-    plugin_utilities.getPluginDir = mock.Mock(return_value=path)
-
-    yield path
-
-    plugin_utilities.getPluginDir = old
-
-
-__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'testPlugins', 'user', 'smtp')
+__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'user', 'smtp')

@@ -22,7 +22,6 @@ from girder.constants import SettingKey
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.utility import mail_utils
-from girder.utility.server import setup as setupServer
 
 
 def testEmailAdmins(smtp):
@@ -65,8 +64,8 @@ def testEmailAdmins(smtp):
         mail_utils.sendEmail(text='hello', to=None)
 
 
-def testPluginTemplates(server, testPlugins):
-    setupServer(test=True, plugins=['mail_test'])
+@pytest.mark.testPlugins(['mail_test'])
+def testPluginTemplates(server):
     val = 'OVERRIDE CORE FOOTER'
     assert mail_utils.renderTemplate('_footer.mako').strip() == val
 
