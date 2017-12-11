@@ -2,15 +2,17 @@ import cherrypy
 import hashlib
 import mock
 import mongomock
+import os
 import pytest
+import shutil
 
-from .utils import request
+from .utils import MockSmtpReceiver, request
 
 
 @pytest.fixture(autouse=True)
 def bcrypt():
     """
-    Mock out bcrypt password hashing to avoid unecessary testing bottlenecks.
+    Mock out bcrypt password hashing to avoid unnecessary testing bottlenecks.
     """
     with mock.patch('bcrypt.hashpw') as hashpw:
         hashpw.side_effect = lambda x, y: x
@@ -99,6 +101,30 @@ def server(db):
 
 
 @pytest.fixture
+def smtp(db, server):
+    """
+    Provides a mock SMTP server for testing.
+    """
+    # TODO strictly speaking, this does not depend on the server itself, but does
+    # depend on the events daemon, which is currently managed by the server fixture.
+    # We should sort this out so that the daemon is its own fixture rather than being
+    # started/stopped via the cherrypy server lifecycle.
+    from girder.constants import SettingKey
+    from girder.models.setting import Setting
+
+    receiver = MockSmtpReceiver()
+    receiver.start()
+
+    host, port = receiver.address or ('localhost', 25)
+    Setting().set(SettingKey.SMTP_HOST, host)
+    Setting().set(SettingKey.SMTP_PORT, port)
+
+    yield receiver
+
+    receiver.stop()
+
+
+@pytest.fixture
 def admin(db):
     """
     Require an admin user.
@@ -129,3 +155,47 @@ def user(db, admin):
     yield u
 
     User().remove(u)
+
+
+@pytest.fixture
+def fsAssetstore(db, request):
+    """
+    Require a filesystem assetstore. Its location will be derived from the test function name.
+    """
+    from girder.constants import ROOT_DIR
+    from girder.models.assetstore import Assetstore
+
+    name = '_'.join((
+        request.node.module.__name__,
+        request.node.cls.__name__ if request.node.cls else '',
+        request.node.name))
+
+    path = os.path.join(ROOT_DIR, 'tests', 'assetstore', name)
+
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+
+    yield Assetstore().createFilesystemAssetstore(name=name, root=path)
+
+    if os.path.isdir(path):
+        shutil.rmtree(path)
+
+
+@pytest.fixture
+def testPlugins():
+    """
+    Make plugins load from the test_plugins dir rather than the normal location.
+    """
+    from girder.constants import ROOT_DIR
+    from girder.utility import plugin_utilities
+
+    path = os.path.join(ROOT_DIR, 'tests', 'test_plugins')
+    old = plugin_utilities.getPluginDir
+    plugin_utilities.getPluginDir = mock.Mock(return_value=path)
+
+    yield path
+
+    plugin_utilities.getPluginDir = old
+
+
+__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'testPlugins', 'user', 'smtp')
