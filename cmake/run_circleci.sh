@@ -23,7 +23,7 @@ mkdir $HOME/build
 ctest -R '^py_coverage_reset$' -VV -S $HOME/girder/cmake/circle_continuous.cmake
 
 if [ "$TEST_GROUP" == "python" ]; then
-    if ! pytest --tb=long --junit-xml=$CIRCLE_TEST_REPORTS/pytest-${CIRCLE_NODE_INDEX}.xml; then
+    if ! pytest --mock-db --tb=long --junit-xml=$CIRCLE_TEST_REPORTS/pytest-${CIRCLE_NODE_INDEX}.xml; then
         touch $HOME/build/test_failed
     fi
 fi
