@@ -63,15 +63,16 @@ page.viewportSize = {
     height: 769
 };
 
+var artifactDir = 'build/test/artifacts';
+fs.makeTree(artifactDir);
 page.onConsoleMessage = function (msg) {
     if (msg.indexOf('__SCREENSHOT__') === 0) {
-        var imageFileName = msg.substring('__SCREENSHOT__'.length) || 'phantom-screenshot.png';
-        var imageFile = 'build/test/artifacts/' + imageFileName;
-        page.render(imageFile);
-        console.log('Created screenshot: ' + imageFile);
-
+        var screenshotTime = msg.substring('__SCREENSHOT__'.length);
+        var screenshotFile = artifactDir + '/screenshot_' + testName + '_' + screenshotTime + '.png';
+        page.render(screenshotFile);
+        console.log('Created screenshot: ' + screenshotFile);
         console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
-            fs.workingDirectory + fs.separator + imageFile + '</DartMeasurementFile>');
+            fs.workingDirectory + '/' + screenshotFile + '</DartMeasurementFile>');
 
         if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
@@ -152,10 +153,12 @@ page.onError = function (msg, trace) {
         });
     }
     console.error(msgStack.join('\n'));
-    console.log('Saved phantom_error_screenshot.png');
+
+    var screenshotFile = artifactDir + '/screenshot_' + testName + '_error.png';
+    page.render(screenshotFile);
+    console.log('Created error screenshot: ' + screenshotFile);
     console.log('<DartMeasurementFile name="PhantomErrorScreenshot" type="image/png">' +
-        fs.workingDirectory + '/phantom_error_screenshot.png</DartMeasurementFile>');
-    page.render('phantom_error_screenshot.png');
+        fs.workingDirectory + '/' + screenshotFile + '</DartMeasurementFile>');
     phantom.exit(1);
 };
 
