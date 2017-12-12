@@ -26,10 +26,9 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: |
-            pip install -e .[plugins,sftp]
-            pip install -e ./clients/python
-            pip install -r ./requirements-dev.txt
+          command: pip install -e .[plugins,sftp] clients/python -r requirements-dev.txt
+          # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
+          # "requirements-dev.txt" must be run from the "girder" working directory
           working_directory: girder
       - save_cache:
           paths: girder_env
@@ -82,10 +81,7 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: |
-            pip install -e .[plugins,sftp]
-            pip install -e ./clients/python
-            pip install -r ./requirements-dev.txt
+          command: pip install -e .[plugins,sftp] clients/python -r requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -215,16 +211,15 @@ jobs:
           command: pip install ansible
       - run:
           name: Install Galaxy requirements
-          command: ansible-galaxy install -r examples/girder-dev-environment/requirements.yml
-          working_directory: girder/devops/ansible
+          command: ansible-galaxy install -r girder/devops/ansible/examples/girder-dev-environment/requirements.yml
           environment:
-            ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
+            # Include paths for local "girder" role and external roles required by playbook
+            ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
           name: Install Girder via ansible
-          command: pyenv exec ansible-playbook -i "localhost," -c local examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'2.6.12'}"
-          working_directory: girder/devops/ansible
+          command: pyenv exec ansible-playbook -i "localhost," -c local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'2.6.12'}"
           environment:
-            ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
+            ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
           name: Activate virtualenv
           command: echo '. /home/circleci/.virtualenvs/girder/bin/activate' >> $BASH_ENV
@@ -345,17 +340,15 @@ jobs:
           command: pip install ansible
       - run:
           name: Install Galaxy requirements
-          command: ansible-galaxy install -r examples/girder-dev-environment/requirements.yml
-          working_directory: girder/devops/ansible
+          command: ansible-galaxy install -r girder/devops/ansible/examples/girder-dev-environment/requirements.yml
           environment:
-            ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
+            ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
           name: Install Girder via ansible
           # Use the latest mongo that Stouts supports
-          command: pyenv exec ansible-playbook -i "localhost," -c local examples/girder-dev-environment/site.yml --extra-vars="{'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.4'}"
-          working_directory: girder/devops/ansible
+          command: pyenv exec ansible-playbook -i "localhost," -c local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.4'}"
           environment:
-            ANSIBLE_ROLES_PATH: roles:examples/girder-dev-environment/roles
+            ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
           name: Activate virtualenv
           command: echo '. /home/circleci/.virtualenvs/girder/bin/activate' >> $BASH_ENV
