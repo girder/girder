@@ -86,7 +86,7 @@ function confirm(params) {
         $('#g-confirm-button').off('click');
     });
 
-    let el = $('#g-dialog-container').find('.modal-body>p:first-child');
+    const el = $('#g-dialog-container').find('.modal-body>p:first-child');
     if (params.escapedHtml) {
         el.html(params.text);
     } else {
@@ -104,7 +104,7 @@ function confirm(params) {
     $('#g-confirm-button').off('click').click(function () {
         if (params['msgConfirmation']) {
             const key = `${params.yesText.toUpperCase()} ${params.name}`;
-            let msg = $('#g-confirm-text').val();
+            const msg = $('#g-confirm-text').val();
             if (msg.toUpperCase() === key.toUpperCase()) {
                 $('#g-dialog-container').modal('hide');
                 params.confirmCallback();

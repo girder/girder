@@ -436,7 +436,7 @@ var HierarchyWidget = View.extend({
             }, this)
         };
         if (type === 'collection' &&
-           !(this.parentModel['nFolders'] === 0 && this.parentModel['size'] === 0)) {
+           (this.parentModel.get('nFolders') !== 0 || this.parentModel.get('size') !== 0)) {
             params = _.extend({
                 name: this.parentModel.escape('name'),
                 additionalText: '<b>' + this.parentModel.escape('name') + '</b>' +

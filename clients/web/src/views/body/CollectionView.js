@@ -27,31 +27,7 @@ var CollectionView = View.extend({
     events: {
         'click .g-edit-collection': 'editCollection',
         'click .g-collection-access-control': 'editAccess',
-        'click .g-delete-collection': function () {
-            confirm({
-                text: 'Are you sure you want to delete the collection <b>' +
-                      this.model.escape('name') + '</b>?',
-                yesText: 'Delete',
-                escapedHtml: true,
-                additionalText: '<b>' + this.model.escape('name') + '</b>' +
-                                ' contains <b>' + this.model.escape('nFolders') +
-                                ' folders</b> taking up <b>' +
-                                formatSize(this.model.escape('size')) + '</b>',
-                msgConfirmation: true,
-                name: this.model.escape('name'),
-                confirmCallback: _.bind(function () {
-                    this.model.on('g:deleted', function () {
-                        events.trigger('g:alert', {
-                            icon: 'ok',
-                            text: 'Collection deleted.',
-                            type: 'success',
-                            timeout: 4000
-                        });
-                        router.navigate('collections', {trigger: true});
-                    }).destroy();
-                }, this)
-            });
-        }
+        'click .g-delete-collection': 'deleteConfirmation'
     },
 
     initialize: function (settings) {
@@ -162,6 +138,37 @@ var CollectionView = View.extend({
                 this.hierarchyWidget.refreshFolderList();
             }
         }, this);
+    },
+
+    deleteConfirmation: function () {
+        let params = {
+            text: 'Are you sure you want to delete the collection <b>' +
+                  this.model.escape('name') + this.model.escape('nFolders') + '</b>?',
+            yesText: 'Delete',
+            escapedHtml: true,
+            confirmCallback: _.bind(function () {
+                this.model.on('g:deleted', function () {
+                    events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'Collection deleted.',
+                        type: 'success',
+                        timeout: 4000
+                    });
+                    router.navigate('collections', {trigger: true});
+                }).destroy();
+            }, this)
+        }
+        if (this.model.get('nFolders') !== 0 || this.model.get('size') !== 0) {
+            params = _.extend({
+                additionalText: '<b>' + this.model.escape('name') + '</b>' +
+                                ' contains <b>' + this.model.escape('nFolders') +
+                                ' folders</b> taking up <b>' +
+                                formatSize(this.model.escape('size')) + '</b>',
+                msgConfirmation: true,
+                name: this.model.escape('name')
+            }, params);
+        }
+        confirm(params);
     }
 }, {
     /**
