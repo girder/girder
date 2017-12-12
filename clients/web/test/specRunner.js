@@ -71,8 +71,6 @@ page.onConsoleMessage = function (msg) {
         var screenshotFile = artifactDir + '/screenshot_' + testName + '_' + screenshotTime + '.png';
         page.render(screenshotFile);
         console.log('Created screenshot: ' + screenshotFile);
-        console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
-            fs.workingDirectory + '/' + screenshotFile + '</DartMeasurementFile>');
 
         if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
@@ -157,8 +155,6 @@ page.onError = function (msg, trace) {
     var screenshotFile = artifactDir + '/screenshot_' + testName + '_error.png';
     page.render(screenshotFile);
     console.log('Created error screenshot: ' + screenshotFile);
-    console.log('<DartMeasurementFile name="PhantomErrorScreenshot" type="image/png">' +
-        fs.workingDirectory + '/' + screenshotFile + '</DartMeasurementFile>');
     phantom.exit(1);
 };
 
