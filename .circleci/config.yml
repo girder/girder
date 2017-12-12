@@ -26,7 +26,7 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: pip install -e .[plugins,sftp] clients/python -r requirements-dev.txt
+          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
           # "requirements-dev.txt" must be run from the "girder" working directory
           working_directory: girder
@@ -38,7 +38,7 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Run CTest
-          command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: python
             PYTHON_VERSION: 2.7
@@ -81,7 +81,7 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: pip install -e .[plugins,sftp] clients/python -r requirements-dev.txt
+          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -116,7 +116,7 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Run CTest
-          command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: python
             PYTHON_VERSION: 3.4
@@ -156,7 +156,7 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Run CTest
-          command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: browser
             PYTHON_VERSION: 3.4
@@ -167,17 +167,17 @@ jobs:
       - run:
           name: Reduce workspace size
           command: |
-            find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+            find . | grep --extended-regexp "(__pycache__|\.pyc|\.pyo$)" | xargs rm --recursive --force
             pyclean girder
             pyclean girder_build
             pyclean girder_env
             # We don't need the packaging environment
-            rm -rf girder_build/env
+            rm --recursive --force girder_build/env
             # Remove node_module caches
-            rm -rf girder/node_modules/.cache
+            rm --recursive --force girder/node_modules/.cache
             # Aggresively remove recursed node modules; we only need enough of
             # the node_modules to perform javascript coverage aggregation
-            find girder/node_modules/ -mindepth 1 -name node_modules -exec rm -rf {} \+
+            find girder/node_modules/ -mindepth 1 -name node_modules -exec rm --recursive --force {} \+
       - store_artifacts:
           path: girder/build/test/artifacts
       - persist_to_workspace:
@@ -200,25 +200,25 @@ jobs:
           path: girder
       - run:
           name: Get rid of existing versions of Mongo
-          command: sudo rm -f /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
+          command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
       - run:
           # boto doesn't work as a library if there is a /etc/boto.cfg file
           # from a different version of python, so remove the file.
           # https://github.com/boto/boto/issues/3741
           name: allow boto to work with python 3
-          command: sudo rm -f /etc/boto.cfg
+          command: sudo rm --force /etc/boto.cfg
       - run:
           name: Install ansible
           command: pip install ansible
       - run:
           name: Install Galaxy requirements
-          command: ansible-galaxy install -r girder/devops/ansible/examples/girder-dev-environment/requirements.yml
+          command: ansible-galaxy install --role-file=girder/devops/ansible/examples/girder-dev-environment/requirements.yml
           environment:
             # Include paths for local "girder" role and external roles required by playbook
             ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
           name: Install Girder via ansible
-          command: pyenv exec ansible-playbook -i "localhost," -c local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'2.6.12'}"
+          command: pyenv exec ansible-playbook --inventory-file="localhost," --connection=local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'2.6.12'}"
           environment:
             ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
@@ -227,7 +227,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install -e .[plugins,sftp] clients/python -r requirements-dev.txt
+          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
@@ -243,11 +243,11 @@ jobs:
             JASMINE_TIMEOUT: 15000
       - run:
           name: make
-          command: make -j 3
+          command: make --jobs=3
           working_directory: girder_build
       - run:
           name: CTest
-          command: ctest -j 3 -VV -L girder_integration
+          command: ctest --parallel 3 --extra-verbose --label-regex girder_integration
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
@@ -274,7 +274,7 @@ jobs:
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Run CTest
-          command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: coverage
             PYTHON_VERSION: 2.7
@@ -299,17 +299,17 @@ jobs:
           path: girder
       - run:
           name: Get rid of existing versions of Mongo
-          command: sudo rm -f /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
+          command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
       - run:
           # The "d3" npm package (required by some Girder plugins) has an optional dependency of
           # "canvas", which requires "node-gyp" to build. node-gyp strictly requires Python 2
           # (https://www.npmjs.com/package/node-gyp), so install it first before switching to
           # Python 3.
           name: install node-gyp
-          command: npm install -g node-gyp
+          command: npm install --global node-gyp
       - run:
           name: allow boto to work with python 3
-          command: sudo rm -f /etc/boto.cfg
+          command: sudo rm --force /etc/boto.cfg
       - run:
           name: Set up Python 3.5
           command: |
@@ -326,13 +326,13 @@ jobs:
           command: pip install ansible
       - run:
           name: Install Galaxy requirements
-          command: ansible-galaxy install -r girder/devops/ansible/examples/girder-dev-environment/requirements.yml
+          command: ansible-galaxy install --role-file=girder/devops/ansible/examples/girder-dev-environment/requirements.yml
           environment:
             ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
           name: Install Girder via ansible
           # Use the latest mongo that Stouts supports
-          command: pyenv exec ansible-playbook -i "localhost," -c local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.4'}"
+          command: pyenv exec ansible-playbook --inventory-file="localhost," --connection=local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.4'}"
           environment:
             ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
@@ -341,7 +341,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install -e .[plugins,sftp] clients/python -r requirements-dev.txt
+          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
@@ -355,11 +355,11 @@ jobs:
           working_directory: girder_build
       - run:
           name: make
-          command: make -j 3
+          command: make --jobs=3
           working_directory: girder_build
       - run:
           name: CTest
-          command: ctest -j 3 -VV -L girder_integration
+          command: ctest --parallel 3 --extra-verbose --label-regex girder_integration
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
@@ -386,7 +386,7 @@ jobs:
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Run CTest
-          command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: coverage
             PYTHON_VERSION: 3.4

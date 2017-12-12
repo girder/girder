@@ -5,18 +5,18 @@ MAINTAINER Kitware, Inc. <kitware@kitware.com>
 USER root
 
 # Install Node.js 6
-RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
-  && apt-get install -y nodejs \
-  && npm install -g npm
+RUN curl --silent --location https://deb.nodesource.com/setup_6.x | bash - \
+  && apt-get install --assume-yes nodejs \
+  && npm install --global npm
 
 # Install Girder system prereqs (including those for all plugins)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --assume-yes \
     libldap2-dev \
     libsasl2-dev
 
 # Install Girder development prereqs
 # CMake < 3.1 does not install properly from binaries, so fetch 3.0 from packages
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install --assume-yes \
     cmake
 
 USER circleci
