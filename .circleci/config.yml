@@ -171,6 +171,8 @@ jobs:
             pyclean girder
             pyclean girder_build
             pyclean girder_env
+            # We don't need the packaging environment
+            rm -rf girder_build/env
       - store_artifacts:
           path: girder/build/test/artifacts
       - persist_to_workspace:
