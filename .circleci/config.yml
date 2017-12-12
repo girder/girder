@@ -165,10 +165,6 @@ jobs:
             JASMINE_TIMEOUT: 15000
           working_directory: girder_build
       - run:
-          name: Rename javascript coverage files to avoid conflicts
-          command: for file in *.cvg; do mv "$file" "${file%.cvg}webbuild.cvg"; done
-          working_directory: girder/build/test/coverage/web_temp
-      - run:
           name: Reduce workspace size
           command: |
             find . | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
@@ -182,7 +178,9 @@ jobs:
           paths:
             - girder/.coverage.*
             - girder/node_modules
-            - girder/build/test/coverage/web_temp/*.cvg
+            # The "girder.coveragerc" and ".gitignore" files inside
+            # "girder/build/test/coverage/web_temp/" will conflict, so specify files more exactly
+            - girder/build/test/coverage/web_temp/coverage_*.json
             - girder_build
             - girder_env
 
@@ -232,10 +230,6 @@ jobs:
           name: Create Girder build directory
           command: mkdir girder_build
       - run:
-          name: Create various subdirectories
-          command: mkdir -p build/test/coverage/web_temp && mkdir -p build/test/coverage/web
-          working_directory: girder
-      - run:
           name: Build Girder web client
           command: girder-install web --all-plugins --dev | cat
       - run:
@@ -260,17 +254,13 @@ jobs:
       #     working_directory: girder_build
       #    environment:
       #      JASMINE_TIMEOUT: 15000
-      - run:
-          name: Rename javascript coverage files to avoid conflicts
-          command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
-          working_directory: girder/build/test/coverage/web_temp
       - store_artifacts:
           path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
             - girder/.coverage.*
-            - girder/build/test/coverage/web_temp/*.cvg
+            - girder/build/test/coverage/web_temp/coverage_*.json
 
   py2_coverage:
     docker:
@@ -361,10 +351,6 @@ jobs:
           name: Create Girder build directory
           command: mkdir girder_build
       - run:
-          name: Create various subdirectories
-          command: mkdir -p build/test/coverage/web_temp && mkdir -p build/test/coverage/web
-          working_directory: girder
-      - run:
           name: Build Girder web client
           command: girder-install web --all-plugins --dev | cat
       - run:
@@ -381,17 +367,13 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-      - run:
-          name: Rename javascript coverage files to avoid conflicts
-          command: for file in *.cvg; do mv "$file" "${file%.cvg}integration.cvg"; done
-          working_directory: girder/build/test/coverage/web_temp
       - store_artifacts:
           path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
             - girder/.coverage.*
-            - girder/build/test/coverage/web_temp/*.cvg
+            - girder/build/test/coverage/web_temp/coverage_*.json
 
   py3_coverage:
     docker:

@@ -16,7 +16,7 @@ function(javascript_tests_init)
             "report"
             "--config" "${PROJECT_SOURCE_DIR}/.istanbul.yml"
             "--root" "${PROJECT_SOURCE_DIR}/build/test/coverage/web_temp"
-            "--include" "*.cvg"
+            "--include" "coverage*.json"
             "--dir" "${PROJECT_SOURCE_DIR}/build/test/coverage/web"
             "text-summary" "lcovonly" "cobertura" "html"
   )
@@ -233,9 +233,6 @@ function(add_web_client_test case specFile)
   endif()
 
   if (NOT fn_NOCOVERAGE)
-    set_property(TEST ${testname} APPEND PROPERTY ENVIRONMENT
-      "COVERAGE_FILE=${PROJECT_SOURCE_DIR}/build/test/coverage/web_temp/${case}.cvg"
-    )
     set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
     set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
   endif()
