@@ -310,7 +310,10 @@ class SystemTestCase(base.TestCase):
         self.assertHasKeys(resp.json['failed'], ['bad_json', 'bad_yaml'])
         self.assertIn('traceback', resp.json['failed']['bad_json'])
         self.assertIn('traceback', resp.json['failed']['bad_yaml'])
-        self.assertIn('ValueError:', resp.json['failed']['bad_json']['traceback'])
+        # Python < 3.5 throw ValueError, >= 3.5 throw JSONDecodeError
+        self.assertTrue(
+            'ValueError:' in resp.json['failed']['bad_json']['traceback'] or
+            'JSONDecodeError:' in resp.json['failed']['bad_json']['traceback'])
         self.assertIn('ScannerError:', resp.json['failed']['bad_yaml']['traceback'])
 
         self.unmockPluginDir()

@@ -148,12 +148,11 @@ class WebClientTestEndpoints(Resource):
 class WebClientTestCase(base.TestCase):
     def setUp(self):
         self.specFile = os.environ['SPEC_FILE']
-        self.coverageFile = os.environ.get('COVERAGE_FILE', '')
-        assetstoreType = os.environ['ASSETSTORE_TYPE']
+        self.assetstoreType = os.environ['ASSETSTORE_TYPE']
         self.webSecurity = os.environ.get('WEB_SECURITY', 'true')
         if self.webSecurity != 'false':
             self.webSecurity = 'true'
-        base.TestCase.setUp(self, assetstoreType)
+        base.TestCase.setUp(self, self.assetstoreType)
         # One of the web client tests uses this db, so make sure it is cleared
         # ahead of time.  This still allows tests to be run in parallel, since
         # nothing should be stored in this db
@@ -172,14 +171,15 @@ class WebClientTestCase(base.TestCase):
             baseUrl = os.environ['BASEURL']
 
         cmd = (
-            os.path.join(
-                ROOT_DIR, 'node_modules', '.bin', 'phantomjs'),
+            os.path.join(ROOT_DIR, 'node_modules', '.bin', 'phantomjs'),
             '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
             'http://localhost:%s%s' % (os.environ['GIRDER_PORT'], baseUrl),
             self.specFile,
-            self.coverageFile,
-            os.environ.get('JASMINE_TIMEOUT', '')
+            os.environ.get('JASMINE_TIMEOUT', ''),
+            # Disambiguate repeat tests run on the same spec file, by adding any non-default
+            # assetstore types to the test output files
+            self.assetstoreType if self.assetstoreType != 'filesystem' else ''
         )
 
         # phantomjs occasionally fails to load javascript files.  This appears

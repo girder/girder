@@ -30,17 +30,13 @@ module.exports = function (grunt) {
     const progress = !isTrue(grunt.option('no-progress'));
     const isWatch = isTrue(grunt.option('watch'));
     const pollingWatch = isTrue(process.env.WATCH_USEPOLLING);
-    // Force environment to 'dev' if in watch mode
-    const environment = isWatch ? 'dev' : grunt.config.get('environment');
+    const isDev = grunt.config.get('environment') === 'dev' || isWatch;
 
     // Set some environment variables
-    if (!process.env.BABEL_ENV) {
-        // https://babeljs.io/docs/usage/babelrc/#env-option
-        process.env.BABEL_ENV = environment;
-    }
     if (!process.env.NODE_ENV) {
-        // https://stackoverflow.com/a/16979503
-        process.env.NODE_ENV = environment;
+        // This is not explicitly used for anything in Girder, but some Npm packages may respect it.
+        // Babel will also fall back to using this if BABEL_ENV is not defined.
+        process.env.NODE_ENV = isDev ? 'development' : 'production';
     }
 
     // Load the global webpack config
@@ -55,7 +51,7 @@ module.exports = function (grunt) {
     );
 
     // Extend the global webpack config options with environment-specific changes
-    if (environment === 'dev') {
+    if (isDev) {
         updateWebpackConfig({
             devtool: 'source-map',
             cache: true,
@@ -66,6 +62,19 @@ module.exports = function (grunt) {
                 })
             ]
         });
+
+        // Add coverage support (via Istanbul) to Babel
+        const istanbulPlugin = require.resolve('babel-plugin-istanbul');
+        _.each(webpackConfig.module.rules, (rule) => {
+            _.each(_.where(rule.use, {loader: 'babel-loader'}), (useEntry) => {
+                useEntry.options.plugins = [
+                    [istanbulPlugin, {
+                        exclude: ['**/*.pug', '**/*.jade', 'node_modules/**/*']
+                    }]
+                ];
+            });
+        });
+
         if (isWatch) {
             updateWebpackConfig({
                 watch: true

@@ -60,7 +60,7 @@ echo "Detected api version ${version}"
 
 # Connect to the REST API and request the version
 timeout=0
-until [ $timeout -eq 5 ]; do
+until [ $timeout -eq 30 ]; do
     json=$("${CURL}" --connect-timeout 5 --max-time 5 --silent http://localhost:${GIRDER_PORT}/api/v1/system/version)
     if [ -n "$json" ] && [[ $json == *shortSHA* ]]; then
         break

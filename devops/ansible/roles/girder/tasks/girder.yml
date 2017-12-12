@@ -9,6 +9,7 @@
         - git
         - libffi-dev
         - build-essential
+        - libgif-dev
         - libjpeg-dev
         - libssl-dev
         - zlib1g-dev
@@ -64,7 +65,7 @@
 
 - name: Download Girder
   git:
-    repo: "https://github.com/girder/girder.git"
+    repo: "{{ girder_repo }}"
     dest: "{{ girder_path }}"
     version: "{{ girder_version }}"
     update: "{{ girder_update|default(omit) }}"

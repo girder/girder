@@ -1,6 +1,5 @@
 set(server_port 20200)
 set(flake8_config "${PROJECT_SOURCE_DIR}/tests/flake8.cfg")
-set(coverage_html_dir "${PROJECT_SOURCE_DIR}/clients/web/dev/built/py_coverage")
 
 if(PYTHON_BRANCH_COVERAGE)
   set(_py_branch_cov True)
@@ -48,23 +47,23 @@ function(python_tests_init)
     add_test(
       NAME py_coverage_html
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html "--rcfile=${PYTHON_COVERAGE_CONFIG}" -d "${coverage_html_dir}"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html "--rcfile=${PYTHON_COVERAGE_CONFIG}" -d "${PROJECT_SOURCE_DIR}/build/test/coverage/server_html"
               "--title=Girder Coverage Report"
     )
     add_test(
       NAME py_coverage_xml
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml "--rcfile=${PYTHON_COVERAGE_CONFIG}" -o "${PROJECT_BINARY_DIR}/coverage.xml"
+      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml "--rcfile=${PYTHON_COVERAGE_CONFIG}" -o "${PROJECT_SOURCE_DIR}/build/test/coverage/server.xml"
     )
     set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
     set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
     set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
 
-    set_property(TEST py_coverage PROPERTY LABELS girder_python)
-    set_property(TEST py_coverage_reset PROPERTY LABELS girder_python)
-    set_property(TEST py_coverage_combine PROPERTY LABELS girder_python)
-    set_property(TEST py_coverage_html PROPERTY LABELS girder_python)
-    set_property(TEST py_coverage_xml PROPERTY LABELS girder_python)
+    set_property(TEST py_coverage PROPERTY LABELS girder_coverage)
+    set_property(TEST py_coverage_reset PROPERTY LABELS girder_python girder_integration)
+    set_property(TEST py_coverage_combine PROPERTY LABELS girder_coverage)
+    set_property(TEST py_coverage_html PROPERTY LABELS girder_coverage)
+    set_property(TEST py_coverage_xml PROPERTY LABELS girder_coverage)
   endif()
 endfunction()
 
@@ -75,7 +74,7 @@ function(add_python_style_test name input)
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
       COMMAND "${FLAKE8_EXECUTABLE}" "--config=${flake8_config}" "${input}"
     )
-    set_property(TEST "${name}" PROPERTY LABELS girder_static_analysis)
+    set_property(TEST "${name}" PROPERTY LABELS girder_python)
   endif()
 endfunction()
 

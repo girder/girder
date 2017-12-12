@@ -53,9 +53,13 @@ if(RUN_CORE_TESTS)
   add_python_test(setting)
   add_python_test(sftp)
   add_python_test(stream BIND_SERVER TIMEOUT 90)
+  # The system test depends on javascript-generate version information, so add
+  # it to the integration group.
   add_python_test(system)
+  set_property(TEST server_system PROPERTY LABELS girder_integration)
   # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
   add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
+  set_property(TEST server_upload PROPERTY LABELS girder_integration)
   add_python_test(user)
   add_python_test(path_utilities)
   add_python_test(setup_database)
@@ -68,7 +72,13 @@ if(RUN_CORE_TESTS)
   add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE filesystem)
   add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfs)
   add_web_client_test(data_gridfsrs "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfsrs RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
+  if (BUILD_JAVASCRIPT_TESTS)
+    set_property(TEST web_client_data_gridfsrs PROPERTY LABELS girder_integration)
+  endif()
   add_web_client_test(data_gridfsshard "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE gridfsshard RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
+  if (BUILD_JAVASCRIPT_TESTS)
+    set_property(TEST web_client_data_gridfsshard PROPERTY LABELS girder_integration)
+  endif()
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/clients/web/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
     PLUGIN_DIR "${PROJECT_SOURCE_DIR}/tests/test_plugins"
@@ -102,8 +112,8 @@ if(RUN_CORE_TESTS)
   add_python_test(external_data_plugin
     EXTERNAL_DATA "plugins/has_external_data/plugin_test_file.txt"
   )
-  set_property(TEST server_external_data_core PROPERTY LABELS girder_devel)
-  set_property(TEST server_external_data_plugin PROPERTY LABELS girder_devel)
+  set_property(TEST server_external_data_core PROPERTY LABELS girder_integration)
+  set_property(TEST server_external_data_plugin PROPERTY LABELS girder_integration)
 
   add_subdirectory(clients)
   add_subdirectory(packaging)

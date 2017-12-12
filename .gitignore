@@ -9,8 +9,6 @@ docs/_output
 .*.swp
 .*.swo
 .vagrant
-phantom-*.png
-phantom_*.png
 girder-*.tar.gz
 __pycache__
 htmlcov
