@@ -1,12 +1,9 @@
 set(CTEST_SOURCE_DIRECTORY "$ENV{CIRCLE_WORKING_DIRECTORY}/girder")
 set(CTEST_BINARY_DIRECTORY "$ENV{CIRCLE_WORKING_DIRECTORY}/girder_build")
 
-include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
-
 set(test_group $ENV{TEST_GROUP})
 set(branch $ENV{CIRCLE_BRANCH})
-set(CTEST_SITE "CircleCI")
-set(CTEST_BUILD_NAME "Linux-${branch}-$ENV{PYTHON_VERSION}-${test_group}")
+set(CTEST_PROJECT_NAME "girder")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
 if(test_group STREQUAL python)
