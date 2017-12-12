@@ -33,8 +33,6 @@ var spec = args[1];
 var page = new WebPage();
 
 // Determine the test name to be used for output files
-var coverageDir = 'build/test/coverage/web_temp';
-fs.makeTree(coverageDir);
 var specPathComponents = spec.split('/');
 var pluginName =
     specPathComponents[specPathComponents.length - 2] === 'plugin_tests'
@@ -44,6 +42,8 @@ var specName = specPathComponents[specPathComponents.length - 1].replace(/\.js$/
 var specOptions = args[3];
 var testName = pluginName + '_' + specName + (specOptions ? '_' + specOptions : '');
 
+var coverageDir = 'build/test/coverage/web_temp';
+fs.makeTree(coverageDir);
 var coverageFile = coverageDir + '/coverage_' + testName + '.json';
 if (fs.exists(coverageFile)) {
     fs.remove(coverageFile);
