@@ -148,9 +148,6 @@ jobs:
       - restore_cache:
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
-          name: Link node into the /usr/local/bin directory so packaging tests will use the default python
-          command: sudo ln /usr/bin/node /usr/local/bin/node
-      - run:
           name: Build Girder web client
           command: girder-install web --all-plugins --dev | cat
           environment:
