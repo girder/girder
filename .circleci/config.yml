@@ -173,6 +173,11 @@ jobs:
             pyclean girder_env
             # We don't need the packaging environment
             rm -rf girder_build/env
+            # Remove node_module caches
+            rm -rf girder/node_modules/.cache
+            # Aggresively remove recursed node modules; we only need enough of
+            # the node_modules to perform javascript coverage aggregation
+            find girder/node_modules/ -mindepth 1 -name node_modules -exec rm -rf {} \+
       - store_artifacts:
           path: girder/build/test/artifacts
       - persist_to_workspace:
