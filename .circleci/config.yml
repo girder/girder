@@ -202,10 +202,6 @@ jobs:
           name: Get rid of existing versions of Mongo
           command: sudo rm -f /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
       - run:
-          # This has to be done in a python 2 context
-          name: install node-gyp
-          command: npm install -g node-gyp
-      - run:
           # boto doesn't work as a library if there is a /etc/boto.cfg file
           # from a different version of python, so remove the file.
           # https://github.com/boto/boto/issues/3741
@@ -255,12 +251,6 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-      # - run:
-      #     name: CTest full
-      #     command: ctest -j 3 --output-on-failure
-      #     working_directory: girder_build
-      #    environment:
-      #      JASMINE_TIMEOUT: 15000
       - store_artifacts:
           path: girder/build/test/artifacts
       - persist_to_workspace:
@@ -282,10 +272,6 @@ jobs:
       - run:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      # - run:
-      #     # We should be able to alter the ci_test.cmake to do this
-      #     name: Run CMake
-      #     command: cmake ../girder -DPYTHON_VERSION=3.4 -DPYTHON_EXECUTABLE=/home/circleci/project/girder_env/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/project/girder_env/bin/virtualenv
       - run:
           name: Run CTest
           command: ctest -VV -S "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
@@ -315,7 +301,10 @@ jobs:
           name: Get rid of existing versions of Mongo
           command: sudo rm -f /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
       - run:
-          # This has to be done in a python 2 context
+          # The "d3" npm package (required by some Girder plugins) has an optional dependency of
+          # "canvas", which requires "node-gyp" to build. node-gyp strictly requires Python 2
+          # (https://www.npmjs.com/package/node-gyp), so install it first before switching to
+          # Python 3.
           name: install node-gyp
           command: npm install -g node-gyp
       - run:
