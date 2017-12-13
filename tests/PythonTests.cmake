@@ -28,43 +28,41 @@ endif()
 find_program(PYTEST_EXECUTABLE NAMES pytest)
 
 function(python_tests_init)
-  if(PYTHON_COVERAGE)
-    add_test(
-      NAME py_coverage_reset
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase "--rcfile=${PYTHON_COVERAGE_CONFIG}"
-    )
-    add_test(
-      NAME py_coverage_combine
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" combine
-    )
-    add_test(
-      NAME py_coverage
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report "--rcfile=${PYTHON_COVERAGE_CONFIG}" --fail-under=${COVERAGE_MINIMUM_PASS}
-    )
-    add_test(
-      NAME py_coverage_html
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html "--rcfile=${PYTHON_COVERAGE_CONFIG}" -d "${PROJECT_SOURCE_DIR}/build/test/coverage/server_html"
-              "--title=Girder Coverage Report"
-    )
-    add_test(
-      NAME py_coverage_xml
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml "--rcfile=${PYTHON_COVERAGE_CONFIG}" -o "${PROJECT_SOURCE_DIR}/build/test/coverage/server.xml"
-    )
-    set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
-    set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
-    set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
+  add_test(
+    NAME py_coverage_reset
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase "--rcfile=${PYTHON_COVERAGE_CONFIG}"
+  )
+  add_test(
+    NAME py_coverage_combine
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" combine
+  )
+  add_test(
+    NAME py_coverage
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report "--rcfile=${PYTHON_COVERAGE_CONFIG}" --fail-under=${COVERAGE_MINIMUM_PASS}
+  )
+  add_test(
+    NAME py_coverage_html
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html "--rcfile=${PYTHON_COVERAGE_CONFIG}" -d "${PROJECT_SOURCE_DIR}/build/test/coverage/server_html"
+            "--title=Girder Coverage Report"
+  )
+  add_test(
+    NAME py_coverage_xml
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml "--rcfile=${PYTHON_COVERAGE_CONFIG}" -o "${PROJECT_SOURCE_DIR}/build/test/coverage/server.xml"
+  )
+  set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
+  set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
+  set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
 
-    set_property(TEST py_coverage PROPERTY LABELS girder_coverage)
-    set_property(TEST py_coverage_reset PROPERTY LABELS girder_python girder_integration)
-    set_property(TEST py_coverage_combine PROPERTY LABELS girder_coverage)
-    set_property(TEST py_coverage_html PROPERTY LABELS girder_coverage)
-    set_property(TEST py_coverage_xml PROPERTY LABELS girder_coverage)
-  endif()
+  set_property(TEST py_coverage PROPERTY LABELS girder_coverage)
+  set_property(TEST py_coverage_reset PROPERTY LABELS girder_python girder_integration)
+  set_property(TEST py_coverage_combine PROPERTY LABELS girder_coverage)
+  set_property(TEST py_coverage_html PROPERTY LABELS girder_coverage)
+  set_property(TEST py_coverage_xml PROPERTY LABELS girder_coverage)
 endfunction()
 
 function(add_python_style_test name input)
@@ -114,21 +112,13 @@ function(add_python_test case)
     set(name ${name}.${fn_SUBMODULE})
   endif()
 
-  if(PYTHON_COVERAGE)
-    add_test(
-      NAME ${name}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --parallel-mode "--rcfile=${PYTHON_COVERAGE_CONFIG}"
-              "--source=girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
-              -m unittest -v ${module}
-    )
-  else()
-    add_test(
-      NAME ${name}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${PYTHON_EXECUTABLE}" -m unittest -v ${module}
-    )
-  endif()
+  add_test(
+    NAME ${name}
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --parallel-mode "--rcfile=${PYTHON_COVERAGE_CONFIG}"
+            "--source=girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
+            -m unittest -v ${module}
+  )
 
   if(fn_DBNAME)
     set(_db_name ${fn_DBNAME})
@@ -170,10 +160,8 @@ function(add_python_test case)
     set_property(TEST ${name} PROPERTY RUN_SERIAL ON)
   endif()
 
-  if(PYTHON_COVERAGE)
-    set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
-    set_property(TEST py_coverage_combine APPEND PROPERTY DEPENDS ${name})
-  endif()
+  set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
+  set_property(TEST py_coverage_combine APPEND PROPERTY DEPENDS ${name})
 
   if(fn_EXTERNAL_DATA)
     set(_data_files "")
@@ -195,9 +183,7 @@ function(add_pytest_test case)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PYTEST_EXECUTABLE}" --tb=long --cov-append
   )
-  if(PYTHON_COVERAGE)
-    set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
-    set_property(TEST py_coverage_combine APPEND PROPERTY DEPENDS ${name})
-  endif()
+  set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
+  set_property(TEST py_coverage_combine APPEND PROPERTY DEPENDS ${name})
   set_property(TEST ${name} PROPERTY LABELS girder_python)
 endfunction()
