@@ -38,13 +38,19 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Run CTest
-          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake" --exclude-regex '^server_pytest_core$'
           environment:
             TEST_GROUP: python
             PYTHON_VERSION: 2.7
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/virtualenv
           working_directory: girder_build
+      - run:
+          name: Run pytest
+          command: pytest --cov-append --tb=long --junit-xml="$CIRCLE_WORKING_DIRECTORY/girder/build/test/artifacts/pytest-2.7.xml"
+          working_directory: girder
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - run:
           name: Reduce workspace size
           command: |
@@ -116,13 +122,19 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Run CTest
-          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake" --exclude-regex '^server_pytest_core$'
           environment:
             TEST_GROUP: python
             PYTHON_VERSION: 3.4
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
+      - run:
+          name: Run pytest
+          command: pytest --cov-append --tb=long --junit-xml="$CIRCLE_WORKING_DIRECTORY/girder/build/test/artifacts/pytest-3.4.xml"
+          working_directory: girder
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
