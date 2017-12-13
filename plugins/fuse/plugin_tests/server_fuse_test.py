@@ -1,31 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#############################################################################
-
 import datetime
 import fuse
 import os
+import six
 import stat
 import tempfile
 import time
 
 from girder import config
 from girder.constants import AccessType
+from girder.models.file import File
+from girder.models.user import User
 from tests import base
 
 
@@ -41,15 +28,22 @@ def tearDownModule():
     curConfig = config.getConfig()
     tempdir = curConfig['server_fuse']['path']
     base.stopServer()
-    os.rmdir(tempdir)
+    retries = 0
+    while retries < 50:
+        try:
+            os.rmdir(tempdir)
+            break
+        except OSError:
+            retries = 1
+            time.sleep(0.1)
 
 
 class ServerFuseTestCase(base.TestCase):
     def setUp(self):
         super(ServerFuseTestCase, self).setUp()
-        self.admin = self.model('user').findOne({'login': 'admin'})
-        self.user = self.model('user').findOne({'login': 'user'})
-        self.user2 = self.model('user').findOne({'login': 'second'})
+        self.admin = User().findOne({'login': 'admin'})
+        self.user = User().findOne({'login': 'user'})
+        self.user2 = User().findOne({'login': 'second'})
         curConfig = config.getConfig()
         self.mainMountPath = curConfig['server_fuse']['path']
         self.extraMountPath = tempfile.mkdtemp()
@@ -88,9 +82,8 @@ class ServerFuseTestCase(base.TestCase):
             self.assertFalse(os.path.exists(os.path.join(mountpath, fullpath + '.other')))
             size = os.path.getsize(os.path.join(mountpath, fullpath))
             if self.knownPaths[fullpath]:
-                self.assertEqual(
-                    open(os.path.join(mountpath, fullpath)).read().strip(),
-                    self.knownPaths[fullpath])
+                with open(os.path.join(mountpath, fullpath)) as file1:
+                    self.assertEqual(file1.read().strip(), self.knownPaths[fullpath])
                 self.assertGreater(size, 0)
             stat = os.stat(os.path.join(mountpath, fullpath))
             # The mtime should be recent
@@ -123,12 +116,12 @@ class ServerFuseTestCase(base.TestCase):
             canSee = not fullpath.startswith('user/admin')
             self.assertEqual(os.path.exists(os.path.join(mountpath, fullpath)), canSee)
             if canSee and self.knownPaths[fullpath]:
-                self.assertEqual(
-                    open(os.path.join(mountpath, fullpath)).read().strip(),
-                    self.knownPaths[fullpath])
+                with open(os.path.join(mountpath, fullpath)) as file1:
+                    self.assertEqual(file1.read().strip(), self.knownPaths[fullpath])
             elif self.knownPaths[fullpath]:
                 with self.assertRaises(IOError):
-                    open(os.path.join(mountpath, fullpath))
+                    with open(os.path.join(mountpath, fullpath)) as file1:
+                        pass
             path = fullpath
             # All parents should be folders and have zero size.
             while '/' in path:
@@ -138,7 +131,7 @@ class ServerFuseTestCase(base.TestCase):
 
     def testSecondUserMount(self):
         """
-        The second non-admin user should only see publick items and folders.
+        The second non-admin user should only see public items and folders.
         """
         from girder.plugins.fuse import server_fuse
 
@@ -153,12 +146,12 @@ class ServerFuseTestCase(base.TestCase):
             canSee = 'Public' in fullpath
             self.assertEqual(os.path.exists(os.path.join(mountpath, fullpath)), canSee)
             if canSee:
-                self.assertEqual(
-                    open(os.path.join(mountpath, fullpath)).read().strip(),
-                    self.knownPaths[fullpath])
+                with open(os.path.join(mountpath, fullpath)) as file1:
+                    self.assertEqual(file1.read().strip(), self.knownPaths[fullpath])
             elif self.knownPaths[fullpath]:
                 with self.assertRaises(IOError):
-                    open(os.path.join(mountpath, fullpath))
+                    with open(os.path.join(mountpath, fullpath)) as file1:
+                        pass
             path = fullpath
             # All parents should be folders and have zero size.
             while '/' in path:
@@ -171,22 +164,25 @@ class ServerFuseTestCase(base.TestCase):
         Test that all files report a FUSE path, and that this results in the
         same file as the non-fuse path.
         """
-        files = list(self.model('file').find())
+        files = list(File().find())
         for file in files:
-            adapter = self.model('file').getAssetstoreAdapter(file)
+            adapter = File().getAssetstoreAdapter(file)
             filesystempath = adapter.fullPath(file)
-            filepath = self.model('file').getFilePath(file)
-            fusepath = self.model('file').getFuseFilePath(file)
+            filepath = File().getFilePath(file)
+            fusepath = File().getFuseFilePath(file)
             self.assertTrue(os.path.exists(filesystempath))
             self.assertTrue(os.path.exists(filepath))
             self.assertTrue(os.path.exists(fusepath))
             self.assertEqual(filesystempath, filepath)
             self.assertNotEqual(filesystempath, fusepath)
             self.assertEqual(fusepath[:len(self.mainMountPath)], self.mainMountPath)
-            self.assertEqual(open(filepath).read(), open(fusepath).read())
+            with open(filepath) as file1:
+                with open(fusepath) as file2:
+                    self.assertEqual(file1.read(), file2.read())
             subpath = fusepath[len(self.mainMountPath):].lstrip('/')
             if self.knownPaths.get(subpath):
-                self.assertEqual(open(fusepath).read().strip(), self.knownPaths[subpath])
+                with open(fusepath) as file1:
+                    self.assertEqual(file1.read().strip(), self.knownPaths[subpath])
 
     def testFilePathNoFullPath(self):
         """
@@ -195,12 +191,12 @@ class ServerFuseTestCase(base.TestCase):
         """
         from girder.utility.filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 
-        file = self.model('file').findOne()
+        file = File().findOne()
 
         origFullPath = FilesystemAssetstoreAdapter.fullPath
         FilesystemAssetstoreAdapter.fullPath = None
-        filepath = self.model('file').getFilePath(file)
-        fusepath = self.model('file').getFuseFilePath(file)
+        filepath = File().getFilePath(file)
+        fusepath = File().getFuseFilePath(file)
         FilesystemAssetstoreAdapter.fullPath = origFullPath
         self.assertTrue(os.path.exists(filepath))
         self.assertTrue(os.path.exists(fusepath))
@@ -243,17 +239,18 @@ class ServerFuseTestCase(base.TestCase):
         curConfig['server_fuse']['path'] = '/dev/null/nosuchpath'
         self.assertFalse(girder_fuse.startFromConfig())
         fh, temppath = tempfile.mkstemp()
-        os.write(fh, 'contents')
+        os.write(fh, b'contents')
         curConfig['server_fuse']['path'] = temppath
         self.assertFalse(girder_fuse.startFromConfig())
+        os.close(fh)
         os.unlink(temppath)
         curConfig['server_fuse']['path'] = origdir
 
     def testGetServerFusePath(self):
         from girder.plugins.fuse import MAIN_FUSE_KEY, server_fuse
 
-        file = self.model('file').findOne()
-        fusepath = self.model('file').getFuseFilePath(file)
+        file = File().findOne()
+        fusepath = File().getFuseFilePath(file)
         sfpath = server_fuse.getServerFusePath(MAIN_FUSE_KEY, 'file', file)
         self.assertEqual(fusepath, sfpath)
         self.assertIsNone(server_fuse.getServerFusePath('unknown', 'file', file))
@@ -302,7 +299,7 @@ class ServerFuseTestCase(base.TestCase):
         self.assertEqual(attr['st_mode'], 0o400 | stat.S_IFREG)
         self.assertGreater(attr['st_size'], len(self.knownPaths[self.publicFileName]))
         resource['document']['updated'] = datetime.datetime.utcfromtimestamp(time.time() + 1)
-        self.model('file').save(resource['document'])
+        File().save(resource['document'])
         oldmtime = attr['st_mtime']
         resource = op._getPath(self.publicFileName)
         attr = op._stat(resource['document'], resource['model'])
@@ -404,7 +401,11 @@ class ServerFuseTestCase(base.TestCase):
         op = server_fuse.ServerFuse()
         fh = op.open(self.publicFileName, os.O_RDONLY)
         data = op.read(self.publicFileName, 200, 0, fh)
-        self.assertEqual(data.strip(), self.knownPaths[self.publicFileName])
+        if (isinstance(data, six.binary_type) and
+                not isinstance(self.knownPaths[self.publicFileName], six.binary_type)):
+            self.assertEqual(data.decode('utf8').strip(), self.knownPaths[self.publicFileName])
+        else:
+            self.assertEqual(data.strip(), self.knownPaths[self.publicFileName])
         data2 = op.read(self.publicFileName, 4, 2, fh)
         self.assertEqual(data[2:6], data2)
         op.release(self.publicFileName, fh)

@@ -12,7 +12,10 @@ import time
 
 from girder import events, logger, logprint
 from girder.constants import AccessType
-from girder.models.model_base import AccessException, ValidationException
+from girder.exceptions import AccessException, ValidationException
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
 from girder.utility.model_importer import ModelImporter
 from girder.utility import path as path_util
 
@@ -180,20 +183,20 @@ class ServerFuse(fuse.Operations, ModelImporter):
         entries = []
         if model in ('collection', 'user', 'folder'):
             if self.force:
-                folderList = self.model('folder').find({
+                folderList = Folder().find({
                     'parentId': doc['_id'],
                     'parentCollection': model.lower()
                 })
             else:
-                folderList = self.model('folder').childFolders(
+                folderList = Folder().childFolders(
                     parent=doc, parentType=model, user=self.user)
             for folder in folderList:
                 entries.append(self._name(folder, 'folder'))
         if model == 'folder':
-            for item in self.model('folder').childItems(doc):
+            for item in Folder().childItems(doc):
                 entries.append(self._name(item, 'item'))
         elif model == 'item':
-            for file in self.model('item').childFiles(doc):
+            for file in Item().childFiles(doc):
                 entries.append(self._name(file, 'file'))
         return entries
 
@@ -330,7 +333,7 @@ class ServerFuse(fuse.Operations, ModelImporter):
             raise fuse.FuseOSError(errno.EROFS)
         info = {
             'path': path,
-            'handle': self.model('file').open(resource['document']),
+            'handle': File().open(resource['document']),
             'lock': threading.Lock(),
         }
         with self.openFilesLock:
@@ -373,7 +376,7 @@ def unmountAll():
     """
     Unmount all mounted FUSE mounts.
     """
-    for name in fuseMounts.keys():
+    for name in list(fuseMounts.keys()):
         unmountServerFuse(name)
 
 
