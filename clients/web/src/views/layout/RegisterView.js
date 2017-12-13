@@ -75,10 +75,6 @@ var RegisterView = View.extend({
 
             this.$('#g-register-button').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
-        },
-
-        'click a.g-login-link': function () {
-            events.trigger('g:loginUi');
         }
     },
 

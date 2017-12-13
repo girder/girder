@@ -14,27 +14,6 @@ import 'bootstrap/js/dropdown';
  * not logged in.
  */
 var LayoutHeaderUserView = View.extend({
-    events: {
-        'click a.g-login': function () {
-            events.trigger('g:loginUi');
-        },
-
-        'click a.g-register': function () {
-            events.trigger('g:registerUi');
-        },
-
-        'click a.g-logout': logout,
-
-        'click a.g-my-folders': function () {
-            router.navigate('user/' + getCurrentUser().get('_id'), {trigger: true});
-        },
-
-        'click a.g-my-settings': function () {
-            router.navigate('useraccount/' + getCurrentUser().get('_id') +
-                                   '/info', {trigger: true});
-        }
-    },
-
     initialize: function () {
         events.on('g:login', this.render, this);
         events.on('g:login-changed', this.render, this);

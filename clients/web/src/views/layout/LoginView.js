@@ -54,10 +54,6 @@ var LoginView = View.extend({
             }, this));
         },
 
-        'click a.g-register-link': function () {
-            events.trigger('g:registerUi');
-        },
-
         'click a.g-forgot-password': function () {
             events.trigger('g:resetPasswordUi');
         }
