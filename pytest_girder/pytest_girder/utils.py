@@ -220,9 +220,7 @@ def request(path='/', method='GET', params=None, user=None,
         body = getResponseBody(response)
         try:
             response.json = json.loads(body)
-        except Exception:
-            print(url)
-            print(body)
+        except ValueError:
             raise AssertionError('Did not receive JSON response')
 
     if not exception and response.output_status.startswith(b'500'):
