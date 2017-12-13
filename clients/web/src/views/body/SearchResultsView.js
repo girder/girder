@@ -4,7 +4,7 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import router from 'girder/router';
 import SearchResultsTemplate from 'girder/templates/body/searchResults.pug';
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
+import SearchPaginateWidget from 'girder/views/widgets/SearchPaginateWidget';
 import CollectionCollection from 'girder/collections/CollectionCollection';
 import GroupCollection from 'girder/collections/GroupCollection';
 import UserCollection from 'girder/collections/UserCollection';
@@ -24,54 +24,38 @@ var SearchResultsView = View.extend({
 
     initialize: function (settings) {
         this.results = [];
-        this.pageLimit = 5;
+        this.pageLimit = 2;
         this._query = settings.query;
         this._mode = settings.mode;
         this._types = settings.types || ['collection', 'group', 'user', 'folder', 'item'];
 
-        this._collections = {
-            'collection': new CollectionCollection(),
-            'group': new GroupCollection(),
-            'user': new UserCollection()
-            // Wait the PR : search mode set to fetch collection
-            // 'folder': new FolderCollection(),
-            // 'item': new ItemCollection()
-        };
-
         this.paginateWidgets = {};
 
-        let _collectionsPaginateTmp = null;
+        let _paginateTmp = null;
         let res = null;
         let type = null;
 
-        _.each(this._collections, (collection) => {
-            collection.pageLimit = this.pageLimit;
-            collection.on('g:changed', function () {
-                res = this.parseCollection(collection);
-                this.parseResults(res);
-                this.render();
-            }, this).fetch();
-
-            _collectionsPaginateTmp = new PaginateWidget({
+        _.each(this._types, (type) => {
+            _paginateTmp = new SearchPaginateWidget({
                 parentView: this,
-                collection: collection
-                // ADD new changes of search in fetch.
-                // Wait the PR to be merge
-                /*
-                fetchParams = {
-                    query: this._query,
-                    mode: this._mode
-                }
-                */
+                type: [type],
+                query: this._query,
+                mode: this._mode,
+                limit: this.pageLimit
             });
-            type = _.findKey(this._collections, collection);
-            this.paginateWidgets[type] = _collectionsPaginateTmp;
+            this.paginateWidgets[type] = _paginateTmp;
+            _paginateTmp.on(`g:changed_${type}`,  function () {
+                var results = this.parseCollection(
+                    this.paginateWidgets[type].results,
+                    type);
+                console.log(results);
+                this.updateResults(results);
+                this.render();
+            }, this)
         });
-
-        this.render();
     },
 
-    parseResults: function (res) {
+    updateResults: function (res) {
         let notIn = 0;
 
         for (let i = 0; i < this.results.length; i++) {
@@ -86,14 +70,8 @@ var SearchResultsView = View.extend({
         }
     },
 
-    parseCollection: function (collection) {
+    parseCollection: function (rawResults, type) {
         let icon;
-        let type;
-        for (let key in this._collections) {
-            if (this._collections[key] === collection) {
-                type = key;
-            }
-        }
         if (type === 'user') {
             icon = 'user';
         } else if (type === 'group') {
@@ -108,7 +86,7 @@ var SearchResultsView = View.extend({
         return {
             'type': type,
             'icon': icon,
-            'elements': this._collections[type].toArray()
+            'elements': rawResults
         };
     },
 
@@ -120,6 +98,10 @@ var SearchResultsView = View.extend({
          *      'elements': [obj, ...]
          *   }, ... ]
          */
+
+        // TODO: Fix the name issue of the user
+        // TODO: Remove result header when no element inside
+        // TODO: Fix the order of display --> Collection, folder, item, user, group ?
         this.$el.html(SearchResultsTemplate({
             results: this.results || null,
             query: this._query || null,
@@ -127,15 +109,21 @@ var SearchResultsView = View.extend({
         }));
 
         // set paginateWidget only for results types containing elements
-        _.each(this.results, (result) => {
-            for (var key in this.paginateWidgets) {
-                if (result.type === key && (
-                        this.paginateWidgets[key].collection.hasNextPage() ||
-                        this.paginateWidgets[key].collection.hasPreviousPage())) {
-                    this.paginateWidgets[key].setElement(this.$(`#${result.type}Paginate`)).render();
+         // && (
+         //                this.paginateWidgets[key].hasNextPage() ||
+         //                this.paginateWidgets[key].hasPreviousPage())
+        if (this.results.length === this._types.length) {
+            console.log('res', this.results);
+            _.each(this.results, (result) => {
+                for (var key in this.paginateWidgets) {
+                    if (result.type === key) {
+                        console.log(key, this.paginateWidgets[key].hasNextPage());
+                        this.paginateWidgets[key].setElement(this.$(`#${result.type}Paginate`)).render();
+                    }
                 }
-            }
-        });
+            });
+        }
+
 
         return this;
     },

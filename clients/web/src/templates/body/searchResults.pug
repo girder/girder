@@ -17,9 +17,9 @@
           | #{result.type}
       each element in result.elements
         li.g-search-result(role="presentation")
-          a(resourceid=element.id, resourcetype=result.type, g-icon=result.icon,
+          a(resourceid=element._id, resourcetype=result.type, g-icon=result.icon,
               role="menuitem", tabindex="-1")
-            |  #{element.name()}
+            |  #{element.name}
       .g-search-results-paginate(id=`${result.type}Paginate`)
 
 if length === 0
