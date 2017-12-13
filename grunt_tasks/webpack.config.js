@@ -141,7 +141,7 @@ module.exports = {
             // PNG, JPEG
             {
                 resource: {
-                    test: /\.(png|jpg)$/,
+                    test: /\.(png|jpg|gif)$/,
                     include: loaderPathsNodeModules
                 },
                 use: [
