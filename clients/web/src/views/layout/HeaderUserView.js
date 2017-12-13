@@ -14,6 +14,10 @@ import 'bootstrap/js/dropdown';
  * not logged in.
  */
 var LayoutHeaderUserView = View.extend({
+    events: {
+      'click a.g-logout': logout,
+    },
+
     initialize: function () {
         events.on('g:login', this.render, this);
         events.on('g:login-changed', this.render, this);
