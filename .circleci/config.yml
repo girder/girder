@@ -426,20 +426,32 @@ workflows:
   version: 2
   test_all:
     jobs:
-      - py2_serverInstall_serverTest
-      - py2_integrationTests
+      - py2_serverInstall_serverTest:
+          filters:
+            branches:
+              ignore: 2.x-maintenance
+      - py2_integrationTests:
+          filters:
+            branches:
+              ignore: 2.x-maintenance
       - py2_coverage:
           requires:
             - py2_serverInstall_serverTest
             - py2_integrationTests
-      - py3_serverInstall
+      - py3_serverInstall:
+          filters:
+            branches:
+              ignore: 2.x-maintenance
       - py3_serverTest:
           requires:
             - py3_serverInstall
       - py3_webBuild_webTest:
           requires:
             - py3_serverInstall
-      - py3_integrationTests
+      - py3_integrationTests:
+          filters:
+            branches:
+              ignore: 2.x-maintenance
       - py3_coverage:
           requires:
             - py3_serverTest
