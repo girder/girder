@@ -4,7 +4,7 @@ jobs:
   py2_serverInstall_serverTest:
     docker:
       # This image uses the oldest version of many dependencies
-      - image: girder/girder_test_py2:latest
+      - image: girder/girder_test:latest-py2
       # Use the oldest supported MongoDB
       - image: mongo:2.6
 
@@ -61,7 +61,7 @@ jobs:
   py3_serverInstall:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test_py3:latest
+      - image: girder/girder_test:latest-py3
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -99,7 +99,7 @@ jobs:
 
   py3_serverTest:
     docker:
-      - image: girder/girder_test_py3:latest
+      - image: girder/girder_test:latest-py3
       # Use the latest MongoDB
       - image: circleci/mongo:3.6-ram
 
@@ -130,7 +130,7 @@ jobs:
 
   py3_webBuild_webTest:
     docker:
-      - image: girder/girder_test_py3:latest
+      - image: girder/girder_test:latest-py3
       - image: circleci/mongo:3.6-ram
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
@@ -261,9 +261,7 @@ jobs:
 
   py2_coverage:
     docker:
-      # This image uses the oldest version of many dependencies
-      - image: girder/girder_test_py2:latest
-      # Use the oldest supported MongoDB
+      - image: girder/girder_test:latest-py2
       - image: mongo:2.6
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
@@ -373,9 +371,7 @@ jobs:
 
   py3_coverage:
     docker:
-      # This image uses the oldest version of many dependencies
-      - image: girder/girder_test_py3:latest
-      # Use the latest MongoDB
+      - image: girder/girder_test:latest-py3
       - image: circleci/mongo:3.6-ram
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
