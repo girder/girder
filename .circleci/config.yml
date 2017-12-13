@@ -119,7 +119,7 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: python
-            PYTHON_VERSION: 3.4
+            PYTHON_VERSION: 3.5
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
@@ -159,7 +159,7 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: browser
-            PYTHON_VERSION: 3.4
+            PYTHON_VERSION: 3.5
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
             JASMINE_TIMEOUT: 15000
@@ -348,7 +348,7 @@ jobs:
           command: girder-install web --all-plugins --dev | cat
       - run:
           name: CMake
-          command: cmake ../girder -DPYTHON_VERSION=3.4 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
+          command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
           working_directory: girder_build
       - run:
           name: make
@@ -384,7 +384,7 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: coverage
-            PYTHON_VERSION: 3.4
+            PYTHON_VERSION: 3.5
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: ON
