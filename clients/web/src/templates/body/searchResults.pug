@@ -10,17 +10,23 @@
 
 .g-search-results-container
   each result in results
-    .g-search-results-type-container
-      .g-search-result-type-header-container
-        i.g-search-result-type-icon.g-search-result-type-header(class=`icon-${result.icon}`)
-        .g-search-results-type-title.g-search-result-type-header
-          | #{result.type}
-      each element in result.elements
-        li.g-search-result(role="presentation")
-          a(resourceid=element._id, resourcetype=result.type, g-icon=result.icon,
-              role="menuitem", tabindex="-1")
-            |  #{element.name}
-      .g-search-results-paginate(id=`${result.type}Paginate`)
+    if result.elements.length
+      .g-search-results-type-container
+        .g-search-result-type-header-container
+          i.g-search-result-type-icon.g-search-result-type-header(class=`icon-${result.icon}`)
+          .g-search-results-type-title.g-search-result-type-header
+            | #{result.type}
+        each element in result.elements
+          li.g-search-result(role="presentation")
+            if result.type === 'user'
+              a(resourceid=element._id, resourcetype=result.type, g-icon=result.icon,
+                role="menuitem", tabindex="-1")
+                |  #{element.firstName} #{element.lastName} (#{element.login})
+            else
+              a(resourceid=element._id, resourcetype=result.type, g-icon=result.icon,
+                  role="menuitem", tabindex="-1")
+                |  #{element.name}
+        .g-search-results-paginate(id=`${result.type}Paginate`)
 
 if length === 0
   .g-search-no-results.disabled(role="presentation")

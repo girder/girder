@@ -99,8 +99,6 @@ var SearchResultsView = View.extend({
          *   }, ... ]
          */
 
-        // TODO: Fix the name issue of the user
-        // TODO: Remove result header when no element inside
         // TODO: Fix the order of display --> Collection, folder, item, user, group ?
         this.$el.html(SearchResultsTemplate({
             results: this.results || null,
