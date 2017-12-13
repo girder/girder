@@ -1,0 +1,15 @@
+.g-search-result-type-header-container
+  i.g-search-result-type-icon.g-search-result-type-header(class=`icon-${icon}`)
+  .g-search-results-type-title.g-search-result-type-header
+    | #{type}
+each element in results
+  li.g-search-result(role="presentation")
+    if type === 'user'
+      a(resourceid=element._id, resourcetype=type, g-icon=icon,
+          role="menuitem", tabindex="-1")
+        |  #{element.firstName} #{element.lastName} (#{element.login})
+    else
+      a(resourceid=element._id, resourcetype=type, g-icon=icon,
+          role="menuitem", tabindex="-1")
+        |  #{element.name}
+.g-search-results-paginate(id=`${type}Paginate`)

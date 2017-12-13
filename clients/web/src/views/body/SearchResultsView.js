@@ -2,14 +2,14 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
 import router from 'girder/router';
+
 import SearchResultsTemplate from 'girder/templates/body/searchResults.pug';
+import SearchResultsTypeTemplate from 'girder/templates/body/searchResultsType.pug';
 import SearchPaginateWidget from 'girder/views/widgets/SearchPaginateWidget';
-import CollectionCollection from 'girder/collections/CollectionCollection';
-import GroupCollection from 'girder/collections/GroupCollection';
-import UserCollection from 'girder/collections/UserCollection';
-/* import FolderCollection from 'girder/collections/FolderCollection';
-import ItemCollection from 'girder/collections/ItemCollection'; */
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+
 import 'girder/stylesheets/body/searchResultsList.styl';
 
 /**
@@ -24,53 +24,53 @@ var SearchResultsView = View.extend({
 
     initialize: function (settings) {
         this.results = [];
-        this.pageLimit = 2;
+        this.initResults = {};
+        this._pageLimit = 2;
         this._query = settings.query;
         this._mode = settings.mode;
         this._types = settings.types || ['collection', 'group', 'user', 'folder', 'item'];
 
-        this.paginateWidgets = {};
+        this.subviews = {};
 
-        let _paginateTmp = null;
-        let res = null;
-        let type = null;
+        let promiseTmp = null;
+        const promises = [];
 
         _.each(this._types, (type) => {
-            _paginateTmp = new SearchPaginateWidget({
-                parentView: this,
-                type: [type],
-                query: this._query,
-                mode: this._mode,
-                limit: this.pageLimit
-            });
-            this.paginateWidgets[type] = _paginateTmp;
-            _paginateTmp.on(`g:changed_${type}`,  function () {
-                var results = this.parseCollection(
-                    this.paginateWidgets[type].results,
-                    type);
-                console.log(results);
-                this.updateResults(results);
-                this.render();
-            }, this)
+            promiseTmp = restRequest({
+                url: 'resource/search',
+                data: {
+                    q: this._query,
+                    mode: this._mode,
+                    types: JSON.stringify(_.intersection(
+                        [type],
+                        SearchFieldWidget.getModeTypes(this._mode))
+                    ),
+                    limit: this._pageLimit
+                }
+            }).done(_.bind(function (results) {
+                this.initResults[type] = this._parseResults(results);
+            }, this));
+            promises.push(promiseTmp);
         });
+
+        Promise.all(promises).then(_.bind(function () {
+            this.render();
+        }, this));
     },
 
-    updateResults: function (res) {
-        let notIn = 0;
-
-        for (let i = 0; i < this.results.length; i++) {
-            if (res.type === this.results[i].type) {
-                this.results[i] = res;
-            } else {
-                notIn++;
-            }
+    _calculateLength: function (results) {
+        let length = 0;
+        for (let type in results) {
+            length += results[type].length;
         }
-        if (notIn === this.results.length) {
-            this.results.push(res);
-        }
+        return length;
     },
 
-    parseCollection: function (rawResults, type) {
+    _parseResults: function (results) {
+        return Object.values(results)[0];
+    },
+
+    _getIcon: function (type) {
         let icon;
         if (type === 'user') {
             icon = 'user';
@@ -83,45 +83,33 @@ var SearchResultsView = View.extend({
         } else if (type === 'item') {
             icon = 'doc-text-inv';
         }
-        return {
-            'type': type,
-            'icon': icon,
-            'elements': rawResults
-        };
+        return icon;
     },
 
     render: function () {
-        /** The 'SearchResutlsTemplate' need a results parameters as :
-         *  [{
-         *      'type': type,
-         *      'icon': icon,
-         *      'elements': [obj, ...]
-         *   }, ... ]
-         */
-
         // TODO: Fix the order of display --> Collection, folder, item, user, group ?
         this.$el.html(SearchResultsTemplate({
-            results: this.results || null,
+            results: this.initResults || null,
             query: this._query || null,
-            length: this.results.length || 0
+            length: this._calculateLength(this.initResults) || 0
         }));
 
-        // set paginateWidget only for results types containing elements
-         // && (
-         //                this.paginateWidgets[key].hasNextPage() ||
-         //                this.paginateWidgets[key].hasPreviousPage())
-        if (this.results.length === this._types.length) {
-            console.log('res', this.results);
-            _.each(this.results, (result) => {
-                for (var key in this.paginateWidgets) {
-                    if (result.type === key) {
-                        console.log(key, this.paginateWidgets[key].hasNextPage());
-                        this.paginateWidgets[key].setElement(this.$(`#${result.type}Paginate`)).render();
-                    }
-                }
-            });
-        }
-
+        _.each(this._types, (type) => {
+            if (this.initResults[type].length) {
+                this.subviews[type] = new SearchResultsTypeView({
+                    parentView: this,
+                    name: `${type}ResultsView` || null,
+                    type: type || '',
+                    icon: this._getIcon(type) || '',
+                    limit: this._pageLimit || 0,
+                    query: this._query || null,
+                    mode: this._mode || null,
+                    initResults: this.initResults[type] || []
+                });
+                this.subviews[type].setElement(this.$(`#${type}Subview`));
+                this.subviews[type].render();
+            }
+        });
 
         return this;
     },
@@ -130,6 +118,42 @@ var SearchResultsView = View.extend({
         router.navigate(result.attr('resourcetype') + '/' + result.attr('resourceid'), {
             trigger: true
         });
+    }
+});
+
+var SearchResultsTypeView = View.extend({
+
+    initialize: function (settings) {
+        this.name = settings.name;
+        this.icon = settings.icon;
+        this.type = settings.type;
+        this.results = settings.initResults;
+        this.pageLimit = settings.limit;
+        this.query = settings.query;
+        this.mode = settings.mode;
+
+        this.paginateWidget = new SearchPaginateWidget({
+            parentView: this,
+            type: this.type,
+            query: this.query,
+            mode: this.mode,
+            limit: this.pageLimit
+        }).on('g:changed', function () {
+            this.results = this.paginateWidget.results;
+            this.render();
+        }, this);
+    },
+
+    render: function () {
+        this.$el.html(SearchResultsTypeTemplate({
+            results: this.results || null,
+            type: this.type || null,
+            icon: this.icon || ''
+        }));
+
+        this.paginateWidget.setElement(this.$(`#${this.type}Paginate`)).render();
+
+        return this;
     }
 });
 

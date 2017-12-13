@@ -1,23 +1,22 @@
-import $ from 'jquery';
 import _ from 'underscore';
 
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
 
 import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.pug';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget'
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 /**
  * This widget is used to provide a consistent widget for iterating amongst
  * pages of a list of element.
  */
 
- var SearchPaginateWidget = View.extend({
+var SearchPaginateWidget = View.extend({
     events: {
         'click .g-page-next:not(.disabled)': function (e) {
-            this.fetchNextPage(true);
+            this.updateHasNextPage(true);
         },
         'click .g-page-prev:not(.disabled)': function (e) {
-            this.fetchPreviousPage(true);
+            this.updateHasPreviousPage(true);
         }
     },
 
@@ -32,12 +31,7 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget'
         this._hasNextPage = false;
         this._hasPreviousPage = false;
 
-        this.fetch().done(_.bind(function (results) {
-            var result = results[this.type];
-            this.results = result;
-            this.trigger(`g:changed_${this.type}`);
-            //this.render();
-        },  this));
+        this.updateHasNextPage();
     },
 
     render: function () {
@@ -45,8 +39,8 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget'
             collection: this
         }));
 
-        this.$('.g-page-next').girderEnable(this.hasNextPage());
-        this.$('.g-page-prev').girderEnable(this.hasPreviousPage());
+        this.$('.g-page-next').girderEnable(this._hasNextPage);
+        this.$('.g-page-prev').girderEnable(this._hasPreviousPage);
         return this;
     },
 
@@ -54,52 +48,52 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget'
         return this._currentPage;
     },
 
-    hasPreviousPage: function () {
-        // TODO: Something is missing NEVER do that
+    updateHasPreviousPage: function (update = false) {
+        // TODO: Find a way to make that simpler
         if (this._currentPage) {
-            var done = false
-            this.fetchPreviousPage().done(_.bind(function () {
-                done = true;
-            }));
-            while (!done) {
-
-            };
+            if (update) {
+                return this.fetchPreviousPage(update).done(_.bind(function () {
+                    return this.fetchPreviousPage();
+                }, this));
+            } else {
+                return this.fetchPreviousPage();
+            }
+        } else {
+            return this.fetchPreviousPage();
         }
-        return this._hasPreviousPage;
     },
 
-    hasNextPage: function () {
-        // TODO: Something is missing
-        var done = false
-        this.fetchNextPage().done(_.bind(function () {
-            done = true;
-        }));
-        while (!done) {
-        console.log(done);
-
-        };
-        return this._hasNextPage;
+    updateHasNextPage: function (update = false) {
+        // TODO: Find a way to make that simpler
+        if (update) {
+            return this.fetchNextPage(update).done(_.bind(function () {
+                return this.fetchNextPage();
+            }, this));
+        } else {
+            return this.fetchNextPage();
+        }
     },
 
     fetchPreviousPage: function (update = false) {
         var offset = this.limit * (this._currentPage - 1);
         if (offset < 0) {
             this._hasPreviousPage = false;
+            this.render();
         } else {
             return this.fetch(offset).done(_.bind(function (results) {
                 var result = results[this.type];
-                console.log('PREV: ', result);
-                if (result.length > 0) {
+                if (result.length) {
                     this._hasPreviousPage = true;
                     if (update) {
                         this.results = result;
-                        this.trigger(`g:changed_${this.type}`);
+                        this.trigger('g:changed');
                         this._currentPage--;
+                        this.updateHasNextPage();
                     }
                 } else {
                     this._hasPreviousPage = false;
                 }
-                //console.log('PREV: ', this._hasPreviousPage);
+                this.render();
             }, this));
         }
     },
@@ -108,18 +102,18 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget'
         var offset = this.limit * (this._currentPage + 1);
         return this.fetch(offset).done(_.bind(function (results) {
             var result = results[this.type];
-            //console.log('NEXT: ', result);
-            if (result.length > 0) {
+            if (result.length) {
                 this._hasNextPage = true;
                 if (update) {
                     this.results = result;
-                    this.trigger(`g:changed_${this.type}`);
+                    this.trigger('g:changed');
                     this._currentPage++;
+                    this.updateHasPreviousPage();
                 }
             } else {
                 this._hasNextPage = false;
             }
-            console.log('NEXT: ', this._hasNextPage);
+            this.render();
         }, this));
     },
 
@@ -130,7 +124,7 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget'
                 q: this.query,
                 mode: this.mode,
                 types: JSON.stringify(_.intersection(
-                    this.type,
+                    [this.type],
                     SearchFieldWidget.getModeTypes(this.mode))
                 ),
                 limit: this.limit,
