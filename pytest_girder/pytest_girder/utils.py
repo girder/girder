@@ -2,10 +2,12 @@ import asyncore
 import base64
 import cherrypy
 import email
+import errno
 import json
 import os
 import six
 import smtpd
+import socket
 import sys
 import threading
 import time
@@ -30,7 +32,7 @@ class MockSmtpServer(smtpd.SMTPServer):
         # so super() can't be used
         smtpd.SMTPServer.__init__(self, localaddr, remoteaddr, **kwargs)
 
-    def process_message(self, peer, mailfrom, rcpttos, data):
+    def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
         self.mailQueue.put(data)
 
 
@@ -53,8 +55,9 @@ class MockSmtpReceiver(object):
                 self.address = ('localhost', port)
                 self.smtp = MockSmtpServer(self.address, None)
                 break
-            except Exception:
-                pass
+            except (OSError if six.PY3 else socket.error) as e:
+                if e.errno != errno.EADDRINUSE:
+                    raise
         else:
             raise Exception('Could not bind to any port for Mock SMTP server')
 
@@ -86,7 +89,10 @@ class MockSmtpReceiver(object):
         msg = self.smtp.mailQueue.get(block=False)
 
         if parse:
-            return email.message_from_string(msg)
+            if six.PY3 and isinstance(msg, six.binary_type):
+                return email.message_from_bytes(msg)
+            else:
+                return email.message_from_string(msg)
         else:
             return msg
 
@@ -214,9 +220,7 @@ def request(path='/', method='GET', params=None, user=None,
         body = getResponseBody(response)
         try:
             response.json = json.loads(body)
-        except Exception:
-            print(url)
-            print(body)
+        except ValueError:
             raise AssertionError('Did not receive JSON response')
 
     if not exception and response.output_status.startswith(b'500'):

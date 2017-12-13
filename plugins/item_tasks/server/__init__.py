@@ -40,8 +40,8 @@ def _onUpload(event):
     they are used to link item task outputs back to a job document.
     """
     try:
-        ref = json.loads(event.info.get('reference'))
-    except (ValueError, TypeError):
+        ref = json.loads(event.info.get('reference', ''))
+    except ValueError:
         return
 
     if isinstance(ref, dict) and ref.get('type') == 'item_tasks.output':

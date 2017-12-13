@@ -8,7 +8,7 @@ functools32==3.2.3.post2; python_version <= '2.7'
 funcsigs==1.0.2 ; python_version < '3.5'
 jsonschema==2.6.0
 Mako==1.0.4
-pymongo==3.2.2
+pymongo==3.6.0
 PyYAML==3.11
 psutil==4.2.0
 python-dateutil==2.5.3

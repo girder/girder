@@ -69,7 +69,7 @@ install_reqs = [
     'filelock',
     'jsonschema',
     'Mako',
-    'pymongo>=3',
+    'pymongo>=3.5',
     'PyYAML',
     'requests',
     'psutil',

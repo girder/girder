@@ -129,7 +129,7 @@ def smtp(db, server):
     receiver = MockSmtpReceiver()
     receiver.start()
 
-    host, port = receiver.address or ('localhost', 25)
+    host, port = receiver.address
     Setting().set(SettingKey.SMTP_HOST, host)
     Setting().set(SettingKey.SMTP_PORT, port)
 

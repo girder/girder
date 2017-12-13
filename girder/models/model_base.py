@@ -90,7 +90,7 @@ class Model(ModelImporter):
         typically not have to call this method.
         """
         db_connection = getDbConnection()
-        self.database = db_connection.get_default_database()
+        self.database = db_connection.get_database()
         self.collection = MongoProxy(self.database[self.name])
 
         for index in self._indices:

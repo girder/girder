@@ -4,7 +4,7 @@ jobs:
   py2_serverInstall_serverTest:
     docker:
       # This image uses the oldest version of many dependencies
-      - image: girder/girder_test_py2:latest
+      - image: girder/girder_test:latest-py2
       # Use the oldest supported MongoDB
       - image: mongo:2.6
 
@@ -67,7 +67,7 @@ jobs:
   py3_serverInstall:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test_py3:latest
+      - image: girder/girder_test:latest-py3
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -75,7 +75,7 @@ jobs:
       - checkout:
           path: girder
       - restore_cache:
-          key: venv-py3-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-test1
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -96,7 +96,7 @@ jobs:
             pyclean girder_env
       - save_cache:
           paths: girder_env
-          key: venv-py3-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-test1
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -105,7 +105,7 @@ jobs:
 
   py3_serverTest:
     docker:
-      - image: girder/girder_test_py3:latest
+      - image: girder/girder_test:latest-py3
       # Use the latest MongoDB
       - image: circleci/mongo:3.6-ram
 
@@ -125,7 +125,7 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake" --exclude-regex '^server_pytest_core$'
           environment:
             TEST_GROUP: python
-            PYTHON_VERSION: 3.4
+            PYTHON_VERSION: 3.5
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
@@ -142,7 +142,7 @@ jobs:
 
   py3_webBuild_webTest:
     docker:
-      - image: girder/girder_test_py3:latest
+      - image: girder/girder_test:latest-py3
       - image: circleci/mongo:3.6-ram
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
@@ -171,7 +171,7 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: browser
-            PYTHON_VERSION: 3.4
+            PYTHON_VERSION: 3.5
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
             JASMINE_TIMEOUT: 15000
@@ -273,9 +273,7 @@ jobs:
 
   py2_coverage:
     docker:
-      # This image uses the oldest version of many dependencies
-      - image: girder/girder_test_py2:latest
-      # Use the oldest supported MongoDB
+      - image: girder/girder_test:latest-py2
       - image: mongo:2.6
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
@@ -325,9 +323,8 @@ jobs:
       - run:
           name: Set up Python 3.5
           command: |
-             # 3.5.2 is already installed in circle, so use it
-             pyenv install 3.5.2 || true
-             pyenv global 3.5.2
+             pyenv install 3.5.4 || true
+             pyenv global 3.5.4
       - run:
           name: Set up virtualenv
           command: |
@@ -363,7 +360,7 @@ jobs:
           command: girder-install web --all-plugins --dev | cat
       - run:
           name: CMake
-          command: cmake ../girder -DPYTHON_VERSION=3.4 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
+          command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
           working_directory: girder_build
       - run:
           name: make
@@ -385,9 +382,7 @@ jobs:
 
   py3_coverage:
     docker:
-      # This image uses the oldest version of many dependencies
-      - image: girder/girder_test_py3:latest
-      # Use the latest MongoDB
+      - image: girder/girder_test:latest-py3
       - image: circleci/mongo:3.6-ram
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
@@ -401,7 +396,7 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: coverage
-            PYTHON_VERSION: 3.4
+            PYTHON_VERSION: 3.5
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: ON
@@ -419,27 +414,65 @@ jobs:
           # statements as completely covered).
           command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/lcov.info
           working_directory: girder
+  deploy:
+    docker:
+      - image: girder/girder_test_py3:latest-3.5
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+    steps:
+      - attach_workspace:
+          at: /home/circleci/project
+      - run:
+          name: Activate virtual environment
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - run:
+          name: Upload documentation to ESDoc
+          command: curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
+      - run:
+          name: Deploy roles to Ansible Galaxy
+          command: ./girder/.circleci/galaxy_deploy.sh
+      - run:
+          name: Update 2.x-maintenance branch
+          command: git push git@github.com:girder/girder.git master:2.x-maintenance
 
 workflows:
   version: 2
   test_all:
     jobs:
-      - py2_serverInstall_serverTest
-      - py2_integrationTests
+      - py2_serverInstall_serverTest:
+          filters:
+            branches:
+              ignore: 2.x-maintenance
+      - py2_integrationTests:
+          filters:
+            branches:
+              ignore: 2.x-maintenance
       - py2_coverage:
           requires:
             - py2_serverInstall_serverTest
             - py2_integrationTests
-      - py3_serverInstall
+      - py3_serverInstall:
+          filters:
+            branches:
+              ignore: 2.x-maintenance
       - py3_serverTest:
           requires:
             - py3_serverInstall
       - py3_webBuild_webTest:
           requires:
             - py3_serverInstall
-      - py3_integrationTests
+      - py3_integrationTests:
+          filters:
+            branches:
+              ignore: 2.x-maintenance
       - py3_coverage:
           requires:
             - py3_serverTest
             - py3_webBuild_webTest
             - py3_integrationTests
+      - deploy:
+          requires:
+            - py2_coverage
+            - py3_coverage
+          filters:
+            branches:
+              only: master
