@@ -69,7 +69,7 @@ jobs:
       - checkout:
           path: girder
       - restore_cache:
-          key: venv-py3-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-test1
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -90,7 +90,7 @@ jobs:
             pyclean girder_env
       - save_cache:
           paths: girder_env
-          key: venv-py3-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-test1
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -311,9 +311,8 @@ jobs:
       - run:
           name: Set up Python 3.5
           command: |
-             # 3.5.2 is already installed in circle, so use it
-             pyenv install 3.5.2 || true
-             pyenv global 3.5.2
+             pyenv install 3.5.4 || true
+             pyenv global 3.5.4
       - run:
           name: Set up virtualenv
           command: |
