@@ -403,6 +403,25 @@ jobs:
           # statements as completely covered).
           command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/lcov.info
           working_directory: girder
+  deploy:
+    docker:
+      - image: girder/girder_test_py3:latest-3.5
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+    steps:
+      - attach_workspace:
+          at: /home/circleci/project
+      - run:
+          name: Activate virtual environment
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - run:
+          name: Upload documentation to ESDoc
+          command: curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
+      - run:
+          name: Deploy roles to Ansible Galaxy
+          command: ./girder/.circleci/galaxy_deploy.sh
+      - run:
+          name: Update 2.x-maintenance branch
+          command: git push git@github.com:girder/girder.git master:2.x-maintenance
 
 workflows:
   version: 2
@@ -427,3 +446,10 @@ workflows:
             - py3_serverTest
             - py3_webBuild_webTest
             - py3_integrationTests
+      - deploy:
+          requires:
+            - py2_coverage
+            - py3_coverage
+          filters:
+            branches:
+              only: master
