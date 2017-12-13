@@ -108,6 +108,7 @@ Table of contents
    user-docs
    developer-docs
    plugins
+   changelog
 
 API index
 ---------
