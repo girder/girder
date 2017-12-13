@@ -20,6 +20,10 @@ Security Fixes
 Changes
 -------
 
+Web Client
+^^^^^^^^^^
+* Use ``href`` properties for navigation links in place of JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
+
 Deprecations
 ------------
 
