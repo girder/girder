@@ -7,7 +7,8 @@ import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.pug'
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 /**
  * This widget is used to provide a consistent widget for iterating amongst
- * pages of a list of element.
+ * pages of a list of search results (using a search mode, a query, an unique type,
+ * and a limit).
  */
 
 var SearchPaginateWidget = View.extend({
@@ -49,7 +50,6 @@ var SearchPaginateWidget = View.extend({
     },
 
     updateHasPreviousPage: function (update = false) {
-        // TODO: Find a way to make that simpler
         if (this._currentPage) {
             if (update) {
                 return this.fetchPreviousPage(update).done(_.bind(function () {
@@ -64,7 +64,6 @@ var SearchPaginateWidget = View.extend({
     },
 
     updateHasNextPage: function (update = false) {
-        // TODO: Find a way to make that simpler
         if (update) {
             return this.fetchNextPage(update).done(_.bind(function () {
                 return this.fetchNextPage();

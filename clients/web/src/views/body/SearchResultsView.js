@@ -13,7 +13,8 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import 'girder/stylesheets/body/searchResultsList.styl';
 
 /**
- * This view display all the search results per each type
+ * This view display all the search results by instanciating a subview
+ * per each type found.
  */
 var SearchResultsView = View.extend({
     events: {
@@ -23,18 +24,17 @@ var SearchResultsView = View.extend({
     },
 
     initialize: function (settings) {
-        this.results = [];
-        this.initResults = {};
-        this.pageLimit = 2;
         this.query = settings.query;
         this.mode = settings.mode;
-        // This order give the display order of each type on the result view
+        // Give the display order of each type on the result view
         this.types = settings.types || ['collection', 'folder', 'item', 'group', 'user'];
 
         this.subviews = {};
+        this.initResults = {};
+        this.pageLimit = 3;
 
-        let promiseTmp = null;
         const promises = [];
+        let promiseTmp = null;
 
         _.each(this.types, (type) => {
             promiseTmp = restRequest({
@@ -88,11 +88,10 @@ var SearchResultsView = View.extend({
     },
 
     render: function () {
-        // TODO: Fix the order of display --> Collection, folder, item, user, group ?
         this.$el.html(SearchResultsTemplate({
             results: this.initResults || null,
             query: this.query || null,
-            types: _.intersection(this.types, Object.keys(this.initResults)),
+            types: _.intersection(this.types, Object.keys(this.initResults)) || [],
             length: this._calculateLength(this.initResults) || 0
         }));
 
@@ -123,6 +122,11 @@ var SearchResultsView = View.extend({
     }
 });
 
+/**
+ * This subview display all the search results for one type.
+ * It also contain a pagination widget that provide a consistent widget
+ * for iterating amongst pages of a list of search results.
+ */
 var SearchResultsTypeView = View.extend({
 
     initialize: function (settings) {
