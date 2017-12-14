@@ -442,7 +442,7 @@ jobs:
           name: Update 2.x-maintenance branch
           command: |
             git fetch origin
-            git push -f origin origin/master:2.x-maintenance
+            git push origin origin/master:2.x-maintenance
           working_directory: girder
 
 workflows:
