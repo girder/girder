@@ -809,6 +809,8 @@ class Resource(ModelImporter):
         """
         Remove a route from the handler and documentation.
 
+        .. deprecated :: 2.3.0
+
         :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
         :type method: str
         :param route: The route, as a list of path params relative to the
@@ -817,7 +819,6 @@ class Resource(ModelImporter):
         :type route: tuple[str]
         :param handler: The method called for the route; this is necessary to
                         remove the documentation.
-        .. deprecated :: 2.3.0
         :type handler: Function
         :param resource: the name of the resource at the root of this route.
         """
