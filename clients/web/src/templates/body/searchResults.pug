@@ -9,9 +9,6 @@
     .g-search-results-advance-search
 
 .g-search-results-container
-  each type in types
-    if results[type].length
-      .g-search-results-type-container(id=`${type}Subview`)
 
 if !length
   .g-search-no-results.disabled(role="presentation")

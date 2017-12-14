@@ -24,37 +24,28 @@ var SearchResultsView = View.extend({
     },
 
     initialize: function (settings) {
-        this.query = settings.query;
-        this.mode = settings.mode;
+        this._query = settings.query;
+        this._mode = settings.mode;
         // Give the display order of each type on the result view
-        this.types = settings.types || ['collection', 'folder', 'item', 'group', 'user'];
+        this._types = settings.types || ['collection', 'folder', 'item', 'group', 'user'];
+        this._subviews = {};
+        this._initResults = {};
 
-        this.subviews = {};
-        this.initResults = {};
-        this.pageLimit = 3;
+        this.pageLimit = 10;
 
-        const promises = [];
-        let promiseTmp = null;
-
-        _.each(this.types, (type) => {
-            promiseTmp = restRequest({
-                url: 'resource/search',
-                data: {
-                    q: this.query,
-                    mode: this.mode,
-                    types: JSON.stringify(_.intersection(
-                        [type],
-                        SearchFieldWidget.getModeTypes(this.mode))
-                    ),
-                    limit: this.pageLimit
-                }
-            }).done(_.bind(function (results) {
-                this.initResults[type] = this._parseResults(results);
-            }, this));
-            promises.push(promiseTmp);
-        });
-
-        Promise.all(promises).then(_.bind(function () {
+        restRequest({
+            url: 'resource/search',
+            data: {
+                q: this._query,
+                mode: this._mode,
+                types: JSON.stringify(_.intersection(
+                    this._types,
+                    SearchFieldWidget.getModeTypes(this._mode))
+                ),
+                limit: this.pageLimit
+            }
+        }).done(_.bind(function (results) {
+            this._initResults = results;
             this.render();
         }, this));
     },
@@ -72,43 +63,36 @@ var SearchResultsView = View.extend({
     },
 
     _getIcon: function (type) {
-        let icon;
-        if (type === 'user') {
-            icon = 'user';
-        } else if (type === 'group') {
-            icon = 'users';
-        } else if (type === 'collection') {
-            icon = 'sitemap';
-        } else if (type === 'folder') {
-            icon = 'folder';
-        } else if (type === 'item') {
-            icon = 'doc-text-inv';
-        }
-        return icon;
+        const icons = {
+            'user': 'user',
+            'group': 'users',
+            'collection': 'sitemap',
+            'folder': 'folder',
+            'item': 'doc-text-inv'
+        };
+        return icons[type];
     },
 
     render: function () {
         this.$el.html(SearchResultsTemplate({
-            results: this.initResults || null,
-            query: this.query || null,
-            types: _.intersection(this.types, Object.keys(this.initResults)) || [],
-            length: this._calculateLength(this.initResults) || 0
+            query: this._query || null,
+            length: this._calculateLength(this._initResults) || 0
         }));
 
-        _.each(this.types, (type) => {
-            if (this.initResults[type].length) {
-                this.subviews[type] = new SearchResultsTypeView({
+        _.each(this._types, (type) => {
+            if (this._initResults[type].length) {
+                this._subviews[type] = new SearchResultsTypeView({
                     parentView: this,
                     name: `${type}ResultsView` || null,
                     type: type || '',
                     icon: this._getIcon(type) || '',
                     limit: this.pageLimit || 0,
-                    query: this.query || null,
-                    mode: this.mode || null,
-                    initResults: this.initResults[type] || []
+                    query: this._query || null,
+                    mode: this._mode || null,
+                    initResults: this._initResults[type] || []
                 });
-                this.subviews[type].setElement(this.$(`#${type}Subview`));
-                this.subviews[type].render();
+                this._subviews[type].render();
+                this._subviews[type].$el.appendTo(this.$('.g-search-results-container'));
             }
         });
 
@@ -129,35 +113,40 @@ var SearchResultsView = View.extend({
  */
 var SearchResultsTypeView = View.extend({
 
-    initialize: function (settings) {
-        this.name = settings.name;
-        this.icon = settings.icon;
-        this.type = settings.type;
-        this.results = settings.initResults;
-        this.pageLimit = settings.limit;
-        this.query = settings.query;
-        this.mode = settings.mode;
+    className: 'g-search-results-type-container',
 
-        this.paginateWidget = new SearchPaginateWidget({
+    initialize: function (settings) {
+        this._name = settings.name;
+        this._icon = settings.icon || '';
+        this._type = settings.type || null;
+        this._initResults = settings.initResults || null;
+        this._pageLimit = settings.limit;
+        this._query = settings.query;
+        this._mode = settings.mode;
+
+        this._paginateWidget = new SearchPaginateWidget({
             parentView: this,
-            type: this.type,
-            query: this.query,
-            mode: this.mode,
-            limit: this.pageLimit
+            type: this._type,
+            query: this._query,
+            mode: this._mode,
+            limit: this._pageLimit
         }).on('g:changed', function () {
-            this.results = this.paginateWidget.results;
+            this._results = this._paginateWidget.results;
             this.render();
         }, this);
+
+        this._results = this._initResults;
     },
 
     render: function () {
         this.$el.html(SearchResultsTypeTemplate({
-            results: this.results || null,
-            type: this.type || null,
-            icon: this.icon || ''
+            results: this._results,
+            type: this._type,
+            icon: this._icon
         }));
 
-        this.paginateWidget.setElement(this.$(`#${this.type}Paginate`)).render();
+        this.$('.g-search-results-type').css('min-height', `${this._initResults.length*40}px`);
+        this._paginateWidget.setElement(this.$(`#${this._type}Paginate`)).render();
 
         return this;
     }

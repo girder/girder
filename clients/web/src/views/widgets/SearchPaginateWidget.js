@@ -14,25 +14,27 @@ import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 var SearchPaginateWidget = View.extend({
     events: {
         'click .g-page-next:not(.disabled)': function (e) {
-            this.updateHasNextPage(true);
+            this._updateHasNextPage(true);
         },
         'click .g-page-prev:not(.disabled)': function (e) {
-            this.updateHasPreviousPage(true);
+            this._updateHasPreviousPage(true);
         }
     },
 
     initialize: function (settings) {
-        this.type = settings.type;
-        this.query = settings.query;
-        this.mode = settings.mode;
-        this.limit = settings.limit;
+        this._type = settings.type;
+        this._query = settings.query;
+        this._mode = settings.mode;
+        this._limit = settings.limit;
 
-        this.offset = 0;
+        this._offset = 0;
         this._currentPage = 0;
         this._hasNextPage = false;
         this._hasPreviousPage = false;
 
-        this.updateHasNextPage();
+        this.results = null;
+
+        this._updateHasNextPage();
     },
 
     render: function () {
@@ -49,45 +51,45 @@ var SearchPaginateWidget = View.extend({
         return this._currentPage;
     },
 
-    updateHasPreviousPage: function (update = false) {
+    _updateHasPreviousPage: function (update = false) {
         if (this._currentPage) {
             if (update) {
-                return this.fetchPreviousPage(update).done(_.bind(function () {
-                    return this.fetchPreviousPage();
+                return this._fetchPreviousPage(update).done(_.bind(function () {
+                    return this._fetchPreviousPage();
                 }, this));
             } else {
-                return this.fetchPreviousPage();
+                return this._fetchPreviousPage();
             }
         } else {
-            return this.fetchPreviousPage();
+            return this._fetchPreviousPage();
         }
     },
 
-    updateHasNextPage: function (update = false) {
+    _updateHasNextPage: function (update = false) {
         if (update) {
-            return this.fetchNextPage(update).done(_.bind(function () {
-                return this.fetchNextPage();
+            return this._fetchNextPage(update).done(_.bind(function () {
+                return this._fetchNextPage();
             }, this));
         } else {
-            return this.fetchNextPage();
+            return this._fetchNextPage();
         }
     },
 
-    fetchPreviousPage: function (update = false) {
-        var offset = this.limit * (this._currentPage - 1);
+    _fetchPreviousPage: function (update = false) {
+        var offset = this._limit * (this._currentPage - 1);
         if (offset < 0) {
             this._hasPreviousPage = false;
             this.render();
         } else {
-            return this.fetch(offset).done(_.bind(function (results) {
-                var result = results[this.type];
+            return this._fetch(offset).done(_.bind(function (results) {
+                var result = results[this._type];
                 if (result.length) {
                     this._hasPreviousPage = true;
                     if (update) {
                         this.results = result;
                         this.trigger('g:changed');
                         this._currentPage--;
-                        this.updateHasNextPage();
+                        this._updateHasNextPage();
                     }
                 } else {
                     this._hasPreviousPage = false;
@@ -97,17 +99,17 @@ var SearchPaginateWidget = View.extend({
         }
     },
 
-    fetchNextPage: function (update = false) {
-        var offset = this.limit * (this._currentPage + 1);
-        return this.fetch(offset).done(_.bind(function (results) {
-            var result = results[this.type];
+    _fetchNextPage: function (update = false) {
+        var offset = this._limit * (this._currentPage + 1);
+        return this._fetch(offset).done(_.bind(function (results) {
+            var result = results[this._type];
             if (result.length) {
                 this._hasNextPage = true;
                 if (update) {
                     this.results = result;
                     this.trigger('g:changed');
                     this._currentPage++;
-                    this.updateHasPreviousPage();
+                    this._updateHasPreviousPage();
                 }
             } else {
                 this._hasNextPage = false;
@@ -116,17 +118,17 @@ var SearchPaginateWidget = View.extend({
         }, this));
     },
 
-    fetch: function (offset) {
+    _fetch: function (offset) {
         return restRequest({
             url: 'resource/search',
             data: {
-                q: this.query,
-                mode: this.mode,
+                q: this._query,
+                mode: this._mode,
                 types: JSON.stringify(_.intersection(
-                    [this.type],
-                    SearchFieldWidget.getModeTypes(this.mode))
+                    [this._type],
+                    SearchFieldWidget.getModeTypes(this._mode))
                 ),
-                limit: this.limit,
+                limit: this._limit,
                 offset: offset
             }
         });
