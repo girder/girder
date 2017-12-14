@@ -11,11 +11,11 @@ readonly SUBTREE_DEST_BRANCH="master"
 
 # Make sure all git objects are accessible
 # This is useful in CI contexts where shallow clones are common
-git fetch --unshallow
+git fetch --unshallow origin || git fetch origin
 
 # Push any changes that have occurred
 git reset --hard
-git branch ansible-role-subtree
+git branch ansible-role-subtree "origin/$SUBTREE_DEST_BRANCH"
 git filter-branch --subdirectory-filter "$SUBTREE_PREFIX" ansible-role-subtree
 git push "$SUBTREE_DEST_REPO" ansible-role-subtree:"$SUBTREE_DEST_BRANCH"
 
