@@ -416,11 +416,18 @@ jobs:
           working_directory: girder
   deploy:
     docker:
-      - image: girder/girder_test_py3:latest-3.5
+      - image: girder/girder_test:latest-py3
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
-      - attach_workspace:
-          at: /home/circleci/project
+      # This step depends on both "py2_coverage" and "py3_coverage", as it should only run when
+      # everything succeeds. However, this means that "attach_workspace" cannot be used, as the
+      # workspace will have conflicting coverage files from both.
+      - checkout:
+          path: girder
+      # Since this cache must have been created in a previous step of this workflow, we can get
+      # a virtualenv without having to create one or install anything.
+      - restore_cache:
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
       - run:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
@@ -429,10 +436,14 @@ jobs:
           command: curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
       - run:
           name: Deploy roles to Ansible Galaxy
-          command: ./girder/.circleci/galaxy_deploy.sh
+          command: .circleci/galaxy_deploy.sh
+          working_directory: girder
       - run:
           name: Update 2.x-maintenance branch
-          command: git push git@github.com:girder/girder.git master:2.x-maintenance
+          command: |
+            git fetch origin
+            git push origin origin/master:2.x-maintenance
+          working_directory: girder
 
 workflows:
   version: 2
