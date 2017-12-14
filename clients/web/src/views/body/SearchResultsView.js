@@ -25,27 +25,28 @@ var SearchResultsView = View.extend({
     initialize: function (settings) {
         this.results = [];
         this.initResults = {};
-        this._pageLimit = 2;
-        this._query = settings.query;
-        this._mode = settings.mode;
-        this._types = settings.types || ['collection', 'group', 'user', 'folder', 'item'];
+        this.pageLimit = 2;
+        this.query = settings.query;
+        this.mode = settings.mode;
+        // This order give the display order of each type on the result view
+        this.types = settings.types || ['collection', 'folder', 'item', 'group', 'user'];
 
         this.subviews = {};
 
         let promiseTmp = null;
         const promises = [];
 
-        _.each(this._types, (type) => {
+        _.each(this.types, (type) => {
             promiseTmp = restRequest({
                 url: 'resource/search',
                 data: {
-                    q: this._query,
-                    mode: this._mode,
+                    q: this.query,
+                    mode: this.mode,
                     types: JSON.stringify(_.intersection(
                         [type],
-                        SearchFieldWidget.getModeTypes(this._mode))
+                        SearchFieldWidget.getModeTypes(this.mode))
                     ),
-                    limit: this._pageLimit
+                    limit: this.pageLimit
                 }
             }).done(_.bind(function (results) {
                 this.initResults[type] = this._parseResults(results);
@@ -90,20 +91,21 @@ var SearchResultsView = View.extend({
         // TODO: Fix the order of display --> Collection, folder, item, user, group ?
         this.$el.html(SearchResultsTemplate({
             results: this.initResults || null,
-            query: this._query || null,
+            query: this.query || null,
+            types: _.intersection(this.types, Object.keys(this.initResults)),
             length: this._calculateLength(this.initResults) || 0
         }));
 
-        _.each(this._types, (type) => {
+        _.each(this.types, (type) => {
             if (this.initResults[type].length) {
                 this.subviews[type] = new SearchResultsTypeView({
                     parentView: this,
                     name: `${type}ResultsView` || null,
                     type: type || '',
                     icon: this._getIcon(type) || '',
-                    limit: this._pageLimit || 0,
-                    query: this._query || null,
-                    mode: this._mode || null,
+                    limit: this.pageLimit || 0,
+                    query: this.query || null,
+                    mode: this.mode || null,
                     initResults: this.initResults[type] || []
                 });
                 this.subviews[type].setElement(this.$(`#${type}Subview`));

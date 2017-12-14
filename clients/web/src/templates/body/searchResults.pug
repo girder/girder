@@ -9,7 +9,7 @@
     .g-search-results-advance-search
 
 .g-search-results-container
-  each type in Object.keys(results)
+  each type in types
     if results[type].length
       .g-search-results-type-container(id=`${type}Subview`)
 
