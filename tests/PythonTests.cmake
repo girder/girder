@@ -1,12 +1,6 @@
 set(server_port 20200)
 set(flake8_config "${PROJECT_SOURCE_DIR}/tests/flake8.cfg")
 
-if(PYTHON_BRANCH_COVERAGE)
-  set(_py_branch_cov True)
-else()
-  set(_py_branch_cov False)
-endif()
-
 if(RUN_CORE_TESTS)
   set(_omit_python_covg "girder/external/*,girder/test/*")
 else()

@@ -15,7 +15,6 @@ set(PYTHON_VERSION "2.7" CACHE STRING "Python version used for testing")
 find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 
 option(PYTHON_STATIC_ANALYSIS "Run Python static analysis tests with flake8" ON)
-option(PYTHON_BRANCH_COVERAGE "Use branch-level coverage instead of line-level" OFF)
 option(JAVASCRIPT_STYLE_TESTS "Run Javascript style tests with eslint" ON)
 option(BUILD_JAVASCRIPT_TESTS "Build Javascript tests" ON)
 option(RUN_CORE_TESTS "Whether to run the core tests" ON)
