@@ -87,6 +87,9 @@ def startServer(mock=True, mockS3=False):
         logHandler.setLevel(logging.DEBUG)
         cherrypy.log.error_log.addHandler(logHandler)
 
+    # Tell CherryPy to throw exceptions in request handling code
+    cherrypy.config.update({'request.throw_errors': True})
+
     mockSmtp.start()
     if mockS3:
         global mockS3Server
