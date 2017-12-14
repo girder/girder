@@ -31,6 +31,7 @@ var SearchResultsView = View.extend({
         this._subviews = {};
         this._initResults = {};
 
+        this._sizeOneElement = 28;
         this.pageLimit = 10;
 
         restRequest({
@@ -89,7 +90,8 @@ var SearchResultsView = View.extend({
                     limit: this.pageLimit || 0,
                     query: this._query || null,
                     mode: this._mode || null,
-                    initResults: this._initResults[type] || []
+                    initResults: this._initResults[type] || [],
+                    sizeOneElement: this._sizeOneElement
                 });
                 this._subviews[type].render();
                 this._subviews[type].$el.appendTo(this.$('.g-search-results-container'));
@@ -123,6 +125,7 @@ var SearchResultsTypeView = View.extend({
         this._pageLimit = settings.limit;
         this._query = settings.query;
         this._mode = settings.mode;
+        this._sizeOneElement = settings.sizeOneElement || 35;
 
         this._paginateWidget = new SearchPaginateWidget({
             parentView: this,
@@ -145,7 +148,7 @@ var SearchResultsTypeView = View.extend({
             icon: this._icon
         }));
 
-        this.$('.g-search-results-type').css('min-height', `${this._initResults.length*40}px`);
+        this.$('.g-search-results-type').css('min-height', `${this._initResults.length*this._sizeOneElement}px`);
         this._paginateWidget.setElement(this.$(`#${this._type}Paginate`)).render();
 
         return this;
