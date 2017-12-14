@@ -435,12 +435,14 @@ should be done:
 
 2. Update ``dependencies`` or ``devDependencies`` in ``package.json`` to add a new
    *abstract* specifier for the package:
+
   * Packages that are bundled into the web client should generally use the
     `tilde range <https://www.npmjs.com/package/semver#tilde-ranges-123-12-1>`_
     to specify versions.
   * Packages that are part of the build or testing process should generally use the
     `caret range <https://www.npmjs.com/package/semver#caret-ranges-123-025-004>`_
     to specify versions.
+
 3. Run from the root Girder directory:
 
    .. code-block:: bash
