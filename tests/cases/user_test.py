@@ -872,3 +872,28 @@ class UserTestCase(base.TestCase):
         # test for a non-user
         resp = self.request(path='/user/details', method='GET')
         self.assertStatus(resp, 401)
+
+    def testSearchUsers(self):
+        # Create an admin user
+        admin = User().createUser(
+            firstName='Admin', lastName='Admin', login='admin',
+            email='admin@admin.com', password='adminadmin')
+        # Create a couple of users
+        [User().createUser(
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            for num in [0, 1]]
+
+        # Test full text search
+        resp = self.request(path='/user', user=admin,
+                            method='GET', params={'query': 'usr0'})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 1)
+        self.assertEqual(resp.json[0]['login'], 'usr0')
+
+        # Test prefix search
+        resp = self.request(path='/user', user=admin,
+                            method='GET', params={'query': 'u', 'mode': 'prefix'})
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['login'], 'usr0')
+        self.assertEqual(resp.json[1]['login'], 'usr1')

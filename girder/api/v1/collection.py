@@ -16,14 +16,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.models.collection import Collection as CollectionModel
 from girder.exceptions import AccessException
-from girder.utility import ziputil
+from girder.utility import search, ziputil
 from girder.utility.progress import ProgressContext
 
 
@@ -48,15 +47,39 @@ class Collection(Resource):
     @filtermodel(model=CollectionModel)
     @autoDescribeRoute(
         Description('List or search for collections.')
+        .notes('By default the search mode is "text" and specifying the "query" field performs '
+               'a full text-search. Setting the "mode" allows to change the search behavior. '
+               'Available modes are %s.' % search.listAllowedSearchMode())
         .responseClass('Collection', array=True)
-        .param('text', 'Pass this to perform a text search for collections.', required=False)
+        .param('text', 'Pass this to perform a text search for collections. This is deprecated',
+               required=False)
+        .param('query', 'Pass this to perform a search for collections.', required=False)
+        .param('mode', 'Pass to search with a different search mode.', required=False)
         .pagingParams(defaultSort='name')
     )
-    def find(self, text, limit, offset, sort):
+    def find(self, text, query, mode, limit, offset, sort):
         user = self.getCurrentUser()
-
+        # text is deprecate use query instead
         if text is not None:
             return list(self._model.textSearch(text, user=user, limit=limit, offset=offset))
+
+        if query is not None:
+            if mode is None:
+                mode = 'text'
+            if mode in search._allowedSearchMode:
+                modeHandler = search.getSearchModeHandler(mode)
+                result = modeHandler(
+                    mode=mode,
+                    query=query,
+                    types=[self.resourceName],
+                    user=user,
+                    level=AccessType.READ,
+                    limit=limit,
+                    offset=offset
+                )
+                return result[self.resourceName]
+
+            raise ValueError('The search mode is wrong or not allowed.')
 
         return list(self._model.list(user=user, offset=offset, limit=limit, sort=sort))
 

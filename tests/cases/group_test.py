@@ -160,20 +160,32 @@ class GroupTestCase(base.TestCase):
         self.assertIsInstance(resp.json, list)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(publicGroup['_id']))
-        # Test searching by name
+
+        # Test searching by full text
         resp = self.request(path='/group', method='GET', user=self.users[0],
-                            params={'text': 'private'})
+                            params={'query': 'private'})
         self.assertStatusOk(resp)
         self.assertIsInstance(resp.json, list)
         self.assertEqual(len(resp.json), 2)
         self.assertEqual(resp.json[0]['_id'], str(privateGroup['_id']))
         self.assertEqual(resp.json[1]['_id'], str(privateGroup2['_id']))
+
+        # Test searching by name
         resp = self.request(path='/group', method='GET', user=self.users[0],
                             params={'text': 'private', 'exact': True})
         self.assertStatusOk(resp)
         self.assertIsInstance(resp.json, list)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(privateGroup['_id']))
+
+        # Test searching by prefix 'priva'
+        resp = self.request(path='/group', method='GET', user=self.users[0],
+                            params={'query': 'priv', 'mode': 'prefix'})
+        self.assertStatusOk(resp)
+        self.assertIsInstance(resp.json, list)
+        self.assertEqual(len(resp.json), 2)
+        self.assertEqual(resp.json[0]['_id'], str(privateGroup['_id']))
+        self.assertEqual(resp.json[1]['_id'], str(privateGroup2['_id']))
 
     def testUpdateGroup(self):
         """

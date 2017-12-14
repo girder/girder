@@ -16,14 +16,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.models.folder import Folder as FolderModel
-from girder.utility import ziputil
+from girder.utility import search, ziputil
 from girder.utility.progress import ProgressContext
 
 
@@ -53,22 +52,28 @@ class Folder(Resource):
     @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Search for folders by certain properties.')
-        .notes('You must pass either a "folderId" or "text" field'
+        .notes('You must pass either a "folderId" or "query" field '
                'to specify how you are searching for folders.  '
                'If you omit one of these parameters the request will fail and respond : '
-               '"Invalid search mode."')
+               '"Invalid search mode". If you pass a "query" field, you can also pass '
+               'a "mode" field to select a different search mode. By default the mode is '
+               '"text" and a full-text search is performed. Available search mode are %s.'
+               % search.listAllowedSearchMode())
         .responseClass('Folder', array=True)
         .param('parentType', "Type of the folder's parent", required=False,
                enum=['folder', 'user', 'collection'])
         .param('parentId', "The ID of the folder's parent.", required=False)
-        .param('text', 'Pass to perform a text search.', required=False)
+        .param('text', 'Pass this to perform a text search for collections. This is deprecated',
+               required=False)
+        .param('query', 'Pass to perform a search for folders.', required=False)
+        .param('mode', 'Pass to search with a different search mode.', required=False)
         .param('name', 'Pass to lookup a folder by exact name match. Must '
                'pass parentType and parentId as well when using this.', required=False)
         .pagingParams(defaultSort='lowerName')
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403)
     )
-    def find(self, parentType, parentId, text, name, limit, offset, sort):
+    def find(self, parentType, parentId, text, query, mode, name, limit, offset, sort):
         """
         Get a list of folders with given search parameters. Currently accepted
         search modes are:
@@ -91,15 +96,37 @@ class Folder(Resource):
                 filters['$text'] = {
                     '$search': text
                 }
+            elif query:
+                filters['$text'] = {
+                    '$search': query
+                }
             if name:
                 filters['name'] = name
 
             return list(self._model.childFolders(
                 parentType=parentType, parent=parent, user=user,
                 offset=offset, limit=limit, sort=sort, filters=filters))
+        # text is deprecate use query instead
         elif text:
             return list(self._model.textSearch(
                 text, user=user, limit=limit, offset=offset, sort=sort))
+        elif query is not None:
+            if mode is None:
+                mode = 'text'
+            if mode in search._allowedSearchMode:
+                modeHandler = search.getSearchModeHandler(mode)
+                result = modeHandler(
+                    mode=mode,
+                    query=query,
+                    types=[self.resourceName],
+                    user=user,
+                    level=AccessType.READ,
+                    limit=limit,
+                    offset=offset
+                )
+                return result[self.resourceName]
+
+            raise ValueError('The search mode is wrong or not allowed.')
         else:
             raise RestException('Invalid search mode.')
 
