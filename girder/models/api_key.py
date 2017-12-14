@@ -19,8 +19,9 @@
 
 import datetime
 
-from .model_base import AccessControlledModel, ValidationException
+from .model_base import AccessControlledModel
 from girder.constants import AccessType, SettingKey, TokenScope
+from girder.exceptions import ValidationException
 from girder.utility import genToken
 
 

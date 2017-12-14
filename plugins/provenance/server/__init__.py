@@ -20,7 +20,7 @@
 import six
 
 from girder import events
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 from . import constants
 from .resource import ResourceExt

@@ -19,7 +19,7 @@
 
 import six
 from .. import base
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.utility import setting_utilities
 

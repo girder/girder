@@ -17,7 +17,9 @@ var LayoutHeaderUserView = View.extend({
         'click a.g-logout': logout
     },
 
-    initialize: function () {
+    initialize: function (settings) {
+        this.registrationPolicy = settings.registrationPolicy;
+
         events.on('g:login', this.render, this);
         events.on('g:login-changed', this.render, this);
         events.on('g:logout', this.render, this);
@@ -25,7 +27,8 @@ var LayoutHeaderUserView = View.extend({
 
     render: function () {
         this.$el.html(LayoutHeaderUserTemplate({
-            user: getCurrentUser()
+            user: getCurrentUser(),
+            registrationPolicy: this.registrationPolicy
         }));
         return this;
     }

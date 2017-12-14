@@ -15,6 +15,13 @@ mccabe==0.6.1
 pep8==1.7.0
 pyflakes==1.5.0
 
+mongomock==3.8.0
+pytest==3.1.1
+pytest-xdist==1.18.1
+pytest-cov==2.5.1
+-e pytest_girder
+tox==2.9.1
+
 # dependencies of flake8-docstrings
 pydocstyle==2.0.0
 

@@ -1,15 +1,13 @@
 import os
+import json
 import six
-import time
 
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.upload import Upload
 from girder.models.user import User
-from server.event_helper import _EventHelper
 from tests import base
-
 
 
 def setUpModule():
@@ -114,7 +112,7 @@ class DicomViewerTest(base.TestCase):
         self.assertHasKeys(dicomItem['dicom'], ['files'])
 
         # Check if the files list contain the good keys and all the file are well sorted
-        for i in range(0,4):
+        for i in range(0, 4):
             self.assertTrue('_id' in dicomItem['dicom']['files'][i])
             self.assertTrue('name' in dicomItem['dicom']['files'][i])
             self.assertEqual(dicomItem['dicom']['files'][i]['name'], 'dicomFile{}.dcm'.format(i))
@@ -169,8 +167,9 @@ class DicomViewerTest(base.TestCase):
         )
         self.assertIsNotNone(ndcmFile)
 
-
     def _uploadDicomFiles(self, item, user):
+        from girder.plugins.dicom_viewer.event_helper import _EventHelper
+
         # Upload the files in the reverse order to check if they're well sorted
         for i in [1, 3, 0, 2]:
             file = os.path.join(self.dataDir, '00000%i.dcm' % i)
@@ -192,3 +191,37 @@ class DicomViewerTest(base.TestCase):
     def _purgeDicomItem(self, item):
         item.pop('dicom')
         return item
+
+    def testSearchForDicomItem(self):
+        admin, user = self.users
+
+        # Create a collection, folder, and item
+        collection = Collection().createCollection('collection3', admin, public=True)
+        folder = Folder().createFolder(collection, 'folder3', parentType='collection', public=True)
+        item = Item().createItem('item3', admin, folder)
+
+        # Upload files
+        self._uploadDicomFiles(item, admin)
+
+        # Search for DICOM item with 'brain research' as common key/value
+        resp = self.request(path='/resource/search', params={
+            'q': 'brain research',
+            'mode': 'dicom',
+            'types': json.dumps(["item"])
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['item']), 1)
+        self.assertEqual(resp.json['item'][0]['name'], 'item3')
+
+        # Search for DICOM item with substring 'in resea' as common key/value
+        resp = self.request(path='/resource/search', params={
+            'q': 'in resea',
+            'mode': 'dicom',
+            'types': json.dumps(["item"])
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['item']), 1)
+        self.assertEqual(resp.json['item'][0]['name'], 'item3')
+
+        # TODO: Add test to search for a private DICOM item with an other user
+        # this test should not found anything

@@ -26,17 +26,11 @@
             label
               input#g-scope-mode-custom(type="radio", name="scopeType", value="custom")
               | Only allow specific permissions for this key:
-          each tokenScope in userTokenScopes
+          each tokenScope in tokenScopes
             .checkbox.disabled
               label.g-custom-scope-description(title=tokenScope.description)
                 input.g-custom-scope-checkbox(type="checkbox", value=tokenScope.id, disabled)
                 span= tokenScope.name
-          if user.get('admin')
-            each tokenScope in adminTokenScopes
-              .checkbox.disabled
-                label.g-custom-scope-description(title=tokenScope.description)
-                  input.g-custom-scope-checkbox(type="checkbox", value=tokenScope.id, disabled)
-                  span= tokenScope.name
         .g-validation-failed-message
       .modal-footer
         a.btn.btn-small.btn-default(data-dismiss="modal") Cancel

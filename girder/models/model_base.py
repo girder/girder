@@ -32,6 +32,9 @@ from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SC
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
+from girder.exceptions import AccessException, ValidationException
+# Import the GirderException since it was historically defined here
+from girder.exceptions import GirderException  # noqa
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
@@ -87,7 +90,7 @@ class Model(ModelImporter):
         typically not have to call this method.
         """
         db_connection = getDbConnection()
-        self.database = db_connection.get_default_database()
+        self.database = db_connection.get_database()
         self.collection = MongoProxy(self.database[self.name])
 
         for index in self._indices:
@@ -1505,44 +1508,3 @@ class AccessControlledModel(Model):
             prefixSearchFields=prefixSearchFields)
         return self.filterResultsByPermission(
             cursor, user=user, level=level, limit=limit, offset=offset)
-
-
-class AccessException(Exception):
-    """
-    Represents denial of access to a resource.
-    """
-    def __init__(self, message, extra=None):
-        self.message = message
-        self.extra = extra
-
-        Exception.__init__(self, message)
-
-
-class GirderException(Exception):
-    """
-    Represents a general exception that might occur in regular use.  From the
-    user perspective, these are failures, but not catastrophic ones.  An
-    identifier can be passed, which allows receivers to check the exception
-    without relying on the text of the message.  It is recommended that
-    identifiers are a dot-separated string consisting of the originating
-    python module and a distinct error.  For example,
-    'girder.model.assetstore.no-current-assetstore'.
-    """
-    def __init__(self, message, identifier=None):
-        self.identifier = identifier
-        self.message = message
-
-        Exception.__init__(self, message)
-
-
-class ValidationException(Exception):
-    """
-    Represents validation failure in the model layer. Raise this with
-    a message and an optional field property. If one of these is thrown
-    in the model during a REST request, it will respond as a 400 status.
-    """
-    def __init__(self, message, field=None):
-        self.field = field
-        self.message = message
-
-        Exception.__init__(self, message)

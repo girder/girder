@@ -41,9 +41,14 @@ var ResetPasswordView = View.extend({
         }
     },
 
+    initialize: function (settings) {
+        this.registrationPolicy = settings.registrationPolicy;
+    },
+
     render: function () {
-        this.$el.html(ResetPasswordDialogTemplate(
-        )).girderModal(this).on('shown.bs.modal', () => {
+        this.$el.html(ResetPasswordDialogTemplate({
+            registrationPolicy: this.registrationPolicy
+        })).girderModal(this).on('shown.bs.modal', () => {
             this.$('#g-email').focus();
         }).on('hidden.bs.modal', () => {
             handleClose('resetpassword', {replace: true});

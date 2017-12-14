@@ -1,13 +1,5 @@
-if mode === 'prefix'
-  .g-search-help-text.
-    You are searching by prefix. Start typing the first letters of whatever you
-    are searching for.
-else if mode === 'text'
-  p.g-search-help-text.
-    By default, search results will be returned if they contain any of the terms
-    of the search. If you wish to search for documents containing all of the
-    terms, place them in quotes. Examples:
-
+p.g-search-help-text= modeHelp
+if mode === 'text'
   ul.g-search-examples-list
     li
       code cat dog

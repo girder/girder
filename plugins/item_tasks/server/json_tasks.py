@@ -1,7 +1,8 @@
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
-from girder.api.rest import boundHandler, filtermodel, RestException
+from girder.api.rest import boundHandler, filtermodel
 from girder.constants import AccessType
+from girder.exceptions import RestException
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.token import Token

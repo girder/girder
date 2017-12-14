@@ -19,8 +19,11 @@
 
 import datetime
 
-from .model_base import Model, ValidationException, GirderException
+from .model_base import Model
 from girder.constants import AssetstoreType, SortDir
+from girder.exceptions import ValidationException, GirderException, NoAssetstoreAdapter
+from girder.utility import assetstore_utilities
+from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 
 class Assetstore(Model):
@@ -31,8 +34,6 @@ class Assetstore(Model):
         self.name = 'assetstore'
 
     def validate(self, doc):
-        from girder.utility import assetstore_utilities
-
         # Ensure no duplicate names
         q = {'name': doc['name']}
         if '_id' in doc:
@@ -73,7 +74,6 @@ class Assetstore(Model):
         :type assetstore: dict
         """
         from .file import File
-        from girder.utility import assetstore_utilities
 
         files = File().findOne({'assetstoreId': assetstore['_id']})
         if files is not None:
@@ -118,9 +118,13 @@ class Assetstore(Model):
         :type assetstore: dict
         """
         from .file import File
-        from girder.utility import assetstore_utilities
 
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        try:
+            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+        except NoAssetstoreAdapter:
+            # If the adapter doesn't exist, use the abstract adapter, since
+            # this will just give the default capacity information
+            adapter = AbstractAssetstoreAdapter(assetstore)
         assetstore['capacity'] = adapter.capacityInfo()
         assetstore['hasFiles'] = File().findOne({'assetstoreId': assetstore['_id']}) is not None
 
@@ -179,8 +183,6 @@ class Assetstore(Model):
         """
         Calls the importData method of the underlying assetstore adapter.
         """
-        from girder.utility import assetstore_utilities
-
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         return adapter.importData(
             parent=parent, parentType=parentType, params=params,

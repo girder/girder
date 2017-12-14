@@ -1,0 +1,7 @@
+name: Treeview
+description: Provides an alternative hierarchy widget using jstree
+version: 0.1.0
+url: http://girder.readthedocs.io/en/latest/plugins.html#treeview
+npm:
+  dependencies:
+    jstree: "^3.3.4"

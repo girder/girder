@@ -11,14 +11,34 @@ Unreleased
 Added Features
 --------------
 
+* Added a new system setting that will allow admins to disable logging in via a password. If disabled,
+  the login dialog in the web client will no longer show the password login form. (`#2504 <https://github.com/girder/girder/pull/2504>`_)
+* Added a new system setting that will allow admins to disable the API key authentication functionality.
+  (`#2438 <https://github.com/girder/girder/pull/2438>`_)
+* API endpoint in the hashsum_download plugin that returns a list of files matching a given hash sum.
+  (`#2548 <https://github.com/girder/girder/pull/2458>`_)
+
+Web Client
+^^^^^^^^^^
+* Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
+
+  * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
+  * Added support for the ``mongomock`` package in the new ``pytest`` suite.
+
+* New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
+
 Bug fixes
 ---------
+Server
+^^^^^^
+* Support range requests of S3 non-redirected data handling.  This fixes seeking on S3 assetstore files in the file context handler.
 
 Security Fixes
 --------------
 
 Changes
 -------
+* Exceptions are now all accessible in the ``exceptions`` module and are descended from the ``GirderBaseException`` class.
 
 Web Client
 ^^^^^^^^^^
@@ -26,6 +46,7 @@ Web Client
 
 Deprecations
 ------------
+* Server side tests should be written using the new ``pytest`` infrastructure.
 
 Removals
 --------

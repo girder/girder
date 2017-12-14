@@ -22,7 +22,7 @@ from celery.result import AsyncResult
 
 from girder import events, logger
 from girder.constants import AccessType
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.plugins.jobs.constants import JobStatus
 from girder.plugins.jobs.models.job import Job
 from girder.models.setting import Setting

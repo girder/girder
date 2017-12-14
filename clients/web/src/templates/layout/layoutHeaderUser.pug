@@ -19,7 +19,8 @@
             i.icon-logout
             | Log out
   else
-    a.g-register(href="#?dialog=register") Register
-    .g-or-text or
+    if registrationPolicy !== 'closed'
+      a.g-register(href="#?dialog=register") Register
+      .g-or-text or
     a.g-login(href="#?dialog=login") Log In
       i.icon-login

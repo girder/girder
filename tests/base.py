@@ -557,9 +557,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             body = self.getBody(response)
             try:
                 response.json = json.loads(body)
-            except Exception:
-                print(url)
-                print(body)
+            except ValueError:
                 raise AssertionError('Did not receive JSON response')
 
         if not exception and response.output_status.startswith(b'500'):
@@ -633,8 +631,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
             body = self.getBody(response)
             try:
                 response.json = json.loads(body)
-            except Exception:
-                print(body)
+            except ValueError:
                 raise AssertionError('Did not receive JSON response')
 
         if response.output_status.startswith(b'500'):

@@ -8,5 +8,5 @@ set_property(TEST documentation_generate
   PROPERTY FAIL_REGULAR_EXPRESSION "ERROR"
 )
 set_property(TEST documentation_generate
-  PROPERTY LABELS girder_python
+  PROPERTY LABELS girder_browser
 )

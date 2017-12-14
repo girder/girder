@@ -1,9 +1,12 @@
+
 import { getCurrentUser } from 'girder/auth';
 import { AccessType } from 'girder/constants';
 import events from 'girder/events';
 import { restRequest } from 'girder/rest';
 import { wrap } from 'girder/utilities/PluginUtils';
+
 import ItemView from 'girder/views/body/ItemView';
+import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 
 import DicomItemView from './views/DicomView';
 import ParseDicomItemTemplate from './templates/parseDicomItem.pug';
@@ -54,3 +57,12 @@ ItemView.prototype.events['click .g-dicom-parse-item'] = function () {
             });
         });
 };
+
+SearchFieldWidget.addMode(
+        'dicom',
+        ['item'],
+        'DICOM metadata search',
+        `You are searching for text in DICOM metadata. Only Girder items which have been preprocessed to
+        extract DICOM images will be searched. The search text may appear anywhere within the common (i.e.
+        shared across slices) metadata keys or values of a DICOM image.`
+    );

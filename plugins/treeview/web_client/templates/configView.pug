@@ -1,0 +1,56 @@
+.g-config-breadcrumb-container
+
+.g-treeview-config-container
+  p.
+    The treeview plugin provides widgets and dialogs displaying Girder's
+    data hierarchy as an expandable tree similar to a familiar file
+    dialog.  Plugin authors can specify this plugin as a dependency
+    to use the views provided.  Below are some example dialogs that
+    can be used as a template for how to integrate them into other
+    applications.
+
+  label Embedded TreeView widget
+  .container-fluid
+    .row
+      .col-md-6
+        .g-treeview-container
+      .col-md-6
+        pre.g-treeview-selected.
+          Click on a document to display its details here.
+
+  form(role='form')
+    .form-group
+      label.control-label(for='g-treeview-generic-dialog') Generic dialog
+      .input-group
+        input#g-treeview-generic-dialog.input-sm.form-control(
+          type='text', placeholder='Select any document', readonly)
+        span.input-group-btn
+          button.btn.btn-sm.btn-default.g-treeview-generic-dialog-button(type='button')
+            i.icon-briefcase
+
+    .form-group
+      label.control-label(for='g-treeview-folder-dialog') Folder dialog
+      .input-group
+        input#g-treeview-folder-dialog.input-sm.form-control(
+          type='text', placeholder='Select a folder', readonly)
+        span.input-group-btn
+          button.btn.btn-sm.btn-default.g-treeview-folder-dialog-button(type='button')
+            i.icon-folder
+
+    .form-group
+      label.control-label(for='g-treeview-item-dialog') Item dialog
+      .input-group
+        input#g-treeview-item-dialog.input-sm.form-control(
+          type='text', placeholder='Select an item', readonly)
+        span.input-group-btn
+          button.btn.btn-sm.btn-default.g-treeview-item-dialog-button(type='button')
+            i.icon-doc-text-inv
+
+    .form-group
+      label.control-label(for='g-treeview-file-dialog') File dialog
+      .input-group
+        input#g-treeview-file-dialog.input-sm.form-control(
+          type='text', placeholder='Select a file', readonly)
+        span.input-group-btn
+          button.btn.btn-sm.btn-default.g-treeview-file-dialog-button(type='button')
+            i.icon-doc-inv

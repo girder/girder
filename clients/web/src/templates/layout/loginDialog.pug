@@ -5,18 +5,20 @@
         button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
         h4.modal-title Log in
       .modal-body
-        .form-group
-          label.control-label(for="g-login") Login or email
-          input#g-login.input-sm.form-control(type="text", placeholder="Enter login")
-        .form-group
-          label.control-label(for="g-password") Password
-          input#g-password.input-sm.form-control(type="password", placeholder="Enter password")
-        .g-validation-failed-message
-        .g-bottom-message
-          | Don't have an account yet?
-          a.g-register-link(href="#/?dialog=register")  Register here.
-          |  |
-          a.g-forgot-password  Forgot your password?
+        if enablePasswordLogin
+          .form-group
+            label.control-label(for="g-login") Login or email
+            input#g-login.input-sm.form-control(type="text", placeholder="Enter login")
+          .form-group
+            label.control-label(for="g-password") Password
+            input#g-password.input-sm.form-control(type="password", placeholder="Enter password")
+          .g-validation-failed-message
+          .g-bottom-message
+            if registrationPolicy !== 'closed'
+              | Don't have an account yet?
+              a.g-register-link(href="#/?dialog=register")  Register here.
+              |  |
+            a.g-forgot-password  Forgot your password?
       .modal-footer
         a.btn.btn-default(data-dismiss="modal") Close
         button#g-login-button.btn.btn-primary(type="submit")

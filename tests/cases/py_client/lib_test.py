@@ -575,6 +575,26 @@ class PythonClientTestCase(base.TestCase):
         with open(path, 'rb') as f:
             self.assertEqual(f.read(), obj.read())
 
+    def testDownloadIterator(self):
+        # Create item
+        item = self.client.createItem(self.publicFolder['_id'], 'SomethingMoreUnique')
+        # Upload file to item
+        path = os.path.join(self.libTestDir, 'sub0', 'f')
+        file = self.client.uploadFileToItem(item['_id'], path)
+
+        buf = six.BytesIO()
+
+        # Download file to object stream
+        for chunk in self.client.downloadFileAsIterator(file['_id'], chunkSize=10):
+            buf.write(chunk)
+
+        buf.seek(0)
+
+        # Open file at path uloaded from, compare
+        # to content of the iterator.
+        with open(path, 'rb') as f:
+            self.assertEqual(f.read(), buf.read())
+
     def testDownloadCache(self):
         item = self.client.createItem(self.publicFolder['_id'], 'SomethingEvenMoreUnique')
         path = os.path.join(self.libTestDir, 'sub0', 'f')

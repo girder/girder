@@ -18,6 +18,7 @@
 ###############################################################################
 
 import mock
+import sys
 import unittest
 
 from contextlib import contextmanager
@@ -112,7 +113,9 @@ class FindEntryPointPluginsTestCase(unittest.TestCase):
         failures = getPluginFailureInfo()
         self.assertIn('entry_point_plugin_bad_json', failures)
         self.assertIn('traceback', failures['entry_point_plugin_bad_json'])
-        self.assertIn('ValueError', failures['entry_point_plugin_bad_json']['traceback'])
+        self.assertIn(
+            'JSONDecodeError' if sys.version_info >= (3, 5) else 'ValueError',
+            failures['entry_point_plugin_bad_json']['traceback'])
 
     @mock.patch('pkg_resources.resource_stream')
     @mock.patch('pkg_resources.resource_exists')

@@ -51,9 +51,10 @@ be displayed directly in the PR page in GitHub.
 The CircleCI build will run according to the `circle.yml file <https://github.com/girder/girder/blob/master/circle.yml>`_,
 which is useful as an example for how to set up your own environment for testing.
 
-The tests that run in CircleCI are harnessed with CTest, which submits the results of its
-automated testing to `Girder's CDash dashboard <http://my.cdash.org/index.php?project=girder>`_
-where the test and coverage results can be easily visualized and explored.
+Your test results will be posted on `Girder's CircleCI dashboard <https://circleci.com/gh/girder>`_.
+These results will list any failed tests. Coverage reports and any screenshots
+from failed web client tests will be attached to the build as artifact files. You can reach your
+build by clicking the build status link on your GitHub PR.
 
 Confusing failing test message "AttributeError: 'module' object has no attribute 'x_test'"
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

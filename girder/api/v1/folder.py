@@ -18,9 +18,10 @@
 ###############################################################################
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, RestException, filtermodel, setResponseHeader, setContentDisposition
+from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
+from girder.exceptions import RestException
 from girder.models.folder import Folder as FolderModel
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext

@@ -23,8 +23,9 @@ import datetime
 
 from ..describe import Description, autoDescribeRoute
 from girder.api import access
-from girder.api.rest import Resource, RestException, AccessException, filtermodel, setCurrentUser
+from girder.api.rest import Resource, filtermodel, setCurrentUser
 from girder.constants import AccessType, SettingKey, TokenScope
+from girder.exceptions import RestException, AccessException
 from girder.models.password import Password
 from girder.models.setting import Setting
 from girder.models.token import genToken, Token
@@ -102,6 +103,9 @@ class User(Resource):
         .errorResponse('Invalid login or password.', 403)
     )
     def login(self):
+        if not Setting().get(SettingKey.ENABLE_PASSWORD_LOGIN):
+            raise RestException('Password login is disabled on this instance.')
+
         user, token = self.getCurrentUser(returnToken=True)
 
         # Only create and send new cookie if user isn't already sending a valid one.

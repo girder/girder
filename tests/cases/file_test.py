@@ -32,7 +32,7 @@ from .. import base, mock_s3
 from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
-from girder.models.model_base import AccessException, GirderException
+from girder.exceptions import AccessException, GirderException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -262,7 +262,6 @@ class FileTestCase(base.TestCase):
                              'text/plain;charset=utf-8')
             self.assertEqual(resp.headers['Content-Disposition'],
                              'attachment; %s' % contentDisposition)
-
         self.assertEqual(contents, self.getBody(resp))
 
         # Test downloading the file with contentDisposition=inline.
@@ -276,7 +275,6 @@ class FileTestCase(base.TestCase):
                              'text/plain;charset=utf-8')
             self.assertEqual(resp.headers['Content-Disposition'],
                              'inline; %s' % contentDisposition)
-
         self.assertEqual(contents, self.getBody(resp))
 
         # Test downloading with an offset
@@ -320,7 +318,18 @@ class FileTestCase(base.TestCase):
             self.assertEqual(resp.headers['Content-Type'],
                              'text/plain;charset=utf-8')
         self.assertEqual(contents, self.getBody(resp))
+        # test the file context as part of the download test
+        self._testFileContext(file, contents)
 
+    def _testFileContext(self, file, contents):
+        """
+        Test the python file context handler.
+
+        :param file: The file object to test.
+        :type file: dict
+        :param contents: The expected contents.
+        :type contents: str
+        """
         def _readFile(handle):
             buf = b''
             while True:
@@ -1018,6 +1027,22 @@ class FileTestCase(base.TestCase):
         # Test copying a file ( we don't assert to content in the case because
         # the S3 download will fail )
         self._testCopyFile(file, assertContent=False)
+
+        # The file we get back from the rest call doesn't have the s3Key value,
+        # so reload the file from the database
+        file = File().load(file['_id'], force=True)
+
+        # Mock Serve range requests
+        @httmock.urlmatch(netloc=r'^s3.amazonaws.com')
+        def s3_range_mock(url, request):
+            data = chunk1 + chunk2
+            if request.headers.get('range', '').startswith('bytes='):
+                start, end = request.headers['range'].split('bytes=')[1].split('-')
+                data = data[int(start):int(end)+1]
+            return data
+
+        with httmock.HTTMock(s3_range_mock):
+            self._testFileContext(file, chunk1 + chunk2)
 
     def testLinkFile(self):
         params = {

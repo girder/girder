@@ -17,11 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+import requests
+
 from .. import base
+from girder import config
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, RestException
-from girder.models.model_base import GirderException
+from girder.api.rest import Resource
+from girder.exceptions import GirderException, RestException
 from girder.models.setting import Setting
 from girder.constants import SettingKey, SettingDefault
 
@@ -30,7 +34,9 @@ testServer = None
 
 def setUpModule():
     global testServer
-    testServer = base.startServer()
+    os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
+    config.loadConfig()
+    testServer = base.startServer(mock=False)
 
 
 def tearDownModule():
@@ -152,6 +158,12 @@ class RoutesTestCase(base.TestCase):
         self.assertEqual(resp.headers['Access-Control-Allow-Headers'],
                          SettingDefault.defaults[SettingKey.CORS_ALLOW_HEADERS])
         self.assertEqual(resp.headers['Access-Control-Allow-Methods'], 'POST')
+
+        # Make an actual preflight request with query parameters; CherryPy 11.1
+        # introduced a bug where this would fail with a 405.
+        resp = requests.options(
+            'http://127.0.0.1:%s/api/v1/folder?key=value' % os.environ['GIRDER_TEST_PORT'])
+        self.assertEqual(resp.status_code, 200)
 
         # Set multiple allowed origins
         Setting().set(SettingKey.CORS_ALLOW_ORIGIN, 'http://foo.com, http://bar.com')

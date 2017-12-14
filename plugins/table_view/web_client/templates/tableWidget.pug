@@ -1,0 +1,30 @@
+.g-item-table-view
+  .g-item-table-view-header(class=state === states.VIEW_COLLAPSED || state === states.DATA_READY ? '' : 'g-item-table-view-header-inactive')
+    .g-item-table-view-title
+      i(class=state === states.DATA_LOADING ? 'icon-spin3 animate-spin' : 'icon-table')
+      = ' '
+      = fileName
+      span.g-item-table-view-subtitle= message
+    if state === states.VIEW_COLLAPSED || state === states.DATA_READY
+      i.g-item-table-view-collapse(class=state === states.DATA_READY ? 'icon-up-dir' : 'icon-down-dir')
+  if state === states.DATA_READY
+    .g-item-table-view-container
+      ul.pagination.pagination-sm
+        li.g-table-view-page-prev(class=page === 0 ? 'disabled' : '')
+          a &laquo; Prev
+        li.active
+          a.g-page-number
+            | Rows #{Math.min(rows.length, page * pageSize + 1).toLocaleString()}-#{Math.min(rows.length, (page + 1) * pageSize).toLocaleString()}
+            | of #{rows.length.toLocaleString()}
+        li.g-table-view-page-next(class=rows.length > (page + 1) * pageSize ? '' : 'disabled')
+          a Next &raquo;
+      table.table
+        thead
+          tr
+            each c in columns
+              th(scope="col")= c
+        tbody
+          each r in rows.slice(page * pageSize, (page + 1) * pageSize)
+            tr
+              each c in columns
+                td= r[c]

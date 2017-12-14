@@ -79,8 +79,8 @@ def _onUpload(event):
         return
 
     try:
-        ref = json.loads(event.info.get('reference'))
-    except (ValueError, TypeError):
+        ref = json.loads(event.info.get('reference', ''))
+    except ValueError:
         return
 
     if not isinstance(ref, dict) or not isinstance(ref.get('thumbnail'), dict):

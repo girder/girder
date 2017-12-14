@@ -27,8 +27,10 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
+from girder.exceptions import RestException
 from girder.models.item import Item
 from girder.models.file import File
+from girder.utility import search
 
 
 class DicomItem(Resource):
@@ -195,9 +197,46 @@ def _uploadHandler(event):
     events.trigger('dicom_viewer.upload.success')
 
 
+def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, offset=0):
+    """
+    Provide a substring search on both keys and values.
+    """
+    if types != ['item']:
+        raise RestException('The dicom search is only able to search in Item.')
+
+    jsQuery = """
+        function() {
+            var queryKey = '%(queryKey)s'.toLowerCase();
+            var queryValue = '%(queryValue)s'.toLowerCase();
+            var dicomMeta = obj.dicom.meta;
+            return Object.keys(dicomMeta).some(
+                function(key) {
+                    return (key.toLowerCase().indexOf(queryKey) !== -1)  ||
+                        dicomMeta[key].toString().toLowerCase().indexOf(queryValue) !== -1;
+                })
+            }
+        """ % {'queryKey': query, 'queryValue': query}
+
+    # Sort the documents inside MongoDB
+    cursor = Item().find({'dicom': {'$exists': True}, '$where': jsQuery})
+    # Filter the result
+    result = {
+        'item': [
+            Item().filter(doc, user)
+            for doc in Item().filterResultsByPermission(cursor, user, level, limit, offset)
+        ]
+    }
+
+    return result
+
+
 def load(info):
     Item().exposeFields(level=AccessType.READ, fields={'dicom'})
     events.bind('data.process', 'dicom_viewer', _uploadHandler)
+
+    # Add the DICOM search mode only once
+    search.addSearchMode('dicom', dicomSubstringSearchHandler)
+
     dicomItem = DicomItem()
     info['apiRoot'].item.route(
         'POST', (':id', 'parseDicom'), dicomItem.makeDicomItem)

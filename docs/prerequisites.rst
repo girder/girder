@@ -3,7 +3,7 @@ System Prerequisites
 
 The following software packages are required to be installed on your system:
 
-* `Python 2.7 or 3.4 <https://www.python.org>`_
+* `Python 2.7 or 3.4+ <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 2.6+ <http://www.mongodb.org/>`_
 * `Node.js 6.5+ <http://nodejs.org/>`_
@@ -18,7 +18,7 @@ recommend setting up `Postfix <http://www.postfix.org/documentation.html>`_.
 
 See the specific instructions for your platform below.
 
-.. note:: We perform continuous integration testing using Python 2.7 and Python 3.4.
+.. note:: We perform continuous integration testing using Python 2.7 and Python 3.5.
    The system *should* work on other versions of Python 3 as well, but we do not
    verify that support in our automated testing at this time, so use at your own
    risk.
@@ -51,7 +51,7 @@ Debian / Ubuntu
 
 Install the prerequisites using APT: ::
 
-    sudo apt-get install curl g++ git libffi-dev make python-dev python-pip libssl-dev libjpeg-dev zlib1g-dev
+    sudo apt-get install curl g++ git libffi-dev libjpeg-dev libldap2-dev libsasl2-dev libssl-dev make python-dev python-pip zlib1g-dev
 
 MongoDB 2.6 requires a special incantation to install at this time. Install
 the APT key with the following: ::

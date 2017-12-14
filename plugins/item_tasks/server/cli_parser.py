@@ -1,7 +1,7 @@
 import ctk_cli
 import itertools
 
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 
 _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'boolean': 'boolean',

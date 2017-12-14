@@ -29,7 +29,7 @@ import tempfile
 
 from girder import events, logger
 from girder.api.rest import setResponseHeader
-from girder.models.model_base import ValidationException, GirderException
+from girder.exceptions import ValidationException, GirderException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item

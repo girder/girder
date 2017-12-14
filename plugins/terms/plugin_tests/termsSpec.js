@@ -1,3 +1,5 @@
+/* global girderTest, describe, it, expect, runs, waitsFor, girder, beforeEach */
+
 girderTest.importPlugin('terms');
 girderTest.startApp();
 
@@ -65,12 +67,20 @@ describe('Navigate to a non-collection folder and item', function () {
         waitsFor(function () {
             return $('.g-item-count-container:visible').length === 1;
         });
+        girderTest.waitForLoad();
         runs(function () {
             expect($('.g-hierarchy-breadcrumb-bar>.breadcrumb>.active').text()).toBe('Public');
             var folderId = window.location.hash.split('/')[3];
             expect(folderId).toMatch(/[0-9a-f]{24}/);
             window.location.assign('#folder/' + folderId);
         });
+        // after setting a window location, waitForLoad is insufficient, as the
+        // page hasn't yet started making requests and it looks similar to
+        // before the location change.  Wait for the user header to be hidden,
+        // and then wait for load.
+        waitsFor(function () {
+            return $('.g-user-header').length === 0;
+        }, 'the user header to go away');
         girderTest.waitForLoad();
         waitsFor(function () {
             return $('.g-item-count-container:visible').length === 1;
@@ -79,10 +89,10 @@ describe('Navigate to a non-collection folder and item', function () {
 
     it('create an item', function () {
         runs(function () {
-            return $('.g-create-item').click();
+            $('.g-create-item').click();
         });
-        // This causes the test to fail
-        // girderTest.waitForDialog();
+        girderTest.waitForDialog();
+
         waitsFor(function () {
             return $('.modal-body input#g-name').length > 0;
         });

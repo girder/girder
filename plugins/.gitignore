@@ -23,8 +23,10 @@
 !mongo_search/
 !oauth/
 !provenance/
+!table_view/
 !terms/
 !thumbnails/
+!treeview/
 !user_quota/
 !vega/
 !worker/

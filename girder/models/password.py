@@ -23,8 +23,9 @@ import re
 import six
 
 from girder import events
+from girder.exceptions import ValidationException
 from girder.utility import config
-from .model_base import Model, ValidationException
+from .model_base import Model
 from .token import genToken
 
 

@@ -30,8 +30,9 @@ import six
 import cherrypy
 
 from girder import constants, events, logprint
-from girder.api.rest import getCurrentUser, RestException, getBodyJson
+from girder.api.rest import getCurrentUser, getBodyJson
 from girder.constants import CoreEventHandler, SettingKey
+from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
