@@ -304,6 +304,8 @@ describe('Test collection actions', function () {
             return $('.g-collection-list-entry').text().match('collName0').length > 0;
         }, 'new collection to appear');
 
+        girderTest.waitForLoad();
+
         runs(function () {
             $('.g-collection-link:first').click();
         });
@@ -316,14 +318,14 @@ describe('Test collection actions', function () {
             return $('.g-loading-block').length === 0;
         }, 'for all blocks to load');
 
+        girderTest.waitForLoad();
+
 // ------------------ DEBUG --------------------
         runs(function () {
             $('.g-collection-info-button').click();
         });
 
-        waitsFor(function () {
-            return $('#g-dialog-container:visible').length > 0;
-        }, 'collection info dialog to appear');
+        girderTest.waitForDialog();
 
         runs(function () {
             for (var i = 0; i < 4; i++) {
@@ -340,9 +342,8 @@ describe('Test collection actions', function () {
             $('.btn-default').click();
         });
 
-        waitsFor(function () {
-            return $('#g-dialog-container:visible').length === 0;
-        }, 'collection info dialog to be closed');
+        girderTest.waitForLoad();
+
 // ---------------------------------------------------------------
 // Issue : nFolders = 1, but the confirmation dialog doesn't show up...
         runs(function () {
@@ -360,6 +361,8 @@ describe('Test collection actions', function () {
         waitsFor(function () {
             return $('#g-confirm-button:visible').length > 0;
         }, 'delete confirmation to appear');
+
+        girderTest.waitForDialog();
 
         waitsFor(function () {
             $('#g-confirm-text').val('DELETE wrongName');
@@ -399,6 +402,8 @@ describe('Test collection actions', function () {
         waitsFor(function () {
             return $('.g-collection-list-header').length > 0;
         }, 'go back to the collections list');
+
+        girderTest.waitForLoad();
 
         runs(function () {
             expect($('.g-collection-list-entry').text()).not.toContain('collName0');
