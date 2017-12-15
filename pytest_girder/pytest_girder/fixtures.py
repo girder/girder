@@ -101,7 +101,8 @@ def server(db, request):
 
     cherrypy.server.unsubscribe()
     cherrypy.config.update({'environment': 'embedded',
-                            'log.screen': False})
+                            'log.screen': False,
+                            'request.throw_errors': True})
     cherrypy.engine.start()
 
     yield server
