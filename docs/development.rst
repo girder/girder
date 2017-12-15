@@ -209,6 +209,28 @@ From the Girder directory, run ``pytest``. To run specific tests with long trace
   pytest --tb=long -k testTokenSessionDeletion
 
 
+Running the Tests with tox
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Girder uses `tox <https://tox.readthedocs.io/en/latest/>`_ for running the tests inside of virtual
+environments. By default, running ``tox`` will create a virtual environment, install test
+dependencies, install Girder, and run ``pytest`` for each version of Python that Girder supports.
+
+Sometimes it might be desirable to only run ``tox`` against a single Python environment, such as
+Python 3.5. To do this run ``tox -e py35``. Note that a list of valid environments can be found by
+running ``tox -a``.
+
+Specific arguments can be passed through to ``pytest`` by adding them after the ``tox``
+parameters. For instance, running only the ``testLoadModelDecorator`` test against all supported
+versions of Python can be achieved with the following command ::
+
+  tox -- -k testLoadModelDecorator
+
+.. note:: Sometimes it might be desirable to have ``tox`` destroy and recreate all virtual
+          environments used for testing, this can be accomplished by passing the ``--recreate`` flag
+          to ``tox``.
+
+
 Running the Tests with Coverage Tracing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
