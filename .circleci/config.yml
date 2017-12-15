@@ -46,8 +46,8 @@ jobs:
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/virtualenv
           working_directory: girder_build
       - run:
-          name: Run pytest
-          command: pytest --cov-append --tb=long --junit-xml="$CIRCLE_WORKING_DIRECTORY/girder/build/test/artifacts/pytest-2.7.xml"
+          name: Run tox
+          command: tox -e circleci-py27
           working_directory: girder
       - store_artifacts:
           path: girder/build/test/artifacts
@@ -130,8 +130,8 @@ jobs:
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
       - run:
-          name: Run pytest
-          command: pytest --cov-append --tb=long --junit-xml="$CIRCLE_WORKING_DIRECTORY/girder/build/test/artifacts/pytest-3.4.xml"
+          name: Run tox
+          command: tox -e circleci-py35
           working_directory: girder
       - store_artifacts:
           path: girder/build/test/artifacts
