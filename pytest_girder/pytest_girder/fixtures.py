@@ -48,7 +48,7 @@ def db(request):
     # Force getDbConnection from models to return our connection
     _dbClients[(None, None)] = connection
 
-    if dropDb == 'pre':
+    if dropDb in ('pre', 'both'):
         connection.drop_database(dbName)
 
     for model in _modelSingletons:
@@ -56,7 +56,7 @@ def db(request):
 
     yield connection
 
-    if dropDb == 'post':
+    if dropDb in ('post', 'both'):
         connection.drop_database(dbName)
 
     connection.close()
