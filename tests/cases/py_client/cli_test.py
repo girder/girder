@@ -28,6 +28,10 @@ import six
 import httmock
 
 from girder import config
+from girder.models.api_key import ApiKey
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.user import User
 from tests import base
 from six import StringIO
 
@@ -101,12 +105,12 @@ class PythonCliTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.user = self.model('user').createUser(
+        self.user = User().createUser(
             firstName='First', lastName='Last', login='mylogin',
             password='password', email='email@email.com')
-        self.publicFolder = six.next(self.model('folder').childFolders(
+        self.publicFolder = six.next(Folder().childFolders(
             parentType='user', parent=self.user, user=None, limit=1))
-        self.apiKey = self.model('api_key').createApiKey(self.user, name='')
+        self.apiKey = ApiKey().createApiKey(self.user, name='')
 
         self.downloadDir = os.path.join(
             os.path.dirname(__file__), '_testDownload')
@@ -240,11 +244,11 @@ class PythonCliTestCase(base.TestCase):
             self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
-        subfolder = six.next(self.model('folder').childFolders(
+        subfolder = six.next(Folder().childFolders(
             parent=self.publicFolder, parentType='folder', limit=1))
         self.assertEqual(subfolder['name'], 'testdata')
 
-        items = list(self.model('folder').childItems(folder=subfolder))
+        items = list(Folder().childItems(folder=subfolder))
 
         toUpload = list(os.listdir(localDir))
         self.assertEqual(len(toUpload), len(items))
@@ -333,7 +337,7 @@ class PythonCliTestCase(base.TestCase):
         shutil.rmtree(downloadDir, ignore_errors=True)
 
         # Test download of an item
-        items = list(self.model('folder').childItems(folder=subfolder))
+        items = list(Folder().childItems(folder=subfolder))
         item_id = items[0]['_id']
         item_name = items[0]['name']
         ret = invokeCli(('download', '--parent-type=item', '%s' % item_id,
@@ -341,6 +345,20 @@ class PythonCliTestCase(base.TestCase):
         self.assertEqual(ret['exitVal'], 0)
         self.assertTrue(
             os.path.isfile(os.path.join(downloadDir, item_name)))
+        shutil.rmtree(downloadDir, ignore_errors=True)
+
+        # Test download of a file
+        os.makedirs(downloadDir)
+        items = list(Folder().childItems(folder=subfolder))
+        file_name, file_doc = next(Item().fileList(items[0], data=False))
+
+        ret = invokeCli(
+            ('download', '--parent-type=file', '%s' % file_doc['_id'],
+             os.path.join(downloadDir, file_name)),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertTrue(
+            os.path.isfile(os.path.join(downloadDir, file_name)))
         shutil.rmtree(downloadDir, ignore_errors=True)
 
         # Test download of an item auto-detecting parent-type

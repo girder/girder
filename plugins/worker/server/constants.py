@@ -29,3 +29,4 @@ class PluginSettings(object):
     BROKER = 'worker.broker'
     BACKEND = 'worker.backend'
     API_URL = 'worker.api_url'
+    DIRECT_PATH = 'worker.direct_path'

@@ -30,7 +30,7 @@ module.exports = function (grunt) {
         shell: {
             // create girder-[version].tar.gz
             'package-server': {
-                command: 'env python setup.py sdist --dist-dir .',
+                command: 'python setup.py sdist --dist-dir .',
                 options: {
                     stdout: false,
                     callback: function (err, stdout, stderr, callback) {
@@ -48,7 +48,11 @@ module.exports = function (grunt) {
                             grunt.fail.warn('python setup.py sdist failed.');
                         }
                         callback();
-                    }
+                    },
+                    // If the default "preferLocal: true" is used, grunt-shell will use npm-run-path
+                    // to prepend the directory of the "node" executable to PATH. This may often
+                    // cause the wrong "python" executable to be run.
+                    preferLocal: false
                 }
             }
         }

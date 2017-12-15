@@ -144,7 +144,7 @@ def getStatus(mode='basic', user=None):
         status['cwd'] = process.cwd()
         status['userName'] = process.username()
         status['processCpuTimes'] = _objectToDict(process.cpu_times())
-        db = getDbConnection().get_default_database()
+        db = getDbConnection().get_database()
         status['mongoBuildInfo'] = db.command('buildInfo')
         status['cherrypyThreadsMaxUsed'] = len(
             cherrypy.tools.status.seenThreads)

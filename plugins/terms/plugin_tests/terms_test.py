@@ -18,6 +18,8 @@
 ###############################################################################
 
 from girder.constants import SettingKey
+from girder.models.setting import Setting
+from girder.models.user import User
 
 from tests import base
 
@@ -35,23 +37,23 @@ class TermsTest(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.siteAdminUser = self.model('user').createUser(
+        self.siteAdminUser = User().createUser(
             email='rocky@phila.pa.us',
             login='rocky',
             firstName='Robert',
             lastName='Balboa',
             password='adrian'
         )
-        self.creatorUser = self.model('user').createUser(
+        self.creatorUser = User().createUser(
             email='creed@la.ca.us',
             login='creed',
             firstName='Apollo',
             lastName='Creed',
             password='the1best'
         )
-        creationSetting = self.model('setting').getDefault(SettingKey.COLLECTION_CREATE_POLICY)
+        creationSetting = Setting().getDefault(SettingKey.COLLECTION_CREATE_POLICY)
         creationSetting['open'] = True
-        self.model('setting').set(SettingKey.COLLECTION_CREATE_POLICY, creationSetting)
+        Setting().set(SettingKey.COLLECTION_CREATE_POLICY, creationSetting)
 
     def testTerms(self):
         # Ensure that ordinary collections still work

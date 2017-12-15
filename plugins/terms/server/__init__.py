@@ -23,17 +23,19 @@ import hashlib
 from girder import events
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
-from girder.api.rest import boundHandler, RestException
+from girder.api.rest import boundHandler
 from girder.api.v1.collection import Collection
 from girder.constants import AccessType, TokenScope
-from girder.models.model_base import ModelImporter
+from girder.exceptions import RestException
+from girder.models.collection import Collection as CollectionModel
+from girder.models.user import User
 
 
 @access.user(scope=TokenScope.DATA_READ)
 @boundHandler
 @autoDescribeRoute(
     Description('Accept a collection\'s Terms of Use for the current user.')
-    .modelParam('id', model='collection', level=AccessType.READ)
+    .modelParam('id', model=CollectionModel, level=AccessType.READ)
     .param('termsHash', 'The SHA-256 hash of this collection\'s terms, encoded in hexadecimal.')
 )
 def acceptCollectionTerms(self, collection, termsHash):
@@ -49,7 +51,7 @@ def acceptCollectionTerms(self, collection, termsHash):
         raise RestException(
             'The submitted "termsHash" does not correspond to the collection\'s current terms.')
 
-    ModelImporter.model('user').update(
+    User().update(
         {'_id': self.getCurrentUser()['_id']},
         {'$set': {
             'terms.collection.%s' % collection['_id']: {
@@ -68,7 +70,7 @@ def afterPostPutCollection(event):
         collectionId = collectionResponse['_id']
         terms = extraParams['terms']
 
-        ModelImporter.model('collection').update(
+        CollectionModel().update(
             {'_id': collectionId},
             {'$set': {'terms': terms}}
         )
@@ -88,10 +90,10 @@ def load(info):
         handler.description.param('terms', 'The Terms of Use for the collection.', required=False)
 
     # Expose the terms field on all collections
-    ModelImporter.model('collection').exposeFields(level=AccessType.READ, fields={'terms'})
+    CollectionModel().exposeFields(level=AccessType.READ, fields={'terms'})
 
     # Add endpoint for registered users to accept terms
     info['apiRoot'].collection.route('POST', (':id', 'acceptTerms'), acceptCollectionTerms)
 
     # Expose the terms field on all users
-    ModelImporter.model('user').exposeFields(level=AccessType.ADMIN, fields={'terms'})
+    User().exposeFields(level=AccessType.ADMIN, fields={'terms'})

@@ -28,7 +28,10 @@ import uuid
 
 from girder import logger, events
 from girder.api.rest import setContentDisposition
-from girder.models.model_base import GirderException, ValidationException
+from girder.exceptions import GirderException, ValidationException
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
@@ -368,8 +371,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if headers:
             raise cherrypy.HTTPRedirect(url)
         else:
+            headers = {}
+            if offset or endByte is not None:
+                if endByte is None or endByte > file['size']:
+                    endByte = file['size']
+                headers = {'Range': 'bytes=%d-%d' % (offset, endByte - 1)}
+
             def stream():
-                pipe = requests.get(url, stream=True)
+                pipe = requests.get(url, stream=True, headers=headers)
                 for chunk in pipe.iter_content(chunk_size=BUF_LEN):
                     if chunk:
                         yield chunk
@@ -398,14 +407,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'Keys cannot be imported directly underneath a %s.' % parentType)
 
             if self.shouldImportFile(obj['Key'], params):
-                item = self.model('item').createItem(
+                item = Item().createItem(
                     name=name, creator=user, folder=parent, reuseExisting=True)
-                file = self.model('file').createFile(
+                # Create a file record; delay saving it until we have added the
+                # import information.
+                file = File().createFile(
                     name=name, creator=user, item=item, reuseExisting=True,
-                    assetstore=self.assetstore, mimeType=None, size=obj['Size'])
+                    assetstore=self.assetstore, mimeType=None, size=obj['Size'],
+                    saveFile=False)
                 file['s3Key'] = obj['Key']
                 file['imported'] = True
-                self.model('file').save(file)
+                File().save(file)
 
         # Now recurse into subdirectories
         for obj in resp.get('CommonPrefixes', []):
@@ -414,7 +426,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
 
-            folder = self.model('folder').createFolder(
+            folder = Folder().createFolder(
                 parent=parent, name=name, parentType=parentType, creator=user,
                 reuseExisting=True)
             self.importData(parent=folder, parentType='folder', params={
@@ -435,13 +447,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'relpath': file['relpath'],
                 'assetstoreId': self.assetstore['_id']
             }
-            matching = self.model('file').find(q, limit=2, fields=[])
+            matching = File().find(q, limit=2, fields=[])
             if matching.count(True) == 1:
-                events.daemon.trigger('_s3_assetstore_delete_file', {
+                events.daemon.trigger(info={
                     'client': self.client,
                     'bucket': self.assetstore['bucket'],
                     'key': file['s3Key']
-                })
+                }, callback=_deleteFileImpl)
 
     def fileUpdated(self, file):
         """
@@ -599,6 +611,3 @@ def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferC
 
 def _deleteFileImpl(event):
     event.info['client'].delete_object(Bucket=event.info['bucket'], Key=event.info['key'])
-
-
-events.bind('_s3_assetstore_delete_file', '_s3_assetstore_delete_file', _deleteFileImpl)

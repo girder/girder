@@ -19,7 +19,9 @@
 
 from .constants import PluginSettings
 from girder.api.rest import getApiUrl
-from girder.utility.model_importer import ModelImporter
+from girder.models.file import File
+from girder.models.setting import Setting
+from girder.plugins.jobs.models.job import Job
 
 
 def getWorkerApiUrl():
@@ -29,7 +31,7 @@ def getWorkerApiUrl():
     via a system setting, and the default is to use the core server
     root setting.
     """
-    apiUrl = ModelImporter.model('setting').get(PluginSettings.API_URL)
+    apiUrl = Setting().get(PluginSettings.API_URL)
     return apiUrl or getApiUrl()
 
 
@@ -61,7 +63,7 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
     if isinstance(token, dict):
         token = token['_id']
 
-    return {
+    result = {
         'mode': 'girder',
         'api_url': getWorkerApiUrl(),
         'token': token,
@@ -72,6 +74,15 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
         'format': dataFormat,
         'fetch_parent': fetchParent
     }
+
+    if resourceType == 'file' and not fetchParent and Setting().get(PluginSettings.DIRECT_PATH):
+        # If we are adding a file and it exists on the local filesystem include
+        # that location.  This can permit the user of the specification to
+        # access the file directly instead of downloading the file.
+        adapter = File().getAssetstoreAdapter(resource)
+        if callable(getattr(adapter, 'fullPath', None)):
+            result['direct_path'] = adapter.fullPath(resource)
+    return result
 
 
 def girderOutputSpec(parent, token, parentType='folder', name=None,
@@ -129,7 +140,7 @@ def jobInfoSpec(job, token=None, logPrint=True):
     :param logPrint: Whether standard output from the job should be
     """
     if token is None:
-        token = ModelImporter.model('job', 'jobs').createJobToken(job)
+        token = Job().createJobToken(job)
 
     if isinstance(token, dict):
         token = token['_id']

@@ -4,7 +4,7 @@
 
 body
   // Override the default font from Bootstrap
-  font-family "Droid Sans", sans-serif !important
+  font-family "Open Sans", sans-serif !important
   padding 0
   word-wrap break-word
 
@@ -72,6 +72,9 @@ ul.dropdown-menu
 
 .modal-content
   border-radius 0
+  max-height calc(100vh - 60px)
+  overflow-y auto
+  margin 30px auto
 
 .modal-backdrop.in
   opacity 0.35

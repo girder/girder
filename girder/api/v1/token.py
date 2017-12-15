@@ -21,6 +21,7 @@ from ..rest import Resource
 from ..describe import Description, autoDescribeRoute
 from girder.api import access
 from girder.constants import TokenScope
+from girder.models.token import Token as TokenModel
 
 
 class Token(Resource):
@@ -29,6 +30,7 @@ class Token(Resource):
     def __init__(self):
         super(Token, self).__init__()
         self.resourceName = 'token'
+        self._model = TokenModel()
 
         self.route('DELETE', ('session',), self.deleteSession)
         self.route('GET', ('session',), self.getSession)
@@ -70,7 +72,7 @@ class Token(Resource):
     def deleteSession(self):
         token = self.getCurrentToken()
         if token:
-            self.model('token').remove(token)
+            self._model.remove(token)
         self.deleteAuthTokenCookie()
         return {'message': 'Session deleted.'}
 

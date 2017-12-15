@@ -24,6 +24,10 @@ import six
 import sys
 
 from girder.constants import AssetstoreType
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.user import User
 from tests import base
 from snakebite.client import Client  # noqa
 from snakebite.errors import FileNotFoundException
@@ -183,7 +187,7 @@ class HdfsAssetstoreTest(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.admin = self.model('user').createUser(
+        self.admin = User().createUser(
             email='admin@mail.com',
             login='admin',
             firstName='first',
@@ -281,7 +285,7 @@ class HdfsAssetstoreTest(base.TestCase):
         resp = self.request(path=path, method='PUT', params=params,
                             user=self.admin)
         self.assertStatusOk(resp)
-        folders = list(self.model('folder').childFolders(
+        folders = list(Folder().childFolders(
             parentType='user', parent=self.admin, user=self.admin))
 
         # Make sure the hierarchy got imported
@@ -291,8 +295,7 @@ class HdfsAssetstoreTest(base.TestCase):
                 break
         self.assertTrue(folder is not None)
 
-        items = list(self.model('folder').childItems(
-            folder=folder, user=self.admin))
+        items = list(Folder().childItems(folder=folder, user=self.admin))
         self.assertEqual(len(items), 2)
 
         for item in items:
@@ -303,8 +306,7 @@ class HdfsAssetstoreTest(base.TestCase):
             else:
                 raise Exception('Unexpected item name: ' + item['name'])
 
-        file = self.model('item').childFiles(
-            item=helloItem, user=self.admin).next()
+        file = Item().childFiles(item=helloItem, user=self.admin).next()
 
         # Download the file
         resp = self.request(path='/file/%s/download' % file['_id'],
@@ -339,7 +341,7 @@ class HdfsAssetstoreTest(base.TestCase):
         resp = self.request(path='/file/' + str(file['_id']), method='DELETE',
                             user=self.admin)
         self.assertStatusOk(resp)
-        self.assertEqual(None, self.model('file').load(file['_id']))
+        self.assertEqual(None, File().load(file['_id']))
         self.assertTrue(os.path.isfile(helloTxtPath))
 
         chunk1, chunk2 = ('test', 'upload')
@@ -418,5 +420,5 @@ class HdfsAssetstoreTest(base.TestCase):
         # Delete the file, should remove the underlying file on disk
         resp = self.request('/file/' + str(file['_id']), method='DELETE',
                             user=self.admin)
-        self.assertEqual(None, self.model('file').load(file['_id']))
+        self.assertEqual(None, File().load(file['_id']))
         self.assertFalse(os.path.exists(absPath))

@@ -6,10 +6,12 @@ describe('Test the swagger pages', function () {
         runs(function () {
             expect($('li#resource_system.resource .heading h2 a').text()).toBe('system');
         });
-        // There seems to be some delay between the link showing and when swaggerUi actually
-        // binds the event handler. We don't have a good hook into that binding, so we hack
-        // it with a 0.1s delay instead.
-        waits(100);
+        // There seems to be some delay between the link showing and when
+        // swaggerUi actually binds the event handler.  Wait until jquery
+        // reports that the event is bound
+        waitsFor(function () {
+            return $._data($('li#resource_system.resource .heading h2 a')[0], 'events') !== undefined;
+        }, 'events to be bound');
         runs(function () {
             $('li#resource_system.resource .heading h2 a').click();
         });

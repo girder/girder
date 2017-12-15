@@ -19,8 +19,10 @@
 
 import json
 import os
-import requests
+
 from inspect import getmembers, ismethod, isfunction, getargspec
+import requests
+import six
 
 # Ansible's module magic requires this to be
 # 'from ansible.module_utils.basic import *' otherwise it will error out. See:
@@ -890,7 +892,7 @@ def unjsonify(a):
     """
 
     # if string, try to loads() it
-    if isinstance(a, basestring):
+    if isinstance(a, six.string_types):
         try:
             a = json.loads(a)
             # pass-through to below
@@ -1847,10 +1849,7 @@ class GirderClientModule(GirderClient):
 
             params = {
                 'key': key,
-                'value': (
-                    json.dumps(value)
-                    if isinstance(value, (list, dict)) else value
-                )
+                'value': json.dumps(value)
             }
 
             try:

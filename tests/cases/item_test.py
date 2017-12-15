@@ -27,6 +27,11 @@ import zipfile
 from .. import base
 
 from girder.constants import AccessType
+from girder.models.assetstore import Assetstore
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.token import Token
+from girder.models.user import User
 
 
 def setUpModule():
@@ -43,19 +48,18 @@ class ItemTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         # Create a set of users so we can have some folders.
-        self.users = [self.model('user').createUser(
+        self.users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
-        folders = self.model('folder').childFolders(
-            self.users[0], 'user', user=self.users[0])
+        folders = Folder().childFolders(self.users[0], 'user', user=self.users[0])
         for folder in folders:
             if folder['name'] == 'Public':
                 self.publicFolder = folder
             else:
                 self.privateFolder = folder
 
-        self.assetstore = self.model('assetstore').getCurrent()
+        self.assetstore = Assetstore().getCurrent()
         root = self.assetstore['root']
 
         # Clean out the test assetstore on disk
@@ -283,18 +287,18 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(resp.json['description'], params['description'])
 
         # Test moving an item to the public folder
-        item = self.model('item').load(item['_id'], force=True)
-        self.assertFalse(self.model('item').hasAccess(item))
+        item = Item().load(item['_id'], force=True)
+        self.assertFalse(Item().hasAccess(item))
         resp = self.request(path='/item/%s' % item['_id'], method='PUT',
                             user=self.users[0], params={
                                 'folderId': self.publicFolder['_id']})
         self.assertStatusOk(resp)
-        item = self.model('item').load(resp.json['_id'], force=True)
-        self.assertTrue(self.model('item').hasAccess(item))
+        item = Item().load(resp.json['_id'], force=True)
+        self.assertTrue(Item().hasAccess(item))
 
         # Move should fail if we don't have write permission on the
         # destination folder
-        self.publicFolder = self.model('folder').setUserAccess(
+        self.publicFolder = Folder().setUserAccess(
             self.publicFolder, self.users[1], AccessType.WRITE, save=True)
         resp = self.request(path='/item/%s' % item['_id'], method='PUT',
                             user=self.users[1], params={
@@ -319,21 +323,21 @@ class ItemTestCase(base.TestCase):
         self.assertStatus(resp, 400)
 
         # User 1 should not be able to delete the item with read access
-        self.publicFolder = self.model('folder').setUserAccess(
+        self.publicFolder = Folder().setUserAccess(
             self.publicFolder, self.users[1], AccessType.READ, save=True)
         resp = self.request(path='/item/%s' % str(item['_id']), method='DELETE',
                             user=self.users[1])
         self.assertStatus(resp, 403)
 
         # User 1 should be able to delete the item with write access
-        self.publicFolder = self.model('folder').setUserAccess(
+        self.publicFolder = Folder().setUserAccess(
             self.publicFolder, self.users[1], AccessType.WRITE, save=True)
         resp = self.request(path='/item/%s' % str(item['_id']), method='DELETE',
                             user=self.users[1])
         self.assertStatusOk(resp)
 
         # Verify that the item is deleted
-        item = self.model('item').load(item['_id'])
+        item = Item().load(item['_id'])
         self.assertEqual(item, None)
 
     def testItemMetadataDirect(self):
@@ -544,11 +548,11 @@ class ItemTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # get the item object from the database
-        item = self.model('item').load(resp.json['_id'], force=True)
+        item = Item().load(resp.json['_id'], force=True)
 
         # set a private property
         item['private'] = 'very secret metadata'
-        item = self.model('item').save(item)
+        item = Item().save(item)
 
         # get the item from the rest api
         resp = self.request(path='/item/%s' % str(item['_id']), method='GET',
@@ -564,19 +568,13 @@ class ItemTestCase(base.TestCase):
         secondChildName = 'secondChild'
         secondChildDesc = 'secondDesc'
 
-        firstChild = self.model('folder').createFolder(self.publicFolder,
-                                                       firstChildName,
-                                                       firstChildDesc,
-                                                       creator=self.users[0])
-        secondChild = self.model('folder').createFolder(firstChild,
-                                                        secondChildName,
-                                                        secondChildDesc,
-                                                        creator=self.users[0])
-        baseItem = self.model('item').createItem('blah', self.users[0],
-                                                 secondChild, 'foo')
+        firstChild = Folder().createFolder(
+            self.publicFolder, firstChildName, firstChildDesc, creator=self.users[0])
+        secondChild = Folder().createFolder(
+            firstChild, secondChildName, secondChildDesc, creator=self.users[0])
+        baseItem = Item().createItem('blah', self.users[0], secondChild, 'foo')
 
-        resp = self.request(path='/item/%s/rootpath' % baseItem['_id'],
-                            method='GET')
+        resp = self.request(path='/item/%s/rootpath' % baseItem['_id'], method='GET')
         self.assertStatusOk(resp)
         pathToRoot = resp.json
 
@@ -597,8 +595,7 @@ class ItemTestCase(base.TestCase):
         derived fields (like lowerName or baseParentId) get those values
         computed at load() time.
         """
-        item = self.model('item').createItem(
-            'My Item Name', creator=self.users[0], folder=self.publicFolder)
+        item = Item().createItem('My Item Name', creator=self.users[0], folder=self.publicFolder)
 
         self.assertEqual(item['lowerName'], 'my item name')
         self.assertEqual(item['baseParentId'], self.users[0]['_id'])
@@ -606,15 +603,15 @@ class ItemTestCase(base.TestCase):
         # Force the item to be saved without lowerName and baseParentType fields
         del item['lowerName']
         del item['baseParentType']
-        item = self.model('item').save(item, validate=False)
+        item = Item().save(item, validate=False)
 
-        item = self.model('item').find({'_id': item['_id']})[0]
+        item = Item().find({'_id': item['_id']})[0]
         self.assertNotHasKeys(item, ('lowerName', 'baseParentType'))
 
         # Now ensure that calling load() actually populates those fields and
         # saves the results persistently
-        self.model('item').load(item['_id'], force=True)
-        item = self.model('item').find({'_id': item['_id']})[0]
+        Item().load(item['_id'], force=True)
+        item = Item().find({'_id': item['_id']})[0]
         self.assertHasKeys(item, ('lowerName', 'baseParentType'))
         self.assertEqual(item['lowerName'], 'my item name')
         self.assertEqual(item['baseParentType'], 'user')
@@ -622,37 +619,37 @@ class ItemTestCase(base.TestCase):
         # Also test that this works for a duplicate item, such that the
         # automatically renamed item still has the correct lowerName, and a
         # None description is changed to an empty string.
-        item = self.model('item').createItem(
-            'My Item Name', creator=self.users[0], folder=self.publicFolder,
-            description=None)
-        self.assertEqual(item['lowerName'], 'my item name (1)')
+        item = Item().createItem(
+            'My Item Name', creator=self.users[0], folder=self.publicFolder, description=None)
+        # test if non-strings are coerced
         self.assertEqual(item['description'], '')
-        # test if non-strings are coerced and if just missing lowerName is
-        # corrected.
         item['description'] = 1
+        item = Item().save(item)
+        item = Item().findOne({'_id': item['_id']})
+        self.assertEqual(item['description'], '1')
+        # test if just missing lowerName is corrected.
+        self.assertEqual(item['lowerName'], 'my item name (1)')
         del item['lowerName']
-        item = self.model('item').save(item, validate=False)
-        item = self.model('item').find({'_id': item['_id']})[0]
+        item = Item().save(item, validate=False)
+        item = Item().findOne({'_id': item['_id']})
         self.assertNotHasKeys(item, ('lowerName', ))
-        self.model('item').load(item['_id'], force=True)
-        item = self.model('item').find({'_id': item['_id']})[0]
+        Item().load(item['_id'], force=True)
+        item = Item().findOne({'_id': item['_id']})
         self.assertHasKeys(item, ('lowerName', ))
         self.assertEqual(item['lowerName'], 'my item name (1)')
-        self.assertEqual(item['description'], '1')
 
     def testParentsToRoot(self):
         """
         Demonstrate that forcing parentsToRoot will cause it to skip the
         filtering process.
         """
-        item = self.model('item').createItem(
-            'My Item Name', creator=self.users[0], folder=self.publicFolder)
+        item = Item().createItem('My Item Name', creator=self.users[0], folder=self.publicFolder)
 
-        parents = self.model('item').parentsToRoot(item, force=True)
+        parents = Item().parentsToRoot(item, force=True)
         for parent in parents:
             self.assertNotIn('_accessLevel', parent['object'])
 
-        parents = self.model('item').parentsToRoot(item)
+        parents = Item().parentsToRoot(item)
         for parent in parents:
             self.assertIn('_accessLevel', parent['object'])
 
@@ -750,7 +747,7 @@ class ItemTestCase(base.TestCase):
         item = self._createItem(self.privateFolder['_id'],
                                 'cookie_auth_download', '', self.users[0])
         self._testUploadFileToItem(item, 'file', self.users[0], 'foo')
-        token = self.model('token').createToken(self.users[0])
+        token = Token().createToken(self.users[0])
         cookie = 'girderToken=%s' % token['_id']
 
         # We should be able to download a private item using a cookie token
@@ -769,15 +766,12 @@ class ItemTestCase(base.TestCase):
         self.assertStatus(resp, 401)
 
     def testReuseExisting(self):
-        item1 = self.model('item').createItem(
-            'to be reused', creator=self.users[0], folder=self.publicFolder)
+        item1 = Item().createItem('to be reused', creator=self.users[0], folder=self.publicFolder)
 
-        item2 = self.model('item').createItem(
-            'to be reused', creator=self.users[0], folder=self.publicFolder)
+        item2 = Item().createItem('to be reused', creator=self.users[0], folder=self.publicFolder)
 
-        item3 = self.model('item').createItem(
-            'to be reused', creator=self.users[0], folder=self.publicFolder,
-            reuseExisting=True)
+        item3 = Item().createItem(
+            'to be reused', creator=self.users[0], folder=self.publicFolder, reuseExisting=True)
 
         self.assertNotEqual(item1['_id'], item2['_id'])
         self.assertEqual(item1['_id'], item3['_id'])

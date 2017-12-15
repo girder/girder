@@ -24,6 +24,7 @@ import sys
 os.environ['GIRDER_PORT'] = '31201'  # noqa
 
 from girder.constants import ROOT_DIR
+from girder.models.item import Item
 from server.metadata_extractor import ClientMetadataExtractor
 from tests import base
 from . metadata_extractor_test import MetadataExtractorTestCase
@@ -39,7 +40,7 @@ def tearDownModule():
 
 class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
     def testClientMetadataExtractor(self):
-        item = self.model('item').load(self.item['_id'], user=self.user)
+        item = Item().load(self.item['_id'], user=self.user)
         self.assertEqual(item['name'], self.name)
         self.assertNotHasKeys(item, ['meta'])
         clientPath = os.path.join(ROOT_DIR, 'clients', 'python')
@@ -52,7 +53,7 @@ class ClientMetadataExtractorTestCase(MetadataExtractorTestCase):
         extractor = ClientMetadataExtractor(client, self.path, self.item['_id'])
         extractor.extractMetadata()
         sys.path.remove(clientPath)
-        item = self.model('item').load(self.item['_id'], user=self.user)
+        item = Item().load(self.item['_id'], user=self.user)
         self.assertEqual(item['name'], self.name)
         self.assertHasKeys(item, ['meta'])
         self.assertEqual(item['meta']['MIME type'], self.mimeType)

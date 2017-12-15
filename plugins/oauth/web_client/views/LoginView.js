@@ -7,7 +7,8 @@ wrap(LoginView, 'render', function (render) {
     render.call(this);
     new OAuthLoginView({
         el: this.$('.modal-body'),
-        parentView: this
+        parentView: this,
+        enablePasswordLogin: this.enablePasswordLogin
     }).render();
     return this;
 });

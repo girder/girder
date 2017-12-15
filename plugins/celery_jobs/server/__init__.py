@@ -20,7 +20,7 @@
 import celery
 
 from girder import events
-from girder.models.model_base import ValidationException
+from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 from girder.utility.model_importer import ModelImporter
 from girder.plugins.jobs.constants import JobStatus

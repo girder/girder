@@ -24,10 +24,10 @@ import six
 import re
 
 from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault, SettingKey
-from .model_base import Model, ValidationException
+from .model_base import Model
 from girder import logprint
-from girder.utility import config, plugin_utilities, setting_utilities
-from girder.utility.model_importer import ModelImporter
+from girder.exceptions import ValidationException
+from girder.utility import config, setting_utilities
 from bson.objectid import ObjectId
 
 
@@ -198,6 +198,8 @@ class Setting(Model):
         names. Removes any invalid plugin names, removes duplicates, and adds
         all transitive dependencies to the enabled list.
         """
+        from girder.utility import plugin_utilities
+
         if not isinstance(doc['value'], list):
             raise ValidationException('Plugins enabled setting must be a list.', 'value')
 
@@ -216,17 +218,20 @@ class Setting(Model):
     @staticmethod
     @setting_utilities.validator(SettingKey.COLLECTION_CREATE_POLICY)
     def validateCoreCollectionCreatePolicy(doc):
+        from .group import Group
+        from .user import User
+
         value = doc['value']
 
         if not isinstance(value, dict):
             raise ValidationException('Collection creation policy must be a JSON object.')
 
         for i, groupId in enumerate(value.get('groups', ())):
-            ModelImporter.model('group').load(groupId, force=True, exc=True)
+            Group().load(groupId, force=True, exc=True)
             value['groups'][i] = ObjectId(value['groups'][i])
 
         for i, userId in enumerate(value.get('users', ())):
-            ModelImporter.model('user').load(userId, force=True, exc=True)
+            User().load(userId, force=True, exc=True)
             value['users'][i] = ObjectId(value['users'][i])
 
         value['open'] = value.get('open', False)
@@ -331,6 +336,18 @@ class Setting(Model):
         if doc['value'] not in ('required', 'optional', 'disabled'):
             raise ValidationException(
                 'Email verification must be "required", "optional", or "disabled".', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.API_KEYS)
+    def validateApiKeys(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('API key setting must be boolean.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.ENABLE_PASSWORD_LOGIN)
+    def validateEnablePasswordLogin(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('Enable password login setting must be boolean.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.ROUTE_TABLE)

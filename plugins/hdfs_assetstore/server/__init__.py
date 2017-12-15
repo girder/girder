@@ -23,7 +23,7 @@ from girder import events
 from girder.api import access
 from girder.api.v1.assetstore import Assetstore
 from girder.constants import AssetstoreType
-from girder.utility.model_importer import ModelImporter
+from girder.models.assetstore import Assetstore as AssetstoreModel
 from girder.utility import assetstore_utilities
 
 
@@ -43,8 +43,7 @@ def updateAssetstore(event):
             'host': params.get('hdfsHost', assetstore['hdfs']['host']),
             'port': params.get('hdfsPort', assetstore['hdfs']['port']),
             'path': params.get('hdfsPath', assetstore['hdfs']['path']),
-            'webHdfsPort': params.get('webHdfsPort',
-                                      assetstore['hdfs'].get('webHdfsPort')),
+            'webHdfsPort': params.get('webHdfsPort', assetstore['hdfs'].get('webHdfsPort')),
             'user': params.get('hdfsUser', assetstore['hdfs'].get('user'))
         }
 
@@ -54,7 +53,7 @@ def createAssetstore(event):
     params = event.info['params']
 
     if params.get('type') == AssetstoreType.HDFS:
-        event.addResponse(ModelImporter.model('assetstore').save({
+        event.addResponse(AssetstoreModel().save({
             'type': AssetstoreType.HDFS,
             'name': params.get('name'),
             'hdfs': {
@@ -71,8 +70,7 @@ def createAssetstore(event):
 def load(info):
     AssetstoreType.HDFS = 'hdfs'
     events.bind('assetstore.update', 'hdfs_assetstore', updateAssetstore)
-    events.bind('rest.post.assetstore.before', 'hdfs_assetstore',
-                createAssetstore)
+    events.bind('rest.post.assetstore.before', 'hdfs_assetstore', createAssetstore)
 
     assetstore_utilities.setAssetstoreAdapter(AssetstoreType.HDFS, HdfsAssetstoreAdapter)
 

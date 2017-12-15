@@ -7,5 +7,3 @@ Installation
    prerequisites
    prod-installation
    deploy
-
-

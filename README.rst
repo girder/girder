@@ -12,10 +12,10 @@ data and analytics ecosystem.
 Documentation of the Girder platform can be found at
 https://girder.readthedocs.io.
 
-For questions, comments, or to get in touch with the maintainers, head to our `Gitter Forum
+For questions, comments, or to get in touch with the maintainers, head to our `Discourse forum <https://discourse.girder.org>`_, or use our `Gitter Chatroom
 <https://gitter.im/girder/girder>`_.
 
-We'd love for you to `contribute to Girder <CONTRIBUTING.md>`_.
+We'd love for you to `contribute to Girder <CONTRIBUTING.rst>`_.
 
 .. |logo| image:: clients/web/static/img/Girder_Favicon.png
 

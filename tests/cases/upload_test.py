@@ -27,6 +27,11 @@ import threading
 from six.moves import range
 
 from girder import events
+from girder.models.assetstore import Assetstore
+from girder.models.file import File
+from girder.models.folder import Folder
+from girder.models.upload import Upload
+from girder.models.user import User
 from girder.utility import assetstore_utilities
 
 from .. import base
@@ -63,7 +68,7 @@ class UploadTestCase(base.TestCase):
             'password': 'adminpassword',
             'admin': True
         }
-        self.admin = self.model('user').createUser(**admin)
+        self.admin = User().createUser(**admin)
         user = {
             'email': 'good@email.com',
             'login': 'goodlogin',
@@ -72,9 +77,8 @@ class UploadTestCase(base.TestCase):
             'password': 'goodpassword',
             'admin': False
         }
-        self.user = self.model('user').createUser(**user)
-        folders = self.model('folder').childFolders(
-            parent=self.user, parentType='user', user=self.user)
+        self.user = User().createUser(**user)
+        folders = Folder().childFolders(parent=self.user, parentType='user', user=self.user)
         for folder in folders:
             if folder['public'] is True:
                 self.folder = folder
@@ -336,7 +340,7 @@ class UploadTestCase(base.TestCase):
         size = 101
         data = six.BytesIO(b' ' * size)
         files = []
-        files.append(self.model('upload').uploadFromFile(
+        files.append(Upload().uploadFromFile(
             data, size, 'progress', parentType='folder', parent=self.folder,
             assetstore=self.assetstore))
         fullPath0 = adapter.fullPath(files[0])
@@ -354,7 +358,7 @@ class UploadTestCase(base.TestCase):
         def uploadFileWithWait():
             size = 101
             data = six.BytesIO(b' ' * size)
-            files.append(self.model('upload').uploadFromFile(
+            files.append(Upload().uploadFromFile(
                 data, size, 'progress', parentType='folder', parent=self.folder,
                 assetstore=self.assetstore))
 
@@ -368,7 +372,7 @@ class UploadTestCase(base.TestCase):
             t.start()
             conditionInEvent.wait()
         self.assertTrue(os.path.exists(fullPath0))
-        self.model('file').remove(files[0])
+        File().remove(files[0])
         # We shouldn't actually remove the file here
         self.assertTrue(os.path.exists(fullPath0))
         with conditionRemoveDone:
@@ -384,8 +388,8 @@ class UploadTestCase(base.TestCase):
         # Clear any old DB data
         base.dropGridFSDatabase('girder_test_upload_assetstore')
         # Clear the assetstore database and create a GridFS assetstore
-        self.model('assetstore').remove(self.model('assetstore').getCurrent())
-        assetstore = self.model('assetstore').createGridFsAssetstore(
+        Assetstore().remove(Assetstore().getCurrent())
+        assetstore = Assetstore().createGridFsAssetstore(
             name='Test', db='girder_test_upload_assetstore')
         self.assetstore = assetstore
         self._testUpload()
@@ -398,12 +402,12 @@ class UploadTestCase(base.TestCase):
         rscfg = mongo_replicaset.makeConfig()
         mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
         # Clear the assetstore database and create a GridFS assetstore
-        self.model('assetstore').remove(self.model('assetstore').getCurrent())
+        Assetstore().remove(Assetstore().getCurrent())
         # When the mongo connection to one of the replica sets goes down, it
         # takes twice the socket timeout for us to reconnect and get on with
         # an upload.  We can override the default timeout by passing it as a
         # mongodb uri parameter.
-        assetstore = self.model('assetstore').createGridFsAssetstore(
+        assetstore = Assetstore().createGridFsAssetstore(
             name='Test', db='girder_assetstore_rs_upload_test',
             mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
             '127.0.0.1:27072/?socketTimeoutMS=5000&connectTimeoutMS=2500',
@@ -440,8 +444,8 @@ class UploadTestCase(base.TestCase):
         rscfg = mongo_replicaset.makeConfig(port=27073, shard=True, sharddb=None)
         mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
         # Clear the assetstore database and create a GridFS assetstore
-        self.model('assetstore').remove(self.model('assetstore').getCurrent())
-        self.assetstore = self.model('assetstore').createGridFsAssetstore(
+        Assetstore().remove(Assetstore().getCurrent())
+        self.assetstore = Assetstore().createGridFsAssetstore(
             name='Test', db='girder_assetstore_shard_upload_test',
             mongohost='mongodb://127.0.0.1:27073', shard='auto')
         self._testUpload()
@@ -455,7 +459,7 @@ class UploadTestCase(base.TestCase):
 
         # Asking for the same database again should also report sharding.  Use
         # a slightly differt URI to ensure that the sharding is checked anew.
-        assetstore = self.model('assetstore').createGridFsAssetstore(
+        assetstore = Assetstore().createGridFsAssetstore(
             name='Test 2', db='girder_assetstore_shard_upload_test',
             mongohost='mongodb://127.0.0.1:27073/?', shard='auto')
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -466,7 +470,7 @@ class UploadTestCase(base.TestCase):
 
     def testS3AssetstoreUpload(self):
         # Clear the assetstore database and create an S3 assetstore
-        self.model('assetstore').remove(self.assetstore)
+        Assetstore().remove(self.assetstore)
         params = {
             'name': 'S3 Assetstore',
             'bucket': 'bucketname',
@@ -475,7 +479,7 @@ class UploadTestCase(base.TestCase):
             'secret': '123',
             'service': base.mockS3Server.service
         }
-        assetstore = self.model('assetstore').createS3Assetstore(**params)
+        assetstore = Assetstore().createS3Assetstore(**params)
 
         self.assetstore = assetstore
         self._testUpload()

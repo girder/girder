@@ -21,8 +21,8 @@ if (args && args.length < 2) {
     console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output> [<default jasmine timeout>]');
     console.error('  <page> is the path to the HTML page to load');
     console.error('  <spec> is the path to the Jasmine spec to run.');
-    console.error('  <covg_output> is the path to a file to write coverage into.');
     console.error('  <default Jasmine timeout> is in milliseconds.');
+    console.error('  <spec options> is any special spec options, to disambiguate to output filenames.');
     phantom.exit(2);
 }
 
@@ -30,27 +30,32 @@ var env = system.env;
 
 var pageUrl = args[0];
 var spec = args[1];
-var coverageOutput = args[2] || null;
 var page = new WebPage();
 
-try {
-    fs.remove(coverageOutput);
-} catch (e) {
+// Determine the test name to be used for output files
+var specPathComponents = spec.split('/');
+var pluginName =
+    specPathComponents[specPathComponents.length - 2] === 'plugin_tests'
+    ? specPathComponents[specPathComponents.length - 3]
+    : 'core';
+var specName = specPathComponents[specPathComponents.length - 1].replace(/\.js$/, '');
+var specOptions = args[3];
+var testName = pluginName + '_' + specName + (specOptions ? '_' + specOptions : '');
+
+var coverageDir = 'build/test/coverage/web_temp';
+fs.makeTree(coverageDir);
+var coverageFile = coverageDir + '/coverage_' + testName + '.json';
+if (fs.exists(coverageFile)) {
+    fs.remove(coverageFile);
 }
-
 // write coverage results to a file
-var reportCoverage = function () {
-    if (!coverageOutput) {
-        return;
-    }
-
+function reportCoverage() {
     var cov = page.evaluate(function () {
         return window.__coverage__;
     });
-
     cov = cov || {};
-    fs.write(coverageOutput, JSON.stringify(cov), 'w');
-};
+    fs.write(coverageFile, JSON.stringify(cov), 'w');
+}
 
 // Set decent viewport size for screenshots.
 page.viewportSize = {
@@ -58,14 +63,14 @@ page.viewportSize = {
     height: 769
 };
 
+var artifactDir = 'build/test/artifacts';
+fs.makeTree(artifactDir);
 page.onConsoleMessage = function (msg) {
     if (msg.indexOf('__SCREENSHOT__') === 0) {
-        var imageFile = msg.substring('__SCREENSHOT__'.length) || 'phantom_screenshot.png';
-        page.render(imageFile);
-        console.log('Created screenshot: ' + imageFile);
-
-        console.log('<DartMeasurementFile name="PhantomScreenshot" type="image/png">' +
-            fs.workingDirectory + fs.separator + imageFile + '</DartMeasurementFile>');
+        var screenshotTime = msg.substring('__SCREENSHOT__'.length);
+        var screenshotFile = artifactDir + '/screenshot_' + testName + '_' + screenshotTime + '.png';
+        page.render(screenshotFile);
+        console.log('Created screenshot: ' + screenshotFile);
 
         if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
             env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
@@ -146,10 +151,10 @@ page.onError = function (msg, trace) {
         });
     }
     console.error(msgStack.join('\n'));
-    console.log('Saved phantom_error_screenshot.png');
-    console.log('<DartMeasurementFile name="PhantomErrorScreenshot" type="image/png">' +
-        fs.workingDirectory + '/phantom_error_screenshot.png</DartMeasurementFile>');
-    page.render('phantom_error_screenshot.png');
+
+    var screenshotFile = artifactDir + '/screenshot_' + testName + '_error.png';
+    page.render(screenshotFile);
+    console.log('Created error screenshot: ' + screenshotFile);
     phantom.exit(1);
 };
 
@@ -166,12 +171,12 @@ page.onLoadFinished = function (status) {
             console.error('Could not load test spec into page: ' + spec);
             phantom.exit(1);
         }
-        if (args[3]) {
+        if (args[2]) {
             page.evaluate(function (timeout) {
                 if (window.jasmine) {
                     jasmine.getEnv().defaultTimeoutInterval = timeout;
                 }
-            }, args[3]);
+            }, args[2]);
         }
         page.evaluate(function () {
             if (window.girderTest) {

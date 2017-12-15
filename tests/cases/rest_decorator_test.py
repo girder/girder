@@ -24,6 +24,7 @@ import requests
 from .. import base
 from girder import config
 from girder.api.rest import endpoint
+from girder.models.user import User
 
 
 def setUpModule():
@@ -70,7 +71,7 @@ class TestEndpointDecoratorException(base.TestCase):
         self.assertEqual(obj['type'], 'internal')
 
     def testBoundHandlerDecorator(self):
-        user = self.model('user').createUser('tester', 'password', 'Test', 'User', 'test@test.com')
+        user = User().createUser('tester', 'password', 'Test', 'User', 'test@test.com')
 
         resp = self.request('/collection/unbound/default/noargs', user=user, params={
             'val': False

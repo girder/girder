@@ -22,7 +22,8 @@ import os
 import tempfile
 import warnings
 
-from girder.models.model_base import ModelImporter, GirderException
+from girder.models.model_base import ModelImporter
+from girder.exceptions import GirderException
 from girder.constants import SettingKey
 
 warnings.warn(
@@ -45,7 +46,7 @@ def resolvePath(path):
 
 def loadModel(kind):
     """Load a model class from its name."""
-    return ModelImporter().model(kind)
+    return ModelImporter.model(kind)
 
 
 def setAssetstore(name=None):

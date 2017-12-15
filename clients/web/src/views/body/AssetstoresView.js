@@ -20,7 +20,6 @@ import 'girder/stylesheets/body/assetstores.styl';
 import 'as-jqplot/dist/jquery.jqplot.js';
 import 'as-jqplot/dist/jquery.jqplot.css'; // jquery.jqplot.min.css
 import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';
-import 'bootstrap/js/tooltip';
 
 /**
  * This private data structure is a dynamic way to map assetstore types to the views
@@ -88,7 +87,6 @@ var AssetstoresView = View.extend({
         }));
 
         this.newAssetstoreWidget.setElement(this.$('#g-new-assetstore-container')).render();
-        this.$('.g-assetstore-button-container[title]').tooltip();
 
         _.each(this.$('.g-assetstore-capacity-chart'),
             this.capacityChart, this);

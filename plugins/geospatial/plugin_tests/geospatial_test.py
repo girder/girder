@@ -24,6 +24,9 @@ import bson.json_util
 from server.geospatial import GEOSPATIAL_FIELD
 from tests import base
 from girder.constants import ROOT_DIR
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.user import User
 
 
 def setUpModule():
@@ -53,21 +56,19 @@ class GeospatialItemTestCase(base.TestCase):
         """
         super(GeospatialItemTestCase, self).setUp()
 
-        self._creator = self.model('user').createUser(
+        self._creator = User().createUser(
             'geospatialcreator', 'Nec8xanuguprezaB', 'Geospatial', 'Creator',
             'geospatialcreator@girder.org')
-        self._user = self.model('user').createUser(
+        self._user = User().createUser(
             'geospatialuser', 'swe2pEpHaheCH7P8', 'Geospatial', 'User',
             'geospatialuser@girder.org')
 
-        folders = self.model('folder').childFolders(
-            self._creator, 'user', user=self._creator)
+        folders = Folder().childFolders(self._creator, 'user', user=self._creator)
         publicFolders = [folder for folder in folders if folder['public']]
         self.assertIsNotNone(publicFolders)
         self._publicFolder = publicFolders[0]
 
-        folders = self.model('folder').childFolders(
-            self._creator, 'user', user=self._creator)
+        folders = Folder().childFolders(self._creator, 'user', user=self._creator)
         privateFolders = [folder for folder in folders if not folder['public']]
         self.assertIsNotNone(privateFolders)
         self._privateFolder = privateFolders[0]
@@ -77,12 +78,11 @@ class GeospatialItemTestCase(base.TestCase):
         Test the geospatial methods added to the API endpoint for items.
         """
         path = '/item/geospatial'
-        self.ensureRequiredParams(path=path, method='POST',
-                                  required=['folderId'],
-                                  user=self._creator)
+        self.ensureRequiredParams(
+            path=path, method='POST', required=['folderId'], user=self._creator)
 
-        filePath = os.path.join(ROOT_DIR, 'plugins', 'geospatial',
-                                'plugin_tests', 'features.geojson')
+        filePath = os.path.join(
+            ROOT_DIR, 'plugins', 'geospatial', 'plugin_tests', 'features.geojson')
 
         with open(filePath, 'r') as f:
             geoJSON = f.read()
@@ -117,8 +117,7 @@ class GeospatialItemTestCase(base.TestCase):
         self.assertStatus(response, 403)  # forbidden, write access denied
 
         newName = 'RTP'
-        newItem = self.model('item').createItem(newName, self._creator,
-                                                self._privateFolder)
+        newItem = Item().createItem(newName, self._creator, self._privateFolder)
         path = '/item/%s/geospatial' % newItem['_id']
         newGeometry = {
             'type': 'Point',
@@ -126,26 +125,23 @@ class GeospatialItemTestCase(base.TestCase):
         }
         body = bson.json_util.dumps({'geometry': newGeometry})
 
-        response = self.request(path=path, method='PUT', body=body,
-                                type='application/json')
+        response = self.request(path=path, method='PUT', body=body, type='application/json')
         self.assertStatus(response, 401)  # unauthorized
 
-        response = self.request(path=path, method='PUT', body=body,
-                                type='application/json', user=self._user)
+        response = self.request(
+            path=path, method='PUT', body=body, type='application/json', user=self._user)
         self.assertStatus(response, 403)  # forbidden, write access denied
 
-        response = self.request(path=path, method='PUT', body=body,
-                                type='application/json', user=self._creator)
+        response = self.request(
+            path=path, method='PUT', body=body, type='application/json', user=self._creator)
         self.assertStatusOk(response)
         self.assertEqual(response.json['name'], newName)
-        self.assertEqual(response.json[GEOSPATIAL_FIELD]['geometry'],
-                         newGeometry)
+        self.assertEqual(response.json[GEOSPATIAL_FIELD]['geometry'], newGeometry)
 
         response = self.request(path=path, user=self._creator)
         self.assertStatusOk(response)
         self.assertEqual(response.json['name'], newName)
-        self.assertEqual(response.json[GEOSPATIAL_FIELD]['geometry'],
-                         newGeometry)
+        self.assertEqual(response.json[GEOSPATIAL_FIELD]['geometry'], newGeometry)
 
         # RDU
         point = {

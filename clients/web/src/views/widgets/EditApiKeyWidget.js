@@ -71,11 +71,14 @@ var EditApiKeyWidget = View.extend({
             return;
         }
 
+        let tokenScopes = this.scopeInfo.custom;
+        if (getCurrentUser().get('admin')) {
+            tokenScopes = tokenScopes.concat(this.scopeInfo.adminCustom);
+        }
+
         var modal = this.$el.html(EditApiKeyWidgetTemplate({
             apiKey: this.model,
-            user: getCurrentUser(),
-            userTokenScopes: this.scopeInfo.custom,
-            adminTokenScopes: this.scopeInfo.adminCustom
+            tokenScopes: tokenScopes
         })).girderModal(this).on('shown.bs.modal', _.bind(function () {
             this.$('#g-api-key-name').focus();
         }, this)).on('ready.girder.modal', _.bind(function () {
@@ -94,11 +97,6 @@ var EditApiKeyWidget = View.extend({
         modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
 
         this.$('#g-api-key-name').focus();
-        this.$('.g-custom-scope-description').tooltip({
-            placement: 'right',
-            viewport: this.$el,
-            trigger: 'hover'
-        });
 
         return this;
     },

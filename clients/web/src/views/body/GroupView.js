@@ -23,7 +23,6 @@ import 'girder/stylesheets/body/groupPage.styl';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tab';
-import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a single group's page.
@@ -171,19 +170,6 @@ var GroupView = View.extend({
         }
 
         this._updateRolesLists();
-
-        this.$('.g-group-actions-button,a[title]').tooltip({
-            container: this.$el,
-            placement: 'left',
-            animation: false,
-            delay: {show: 100}
-        });
-        this.$('.g-group-list-header[title]').tooltip({
-            container: this.$el,
-            placement: 'top',
-            animation: false,
-            delay: {show: 100}
-        });
 
         router.navigate('group/' + this.model.get('_id') + '/' +
                                this.tab, {replace: true});

@@ -6,8 +6,6 @@ import TimelineTemplate from 'girder/templates/widgets/timeline.pug';
 
 import 'girder/stylesheets/widgets/timelineWidget.styl';
 
-import 'bootstrap/js/tooltip';
-
 /**
  * This widget displays a timeline of events. This is visualized as a line (a bar)
  * with two sorts of primitives overlaid:
@@ -95,10 +93,6 @@ var TimelineWidget = View.extend({
             var classes = segment.class ? [segment.class] : [this.defaultSegmentClass];
             var color = segment.color ? `background-color: ${segment.color}` : '';
 
-            if (segment.tooltip) {
-                classes.push('g-tooltip');
-            }
-
             return {
                 class: classes.join(' '),
                 left: (100 * (start - this.startTime) / range).toFixed(1) + '%',
@@ -114,10 +108,6 @@ var TimelineWidget = View.extend({
             var time = this.numeric ? point.time : new Date(point.time);
             var classes = point.class ? [point.class] : [this.defaultPointClass];
             var color = point.color ? `background-color: ${point.color}` : '';
-
-            if (point.tooltip) {
-                classes.push('g-tooltip');
-            }
 
             return {
                 class: classes.join(' '),
@@ -157,11 +147,6 @@ var TimelineWidget = View.extend({
             startLabel: this.startLabel,
             endLabel: this.endLabel
         }));
-
-        this.$('.g-tooltip').tooltip({
-            delay: 100,
-            container: this.$el
-        });
 
         return this;
     }

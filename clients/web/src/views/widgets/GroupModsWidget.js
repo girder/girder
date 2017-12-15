@@ -10,8 +10,6 @@ import events from 'girder/events';
 
 import GroupModListTemplate from 'girder/templates/widgets/groupModList.pug';
 
-import 'bootstrap/js/tooltip';
-
 /**
  * This view shows a list of moderators of a group.
  */
@@ -71,13 +69,6 @@ var GroupModsWidget = View.extend({
             moderators: this.moderators,
             accessType: AccessType
         }));
-
-        this.$('.g-group-mod-demote.g-group-mod-promote,.g-group-mod-remove').tooltip({
-            container: 'body',
-            placement: 'left',
-            animation: false,
-            delay: {show: 100}
-        });
 
         return this;
     }

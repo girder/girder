@@ -1,12 +1,14 @@
 .g-frontpage-header
-  img.g-frontpage-logo(src=require('girder/assets/Girder_Mark.png'), width="82")
+  .g-frontpage-logo-container
+    img.g-frontpage-logo(src=require('girder/assets/Girder_Mark.png'))
   .g-frontpage-title-container
     .g-frontpage-title #{brandName}
     .g-frontpage-subtitle Data management platform
 
 .g-frontpage-body
-  p.g-frontpage-paragraph
-    b Welcome to #{brandName}!
+  .g-frontpage-paragraph
+    .g-frontpage-welcome-text-content
+      b.g-frontpage-welcome-text Welcome to #{brandName}!
 
     ul
       if !currentUser
