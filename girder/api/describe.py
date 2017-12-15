@@ -462,8 +462,10 @@ class ApiDocs(WebrootBase):
             'mode': mode
         }
 
+        events.unbind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE)
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
                     self._onSettingSave)
+        events.unbind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE)
         events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
                     self._onSettingRemove)
 
