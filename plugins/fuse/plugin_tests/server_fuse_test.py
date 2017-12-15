@@ -220,6 +220,8 @@ class ServerFuseTestCase(base.TestCase):
         self.assertTrue(os.path.exists(publicFile))
         self.assertFalse(os.path.exists(privateFile))
         # remount with user
+        self.assertFalse(server_fuse.isServerFuseMounted(
+            self.extraMount, level=AccessType.READ, user=self.user))
         self.assertTrue(server_fuse.mountServerFuse(
             self.extraMount, mountpath, level=AccessType.READ, user=self.user))
         # The OS can cache stat, so wait 1 second before using the mount.
@@ -227,6 +229,8 @@ class ServerFuseTestCase(base.TestCase):
         self.assertTrue(os.path.exists(publicFile))
         self.assertTrue(os.path.exists(privateFile))
         # remount without any changes should work, too.
+        self.assertTrue(server_fuse.isServerFuseMounted(
+            self.extraMount, level=AccessType.READ, user=self.user))
         self.assertEqual(server_fuse.mountServerFuse(
             self.extraMount, mountpath, level=AccessType.READ, user=self.user),
             'present')

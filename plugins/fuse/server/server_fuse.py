@@ -25,8 +25,8 @@ from girder.utility import path as path_util
 # main server, this could be used to limit which resources are visible.  Since
 # the server can already access all resources, this is not of utility from
 # within the server itself.
-fuseMounts = {}
-fuseMountsLock = threading.RLock()
+_fuseMounts = {}
+_fuseMountsLock = threading.RLock()
 
 
 class ServerFuse(fuse.Operations, ModelImporter):
@@ -376,7 +376,7 @@ def unmountAll():
     """
     Unmount all mounted FUSE mounts.
     """
-    for name in list(fuseMounts.keys()):
+    for name in list(_fuseMounts.keys()):
         unmountServerFuse(name)
 
 
@@ -387,8 +387,8 @@ def unmountServerFuse(name):
 
     :param name: a key within the list of known mounts.
     """
-    with fuseMountsLock:
-        entry = fuseMounts.pop(name, None)
+    with _fuseMountsLock:
+        entry = _fuseMounts.pop(name, None)
         if entry:
             events.trigger('server_fuse.unmount', {'name': name})
             path = entry['path']
@@ -425,11 +425,11 @@ def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
     :returns: True if successful.  'present' if the mount is already present.
         None on failure.
     """
-    with fuseMountsLock:
-        if name in fuseMounts:
-            if (fuseMounts[name]['level'] == level and
-                    fuseMounts[name]['user'] == user and
-                    fuseMounts[name]['force'] == force):
+    with _fuseMountsLock:
+        if name in _fuseMounts:
+            if (_fuseMounts[name]['level'] == level and
+                    _fuseMounts[name]['user'] == user and
+                    _fuseMounts[name]['force'] == force):
                 return 'present'
             unmountServerFuse(name)
         entry = {
@@ -469,12 +469,35 @@ def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
             fuseThread.daemon = True
             fuseThread.start()
             entry['thread'] = fuseThread
-            fuseMounts[name] = entry
+            _fuseMounts[name] = entry
             logprint.info('Mounted %s at %s' % (name, path))
             events.trigger('server_fuse.mount', {'name': name})
             return True
         except Exception:
             logger.exception('Failed to mount %s at %s' % (name, path))
+
+
+def isServerFuseMounted(name, level=AccessType.ADMIN, user=None, force=False):
+    """
+    Check if a named FUSE is mounted with specific authorization.
+
+    :param name: a key for this mount mount.  Each mount point must have a
+        distinct key.
+    :param level: access level used when checking which resources are available
+        within the FUSE.  This is ignored currently, but could be used if
+        non-readonly access is ever implemented.
+    :param user: the user used for authorizing resource access.
+    :param force: if True, all resources are available without checking the
+        user or level.
+    :returns: True if mounted, False if not.
+    """
+    with _fuseMountsLock:
+        if name in _fuseMounts:
+            if (_fuseMounts[name]['level'] == level and
+                    _fuseMounts[name]['user'] == user and
+                    _fuseMounts[name]['force'] == force):
+                return True
+    return False
 
 
 def getServerFusePath(name, type, doc):
@@ -486,7 +509,7 @@ def getServerFusePath(name, type, doc):
     :param doc: the resource document.
     :return: a path to the resource.
     """
-    if name not in fuseMounts:
+    if name not in _fuseMounts:
         return None
-    return fuseMounts[name]['path'].rstrip('/') + path_util.getResourcePath(
-        type, doc, user=fuseMounts[name]['user'], force=fuseMounts[name]['force'])
+    return _fuseMounts[name]['path'].rstrip('/') + path_util.getResourcePath(
+        type, doc, user=_fuseMounts[name]['user'], force=_fuseMounts[name]['force'])
