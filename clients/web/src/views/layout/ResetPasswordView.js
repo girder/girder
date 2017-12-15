@@ -38,6 +38,14 @@ var ResetPasswordView = View.extend({
 
             this.$('#g-reset-password-button').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
+        },
+
+        'click a.g-register-link': function () {
+            events.trigger('g:registerUi');
+        },
+
+        'click a.g-login-link': function () {
+            events.trigger('g:loginUi');
         }
     },
 
