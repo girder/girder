@@ -26,7 +26,7 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
           # "requirements-dev.txt" must be run from the "girder" working directory
           working_directory: girder
@@ -87,7 +87,7 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -239,7 +239,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
@@ -350,7 +350,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
