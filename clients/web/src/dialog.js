@@ -93,7 +93,6 @@ function confirm(params) {
         el.text(params.text);
     }
     if (params['msgConfirmation']) {
-        $('#g-confirm-text').css({'max-width': '50%'});
         if (params.escapedHtml) {
             $('.g-additional-text').html(params.additionalText);
         } else {
