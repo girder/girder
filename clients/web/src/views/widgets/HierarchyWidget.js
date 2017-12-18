@@ -442,7 +442,7 @@ var HierarchyWidget = View.extend({
                 additionalText: '<b>' + this.parentModel.escape('name') + '</b>' +
                                 ' contains <b>' + this.parentModel.escape('nFolders') +
                                 ' folders</b> taking up <b>' +
-                                formatSize(this.parentModel.escape('size')) + '</b>',
+                                formatSize(parseInt(this.model.get('size'), 10)) + '</b>',
                 msgConfirmation: true
             }, params);
         }

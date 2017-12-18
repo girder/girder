@@ -157,13 +157,13 @@ var CollectionView = View.extend({
                     router.navigate('collections', {trigger: true});
                 }).destroy();
             }, this)
-        }
+        };
         if (this.model.get('nFolders') !== 0 || this.model.get('size') !== 0) {
             params = _.extend({
                 additionalText: '<b>' + this.model.escape('name') + '</b>' +
                                 ' contains <b>' + this.model.escape('nFolders') +
                                 ' folders</b> taking up <b>' +
-                                formatSize(this.model.escape('size')) + '</b>',
+                                formatSize(parseInt(this.model.get('size'), 10)) + '</b>',
                 msgConfirmation: true,
                 name: this.model.escape('name')
             }, params);
