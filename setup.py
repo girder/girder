@@ -20,7 +20,6 @@
 import os
 import re
 import shutil
-import sys
 import itertools
 
 from setuptools import setup, find_packages
@@ -59,7 +58,7 @@ class InstallWithOptions(install):
 with open('README.rst') as f:
     readme = f.read()
 
-install_reqs = [
+installReqs = [
     'bcrypt',
     'boto3',
     # CherryPy version is restricted due to a bug in versions >=11.1
@@ -67,49 +66,51 @@ install_reqs = [
     'CherryPy<11.1',
     'click',
     'filelock',
+    'funcsigs ; python_version < \'3.5\'',
     'jsonschema',
     'Mako',
     'pymongo>=3.5',
     'PyYAML',
-    'requests',
     'psutil',
     'python-dateutil',
     'pytz',
-    'six>=1.9'
+    'requests',
+    'shutilwhich ; python_version < \'3.3\'',
+    'six>=1.9',
 ]
 
-extras_reqs = {
-    'celery_jobs': ['celery'],
-    'dicom_viewer': ['pydicom'],
-    'geospatial': ['geojson'],
-    'item_tasks': ['ctk-cli'],
-    'ldap': ['pyldap'],
-    'thumbnails': ['Pillow', 'pydicom', 'numpy'],
-    'worker': ['celery>=4.0.0']
-}
-all_extra_reqs = itertools.chain.from_iterable(extras_reqs.values())
-extras_reqs['plugins'] = list(set(all_extra_reqs))
+extrasReqs = {}
+# To avoid conflict with the `girder-install plugin' command, this only adds built-in plugins with
+# extras requirements.
+# Note: the usage of automatically-parsed plugin-specific 'requirements.txt' is a temporary
+# measure to keep plugin requirements close to plugin code. It will be removed when pip-installable
+# plugins are added. It should not be used by other projects.
+with open(os.path.join('plugins', '.gitignore')) as builtinPluginsIgnoreStream:
+    builtinPlugins = set()
+    for line in builtinPluginsIgnoreStream:
+        # Plugin .gitignore entries should end with a /, but we will tolerate those that don't;
+        # (accordingly, note the non-greedy qualifier for the match group)
+        builtinPluginNameRe = re.match(r'^!(.+?)/?$', line)
+        if builtinPluginNameRe:
+            builtinPluginName = builtinPluginNameRe.group(1)
+            if os.path.isdir(os.path.join('plugins', builtinPluginName)):
+                builtinPlugins.add(builtinPluginName)
+for pluginName in os.listdir('plugins'):
+    pluginReqsFile = os.path.join('plugins', pluginName, 'requirements.txt')
+    if pluginName in builtinPlugins and os.path.isfile(pluginReqsFile):
+        with open(pluginReqsFile) as pluginReqsStream:
+            pluginExtrasReqs = []
+            for line in pluginReqsStream:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    pluginExtrasReqs.append(line)
+            extrasReqs[pluginName] = pluginExtrasReqs
 
-if sys.version_info[0] == 2:
-    install_reqs.append('shutilwhich')
-    extras_reqs.update({
-        'hdfs_assetstore': ['snakebite'],
-        'metadata_extractor': [
-            'hachoir-core',
-            'hachoir-metadata',
-            'hachoir-parser'
-        ],
-        'plugins': extras_reqs['plugins'] + [
-            'snakebite',
-            'hachoir-core',
-            'hachoir-metadata',
-            'hachoir-parser'
-        ]
-    })
-if sys.version_info[0:2] < (3, 5):
-    install_reqs.append('funcsigs')
+extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
+extrasReqs['sftp'] = [
+    'paramiko',
+]
 
-extras_reqs['sftp'] = ['paramiko']
 
 init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
 with open(init) as fd:
@@ -151,8 +152,8 @@ setup(
             'api/api_docs.mako'
         ]
     },
-    install_requires=install_reqs,
-    extras_require=extras_reqs,
+    install_requires=installReqs,
+    extras_require=extrasReqs,
     zip_safe=False,
     cmdclass={
         'install': InstallWithOptions
