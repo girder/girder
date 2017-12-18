@@ -103,7 +103,10 @@ class StreamToLogger:
             # It's possible for a file-like object to have name appear in dir(stream) but not
             # actually be an attribute, thus using a default with getattr is required.
             # See https://github.com/GrahamDumpleton/mod_wsgi/issues/184 for more.
-            if key != 'write' and not key.startswith('_') and callable(getattr(stream, key, None)):
+            if (key != 'write' and not key.startswith('_') and (
+                    callable(getattr(stream, key, None)) or
+                    isinstance(getattr(stream, key, None), (
+                        six.binary_type, six.string_types, six.integer_types, bool)))):
                 setattr(self, key, getattr(stream, key))
 
     def write(self, buf):
