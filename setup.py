@@ -92,7 +92,9 @@ with open(os.path.join('plugins', '.gitignore')) as builtinPluginsIgnoreStream:
         # (accordingly, note the non-greedy qualifier for the match group)
         builtinPluginNameRe = re.match(r'^!(.+?)/?$', line)
         if builtinPluginNameRe:
-            builtinPlugins.add(builtinPluginNameRe.group(1))
+            builtinPluginName = builtinPluginNameRe.group(1)
+            if os.path.isdir(os.path.join('plugins', builtinPluginName)):
+                builtinPlugins.add(builtinPluginName)
 for pluginName in os.listdir('plugins'):
     pluginReqsFile = os.path.join('plugins', pluginName, 'requirements.txt')
     if pluginName in builtinPlugins and os.path.isfile(pluginReqsFile):
