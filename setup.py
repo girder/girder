@@ -80,14 +80,27 @@ installReqs = [
 ]
 
 extrasReqs = {}
+# To avoid conflict with the `girder-install plugin' command, this only adds built-in plugins with
+# extras requirements.
+with open(os.path.join('plugins', '.gitignore')) as builtinPluginsIgnoreStream:
+    builtinPlugins = set()
+    for line in builtinPluginsIgnoreStream:
+        # Plugin .gitignore entries should end with a /, but we will tolerate those that don't;
+        # (accordingly, note the non-greedy qualifier for the match group)
+        builtinPluginNameRe = re.match(r'^!(.+?)/?$', line)
+        if builtinPluginNameRe:
+            builtinPlugins.add(builtinPluginNameRe.group(1))
 for pluginName in os.listdir('plugins'):
     pluginReqsFile = os.path.join('plugins', pluginName, 'requirements.txt')
-    if os.path.isfile(pluginReqsFile):
+    if pluginName in builtinPlugins and os.path.isfile(pluginReqsFile):
         with open(pluginReqsFile) as pluginReqsStream:
-            extrasReqs[pluginName] = list(filter(
-                lambda line: line and not line.startswith('#'),
-                map(lambda line: line.strip(), pluginReqsStream)
-            ))
+            pluginExtrasReqs = []
+            for line in pluginReqsStream:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    pluginExtrasReqs.append(line)
+            extrasReqs[pluginName] = pluginExtrasReqs
+
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
 extrasReqs['sftp'] = [
     'paramiko',

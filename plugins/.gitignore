@@ -1,7 +1,7 @@
 /*
 !.gitignore
-!authorized_upload
-!autojoin
+!authorized_upload/
+!autojoin/
 !candela/
 !celery_jobs/
 !curation/
