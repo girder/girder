@@ -101,6 +101,8 @@ function(add_python_test case)
     set(name ${name}.${fn_SUBMODULE})
   endif()
 
+  file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/build/test/coverage/python_temp")
+
   add_test(
     NAME ${name}
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"

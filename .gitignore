@@ -1,6 +1,3 @@
-# Girder repo
-!.gitignore
-
 # Build outputs
 build/
 docs/_build

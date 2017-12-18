@@ -1,5 +1,5 @@
 [run]
-data_file = build/test/coverage/server_temp/.coverage
+data_file = build/test/coverage/python_temp/.coverage
 omit =
     girder/external/*
     girder/test/*
@@ -9,4 +9,4 @@ parallel = True
 directory = build/test/coverage/server_html
 
 [xml]
-output = build/test/coverage/server.xml
+output = build/test/coverage/python.xml
