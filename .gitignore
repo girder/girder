@@ -10,7 +10,6 @@ node_modules/
 __pycache__
 .eslintcache
 /npm-debug.log
-.tox
 .vagrant
 *.py[cod]
 **/*.retry
