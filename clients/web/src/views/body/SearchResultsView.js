@@ -148,7 +148,7 @@ var SearchResultsTypeView = View.extend({
             icon: this._icon
         }));
 
-        this.$('.g-search-results-type').css('min-height', `${this._initResults.length*this._sizeOneElement}px`);
+        this.$('.g-search-results-type').css('min-height', `${this._initResults.length * this._sizeOneElement}px`);
         this._paginateWidget.setElement(this.$(`#${this._type}Paginate`)).render();
 
         return this;
