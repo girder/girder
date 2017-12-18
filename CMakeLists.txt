@@ -23,9 +23,6 @@ option(ANSIBLE_CLIENT_TESTS "Whether to run Ansible client tests" OFF)
 set(TEST_PLUGINS "" CACHE STRING "List of plugins to test. Leave empty to test all plugins")
 
 find_program(PYTHON_COVERAGE_EXECUTABLE NAMES coverage python-coverage)
-set(girder_py_coverage_rc "${PROJECT_SOURCE_DIR}/build/test/coverage/girder.coveragerc")
-set(PYTHON_COVERAGE_CONFIG "${girder_py_coverage_rc}" CACHE FILEPATH "Custom python coverage configuration file")
-mark_as_advanced(PYTHON_COVERAGE_CONFIG)
 
 if(PYTHON_STATIC_ANALYSIS)
   find_program(FLAKE8_EXECUTABLE flake8)

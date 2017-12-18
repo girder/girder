@@ -1,3 +1,0 @@
-# Configuration for python coverage
-[report]
-omit = @_omit_python_covg@

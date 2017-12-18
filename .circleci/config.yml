@@ -197,7 +197,7 @@ jobs:
           paths:
             - girder/.coverage.*
             - girder/node_modules
-            # The "girder.coveragerc" and ".gitignore" files inside
+            # The ".gitignore" file inside
             # "girder/build/test/coverage/web_temp/" will conflict, so specify files more exactly
             - girder/build/test/coverage/web_temp/coverage_*.json
             - girder_build

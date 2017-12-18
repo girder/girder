@@ -2,16 +2,10 @@ set(server_port 20200)
 set(flake8_config "${PROJECT_SOURCE_DIR}/tests/flake8.cfg")
 
 if(RUN_CORE_TESTS)
-  set(_omit_python_covg "girder/external/*,girder/test/*")
+  set(_python_coverage_omit_extra "")
 else()
-  set(_omit_python_covg "girder/*,clients/python/*")
+  set(_python_coverage_omit_extra "--omit=girder/*,clients/python/*")
 endif()
-
-configure_file(
-  "${PROJECT_SOURCE_DIR}/tests/girder.coveragerc.in"
-  "${girder_py_coverage_rc}"
-  @ONLY
-)
 
 if(WIN32)
   set(_separator "\\;")
@@ -25,7 +19,7 @@ function(python_tests_init)
   add_test(
     NAME py_coverage_reset
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase "--rcfile=${PYTHON_COVERAGE_CONFIG}"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase
   )
   add_test(
     NAME py_coverage_combine
@@ -35,18 +29,21 @@ function(python_tests_init)
   add_test(
     NAME py_coverage
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report "--rcfile=${PYTHON_COVERAGE_CONFIG}" --fail-under=${COVERAGE_MINIMUM_PASS}
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report
+      --fail-under=${COVERAGE_MINIMUM_PASS}
   )
   add_test(
     NAME py_coverage_html
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html "--rcfile=${PYTHON_COVERAGE_CONFIG}" -d "${PROJECT_SOURCE_DIR}/build/test/coverage/server_html"
-            "--title=Girder Coverage Report"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html
+      -d "${PROJECT_SOURCE_DIR}/build/test/coverage/server_html"
+      "--title=Girder Coverage Report"
   )
   add_test(
     NAME py_coverage_xml
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml "--rcfile=${PYTHON_COVERAGE_CONFIG}" -o "${PROJECT_SOURCE_DIR}/build/test/coverage/server.xml"
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml
+      -o "${PROJECT_SOURCE_DIR}/build/test/coverage/server.xml"
   )
   set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
   set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
@@ -109,9 +106,10 @@ function(add_python_test case)
   add_test(
     NAME ${name}
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run --parallel-mode "--rcfile=${PYTHON_COVERAGE_CONFIG}"
-            "--source=girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
-            -m unittest -v ${module}
+    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" run
+      ${_python_coverage_omit_extra}
+      "--source=girder,${PROJECT_SOURCE_DIR}/clients/python/girder_client${other_covg}"
+      -m unittest -v ${module}
   )
 
   if(fn_DBNAME)
