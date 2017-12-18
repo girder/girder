@@ -1,3 +1,5 @@
+# This file is parsed by "setup.py" to generate plugin requirements, so care should be taken when
+# editing it.
 /*
 !.gitignore
 !authorized_upload/

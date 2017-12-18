@@ -82,6 +82,9 @@ installReqs = [
 extrasReqs = {}
 # To avoid conflict with the `girder-install plugin' command, this only adds built-in plugins with
 # extras requirements.
+# Note: the usage of automatically-parsed plugin-specific 'requirements.txt' is a temporary
+# measure to keep plugin requirements close to plugin code. It will be removed when pip-installable
+# plugins are added. It should not be used by other projects.
 with open(os.path.join('plugins', '.gitignore')) as builtinPluginsIgnoreStream:
     builtinPlugins = set()
     for line in builtinPluginsIgnoreStream:
