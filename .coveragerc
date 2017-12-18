@@ -6,7 +6,7 @@ omit =
 parallel = True
 
 [html]
-directory = build/test/coverage/server_html
+directory = build/test/artifacts/python_coverage
 
 [xml]
 output = build/test/coverage/python.xml
