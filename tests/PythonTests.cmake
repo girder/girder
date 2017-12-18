@@ -36,14 +36,12 @@ function(python_tests_init)
     NAME py_coverage_html
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html
-      -d "${PROJECT_SOURCE_DIR}/build/test/coverage/server_html"
       "--title=Girder Coverage Report"
   )
   add_test(
     NAME py_coverage_xml
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml
-      -o "${PROJECT_SOURCE_DIR}/build/test/coverage/server.xml"
   )
   set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
   set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
