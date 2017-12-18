@@ -49,8 +49,8 @@ jobs:
           name: Run tox
           command: tox -e circleci-py27
           working_directory: girder
-      - store_artifacts:
-          path: girder/build/test/artifacts
+      - store_test_results:
+          path: girder/build/test/results
       - run:
           name: Reduce workspace size
           command: |
@@ -133,8 +133,8 @@ jobs:
           name: Run tox
           command: tox -e circleci-py35
           working_directory: girder
-      - store_artifacts:
-          path: girder/build/test/artifacts
+      - store_test_results:
+          path: girder/build/test/results
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
