@@ -39,8 +39,8 @@ describe('Test collection actions', function () {
         runs(function () {
             for (var i = 0; i < 4; i++) {
                 if ($('.g-collection-info-line').eq(i).attr('property') === 'id') {
-                    var id = $('.g-bold-part').eq(i).text()
-                    var n = $('.g-bold-part').eq(i - 1).text()
+                    var id = $('.g-bold-part').eq(i).text();
+                    var n = $('.g-bold-part').eq(i - 1).text();
                     console.log('ID ', id, ' - nFolder ', n);
                 }
             }
@@ -320,32 +320,6 @@ describe('Test collection actions', function () {
 
         girderTest.waitForLoad();
 
-// ------------------ DEBUG --------------------
-        runs(function () {
-            $('.g-collection-info-button').click();
-        });
-
-        girderTest.waitForDialog();
-
-        runs(function () {
-            for (var i = 0; i < 4; i++) {
-                if ($('.g-collection-info-line').eq(i).attr('property') === 'id') {
-                    var id = $('.g-bold-part').eq(i).text()
-                    var n = $('.g-bold-part').eq(i - 1).text()
-                    var size = $('.g-bold-part').eq(i - 2).text()
-                    console.log('ID ', id, ' - nFolder ', n, ' - Size', size);
-                }
-            }
-        });
-
-        runs(function () {
-            $('.btn-default').click();
-        });
-
-        girderTest.waitForLoad();
-
-// ---------------------------------------------------------------
-// Issue : nFolders = 1, but the confirmation dialog doesn't show up...
         runs(function () {
             $('.g-collection-actions-button').click();
         });
