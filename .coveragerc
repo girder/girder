@@ -1,4 +1,5 @@
 [run]
+data_file = build/test/coverage/server_temp/.coverage
 omit =
     girder/external/*
     girder/test/*

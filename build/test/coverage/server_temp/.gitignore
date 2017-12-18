@@ -1,0 +1,3 @@
+# This ensures that the "build/test/coverage/server_temp" directory always exists, as the Python
+# coverage tool will not auto-create intermediate directories. The actual ignoring of these files
+# is handled by the ".gitignore" in the parent directory.

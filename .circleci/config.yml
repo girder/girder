@@ -195,10 +195,10 @@ jobs:
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
             - girder/node_modules
             # The ".gitignore" file inside
             # "girder/build/test/coverage/web_temp/" will conflict, so specify files more exactly
+            - girder/build/test/coverage/server_temp/.coverage*
             - girder/build/test/coverage/web_temp/coverage_*.json
             - girder_build
             - girder_env
@@ -268,7 +268,7 @@ jobs:
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
+            - girder/build/test/coverage/server_temp/.coverage*
             - girder/build/test/coverage/web_temp/coverage_*.json
 
   py2_coverage:
@@ -377,7 +377,7 @@ jobs:
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
+            - girder/build/test/coverage/server_temp/.coverage*
             - girder/build/test/coverage/web_temp/coverage_*.json
 
   py3_coverage:
