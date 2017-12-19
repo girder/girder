@@ -190,12 +190,11 @@ jobs:
             # Aggresively remove recursed node modules; we only need enough of
             # the node_modules to perform javascript coverage aggregation
             find girder/node_modules/ -mindepth 1 -name node_modules -exec rm --recursive --force {} \+
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
             - girder/node_modules
+            - girder/build/test/artifacts
             - girder/build/test/coverage
             - girder_build
             - girder_env
@@ -260,11 +259,10 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
+            - girder/build/test/artifacts
             - girder/build/test/coverage
 
   py2_coverage:
@@ -288,6 +286,8 @@ jobs:
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: OFF
           working_directory: girder_build
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
           command: pip install codecov
@@ -368,11 +368,10 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
+            - girder/build/test/artifacts
             - girder/build/test/coverage
 
   py3_coverage:
@@ -396,6 +395,8 @@ jobs:
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: ON
           working_directory: girder_build
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
           command: pip install codecov
