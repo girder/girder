@@ -19,7 +19,9 @@
 
 from six.moves import urllib
 
-from girder.api.rest import getApiUrl, RestException
+from girder.api.rest import getApiUrl
+from girder.exceptions import RestException
+from girder.models.setting import Setting
 from .base import ProviderBase
 from .. import constants
 
@@ -30,17 +32,14 @@ class Box(ProviderBase):
     _API_USER_URL = 'https://api.box.com/2.0/users/me'
 
     def getClientIdSetting(self):
-        return self.model('setting').get(
-            constants.PluginSettings.BOX_CLIENT_ID)
+        return Setting().get(constants.PluginSettings.BOX_CLIENT_ID)
 
     def getClientSecretSetting(self):
-        return self.model('setting').get(
-            constants.PluginSettings.BOX_CLIENT_SECRET)
+        return Setting().get(constants.PluginSettings.BOX_CLIENT_SECRET)
 
     @classmethod
     def getUrl(cls, state):
-        clientId = cls.model('setting').get(
-            constants.PluginSettings.BOX_CLIENT_ID)
+        clientId = Setting().get(constants.PluginSettings.BOX_CLIENT_ID)
 
         if clientId is None:
             raise Exception('No Box client ID setting is present.')

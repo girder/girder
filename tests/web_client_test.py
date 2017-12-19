@@ -26,8 +26,11 @@ import time
 from girder import config
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, RestException
+from girder.api.rest import Resource
 from girder.constants import registerAccessFlag, ROOT_DIR
+from girder.exceptions import RestException
+from girder.models.folder import Folder
+from girder.models.upload import Upload
 from girder.utility.progress import ProgressContext
 from . import base
 from six.moves import range
@@ -119,14 +122,14 @@ class WebClientTestEndpoints(Resource):
 
         path = os.path.join(ROOT_DIR, params['path'])
         name = os.path.basename(path)
-        folder = self.model('folder').load(params['folderId'], force=True)
+        folder = Folder().load(params['folderId'], force=True)
 
-        upload = self.model('upload').createUpload(
+        upload = Upload().createUpload(
             user=self.getCurrentUser(), name=name, parentType='folder',
             parent=folder, size=os.path.getsize(path))
 
         with open(path, 'rb') as fd:
-            file = self.model('upload').handleChunk(upload, fd)
+            file = Upload().handleChunk(upload, fd)
 
         return file
 
@@ -145,12 +148,11 @@ class WebClientTestEndpoints(Resource):
 class WebClientTestCase(base.TestCase):
     def setUp(self):
         self.specFile = os.environ['SPEC_FILE']
-        self.coverageFile = os.environ.get('COVERAGE_FILE', '')
-        assetstoreType = os.environ['ASSETSTORE_TYPE']
+        self.assetstoreType = os.environ['ASSETSTORE_TYPE']
         self.webSecurity = os.environ.get('WEB_SECURITY', 'true')
         if self.webSecurity != 'false':
             self.webSecurity = 'true'
-        base.TestCase.setUp(self, assetstoreType)
+        base.TestCase.setUp(self, self.assetstoreType)
         # One of the web client tests uses this db, so make sure it is cleared
         # ahead of time.  This still allows tests to be run in parallel, since
         # nothing should be stored in this db
@@ -169,30 +171,29 @@ class WebClientTestCase(base.TestCase):
             baseUrl = os.environ['BASEURL']
 
         cmd = (
-            os.path.join(
-                ROOT_DIR, 'node_modules', '.bin', 'phantomjs'),
+            os.path.join(ROOT_DIR, 'node_modules', '.bin', 'phantomjs'),
             '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
             'http://localhost:%s%s' % (os.environ['GIRDER_PORT'], baseUrl),
             self.specFile,
-            self.coverageFile,
-            os.environ.get('JASMINE_TIMEOUT', '')
+            os.environ.get('JASMINE_TIMEOUT', ''),
+            # Disambiguate repeat tests run on the same spec file, by adding any non-default
+            # assetstore types to the test output files
+            self.assetstoreType if self.assetstoreType != 'filesystem' else ''
         )
 
         # phantomjs occasionally fails to load javascript files.  This appears
         # to be a known issue: https://github.com/ariya/phantomjs/issues/10652.
         # Retry several times if it looks like this has occurred.
         retry_count = os.environ.get('PHANTOMJS_RETRY', 3)
-        for tries in range(int(retry_count)):
+        for _ in range(int(retry_count)):
             retry = False
-            task = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+            task = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             jasmineFinished = False
             for line in iter(task.stdout.readline, b''):
                 if isinstance(line, six.binary_type):
                     line = line.decode('utf8')
-                if ('PHANTOM_TIMEOUT' in line or
-                        'error loading source script' in line):
+                if ('PHANTOM_TIMEOUT' in line or 'error loading source script' in line):
                     task.kill()
                     retry = True
                 elif '__FETCHEMAIL__' in line:

@@ -1,0 +1,34 @@
+.g-dicom-container
+  .g-item-info-header
+    i.icon-picture
+    | DICOM
+.g-dicom-panes.clearfix
+  .g-dicom-left
+    .g-dicom-image
+    .g-dicom-filename
+    .g-dicom-controls
+      input.g-dicom-slider(type="range", min=0, max=files.length - 1, step=1)
+      .right
+        button.g-dicom-first.btn.btn-sm.btn-default(title="First")
+          i.icon-angle-double-left
+        button.g-dicom-previous.btn.btn-sm.btn-default(title="Previous")
+          i.icon-angle-left
+        button.g-dicom-play.btn.btn-sm.btn-default(title="Play")
+          i.icon-play
+        button.g-dicom-pause.btn.btn-sm.btn-default(title="Pause")
+          i.icon-pause
+        button.g-dicom-next.btn.btn-sm.btn-default(title="Next")
+          i.icon-angle-right
+        button.g-dicom-last.btn.btn-sm.btn-default(title="Last")
+          i.icon-angle-double-right
+      .left
+        button.g-dicom-zoom-in.btn.btn-sm.btn-default(title="Zoom In")
+          i.icon-zoom-in
+        button.g-dicom-zoom-out.btn.btn-sm.btn-default(title="Zoom Out")
+          i.icon-zoom-out
+        button.g-dicom-reset-zoom.btn.btn-sm.btn-default(title="Reset Zoom")
+          i.icon-search
+        button.g-dicom-auto-levels.btn.btn-sm.btn-default(title="Auto Levels")
+          i.icon-ajust
+  .g-dicom-right
+    .g-dicom-tags

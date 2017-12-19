@@ -19,7 +19,7 @@
 
 from . geospatial import GeospatialItem, GEOSPATIAL_FIELD
 from girder.constants import AccessType
-from girder.utility.model_importer import ModelImporter
+from girder.models.item import Item
 
 
 def load(info):
@@ -33,4 +33,4 @@ def load(info):
     info['apiRoot'].item.route('GET', (':id', 'geospatial'), geospatialItem.getGeospatial)
     info['apiRoot'].item.route('PUT', (':id', 'geospatial'), geospatialItem.setGeospatial)
 
-    ModelImporter.model('item').exposeFields(level=AccessType.READ, fields={GEOSPATIAL_FIELD})
+    Item().exposeFields(level=AccessType.READ, fields={GEOSPATIAL_FIELD})

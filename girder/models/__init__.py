@@ -18,9 +18,9 @@
 ###############################################################################
 
 import pymongo
+import six
 from six.moves import urllib
 
-from pymongo.read_preferences import ReadPreference
 from girder import logger, logprint
 from girder.external.mongodb_proxy import MongoProxy
 from girder.utility import config
@@ -66,10 +66,12 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, quiet=False, **kw
     if origKey in _dbClients:
         return _dbClients[origKey]
 
+    dbConf = getDbConfig()
+
     if uri is None or uri == '':
-        dbConf = getDbConfig()
         uri = dbConf.get('uri')
         replicaSet = dbConf.get('replica_set')
+
     clientOptions = {
         # This is the maximum time between when we fetch data from a cursor.
         # If it times out, the cursor is lost and we can't reconnect.  If it
@@ -79,9 +81,18 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, quiet=False, **kw
         'socketTimeoutMS': 60000,
         'connectTimeoutMS': 20000,
         'serverSelectionTimeoutMS': 20000,
-        'read_preference': ReadPreference.SECONDARY_PREFERRED,
-        'replicaSet': replicaSet
+        'readPreference': 'secondaryPreferred',
+        'replicaSet': replicaSet,
+        'w': 'majority'
     }
+
+    # All other options in the [database] section will be passed directly as
+    # options to the mongo client
+    for opt, val in six.viewitems(dict(dbConf)):
+        if opt not in {'uri', 'replica_set'}:
+            clientOptions[opt] = val
+
+    # Finally, kwargs take precedence
     clientOptions.update(kwargs)
     # if the connection URI overrides any option, honor it above our own
     # settings.

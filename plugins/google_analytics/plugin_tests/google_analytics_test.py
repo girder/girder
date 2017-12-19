@@ -16,8 +16,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+
 from server.constants import PluginSettings
 from tests import base
+from girder.models.setting import Setting
 
 
 def setUpModule():
@@ -32,18 +34,15 @@ def tearDownModule():
 class GoogleAnalyticsTest(base.TestCase):
 
     def testGetAnalytics(self):
-
         # test without set
         resp = self.request('/google_analytics/id')
         self.assertStatusOk(resp)
         self.assertIs(resp.json['google_analytics_id'], None)
 
         # set tracking id
-        self.model('setting').set(PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID,
-                                  'testing-tracking-id')
+        Setting().set(PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID, 'testing-tracking-id')
 
         # verify we can get the tracking id without being authenticated.
         resp = self.request('/google_analytics/id')
         self.assertStatusOk(resp)
-        self.assertEquals(resp.json['google_analytics_id'],
-                          'testing-tracking-id')
+        self.assertEquals(resp.json['google_analytics_id'], 'testing-tracking-id')

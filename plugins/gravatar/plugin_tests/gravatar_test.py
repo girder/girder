@@ -21,6 +21,8 @@ import hashlib
 
 from server import PluginSettings
 from tests import base
+from girder.models.setting import Setting
+from girder.models.user import User
 
 
 def setUpModule():
@@ -38,7 +40,7 @@ class GravatarTest(base.TestCase):
         # Since our plugin updates the model singleton, don't drop models
         base.TestCase.setUp(self, dropModels=False)
 
-        self.admin = self.model('user').createUser(
+        self.admin = User().createUser(
             email='not.a.real.email@mail.com',
             login='admin',
             firstName='first',
@@ -54,15 +56,14 @@ class GravatarTest(base.TestCase):
         """
         Tests that our caching of gravatar URLs works as expected.
         """
-        self.model('setting').set(PluginSettings.DEFAULT_IMAGE, 'mm')
+        Setting().set(PluginSettings.DEFAULT_IMAGE, 'mm')
 
         # Gravatar base URL should be computed on user creation
         resp = self.request('/user/%s' % self.admin['_id'])
         self.assertStatusOk(resp)
         self.assertTrue('gravatar_baseUrl' in resp.json)
 
-        resp = self.request('/user/%s/gravatar' % str(self.admin['_id']),
-                            isJson=False)
+        resp = self.request('/user/%s/gravatar' % str(self.admin['_id']), isJson=False)
         md5 = hashlib.md5(self.admin['email'].encode()).hexdigest()
         self.assertRedirect(
             resp,
@@ -83,19 +84,18 @@ class GravatarTest(base.TestCase):
                 'email': 'new_email@email.com'
             })
         self.assertStatusOk(resp)
-        self.admin = self.model('user').load(self.admin['_id'], force=True)
+        self.admin = User().load(self.admin['_id'], force=True)
         self.assertNotEqual(self.admin['gravatar_baseUrl'], oldBaseUrl)
 
         # Make sure we picked up the new default setting
-        resp = self.request('/user/%s/gravatar' % str(self.admin['_id']),
-                            isJson=False)
+        resp = self.request('/user/%s/gravatar' % str(self.admin['_id']), isJson=False)
         md5 = hashlib.md5(self.admin['email'].encode()).hexdigest()
         self.assertRedirect(
             resp,
             'https://www.gravatar.com/avatar/%s?d=mm&s=64' % md5)
 
     def testUserInfoUpdate(self):
-        user = self.model('user').createUser(
+        user = User().createUser(
             email='normaluser@mail.com',
             login='normal',
             firstName='normal',

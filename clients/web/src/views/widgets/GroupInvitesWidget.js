@@ -8,8 +8,6 @@ import { confirm } from 'girder/dialog';
 
 import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.pug';
 
-import 'bootstrap/js/tooltip';
-
 /**
  * This view shows a list of pending invitations to the group.
  */
@@ -50,13 +48,6 @@ var GroupInvitesWidget = View.extend({
             invitees: this.collection.toArray(),
             accessType: AccessType
         }));
-
-        this.$('a[title]').tooltip({
-            container: this.$el,
-            placement: 'left',
-            animation: false,
-            delay: {show: 100}
-        });
 
         return this;
     }

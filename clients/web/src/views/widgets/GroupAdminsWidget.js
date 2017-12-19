@@ -11,7 +11,6 @@ import events from 'girder/events';
 import GroupAdminListTemplate from 'girder/templates/widgets/groupAdminList.pug';
 
 import 'bootstrap/js/dropdown';
-import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a list of administrators of a group.
@@ -81,13 +80,6 @@ var GroupAdminsWidget = View.extend({
             admins: this.admins,
             accessType: AccessType
         }));
-
-        this.$('.g-group-admin-demote').tooltip({
-            container: 'body',
-            placement: 'left',
-            animation: false,
-            delay: {show: 100}
-        });
 
         return this;
     }

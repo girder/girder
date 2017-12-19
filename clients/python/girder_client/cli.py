@@ -30,16 +30,18 @@ class GirderCli(GirderClient):
     """
 
     def __init__(self, username, password, host=None, port=None, apiRoot=None,
-                 scheme=None, apiUrl=None, apiKey=None):
+                 scheme=None, apiUrl=None, apiKey=None, sslVerify=True):
         """
         Initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance. Aside from username, password,
-        and apiKey, all other kwargs are passed directly through to the
+        apiKey, and sslVerify, all other kwargs are passed directly through to the
         :py:class:`girder_client.GirderClient` base class constructor.
 
         :param username: username to authenticate to Girder instance.
         :param password: password to authenticate to Girder instance, leave
             this blank to be prompted.
+        :param sslVerify: disable SSL verification or specify path to certfile on
+            :class:`requests.Session` object.
         """
         def _progressBar(*args, **kwargs):
             bar = click.progressbar(*args, **kwargs)
@@ -76,10 +78,17 @@ class GirderCli(GirderClient):
             progressReporterCls=_progressBar)
         interactive = password is None
 
+        self.sslVerify = sslVerify
+
         if apiKey:
             self.authenticate(apiKey=apiKey)
         elif username:
             self.authenticate(username, password, interactive=interactive)
+
+    def _requestFunc(self, *args, **kwargs):
+        with self.session() as session:
+            session.verify = self.sslVerify
+            return super(GirderCli, self)._requestFunc(*args, **kwargs)
 
 
 class _HiddenOption(click.Option):
@@ -146,9 +155,21 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
                    '[default: %s]' % GirderClient.DEFAULT_API_ROOT,
               show_default=True,
               cls=_AdvancedOption)
+@click.option('--no-ssl-verify', is_flag=True, default=False,
+              help='Disable SSL Verification',
+              show_default=True,
+              cls=_AdvancedOption
+              )
+@click.option('--certificate', default=None,
+              help='Specify path to SSL certificate',
+              show_default=True,
+              cls=_AdvancedOption
+              )
 @click.version_option(version=__version__, prog_name='Girder command line interface')
 @click.pass_context
-def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root):
+def main(ctx, username, password,
+         api_key, api_url, scheme, host, port, api_root,
+         no_ssl_verify, certificate):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -171,17 +192,30 @@ def main(ctx, username, password, api_key, api_url, scheme, host, port, api_root
             raise click.BadArgumentUsage(
                 'Option "--api-url" and option "--%s" are mutually exclusive.' %
                 name.replace("_", "-"))
+    if certificate and no_ssl_verify:
+        raise click.BadArgumentUsage(
+            'Option "--no-ssl-verify" and option "--certificate" are mutually exclusive.')
+
+    ssl_verify = True
+    if certificate:
+        ssl_verify = certificate
+    if no_ssl_verify:
+        ssl_verify = False
 
     ctx.obj = GirderCli(
         username, password, host=host, port=port, apiRoot=api_root,
-        scheme=scheme, apiUrl=api_url, apiKey=api_key)
+        scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify)
+
+    if certificate and ctx.obj.scheme != 'https':
+        raise click.BadArgumentUsage(
+            'A URI scheme of "https" is required for option "--certificate"')
 
 
 def _lookup_parent_type(client, object_id):
 
     object_id = client._checkResourcePath(object_id)
 
-    for parent_type in ['folder', 'collection', 'user', 'item']:
+    for parent_type in ['folder', 'collection', 'user', 'item', 'file']:
         try:
             client.get('resource/%s/path' % object_id, parameters={'type': parent_type})
             return parent_type
@@ -232,13 +266,16 @@ _short_help = 'Download files from Girder'
 
 @main.command('download', short_help=_short_help, help='%s\n\n%s' % (
     _short_help, _common_help.replace('LOCAL_FOLDER', 'LOCAL_FOLDER (default: ".")')))
-@_CommonParameters(additional_parent_types=['collection', 'user', 'item'], path_default='.')
+@_CommonParameters(additional_parent_types=[
+    'collection', 'user', 'item', 'file'], path_default='.')
 @click.pass_obj
 def _download(gc, parent_type, parent_id, local_folder):
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
     if parent_type == 'item':
         gc.downloadItem(parent_id, local_folder)
+    elif parent_type == 'file':
+        gc.downloadFile(parent_id, local_folder)
     else:
         gc.downloadResource(parent_id, local_folder, parent_type)
 

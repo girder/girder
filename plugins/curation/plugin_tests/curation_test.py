@@ -18,6 +18,9 @@
 ###############################################################################
 
 from girder.constants import AccessType
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.user import User
 from tests import base
 
 
@@ -35,7 +38,7 @@ class CurationTest(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
 
-        self.users = [self.model('user').createUser(
+        self.users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
@@ -43,13 +46,10 @@ class CurationTest(base.TestCase):
         admin, user = self.users
 
         # create a collection and a folder
-        c1 = self.model('collection').createCollection(
-            'c1', admin, public=True)
-        f1 = self.model('folder').createFolder(
-            c1, 'f1', parentType='collection', public=False)
-        f2 = self.model('folder').createFolder(
-            c1, 'f2', parentType='collection', public=False)
-        self.model('folder').setUserAccess(f2, user, AccessType.WRITE, True)
+        c1 = Collection().createCollection('c1', admin, public=True)
+        f1 = Folder().createFolder(c1, 'f1', parentType='collection', public=False)
+        f2 = Folder().createFolder(c1, 'f2', parentType='collection', public=False)
+        Folder().setUserAccess(f2, user, AccessType.WRITE, True)
 
         # test initial curation values
         path = '/folder/%s/curation' % f1.get('_id')

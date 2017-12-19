@@ -21,7 +21,7 @@ import datetime
 import six
 
 from girder.constants import AccessType, SettingKey, TokenScope
-from girder.models.model_base import AccessException
+from girder.exceptions import AccessException
 from girder.utility import genToken
 from .model_base import AccessControlledModel
 
@@ -58,8 +58,10 @@ class Token(AccessControlledModel):
         :type apiKey: dict
         :returns: The token document that was created.
         """
+        from .setting import Setting
+
         now = datetime.datetime.utcnow()
-        days = days or self.model('setting').get(SettingKey.COOKIE_LIFETIME)
+        days = days or Setting().get(SettingKey.COOKIE_LIFETIME)
 
         if scope is None:
             scope = (TokenScope.USER_AUTH,)

@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import json
 import os
 import re
 
@@ -25,8 +26,8 @@ import mako
 
 from girder import constants, events
 from girder.constants import CoreEventHandler, SettingKey
+from girder.models.setting import Setting
 from girder.utility import config
-from girder.utility.model_importer import ModelImporter
 
 
 class WebrootBase(object):
@@ -69,7 +70,8 @@ class WebrootBase(object):
         )
 
     def _renderHTML(self):
-        return mako.template.Template(self.template).render(js=self._escapeJavascript, **self.vars)
+        return mako.template.Template(self.template).render(
+            js=self._escapeJavascript, json=json.dumps, **self.vars)
 
     def GET(self, **params):
         if self.indexHtml is None or self.config['server']['mode'] == 'development':
@@ -96,9 +98,9 @@ class Webroot(WebrootBase):
     """
     def __init__(self, templatePath=None):
         if not templatePath:
-            templatePath = os.path.join(constants.PACKAGE_DIR,
-                                        'utility', 'webroot.mako')
+            templatePath = os.path.join(constants.PACKAGE_DIR, 'utility', 'webroot.mako')
         super(Webroot, self).__init__(templatePath)
+        settings = Setting()
 
         self.vars = {
             'plugins': [],
@@ -106,8 +108,11 @@ class Webroot(WebrootBase):
             'staticRoot': '',
             # 'title' is depreciated use brandName instead
             'title': 'Girder',
-            'brandName': ModelImporter.model('setting').get(SettingKey.BRAND_NAME),
-            'contactEmail': ModelImporter.model('setting').get(SettingKey.CONTACT_EMAIL_ADDRESS)
+            'brandName': settings.get(SettingKey.BRAND_NAME),
+            'bannerColor': settings.get(SettingKey.BANNER_COLOR),
+            'contactEmail': settings.get(SettingKey.CONTACT_EMAIL_ADDRESS),
+            'registrationPolicy': settings.get(SettingKey.REGISTRATION_POLICY),
+            'enablePasswordLogin': settings.get(SettingKey.ENABLE_PASSWORD_LOGIN)
         }
 
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
@@ -121,15 +126,30 @@ class Webroot(WebrootBase):
             self.updateHtmlVars({'contactEmail': settingDoc['value']})
         elif settingDoc['key'] == SettingKey.BRAND_NAME:
             self.updateHtmlVars({'brandName': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.BANNER_COLOR:
+            self.updateHtmlVars({'bannerColor': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.REGISTRATION_POLICY:
+            self.updateHtmlVars({'registrationPolicy': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.ENABLE_PASSWORD_LOGIN:
+            self.updateHtmlVars({'enablePasswordLogin': settingDoc['value']})
 
     def _onSettingRemove(self, event):
         settingDoc = event.info
         if settingDoc['key'] == SettingKey.CONTACT_EMAIL_ADDRESS:
-            self.updateHtmlVars({'contactEmail': ModelImporter.model('setting').getDefault(
+            self.updateHtmlVars({'contactEmail': Setting().getDefault(
                 SettingKey.CONTACT_EMAIL_ADDRESS)})
         elif settingDoc['key'] == SettingKey.BRAND_NAME:
-            self.updateHtmlVars({'brandName': ModelImporter.model('setting').getDefault(
+            self.updateHtmlVars({'brandName': Setting().getDefault(
                 SettingKey.BRAND_NAME)})
+        elif settingDoc['key'] == SettingKey.BANNER_COLOR:
+            self.updateHtmlVars({'bannerColor': settingDoc['value']})
+        elif settingDoc['key'] == SettingKey.REGISTRATION_POLICY:
+            self.updateHtmlVars({'registrationPolicy': Setting().getDefault(
+                SettingKey.REGISTRATION_POLICY)})
+        elif settingDoc['key'] == SettingKey.ENABLE_PASSWORD_LOGIN:
+            self.updateHtmlVars({'enablePasswordLogin': Setting().getDefault(
+                SettingKey.ENABLE_PASSWORD_LOGIN
+            )})
 
     def _renderHTML(self):
         self.vars['pluginCss'] = []

@@ -24,7 +24,10 @@
                 el: 'body',
                 parentView: null,
                 contactEmail: '${contactEmail | js}',
-                brandName: '${brandName | js}'
+                brandName: '${brandName | js}',
+                bannerColor: '${bannerColor | js}',
+                registrationPolicy: '${registrationPolicy | js}',
+                enablePasswordLogin: ${enablePasswordLogin | n,json}
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });

@@ -19,9 +19,10 @@
 
 import datetime
 
-from .model_base import AccessControlledModel, ValidationException
+from .model_base import AccessControlledModel
 from girder import events
 from girder.constants import AccessType, CoreEventHandler
+from girder.exceptions import ValidationException
 
 
 class Group(AccessControlledModel):
@@ -94,7 +95,8 @@ class Group(AccessControlledModel):
         """
         List members of the group.
         """
-        return self.model('user').find({
+        from .user import User
+        return User().find({
             'groups': group['_id']
         }, limit=limit, offset=offset, sort=sort)
 
@@ -106,7 +108,8 @@ class Group(AccessControlledModel):
         :type group: dict
         """
         # Remove references to this group from user group membership lists
-        self.model('user').update({
+        from .user import User
+        User().update({
             'groups': group['_id']
         }, {
             '$pull': {'groups': group['_id']}
@@ -125,7 +128,8 @@ class Group(AccessControlledModel):
         :param sort: Sort parameter for the find query.
         :returns: List of user documents.
         """
-        return self.model('user').find(
+        from .user import User
+        return User().find(
             {'groups': group['_id']},
             offset=offset, limit=limit, sort=sort)
 
@@ -137,13 +141,15 @@ class Group(AccessControlledModel):
         the group. If the user already belongs to the group, this method can
         be used to change their access level within it.
         """
+        from .user import User
+
         if 'groups' not in user:
             user['groups'] = []
 
         if not group['_id'] in user['groups']:
             user['groups'].append(group['_id'])
             # saved again in setUserAccess...
-            user = self.model('user').save(user, validate=False)
+            user = User().save(user, validate=False)
 
         # Delete outstanding request if one exists
         self._deleteRequest(group, user)
@@ -166,6 +172,7 @@ class Group(AccessControlledModel):
         given user has not been invited to the group, this will create an
         invitation request that moderators and admins may grant or deny later.
         """
+        from .user import User
         if 'groupInvites' not in user:
             user['groupInvites'] = []
 
@@ -173,7 +180,7 @@ class Group(AccessControlledModel):
             if invite['groupId'] == group['_id']:
                 self.addUser(group, user, level=invite['level'])
                 user['groupInvites'].remove(invite)
-                self.model('user').save(user, validate=False)
+                User().save(user, validate=False)
                 break
         else:
             if 'requests' not in group:
@@ -196,6 +203,8 @@ class Group(AccessControlledModel):
         will accept their request and add them to the group at the access
         level specified.
         """
+        from .user import User
+
         if group['_id'] in user.get('groups', []):
             raise ValidationException('User is already in this group.')
 
@@ -217,7 +226,7 @@ class Group(AccessControlledModel):
                 'level': level
             })
 
-        return self.model('user').save(user, validate=False)
+        return User().save(user, validate=False)
 
     def getInvites(self, group, limit=0, offset=0, sort=None):
         """
@@ -229,7 +238,8 @@ class Group(AccessControlledModel):
         :param offset: Offset into the results.
         :param sort: The sort field.
         """
-        return self.model('user').find(
+        from .user import User
+        return User().find(
             {'groupInvites.groupId': group['_id']},
             limit=limit, offset=offset, sort=sort)
 
@@ -240,6 +250,7 @@ class Group(AccessControlledModel):
         revoked. If the user has requested an invitation, calling this will
         deny that request, thereby deleting it.
         """
+        from .user import User
         # Remove group membership for this user.
         if 'groups' in user and group['_id'] in user['groups']:
             user['groups'].remove(group['_id'])
@@ -251,7 +262,7 @@ class Group(AccessControlledModel):
         user['groupInvites'] = list(filter(
             lambda inv: not inv['groupId'] == group['_id'],
             user.get('groupInvites', [])))
-        user = self.model('user').save(user, validate=False)
+        user = User().save(user, validate=False)
 
         # Remove all group access for this user on this group.
         self.setUserAccess(group, user, level=None, save=True)
@@ -297,9 +308,9 @@ class Group(AccessControlledModel):
         This generally should not be called or overridden directly, but it may
         be unregistered from the `model.group.save.created` event.
         """
+        from .user import User
         group = event.info
-        creator = self.model('user').load(group['creatorId'], force=True,
-                                          exc=True)
+        creator = User().load(group['creatorId'], force=True,  exc=True)
 
         self.addUser(group, creator, level=AccessType.ADMIN)
 
@@ -324,9 +335,10 @@ class Group(AccessControlledModel):
         :param group: The group to get requests for.
         :type group: dict
         """
+        from .user import User
+        userModel = User()
         for userId in group.get('requests', []):
-            user = self.model('user').load(
-                userId, force=True, fields=['firstName', 'lastName', 'login'])
+            user = userModel.load(userId, force=True, fields=['firstName', 'lastName', 'login'])
             yield {
                 'id': userId,
                 'login': user['login'],

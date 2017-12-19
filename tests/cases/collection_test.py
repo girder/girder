@@ -22,6 +22,11 @@ import json
 from .. import base
 from bson.objectid import ObjectId
 from girder.constants import AccessType, SettingKey
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.group import Group
+from girder.models.setting import Setting
+from girder.models.user import User
 
 
 def setUpModule():
@@ -44,7 +49,7 @@ class CollectionTestCase(base.TestCase):
             'password': 'adminpassword',
             'admin': True
         }
-        self.admin = self.model('user').createUser(**admin)
+        self.admin = User().createUser(**admin)
 
         user = {
             'email': 'good@email.com',
@@ -54,7 +59,7 @@ class CollectionTestCase(base.TestCase):
             'password': 'goodpassword',
             'admin': False
         }
-        self.user = self.model('user').createUser(**user)
+        self.user = User().createUser(**user)
 
         coll = {
             'name': 'Test Collection',
@@ -62,10 +67,10 @@ class CollectionTestCase(base.TestCase):
             'public': True,
             'creator': self.admin
         }
-        self.collection = self.model('collection').createCollection(**coll)
+        self.collection = Collection().createCollection(**coll)
 
     def testEmptyCreator(self):
-        c = self.model('collection').createCollection('No Creator')
+        c = Collection().createCollection('No Creator')
         self.assertEqual(c['creatorId'], None)
 
     def testCreateAndListCollections(self):
@@ -118,8 +123,7 @@ class CollectionTestCase(base.TestCase):
         self.assertEqual(resp.json[0]['name'], 'New collection')
 
         # Test collection get
-        resp = self.request(path='/collection/%s' % newCollId,
-                            user=self.admin)
+        resp = self.request(path='/collection/%s' % newCollId, user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_accessLevel'], AccessType.ADMIN)
 
@@ -133,8 +137,7 @@ class CollectionTestCase(base.TestCase):
 
     def testDeleteCollection(self):
         # Requesting with no path should fail
-        resp = self.request(path='/collection', method='DELETE',
-                            user=self.admin)
+        resp = self.request(path='/collection', method='DELETE', user=self.admin)
         self.assertStatus(resp, 400)
 
         # User without permission should not be able to delete collection
@@ -147,7 +150,7 @@ class CollectionTestCase(base.TestCase):
                             method='DELETE', user=self.admin)
         self.assertStatusOk(resp)
 
-        coll = self.model('collection').load(self.collection['_id'], force=True)
+        coll = Collection().load(self.collection['_id'], force=True)
         self.assertEqual(coll, None)
 
     def testCollectionAccess(self):
@@ -160,36 +163,32 @@ class CollectionTestCase(base.TestCase):
         self.assertStatus(resp, 400)
 
         # Create some folders underneath the collection
-        folder1 = self.model('folder').createFolder(
+        folder1 = Folder().createFolder(
             parentType='collection', parent=self.collection, creator=self.admin,
             public=False, name='top level')
-        folder2 = self.model('folder').createFolder(
+        folder2 = Folder().createFolder(
             parentType='folder', parent=folder1, creator=self.admin,
             public=False, name='subfolder')
-        self.model('folder').createFolder(
+        Folder().createFolder(
             parentType='collection', parent=self.collection, creator=self.admin,
             public=False, name='another top level folder')
 
         # Admin should see two top level folders
-        resp = self.request(path='/collection/%s/details' %
-                            self.collection['_id'], user=self.admin)
+        resp = self.request(path='/collection/%s/details' % self.collection['_id'], user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nFolders'], 2)
         self.assertNotIn('nItems', resp.json)
 
         # Normal user should see 0 folders
-        resp = self.request(path='/collection/%s/details' %
-                            self.collection['_id'], user=self.user)
+        resp = self.request(path='/collection/%s/details' % self.collection['_id'], user=self.user)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nFolders'], 0)
 
         # Add read access on one of the folders
-        self.model('folder').setUserAccess(
-            folder1, self.user, AccessType.READ, save=True)
+        Folder().setUserAccess(folder1, self.user, AccessType.READ, save=True)
 
         # Normal user should see one folder now
-        resp = self.request(path='/collection/%s/details' %
-                            self.collection['_id'], user=self.user)
+        resp = self.request(path='/collection/%s/details' % self.collection['_id'], user=self.user)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nFolders'], 1)
 
@@ -204,15 +203,14 @@ class CollectionTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         # Request the collection access
-        resp = self.request(path='/collection/%s/access' %
-                            self.collection['_id'], user=self.admin)
+        resp = self.request(path='/collection/%s/access' % self.collection['_id'], user=self.admin)
         self.assertStatusOk(resp)
         access = resp.json
         self.assertEqual(access['users'][0]['id'], str(self.user['_id']))
         self.assertEqual(access['users'][0]['level'], AccessType.WRITE)
-        coll = self.model('collection').load(self.collection['_id'], force=True)
-        folder1 = self.model('folder').load(folder1['_id'], force=True)
-        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        coll = Collection().load(self.collection['_id'], force=True)
+        folder1 = Folder().load(folder1['_id'], force=True)
+        folder2 = Folder().load(folder2['_id'], force=True)
         self.assertEqual(coll['public'], True)
         self.assertEqual(folder1['public'], False)
 
@@ -225,9 +223,9 @@ class CollectionTestCase(base.TestCase):
                 'progress': True
             }, user=self.admin)
         self.assertStatusOk(resp)
-        coll = self.model('collection').load(coll['_id'], force=True)
-        folder1 = self.model('folder').load(folder1['_id'], force=True)
-        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        coll = Collection().load(coll['_id'], force=True)
+        folder1 = Folder().load(folder1['_id'], force=True)
+        folder2 = Folder().load(folder2['_id'], force=True)
         self.assertEqual(coll['public'], True)
         self.assertEqual(folder1['public'], True)
         self.assertEqual(folder2['public'], True)
@@ -252,9 +250,9 @@ class CollectionTestCase(base.TestCase):
                 'progress': True
             }, user=self.admin)
         self.assertStatusOk(resp)
-        coll = self.model('collection').load(coll['_id'], force=True)
-        folder1 = self.model('folder').load(folder1['_id'], force=True)
-        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        coll = Collection().load(coll['_id'], force=True)
+        folder1 = Folder().load(folder1['_id'], force=True)
+        folder2 = Folder().load(folder2['_id'], force=True)
         self.assertEqual(coll['public'], True)
         self.assertEqual(folder1['public'], True)
         self.assertEqual(folder2['public'], True)
@@ -278,9 +276,9 @@ class CollectionTestCase(base.TestCase):
                 'recurse': True
             }, user=self.admin)
         self.assertStatusOk(resp)
-        coll = self.model('collection').load(coll['_id'], force=True)
-        folder1 = self.model('folder').load(folder1['_id'], force=True)
-        folder2 = self.model('folder').load(folder2['_id'], force=True)
+        coll = Collection().load(coll['_id'], force=True)
+        folder1 = Folder().load(folder1['_id'], force=True)
+        folder2 = Folder().load(folder2['_id'], force=True)
         self.assertEqual(coll['public'], True)
         self.assertEqual(folder1['public'], True)
         self.assertEqual(folder2['public'], True)
@@ -292,7 +290,7 @@ class CollectionTestCase(base.TestCase):
         })
 
         # Add group access to the collection
-        group = self.model('group').createGroup('test', self.admin)
+        group = Group().createGroup('test', self.admin)
         obj = {
             'groups': [{
                 'id': str(group['_id']),
@@ -314,8 +312,8 @@ class CollectionTestCase(base.TestCase):
             'parentType': 'collection'
         }, user=self.admin)
         self.assertStatusOk(resp)
-        folder = self.model('folder').load(resp.json['_id'], force=True)
-        coll = self.model('collection').load(coll['_id'], force=True)
+        folder = Folder().load(resp.json['_id'], force=True)
+        coll = Collection().load(coll['_id'], force=True)
         self.assertEqual(coll['access']['users'], [])
         self.assertEqual(folder['access']['users'], [{
             'id': self.admin['_id'],
@@ -337,7 +335,7 @@ class CollectionTestCase(base.TestCase):
         self.assertStatus(resp, 403)
 
         # Allow any user to create collections
-        self.model('setting').set(SettingKey.COLLECTION_CREATE_POLICY, {
+        Setting().set(SettingKey.COLLECTION_CREATE_POLICY, {
             'open': True
         })
 
@@ -354,16 +352,15 @@ class CollectionTestCase(base.TestCase):
         self.assertStatus(resp, 401)
 
         # Add a group that has collection create permission
-        group = self.model('group').createGroup(
-            name='coll. creators', creator=self.admin)
+        group = Group().createGroup(name='coll. creators', creator=self.admin)
 
-        self.model('setting').set(SettingKey.COLLECTION_CREATE_POLICY, {
+        Setting().set(SettingKey.COLLECTION_CREATE_POLICY, {
             'open': False,
             'groups': [str(group['_id'])]
         })
 
         # Group membership should allow creation now
-        self.model('group').addUser(group=group, user=self.user)
+        Group().addUser(group=group, user=self.user)
         resp = self.request(path='/collection', method='POST', params={
             'name': 'group collection'
         }, user=self.user)
@@ -371,13 +368,13 @@ class CollectionTestCase(base.TestCase):
         self.assertTrue('_id' in resp.json)
 
         # Test individual user access
-        self.model('group').removeUser(group=group, user=self.user)
+        Group().removeUser(group=group, user=self.user)
         resp = self.request(path='/collection', method='POST', params={
             'name': 'group collection'
         }, user=self.user)
         self.assertStatus(resp, 403)
 
-        self.model('setting').set(SettingKey.COLLECTION_CREATE_POLICY, {
+        Setting().set(SettingKey.COLLECTION_CREATE_POLICY, {
             'open': False,
             'users': [str(self.user['_id'])]
         })
@@ -391,7 +388,7 @@ class CollectionTestCase(base.TestCase):
     def testMissingAclRefs(self):
         # Make fake user and group documents and put them into the
         # collection ACL.
-        collModel = self.model('collection')
+        collModel = Collection()
 
         coll = collModel.setAccessList(
             self.collection, {

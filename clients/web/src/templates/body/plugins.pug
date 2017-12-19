@@ -32,6 +32,7 @@
                   "to breaking changes; use at your own risk.") Experimental
         if failed
           span.g-plugin-list-item-notice.g-plugin-list-item-failed-notice(
+              title='Click to see traceback',
               data-title='Failed to load plugin "' + plugin.value.name + '"',
               data-content=failed.traceback) Error
         if plugin.value.configRoute

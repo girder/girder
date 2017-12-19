@@ -1,6 +1,9 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import moment from 'moment';
+// Bootstrap tooltip is required by popover
+import 'bootstrap/js/tooltip';
+import 'bootstrap/js/popover';
 
 import ApiKeyCollection from 'girder/collections/ApiKeyCollection';
 import EditApiKeyWidget from 'girder/views/widgets/EditApiKeyWidget';
@@ -103,7 +106,6 @@ var ApiKeyListWidget = View.extend({
             moment: moment
         }));
 
-        this.$('button').tooltip();
         this.$('.g-show-api-key').popover({
             container: this.$('.g-api-key-table'),
             placement: 'top'

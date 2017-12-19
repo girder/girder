@@ -40,22 +40,6 @@ function fileLoader() {
     };
 }
 
-function _coverageConfig() {
-    try {
-        var istanbulPlugin = require.resolve('babel-plugin-istanbul');
-        return {
-            plugins: [[
-                istanbulPlugin, {
-                    exclude: ['**/*.pug', '**/*.jade', 'node_modules/**/*']
-                }
-            ]]
-        };
-    } catch (e) {
-        // We won't have the istanbul plugin installed in a prod env.
-        return {};
-    }
-}
-
 var loaderPaths = [path.resolve('clients', 'web', 'src')];
 var loaderPathsNodeModules = loaderPaths.concat([path.resolve('node_modules')]);
 
@@ -68,6 +52,10 @@ module.exports = {
         // '__webpack_public_path__', since it's not always known at build-time.
     },
     plugins: [
+        // Exclude all of Moment.js's extra locale files except English
+        // to reduce build size.  See https://webpack.js.org/plugins/context-replacement-plugin/
+        new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
+
         // Automatically detect jQuery and $ as free var in modules
         // and inject the jquery library. This is required by many jquery plugins
         new webpack.ProvidePlugin({
@@ -75,6 +63,7 @@ module.exports = {
             $: 'jquery',
             'window.jQuery': 'jquery'
         }),
+
         // Disable writing the output file if a build error occurs
         new webpack.NoEmitOnErrorsPlugin()
     ],
@@ -92,9 +81,6 @@ module.exports = {
                         loader: 'babel-loader',
                         options: {
                             presets: [es2015BabelPreset, es2016BabelPreset],
-                            env: {
-                                cover: _coverageConfig()
-                            },
                             cacheDirectory: true
                         }
                     }
@@ -155,7 +141,7 @@ module.exports = {
             // PNG, JPEG
             {
                 resource: {
-                    test: /\.(png|jpg)$/,
+                    test: /\.(png|jpg|gif)$/,
                     include: loaderPathsNodeModules
                 },
                 use: [

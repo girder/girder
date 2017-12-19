@@ -20,7 +20,6 @@ import ItemPageTemplate from 'girder/templates/body/itemPage.pug';
 import 'girder/stylesheets/body/itemPage.styl';
 
 import 'bootstrap/js/dropdown';
-import 'bootstrap/js/tooltip';
 
 /**
  * This view shows a single item's page.
@@ -122,13 +121,6 @@ var ItemView = View.extend({
                 renderMarkdown: renderMarkdown,
                 DATE_SECOND: DATE_SECOND
             }));
-
-            this.$('.g-item-actions-button,.g-upload-into-item').tooltip({
-                container: 'body',
-                placement: 'left',
-                animation: false,
-                delay: {show: 100}
-            });
 
             this.fileListWidget = new FileListWidget({
                 el: this.$('.g-item-files-container'),

@@ -1,4 +1,3 @@
-
 .. _python-client:
 
 Python Client and Girder CLI
@@ -96,6 +95,23 @@ The client also supports ``username`` and ``password`` args. If only the
 ``username`` is specified, the client will prompt the user to interactively
 input their password.
 
+Disabling SSL verification
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specifying ``--no-ssl-verify`` allows to ignore SSL verification. This is
+usually required when using the client behind a proxy that is not configured to
+accept the certificate of the given host.
+
+Specifying a custom SSL certificate
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Specifying ``--certificate /path/to/custom_bundle.pem`` allows to use a custom "bundle" of
+Certificate Authority (CA) public keys (CA certs) for performing the SSL verification
+applied when the ``https`` scheme is associated with the API url.
+
+By default, the carefully curated collection of Root Certificates from Mozilla is used. 
+See https://pypi.python.org/pypi/certifi
+
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -182,6 +198,15 @@ To download the file(s) associated with a Girder Item with if `58b8eb798d777f0ae
 the local folder `download_folder`::
 
     girder-cli download --parent-type item 8b8eb798d777f0aef5d0f78 download_folder
+
+File
+""""
+
+To download a specific file from girder with id `58b8eb798d777f0aef5d0f78` to
+the local file `local_file` ::
+
+    girder-cli download --parent-type file 8b8eb798d777f0aef5d0f78  local_file
+
 
 Auto-detecting parent-type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

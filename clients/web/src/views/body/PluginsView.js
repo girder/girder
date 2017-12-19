@@ -1,5 +1,8 @@
 import $ from 'jquery';
 import _ from 'underscore';
+// Bootstrap tooltip is required by popover
+import 'bootstrap/js/tooltip';
+import 'bootstrap/js/popover';
 
 import events from 'girder/events';
 import router from 'girder/router';
@@ -15,7 +18,6 @@ import PluginsTemplate from 'girder/templates/body/plugins.pug';
 import 'girder/utilities/jquery/girderEnable';
 import 'girder/stylesheets/body/plugins.styl';
 
-import 'bootstrap/js/tooltip';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
 import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
 
@@ -146,23 +148,6 @@ var PluginsView = View.extend({
 
                 this._updatePlugins();
             });
-        this.$('.g-plugin-config-link').tooltip({
-            container: this.$el,
-            animation: false,
-            placement: 'bottom',
-            delay: { show: 100 }
-        });
-        this.$('.g-plugin-list-item-experimental-notice').tooltip({
-            container: this.$el,
-            animation: false,
-            delay: { show: 100 }
-        });
-        this.$('.g-plugin-list-item-failed-notice').tooltip({
-            title: 'Click to see traceback',
-            container: this.$el,
-            animation: false,
-            delay: { show: 100 }
-        });
         this.$('.g-plugin-list-item-failed-notice').popover({
             container: this.$el,
             template: PluginFailedNoticeTemplate()

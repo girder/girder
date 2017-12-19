@@ -35,7 +35,7 @@ var ItemPreviewWidget = View.extend({
     setCollection: function (collection) {
         this.collection = collection;
         this.listenTo(this.collection, 'g:changed', () => {
-            this.supportedItems = this.collection.toJSON().filter(this._isSupportedItem.bind(this));
+            this.supportedItems = this.collection.filter(this._isSupportedItem.bind(this));
             if (this.supportedItems.length !== 0 &&
                 (this.isNotFull() || this.isNearBottom())) {
                 this.debouncedaddMoreItems();
@@ -48,7 +48,7 @@ var ItemPreviewWidget = View.extend({
     _LOAD_BATCH_SIZE: 2,
 
     _isSupportedItem: function (item) {
-        return this._isImageItem(item.name) || this._isJSONItem(item.name);
+        return this._isImageItem(item.name()) || this._isJSONItem(item.name());
     },
 
     _isJSONItem: function (str) {
@@ -95,7 +95,7 @@ var ItemPreviewWidget = View.extend({
         var $container = this.$('.g-widget-item-previews-wrapper');
         _whenAll(items.map((item) => {
             return restRequest({
-                url: `item/${item._id}/files`,
+                url: `item/${item.id}/files`,
                 data: { limit: 5 }
             }).then((files) => {
                 return _whenAll(files.map((file) => {

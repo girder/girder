@@ -21,6 +21,10 @@ import bson.json_util
 
 from tests import base
 from girder.constants import AccessType
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.user import User
 
 
 def setUpModule():
@@ -47,7 +51,7 @@ class MongoSearchTestCase(base.TestCase):
             'password': 'adminpassword',
             'admin': True
         }
-        admin = self.model('user').createUser(**admin)
+        admin = User().createUser(**admin)
 
         user = {
             'email': 'good@email.com',
@@ -57,7 +61,7 @@ class MongoSearchTestCase(base.TestCase):
             'password': 'goodpassword',
             'admin': False
         }
-        user = self.model('user').createUser(**user)
+        user = User().createUser(**user)
 
         coll1 = {
             'name': 'Test Collection',
@@ -65,7 +69,7 @@ class MongoSearchTestCase(base.TestCase):
             'public': True,
             'creator': admin
         }
-        coll1 = self.model('collection').createCollection(**coll1)
+        coll1 = Collection().createCollection(**coll1)
 
         coll2 = {
             'name': 'Magic collection',
@@ -73,42 +77,39 @@ class MongoSearchTestCase(base.TestCase):
             'public': False,
             'creator': admin
         }
-        coll2 = self.model('collection').createCollection(**coll2)
-        self.model('collection').setUserAccess(
-            coll2, user, level=AccessType.READ, save=True)
+        coll2 = Collection().createCollection(**coll2)
+        Collection().setUserAccess(coll2, user, level=AccessType.READ, save=True)
 
         folder1 = {
             'parent': coll1,
             'parentType': 'collection',
             'name': 'Public test folder'
         }
-        folder1 = self.model('folder').createFolder(**folder1)
-        self.model('folder').setUserAccess(
-            folder1, user, level=AccessType.READ, save=False)
-        self.model('folder').setPublic(folder1, True, save=True)
+        folder1 = Folder().createFolder(**folder1)
+        Folder().setUserAccess(folder1, user, level=AccessType.READ, save=False)
+        Folder().setPublic(folder1, True, save=True)
 
         folder2 = {
             'parent': coll2,
             'parentType': 'collection',
             'name': 'Private test folder'
         }
-        folder2 = self.model('folder').createFolder(**folder2)
-        self.model('folder').setUserAccess(
-            folder2, user, level=AccessType.NONE, save=True)
+        folder2 = Folder().createFolder(**folder2)
+        Folder().setUserAccess(folder2, user, level=AccessType.NONE, save=True)
 
         item1 = {
             'name': 'Public object',
             'creator': admin,
             'folder': folder1
         }
-        item1 = self.model('item').createItem(**item1)
+        item1 = Item().createItem(**item1)
 
         item2 = {
             'name': 'Secret object',
             'creator': admin,
             'folder': folder2
         }
-        item2 = self.model('item').createItem(**item2)
+        item2 = Item().createItem(**item2)
 
         # Grab the default user folders
         resp = self.request(
@@ -129,8 +130,7 @@ class MongoSearchTestCase(base.TestCase):
             'type': 'wrong type'
         })
         self.assertStatus(resp, 400)
-        self.assertEqual('Invalid resource type: wrong type',
-                         resp.json['message'])
+        self.assertEqual('Invalid resource type: wrong type', resp.json['message'])
 
         # Test validation of JSON input
         resp = self.request(path='/resource/mongo_search', params={
@@ -138,8 +138,7 @@ class MongoSearchTestCase(base.TestCase):
             'type': 'folder'
         })
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'],
-                         'The query parameter must be a JSON object.')
+        self.assertEqual(resp.json['message'], 'The query parameter must be a JSON object.')
 
         # Ensure searching respects permissions
         resp = self.request(path='/resource/mongo_search', params={

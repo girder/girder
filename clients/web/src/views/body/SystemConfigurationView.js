@@ -13,7 +13,6 @@ import SystemConfigurationTemplate from 'girder/templates/body/systemConfigurati
 import 'girder/stylesheets/body/systemConfig.styl';
 
 import 'bootstrap/js/collapse';
-import 'bootstrap/js/tooltip';
 import 'bootstrap/js/transition';
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
 import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
@@ -29,21 +28,28 @@ var SystemConfigurationView = View.extend({
             this.$('#g-settings-error-message').empty();
 
             this.$('#g-core-collection-create-policy').val(JSON.stringify(this._covertCollectionCreationPolicy()));
-            var settings = _.map(this.settingsKeys, function (key) {
+            var settings = _.map(this.settingsKeys, (key) => {
+                const element = this.$('#g-' + key.replace(/[_.]/g, '-'));
+
                 if (key === 'core.route_table') {
                     return {
-                        key: key,
+                        key,
                         value: _.object(_.map($('.g-core-route-table'), function (el) {
                             return [$(el).data('webrootName'), $(el).val()];
                         }))
                     };
+                } else if (_.contains(['core.api_keys', 'core.enable_password_login'], key)) {  // booleans via checkboxes
+                    return {
+                        key,
+                        value: element.is(':checked')
+                    };
+                } else {  // all other settings use $.fn.val()
+                    return {
+                        key,
+                        value: element.val() || null
+                    };
                 }
-
-                return {
-                    key: key,
-                    value: this.$('#g-' + key.replace(/[_.]/g, '-')).val() || null
-                };
-            }, this);
+            });
 
             restRequest({
                 method: 'PUT',
@@ -65,16 +71,22 @@ var SystemConfigurationView = View.extend({
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             }, this));
         },
-        'click #g-restart-server': restartServerPrompt
+        'click #g-restart-server': restartServerPrompt,
+        'click #g-core-banner-default-color': function () {
+            this.$('#g-core-banner-color').val(this.defaults['core.banner_color']);
+        }
     },
 
     initialize: function () {
         cancelRestRequests('fetch');
 
         var keys = [
+            'core.api_keys',
             'core.contact_email_address',
             'core.brand_name',
+            'core.banner_color',
             'core.cookie_lifetime',
+            'core.enable_password_login',
             'core.email_from_address',
             'core.email_host',
             'core.registration_policy',
@@ -131,17 +143,11 @@ var SystemConfigurationView = View.extend({
             JSON: window.JSON
         }));
 
-        this.$('input[title]').tooltip({
-            container: this.$el,
-            animation: false,
-            delay: { show: 200 }
-        });
-
-        var enableCollectionCrreationPolicy = this.settings['core.collection_create_policy'] ? this.settings['core.collection_create_policy'].open : false;
+        var enableCollectionCreationPolicy = this.settings['core.collection_create_policy'] ? this.settings['core.collection_create_policy'].open : false;
 
         this.$('.g-plugin-switch')
             .bootstrapSwitch()
-            .bootstrapSwitch('state', enableCollectionCrreationPolicy)
+            .bootstrapSwitch('state', enableCollectionCreationPolicy)
             .off('switchChange.bootstrapSwitch')
             .on('switchChange.bootstrapSwitch', (event, state) => {
                 if (state) {
@@ -152,7 +158,7 @@ var SystemConfigurationView = View.extend({
                 }
             });
 
-        if (enableCollectionCrreationPolicy) {
+        if (enableCollectionCreationPolicy) {
             this._renderCollectionCreationPolicyAccessWidget();
         }
 
