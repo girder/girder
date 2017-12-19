@@ -40,7 +40,7 @@ if(JAVASCRIPT_STYLE_TESTS)
 endif()
 
 if(BUILD_JAVASCRIPT_TESTS)
-  find_program(ISTANBUL_EXECUTABLE istanbul
+  find_program(NYC_EXECUTABLE nyc
     PATHS "${PROJECT_SOURCE_DIR}/node_modules/.bin"
     NO_DEFAULT_PATH)
 endif()
