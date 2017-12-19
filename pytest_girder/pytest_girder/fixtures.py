@@ -26,7 +26,7 @@ def db(request):
 
     Provides a Mongo test database named after the requesting test function. Mongo databases are
     created/destroyed based on the URI provided with the --mongo-uri option and tear-down
-    semantics are handled by the --drop-db option.
+    behavior is modified by the --keep-db option.
     """
     from girder.models import _dbClients, getDbConnection, pymongo
     from girder.models.model_base import _modelSingletons
@@ -35,7 +35,7 @@ def db(request):
     mockDb = request.config.getoption('--mock-db')
     dbUri = request.config.getoption('--mongo-uri')
     dbName = 'girder_test_%s' % hashlib.md5(request.node.name.encode('utf8')).hexdigest()
-    dropDb = request.config.getoption('--drop-db')
+    keepDb = request.config.getoption('--keep-db')
     executable_methods = mongodb_proxy.EXECUTABLE_MONGO_METHODS
     realMongoClient = pymongo.MongoClient
 
@@ -48,15 +48,14 @@ def db(request):
     # Force getDbConnection from models to return our connection
     _dbClients[(None, None)] = connection
 
-    if dropDb in ('pre', 'both'):
-        connection.drop_database(dbName)
+    connection.drop_database(dbName)
 
     for model in _modelSingletons:
         model.reconnect()
 
     yield connection
 
-    if dropDb in ('post', 'both'):
+    if not keepDb:
         connection.drop_database(dbName)
 
     connection.close()
