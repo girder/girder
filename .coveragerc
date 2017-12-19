@@ -9,4 +9,4 @@ parallel = True
 directory = build/test/artifacts/python_coverage
 
 [xml]
-output = build/test/coverage/python.xml
+output = build/test/coverage/py_coverage.xml
