@@ -49,6 +49,7 @@ Removals
 * The CMake options ``PYTHON_COVERAGE``, ``PYTHON_BRANCH_COVERAGE``, and ``PYTHON_COVERAGE_CONFIG`` are removed, and will have no effect if set.
   Python tests will always output coverage information, using a standardized configuration. If external test infrastructure needs to be run with
   different options, it should invoke ``pytest -cov-config ...` or `coverage run --rcfile=...` directly.
+  (`#2517 <https://github.com/girder/girder/pull/2517>`_)
 
 Girder 2.4.0
 ============
