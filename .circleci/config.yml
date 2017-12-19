@@ -49,8 +49,8 @@ jobs:
           name: Run tox
           command: tox -e circleci-py27
           working_directory: girder
-      - store_artifacts:
-          path: girder/build/test/artifacts
+      - store_test_results:
+          path: girder/build/test/results
       - run:
           name: Reduce workspace size
           command: |
@@ -133,8 +133,8 @@ jobs:
           name: Run tox
           command: tox -e circleci-py35
           working_directory: girder
-      - store_artifacts:
-          path: girder/build/test/artifacts
+      - store_test_results:
+          path: girder/build/test/results
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -190,16 +190,12 @@ jobs:
             # Aggresively remove recursed node modules; we only need enough of
             # the node_modules to perform javascript coverage aggregation
             find girder/node_modules/ -mindepth 1 -name node_modules -exec rm --recursive --force {} \+
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
             - girder/node_modules
-            # The "girder.coveragerc" and ".gitignore" files inside
-            # "girder/build/test/coverage/web_temp/" will conflict, so specify files more exactly
-            - girder/build/test/coverage/web_temp/coverage_*.json
+            - girder/build/test/artifacts
+            - girder/build/test/coverage
             - girder_build
             - girder_env
 
@@ -263,13 +259,11 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
-            - girder/build/test/coverage/web_temp/coverage_*.json
+            - girder/build/test/artifacts
+            - girder/build/test/coverage
 
   py2_coverage:
     docker:
@@ -292,12 +286,14 @@ jobs:
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: OFF
           working_directory: girder_build
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
           command: pip install codecov
       - run:
           name: Upload coverage
-          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml
+          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/py_coverage.xml
           working_directory: girder
 
   py3_integrationTests:
@@ -372,13 +368,11 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
-            - girder/build/test/coverage/web_temp/coverage_*.json
+            - girder/build/test/artifacts
+            - girder/build/test/coverage
 
   py3_coverage:
     docker:
@@ -401,6 +395,8 @@ jobs:
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: ON
           working_directory: girder_build
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
           command: pip install codecov
@@ -412,7 +408,7 @@ jobs:
           # increases the reported coverage), and it functionally disables
           # branch coverage reporting (thus considering all partially coveraged
           # statements as completely covered).
-          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/lcov.info
+          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/py_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/lcov.info
           working_directory: girder
   deploy:
     docker:
