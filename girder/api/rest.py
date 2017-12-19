@@ -1074,9 +1074,14 @@ class Resource(ModelImporter):
         :param defaultSortDir: Sort direction.
         :type defaultSortDir: girder.constants.SortDir
         """
-        offset = int(params.get('offset', 0))
-        limit = int(params.get('limit', 50))
-        sortdir = int(params.get('sortdir', defaultSortDir))
+        try:
+            offset = int(params.get('offset', 0))
+            limit = int(params.get('limit', 50))
+            sortdir = int(params.get('sortdir', defaultSortDir))
+        except ValueError:
+            raise RestException('Invalid value for offset, limit, or sortdir parameter.')
+        if sortdir not in [SortDir.ASCENDING, SortDir.DESCENDING]:
+            raise RestException('Invalid value for sortdir parameter.')
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]
