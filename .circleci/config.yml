@@ -6,7 +6,7 @@ jobs:
       # This image uses the oldest version of many dependencies
       - image: girder/girder_test:latest-py2
       # Use the oldest supported MongoDB
-      - image: mongo:2.6
+      - image: circleci/mongo:3.2-ram
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -226,7 +226,7 @@ jobs:
             ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
           name: Install Girder via ansible
-          command: pyenv exec ansible-playbook --inventory-file="localhost," --connection=local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'2.6.12'}"
+          command: pyenv exec ansible-playbook --inventory-file="localhost," --connection=local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.17'}"
           environment:
             ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
@@ -268,7 +268,7 @@ jobs:
   py2_coverage:
     docker:
       - image: girder/girder_test:latest-py2
-      - image: mongo:2.6
+      - image: circleci/mongo:3.2-ram
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
       - attach_workspace:
