@@ -14,6 +14,12 @@ import 'bootstrap/js/dropdown';
  */
 var LayoutHeaderUserView = View.extend({
     events: {
+        'click a.g-login': function () {
+            events.trigger('g:loginUi');
+        },
+        'click a.g-register': function () {
+            events.trigger('g:registerUi');
+        },
         'click a.g-logout': logout
     },
 

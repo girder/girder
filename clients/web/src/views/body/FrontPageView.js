@@ -14,9 +14,15 @@ import 'girder/stylesheets/body/frontPage.styl';
  */
 var FrontPageView = View.extend({
     events: {
-        'click .g-quicksearch-link': function () {
-            $('.g-quick-search-container .g-search-field').focus();
-        }
+      'click .g-register-link': function () {
+          events.trigger('g:registerUi');
+      },
+      'click .g-login-link': function () {
+          events.trigger('g:loginUi');
+       },
+       'click .g-quicksearch-link': function () {
+          $('.g-quick-search-container .g-search-field').focus();
+       }
     },
 
     initialize: function (settings) {

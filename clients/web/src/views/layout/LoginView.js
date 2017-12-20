@@ -55,7 +55,7 @@ var LoginView = View.extend({
         },
 
         'click a.g-register-link': function () {
-            events.trigger('g:registerUI');
+            events.trigger('g:registerUi');
         },
 
         'click a.g-forgot-password': function () {
