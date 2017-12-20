@@ -11,6 +11,18 @@ window.alert = function (msg) {
     expect('Alert was used').toBe('Alerts should not be present');
 };
 
+// Augment jQuery's click() function to follow href properties in links if they
+// exist.
+var origClick = $.fn.click;
+$.fn.click = function (data, fn) {
+  var href = this.attr('href');
+  if (href) {
+    window.location.assign(href);
+  } else {
+    origClick.apply(this, arguments);
+  }
+};
+
 // Timeout to wait for asynchronous actions
 girderTest.TIMEOUT = 5000;
 
