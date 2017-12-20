@@ -2,7 +2,7 @@ import os
 from .fixtures import *  # noqa
 
 
-def pytest_configure(config):
+def _makeCoverageDirs(config):
     """
     Create the necessary directories for coverage. This is necessary because neither coverage nor
     pytest-cov have support for making the data_file directory before running.
@@ -17,6 +17,10 @@ def pytest_configure(config):
             os.makedirs(covDataFileDir)
         except OSError:
             pass
+
+
+def pytest_configure(config):
+    _makeCoverageDirs(config)
 
 
 def pytest_addoption(parser):
