@@ -188,7 +188,7 @@ describe('test the user quota plugin', function () {
             return $('.g-plugins-config').length > 0;
         }, 'the admin console to load');
         runs(function () {
-            $('.g-plugins-config').click();
+            $('.g-plugins-config a').click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -354,7 +354,7 @@ describe('test the user quota plugin', function () {
             return $('.g-plugins-config').length > 0;
         }, 'the admin console to load');
         runs(function () {
-            $('.g-plugins-config').click();
+            $('.g-plugins-config a').click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {

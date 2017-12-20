@@ -45,7 +45,7 @@ describe('Setup', function () {
         }, 'navigate to admin page');
 
         runs(function () {
-            $('.g-plugins-config').click();
+            $('.g-plugins-config a').click();
         });
 
         waitsFor(function () {

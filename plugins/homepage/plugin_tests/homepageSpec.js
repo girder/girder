@@ -15,7 +15,7 @@ function _goToHomepagePluginSettings() {
     }, 'admin console to display');
 
     runs(function () {
-        $('.g-plugins-config:visible').click();
+        $('.g-plugins-config a').click();
     });
 
     waitsFor(function () {
