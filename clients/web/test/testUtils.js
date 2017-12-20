@@ -11,17 +11,16 @@ window.alert = function (msg) {
     expect('Alert was used').toBe('Alerts should not be present');
 };
 
-// Augment jQuery's click() function to follow href properties in links if they
-// exist.
-var origClick = $.fn.click;
-$.fn.click = function (data, fn) {
-  var href = this.attr('href');
-  if (href) {
-    window.location.assign(href);
-  } else {
-    origClick.apply(this, arguments);
-  }
-};
+// Augment jQuery's click() function to follow href properties in links if they exist.
+$.fn.click = _.wrap($.fn.click, function (old) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    var href = $(this).attr('href');
+    if (args.length === 0 && href) {
+        window.location = href;
+    } else {
+        old.apply(this, args);
+    }
+});
 
 // Timeout to wait for asynchronous actions
 girderTest.TIMEOUT = 5000;
