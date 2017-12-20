@@ -1,7 +1,7 @@
 import View from 'girder/views/View';
 
 import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.pug';
-
+import 'girder/stylesheets/widgets/paginateWidget.styl';
 /**
  * This widget is used to provide a consistent widget for iterating amongst
  * pages of a Collection.
