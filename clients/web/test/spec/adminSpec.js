@@ -62,7 +62,7 @@ describe('Test the settings page', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-server-config').click();
+            $('.g-server-config a').click();
         });
 
         waitsFor(function () {
@@ -310,7 +310,7 @@ describe('Test the assetstore page', function () {
                 return $('.g-assetstore-config').length > 0;
             }, 'admin page to load');
             runs(function () {
-                $('.g-assetstore-config').click();
+                $('.g-assetstore-config a').click();
             });
             waitsFor(function () {
                 return $('.g-assetstore-container').length > 0;
@@ -496,16 +496,12 @@ describe('Test the assetstore page', function () {
             $('a.g-nav-link[g-target="admin"]').click();
         });
 
-        runs(function () {
-            $('a.g-nav-link[g-target="admin"]').click();
-        });
-
         waitsFor(function () {
             return $('.g-assetstore-config').length > 0;
         }, 'admin page to load');
 
         runs(function () {
-            $('.g-assetstore-config').click();
+            $('.g-assetstore-config a').click();
         });
 
         waitsFor(function () {
@@ -594,7 +590,7 @@ describe('Test the plugins page', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-plugins-config').click();
+            $('.g-plugins-config a').click();
         });
 
         waitsFor(function () {
@@ -661,7 +657,7 @@ describe('Test the plugins page', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-plugins-config').click();
+            $('.g-plugins-config a').click();
         });
 
         waitsFor(function () {
