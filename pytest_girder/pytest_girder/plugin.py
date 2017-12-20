@@ -19,8 +19,17 @@ def _makeCoverageDirs(config):
             pass
 
 
+def _addCustomMarkers(config):
+    markerDocs = [
+        'testPlugins(pluginList): load a list of test plugins from the test path',
+    ]
+    for markerDoc in markerDocs:
+        config.addinivalue_line('markers', markerDoc)
+
+
 def pytest_configure(config):
     _makeCoverageDirs(config)
+    _addCustomMarkers(config)
 
 
 def pytest_addoption(parser):
