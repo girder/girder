@@ -7,6 +7,9 @@ httmock
 mock
 mongomock
 moto[server]
+# Restrict version to work around a bug in flake8-docstrings
+# https://gitlab.com/pycqa/flake8-docstrings/issues/23
+pydocstyle<2.1
 pytest
 pytest-cov
 pytest-xdist
