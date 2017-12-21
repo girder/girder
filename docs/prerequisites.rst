@@ -58,12 +58,12 @@ the APT key with the following: ::
 
     sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
 
-For Debian, create the following configuration file for the MongoDB APT repository: ::
+For Debian 8, create the following configuration file for the MongoDB APT repository: ::
 
     echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.2 main" \
         | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
 
-For Ubuntu, instead create the following configuration file: ::
+For Ubuntu 16.04, instead create the following configuration file: ::
 
     echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" \
         | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
