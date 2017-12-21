@@ -1,5 +1,4 @@
 set(server_port 20200)
-set(flake8_config "${PROJECT_SOURCE_DIR}/tests/flake8.cfg")
 
 if(RUN_CORE_TESTS)
   set(_python_coverage_omit_extra "")
@@ -59,7 +58,7 @@ function(add_python_style_test name input)
     add_test(
       NAME ${name}
       WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${FLAKE8_EXECUTABLE}" "--config=${flake8_config}" "${input}"
+      COMMAND "${FLAKE8_EXECUTABLE}" "${input}"
     )
     set_property(TEST "${name}" PROPERTY LABELS girder_python)
   endif()
