@@ -61,7 +61,10 @@ var GroupsView = View.extend({
             DATE_DAY: DATE_DAY
         }));
 
-        this.paginateWidget.setElement(this.$('.g-group-pagination')).render();
+        const groupList = this.paginateWidget.collection;
+        if (groupList.hasNextPage() || groupList.hasPreviousPage()) {
+            this.paginateWidget.setElement(this.$('.g-group-pagination')).render();
+        }
         this.searchWidget.setElement(this.$('.g-groups-search-container')).render();
 
         if (this.create) {

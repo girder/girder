@@ -1,37 +1,58 @@
 @import "../layout/layoutVars"
 
-.g-group-list-entry
-  .g-group-title
-    font-size $resourceTitleSize
+/* Header */
+.g-groups-list-header
+  display flex
+  justify-content flex-start
+  align-items center
+  flex-wrap wrap
+  padding-bottom 10px
 
-  .g-group-description
-    font-size $resourceSubtitleSize
+  .g-group-search-form
+    flex 1
+
+@media (max-width: $smallWidth)
+  .g-group-create-button >span
+    display none
+
+/* Body */
+.g-group-list-entry
+  display flex
+  justify-content flex-start
+
+  .g-top-level-list-title-container
+    flex 1
+    white-space nowrap
+    min-width 50%
+
+    .g-group-title
+      font-size $resourceTitleSize
+
+    .g-group-description
+      font-size $resourceSubtitleSize
 
   .g-group-right-column
+    overflow hidden
+    white-space nowrap
+    width $rightColumnWidth
     padding-left 8px
-    display inline
-    width 320px
     font-size 14px
-    float right
     color $lightColor
 
   .g-group-created-date
     color $normalColor
 
-
-.g-groups-list-header
-  padding-bottom 10px
+/* Footer */  // This code is the same for Collection list, User list and Group list
+.g-group-list-footer
+  margin 15px 0
 
   .g-group-pagination
-    display inline-block
-    >ul
-      margin 0 15px 0 0
 
-    .pagination>li>a
-      float none
-      line-height 1.5
-      padding 7px 12px
+      .pagination>li>a
+        line-height 1.5
+        padding 7px 12px
 
-  .g-group-search-form
-    display inline-block
-    margin-right 15px
+@media (max-width: $smallWidth)
+  /* Header */
+  .g-group-create-button >span
+      display none
