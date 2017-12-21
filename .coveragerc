@@ -1,5 +1,6 @@
 [run]
 data_file = build/test/coverage/python_temp/.coverage
+branch = True
 omit =
     girder/external/*
     girder/test/*
