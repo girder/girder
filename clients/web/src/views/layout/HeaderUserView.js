@@ -1,3 +1,4 @@
+import router from 'girder/router';
 import View from 'girder/views/View';
 import events from 'girder/events';
 import { logout, getCurrentUser } from 'girder/auth';
@@ -17,10 +18,21 @@ var LayoutHeaderUserView = View.extend({
         'click a.g-login': function () {
             events.trigger('g:loginUi');
         },
+
         'click a.g-register': function () {
             events.trigger('g:registerUi');
         },
-        'click a.g-logout': logout
+
+        'click a.g-logout': logout,
+
+        'click a.g-my-folders': function () {
+            router.navigate('user/' + getCurrentUser().get('_id'), {trigger: true});
+        },
+
+        'click a.g-my-settings': function () {
+            router.navigate('useraccount/' + getCurrentUser().get('_id') +
+                                   '/info', {trigger: true});
+        }
     },
 
     initialize: function (settings) {

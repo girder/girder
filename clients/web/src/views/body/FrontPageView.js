@@ -1,5 +1,6 @@
 import $ from 'jquery';
 
+import router from 'girder/router';
 import versionInfo from 'girder/version';
 import View from 'girder/views/View';
 import { cancelRestRequests, getApiRoot } from 'girder/rest';
@@ -21,8 +22,18 @@ var FrontPageView = View.extend({
         'click .g-login-link': function () {
             events.trigger('g:loginUi');
         },
+        'click .g-collections-link': function () {
+            router.navigate('collections', {trigger: true});
+        },
         'click .g-quicksearch-link': function () {
             $('.g-quick-search-container .g-search-field').focus();
+        },
+        'click .g-my-account-link': function () {
+            router.navigate('useraccount/' + getCurrentUser().get('_id') +
+                                   '/info', {trigger: true});
+        },
+        'click .g-my-folders-link': function () {
+            router.navigate('user/' + getCurrentUser().get('_id'), {trigger: true});
         }
     },
 
