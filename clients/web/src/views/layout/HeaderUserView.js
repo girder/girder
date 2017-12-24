@@ -26,12 +26,11 @@ var LayoutHeaderUserView = View.extend({
         'click a.g-logout': logout,
 
         'click a.g-my-folders': function () {
-            router.navigate('user/' + getCurrentUser().get('_id'), {trigger: true});
+            router.navigate(`user/${getCurrentUser().id}`, {trigger: true});
         },
 
         'click a.g-my-settings': function () {
-            router.navigate('useraccount/' + getCurrentUser().get('_id') +
-                                   '/info', {trigger: true});
+            router.navigate(`useraccount/${getCurrentUser().id}/info`, {trigger: true});
         }
     },
 
