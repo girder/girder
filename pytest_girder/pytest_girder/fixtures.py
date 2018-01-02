@@ -78,7 +78,8 @@ def server(db, request):
     # effect on import. We have to hack around this by creating a unique event daemon
     # each time we startup the server and assigning it to the global.
     import girder.events
-    from girder.constants import ROOT_DIR
+    from girder.constants import ROOT_DIR, SettingKey
+    from girder.models.setting import Setting
     from girder.utility import plugin_utilities
     from girder.utility.server import setup as setupServer
 
@@ -92,6 +93,7 @@ def server(db, request):
 
         plugin_utilities.getPluginDir = mock.Mock(return_value=path)
         plugins = request.node.get_marker('testPlugins').args[0]
+        Setting().set(SettingKey.PLUGINS_ENABLED, plugins)
     else:
         plugins = []
 
