@@ -17,6 +17,9 @@ Added Features
   (`#2438 <https://github.com/girder/girder/pull/2438>`_)
 * API endpoint in the hashsum_download plugin that returns a list of files matching a given hash sum.
   (`#2548 <https://github.com/girder/girder/pull/2458>`_)
+* Flake8 settings are now able to be automatically detected by many editors and IDEs. The ``flake8``
+  tool may now be invoked directly from the command line, without necessarily using a CMake test.
+  (`#2543 <https://github.com/girder/girder/pull/2543>`_)
 
 Web Client
 ^^^^^^^^^^
@@ -50,6 +53,9 @@ Removals
   Python tests will always output coverage information, using a standardized configuration. If external test infrastructure needs to be run with
   different options, it should invoke ``pytest -cov-config ...` or `coverage run --rcfile=...` directly.
   (`#2517 <https://github.com/girder/girder/pull/2517>`_)
+* The CMake options ``COVERAGE_MINIMUM_PASS`` and ``JS_COVERAGE_MINIMUM_PASS`` are removed, and will have no effect if set.
+  If external test infrastructure needs to set a coverage threshold, it should be done with a Codecov (or similar service) configuration.
+  (`#2545 <https://github.com/girder/girder/pull/2545>`_)
 
 Girder 2.4.0
 ============

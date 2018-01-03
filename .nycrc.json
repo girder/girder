@@ -1,0 +1,9 @@
+{
+    "reporter": [
+        "cobertura",
+        "html",
+        "text-summary"
+    ],
+    "report-dir": "build/test/artifacts/web_coverage",
+    "temp-directory": "build/test/coverage/web_temp"
+}

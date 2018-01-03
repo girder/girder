@@ -12,11 +12,7 @@ function(javascript_tests_init)
   add_test(
     NAME js_coverage_combine_report
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${ISTANBUL_EXECUTABLE}"
-            "report"
-            "--config" "${PROJECT_SOURCE_DIR}/.istanbul.yml"
-            "--root" "${PROJECT_SOURCE_DIR}/build/test/coverage/web_temp"
-            "--include" "coverage*.json"
+    COMMAND "${NYC_EXECUTABLE}" report
   )
   set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser girder_integration)
   set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_coverage)
