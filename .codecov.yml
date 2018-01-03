@@ -6,5 +6,15 @@ coverage:
     # posting it to GitHub.
     patch: false
     project:
-      default:
-        threshold: 1
+      default: false
+      server:
+        paths:
+          - girder
+          - plugins/*/server
+      python_client:
+        paths:
+          - clients/python/girder_client
+      web_client:
+        paths:
+          - clients/web/src
+          - plugins/*/web_client
