@@ -50,6 +50,9 @@ Removals
   Python tests will always output coverage information, using a standardized configuration. If external test infrastructure needs to be run with
   different options, it should invoke ``pytest -cov-config ...` or `coverage run --rcfile=...` directly.
   (`#2517 <https://github.com/girder/girder/pull/2517>`_)
+* The CMake options ``COVERAGE_MINIMUM_PASS`` and ``JS_COVERAGE_MINIMUM_PASS`` are removed, and will have no effect if set.
+  If external test infrastructure needs to set a coverage threshold, it should be done with a Codecov (or similar service) configuration.
+  (`#2545 <https://github.com/girder/girder/pull/2545>`_)
 
 Girder 2.4.0
 ============

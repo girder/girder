@@ -29,7 +29,6 @@ function(python_tests_init)
     NAME py_coverage
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report
-      --fail-under=${COVERAGE_MINIMUM_PASS}
   )
   add_test(
     NAME py_coverage_html

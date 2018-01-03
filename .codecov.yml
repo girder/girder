@@ -8,13 +8,16 @@ coverage:
     project:
       default: false
       server:
+        target: 85%
         paths:
           - girder
           - plugins/*/server
       python_client:
+        target: 80%
         paths:
           - clients/python/girder_client
       web_client:
+        target: 80%
         paths:
           - clients/web/src
           - plugins/*/web_client
