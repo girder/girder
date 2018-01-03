@@ -34,7 +34,6 @@ function(python_tests_init)
     NAME py_coverage_html
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html
-      "--title=Girder Coverage Report"
   )
   add_test(
     NAME py_coverage_xml
