@@ -400,6 +400,12 @@ jobs:
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: ON
           working_directory: girder_build
+      - run:
+          name: Move machine-readable web coverage file to coverage directory
+          # Ideally, this would be output natively to the correct location (outside of the
+          # "artifacts" directory for human-readable files), but nyc does not yet support
+          # per-reporter configuration of output paths.
+          command: mv girder/build/test/artifacts/web_coverage/cobertura-coverage.xml girder/build/test/coverage
       - store_artifacts:
           path: girder/build/test/artifacts
       - run:
@@ -407,7 +413,7 @@ jobs:
           command: pip install codecov
       - run:
           name: Upload coverage
-          command: codecov --disable search pycov gcov --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/web/cobertura-coverage.xml
+          command: codecov --disable search pycov gcov --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
   deploy:
     docker:
       - image: girder/girder_test:latest-py3
