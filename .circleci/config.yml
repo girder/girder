@@ -194,9 +194,6 @@ jobs:
             rm --recursive --force girder_build/env
             # Remove node_module caches
             rm --recursive --force girder/node_modules/.cache
-            # Aggresively remove recursed node modules; we only need enough of
-            # the node_modules to perform javascript coverage aggregation
-            find girder/node_modules/ -mindepth 1 -name node_modules -exec rm --recursive --force {} \+
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -417,7 +414,7 @@ jobs:
           # increases the reported coverage), and it functionally disables
           # branch coverage reporting (thus considering all partially coveraged
           # statements as completely covered).
-          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/py_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/lcov.info
+          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/cobertura-coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/py_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/lcov.info
           working_directory: girder
   deploy:
     docker:
