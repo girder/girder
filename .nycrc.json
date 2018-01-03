@@ -2,7 +2,6 @@
     "reporter": [
         "cobertura",
         "html",
-        "lcovonly",
         "text-summary"
     ],
     "report-dir": "build/test/coverage/web",
