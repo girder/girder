@@ -17,6 +17,9 @@ Added Features
   (`#2438 <https://github.com/girder/girder/pull/2438>`_)
 * API endpoint in the hashsum_download plugin that returns a list of files matching a given hash sum.
   (`#2548 <https://github.com/girder/girder/pull/2458>`_)
+* Flake8 settings are now able to be automatically detected by many editors and IDEs. The ``flake8``
+  tool may now be invoked directly from the command line, without necessarily using a CMake test.
+  (`#2543 <https://github.com/girder/girder/pull/2543>`_)
 
 Web Client
 ^^^^^^^^^^
