@@ -1,7 +1,7 @@
 add_test(
   NAME documentation_generate
   WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-  COMMAND "${PROJECT_SOURCE_DIR}/node_modules/.bin/grunt" docs:clean
+  COMMAND npx grunt docs:clean
 )
 
 set_property(TEST documentation_generate
