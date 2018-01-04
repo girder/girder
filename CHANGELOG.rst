@@ -42,6 +42,7 @@ Security Fixes
 Changes
 -------
 * Exceptions are now all accessible in the ``exceptions`` module and are descended from the ``GirderBaseException`` class.
+* Require npm 5.2+ (with npm 5.6+ strongly recommended) to build the web client
 
 Deprecations
 ------------

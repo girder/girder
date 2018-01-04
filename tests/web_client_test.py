@@ -171,7 +171,7 @@ class WebClientTestCase(base.TestCase):
             baseUrl = os.environ['BASEURL']
 
         cmd = (
-            os.path.join(ROOT_DIR, 'node_modules', '.bin', 'phantomjs'),
+            'npx', 'phantomjs',
             '--web-security=%s' % self.webSecurity,
             os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
             'http://localhost:%s%s' % (os.environ['GIRDER_PORT'], baseUrl),
@@ -188,7 +188,8 @@ class WebClientTestCase(base.TestCase):
         retry_count = os.environ.get('PHANTOMJS_RETRY', 3)
         for _ in range(int(retry_count)):
             retry = False
-            task = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            task = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ROOT_DIR)
             jasmineFinished = False
             for line in iter(task.stdout.readline, b''):
                 if isinstance(line, six.binary_type):
