@@ -3,6 +3,7 @@
     "rules": {
         "for-direction": "error",
         "getter-return": "error",
+        "multiline-ternary": ["error", "always-multiline"],
         "no-alert": "error",
         "switch-colon-spacing": "error",
         "import/exports-last": "error",

@@ -114,8 +114,7 @@ var AccessWidget = View.extend({
             };
         }
 
-        var template = this.modal ? accessEditorTemplate
-            : accessEditorNonModalTemplate;
+        var template = this.modal ? accessEditorTemplate : accessEditorNonModalTemplate;
 
         this.$el.html(template({
             _,
