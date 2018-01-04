@@ -915,11 +915,11 @@ The ``plugin_tests/cat_test.py`` file should look like:
 
 You can use all of the testing utilities provided by the ``base.TestCase`` class
 from core. You will also get coverage results for your plugin aggregated with
-the main Girder coverage results if coverage is enabled.
+the main Girder coverage results.
 
-.. note:: When enabling coverage in a plugin, only files residing under the plugin's
-          ``server`` directory will be included.  See :ref:`python-coverage-paths`
-          to change the paths used to generate python coverage reports.
+.. note:: Only files residing under the plugin's``server`` directory will be included in coverage.
+          See :ref:`python-coverage-paths` to change the paths used to generate Python coverage
+          reports.
 
 Testing Client-Side Code
 ************************

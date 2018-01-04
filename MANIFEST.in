@@ -13,6 +13,5 @@ recursive-include grunt_tasks *
 recursive-include plugins *
 global-exclude *.pyc *.pyo *.cmake
 prune clients/web/static/built
-prune clients/web/dev
 prune clients/web/test
 prune plugins/*/plugin_tests

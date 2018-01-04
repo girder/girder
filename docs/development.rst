@@ -237,7 +237,7 @@ Running the Tests with Coverage Tracing
 To run Python coverage on your tests, configure with CMake and run CTest.
 The coverage data will be automatically generated. After the tests are run,
 you can find the HTML output from the coverage tool in the source directory
-under **/clients/web/dev/built/py_coverage**.
+under **build/test/artifacts/**.
 
 Client Side Testing
 -------------------
