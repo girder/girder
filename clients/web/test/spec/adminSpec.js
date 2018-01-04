@@ -7,10 +7,10 @@ describe('Create an admin and non-admin user', function () {
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!'));
+            'admin@email.com',
+            'Admin',
+            'Admin',
+            'adminpassword!'));
 
     it('Admin console should show when admin is logged in', function () {
         expect($('.g-global-nav-li span').text()).toContain('Admin console');
@@ -28,10 +28,10 @@ describe('Create an admin and non-admin user', function () {
 
     it('register a (normal user)',
         girderTest.createUser('johndoe',
-                              'john.doe@email.com',
-                              'John',
-                              'Doe',
-                              'password!'));
+            'john.doe@email.com',
+            'John',
+            'Doe',
+            'password!'));
 
     it('No admin console when logging in as a normal user', function () {
         expect($('.g-global-nav-li span').text()).not.toContain('Admin console');
@@ -40,7 +40,7 @@ describe('Create an admin and non-admin user', function () {
     it('go to groups page', girderTest.goToGroupsPage());
 
     it('Create a public group',
-       girderTest.createGroup('pubGroup', 'public group', true));
+        girderTest.createGroup('pubGroup', 'public group', true));
 });
 
 describe('Test the settings page', function () {

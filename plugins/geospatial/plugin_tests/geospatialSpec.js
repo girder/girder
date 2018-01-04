@@ -3,9 +3,9 @@ girderTest.startApp();
 
 describe('a test for the geospatial plugin', function () {
     it('creates the admin user', girderTest.createUser('geospatial',
-                                                       'geospatial@girder.org',
-                                                       'Geospatial', 'Plugin',
-                                                       'fuprEsuxAth2S7ac'));
+        'geospatial@girder.org',
+        'Geospatial', 'Plugin',
+        'fuprEsuxAth2S7ac'));
 
     it('creates an item and displays the geospatial info widget', function () {
         waitsFor(function () {

@@ -248,13 +248,13 @@ var GroupView = View.extend({
     acceptMembershipRequest: function (e) {
         var userId = $(e.currentTarget).parents('li').attr('userid');
         this.model.off('g:invited').on('g:invited', this.render, this)
-                  .sendInvitation(userId, AccessType.READ, true);
+            .sendInvitation(userId, AccessType.READ, true);
     },
 
     denyMembershipRequest: function (e) {
         var userId = $(e.currentTarget).parents('li').attr('userid');
         this.model.off('g:removed').on('g:removed', this.render, this)
-                  .removeMember(userId);
+            .removeMember(userId);
     },
 
     _updateRolesLists: function () {
@@ -276,10 +276,10 @@ var GroupView = View.extend({
             parentView: this
         }).off().on('g:demoteUser', function (userId) {
             this.model.off('g:demoted').on('g:demoted', this.render, this)
-                      .demoteUser(userId, AccessType.ADMIN);
+                .demoteUser(userId, AccessType.ADMIN);
         }, this).on('g:removeMember', this.removeMember, this)
-                .on('g:moderatorAdded', this.render, this)
-                .render();
+            .on('g:moderatorAdded', this.render, this)
+            .render();
 
         this.modsWidget = new GroupModsWidget({
             el: this.$('.g-group-mods-container'),
@@ -288,10 +288,10 @@ var GroupView = View.extend({
             parentView: this
         }).on('g:demoteUser', function (userId) {
             this.model.off('g:demoted').on('g:demoted', this.render, this)
-                      .demoteUser(userId, AccessType.WRITE);
+                .demoteUser(userId, AccessType.WRITE);
         }, this).on('g:removeMember', this.removeMember, this)
-                .on('g:adminAdded', this.render, this)
-                .render();
+            .on('g:adminAdded', this.render, this)
+            .render();
 
         this.membersWidget = new GroupMembersWidget({
             el: this.$('.g-group-members-container'),
@@ -315,8 +315,8 @@ var GroupView = View.extend({
                 });
             }, this).sendInvitation(params.user.id, params.level, false, opts);
         }, this).on('g:removeMember', this.removeMember, this)
-                .on('g:moderatorAdded', this.render, this)
-                .on('g:adminAdded', this.render, this);
+            .on('g:moderatorAdded', this.render, this)
+            .on('g:adminAdded', this.render, this);
     }
 }, {
     /**

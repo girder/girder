@@ -9,13 +9,13 @@ import ItemCollection from './ItemCollection';
 import UserCollection from './UserCollection';
 
 export {
-  ApiKeyCollection,
-  AssetstoreCollection,
-  Collection,
-  CollectionCollection,
-  FileCollection,
-  FolderCollection,
-  GroupCollection,
-  ItemCollection,
-  UserCollection
+    ApiKeyCollection,
+    AssetstoreCollection,
+    Collection,
+    CollectionCollection,
+    FileCollection,
+    FolderCollection,
+    GroupCollection,
+    ItemCollection,
+    UserCollection
 };

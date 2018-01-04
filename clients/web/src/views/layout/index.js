@@ -8,12 +8,12 @@ import RegisterView from './RegisterView';
 import ResetPasswordView from './ResetPasswordView';
 
 export {
-  FooterView,
-  GlobalNavView,
-  HeaderUserView,
-  HeaderView,
-  LoginView,
-  ProgressListView,
-  RegisterView,
-  ResetPasswordView
+    FooterView,
+    GlobalNavView,
+    HeaderUserView,
+    HeaderView,
+    LoginView,
+    ProgressListView,
+    RegisterView,
+    ResetPasswordView
 };

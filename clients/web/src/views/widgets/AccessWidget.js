@@ -115,7 +115,7 @@ var AccessWidget = View.extend({
         }
 
         var template = this.modal ? accessEditorTemplate
-                                  : accessEditorNonModalTemplate;
+            : accessEditorNonModalTemplate;
 
         this.$el.html(template({
             _,
@@ -312,18 +312,18 @@ var AccessWidget = View.extend({
         var recurse = this.$('#g-apply-recursive').is(':checked');
 
         this.model.off('g:accessListSaved', null, this)
-                  .on('g:accessListSaved', function () {
-                      if (this.modal) {
-                          this.$el.modal('hide');
-                      }
+            .on('g:accessListSaved', function () {
+                if (this.modal) {
+                    this.$el.modal('hide');
+                }
 
-                      this.trigger('g:accessListSaved', {
-                          recurse: recurse
-                      });
-                  }, this).updateAccess({
-                      recurse: recurse,
-                      progress: true
-                  });
+                this.trigger('g:accessListSaved', {
+                    recurse: recurse
+                });
+            }, this).updateAccess({
+                recurse: recurse,
+                progress: true
+            });
     },
 
     getAccessList: function () {

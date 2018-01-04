@@ -38,12 +38,12 @@ var SystemConfigurationView = View.extend({
                             return [$(el).data('webrootName'), $(el).val()];
                         }))
                     };
-                } else if (_.contains(['core.api_keys', 'core.enable_password_login'], key)) {  // booleans via checkboxes
+                } else if (_.contains(['core.api_keys', 'core.enable_password_login'], key)) { // booleans via checkboxes
                     return {
                         key,
                         value: element.is(':checked')
                     };
-                } else {  // all other settings use $.fn.val()
+                } else { // all other settings use $.fn.val()
                     return {
                         key,
                         value: element.val() || null
@@ -135,11 +135,10 @@ var SystemConfigurationView = View.extend({
             settings: this.settings,
             defaults: this.defaults,
             routes: this.settings['core.route_table'] || this.defaults['core.route_table'],
-            routeKeys: _.sortBy(_.keys(this.settings['core.route_table'] ||
-                                       this.defaults['core.route_table']),
-                                function (a) {
-                                    return a.indexOf('core_') === 0 ? -1 : 0;
-                                }),
+            routeKeys: _.sortBy(
+                _.keys(this.settings['core.route_table'] || this.defaults['core.route_table']),
+                (a) => a.indexOf('core_') === 0 ? -1 : 0
+            ),
             JSON: window.JSON
         }));
 

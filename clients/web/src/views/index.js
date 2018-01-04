@@ -5,9 +5,9 @@ import * as layout from './layout';
 import * as widgets from './widgets';
 
 export {
-  App,
-  View,
-  body,
-  layout,
-  widgets
+    App,
+    View,
+    body,
+    layout,
+    widgets
 };

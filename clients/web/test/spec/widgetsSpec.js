@@ -26,10 +26,10 @@ function _setProgress(test, duration, resourceId, resourceName) {
 describe('Test widgets that are not covered elsewhere', function () {
     it('register a user',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!'));
+            'admin@email.com',
+            'Admin',
+            'Admin',
+            'adminpassword!'));
 
     it('test task progress widget', function () {
         var errorCalled = 0, onmessageSpy, stream;

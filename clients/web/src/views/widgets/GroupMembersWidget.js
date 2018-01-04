@@ -102,7 +102,7 @@ var GroupMembersWidget = View.extend({
 
         'click .g-promote-moderator': function (e) {
             var cid = $(e.currentTarget).parents('.g-group-members>li')
-                                        .attr('cid');
+                .attr('cid');
             var user = this.membersColl.get(cid);
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:moderatorAdded');
@@ -111,7 +111,7 @@ var GroupMembersWidget = View.extend({
 
         'click .g-promote-admin': function (e) {
             var cid = $(e.currentTarget).parents('.g-group-members>li')
-                                        .attr('cid');
+                .attr('cid');
             var user = this.membersColl.get(cid);
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:adminAdded');

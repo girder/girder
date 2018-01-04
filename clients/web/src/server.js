@@ -72,13 +72,13 @@ restartServer._checkServer = function (lastStartDate) {
         url: 'system/version',
         error: null
     })
-    .then((resp) => {
-        if (resp.serverStartDate !== lastStartDate) {
-            return undefined;
-        } else {
-            throw undefined;
-        }
-    });
+        .then((resp) => {
+            if (resp.serverStartDate !== lastStartDate) {
+                return undefined;
+            } else {
+                throw undefined;
+            }
+        });
 };
 
 /* Having these as object properties facilitates testing */

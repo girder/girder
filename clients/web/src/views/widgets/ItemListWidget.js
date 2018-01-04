@@ -39,11 +39,11 @@ var ItemListWidget = View.extend({
         this.checked = [];
         this._checkboxes = settings.checkboxes;
         this._downloadLinks = (
-          _.has(settings, 'downloadLinks') ? settings.downloadLinks : true);
+            _.has(settings, 'downloadLinks') ? settings.downloadLinks : true);
         this._viewLinks = (
-          _.has(settings, 'viewLinks') ? settings.viewLinks : true);
+            _.has(settings, 'viewLinks') ? settings.viewLinks : true);
         this._showSizes = (
-          _.has(settings, 'showSizes') ? settings.showSizes : true);
+            _.has(settings, 'showSizes') ? settings.showSizes : true);
         this.accessLevel = settings.accessLevel;
         this.public = settings.public;
 

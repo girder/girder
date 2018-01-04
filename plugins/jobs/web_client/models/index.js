@@ -1,5 +1,5 @@
 import JobModel from './JobModel';
 
 export {
-  JobModel
+    JobModel
 };

@@ -74,7 +74,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
         if (curUser !== 'admin') {
             girderTest.logout()();
             girderTest.login('admin', 'Admin', 'Admin',
-                             'adminpassword!')();
+                'adminpassword!')();
             curUser = 'admin';
         }
         runs(function () {
@@ -111,7 +111,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
         girderTest.logout()();
         if (policy.user === 'admin') {
             girderTest.login('admin', 'Admin', 'Admin',
-                             'adminpassword!')();
+                'adminpassword!')();
         } else {
             girderTest.login(
                 'user' + policy.user, 'User' + policy.user, 'User',
@@ -139,7 +139,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
     if (policy.mayAdd === null) {
         runs(function () {
             expect($('.g-group-invite-container input.g-search-field').length
-                ).toBe(0);
+            ).toBe(0);
         });
     } else {
         _invite('admin', 'member', 'add', policy.mayAdd);
@@ -149,10 +149,10 @@ function _testDirectAdd(policy, curUser, curSetting) {
 describe('Test group actions', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!'));
+            'admin@email.com',
+            'Admin',
+            'Admin',
+            'adminpassword!'));
 
     it('go to groups page', girderTest.goToGroupsPage());
 
@@ -163,7 +163,7 @@ describe('Test group actions', function () {
     });
 
     it('Create a private group',
-       girderTest.createGroup('privGroup', 'private group', false));
+        girderTest.createGroup('privGroup', 'private group', false));
 
     it('Test that anonymous loading private group prompts login', function () {
         var privateGroupFragment = Backbone.history.fragment;
@@ -173,7 +173,7 @@ describe('Test group actions', function () {
     it('go back to groups page', girderTest.goToGroupsPage());
 
     it('Create a public group',
-       girderTest.createGroup('pubGroup', 'public group', true));
+        girderTest.createGroup('pubGroup', 'public group', true));
 
     it('Open edit dialog and check url state', function () {
         waitsFor(function () {
@@ -430,7 +430,7 @@ describe('Test group actions', function () {
             for (var i = 1; i <= 3; i += 1) {
                 girderTest.logout()();
                 girderTest.createUser('user' + i, 'user' + i + '@email.com',
-                                      'User' + i, 'User', 'password!')();
+                    'User' + i, 'User', 'password!')();
             }
         });
         /* Use the admin user to force-add certain users to the group */

@@ -43,14 +43,14 @@ var UserAccountView = View.extend({
                 this.$('#g-' + err.responseJSON.field).focus();
                 this.$('#g-user-info-error-msg').text(msg);
             }, this).off('g:saved')
-                    .on('g:saved', function () {
-                        events.trigger('g:alert', {
-                            icon: 'ok',
-                            text: 'Info saved.',
-                            type: 'success',
-                            timeout: 4000
-                        });
-                    }, this).save();
+                .on('g:saved', function () {
+                    events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'Info saved.',
+                        type: 'success',
+                        timeout: 4000
+                    });
+                }, this).save();
         },
         'submit #g-password-change-form': function (event) {
             event.preventDefault();
@@ -70,15 +70,15 @@ var UserAccountView = View.extend({
                 var msg = err.responseJSON.message;
                 this.$('#g-password-change-error-msg').text(msg);
             }, this).off('g:passwordChanged')
-                    .on('g:passwordChanged', function () {
-                        events.trigger('g:alert', {
-                            icon: 'ok',
-                            text: 'Password changed.',
-                            type: 'success',
-                            timeout: 4000
-                        });
-                        this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
-                    }, this);
+                .on('g:passwordChanged', function () {
+                    events.trigger('g:alert', {
+                        icon: 'ok',
+                        text: 'Password changed.',
+                        type: 'success',
+                        timeout: 4000
+                    });
+                    this.$('#g-password-old,#g-password-new,#g-password-retype').val('');
+                }, this);
 
             // here and in the template, an admin user who wants to change their
             //   own password is intentionally forced to re-enter their old
