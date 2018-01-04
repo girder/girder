@@ -318,7 +318,7 @@ describe('Test the assetstore page', function () {
 
             if (callback) {
                 runs(function () {
-                    callback({  // eslint-disable-line standard/no-callback-literal
+                    callback({ // eslint-disable-line standard/no-callback-literal
                         name: name
                     });
                 });
