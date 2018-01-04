@@ -1,5 +1,15 @@
 {
     "extends": "girder",
+    "rules": {
+        "for-direction": "error",
+        "getter-return": "error",
+        "no-alert": "error",
+        "switch-colon-spacing": "error",
+        "import/exports-last": "error",
+        "promise/no-native": "error",
+        "promise/no-return-in-finally": "error",
+        "promise/no-return-wrap": "error"
+    },
     "overrides": [
         {
             "files": [
