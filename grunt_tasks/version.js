@@ -19,12 +19,12 @@
  */
 module.exports = function (grunt) {
     // Returns a JSON string containing information from the current Git repository.
-    var versionInfoObject = function () {
+    function versionInfoObject() {
         // extract information from the config
-        var gitVersion = grunt.config.get('gitinfo');
-        var local = gitVersion.local || {};
-        var branch = local.branch || {};
-        var current = branch.current || {};
+        const gitVersion = grunt.config.get('gitinfo');
+        const local = gitVersion.local || {};
+        const branch = local.branch || {};
+        const current = branch.current || {};
 
         return JSON.stringify(
             {
@@ -35,15 +35,15 @@ module.exports = function (grunt) {
                 apiVersion: grunt.config.get('pkg').version
             },
             null,
-            '  '
+            4
         );
-    };
+    }
 
     grunt.config.merge({
         'file-creator': {
             'python-version': {
                 'girder/girder-version.json': function (fs, fd, done) {
-                    var girderVersion = versionInfoObject();
+                    const girderVersion = versionInfoObject();
                     fs.writeSync(fd, girderVersion + '\n');
                     done();
                 }
@@ -51,17 +51,13 @@ module.exports = function (grunt) {
 
             'javascript-version': {
                 'clients/web/src/version.js': function (fs, fd, done) {
-                    var girderVersion = versionInfoObject();
+                    const girderVersion = versionInfoObject();
                     fs.writeSync(
-                        fd, [
-                            '/* eslint-disable */',
-                            '// THIS FILE IS AUTO-GENERATED',
-                            'var versionInfo = ',
-                            girderVersion,
-                            ';',
-                            'export default versionInfo;',
-                            '/* eslint-enable */'
-                        ].join('\n') + '\n'
+                        fd, `/* eslint-disable */
+// THIS FILE IS AUTO-GENERATED
+const versionInfo = ${girderVersion};
+export default versionInfo;
+`
                     );
                     done();
                 }
