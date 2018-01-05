@@ -1,3 +1,22 @@
 {
-    "extends": "girder"
+    "extends": "girder",
+    "overrides": [
+        {
+            "files": [
+                "clients/web/test/**",
+                "plugins/*/plugin_tests/**"
+            ],
+            "globals": {
+                "Backbone": true,
+                "_": true,
+                "girderTest": true,
+                "girder": true,
+                "moment": true
+            },
+            "env": {
+                "jasmine": true
+            }
+        }
+    ],
+    "root": true
 }

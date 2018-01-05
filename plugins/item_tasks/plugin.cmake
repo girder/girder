@@ -12,8 +12,7 @@ if (BUILD_JAVASCRIPT_TESTS)
   set_property(TEST web_client_item_tasks.tasks PROPERTY RUN_SERIAL ON)
 endif()
 
-add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests/plugin_tests"
-  ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc.json")
+add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests")
 
 if(ANSIBLE_TESTS)
   find_program(VAGRANT_EXECUTABLE vagrant)

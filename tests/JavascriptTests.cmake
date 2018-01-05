@@ -23,25 +23,10 @@ function(add_eslint_test name input)
     return()
   endif()
 
-  set(_args ESLINT_IGNORE_FILE ESLINT_CONFIG_FILE)
-  cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
-
-  if(fn_ESLINT_IGNORE_FILE)
-    set(ignore_file "${fn_ESLINT_IGNORE_FILE}")
-  else()
-    set(ignore_file "${PROJECT_SOURCE_DIR}/.eslintignore")
-  endif()
-
-  if(fn_ESLINT_CONFIG_FILE)
-    set(config_file "${fn_ESLINT_CONFIG_FILE}")
-  else()
-    set(config_file "${PROJECT_SOURCE_DIR}/.eslintrc.json")
-  endif()
-
   add_test(
     NAME "eslint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND npx eslint --ignore-path "${ignore_file}" --config "${config_file}" "${input}"
+    COMMAND npx eslint "${input}"
   )
   set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser)
 endfunction()
