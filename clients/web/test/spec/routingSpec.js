@@ -29,7 +29,7 @@ describe('Test routing paths', function () {
         _getFirstId(girder.collections.UserCollection, ids, 'admin');
         _getFirstId(girder.collections.CollectionCollection, ids, 'collection');
         _getFirstId(girder.collections.FolderCollection, ids,
-                    'collectionFolder',
+            'collectionFolder',
             function () {
                 return {parentId: ids.collection, parentType: 'collection'};
             });
@@ -250,13 +250,13 @@ describe('Test routing paths', function () {
         girderTest.testRoute(groupPath + '/roles', false, function () {
             return $('.g-member-name:visible').length === 1 &&
                    $('#g-group-tab-roles .g-member-list-empty:visible')
-                   .length === 2 &&
+                       .length === 2 &&
                    $('.g-member-list-empty:hidden').length === 2;
         });
         girderTest.testRoute(groupPath + '/pending', false, function () {
             return $('.g-group-requests-container:visible').length === 1 &&
                    $('#g-group-tab-pending .g-member-list-empty:visible')
-                   .length === 2 &&
+                       .length === 2 &&
                    $('.g-member-list-empty:hidden').length === 2;
         });
         girderTest.testRoute(groupPath + '?dialog=edit', true, function () {
@@ -275,16 +275,16 @@ describe('Test routing paths', function () {
             });
         girderTest.testRoute(itemPath + '?dialog=fileedit&dialogid=' +
             ids.file, true, function () {
-                return $('.modal-title').text() === 'Edit file';
-            });
+            return $('.modal-title').text() === 'Edit file';
+        });
         girderTest.testRoute(itemPath + '?dialog=upload&dialogid=' +
             ids.file, true, function () {
-                return $('.modal-title').text() === 'Replace file contents';
-            });
+            return $('.modal-title').text() === 'Replace file contents';
+        });
         girderTest.testRoute(itemPath + '?dialog=fileedit&dialogid=' +
             ids.file, true, function () {
-                return $('.modal-title').text() === 'Edit file';
-            });
+            return $('.modal-title').text() === 'Edit file';
+        });
     });
 
     it('test admin routes', function () {
@@ -302,8 +302,8 @@ describe('Test routing paths', function () {
         });
         girderTest.testRoute('assetstores?dialog=assetstoreedit&dialogid=' +
             ids.assetstore, true, function () {
-                return $('.modal-title').text() === 'Edit assetstore';
-            });
+            return $('.modal-title').text() === 'Edit assetstore';
+        });
     });
 });
 

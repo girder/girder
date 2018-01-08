@@ -174,11 +174,11 @@ var HierarchyWidget = View.extend({
                 this.uploadWidget.folder = folder;
             }
         }, this).off('g:checkboxesChanged')
-                .on('g:checkboxesChanged', this.updateChecked, this)
-                .off('g:changed').on('g:changed', function () {
-                    this.folderCount = this.folderListView.collection.length;
-                    this._childCountCheck();
-                }, this);
+            .on('g:checkboxesChanged', this.updateChecked, this)
+            .off('g:changed').on('g:changed', function () {
+                this.folderCount = this.folderListView.collection.length;
+                this._childCountCheck();
+            }, this);
 
         if (this.parentModel.resourceName === 'folder') {
             this._fetchToRoot(this.parentModel);
@@ -498,9 +498,9 @@ var HierarchyWidget = View.extend({
         }
 
         this.parentModel.off('change:nItems', showCounts, this)
-                        .on('change:nItems', showCounts, this)
-                        .off('change:nFolders', showCounts, this)
-                        .on('change:nFolders', showCounts, this);
+            .on('change:nItems', showCounts, this)
+            .off('change:nFolders', showCounts, this)
+            .on('change:nFolders', showCounts, this);
 
         return this;
     },

@@ -59,8 +59,7 @@ var PluginsView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         if (settings.all && settings.enabled) {
-            this.cherrypyServer = (_.has(settings, 'cherrypyServer')
-                                   ? settings.cherrypyServer : true);
+            this.cherrypyServer = (_.has(settings, 'cherrypyServer') ? settings.cherrypyServer : true);
             this.enabled = settings.enabled;
             this.allPlugins = settings.all;
             this.failed = _.has(settings, 'failed') ? settings.failed : null;
@@ -205,7 +204,7 @@ var PluginsView = View.extend({
                 this.$('.g-plugin-switch[key="' + plugin + '"]')
                     .attr('checked', 'checked').bootstrapSwitch('state', true, true);
             }, this);
-        }, this));  // TODO acknowledge?
+        }, this)); // TODO acknowledge?
     }
 });
 

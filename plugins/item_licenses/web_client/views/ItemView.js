@@ -14,7 +14,7 @@ wrap(ItemView, 'render', function (render) {
     // ItemView is a special case in which rendering is done asynchronously,
     // so we must listen for a render event.
     this.once('g:rendered', function () {
-        var itemLicenseItemWidget = new ItemLicenseWidget({ // eslint-disable-line new-cap
+        var itemLicenseItemWidget = new ItemLicenseWidget({
             item: this.model,
             parentView: this
         }).render();

@@ -20,7 +20,7 @@ var MarkdownWidget = View.extend({
     events: {
         'show.bs.tab .g-preview-link': function () {
             renderMarkdown(this.val().trim() || 'Nothing to show',
-                                  this.$('.g-markdown-preview'));
+                this.$('.g-markdown-preview'));
         },
 
         'shown.bs.tab .g-write-link': function () {

@@ -7,11 +7,11 @@ describe('Create an admin and non-admin user', function () {
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!',
-                              registeredUsers));
+            'admin@email.com',
+            'Admin',
+            'Admin',
+            'adminpassword!',
+            registeredUsers));
 
     it('create user as admin using dialog', function () {
         girderTest.goToUsersPage()();
@@ -45,11 +45,11 @@ describe('Create an admin and non-admin user', function () {
 
     it('register another user',
         girderTest.createUser('nonadmin',
-                              'nonadmin@email.com',
-                              'Not',
-                              'Admin',
-                              'password!',
-                              registeredUsers));
+            'nonadmin@email.com',
+            'Not',
+            'Admin',
+            'password!',
+            registeredUsers));
 
     it('view the users on the user page and click on one', function () {
         girderTest.goToUsersPage()();
@@ -127,7 +127,7 @@ describe('Create an admin and non-admin user', function () {
     it('test changing other user\'s password', function () {
         runs(function () {
             girder.router.navigate('useraccount/' + registeredUsers[1].id + '/password',
-                                   {trigger: true});
+                {trigger: true});
         });
 
         waitsFor(function () {
@@ -452,7 +452,7 @@ describe('test account approval', function () {
         }, 'dialog rest requests to finish');
         runs(function () {
             girder.router.navigate('user/' + registeredUsers[1].id,
-                                   {trigger: true});
+                {trigger: true});
         });
         waitsFor(function () {
             return $('.g-disable-user').length > 0;

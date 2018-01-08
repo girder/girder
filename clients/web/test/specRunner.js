@@ -36,8 +36,8 @@ var page = new WebPage();
 var specPathComponents = spec.split('/');
 var pluginName =
     specPathComponents[specPathComponents.length - 2] === 'plugin_tests'
-    ? specPathComponents[specPathComponents.length - 3]
-    : 'core';
+        ? specPathComponents[specPathComponents.length - 3]
+        : 'core';
 var specName = specPathComponents[specPathComponents.length - 1].replace(/\.js$/, '');
 var specOptions = args[3];
 var testName = pluginName + '_' + specName + (specOptions ? '_' + specOptions : '');
