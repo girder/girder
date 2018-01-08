@@ -70,7 +70,6 @@ var SearchResultsView = View.extend({
             'collection': 'sitemap',
             'folder': 'folder',
             'item': 'doc-text-inv'
-
         };
         return icons[type];
     },
