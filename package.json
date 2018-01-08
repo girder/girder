@@ -32,7 +32,6 @@
         "grunt-contrib-copy": "^1.0.0",
         "grunt-contrib-pug": "^1.0.0",
         "grunt-contrib-stylus": "^1.2.0",
-        "grunt-contrib-symlink": "^1.0.0",
         "grunt-contrib-uglify": "^3.0.1",
         "grunt-file-creator": "^0.1.3",
         "grunt-fontello": "^0.3.4",
@@ -49,7 +48,6 @@
         "swagger-ui": "~2.2.10",
         "toposort": "^1.0.3",
         "underscore": "^1.8.3",
-        "url-loader": "^0.5.9",
         "webpack": "^2.7.0"
     },
     "devDependencies": {
