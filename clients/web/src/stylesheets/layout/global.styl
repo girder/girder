@@ -140,7 +140,6 @@ textarea
   display inline-block
   line-height 40px
   vertical-align top
-  color $normalColor
   margin-right 10px
   padding-right 5px
   font-size 18px
@@ -149,12 +148,12 @@ textarea
 .g-top-level-list-entry
   padding 11px 14px
   background-color white
-  border-top $border
+  border-bottom $border
   border-left $border
   border-right $border
 
   &[public="false"]
     background-color $privateColor
 
-.g-top-level-list-entry:last-child
-  border-bottom $border
+.g-top-level-list-entry:nth-child(2)
+  border-top $border

@@ -1,6 +1,13 @@
 @import "../layout/layoutVars"
 
 .g-user-list-entry
+  // These shouldn't be needed when the user list entry divs also have g-top-level-list-entry
+  padding 11px 14px
+  background-color white
+  border-bottom $border
+  border-left $border
+  border-right $border
+
   .g-user-title
     font-size $resourceTitleSize
 
@@ -18,18 +25,9 @@
   .g-user-joined-date, .g-user-space-used
     color $normalColor
 
-
-// These shouldn't be needed when the user list entry divs also have g-top-level-list-entry
-.g-user-list-entry
-  padding 11px 14px
-  background-color white
+// This shouldn't be needed when the user list entry divs also have g-top-level-list-entry
+.g-user-list-entry:nth-child(2)
   border-top $border
-  border-left $border
-  border-right $border
-
-.g-user-list-entry:last-child
-  border-bottom $border
-
 
 .g-user-list-header
   padding-bottom 10px

@@ -150,7 +150,7 @@ module.exports = function (grunt) {
                         filename: 'googlefonts.css',
                         fonts: [{
                             family: 'Open Sans',
-                            variants: ['regular', '700', 'italic', '700italic']
+                            variants: ['regular', '600', 'italic', '600italic']
                         }]
                     })
                 ]
