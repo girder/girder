@@ -1,0 +1,28 @@
+.g-search-results-header-container
+  .g-search-results-title-container
+    i.icon-search.g-search-results-title-element
+    if length === 1
+      span.g-search-results-title.g-search-results-title-element Result : #{query}
+    else
+      span.g-search-results-title.g-search-results-title-element Results : #{query}
+  .g-search-results-header
+    .g-search-results-advance-search
+
+.g-search-results-container
+  each result in results
+    .g-search-results-type-container
+      .g-search-result-type-header-container
+        i.g-search-result-type-icon.g-search-result-type-header(class=`icon-${result.icon}`)
+        .g-search-results-type-title.g-search-result-type-header
+          | #{result.type}
+      each element in result.elements
+        li.g-search-result(role="presentation")
+          a(resourceid=element.id, resourcetype=result.type, g-icon=result.icon,
+              role="menuitem", tabindex="-1")
+            |  #{element.name()}
+      .g-search-results-paginate(id=`${result.type}Paginate`)
+
+if length === 0
+  .g-search-no-results.disabled(role="presentation")
+    i.icon-block
+    |  No results found

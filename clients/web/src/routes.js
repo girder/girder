@@ -229,3 +229,14 @@ router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, pa
         itemCreate: params.dialog === 'itemcreate'
     });
 });
+
+/**
+ * SearchResults
+ */
+import SearchResultsView from 'girder/views/body/SearchResultsView';
+router.route('search/results', 'SearchResults', function (params) {
+    events.trigger('g:navigateTo', SearchResultsView, {
+        query: params.query,
+        mode: params.mode
+    } || {});
+});
