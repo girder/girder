@@ -27,8 +27,7 @@ var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var paths = require('./webpack.paths.js');
 // Resolving the Babel presets here is required to support symlinking plugin directories from
 // outside Girder's file tree
-const es2015BabelPreset = require.resolve('babel-preset-es2015');
-const es2016BabelPreset = require.resolve('babel-preset-es2016');
+const babelPresets = require.resolve('babel-preset-env');
 
 function fileLoader() {
     return {
@@ -69,7 +68,7 @@ module.exports = {
     ],
     module: {
         rules: [
-            // ES2015
+            // ES2015+
             {
                 resource: {
                     test: /\.js$/,
@@ -80,7 +79,8 @@ module.exports = {
                     {
                         loader: 'babel-loader',
                         options: {
-                            presets: [es2015BabelPreset, es2016BabelPreset],
+                            // Without any options, 'preset-env' behavies like 'preset-latest'
+                            presets: [babelPresets],
                             cacheDirectory: true
                         }
                     }
@@ -131,7 +131,7 @@ module.exports = {
                     {
                         loader: 'babel-loader',
                         options: {
-                            presets: [es2015BabelPreset, es2016BabelPreset],
+                            presets: [babelPresets],
                             cacheDirectory: true
                         }
                     },
