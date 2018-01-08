@@ -95,6 +95,7 @@ var SearchPaginateWidget = View.extend({
                     this._hasPreviousPage = false;
                 }
                 this.render();
+            }, this));
         }
     },
 
