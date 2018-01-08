@@ -809,6 +809,8 @@ class Resource(ModelImporter):
         """
         Remove a route from the handler and documentation.
 
+        .. deprecated :: 2.3.0
+
         :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
         :type method: str
         :param route: The route, as a list of path params relative to the
@@ -817,7 +819,6 @@ class Resource(ModelImporter):
         :type route: tuple[str]
         :param handler: The method called for the route; this is necessary to
                         remove the documentation.
-        .. deprecated :: 2.3.0
         :type handler: Function
         :param resource: the name of the resource at the root of this route.
         """
@@ -1073,9 +1074,14 @@ class Resource(ModelImporter):
         :param defaultSortDir: Sort direction.
         :type defaultSortDir: girder.constants.SortDir
         """
-        offset = int(params.get('offset', 0))
-        limit = int(params.get('limit', 50))
-        sortdir = int(params.get('sortdir', defaultSortDir))
+        try:
+            offset = int(params.get('offset', 0))
+            limit = int(params.get('limit', 50))
+            sortdir = int(params.get('sortdir', defaultSortDir))
+        except ValueError:
+            raise RestException('Invalid value for offset, limit, or sortdir parameter.')
+        if sortdir not in [SortDir.ASCENDING, SortDir.DESCENDING]:
+            raise RestException('Invalid value for sortdir parameter.')
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]

@@ -1,1 +1,1 @@
-snakebite==2.7.3 ; python_version < '3.0'
+snakebite ; python_version < '3.0'

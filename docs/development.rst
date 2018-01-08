@@ -209,6 +209,28 @@ From the Girder directory, run ``pytest``. To run specific tests with long trace
   pytest --tb=long -k testTokenSessionDeletion
 
 
+Running the Tests with tox
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Girder uses `tox <https://tox.readthedocs.io/en/latest/>`_ for running the tests inside of virtual
+environments. By default, running ``tox`` will create a virtual environment, install test
+dependencies, install Girder, and run ``pytest`` for each version of Python that Girder supports.
+
+Sometimes it might be desirable to only run ``tox`` against a single Python environment, such as
+Python 3.5. To do this run ``tox -e py35``. Note that a list of valid environments can be found by
+running ``tox -a``.
+
+Specific arguments can be passed through to ``pytest`` by adding them after the ``tox``
+parameters. For instance, running only the ``testLoadModelDecorator`` test against all supported
+versions of Python can be achieved with the following command ::
+
+  tox -- -k testLoadModelDecorator
+
+.. note:: Sometimes it might be desirable to have ``tox`` destroy and recreate all virtual
+          environments used for testing, this can be accomplished by passing the ``--recreate`` flag
+          to ``tox``.
+
+
 Running the Tests with Coverage Tracing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -426,21 +448,22 @@ Web client libraries in Girder core are managed via `npm <https://www.npmjs.com/
 When a new npm package is required, or an existing package is upgraded, the following
 should be done:
 
-1. Ensure that you are using a Linux development environment (macOS causes npm to produce slightly
-   different outputs) with version >=5.3 of npm installed:
+1. Ensure that you are using a development environment with version >=5.6 of npm installed:
 
    .. code-block:: bash
 
-       npm install -g 'npm@>=5.3'
+       npm install -g 'npm@>=5.6'
 
 2. Update ``dependencies`` or ``devDependencies`` in ``package.json`` to add a new
    *abstract* specifier for the package:
+
   * Packages that are bundled into the web client should generally use the
     `tilde range <https://www.npmjs.com/package/semver#tilde-ranges-123-12-1>`_
     to specify versions.
   * Packages that are part of the build or testing process should generally use the
     `caret range <https://www.npmjs.com/package/semver#caret-ranges-123-025-004>`_
     to specify versions.
+
 3. Run from the root Girder directory:
 
    .. code-block:: bash

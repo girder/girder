@@ -1,4 +1,35 @@
+import os
 from .fixtures import *  # noqa
+
+
+def _makeCoverageDirs(config):
+    """
+    Create the necessary directories for coverage. This is necessary because neither coverage nor
+    pytest-cov have support for making the data_file directory before running.
+    """
+    covPlugin = config.pluginmanager.get_plugin('_cov')
+
+    if covPlugin is not None:
+        covPluginConfig = covPlugin.cov_controller.cov.config
+        covDataFileDir = os.path.dirname(covPluginConfig.data_file)
+
+        try:
+            os.makedirs(covDataFileDir)
+        except OSError:
+            pass
+
+
+def _addCustomMarkers(config):
+    markerDocs = [
+        'testPlugins(pluginList): load a list of test plugins from the test path',
+    ]
+    for markerDoc in markerDocs:
+        config.addinivalue_line('markers', markerDoc)
+
+
+def pytest_configure(config):
+    _makeCoverageDirs(config)
+    _addCustomMarkers(config)
 
 
 def pytest_addoption(parser):
@@ -8,5 +39,5 @@ def pytest_addoption(parser):
     group.addoption('--mongo-uri', action='store', default='mongodb://localhost:27017',
                     help=('The base URI to the MongoDB instance to use for database connections, '
                           'default is mongodb://localhost:27017'))
-    group.addoption('--drop-db', action='store', default='pre', choices=('pre', 'post', 'never'),
-                    help='When to destroy testing databases, default is pre (before running tests)')
+    group.addoption('--keep-db', action='store_true', default=False,
+                    help='Whether to destroy testing databases after running tests.')

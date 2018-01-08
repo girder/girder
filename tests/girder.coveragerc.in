@@ -1,6 +1,0 @@
-# Configuration for python coverage
-[run]
-branch = @_py_branch_cov@
-
-[report]
-omit = @_omit_python_covg@

@@ -5,7 +5,7 @@ The following software packages are required to be installed on your system:
 
 * `Python 2.7 or 3.4+ <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
-* `MongoDB 2.6+ <http://www.mongodb.org/>`_
+* `MongoDB 3.2+ <http://www.mongodb.org/>`_
 * `Node.js 6.5+ <http://nodejs.org/>`_
 * `curl <http://curl.haxx.se/>`_
 * `zlib <http://www.zlib.net/>`_
@@ -28,7 +28,7 @@ See the specific instructions for your platform below.
    Metadata Extractor plugin will only be available in a Python 2.7 environment.
 
 .. note:: It's recommended to get the latest version of the npm package manager, and Girder currently
-   requires at least version 3.10 of npm. To upgrade to the latest npm, after installing Node.js,
+   requires at least version 5.2 of npm. To upgrade to the latest npm, after installing Node.js,
    run:
 
    .. code-block:: bash
@@ -53,20 +53,20 @@ Install the prerequisites using APT: ::
 
     sudo apt-get install curl g++ git libffi-dev libjpeg-dev libldap2-dev libsasl2-dev libssl-dev make python-dev python-pip zlib1g-dev
 
-MongoDB 2.6 requires a special incantation to install at this time. Install
+MongoDB 3.2 requires a special incantation to install at this time. Install
 the APT key with the following: ::
 
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv EA312927
 
-For Debian, create the following configuration file for the MongoDB APT repository: ::
+For Debian 8, create the following configuration file for the MongoDB APT repository: ::
 
-    echo 'deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen' \
-        | sudo tee /etc/apt/sources.list.d/mongodb.list
+    echo "deb http://repo.mongodb.org/apt/debian jessie/mongodb-org/3.2 main" \
+        | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
 
-For Ubuntu, instead create the following configuration file: ::
+For Ubuntu 16.04, instead create the following configuration file: ::
 
-    echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' \
-        | sudo tee /etc/apt/sources.list.d/mongodb.list
+    echo "deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.2 multiverse" \
+        | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
 
 Reload the package database and install MongoDB server using APT: ::
 
@@ -125,9 +125,10 @@ configuration information for the MongoDB YUM repository:
 
     [mongodb]
     name=MongoDB Repository
-    baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
-    gpgcheck=0
+    baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.2/x86_64/
+    gpgcheck=1
     enabled=1
+    gpgkey=https://www.mongodb.org/static/pgp/server-3.2.asc
 
 Install MongoDB server using YUM: ::
 

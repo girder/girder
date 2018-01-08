@@ -6,7 +6,12 @@ jobs:
       # This image uses the oldest version of many dependencies
       - image: girder/girder_test:latest-py2
       # Use the oldest supported MongoDB
-      - image: mongo:2.6
+      - image: circleci/mongo:3.2-ram
+        # The "ephemeralForTest" storage engine https://docs.mongodb.com/v3.2/release-notes/3.2/#ephemeralfortest-storage-engine
+        # is likely a free (and poorly documented) analogue to the enterprise-only "inMemory"
+        # storage engine. We can pass alternate options to "mongod" by overwriting the default "CMD"
+        # used to start the Docker image: https://github.com/circleci/circleci-images/blob/master/mongo/resources/Dockerfile-ram.template
+        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -26,7 +31,7 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
           # "requirements-dev.txt" must be run from the "girder" working directory
           working_directory: girder
@@ -46,11 +51,11 @@ jobs:
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/virtualenv
           working_directory: girder_build
       - run:
-          name: Run pytest
-          command: pytest --cov-append --tb=long --junit-xml="$CIRCLE_WORKING_DIRECTORY/girder/build/test/artifacts/pytest-2.7.xml"
+          name: Run tox
+          command: tox -e circleci-py27
           working_directory: girder
-      - store_artifacts:
-          path: girder/build/test/artifacts
+      - store_test_results:
+          path: girder/build/test/results
       - run:
           name: Reduce workspace size
           command: |
@@ -87,7 +92,7 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -108,6 +113,7 @@ jobs:
       - image: girder/girder_test:latest-py3
       # Use the latest MongoDB
       - image: circleci/mongo:3.6-ram
+        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -130,11 +136,11 @@ jobs:
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
       - run:
-          name: Run pytest
-          command: pytest --cov-append --tb=long --junit-xml="$CIRCLE_WORKING_DIRECTORY/girder/build/test/artifacts/pytest-3.4.xml"
+          name: Run tox
+          command: tox -e circleci-py35
           working_directory: girder
-      - store_artifacts:
-          path: girder/build/test/artifacts
+      - store_test_results:
+          path: girder/build/test/results
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -144,6 +150,7 @@ jobs:
     docker:
       - image: girder/girder_test:latest-py3
       - image: circleci/mongo:3.6-ram
+        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -187,19 +194,12 @@ jobs:
             rm --recursive --force girder_build/env
             # Remove node_module caches
             rm --recursive --force girder/node_modules/.cache
-            # Aggresively remove recursed node modules; we only need enough of
-            # the node_modules to perform javascript coverage aggregation
-            find girder/node_modules/ -mindepth 1 -name node_modules -exec rm --recursive --force {} \+
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
             - girder/node_modules
-            # The "girder.coveragerc" and ".gitignore" files inside
-            # "girder/build/test/coverage/web_temp/" will conflict, so specify files more exactly
-            - girder/build/test/coverage/web_temp/coverage_*.json
+            - girder/build/test/artifacts
+            - girder/build/test/coverage
             - girder_build
             - girder_env
 
@@ -230,7 +230,7 @@ jobs:
             ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
           name: Install Girder via ansible
-          command: pyenv exec ansible-playbook --inventory-file="localhost," --connection=local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'2.6.12'}"
+          command: pyenv exec ansible-playbook --inventory-file="localhost," --connection=local girder/devops/ansible/examples/girder-dev-environment/site.yml --extra-vars="{'girder_version':'$CIRCLE_BRANCH', 'girder_repo':'$CIRCLE_REPOSITORY_URL', 'girder_path':'$CIRCLE_WORKING_DIRECTORY/girder', 'girder_clone':false, 'girder_update':false, 'girder_web':false, 'mongodb_version':'3.2.17'}"
           environment:
             ANSIBLE_ROLES_PATH: girder/devops/ansible/roles:girder/devops/ansible/examples/girder-dev-environment/roles
       - run:
@@ -239,7 +239,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
@@ -263,18 +263,17 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
-            - girder/build/test/coverage/web_temp/coverage_*.json
+            - girder/build/test/artifacts
+            - girder/build/test/coverage
 
   py2_coverage:
     docker:
       - image: girder/girder_test:latest-py2
-      - image: mongo:2.6
+      - image: circleci/mongo:3.2-ram
+        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
       - attach_workspace:
@@ -292,13 +291,14 @@ jobs:
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: OFF
           working_directory: girder_build
+      - store_artifacts:
+          path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
           command: pip install codecov
       - run:
           name: Upload coverage
-          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml
-          working_directory: girder
+          command: codecov --disable search pycov gcov --file girder/build/test/coverage/py_coverage.xml
 
   py3_integrationTests:
     machine: true
@@ -350,7 +350,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --editable .[plugins,sftp] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
@@ -372,18 +372,17 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
-      - store_artifacts:
-          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/.coverage.*
-            - girder/build/test/coverage/web_temp/coverage_*.json
+            - girder/build/test/artifacts
+            - girder/build/test/coverage
 
   py3_coverage:
     docker:
       - image: girder/girder_test:latest-py3
       - image: circleci/mongo:3.6-ram
+        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
       - attach_workspace:
@@ -402,25 +401,33 @@ jobs:
             BUILD_JAVASCRIPT_TESTS: ON
           working_directory: girder_build
       - run:
+          name: Move machine-readable web coverage file to coverage directory
+          # Ideally, this would be output natively to the correct location (outside of the
+          # "artifacts" directory for human-readable files), but nyc does not yet support
+          # per-reporter configuration of output paths.
+          command: mv girder/build/test/artifacts/web_coverage/cobertura-coverage.xml girder/build/test/coverage
+      - store_artifacts:
+          path: girder/build/test/artifacts
+      - run:
           name: Install Codecov client
           command: pip install codecov
       - run:
           name: Upload coverage
-          # Including lcov.info has two effects on Codecov's javascript
-          # coverage reporting: it adds function definitions to the list of
-          # statements that are considered for coverage (this substantially
-          # increases the reported coverage), and it functionally disables
-          # branch coverage reporting (thus considering all partially coveraged
-          # statements as completely covered).
-          command: codecov --disable search pycov gcov --file $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/js_coverage.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/server.xml $CIRCLE_WORKING_DIRECTORY/girder/build/test/coverage/web/lcov.info
-          working_directory: girder
+          command: codecov --disable search pycov gcov --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
   deploy:
     docker:
-      - image: girder/girder_test_py3:latest-3.5
+      - image: girder/girder_test:latest-py3
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
-      - attach_workspace:
-          at: /home/circleci/project
+      # This step depends on both "py2_coverage" and "py3_coverage", as it should only run when
+      # everything succeeds. However, this means that "attach_workspace" cannot be used, as the
+      # workspace will have conflicting coverage files from both.
+      - checkout:
+          path: girder
+      # Since this cache must have been created in a previous step of this workflow, we can get
+      # a virtualenv without having to create one or install anything.
+      - restore_cache:
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
       - run:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
@@ -429,10 +436,14 @@ jobs:
           command: curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
       - run:
           name: Deploy roles to Ansible Galaxy
-          command: ./girder/.circleci/galaxy_deploy.sh
+          command: .circleci/galaxy_deploy.sh
+          working_directory: girder
       - run:
           name: Update 2.x-maintenance branch
-          command: git push git@github.com:girder/girder.git master:2.x-maintenance
+          command: |
+            git fetch origin
+            git push origin origin/master:2.x-maintenance
+          working_directory: girder
 
 workflows:
   version: 2

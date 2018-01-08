@@ -27,6 +27,34 @@ describe('Test collection actions', function () {
     it('create a collection',
         girderTest.createCollection('collName0', 'coll Desc 0', 'Private'));
 
+    it('make sure nFolder is fetch', function () {
+        runs(function () {
+            $('.g-collection-info-button').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-dialog-container:visible').length > 0;
+        }, 'collection info dialog to appear');
+
+        runs(function () {
+            for (var i = 0; i < 4; i++) {
+                if ($('.g-collection-info-line').eq(i).attr('property') === 'id') {
+                    var id = $('.g-bold-part').eq(i).text();
+                    var n = $('.g-bold-part').eq(i - 1).text();
+                    console.log('ID ', id, ' - nFolder ', n);
+                }
+            }
+        });
+
+        runs(function () {
+            $('.btn-default').click();
+        });
+
+        waitsFor(function () {
+            return $('#g-dialog-container:visible').length === 0;
+        }, 'collection info dialog to be closed');
+    });
+
     it('go back to collections page', function () {
         runs(function () {
             $('a.g-nav-link[g-target="collections"]').click();
@@ -276,6 +304,8 @@ describe('Test collection actions', function () {
             return $('.g-collection-list-entry').text().match('collName0').length > 0;
         }, 'new collection to appear');
 
+        girderTest.waitForLoad();
+
         runs(function () {
             $('.g-collection-link:first').click();
         });
@@ -287,6 +317,8 @@ describe('Test collection actions', function () {
         waitsFor(function () {
             return $('.g-loading-block').length === 0;
         }, 'for all blocks to load');
+
+        girderTest.waitForLoad();
 
         runs(function () {
             $('.g-collection-actions-button').click();
@@ -304,6 +336,39 @@ describe('Test collection actions', function () {
             return $('#g-confirm-button:visible').length > 0;
         }, 'delete confirmation to appear');
 
+        girderTest.waitForDialog();
+
+        waitsFor(function () {
+            $('#g-confirm-text').val('DELETE wrongName');
+            return $('#g-confirm-text').val() === 'DELETE wrongName';
+        }, 'enter the wrong message of delete confirmation');
+
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-msg-error').is(':visible');
+        }, 'error message to be displayed');
+
+        waitsFor(function () {
+            $('#g-confirm-text').val('');
+            return $('#g-confirm-text').val() === '';
+        }, 'forget to enter the message of delete confirmation');
+
+        runs(function () {
+            $('#g-confirm-button').click();
+        });
+
+        waitsFor(function () {
+            return $('.g-msg-error').is(':visible');
+        }, 'error message to be displayed');
+
+        waitsFor(function () {
+            $('#g-confirm-text').val('DELETE collName0');
+            return $('#g-confirm-text').val() === 'DELETE collName0';
+        }, 'enter the right message of delete confirmation');
+
         runs(function () {
             $('#g-confirm-button').click();
         });
@@ -311,6 +376,8 @@ describe('Test collection actions', function () {
         waitsFor(function () {
             return $('.g-collection-list-header').length > 0;
         }, 'go back to the collections list');
+
+        girderTest.waitForLoad();
 
         runs(function () {
             expect($('.g-collection-list-entry').text()).not.toContain('collName0');

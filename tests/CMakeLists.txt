@@ -1,6 +1,3 @@
-set(COVERAGE_MINIMUM_PASS 90 CACHE STRING "Minimum python coverage threshold percent")
-set(JS_COVERAGE_MINIMUM_PASS 80 CACHE STRING "Minimum JS coverage threshold percent")
-
 # Test if mongod is present for tests that require it.
 find_program(MONGOD_EXECUTABLE mongod)
 if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
@@ -43,7 +40,6 @@ if(RUN_CORE_TESTS)
   add_python_test(item)
   add_python_test(logging_config)
   add_python_test(model_singleton)
-  add_python_test(routetable)
   add_python_test(notification TIMEOUT 50)
   add_python_test(plugin_load_failure)
   add_python_test(resource)
