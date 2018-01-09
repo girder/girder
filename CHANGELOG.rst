@@ -47,7 +47,7 @@ Changes
 Web Client
 ^^^^^^^^^^
 * Use ``href`` properties for navigation links in addition to JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
-* Change instances of ``.g-server-config`` to ``a.g-server-config`` to enable adding of ``href`` properties to those links
+* Change instances of ``.g-server-config`` to ``.g-server-config a`` to enable adding of ``href`` properties to those links
 
 Deprecations
 ------------
