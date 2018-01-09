@@ -64,7 +64,7 @@ def testEmailAdmins(smtp):
         mail_utils.sendEmail(text='hello', to=None)
 
 
-@pytest.mark.testPlugins(['mail_test'])
+@pytest.mark.testPlugin('mail_test')
 def testPluginTemplates(server):
     val = 'OVERRIDE CORE FOOTER'
     assert mail_utils.renderTemplate('_footer.mako').strip() == val

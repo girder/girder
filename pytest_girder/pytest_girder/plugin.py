@@ -21,7 +21,7 @@ def _makeCoverageDirs(config):
 
 def _addCustomMarkers(config):
     markerDocs = [
-        'testPlugins(pluginList): load a list of test plugins from the test path',
+        'testPlugin(pluginName): load a test plugin (may be marked multiple times)',
     ]
     for markerDoc in markerDocs:
         config.addinivalue_line('markers', markerDoc)

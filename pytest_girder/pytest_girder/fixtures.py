@@ -86,7 +86,7 @@ def server(db, request):
     # each time we startup the server and assigning it to the global.
     import girder.events
     from girder.api import docs
-    from girder.constants import ROOT_DIR, SettingKey
+    from girder.constants import SettingKey
     from girder.models.setting import Setting
     from girder.utility import plugin_utilities
     from girder.utility.server import setup as setupServer
@@ -95,17 +95,22 @@ def server(db, request):
 
     girder.events.daemon = girder.events.AsyncEventsThread()
 
-    if request.node.get_marker('testPlugins'):
-        # Load plugins from the test path
-        path = os.path.join(ROOT_DIR, 'tests', 'test_plugins')
+    enabledPlugins = []
+    testPluginMarkers = request.node.get_marker('testPlugin')
+    if testPluginMarkers is not None:
+        for testPluginMarker in testPluginMarkers:
+            pluginName = testPluginMarker.args[0]
+            enabledPlugins.append(pluginName)
 
-        plugin_utilities.getPluginDir = mock.Mock(return_value=path)
-        plugins = request.node.get_marker('testPlugins').args[0]
-        Setting().set(SettingKey.PLUGINS_ENABLED, plugins)
-    else:
-        plugins = []
+        # testFilePath is a py.path.local object that we *assume* lives in 'test/',
+        # with 'test/test_plugins' nearby
+        testFilePath = request.node.fspath
+        testPluginsPath = testFilePath.dirpath('test_plugins').strpath
+        plugin_utilities.getPluginDir = mock.Mock(return_value=testPluginsPath)
 
-    server = setupServer(test=True, plugins=plugins)
+        Setting().set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
+
+    server = setupServer(test=True, plugins=enabledPlugins)
     server.request = restRequest
 
     cherrypy.server.unsubscribe()
