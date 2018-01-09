@@ -39,7 +39,7 @@ function(add_puglint_test name path)
   add_test(
     NAME "puglint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND npx pug-lint -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
+    COMMAND npx pug-lint "${path}"
   )
   set_property(TEST "puglint_${name}" PROPERTY LABELS girder_browser)
 endfunction()
@@ -52,7 +52,7 @@ function(add_stylint_test name path)
   add_test(
     NAME "stylint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND npx stylint --config "${PROJECT_SOURCE_DIR}/.stylintrc" "${path}"
+    COMMAND npx stylint "${path}"
   )
   set_property(TEST "stylint_${name}" PROPERTY LABELS girder_browser)
 endfunction()

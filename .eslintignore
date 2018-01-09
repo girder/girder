@@ -1,5 +1,0 @@
-build/
-clients/web/static/built/
-clients/web/test/lib/
-docs/_build/
-plugins/*/web_client/extra/
