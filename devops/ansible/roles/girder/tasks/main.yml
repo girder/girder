@@ -18,11 +18,7 @@
   file:
     path: "{{ girder_path }}"
     state: directory
-    group: "{{ girder_user|default(ansible_user_id) }}"
-    owner: "{{ girder_user|default(ansible_user_id) }}"
     mode: 0755
-  become: yes
-  become_user: root
 
 - include: npm-RedHat.yml
   when:
