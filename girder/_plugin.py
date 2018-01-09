@@ -19,12 +19,14 @@ This module defines functions for registering, loading, and querying girder plug
 """
 
 import abc
+import distutils
+from pkg_resources import iter_entry_points
 import traceback
 
-from pkg_resources import iter_entry_points
 import six
 
 from girder import logprint
+
 
 NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
@@ -40,43 +42,37 @@ class GirderPlugin(object):
 
     Example ::
         class Cats(GirderPlugin):
-            '''
-            This string will be displayed to the user as a plugin description.
-            '''
-            URL = 'https://girder-cats.com'
-            DEPENDENCIES = ['animals']
 
             def load(self, info):
                 super(Cats, self).load()
                 import rest  # register new rest endpoints
     """
-    URL = ''
     DEPENDENCIES = []
     WEB_DEPENDENCIES = []
 
-    def __init__(self, entryPoint):
-        self._entryPoint = entryPoint
+    def __init__(self, entrypoint):
         self._loaded = False
+        self._metadata = _readPackageMetadata(entrypoint.dist)
 
     @property
     def name(self):
         """Return the plugin name defaulting to the entrypoint name."""
-        return self._entryPoint.name
+        return self._metadata.name
 
     @property
     def description(self):
         """Return the plugin description defaulting to the classes docstring."""
-        return self.__class__.__doc__ or ''
+        return self._metadata.description
 
     @property
     def url(self):
         """Return a url reference to the plugin (usually a readthedocs page)."""
-        return self.URL
+        return self._metadata.url
 
     @property
     def version(self):
         """Return the version of the plugin automatically determined from setup.py."""
-        return self._entryPoint.dist.version
+        return self._metadata.version
 
     @property
     def dependencies(self):
@@ -100,6 +96,14 @@ class GirderPlugin(object):
         This method must be overridden by derived classes and call the superclass method.
         """
         self._loaded = True
+
+
+def _readPackageMetadata(distribution):
+    """Get a metadata object associated with a python package."""
+    metadata_string = distribution.get_metadata(distribution.PKG_INFO)
+    metadata = distutils.dist.DistributionMetadata()
+    metadata.read_pkg_file(six.StringIO(metadata_string))
+    return metadata
 
 
 def _getPluginRegistry():

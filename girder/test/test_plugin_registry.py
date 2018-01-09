@@ -14,10 +14,12 @@
 #  limitations under the License.
 ###############################################################################
 
+import distutils
 import re
 
 import mock
 import pytest
+import six
 
 from girder import _plugin as plugin
 
@@ -65,22 +67,41 @@ class MockedPlugin(plugin.GirderPlugin):
             raise self._side_effect
 
 
-def mockPluginGenerator(deps, webDeps, url, doc, side_effect=None):
+def mockPluginGenerator(deps, webDeps, side_effect=None):
     class GeneratedMockPlugin(MockedPlugin):
         DEPENDENCIES = deps
         WEB_DEPENDENCIES = webDeps
-        URL = url
         _side_effect = side_effect
-        __doc__ = doc
 
     return GeneratedMockPlugin
 
 
+class MockDistribution(object):
+    def __init__(self, name, version, description='', url=''):
+        self.PKG_INFO = 'PKG_INFO'
+        self.version = version
+        self._metadata = self.generateMetadata(name, version, description, url)
+
+    def get_metadata(self, *args, **kwargs):
+        return self._metadata
+
+    def generateMetadata(self, name, version, description, url):
+        meta = distutils.dist.DistributionMetadata()
+        meta.name = name
+        meta.version = version
+        meta.description = description
+        meta.url = url
+        pkgInfo = six.StringIO()
+        meta.write_pkg_file(pkgInfo)
+        return pkgInfo.getvalue()
+
+
 class MockEntryPoint(object):
-    def __init__(self, name, version, pluginClass):
+    def __init__(self, name, version, description, url, pluginClass):
         self.name = name
-        self.dist = mock.Mock()
-        self.dist.version = version
+        self.description = description
+        self.url = url
+        self.dist = MockDistribution(name, version, description, url)
         self.load = mock.Mock(return_value=pluginClass)
         self.pluginClass = pluginClass
 
@@ -93,8 +114,8 @@ def mockEntryPointGenerator(name, version='0.1.0', deps=None, webDeps=None, side
 
     url = 'url for %s' % name
     doc = 'doc for %s' % name
-    pluginClass = mockPluginGenerator(deps, webDeps, url, doc, side_effect)
-    return MockEntryPoint(name, version, pluginClass)
+    pluginClass = mockPluginGenerator(deps, webDeps, side_effect)
+    return MockEntryPoint(name, version, doc, url, pluginClass)
 
 
 @pytest.fixture
@@ -183,8 +204,8 @@ def testPluginGetMetadata(registerPlugin, pluginList):
         pluginDefinition = plugin.getPlugin(pluginEntryPoint.name)
         assert pluginDefinition.name == pluginEntryPoint.name
         assert pluginDefinition.version == pluginEntryPoint.dist.version
-        assert pluginDefinition.description == pluginEntryPoint.pluginClass.__doc__
-        assert pluginDefinition.url == pluginEntryPoint.pluginClass.URL
+        assert pluginDefinition.description == pluginEntryPoint.description
+        assert pluginDefinition.url == pluginEntryPoint.url
 
 
 @pytest.mark.parametrize('pluginList', validPluginList)
