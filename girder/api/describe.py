@@ -28,6 +28,7 @@ import jsonschema
 import os
 import six
 import cherrypy
+from collections import OrderedDict
 
 from girder import constants, events, logprint
 from girder.api.rest import getCurrentUser, getBodyJson
@@ -135,7 +136,17 @@ class Description(object):
             resp['consumes'] = self._consumes
 
         if self._produces:
-            resp['produces'] = self._produces
+            # swagger has a bug where not all appropriate mime types are
+            # considered to be binary (see
+            # https://github.com/swagger-api/swagger-ui/issues/1605).  If we
+            # have specified zip format, replace it with
+            # application/octet-stream
+            #   Reduce the list of produces values to unique values,
+            # maintaining the order.
+            produces = list(OrderedDict.fromkeys([
+                'application/octet-stream' if item in ('application/zip', )
+                else item for item in self._produces]))
+            resp['produces'] = produces
 
         if self._deprecated:
             resp['deprecated'] = True
