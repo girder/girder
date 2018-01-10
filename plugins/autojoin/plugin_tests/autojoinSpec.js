@@ -41,7 +41,7 @@ describe('test the autojoin ui', function () {
         }, 'admin console to display');
 
         runs(function () {
-            $('.g-plugins-config a').click();
+            $('.g-plugins-config:visible').click();
         });
 
         waitsFor(function () {

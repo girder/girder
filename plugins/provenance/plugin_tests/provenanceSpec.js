@@ -16,7 +16,7 @@ describe('test the provenance plugin', function () {
             return $('.g-plugins-config').length > 0;
         }, 'the admin console to load');
         runs(function () {
-            $('.g-plugins-config a').click();
+            $('.g-plugins-config').click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {
