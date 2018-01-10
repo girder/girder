@@ -15,6 +15,7 @@ import FolderListTemplate from 'girder/templates/widgets/folderList.pug';
 var FolderListWidget = View.extend({
     events: {
         'click a.g-folder-list-link': function (event) {
+            event.preventDefault();
             var cid = $(event.currentTarget).attr('g-folder-cid');
             this.trigger('g:folderClicked', this.collection.get(cid));
         },
