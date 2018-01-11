@@ -4,8 +4,8 @@ import * as views from './views';
 import JobStatus from './JobStatus';
 
 export {
-  collections,
-  models,
-  views,
-  JobStatus
+    collections,
+    models,
+    views,
+    JobStatus
 };

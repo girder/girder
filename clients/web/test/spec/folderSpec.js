@@ -47,7 +47,7 @@ function _editFolder(button, buttonText, testValidation) {
         runs(function () {
             $('#g-name').val(oldval);
             girderTest.sendFile('clients/web/test/testFile.txt',
-                                '.g-markdown-drop-zone .g-file-input');
+                '.g-markdown-drop-zone .g-file-input');
         });
 
         waitsFor(function () {
@@ -58,7 +58,7 @@ function _editFolder(button, buttonText, testValidation) {
 
         runs(function () {
             girderTest.sendFile('clients/web/test/fake.jpg',
-                                '.g-markdown-drop-zone .g-file-input');
+                '.g-markdown-drop-zone .g-file-input');
         });
 
         waitsFor(function () {
@@ -105,10 +105,10 @@ function _editFolder(button, buttonText, testValidation) {
 describe('Test folder creation, editing, and deletion', function () {
     it('register a user',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!'));
+            'admin@email.com',
+            'Admin',
+            'Admin',
+            'adminpassword!'));
 
     it('go to users page', girderTest.goToUsersPage());
 

@@ -237,7 +237,7 @@ Running the Tests with Coverage Tracing
 To run Python coverage on your tests, configure with CMake and run CTest.
 The coverage data will be automatically generated. After the tests are run,
 you can find the HTML output from the coverage tool in the source directory
-under **/clients/web/dev/built/py_coverage**.
+under **build/test/artifacts/**.
 
 Client Side Testing
 -------------------
@@ -448,12 +448,11 @@ Web client libraries in Girder core are managed via `npm <https://www.npmjs.com/
 When a new npm package is required, or an existing package is upgraded, the following
 should be done:
 
-1. Ensure that you are using a Linux development environment (macOS causes npm to produce slightly
-   different outputs) with version >=5.3 of npm installed:
+1. Ensure that you are using a development environment with version >=5.6 of npm installed:
 
    .. code-block:: bash
 
-       npm install -g 'npm@>=5.3'
+       npm install -g 'npm@>=5.6'
 
 2. Update ``dependencies`` or ``devDependencies`` in ``package.json`` to add a new
    *abstract* specifier for the package:

@@ -172,7 +172,7 @@ describe('Run the item task', function () {
             return $('.g-validation-failed-message').text();
         }, 'validation to fail');
 
-        runs(function() {
+        runs(function () {
             expect($('.g-validation-failed-message').text()).toMatch(/Invalid parent type/);
             $('.modal-dialog .g-folder-list-link:first').click();
         });
@@ -316,7 +316,7 @@ describe('Run task on item from item view', function () {
     });
 
     it('navigate to items', function () {
-        runs(function() {
+        runs(function () {
             $('.g-folder-list-link:contains("tasks")').click();
         });
 
@@ -652,7 +652,7 @@ describe('Navigate to the new Slicer CLI task', function () {
             expect($('.g-execute-task-link').length).toBe(5);
             // get the position of the alphabetized entry; depending on locale
             // it may be in different positions
-            var position = $('.g-execute-task-link').index($(':contains("PET phantom detector CLI"):last') );
+            var position = $('.g-execute-task-link').index($(':contains("PET phantom detector CLI"):last'));
             expect($('.g-execute-task-link').eq(position).text()).toBe('PET phantom detector CLI');
             expect($('.g-execute-task-link-body').eq(position).text()).toContain(
                 'Detects positions of PET/CT pocket phantoms in PET image.');

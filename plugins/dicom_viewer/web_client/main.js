@@ -59,10 +59,10 @@ ItemView.prototype.events['click .g-dicom-parse-item'] = function () {
 };
 
 SearchFieldWidget.addMode(
-        'dicom',
-        ['item'],
-        'DICOM metadata search',
-        `You are searching for text in DICOM metadata. Only Girder items which have been preprocessed to
+    'dicom',
+    ['item'],
+    'DICOM metadata search',
+    `You are searching for text in DICOM metadata. Only Girder items which have been preprocessed to
         extract DICOM images will be searched. The search text may appear anywhere within the common (i.e.
         shared across slices) metadata keys or values of a DICOM image.`
-    );
+);

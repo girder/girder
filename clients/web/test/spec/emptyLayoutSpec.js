@@ -37,10 +37,10 @@ describe('Test empty and default layouts', function () {
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!'));
+            'admin@email.com',
+            'Admin',
+            'Admin',
+            'adminpassword!'));
 
     it('go to collections empty layout page', function () {
         waitsFor(function () {

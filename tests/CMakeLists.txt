@@ -1,6 +1,3 @@
-set(COVERAGE_MINIMUM_PASS 90 CACHE STRING "Minimum python coverage threshold percent")
-set(JS_COVERAGE_MINIMUM_PASS 80 CACHE STRING "Minimum JS coverage threshold percent")
-
 # Test if mongod is present for tests that require it.
 find_program(MONGOD_EXECUTABLE mongod)
 if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
@@ -175,8 +172,7 @@ macro(add_standard_plugin_tests)
       string(REGEX REPLACE "Spec\\.js$" "" _clientTestName "${_clientTestFileName}")
       add_web_client_test(${_clientTestName} "${_clientTestFile}" PLUGIN ${_pluginName})
     endforeach()
-    add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests"
-      ESLINT_CONFIG_FILE "${PROJECT_SOURCE_DIR}/clients/web/test/.eslintrc.json")
+    add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests")
   endif()
 endmacro()
 

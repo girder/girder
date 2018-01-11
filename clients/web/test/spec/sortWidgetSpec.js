@@ -5,29 +5,29 @@ var registeredUsers = [];
 describe('Sort user list', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'BFirstName',
-                              'BLastName',
-                              'adminpassword!',
-                              registeredUsers));
+            'admin@email.com',
+            'BFirstName',
+            'BLastName',
+            'adminpassword!',
+            registeredUsers));
     it('logout', girderTest.logout());
 
     it('register another user',
         girderTest.createUser('nonadmin',
-                              'nonadmin@email.com',
-                              'CFirstName',
-                              'CLastName',
-                              'password!',
-                              registeredUsers));
+            'nonadmin@email.com',
+            'CFirstName',
+            'CLastName',
+            'password!',
+            registeredUsers));
     it('logout', girderTest.logout());
 
     it('register third user',
         girderTest.createUser('nonadmin2',
-                              'nonadmin2@email.com',
-                              'AFirstName',
-                              'ALastName',
-                              'password!',
-                              registeredUsers));
+            'nonadmin2@email.com',
+            'AFirstName',
+            'ALastName',
+            'password!',
+            registeredUsers));
 
     it('view the users on the user page and try different sort options', function () {
         girderTest.goToUsersPage()();

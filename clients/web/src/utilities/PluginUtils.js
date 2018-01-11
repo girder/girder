@@ -30,7 +30,7 @@ function getPluginConfigRoute(pluginName) {
 }
 
 export {
-  exposePluginConfig,
-  getPluginConfigRoute,
-  wrap
+    exposePluginConfig,
+    getPluginConfigRoute,
+    wrap
 };

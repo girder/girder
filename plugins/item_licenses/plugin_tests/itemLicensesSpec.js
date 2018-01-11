@@ -4,19 +4,19 @@ girderTest.startApp();
 describe('item_licenses plugin test', function () {
     it('registers admin user',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'User',
-                              'CxV`%EOsq9'));
+            'admin@email.com',
+            'Admin',
+            'User',
+            'CxV`%EOsq9'));
 
     it('logs out', girderTest.logout());
 
     it('registers normal user',
         girderTest.createUser('user',
-                              'user@email.com',
-                              'Normal',
-                              'User',
-                              'a*z/Swb?td'));
+            'user@email.com',
+            'Normal',
+            'User',
+            'a*z/Swb?td'));
 
     it('creates an item with a license', function () {
         waitsFor(function () {

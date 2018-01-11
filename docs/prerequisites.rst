@@ -28,7 +28,7 @@ See the specific instructions for your platform below.
    Metadata Extractor plugin will only be available in a Python 2.7 environment.
 
 .. note:: It's recommended to get the latest version of the npm package manager, and Girder currently
-   requires at least version 3.10 of npm. To upgrade to the latest npm, after installing Node.js,
+   requires at least version 5.2 of npm. To upgrade to the latest npm, after installing Node.js,
    run:
 
    .. code-block:: bash

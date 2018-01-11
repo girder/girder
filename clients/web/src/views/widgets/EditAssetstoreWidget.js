@@ -137,9 +137,10 @@ fieldsMap[AssetstoreType.S3] = {
         this.$('#g-edit-s3-secret').val(this.model.get('secret'));
         this.$('#g-edit-s3-service').val(this.model.get('service'));
         this.$('#g-edit-s3-region').val(this.model.get('region'));
-        this.$('#g-edit-s3-readonly').attr('checked', this.model.get('readOnly') ? 'checked' : undefined);
-        this.$('#g-edit-s3-infercredentials').attr('checked', (this.model.get('inferCredentials')
-                                                               ? 'checked' : undefined));
+        this.$('#g-edit-s3-readonly').attr('checked',
+            this.model.get('readOnly') ? 'checked' : undefined);
+        this.$('#g-edit-s3-infercredentials').attr('checked',
+            (this.model.get('inferCredentials') ? 'checked' : undefined));
     }
 };
 

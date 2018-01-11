@@ -65,7 +65,7 @@ function extendModel(Model, modelType) {
         if (getCurrentUser().get('admin') &&
                 (!this.get('assetstoreList') || force)) {
             this.set('assetstoreList',
-                     new AssetstoreCollection());
+                new AssetstoreCollection());
             this.get('assetstoreList').on('g:changed', function () {
                 this.fetchDefaultQuota(force);
             }, this).fetch();

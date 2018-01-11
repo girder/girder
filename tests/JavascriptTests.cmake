@@ -12,11 +12,7 @@ function(javascript_tests_init)
   add_test(
     NAME js_coverage_combine_report
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${ISTANBUL_EXECUTABLE}"
-            "report"
-            "--config" "${PROJECT_SOURCE_DIR}/.istanbul.yml"
-            "--root" "${PROJECT_SOURCE_DIR}/build/test/coverage/web_temp"
-            "--include" "coverage*.json"
+    COMMAND npx nyc report
   )
   set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser girder_integration)
   set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_coverage)
@@ -27,29 +23,10 @@ function(add_eslint_test name input)
     return()
   endif()
 
-  if (NOT ESLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable ESLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
-  endif()
-
-  set(_args ESLINT_IGNORE_FILE ESLINT_CONFIG_FILE)
-  cmake_parse_arguments(fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
-
-  if(fn_ESLINT_IGNORE_FILE)
-    set(ignore_file "${fn_ESLINT_IGNORE_FILE}")
-  else()
-    set(ignore_file "${PROJECT_SOURCE_DIR}/.eslintignore")
-  endif()
-
-  if(fn_ESLINT_CONFIG_FILE)
-    set(config_file "${fn_ESLINT_CONFIG_FILE}")
-  else()
-    set(config_file "${PROJECT_SOURCE_DIR}/.eslintrc.json")
-  endif()
-
   add_test(
     NAME "eslint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${ESLINT_EXECUTABLE}" --ignore-path "${ignore_file}" --config "${config_file}" "${input}"
+    COMMAND npx eslint "${input}"
   )
   set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser)
 endfunction()
@@ -59,14 +36,10 @@ function(add_puglint_test name path)
     return()
   endif()
 
-  if (NOT PUGLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable PUGLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
-  endif()
-
   add_test(
     NAME "puglint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PUGLINT_EXECUTABLE}" -c "${PROJECT_SOURCE_DIR}/.pug-lintrc" "${path}"
+    COMMAND npx pug-lint "${path}"
   )
   set_property(TEST "puglint_${name}" PROPERTY LABELS girder_browser)
 endfunction()
@@ -76,14 +49,10 @@ function(add_stylint_test name path)
     return()
   endif()
 
-  if (NOT STYLINT_EXECUTABLE)
-    message(FATAL_ERROR "CMake variable STYLINT_EXECUTABLE is not set. Run 'girder-install web --dev' or disable JAVASCRIPT_STYLE_TESTS.")
-  endif()
-
   add_test(
     NAME "stylint_${name}"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${STYLINT_EXECUTABLE}" --config "${PROJECT_SOURCE_DIR}/.stylintrc" "${path}"
+    COMMAND npx stylint "${path}"
   )
   set_property(TEST "stylint_${name}" PROPERTY LABELS girder_browser)
 endfunction()

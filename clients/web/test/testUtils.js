@@ -444,8 +444,9 @@ girderTest.testMetadata = function () {
         }
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 1 &&
-                ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 1
-                                     : $('.jsoneditor > .jsoneditor-outer > .jsoneditor-tree').length === 1);
+                ((type === 'simple')
+                    ? $('textarea.g-widget-metadata-value-input').length === 1
+                    : $('.jsoneditor > .jsoneditor-outer > .jsoneditor-tree').length === 1);
         }, 'the add metadata input fields to appear');
         runs(function () {
             if (!elem) {
@@ -503,8 +504,9 @@ girderTest.testMetadata = function () {
         }
         waitsFor(function () {
             return $('input.g-widget-metadata-key-input').length === 0 &&
-                ((type === 'simple') ? $('textarea.g-widget-metadata-value-input').length === 0
-                                     : $('.jsoneditor > .jsoneditor-outer > .jsoneditor-tree').length === 0);
+                ((type === 'simple')
+                    ? $('textarea.g-widget-metadata-value-input').length === 0
+                    : $('.jsoneditor > .jsoneditor-outer > .jsoneditor-tree').length === 0);
         }, 'edit fields to disappear');
         waitsFor(function () {
             return $('.g-widget-metadata-row').length === expectedNum;

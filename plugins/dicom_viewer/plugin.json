@@ -7,7 +7,7 @@
         "dependencies": {
             "daikon": "^1.2.15",
             "shader-loader": "1.3.0",
-            "vtk.js": "2.24.1"
+            "vtk.js": "5.10.3"
         }
     }
 }

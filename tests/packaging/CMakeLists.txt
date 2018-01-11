@@ -25,7 +25,7 @@ add_custom_target(
 add_test(
   NAME packaging_generate
   WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-  COMMAND "${PROJECT_SOURCE_DIR}/node_modules/.bin/grunt" package
+  COMMAND npx grunt package
 )
 
 set_property(TEST packaging_generate

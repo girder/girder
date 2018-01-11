@@ -28,23 +28,6 @@ if(PYTHON_STATIC_ANALYSIS)
   find_program(FLAKE8_EXECUTABLE flake8)
 endif()
 
-if(JAVASCRIPT_STYLE_TESTS)
-  find_program(NODEJS_EXECUTABLE NAMES nodejs node)
-  if(NOT NODEJS_EXECUTABLE)
-    message(FATAL_ERROR "'nodejs' executable couldn't be found.\n"
-                        "Consider reconfiguring passing -DNODEJS_EXECUTABLE:FILEPATH=/path/to/nodejs")
-  endif()
-  find_program(ESLINT_EXECUTABLE eslint ${PROJECT_SOURCE_DIR}/node_modules/.bin NO_DEFAULT_PATH)
-  find_program(PUGLINT_EXECUTABLE pug-lint ${PROJECT_SOURCE_DIR}/node_modules/.bin NO_DEFAULT_PATH)
-  find_program(STYLINT_EXECUTABLE stylint ${PROJECT_SOURCE_DIR}/node_modules/.bin NO_DEFAULT_PATH)
-endif()
-
-if(BUILD_JAVASCRIPT_TESTS)
-  find_program(ISTANBUL_EXECUTABLE istanbul
-    PATHS "${PROJECT_SOURCE_DIR}/node_modules/.bin"
-    NO_DEFAULT_PATH)
-endif()
-
 if(BUILD_TESTING)
   include(tests/TestData.cmake)
   include(tests/TestCommon.cmake)

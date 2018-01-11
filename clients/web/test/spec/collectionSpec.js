@@ -5,10 +5,10 @@ describe('Test collection actions', function () {
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!'));
+            'admin@email.com',
+            'Admin',
+            'Admin',
+            'adminpassword!'));
 
     it('go to collections page', function () {
         runs(function () {

@@ -1,6 +1,23 @@
 comment: false
 coverage:
   status:
+    # Patch status gives meaningless results whenever a test is modified without changing the
+    # correspondingly tested code, and may be difficult to interpret without context. Disable
+    # posting it to GitHub.
+    patch: false
     project:
-      default:
-        threshold: 1
+      default: false
+      server:
+        target: 85%
+        paths:
+          - girder
+          - plugins/*/server
+      python_client:
+        target: 80%
+        paths:
+          - clients/python/girder_client
+      web_client:
+        target: 80%
+        paths:
+          - clients/web/src
+          - plugins/*/web_client
