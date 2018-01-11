@@ -91,7 +91,7 @@ example, we have the following:
 .. code-block:: ini
 
     [global]
-    server.socket_host = "0.0.0.0"
+    server.socket_host = "127.0.0.1"
     server.socket_port = 9000
     tools.proxy.on = True
 
