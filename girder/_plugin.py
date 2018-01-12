@@ -102,17 +102,23 @@ class GirderPlugin(object):
         self._loaded = True
 
 
-def _findPlugins():
-    """Iterate through entrypoints to discover installed plugins."""
+def _getPluginRegistry():
+    """Return a dictionary containing all detected plugins.
+
+    This function will discover plugins registered via entrypoints and return
+    a mapping of plugin name -> plugin definition.  The result is memoized
+    because iteration through entrypoints is a slow operation.
+    """
     global _pluginRegistry
     if _pluginRegistry is not None:
-        return
+        return _pluginRegistry
 
     _pluginRegistry = {}
     for entryPoint in iter_entry_points(NAMESPACE):
         pluginClass = entryPoint.load()
         plugin = pluginClass(entryPoint)
         _pluginRegistry[plugin.name] = plugin
+    return _pluginRegistry
 
 
 def _walkPluginTree(func, plugins, dependencyGetter, handled, nodes):
@@ -211,10 +217,8 @@ def getToposortedWebDependencies(plugins=None):
 
 def getPlugin(name):
     """Return a plugin configuration object or None if the plugin is not found."""
-    _findPlugins()
-    if name not in _pluginRegistry:
-        return None
-    return _pluginRegistry[name]
+    registry = _getPluginRegistry()
+    return registry.get(name)
 
 
 def getPluginFailureInfo():
@@ -261,5 +265,4 @@ def loadPlugins(names, root, appconf, apiRoot=None):
 
 def allPlugins():
     """Return a list of all detected plugins."""
-    _findPlugins()
-    return list(_pluginRegistry.keys())
+    return _getPluginRegistry().keys()
