@@ -18,8 +18,8 @@
 This module defines functions for registering, loading, and querying girder plugins.
 """
 
-import abc
 import distutils
+from functools import wraps
 from pkg_resources import iter_entry_points
 import traceback
 
@@ -33,7 +33,57 @@ _pluginRegistry = None
 _pluginFailureInfo = {}
 
 
-@six.add_metaclass(abc.ABCMeta)
+def _wrapPluginLoad(func):
+    """Wrap a plugin load method to provide logging and ensure it is loaded only once."""
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+
+        if not wrapper._ran:
+            # This block is executed on the first call to the function.
+            # The return value of the call (or exception raised) is saved
+            # as attributes on the wrapper for future invocations.
+            wrapper._ran = True
+            wrapper._exception = None
+            wrapper._return = None
+
+            try:
+                result = func(self, *args, **kwargs)
+            except Exception as e:
+                # If any errors occur in loading the plugin, log the information, and
+                # store failure information that can be queried through the api.
+                wrapper._exception = e
+                logprint.exception('Failed to load plugin %s' % self.name)
+                _pluginFailureInfo[self.name] = {
+                    'traceback': traceback.format_exc()
+                }
+                raise
+
+            wrapper._return = result
+            wrapper._success = True
+            logprint.info('Loaded plugin %s' % self._metadata.name)
+
+        elif wrapper._exception:
+            # If the plugin failed on the first invocation, reraise the original exception.
+            raise wrapper._exception
+
+        return wrapper._return
+
+    wrapper._ran = False
+    return wrapper
+
+
+class _PluginMeta(type):
+    """
+    This is a metaclass applied to the ``GirderPlugin`` descriptor class.  It
+    exists to automatically wrap subclass load methods.
+    """
+    def __new__(meta, classname, bases, classdict):
+        if 'load' in classdict:
+            classdict['load'] = _wrapPluginLoad(classdict['load'])
+        return type.__new__(meta, classname, bases, classdict)
+
+
+@six.add_metaclass(_PluginMeta)
 class GirderPlugin(object):
     """
     This is a base class for describing a girder plugin.  A plugin is registered by adding
@@ -44,12 +94,11 @@ class GirderPlugin(object):
         class Cats(GirderPlugin):
 
             def load(self, info):
-                super(Cats, self).load()
-                import rest  # register new rest endpoints
-    """
-    DEPENDENCIES = []
-    WEB_DEPENDENCIES = []
+                # load dependent plugins
+                girder.plugin.getPlugin('pets').load(info)
 
+                import rest  # register new rest endpoints, etc.
+    """
     def __init__(self, entrypoint):
         self._loaded = False
         self._metadata = _readPackageMetadata(entrypoint.dist)
@@ -75,27 +124,12 @@ class GirderPlugin(object):
         return self._metadata.version
 
     @property
-    def dependencies(self):
-        """Return a list of plugins that this plugin requires."""
-        return list(self.DEPENDENCIES)
-
-    @property
-    def webDependencies(self):
-        """Return a list of plugins containing web client assets this plugin uses."""
-        return list(self.WEB_DEPENDENCIES)
-
-    @property
     def loaded(self):
         """Return true if this plugin has been loaded."""
-        return self._loaded
+        return self.load._success
 
-    @abc.abstractmethod
     def load(self, info):
-        """Execute any code necessary to load the plugin.
-
-        This method must be overridden by derived classes and call the superclass method.
-        """
-        self._loaded = True
+        NotImplementedError('Plugins must define a load method')
 
 
 def _readPackageMetadata(distribution):
@@ -125,100 +159,6 @@ def _getPluginRegistry():
     return _pluginRegistry
 
 
-def _walkPluginTree(func, plugins, dependencyGetter, handled, nodes):
-    """Walk through the plugin dependency tree depth first.
-
-    This is a recursive function performing a specialized topological sorting of the
-    plugin dependency tree.  Each time a new plugin is encountered the provided function
-    is called on the plugin config object.  This function will be called at most once
-    for each plugin and if it raises any exception, an error message will be recorded and
-    the walk cancelled.
-
-    :param func: A function taking the plugin configuration object.
-    :param plugins: A list of plugin names to traverse.
-    :param dependencyGetter: A function that returns a list of dependencies of a plugin.
-    :param handled: A set of plugin names that have already been handled.
-    :param nodes: A set of plugin names in the current tree traversal.  This is used
-                  to detect cycles in the dependency graph.
-    """
-    # loop over a sorted list of plugins to ensure a consistent traversal order
-    for pluginName in sorted(plugins):
-        if pluginName in handled:
-            continue
-
-        # handle dependency cycles
-        if pluginName in nodes:
-            logprint.error('Cyclic dependencies encountered while processing plugins')
-            raise Exception('Cyclic dependencies encountered while processing plugins')
-
-        # generate a set of nodes traversed up to the root for cycle detection
-        pluginNodes = {pluginName}
-        pluginNodes.update(nodes)
-
-        plugin = getPlugin(pluginName)
-
-        # handle missing dependencies
-        if plugin is None:
-            logprint.error('ERROR: Plugin %s not found', pluginName)
-            raise Exception('Required plugin missing')
-
-        # traverse into sub-dependencies
-        try:
-            _walkPluginTree(func, dependencyGetter(plugin), dependencyGetter, handled, pluginNodes)
-        except Exception:
-            logprint.error('ERROR: Dependency failure while processing %s', pluginName)
-            _pluginFailureInfo[pluginName] = {
-                'traceback': '',
-                'message': 'Dependency error'
-            }
-            handled.add(pluginName)
-            raise
-
-        # call the handler function and record it
-        func(plugin)
-        handled.add(pluginName)
-
-
-def _getToposortedPlugins(plugins, dependencyGetter):
-    """Return a toposorted list of plugins with a custom child-node accessor.
-
-    :param plugins: A list of plugins to include (defaults to all plugins)
-    :param dependencyGetter: A function taking a plugin object and returning a list of dependencies
-    """
-    pluginNames = []
-    if plugins is None:
-        plugins = allPlugins()
-
-    def appendPluginName(plugin):
-        pluginNames.append(plugin.name)
-
-    _walkPluginTree(appendPluginName, plugins, dependencyGetter, set(), set())
-    return pluginNames
-
-
-def getToposortedPlugins(plugins=None):
-    """Return a toposorted list of plugins.
-
-    By default this function will return a toposorted list of all detected plugins.  If a list of
-    plugin names is provided, it will only return a minimal list of plugins required for the
-    given top-level plugins.
-    """
-    return _getToposortedPlugins(plugins, lambda p: p.dependencies)
-
-
-def getToposortedWebDependencies(plugins=None):
-    """Return a toposorted list of plugin web dependencies.
-
-    By default this function will return a toposorted list of all detected plugins.  If a list of
-    plugin names is provided, it will only return a minimal list of plugins required for the
-    given top-level plugins.
-    """
-    return _getToposortedPlugins(
-        plugins,
-        dependencyGetter=lambda p: p.webDependencies
-    )
-
-
 def getPlugin(name):
     """Return a plugin configuration object or None if the plugin is not found."""
     registry = _getPluginRegistry()
@@ -230,43 +170,39 @@ def getPluginFailureInfo():
     return _pluginFailureInfo
 
 
-def loadPlugin(name, root, appconf, apiRoot=None):
-    """Load a plugin and all of its dependencies in topological order."""
-    def callPluginLoad(plugin):
-        if not plugin or plugin.loaded:
-            return
-        info['dependencies'] = list(plugin.dependencies)
-        try:
-            plugin.load(info)
-        except Exception:
-            logprint.exception('ERROR: Failed to execute load method for %s', plugin.name)
-            _pluginFailureInfo[plugin.name] = {
-                'traceback': traceback.format_exc()
-            }
-            raise
+def loadPlugins(names, info):
+    """Load a list of plugins with the given app info object.
 
-    info = {
-        'config': appconf,
-        'serverRoot': root,
-        'apiRoot': apiRoot
-    }
-    try:
-        _walkPluginTree(callPluginLoad, [name], lambda p: p.dependencies, set(), set())
-    except Exception:
-        return None
-    return getPlugin(name)
-
-
-def loadPlugins(names, root, appconf, apiRoot=None):
-    """Load a list of plugins and their dependencies in topological order."""
-    loadedPlugins = {}
+    This method will try to load **all** plugins in the provided list.  If
+    an error occurs, it will be logged and the next plugin will be loaded.  A
+    list of successfully loaded plugins will be returned.
+    """
+    loadedPlugins = []
     for name in names:
-        pluginObject = loadPlugin(name, root, appconf, apiRoot)
-        if pluginObject:
-            loadedPlugins[name] = pluginObject
+        pluginObject = getPlugin(name)
+
+        if pluginObject is None:
+            logprint.error('Plugin %s is not installed' % name)
+            continue
+
+        try:
+            pluginObject.load(info)
+        except Exception:
+            continue
+        loadedPlugins.append(name)
+
     return loadedPlugins
 
 
 def allPlugins():
     """Return a list of all detected plugins."""
     return _getPluginRegistry().keys()
+
+
+def loadedPlugins():
+    """Return a list of successfully loaded plugins."""
+    loaded = []
+    for pluginName in allPlugins():
+        if getPlugin(pluginName).loaded:
+            loaded.append(pluginName)
+    return loaded

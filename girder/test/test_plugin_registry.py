@@ -15,7 +15,6 @@
 ###############################################################################
 
 import distutils
-import re
 
 import mock
 import pytest
@@ -28,29 +27,6 @@ from girder import _plugin as plugin
 def logprint():
     with mock.patch.object(plugin, 'logprint') as logprintMock:
         yield logprintMock
-
-
-def assertNoDuplicates(loadOrder):
-    __tracebackhide__ = True
-    assert len(loadOrder) == len(set(loadOrder))
-
-
-def assertPluginLoadOrder(plugin, loadOrder):
-    __tracebackhide__ = True
-
-    assertNoDuplicates(loadOrder)
-    pluginIndex = loadOrder.index(plugin.name)
-    for dep in plugin.dependencies:
-        depIndex = loadOrder.index(dep)
-        assert depIndex < pluginIndex
-
-
-def assertAllPluginsLoadOrder(loadOrder):
-    __tracebackhide__ = True
-
-    assertNoDuplicates(loadOrder)
-    for pluginName in loadOrder:
-        assertPluginLoadOrder(plugin.getPlugin(pluginName), loadOrder)
 
 
 class MockedPlugin(plugin.GirderPlugin):
@@ -69,8 +45,6 @@ class MockedPlugin(plugin.GirderPlugin):
 
 def mockPluginGenerator(deps, webDeps, side_effect=None):
     class GeneratedMockPlugin(MockedPlugin):
-        DEPENDENCIES = deps
-        WEB_DEPENDENCIES = webDeps
         _side_effect = side_effect
 
     return GeneratedMockPlugin
@@ -212,125 +186,6 @@ def testPluginGetMetadata(registerPlugin, pluginList):
 def testPluginLoad(registerPlugin, pluginList):
     registerPlugin(*pluginList)
     for pluginEntryPoint in pluginList:
-        pluginDefinition = plugin.loadPlugin(pluginEntryPoint.name, 'root', 'appconf')
+        pluginDefinition = plugin.getPlugin(pluginEntryPoint.name)
+        pluginDefinition.load({})
         assert pluginDefinition.loaded is True
-
-
-def testPluginLoadOnlyOnce(registerPlugin):
-    registerPlugin(mockEntryPointGenerator('nodeps'))
-    pluginDefinition = plugin.getPlugin('nodeps')
-    assert pluginDefinition.loaded is False
-    pluginDefinition._mockLoad.assert_not_called()
-
-    plugin.loadPlugin('nodeps', 'root', 'appconf')
-    assert pluginDefinition.loaded is True
-    pluginDefinition._mockLoad.assert_called_once()
-
-    plugin.loadPlugin('nodeps', 'root', 'appconf')
-    assert pluginDefinition.loaded is True
-    pluginDefinition._mockLoad.assert_called_once()
-
-
-def testPluginLoadOrder(registerPlugin):
-    registerPlugin(*validPluginTree)
-    manager = mock.Mock()
-    allPlugins = plugin.allPlugins()
-    assert len(allPlugins) == len(validPluginTree)
-
-    for pluginName in plugin.allPlugins():
-        pluginClass = plugin.getPlugin(pluginName)
-        manager.attach_mock(pluginClass._mockLoad, pluginName)
-    plugin.loadPlugin('withdeps4', 'root', 'appconf')
-
-    loadOrder = []
-    for call in manager.mock_calls:
-        loadOrder.append(re.search(r'call\.(.+)\(', str(call)).groups()[0])
-
-    assertAllPluginsLoadOrder(loadOrder)
-
-
-def testMissingDependencyHandler(registerPlugin, logprint):
-    registerPlugin(
-        mockEntryPointGenerator('hasmissingdeps', deps=['missing'])
-    )
-    assert plugin.getPlugin('hasmissingdeps')
-    assert plugin.loadPlugin('hasmissingdeps', 'root', 'appconf') is None
-
-    logprint.error.assert_any_call('ERROR: Plugin %s not found', 'missing')
-    logprint.error.assert_any_call('ERROR: Dependency failure while processing %s',
-                                   'hasmissingdeps')
-
-
-def testListAllPluginsToposorted(registerPlugin):
-    registerPlugin(*validPluginTree)
-    plugins = plugin.getToposortedPlugins()
-    assertAllPluginsLoadOrder(plugins)
-
-
-def testListPluginsToposortedFromList(registerPlugin):
-    registerPlugin(*validPluginTree)
-    plugins = plugin.getToposortedPlugins(['withdeps4', 'withdeps2'])
-    assert plugins == ['leaf1', 'leaf2', 'withdeps1', 'withdeps2', 'withdeps3', 'withdeps4']
-
-
-def testListPluginWebDependenciesFromList(registerPlugin):
-    registerPlugin(*validPluginTree)
-    plugins = plugin.getToposortedWebDependencies(['withdeps4', 'withdeps2'])
-    assert plugins == ['withdeps2', 'leaf1', 'leaf4', 'withdeps4']
-
-
-def testListAllPluginsToposortedFromRoot(registerPlugin):
-    registerPlugin(*validPluginTree)
-    plugins = plugin.getToposortedPlugins(['withdeps4'])
-    assert 'withdeps4' in plugins
-    assertAllPluginsLoadOrder(plugins)
-
-
-def testLoadPluginList(registerPlugin):
-    registerPlugin(*validPluginTree)
-    loaded = plugin.loadPlugins(['withdeps1', 'leaf4', 'withdeps2'], 'root', 'appconf')
-    assert set(loaded.keys()) == {'withdeps1', 'leaf4', 'withdeps2'}
-    assert plugin.getPlugin('leaf1').loaded is True
-
-
-def testLoadPluginListWithMissingDependency(registerPlugin, logprint):
-    registerPlugin(*validPluginTree)
-    loaded = plugin.loadPlugins(
-        ['withdeps1', 'notaplugin', 'leaf4', 'withdeps2'], 'root', 'appconf')
-    assert set(loaded.keys()) == {'withdeps1', 'leaf4', 'withdeps2'}
-    logprint.error.assert_any_call('ERROR: Plugin %s not found', 'notaplugin')
-    assert plugin.getPlugin('leaf1').loaded is True
-
-
-def testLoadPluginCyclicDepencencyHandler(registerPlugin, logprint):
-    registerPlugin(*pluginTreeWithCycle)
-    with pytest.raises(Exception, match='Cyclic dependencies encountered'):
-        plugin.getToposortedPlugins()
-    logprint.error.assert_any_call('Cyclic dependencies encountered while processing plugins')
-
-
-def testSuccessfulLoadWithBadPlugin(registerPlugin):
-    registerPlugin(*pluginTreeWithLoadFailure)
-    plugin.loadPlugin('leafa', 'root', 'appconf')
-
-
-def testLoadPluginWithException(registerPlugin, logprint):
-    registerPlugin(*pluginTreeWithLoadFailure)
-    assert plugin.loadPlugin('loadfailurea', 'root', 'appconf') is None
-    assert set(plugin.getPluginFailureInfo().keys()) == {'loadfailurea'}
-    logprint.exception.assert_called_with(
-        'ERROR: Failed to execute load method for %s', 'loadfailurea')
-
-
-def testLoadPluginTreeWithException(registerPlugin, logprint):
-    registerPlugin(*pluginTreeWithLoadFailure)
-    assert plugin.loadPlugin('rootdepends', 'root', 'appconf') is None
-    assert set(plugin.getPluginFailureInfo().keys()) == {
-        'dependsonfailure', 'loadfailurea', 'rootdepends'
-    }
-    logprint.exception.assert_any_call(
-        'ERROR: Failed to execute load method for %s', 'loadfailurea')
-    logprint.error.assert_any_call(
-        'ERROR: Dependency failure while processing %s', 'dependsonfailure')
-    logprint.error.assert_any_call(
-        'ERROR: Dependency failure while processing %s', 'rootdepends')
