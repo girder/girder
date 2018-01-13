@@ -37,7 +37,6 @@ def mockPluginGenerator(deps, side_effect=None):
             super(MockedPlugin, self).__init__(*args, **kwargs)
 
         def load(self, *args, **kwargs):
-            super(MockedPlugin, self).load(*args, **kwargs)
             for dep in deps:
                 plugin.getPlugin(dep).load(dep)
 
@@ -105,8 +104,6 @@ def registerPlugin(pluginRegistry):
             yield ep
 
     def register(*args):
-        for arg in args:
-            arg.pluginClass.load._ran = False
         entry_points.extend(args)
 
     with mock.patch.object(plugin, 'iter_entry_points', side_effect=iter_entry_points):
@@ -127,6 +124,10 @@ validPluginList = [
     [],
     [mockEntryPointGenerator('nodeps')],
     [
+        mockEntryPointGenerator('nodeps1'),
+        mockEntryPointGenerator('nodeps2')
+    ],
+    [
         mockEntryPointGenerator('withdeps', '1.0.0', ['depa', 'depb']),
         mockEntryPointGenerator('depa'),
         mockEntryPointGenerator('depb')
@@ -144,11 +145,6 @@ validPluginList = [
     ],
     validPluginTree
 ]
-pluginTreeWithCycle = [
-    mockEntryPointGenerator('plugin1', deps=['plugin2']),
-    mockEntryPointGenerator('plugin2', deps=['plugin3']),
-    mockEntryPointGenerator('plugin3', deps=['plugin1'])
-]
 pluginTreeWithLoadFailure = [
     mockEntryPointGenerator('loadfailurea', side_effect=Exception('failure a')),
     mockEntryPointGenerator('loadfailureb', side_effect=Exception('failure b')),
@@ -159,6 +155,16 @@ pluginTreeWithLoadFailure = [
     mockEntryPointGenerator('multipledepends', deps=['leafa', 'loadfailureb']),
     mockEntryPointGenerator('rootdepends', deps=['leafb', 'withdeps', 'dependsonfailure'])
 ]
+
+
+def testPluginWithNoLoadMethod(registerPlugin, logprint):
+    class InvalidPlugin(plugin.GirderPlugin):
+        pass
+    entrypoint = MockEntryPoint('invalid', '1.0.0', 'description', 'url', InvalidPlugin)
+    registerPlugin(entrypoint)
+    with pytest.raises(NotImplementedError):
+        plugin.getPlugin('invalid').load({})
+    logprint.exception.assert_called_once_with('Failed to load plugin invalid')
 
 
 @pytest.mark.parametrize('pluginList', validPluginList)
@@ -182,15 +188,65 @@ def testPluginGetMetadata(registerPlugin, pluginList):
 
 
 @pytest.mark.parametrize('pluginList', validPluginList)
-def testPluginLoad(registerPlugin, pluginList):
+def testPluginLoad(registerPlugin, pluginList, logprint):
     registerPlugin(*pluginList)
     for pluginEntryPoint in pluginList:
         pluginDefinition = plugin.getPlugin(pluginEntryPoint.name)
         pluginDefinition.load({})
         assert pluginDefinition.loaded is True
+        logprint.info.assert_any_call('Loaded plugin %s' % pluginEntryPoint.name)
 
 
-def testPluginLoadOrder(registerPlugin):
+def testPluginLoadOrder(registerPlugin, logprint):
     registerPlugin(*validPluginTree)
     plugin.getPlugin('withdeps3').load({})
     assert plugin.loadedPlugins() == ['leaf1', 'withdeps1', 'leaf2', 'withdeps2', 'withdeps3']
+    logprint.info.assert_has_calls([
+        mock.call('Loaded plugin leaf1'),
+        mock.call('Loaded plugin withdeps1'),
+        mock.call('Loaded plugin leaf2'),
+        mock.call('Loaded plugin withdeps2'),
+        mock.call('Loaded plugin withdeps3')
+    ])
+
+
+def testLoadPluginWithError(registerPlugin, logprint):
+    registerPlugin(*pluginTreeWithLoadFailure)
+    with pytest.raises(Exception) as exception1:
+        plugin.getPlugin('loadfailurea').load({})
+
+    logprint.exception.assert_called_once_with('Failed to load plugin loadfailurea')
+    assert 'loadfailurea' in plugin.getPluginFailureInfo()
+
+    with pytest.raises(Exception) as exception2:
+        plugin.getPlugin('loadfailurea').load({})
+
+    assert exception1.value == exception2.value
+
+
+def testLoadMultiplePluginsWithFailure(registerPlugin, logprint):
+    registerPlugin(*pluginTreeWithLoadFailure)
+    plugin.loadPlugins(['loadfailurea', 'leafa'], {})
+
+    logprint.exception.assert_called_once_with('Failed to load plugin loadfailurea')
+    assert 'loadfailurea' in plugin.getPluginFailureInfo()
+    assert plugin.loadedPlugins() == ['leafa']
+
+
+def testLoadPluginTreeWithFailure(registerPlugin, logprint):
+    registerPlugin(*pluginTreeWithLoadFailure)
+    plugin.loadPlugins(['rootdepends'], {})
+    assert plugin.loadedPlugins() == ['leafb', 'leafa', 'withdeps']
+    logprint.exception.assert_has_calls([
+        mock.call('Failed to load plugin loadfailurea'),
+        mock.call('Failed to load plugin dependsonfailure'),
+        mock.call('Failed to load plugin rootdepends')
+    ])
+    assert set(plugin.getPluginFailureInfo().keys()) == {'rootdepends', 'loadfailurea',
+                                                         'dependsonfailure'}
+
+
+def testLoadMissingDependency(registerPlugin, logprint):
+    registerPlugin(*validPluginTree)
+    plugin.loadPlugins(['missing'], {})
+    logprint.error.assert_called_once_with('Plugin missing is not installed')

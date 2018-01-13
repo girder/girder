@@ -39,20 +39,20 @@ def _wrapPluginLoad(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
 
-        if not wrapper._ran:
+        if not getattr(self, '_loaded', False):
             # This block is executed on the first call to the function.
             # The return value of the call (or exception raised) is saved
             # as attributes on the wrapper for future invocations.
-            wrapper._ran = True
-            wrapper._exception = None
-            wrapper._return = None
+            self._loaded = True
+            self._exception = None
+            self._return = None
 
             try:
                 result = func(self, *args, **kwargs)
             except Exception as e:
                 # If any errors occur in loading the plugin, log the information, and
                 # store failure information that can be queried through the api.
-                wrapper._exception = e
+                self._exception = e
                 logprint.exception('Failed to load plugin %s' % self.name)
                 _pluginFailureInfo[self.name] = {
                     'traceback': traceback.format_exc()
@@ -60,17 +60,16 @@ def _wrapPluginLoad(func):
                 raise
 
             _pluginLoadOrder.append(self.name)
-            wrapper._return = result
-            wrapper._success = True
+            self._return = result
+            self._success = True
             logprint.info('Loaded plugin %s' % self._metadata.name)
 
-        elif wrapper._exception:
+        elif self._exception:
             # If the plugin failed on the first invocation, reraise the original exception.
-            raise wrapper._exception
+            raise self._exception
 
-        return wrapper._return
+        return self._return
 
-    wrapper._ran = False
     return wrapper
 
 
@@ -128,10 +127,10 @@ class GirderPlugin(object):
     @property
     def loaded(self):
         """Return true if this plugin has been loaded."""
-        return self.load._success
+        return self._success
 
     def load(self, info):
-        NotImplementedError('Plugins must define a load method')
+        raise NotImplementedError('Plugins must define a load method')
 
 
 def _readPackageMetadata(distribution):
