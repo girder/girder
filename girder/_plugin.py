@@ -31,6 +31,7 @@ from girder import logprint
 NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
 _pluginFailureInfo = {}
+_pluginLoadOrder = []
 
 
 def _wrapPluginLoad(func):
@@ -58,6 +59,7 @@ def _wrapPluginLoad(func):
                 }
                 raise
 
+            _pluginLoadOrder.append(self.name)
             wrapper._return = result
             wrapper._success = True
             logprint.info('Loaded plugin %s' % self._metadata.name)
@@ -201,8 +203,4 @@ def allPlugins():
 
 def loadedPlugins():
     """Return a list of successfully loaded plugins."""
-    loaded = []
-    for pluginName in allPlugins():
-        if getPlugin(pluginName).loaded:
-            loaded.append(pluginName)
-    return loaded
+    return _pluginLoadOrder[:]

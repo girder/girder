@@ -29,25 +29,23 @@ def logprint():
         yield logprintMock
 
 
-class MockedPlugin(plugin.GirderPlugin):
-    _side_effect = None
+def mockPluginGenerator(deps, side_effect=None):
+    class MockedPlugin(plugin.GirderPlugin):
 
-    def __init__(self, *args, **kwargs):
-        self._mockLoad = mock.Mock()
-        super(MockedPlugin, self).__init__(*args, **kwargs)
+        def __init__(self, *args, **kwargs):
+            self._mockLoad = mock.Mock()
+            super(MockedPlugin, self).__init__(*args, **kwargs)
 
-    def load(self, *args, **kwargs):
-        super(MockedPlugin, self).load(*args, **kwargs)
-        self._mockLoad(*args, **kwargs)
-        if self._side_effect:
-            raise self._side_effect
+        def load(self, *args, **kwargs):
+            super(MockedPlugin, self).load(*args, **kwargs)
+            for dep in deps:
+                plugin.getPlugin(dep).load(dep)
 
+            self._mockLoad(*args, **kwargs)
+            if side_effect:
+                raise side_effect
 
-def mockPluginGenerator(deps, webDeps, side_effect=None):
-    class GeneratedMockPlugin(MockedPlugin):
-        _side_effect = side_effect
-
-    return GeneratedMockPlugin
+    return MockedPlugin
 
 
 class MockDistribution(object):
@@ -80,15 +78,13 @@ class MockEntryPoint(object):
         self.pluginClass = pluginClass
 
 
-def mockEntryPointGenerator(name, version='0.1.0', deps=None, webDeps=None, side_effect=None):
+def mockEntryPointGenerator(name, version='0.1.0', deps=None, side_effect=None):
     if deps is None:
         deps = []
-    if webDeps is None:
-        webDeps = []
 
     url = 'url for %s' % name
     doc = 'doc for %s' % name
-    pluginClass = mockPluginGenerator(deps, webDeps, side_effect)
+    pluginClass = mockPluginGenerator(deps, side_effect)
     return MockEntryPoint(name, version, doc, url, pluginClass)
 
 
@@ -97,6 +93,7 @@ def pluginRegistry():
     yield plugin._pluginRegistry
     plugin._pluginRegistry = None
     plugin._pluginFailureInfo = {}
+    plugin._pluginLoadOrder = []
 
 
 @pytest.fixture
@@ -108,6 +105,8 @@ def registerPlugin(pluginRegistry):
             yield ep
 
     def register(*args):
+        for arg in args:
+            arg.pluginClass.load._ran = False
         entry_points.extend(args)
 
     with mock.patch.object(plugin, 'iter_entry_points', side_effect=iter_entry_points):
@@ -115,14 +114,14 @@ def registerPlugin(pluginRegistry):
 
 
 validPluginTree = [
-    mockEntryPointGenerator('withdeps4', deps=['withdeps3'], webDeps=['leaf1', 'leaf4']),
+    mockEntryPointGenerator('withdeps4', deps=['withdeps3']),
     mockEntryPointGenerator('withdeps1', deps=['leaf1']),
     mockEntryPointGenerator('leaf1'),
     mockEntryPointGenerator('leaf2'),
     mockEntryPointGenerator('leaf3'),
     mockEntryPointGenerator('leaf4'),
     mockEntryPointGenerator('withdeps2', deps=['withdeps1', 'leaf1', 'leaf2']),
-    mockEntryPointGenerator('withdeps3', deps=['withdeps2', 'withdeps1'], webDeps=['leaf3'])
+    mockEntryPointGenerator('withdeps3', deps=['withdeps2', 'withdeps1'])
 ]
 validPluginList = [
     [],
@@ -133,12 +132,12 @@ validPluginList = [
         mockEntryPointGenerator('depb')
     ],
     [
-        mockEntryPointGenerator('withwebdeps', webDeps=['depa', 'depb']),
+        mockEntryPointGenerator('withwebdeps'),
         mockEntryPointGenerator('depa'),
         mockEntryPointGenerator('depb')
     ],
     [
-        mockEntryPointGenerator('withmultideps', deps=['depa', 'depb'], webDeps=['depb', 'depc']),
+        mockEntryPointGenerator('withmultideps', deps=['depa', 'depb']),
         mockEntryPointGenerator('depa'),
         mockEntryPointGenerator('depb'),
         mockEntryPointGenerator('depc')
@@ -189,3 +188,9 @@ def testPluginLoad(registerPlugin, pluginList):
         pluginDefinition = plugin.getPlugin(pluginEntryPoint.name)
         pluginDefinition.load({})
         assert pluginDefinition.loaded is True
+
+
+def testPluginLoadOrder(registerPlugin):
+    registerPlugin(*validPluginTree)
+    plugin.getPlugin('withdeps3').load({})
+    assert plugin.loadedPlugins() == ['leaf1', 'withdeps1', 'leaf2', 'withdeps2', 'withdeps3']
