@@ -573,10 +573,6 @@ describe('Test the plugins page', function () {
             return restartResolution.promise();
         });
         spyOn(girder.server.restartServer, '_reloadWindow');
-        // We don't want to really rebuild the web code, so replace the original one with a resolved Promise
-        spyOn(girder.server.rebuildWebClient, '_rebuildWebClient').andCallFake(function () {
-            return $.Deferred().resolve().promise();
-        });
     });
 
     it('Test that anonymous loading plugins page prompts login', function () {
@@ -622,23 +618,23 @@ describe('Test the plugins page', function () {
 
             target.find('.g-plugin-switch').click();
 
-            expect($('.g-plugin-rebuild-restart-text').css('visibility')).toBe('hidden');
+            expect($('.g-plugin-restart-text').css('visibility')).toBe('hidden');
         });
     });
     it('Enable a plugin', function () {
         runs(function () {
             expect($('.g-plugin-list-item .bootstrap-switch').length > 0).toBe(true);
-            expect($('.g-plugin-rebuild-restart-text').css('visibility')).toBe('hidden');
+            expect($('.g-plugin-restart-text').css('visibility')).toBe('hidden');
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
             $('.g-plugin-list-item:contains(test_plugin) .g-plugin-switch').click();
         });
         waitsFor(function () {
-            return $('.g-plugin-rebuild-restart-text').css('visibility') === 'visible' &&
-                $('.g-rebuild-and-restart').hasClass('btn-danger');
-        }, 'rebuild and restart change color and restart messsage to be shown');
+            return $('.g-plugin-restart-text').css('visibility') === 'visible' &&
+                $('.g-restart').hasClass('btn-danger');
+        }, 'restart change color and restart messsage to be shown');
         runs(function () {
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(2);
-            $('.g-rebuild-and-restart').click();
+            $('.g-restart').click();
         });
         waitsFor(function () {
             return $('#g-confirm-button:visible').length > 0;

@@ -9,7 +9,7 @@ import router from 'girder/router';
 import View from 'girder/views/View';
 import { confirm } from 'girder/dialog';
 import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
-import { restartServer, rebuildWebClient } from 'girder/server';
+import { restartServer } from 'girder/server';
 import { restRequest, cancelRestRequests } from 'girder/rest';
 
 import PluginFailedNoticeTemplate from 'girder/templates/widgets/pluginFailedNotice.pug';
@@ -30,21 +30,19 @@ var PluginsView = View.extend({
             var route = $(evt.currentTarget).attr('g-route');
             router.navigate(route, { trigger: true });
         },
-        'click .g-rebuild-and-restart': function (e) {
+        'click .g-restart': function (e) {
             confirm({
-                text: `Are you sure you want to rebuild web code and restart the server? This will interrupt all running tasks for all users.`,
+                text: `Are you sure you want to restart the server? This will interrupt all running tasks for all users.`,
                 yesText: 'Restart',
                 confirmCallback: function () {
                     $(e.currentTarget).girderEnable(false);
-                    rebuildWebClient()
-                        .then(() => {
+                    restartServer()
+                        .done(() => {
                             events.trigger('g:alert', {
-                                text: 'Web client code built successfully',
+                                text: 'Server restarted successfully',
                                 type: 'success',
                                 duration: 3000
                             });
-
-                            return restartServer();
                         })
                         .always(() => {
                             // Re-enable the button whether the chain succeeds or fails, though if
@@ -82,6 +80,7 @@ var PluginsView = View.extend({
 
             // Fetch the plugin list
             $.when(...promises).done((plugins, cherrypyServer) => {
+                console.log(JSON.stringify(plugins));
                 this.cherrypyServer = cherrypyServer;
                 this.enabled = plugins.enabled;
                 this.allPlugins = plugins.all;
@@ -95,12 +94,6 @@ var PluginsView = View.extend({
 
     render: function () {
         _.each(this.allPlugins, function (info, name) {
-            info.unmetDependencies = this._unmetDependencies(info);
-            if (!_.isEmpty(info.unmetDependencies)) {
-                // Disable any plugins with unmet dependencies.
-                this.enabled = _.without(this.enabled, name);
-            }
-
             if (_.contains(this.enabled, name)) {
                 info.enabled = true;
                 info.configRoute = getPluginConfigRoute(name);
@@ -128,10 +121,10 @@ var PluginsView = View.extend({
                         this.enabled.splice(idx, 1);
                     }
                 }
-                this.$('button.g-rebuild-and-restart').addClass('btn-danger');
+                this.$('button.g-restart').addClass('btn-danger');
 
                 if (this.cherrypyServer) {
-                    this.$('.g-plugin-rebuild-restart-text').addClass('show');
+                    this.$('.g-plugin-restart-text').addClass('show');
                 }
 
                 if (!this.cherrypyServer && !_.has(this, 'displayedCherrypyNotification')) {
@@ -153,21 +146,6 @@ var PluginsView = View.extend({
         });
 
         return this;
-    },
-
-    /**
-     * Takes a plugin object and determines if it has any top level
-     * unmet dependencies.
-     *
-     * Given A depends on B, and B depends on C, and C is not present:
-     * A will have unmet dependencies of ['B'], and B will have unmet dependencies
-     * of ['C'].
-     **/
-    _unmetDependencies: function (plugin) {
-        return _.reject(plugin.dependencies, function (pluginName) {
-            return _.has(this.allPlugins, pluginName) &&
-                _.isEmpty(this._unmetDependencies(this.allPlugins[pluginName]));
-        }, this);
     },
 
     _sortPlugins: function (plugins) {

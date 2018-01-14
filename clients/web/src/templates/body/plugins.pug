@@ -1,21 +1,20 @@
 .g-body-title Plugins
-  .g-rebuild-container(class=cherrypyServer ? '' : 'hide')
-    button.g-rebuild-and-restart.btn.btn-primary(title="Rebuild web code and restart the server",
+  .g-restart-container(class=cherrypyServer ? '' : 'hide')
+    button.g-restart.btn.btn-primary(title="Restart the server",
         disabled=!cherrypyServer)
       i.icon-arrows-cw
-      | Rebuild and restart
+      | Restart
     .g-clear
-.g-plugin-rebuild-restart-text
+.g-plugin-restart-text
   | The selected plugins have changed.
   br
-  | You must rebuild the code and restart the server for the changes to take effect.
+  | You must restart the server for the changes to take effect.
 .g-plugin-list-container
   each plugin in allPlugins
     - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
     - var failed = plugin.value.failed
     .g-plugin-list-item(class=failed ? 'g-plugin-list-item-failed' : undefined)
       input.g-plugin-switch(type="checkbox", key=plugin.key,
-          disabled=plugin.value.unmetDependencies.length > 0,
           checked=(plugin.value.enabled ? "checked" : undefined),
           experimental=(experimental ? "true" : undefined),
           data-on-color=(experimental ? "warning" : "primary"))
@@ -39,6 +38,3 @@
           a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
             i.icon-cog
       .g-plugin-description= plugin.value.description
-        if (plugin.value.unmetDependencies.length)
-          .g-plugin-warning.g-plugin-error-message
-            | This plugin has unmet dependencies: #{plugin.value.unmetDependencies.join(', ')}.

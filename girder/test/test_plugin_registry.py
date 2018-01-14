@@ -20,7 +20,7 @@ import mock
 import pytest
 import six
 
-from girder import _plugin as plugin
+from girder import plugin
 
 
 @pytest.fixture

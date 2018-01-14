@@ -126,7 +126,7 @@ class ServerFuseTestCase(base.TestCase):
         """
         blockFile = os.path.join(self.extraMountPath, 'block')
         open(blockFile, 'wb').close()
-        with mock.patch('girder.utility.plugin_utilities.logprint.error') as logprint:
+        with mock.patch('girder.plugin.logprint.error') as logprint:
             self._mountServer(path=self.extraMountPath, shouldSucceed=False)
             logprint.assert_called_once()
         os.unlink(blockFile)
@@ -135,7 +135,7 @@ class ServerFuseTestCase(base.TestCase):
         """
         Test that when asking for an RW mount, a warning is issued.
         """
-        with mock.patch('girder.utility.plugin_utilities.logprint.warning') as logprint:
+        with mock.patch('girder.plugin.logprint.warning') as logprint:
             self._mountServer(path=self.extraMountPath, options='foreground,rw=true')
             logprint.assert_called_once()
             logprint.assert_called_with('Ignoring the rw=True option')

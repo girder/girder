@@ -102,20 +102,7 @@ function restartServerPrompt() {
     });
 }
 
-function rebuildWebClient() {
-    return rebuildWebClient._rebuildWebClient();
-}
-
-rebuildWebClient._rebuildWebClient = function () {
-    return restRequest({
-        url: 'system/web_build',
-        method: 'POST',
-        data: { progress: true }
-    });
-};
-
 export {
     restartServer,
-    restartServerPrompt,
-    rebuildWebClient
+    restartServerPrompt
 };

@@ -21,7 +21,6 @@ This module contains functions to install optional components
 into the current Girder installation.  Note that Girder must
 be restarted for these changes to take effect.
 """
-import collections
 import os
 import re
 import select
@@ -31,10 +30,8 @@ import subprocess
 import string
 import sys
 
-import girder
 from girder import constants
-from girder.models.setting import Setting
-from girder.utility import plugin_utilities
+from girder import plugin
 
 version = constants.VERSION['apiVersion']
 webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
@@ -58,10 +55,6 @@ def print_version(parser):
     print(version)
 
 
-def print_plugin_path(parser):
-    print(plugin_utilities.getPluginDir())
-
-
 def print_web_root(parser):
     print(webRoot)
 
@@ -76,26 +69,6 @@ def fix_path(path):
     :rtype: str
     """
     return os.path.abspath(os.path.expanduser(path))
-
-
-def _getPluginBuildArgs(buildAll, plugins):
-    if buildAll:
-        sortedPlugins = plugin_utilities.getToposortedPlugins()
-        return ['--plugins=%s' % ','.join(sortedPlugins)]
-    elif plugins is None:  # build only the enabled plugins
-        plugins = Setting().get(constants.SettingKey.PLUGINS_ENABLED, default=())
-
-    plugins = list(plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True))
-
-    # include static-only dependencies that are not in the runtime load set
-    staticPlugins = plugin_utilities.getToposortedPlugins(
-        plugins, ignoreMissing=True, keys=('dependencies', 'staticWebDependencies'))
-    staticPlugins = [p for p in staticPlugins if p not in plugins]
-
-    return [
-        '--plugins=%s' % ','.join(plugins),
-        '--configure-plugins=%s' % ','.join(staticPlugins)
-    ]
 
 
 def _pipeOutputToProgress(proc, progress):
@@ -132,43 +105,7 @@ def _pipeOutputToProgress(proc, progress):
             proc.wait()
 
 
-def _getGitVersions():
-    """
-    Use git to query the versions of the core deployment and all plugins.
-
-    :returns: a dictionary with 'core' and each plugin, each with git
-        version information if it can be found.
-    """
-    gitCommands = collections.OrderedDict([
-        ('SHA', ['rev-parse', 'HEAD']),
-        ('shortSHA', ['rev-parse', '--short', 'HEAD']),
-        ('lastCommitTime', ['log', '--format="%ai"', '-n1', 'HEAD']),
-        ('branch', ['rev-parse', '--abbrev-ref', 'HEAD']),
-    ])
-    versions = {}
-    paths = collections.OrderedDict()
-    if hasattr(girder, '__file__'):
-        paths['core'] = fix_path(os.path.dirname(os.path.dirname(girder.__file__)))
-    for plugin in plugin_utilities.findAllPlugins():
-        paths[plugin] = fix_path(os.path.join(plugin_utilities.getPluginDir(), plugin))
-    for key in paths:
-        if os.path.exists(paths[key]):
-            for info, cmd in six.iteritems(gitCommands):
-                value = subprocess.Popen(
-                    ['git'] + cmd,
-                    shell=False,
-                    stdout=subprocess.PIPE,
-                    cwd=paths[key]).stdout.read()
-                value = value.strip().decode('utf8', 'ignore').strip('"')
-                if (info == 'SHA' and key != 'core' and
-                        value == versions.get('core', {}).get('SHA', '')):
-                    break
-                versions.setdefault(key, {})[info] = value
-    return versions
-
-
-def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, progress=None,
-                noPlugins=False):
+def runWebBuild(wd=None, dev=False, npm='npm', progress=None):
     """
     Use this to run `npm install` inside the package. Also builds the web code
     using `npm run build`.
@@ -187,11 +124,6 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     :param noPlugins: Enable this to build the girder web with no additional plugins.
     :type noPlugins: bool
     """
-    if noPlugins:
-        plugins = []
-    elif isinstance(plugins, six.string_types):
-        plugins = plugins.split(',')
-
     if shutil.which(npm) is None:
         print(constants.TerminalColor.error(
             'No npm executable was detected.  Please ensure the npm '
@@ -210,7 +142,7 @@ def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, p
     commands = [
         npmInstall,
         [npm, 'run', 'build', '--',
-         quiet, '--env=%s' % env] + _getPluginBuildArgs(allPlugins, plugins)
+         quiet, '--env=%s' % env] + ['--plugins=%s' % ','.join(plugin.allPlugins())]
     ]
 
     for cmd in commands:
@@ -243,20 +175,8 @@ def install_web(opts=None):
         runWebBuild()
     elif opts.watch:
         _runWatchCmd('npm', 'run', 'watch')
-    elif opts.watch_plugin:
-        staticPlugins = plugin_utilities.getToposortedPlugins(
-            [opts.watch_plugin], ignoreMissing=True,
-            keys=('dependencies', 'staticWebDependencies'))
-        staticPlugins = [p for p in staticPlugins if p != opts.watch_plugin]
-
-        _runWatchCmd(
-            'npm', 'run', 'watch', '--', '--plugins=%s' % opts.watch_plugin,
-            '--configure-plugins=%s' % ','.join(staticPlugins),
-            'webpack:%s_%s' % (opts.plugin_prefix, opts.watch_plugin))
     else:
-        runWebBuild(
-            dev=opts.development, npm=opts.npm, allPlugins=opts.all_plugins,
-            plugins=opts.plugins, noPlugins=opts.no_plugins)
+        runWebBuild(dev=opts.development, npm=opts.npm)
 
 
 def _install_plugin_reqs(pluginPath, name, dev=False):
@@ -291,46 +211,7 @@ def install_plugin(opts):
         object with a "plugin" attribute containing a list of plugin paths, and
         a boolean "force" attribute representing the force overwrite flag.
     """
-    for plugin in opts.plugin:
-        pluginPath = fix_path(plugin)
-        name = os.path.basename(pluginPath)
-
-        print(constants.TerminalColor.info('Installing %s...' % name))
-
-        if not os.path.isdir(pluginPath):
-            raise Exception('Invalid plugin directory: %s' % pluginPath)
-
-        if not opts.skip_requirements:
-            _install_plugin_reqs(pluginPath, name, opts.development)
-
-        targetPath = os.path.join(plugin_utilities.getPluginDir(), name)
-
-        if (os.path.isdir(targetPath) and
-                os.path.samefile(pluginPath, targetPath) and not
-                opts.symlink ^ os.path.islink(targetPath)):
-            # If source and dest are the same, we are done for this plugin.
-            # Note: ^ is a logical xor - not xor means only continue if
-            # symlink and islink() are either both false, or both true
-            continue
-
-        if os.path.exists(targetPath):
-            if opts.force:
-                print(constants.TerminalColor.warning(
-                    'Removing existing plugin at %s.' % targetPath))
-
-                if os.path.islink(targetPath):
-                    os.unlink(targetPath)
-                else:
-                    shutil.rmtree(targetPath)
-
-            else:
-                raise Exception(
-                    'Plugin already exists at %s, use "-f" to overwrite the existing directory.' %
-                    targetPath)
-        if opts.symlink:
-            os.symlink(pluginPath, targetPath)
-        else:
-            shutil.copytree(pluginPath, targetPath)
+    pass
 
 
 def main():
@@ -389,26 +270,11 @@ def main():
                      help='When watching a plugin, watch this output bundle name. Defaults to '
                           '"plugin".')
 
-    pluginGroup = web.add_mutually_exclusive_group()
-
-    pluginGroup.add_argument('--all-plugins', action='store_true',
-                             help='Build all available plugins, rather than just enabled ones.')
-
-    pluginGroup.add_argument('--plugins', default=None,
-                             help='A comma-separated list of plugins to build.')
-
-    pluginGroup.add_argument('--no-plugins', action='store_true',
-                             help='Build only Girder\'s core, with no additional plugins.')
-
     web.set_defaults(func=install_web)
 
     sub.add_parser(
         'version', help='Print the version of Girder.'
     ).set_defaults(func=print_version)
-
-    sub.add_parser(
-        'plugin-path', help='Print the currently configured plugin path.'
-    ).set_defaults(func=print_plugin_path)
 
     sub.add_parser(
         'web-root', help='Print the current web root for static files.'

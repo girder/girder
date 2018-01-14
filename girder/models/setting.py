@@ -219,13 +219,8 @@ class Setting(Model):
         names. Removes any invalid plugin names, removes duplicates, and adds
         all transitive dependencies to the enabled list.
         """
-        from girder.utility import plugin_utilities
-
         if not isinstance(doc['value'], list):
             raise ValidationException('Plugins enabled setting must be a list.', 'value')
-
-        # Add all transitive dependencies and store in toposorted order
-        doc['value'] = list(plugin_utilities.getToposortedPlugins(doc['value']))
 
     @staticmethod
     @setting_utilities.validator(SettingKey.ADD_TO_GROUP_POLICY)

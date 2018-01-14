@@ -27,7 +27,8 @@ import six
 import girder.events
 from girder import constants, logprint, __version__, logStdoutStderr, _setupCache
 from girder.models.setting import Setting
-from girder.utility import plugin_utilities, config
+from girder import plugin
+from girder.utility import config
 from . import webroot
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
@@ -44,7 +45,7 @@ def _errorDefault(status, message, *args, **kwargs):
 
 def getPlugins():
     plugins = Setting().get(constants.SettingKey.PLUGINS_ENABLED, default=())
-    return plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True)
+    return plugins
 
 
 def getApiRoot():
@@ -168,11 +169,17 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
     if plugins is None:
         plugins = getPlugins()
-    else:
-        plugins = plugin_utilities.getToposortedPlugins(plugins, ignoreMissing=True)
 
-    root, appconf, _ = plugin_utilities.loadPlugins(
-        plugins, root, appconf, root.api.v1, buildDag=False)
+    routeTable = loadRouteTable()
+    info = {
+        'config': appconf,
+        'serverRoot': root,
+        'serverRootPath': routeTable[constants.GIRDER_ROUTE_ID],
+        'apiRoot': root.api.v1,
+        'staticRoot': routeTable[constants.GIRDER_STATIC_ROUTE_ID]
+    }
+
+    plugin.loadPlugins(plugins, info)
 
     return root, appconf
 
@@ -188,7 +195,7 @@ def loadRouteTable(reconcileRoutes=False):
     :returns: The non empty routes (as a dict of name -> route) to be mounted by CherryPy
               during Girder's setup phase.
     """
-    pluginWebroots = plugin_utilities.getPluginWebroots()
+    pluginWebroots = plugin.getPluginWebroots()
     routeTable = Setting().get(constants.SettingKey.ROUTE_TABLE)
 
     def reconcileRouteTable(routeTable):
@@ -223,7 +230,7 @@ def setup(test=False, plugins=None, curConfig=None):
     """
     logStdoutStderr()
 
-    pluginWebroots = plugin_utilities.getPluginWebroots()
+    pluginWebroots = plugin.getPluginWebroots()
     girderWebroot, appconf = configureServer(test, plugins, curConfig)
     routeTable = loadRouteTable(reconcileRoutes=True)
 

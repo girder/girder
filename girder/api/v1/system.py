@@ -34,7 +34,8 @@ from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
-from girder.utility import config, install, plugin_utilities, system
+from girder import plugin
+from girder.utility import config, system
 from girder.utility.progress import ProgressContext
 from ..describe import API_VERSION, Description, autoDescribeRoute
 from ..rest import Resource
@@ -66,7 +67,6 @@ class System(Resource):
         self.route('GET', ('log',), self.getLog)
         self.route('GET', ('log', 'level'), self.getLogLevel)
         self.route('PUT', ('log', 'level'), self.setLogLevel)
-        self.route('POST', ('web_build',), self.buildWebCode)
         self.route('GET', ('setting', 'collection_creation_policy', 'access'),
                    self.getCollectionCreationPolicyAccess)
 
@@ -157,10 +157,10 @@ class System(Resource):
     )
     def getPlugins(self):
         plugins = {
-            'all': plugin_utilities.findAllPlugins(),
-            'enabled': Setting().get(SettingKey.PLUGINS_ENABLED)
+            'all': plugin.allPlugins(),
+            'enabled': plugin.loadedPlugins()
         }
-        failureInfo = plugin_utilities.getPluginFailureInfo()
+        failureInfo = plugin.getPluginFailureInfo()
         if failureInfo:
             plugins['failed'] = failureInfo
         return plugins
@@ -481,20 +481,6 @@ class System(Resource):
             for handler in logger.handlers:
                 handler.setLevel(level)
         return logging.getLevelName(level)
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Rebuild web client code.')
-        .param('progress', 'Whether to record progress on this task.', required=False,
-               dataType='boolean', default=False)
-        .param('dev', 'Whether to build for development mode.', required=False,
-               dataType='boolean', default=False)
-    )
-    def buildWebCode(self, progress, dev):
-        user = self.getCurrentUser()
-
-        with ProgressContext(progress, user=user, title='Building web client code') as progress:
-            install.runWebBuild(dev=dev, progress=progress)
 
     @access.admin
     @autoDescribeRoute(

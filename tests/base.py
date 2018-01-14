@@ -23,7 +23,6 @@ import cherrypy
 import io
 import json
 import logging
-import mock
 import os
 import shutil
 import signal
@@ -35,7 +34,7 @@ import warnings
 
 from six import BytesIO
 from six.moves import urllib
-from girder.utility import model_importer, plugin_utilities
+from girder.utility import model_importer
 from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
@@ -172,16 +171,14 @@ def mockPluginDir(path):
 
     :param path: The directory in which to search for plugins.
     """
-    oldFn = plugin_utilities.getPluginDir
-    plugin_utilities.getPluginDir = mock.Mock(return_value=path)
-    return oldFn
+    return lambda: ''
 
 
 def unmockPluginDir(oldFn):
     """
     Restore the getPluginDir function to its original un-mocked version.
     """
-    plugin_utilities.getPluginDir = oldFn
+    pass
 
 
 class TestCase(unittest.TestCase, model_importer.ModelImporter):

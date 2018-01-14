@@ -309,7 +309,3 @@ logprint.critical = functools.partial(
 logprint.debug = logprint
 logprint.exception = functools.partial(
     logprint, level=logging.ERROR, color='error', exc_info=True)
-
-
-# alias girder.plugin => girder.utility.plugin_utilities
-from girder.utility import plugin_utilities as plugin  # noqa
