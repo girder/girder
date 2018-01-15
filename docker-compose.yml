@@ -12,4 +12,4 @@ girder:
     - "8080:8080"
   links:
     - "mongodb:mongodb"
-  command: -d mongodb://mongodb:27017/girder
+  command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
