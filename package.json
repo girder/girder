@@ -106,7 +106,10 @@
         "rules": {
             "for-direction": "error",
             "getter-return": "error",
-            "multiline-ternary": ["error", "always-multiline"],
+            "multiline-ternary": [
+                "error",
+                "always-multiline"
+            ],
             "no-alert": "error",
             "switch-colon-spacing": "error",
             "import/exports-last": "error",
@@ -252,11 +255,16 @@
             "error": true
         },
         "reporterOptions": {
-              "columns": ["lineData", "severity", "description", "rule"],
-              "columnSplitter": "  ",
-              "showHeaders": false,
-              "truncate": true
-          },
+            "columns": [
+                "lineData",
+                "severity",
+                "description",
+                "rule"
+            ],
+            "columnSplitter": "  ",
+            "showHeaders": false,
+            "truncate": true
+        },
         "semicolons": {
             "expect": "never",
             "error": true
