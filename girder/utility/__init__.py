@@ -153,7 +153,9 @@ class JsonEncoder(json.JSONEncoder):
         if isinstance(obj, bson.ObjectId):
             return str(obj)
 
-        return str(obj)
+        # Fail if an object can't be meaningfully serialized, to prevent inaccurate data from
+        # silently being passed on
+        return super(JsonEncoder, self).default(obj)
 
 
 class RequestBodyStream(object):
