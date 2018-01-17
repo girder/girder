@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import bson
 import cherrypy
 import datetime
 import dateutil.parser
@@ -143,6 +144,8 @@ class JsonEncoder(json.JSONEncoder):
             return tuple(obj)
         elif isinstance(obj, datetime.datetime):
             return obj.replace(tzinfo=pytz.UTC).isoformat()
+        elif isinstance(obj, bson.ObjectId):
+            return str(obj)
         return str(obj)
 
 
