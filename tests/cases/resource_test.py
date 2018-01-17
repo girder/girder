@@ -32,6 +32,7 @@ from girder.models.collection import Collection
 from girder.models.item import Item
 from girder.models.folder import Folder
 from girder.models.user import User
+from girder.utility import JsonEncoder
 from six.moves import range, urllib
 
 
@@ -229,7 +230,7 @@ class ResourceTestCase(base.TestCase):
             expected = self.expectedZip[name]
             if isinstance(expected, dict):
                 self.assertEqual(json.loads(zip.read(name).decode('utf8')),
-                                 json.loads(json.dumps(expected, default=str)))
+                                 json.loads(json.dumps(expected, cls=JsonEncoder)))
             else:
                 if not isinstance(expected, six.binary_type):
                     expected = expected.encode('utf8')

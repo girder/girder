@@ -18,6 +18,7 @@
 ###############################################################################
 
 import json
+import functools
 import os
 import re
 
@@ -27,7 +28,7 @@ import mako
 from girder import constants, events
 from girder.constants import CoreEventHandler, SettingKey
 from girder.models.setting import Setting
-from girder.utility import config
+from girder.utility import config, JsonEncoder
 
 
 class WebrootBase(object):
@@ -71,7 +72,10 @@ class WebrootBase(object):
 
     def _renderHTML(self):
         return mako.template.Template(self.template).render(
-            js=self._escapeJavascript, json=json.dumps, **self.vars)
+            js=self._escapeJavascript,
+            json=functools.partial(json.dumps, cls=JsonEncoder),
+            **self.vars
+        )
 
     def GET(self, **params):
         if self.indexHtml is None or self.config['server']['mode'] == 'development':

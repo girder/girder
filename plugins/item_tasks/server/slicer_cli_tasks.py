@@ -11,6 +11,7 @@ from girder.models.token import Token
 from girder.models.user import User
 from girder.plugins.jobs.models.job import Job
 from girder.plugins.worker import utils
+from girder.utility import JsonEncoder
 from . import cli_parser, constants
 
 
@@ -195,7 +196,7 @@ def runSlicerCliTasksDescriptionForFolder(self, folder, image, args, pullImage, 
                     'headers': {'Girder-Token': token['_id']},
                     'params': {
                         'image': image,
-                        'args': json.dumps(args),
+                        'args': json.dumps(args, cls=JsonEncoder),
                         'pullImage': pullImage
                     }
                 }

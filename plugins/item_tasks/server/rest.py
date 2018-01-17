@@ -11,6 +11,7 @@ from girder.models.item import Item
 from girder.models.token import Token
 from girder.plugins.jobs.models.job import Job
 from girder.plugins.worker import utils
+from girder.utility import JsonEncoder
 from . import constants
 from .json_tasks import createItemTasksFromJson, runJsonTasksDescriptionForFolder
 from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, runSlicerCliTasksDescriptionForItem
@@ -164,9 +165,9 @@ class ItemTask(Resource):
                     reference=json.dumps({
                         'type': 'item_tasks.output',
                         'id': k,
-                        'jobId': str(job['_id']),
-                        'taskId': str(taskId)
-                    }))
+                        'jobId': job['_id'],
+                        'taskId': taskId
+                    }, cls=JsonEncoder))
             else:
                 raise ValidationException('Invalid output mode: %s.' % v['mode'])
 

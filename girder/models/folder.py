@@ -28,6 +28,7 @@ from .model_base import AccessControlledModel
 from girder import events
 from girder.constants import AccessType
 from girder.exceptions import ValidationException, GirderException
+from girder.utility import JsonEncoder
 from girder.utility.progress import noProgress, setResponseTimeLimit
 
 
@@ -708,7 +709,7 @@ class Folder(AccessControlledModel):
                 yield (filepath, file)
         if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():
-                yield json.dumps(doc['meta'], default=str)
+                yield json.dumps(doc['meta'], cls=JsonEncoder)
             yield (os.path.join(path, metadataFile), stream)
 
     def copyFolder(self, srcFolder, parent=None, name=None, description=None,

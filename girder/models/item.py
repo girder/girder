@@ -29,7 +29,7 @@ from girder import events
 from girder import logger
 from girder.constants import AccessType
 from girder.exceptions import ValidationException, GirderException
-from girder.utility import acl_mixin
+from girder.utility import acl_mixin, JsonEncoder
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
@@ -504,7 +504,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             yield (os.path.join(path, file['name']), val)
         if includeMetadata and metadataFile and len(doc.get('meta', {})):
             def stream():
-                yield json.dumps(doc['meta'], default=str)
+                yield json.dumps(doc['meta'], cls=JsonEncoder)
             yield (os.path.join(path, metadataFile), stream)
 
     def _mimeFilter(self, file, mimeFilter):
