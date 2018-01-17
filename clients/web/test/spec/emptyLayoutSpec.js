@@ -4,7 +4,7 @@ describe('Test empty and default layouts', function () {
     function expectEmptyLayout() {
         // ensure that all components we expect hidden are hidden
         expect($('#g-app-header-container').is(':visible')).toBe(false);
-        expect($('#g-global-nav-container').is(':visible')).toBe(false);
+        expect($('#g-global-nav').is(':visible')).toBe(false);
         expect($('#g-app-footer-container').is(':visible')).toBe(false);
         // ensure the empty layout is present
         expect($('#g-app-body-container').hasClass('g-empty-layout')).toBe(true);
@@ -17,7 +17,7 @@ describe('Test empty and default layouts', function () {
     function expectDefaultLayout() {
         // ensure that all components we expect revealed are visible
         expect($('#g-app-header-container').is(':visible')).toBe(true);
-        expect($('#g-global-nav-container').is(':visible')).toBe(true);
+        expect($('#g-global-nav').is(':visible')).toBe(true);
         expect($('#g-app-footer-container').is(':visible')).toBe(true);
         // ensure the default layout is present
         expect($('#g-app-body-container').hasClass('g-default-layout')).toBe(true);

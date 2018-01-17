@@ -156,8 +156,7 @@ girderTest.goToCurrentUserSettings = function () {
 girderTest.createCollection = function (collName, collDesc, createFolderName) {
     return function () {
         waitsFor(function () {
-            return $('li.active .g-page-number').text() === 'Page 1' &&
-                $('.g-collection-create-button').is(':enabled');
+            return $('.g-collection-create-button').is(':enabled');
         }, 'create collection button to appear');
 
         girderTest.waitForLoad();
@@ -259,8 +258,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
         girderTest.waitForLoad();
 
         waitsFor(function () {
-            return $('li.active .g-page-number').text() === 'Page 1' &&
-                $('.g-group-create-button:visible').is(':enabled');
+            return $('.g-group-create-button:visible').is(':enabled');
         }, 'create group button to appear');
 
         runs(function () {

@@ -276,8 +276,7 @@ describe('Test collection actions', function () {
         });
 
         waitsFor(function () {
-            return $('li.active .g-page-number').text() === 'Page 1' &&
-                   $('.g-collection-list-entry').length === 1;
+            return $('.g-collection-list-entry').length === 1;
         }, 'collection list page to reload');
 
         runs(function () {

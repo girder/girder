@@ -53,7 +53,7 @@ describe('Test routing paths', function () {
     it('logout', girderTest.logout());
     it('test routes without being logged in', function () {
         girderTest.testRoute('', false, function () {
-            return $('a.g-login-link:first').length > 0;
+            return $('a.g-login:first').length > 0;
         });
         girderTest.testRoute('useraccount/' + ids.admin + '/info', false,
             function () {
@@ -81,8 +81,7 @@ describe('Test routing paths', function () {
     it('login', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('test routes while logged in', function () {
         girderTest.testRoute('', false, function () {
-            return $('a.g-my-folders-link:first').text() ===
-                   ' personal data space';
+            return $('a.g-user-dropdown-link:first').length > 0;
         });
         girderTest.testRoute('useraccount/' + ids.admin + '/info', false,
             function () {
@@ -93,16 +92,13 @@ describe('Test routing paths', function () {
                 return $('input#g-password-old:visible').length === 1;
             });
         girderTest.testRoute('?dialog=login', false, function () {
-            return $('a.g-my-folders-link:first').text() ===
-                   ' personal data space';
+            return $('a.g-user-dropdown-link:first').length > 0;
         });
         girderTest.testRoute('?dialog=register', false, function () {
-            return $('a.g-my-folders-link:first').text() ===
-                   ' personal data space';
+            return $('a.g-user-dropdown-link:first').length > 0;
         });
         girderTest.testRoute('?dialog=resetpassword', false, function () {
-            return $('a.g-my-folders-link:first').text() ===
-                   ' personal data space';
+            return $('a.g-user-dropdown-link:first').length > 0;
         });
     });
 

@@ -157,12 +157,12 @@ var App = View.extend({
 
     _defaultLayout: {
         show: function () {
-            this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').show();
+            this.$('#g-app-header-container,#g-global-nav,#g-app-footer-container').show();
             this.$('#g-app-body-container').addClass('g-default-layout');
         },
 
         hide: function () {
-            this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').hide();
+            this.$('#g-app-header-container,#g-global-nav,#g-app-footer-container').hide();
             this.$('#g-app-body-container').removeClass('g-default-layout');
         }
     },
