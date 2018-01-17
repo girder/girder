@@ -137,15 +137,22 @@ class JsonEncoder(json.JSONEncoder):
     """
     def default(self, obj):
         event = girder.events.trigger('rest.json_encode', obj)
-        if len(event.responses):
+        if event.responses:
             return event.responses[-1]
 
-        if isinstance(obj, set):
-            return tuple(obj)
-        elif isinstance(obj, datetime.datetime):
+        try:
+            iter(obj)
+        except TypeError:
+            pass
+        else:
+            return list(obj)
+
+        if isinstance(obj, datetime.datetime):
             return obj.replace(tzinfo=pytz.UTC).isoformat()
-        elif isinstance(obj, bson.ObjectId):
+
+        if isinstance(obj, bson.ObjectId):
             return str(obj)
+
         return str(obj)
 
 
