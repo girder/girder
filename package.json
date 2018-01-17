@@ -75,7 +75,7 @@
         "build": "NODE_PATH=$PWD/node_modules grunt",
         "watch": "NODE_PATH=$PWD/node_modules grunt --watch",
         "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts clients/web/test && pug-lint clients/web/src/templates",
-        "esdoc": "esdoc"
+        "docs": "esdoc"
     },
     "files": [
         "Gruntfile.js",
