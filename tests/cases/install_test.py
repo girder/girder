@@ -29,7 +29,9 @@ from girder import constants
 from girder.models.user import User
 from girder.utility import install
 
-pluginRoot = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins')
+pluginRoot = os.path.normpath(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), '..', '..', 'test', 'test_plugins'
+))
 
 
 class PluginOpts():

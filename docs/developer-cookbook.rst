@@ -394,7 +394,7 @@ run.
 Adding Automated Tests with pytest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Test cases for pytest are stored in girder/test.
+Test cases for pytest are stored in ``test/``.
 
 **Provided Fixtures**
 
@@ -409,7 +409,7 @@ function in the file. The function name must start with **test**.
 
 **Creating a New Test Case**
 
-To create an entirely new test, create a new file in **girder/test** that starts
+To create an entirely new test, create a new file in **test/** that starts
 with **test_**. To start off, put the following code in the module (with
 appropriate function name of course):
 

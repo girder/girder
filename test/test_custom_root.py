@@ -5,7 +5,7 @@ from pytest_girder.utils import getResponseBody
 from six.moves.urllib.parse import urlparse
 
 
-@pytest.mark.testPlugins(['test_plugin'])
+@pytest.mark.testPlugin('test_plugin')
 @pytest.mark.parametrize('route,text', [
     ('/', 'hello world from test_plugin'),
     ('/girder', 'g-global-info-apiroot'),
@@ -35,7 +35,7 @@ def testApiRedirect(server):
     assert urlparse(resp.headers['Location']).path == '/api/v1'
 
 
-@pytest.mark.testPlugins(['test_plugin'])
+@pytest.mark.testPlugin('test_plugin')
 def testPluginRestRoutes(server):
     resp = server.request('/describe')
     assertStatusOk(resp)

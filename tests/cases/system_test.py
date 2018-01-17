@@ -257,8 +257,10 @@ class SystemTestCase(base.TestCase):
         self.assertIn('all', resp.json)
         self.assertNotIn('.gitignore', resp.json['all'])
 
-        self.mockPluginDir(
-            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
+        testPluginPath = os.path.normpath(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), '..', '..', 'test', 'test_plugins'
+        ))
+        self.mockPluginDir(testPluginPath)
 
         resp = self.request(
             path='/system/plugins', method='PUT', user=self.users[0],
@@ -293,8 +295,10 @@ class SystemTestCase(base.TestCase):
         self.unmockPluginDir()
 
     def testBadPlugin(self):
-        self.mockPluginDir(
-            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bad_plugins'))
+        pluginRoot = os.path.normpath(os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), '..', '..', 'test', 'test_plugins'
+        ))
+        self.mockPluginDir(pluginRoot)
 
         # Enabling plugins with bad JSON/YML should still work.
         resp = self.request(
