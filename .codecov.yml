@@ -1,4 +1,6 @@
-comment: false
+comment:
+  layout: "header, diff, tree, changes"
+  require_changes: true
 coverage:
   status:
     # Patch status gives meaningless results whenever a test is modified without changing the
