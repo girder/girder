@@ -3,7 +3,7 @@ System Prerequisites
 
 The following software packages are required to be installed on your system:
 
-* `Python 2.7 or 3.4+ <https://www.python.org>`_
+* `Python 2.7 or 3.5+ <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 3.2+ <http://www.mongodb.org/>`_
 * `Node.js 6.5+ <http://nodejs.org/>`_
