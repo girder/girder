@@ -19,10 +19,6 @@
 
 import bson.json_util
 import dateutil.parser
-try:
-    from inspect import signature, Parameter
-except ImportError:
-    from funcsigs import signature, Parameter
 import inspect
 import jsonschema
 import os
@@ -41,6 +37,11 @@ from girder.utility.webroot import WebrootBase
 from girder.utility.resource import _apiRouteMap
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
+
+if six.PY3:
+    from inspect import signature, Parameter
+else:
+    from funcsigs import signature, Parameter
 
 """
 Whenever we add new return values or new options we should increment the

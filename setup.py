@@ -66,7 +66,7 @@ installReqs = [
     'CherryPy<11.1',
     'click',
     'filelock',
-    'funcsigs ; python_version < \'3.5\'',
+    'funcsigs ; python_version < \'3\'',
     'jsonschema',
     'Mako',
     'pymongo>=3.5',
@@ -75,7 +75,7 @@ installReqs = [
     'python-dateutil',
     'pytz',
     'requests',
-    'shutilwhich ; python_version < \'3.3\'',
+    'shutilwhich ; python_version < \'3\'',
     'six>=1.9',
 ]
 
