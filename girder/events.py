@@ -318,7 +318,8 @@ def trigger(eventName, info=None, pre=None, async=False, daemon=False):
 _deprecated = {}
 _mapping = {}
 
-if config.getConfig()['server'].get('disable_event_daemon', False):
+# When in Sphinx, cherrypy may be mocked, so the config may not be accessible at import-time
+if config.getConfig().get('server', {}).get('disable_event_daemon', False):
     daemon = ForegroundEventsDaemon()
 else:
     daemon = AsyncEventsThread()

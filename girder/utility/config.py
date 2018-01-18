@@ -30,7 +30,8 @@ def _mergeConfig(filename):
     Also, handle global options by putting them in the root.
     """
     cherrypy._cpconfig.merge(cherrypy.config, filename)
-    global_config = cherrypy.config.pop('global', {})
+    # When in Sphinx, cherrypy may be mocked and returning None
+    global_config = cherrypy.config.pop('global', {}) or {}
 
     for option, value in six.viewitems(global_config):
         cherrypy.config[option] = value
@@ -78,4 +79,5 @@ def loadConfig():
 def getConfig():
     if 'database' not in cherrypy.config:
         loadConfig()
-    return cherrypy.config
+    # When in Sphinx, cherrypy may be mocked and returning None
+    return cherrypy.config or {}
