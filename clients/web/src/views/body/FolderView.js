@@ -6,6 +6,8 @@ import View from 'girder/views/View';
 import { cancelRestRequests } from 'girder/rest';
 import events from 'girder/events';
 
+import FolderPageTemplate from 'girder/templates/body/folderPage.pug';
+
 /**
  * This view shows a single folder as a hierarchy widget.
  */
@@ -23,8 +25,10 @@ var FolderView = View.extend({
     },
 
     render: function () {
+        this.$el.html(FolderPageTemplate());
+
         this.hierarchyWidget = new HierarchyWidget({
-            el: this.$el,
+            el: this.$('.g-folder-hierarchy-container'),
             parentModel: this.folder,
             upload: this.upload,
             folderAccess: this.folderAccess,
