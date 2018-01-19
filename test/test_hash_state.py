@@ -20,29 +20,35 @@
 from girder.utility import hash_state
 import hashlib
 import pytest
-import sys
 import this
 
 testData = this.s.encode('utf8')
 chunkSize = len(testData) // 6
 chunks = [testData[i:i + chunkSize] for i in range(0, len(testData), chunkSize)]
-algorithms = hashlib.algorithms if sys.version_info <= (3, 2) else hashlib.algorithms_guaranteed
 
 
-@pytest.mark.parametrize('alg', algorithms)
-def testSimpleHashing(alg):
-    canonical = hashlib.new(alg)
-    state = hash_state.serializeHex(hashlib.new(alg))
+@pytest.mark.parametrize('alg', [
+    hashlib.md5,
+    hashlib.sha1,
+    hashlib.sha224,
+    hashlib.sha256,
+    hashlib.sha384,
+    hashlib.sha512
+])
+def testSimpleHashing(algorithm):
+    canonicalHash = algorithm()
+    runningState = hash_state.serializeHex(algorithm())
+    hashName = canonicalHash.name
 
     for chunk in chunks:
-        checksum = hash_state.restoreHex(state, alg)
-        assert canonical.hexdigest() == checksum.hexdigest()
-        assert canonical.digest() == checksum.digest()
+        runningHash = hash_state.restoreHex(runningState, hashName)
+        assert canonicalHash.hexdigest() == runningHash.hexdigest()
+        assert canonicalHash.digest() == runningHash.digest()
 
-        canonical.update(chunk)
-        checksum.update(chunk)
-        state = hash_state.serializeHex(checksum)
+        canonicalHash.update(chunk)
+        runningHash.update(chunk)
+        runningState = hash_state.serializeHex(runningHash)
 
-    checksum = hash_state.restoreHex(state, alg)
-    assert canonical.hexdigest() == checksum.hexdigest()
-    assert canonical.digest() == checksum.digest()
+    runningHash = hash_state.restoreHex(runningState, hashName)
+    assert canonicalHash.hexdigest() == runningHash.hexdigest()
+    assert canonicalHash.digest() == runningHash.digest()
