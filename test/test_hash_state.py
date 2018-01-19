@@ -20,14 +20,25 @@
 from girder.utility import hash_state
 import hashlib
 import pytest
-import this
-
-testData = this.s.encode('utf8')
-chunkSize = len(testData) // 6
-chunks = [testData[i:i + chunkSize] for i in range(0, len(testData), chunkSize)]
 
 
-@pytest.mark.parametrize('alg', [
+@pytest.fixture
+def iterableBytes():
+    chunkSize = 256
+    chunkCount = 6
+    # A one-time iterable, with elements:
+    #  b'0000...'
+    #  b'1111...'
+    #  ...
+    iterable = (
+        str(chunkNum).encode('utf8') * chunkSize
+        for chunkNum in range(chunkCount)
+    )
+
+    yield iterable
+
+
+@pytest.mark.parametrize('algorithm', [
     hashlib.md5,
     hashlib.sha1,
     hashlib.sha224,
@@ -35,12 +46,12 @@ chunks = [testData[i:i + chunkSize] for i in range(0, len(testData), chunkSize)]
     hashlib.sha384,
     hashlib.sha512
 ])
-def testSimpleHashing(algorithm):
+def testSimpleHashing(iterableBytes, algorithm):
     canonicalHash = algorithm()
     runningState = hash_state.serializeHex(algorithm())
     hashName = canonicalHash.name
 
-    for chunk in chunks:
+    for chunk in iterableBytes:
         runningHash = hash_state.restoreHex(runningState, hashName)
         assert canonicalHash.hexdigest() == runningHash.hexdigest()
         assert canonicalHash.digest() == runningHash.digest()
