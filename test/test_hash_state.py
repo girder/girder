@@ -38,21 +38,21 @@ def iterableBytes():
     yield iterable
 
 
-@pytest.mark.parametrize('algorithm', [
-    hashlib.md5,
-    hashlib.sha1,
-    hashlib.sha224,
-    hashlib.sha256,
-    hashlib.sha384,
-    hashlib.sha512
+@pytest.mark.parametrize('algorithmName', [
+    'md5',
+    'sha1',
+    'sha224',
+    'sha256',
+    'sha384',
+    'sha512'
 ])
-def testSimpleHashing(iterableBytes, algorithm):
-    canonicalHash = algorithm()
-    runningState = hash_state.serializeHex(algorithm())
-    hashName = canonicalHash.name
+def testSimpleHashing(iterableBytes, algorithmName):
+    canonicalHash = hashlib.new(algorithmName)
+    runningHash = hashlib.new(algorithmName)
+    runningState = hash_state.serializeHex(runningHash)
 
     for chunk in iterableBytes:
-        runningHash = hash_state.restoreHex(runningState, hashName)
+        runningHash = hash_state.restoreHex(runningState, algorithmName)
         assert canonicalHash.hexdigest() == runningHash.hexdigest()
         assert canonicalHash.digest() == runningHash.digest()
 
@@ -60,6 +60,6 @@ def testSimpleHashing(iterableBytes, algorithm):
         runningHash.update(chunk)
         runningState = hash_state.serializeHex(runningHash)
 
-    runningHash = hash_state.restoreHex(runningState, hashName)
+    runningHash = hash_state.restoreHex(runningState, algorithmName)
     assert canonicalHash.hexdigest() == runningHash.hexdigest()
     assert canonicalHash.digest() == runningHash.digest()
