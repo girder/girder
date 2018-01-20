@@ -19,7 +19,7 @@ recommend setting up `Postfix <http://www.postfix.org/documentation.html>`_.
 See the specific instructions for your platform below.
 
 .. note:: We perform continuous integration testing using Python 2.7 and Python 3.5.
-   The system *should* work on other versions of Python 3 as well, but we do not
+   The system *should* work on newer versions of Python 3 as well, but we do not
    verify that support in our automated testing at this time, so use at your own
    risk.
 
