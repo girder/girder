@@ -28,7 +28,7 @@ from girder.models.model_base import AccessControlledModel
 from girder.models.notification import Notification
 from girder.models.token import Token
 from girder.models.user import User
-from girder.plugins.jobs.constants import JobStatus, JOB_HANDLER_LOCAL
+from girder_plugin_jobs.constants import JobStatus, JOB_HANDLER_LOCAL
 
 
 class Job(AccessControlledModel):

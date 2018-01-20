@@ -20,6 +20,8 @@
 import importlib
 
 from girder import events
+from girder.plugin import GirderPlugin
+
 from . import constants, job_rest
 
 
@@ -43,6 +45,7 @@ def scheduleLocal(event):
         fn(job)
 
 
-def load(info):
-    info['apiRoot'].job = job_rest.Job()
-    events.bind('jobs.schedule', 'jobs', scheduleLocal)
+class JobsPlugin(GirderPlugin):
+    def load(self, info):
+        info['apiRoot'].job = job_rest.Job()
+        events.bind('jobs.schedule', 'jobs', scheduleLocal)
