@@ -78,7 +78,7 @@ def _wrapPluginLoad(func):
             _pluginLoadOrder.append(self.name)
             self._return = result
             self._success = True
-            logprint.info('Loaded plugin %s' % self._metadata.name)
+            logprint.success('Loaded plugin "%s"' % self.name)
 
         elif self._exception:
             # If the plugin failed on the first invocation, reraise the original exception.
@@ -117,13 +117,14 @@ class GirderPlugin(object):
                 import rest  # register new rest endpoints, etc.
     """
     def __init__(self, entrypoint):
+        self._name = entrypoint.name
         self._loaded = False
         self._metadata = _readPackageMetadata(entrypoint.dist)
 
     @property
     def name(self):
         """Return the plugin name defaulting to the entrypoint name."""
-        return self._metadata.name
+        return self._name
 
     @property
     def description(self):

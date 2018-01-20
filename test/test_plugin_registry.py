@@ -194,19 +194,19 @@ def testPluginLoad(registerPlugin, pluginList, logprint):
         pluginDefinition = plugin.getPlugin(pluginEntryPoint.name)
         pluginDefinition.load({})
         assert pluginDefinition.loaded is True
-        logprint.info.assert_any_call('Loaded plugin %s' % pluginEntryPoint.name)
+        logprint.success.assert_any_call('Loaded plugin "%s"' % pluginEntryPoint.name)
 
 
 def testPluginLoadOrder(registerPlugin, logprint):
     registerPlugin(*validPluginTree)
     plugin.getPlugin('withdeps3').load({})
     assert plugin.loadedPlugins() == ['leaf1', 'withdeps1', 'leaf2', 'withdeps2', 'withdeps3']
-    logprint.info.assert_has_calls([
-        mock.call('Loaded plugin leaf1'),
-        mock.call('Loaded plugin withdeps1'),
-        mock.call('Loaded plugin leaf2'),
-        mock.call('Loaded plugin withdeps2'),
-        mock.call('Loaded plugin withdeps3')
+    logprint.success.assert_has_calls([
+        mock.call('Loaded plugin "leaf1"'),
+        mock.call('Loaded plugin "withdeps1"'),
+        mock.call('Loaded plugin "leaf2"'),
+        mock.call('Loaded plugin "withdeps2"'),
+        mock.call('Loaded plugin "withdeps3"')
     ])
 
 
