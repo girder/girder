@@ -44,6 +44,13 @@ var SearchPaginateWidget = View.extend({
 
         this.$('.g-page-next').girderEnable(this._hasNextPage);
         this.$('.g-page-prev').girderEnable(this._hasPreviousPage);
+
+        if (!this._hasNextPage && !this._hasPreviousPage) {
+            this.$el.hide();
+        } else {
+            this.$el.show();
+        }
+
         return this;
     },
 
