@@ -1,9 +1,8 @@
 each result in results
   li.g-search-result
-    a.g-search-result-element(data-resource-id=result.id, data-resource-type=result.type, g-icon=result.icon,
-      tabindex="-1")
+    a.g-search-result-element(data-resource-id=result.id, data-resource-type=result.type, data-resource-icon=result.icon, tabindex="-1")
       i(class=`icon-${result.icon}`)
-      |  #{result.text}
+      | #{result.text}
 if results.length === 0
   li.g-no-search-results.disabled
     a(tabindex="-1")

@@ -62,9 +62,9 @@ var SearchPaginateWidget = View.extend({
         if (this._currentPage) {
             if (update) {
                 return this._fetchPreviousPage(update)
-                .done(() => {
-                    return this._fetchPreviousPage();
-                });
+                    .done(() => {
+                        return this._fetchPreviousPage();
+                    });
             } else {
                 return this._fetchPreviousPage();
             }
@@ -76,9 +76,9 @@ var SearchPaginateWidget = View.extend({
     _updateHasNextPage: function (update = false) {
         if (update) {
             return this._fetchNextPage(update)
-            .done(() => {
-                return this._fetchNextPage();
-            });
+                .done(() => {
+                    return this._fetchNextPage();
+                });
         } else {
             return this._fetchNextPage();
         }
@@ -91,42 +91,42 @@ var SearchPaginateWidget = View.extend({
             this.render();
         } else {
             return this._fetch(offset)
-            .done((results) => {
-                var result = results[this._type];
-                if (result.length) {
-                    this._hasPreviousPage = true;
-                    if (update) {
-                        this.results = result;
-                        this.trigger('g:changed');
-                        this._currentPage--;
-                        this._updateHasNextPage();
+                .done((results) => {
+                    var result = results[this._type];
+                    if (result.length) {
+                        this._hasPreviousPage = true;
+                        if (update) {
+                            this.results = result;
+                            this.trigger('g:changed');
+                            this._currentPage--;
+                            this._updateHasNextPage();
+                        }
+                    } else {
+                        this._hasPreviousPage = false;
                     }
-                } else {
-                    this._hasPreviousPage = false;
-                }
-                this.render();
-            });
+                    this.render();
+                });
         }
     },
 
     _fetchNextPage: function (update = false) {
         var offset = this._limit * (this._currentPage + 1);
         return this._fetch(offset)
-        .done((results) => {
-            var result = results[this._type];
-            if (result.length) {
-                this._hasNextPage = true;
-                if (update) {
-                    this.results = result;
-                    this.trigger('g:changed');
-                    this._currentPage++;
-                    this._updateHasPreviousPage();
+            .done((results) => {
+                var result = results[this._type];
+                if (result.length) {
+                    this._hasNextPage = true;
+                    if (update) {
+                        this.results = result;
+                        this.trigger('g:changed');
+                        this._currentPage++;
+                        this._updateHasPreviousPage();
+                    }
+                } else {
+                    this._hasNextPage = false;
                 }
-            } else {
-                this._hasNextPage = false;
-            }
-            this.render();
-        });
+                this.render();
+            });
     },
 
     _fetch: function (offset) {

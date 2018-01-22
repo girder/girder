@@ -28,9 +28,12 @@ var LayoutHeaderView = View.extend({
             registrationPolicy: settings.registrationPolicy
         });
 
+        /*
+         * The order of types correspond to the order of the displayed types results on the dialog box.
+         */
         this.searchWidget = new SearchFieldWidget({
             placeholder: 'Quick search...',
-            types: ['collection', 'group', 'user', 'folder', 'item'],
+            types: ['collection', 'folder', 'item', 'group', 'user'],
             parentView: this
         }).on('g:resultClicked', function (result) {
             this.searchWidget.resetState();

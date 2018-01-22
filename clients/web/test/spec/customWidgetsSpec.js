@@ -669,7 +669,7 @@ describe('Test search widget with non-standard options', function () {
         runs(function () {
             var results = $('li.g-search-result');
             expect(results.length).toBe(2);
-            expect(results.find('a[resourcetype="folder"]').text()).toContain('top level folder');
+            expect(results.find('a[data-resource-type="folder"]').text()).toContain('top level folder');
         });
     });
 

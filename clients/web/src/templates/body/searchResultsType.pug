@@ -7,8 +7,8 @@ ul.g-search-results-type
     li.g-search-result
       if type === 'user'
         a(data-resource-id=element._id, data-resource-type=type, data-resource-icon=icon, tabindex="-1")
-          |  #{element.firstName} #{element.lastName} (#{element.login})
+          | #{element.firstName} #{element.lastName} (#{element.login})
       else
         a(data-resource-id=element._id, data-resource-type=type, data-resource-icon=icon, tabindex="-1")
-          |  #{element.name}
+          | #{element.name}
 .g-search-results-paginate(id=`${type}Paginate`)

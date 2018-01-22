@@ -18,7 +18,7 @@ import 'girder/stylesheets/body/searchResultsList.styl';
 var SearchResultsView = View.extend({
     events: {
         'click .g-search-result>a': function (e) {
-            var result = $(e.currentTarget)
+            var result = $(e.currentTarget);
             this._resultClicked(result.data('resourceType'), result.data('resourceId'));
         }
     },
@@ -46,10 +46,10 @@ var SearchResultsView = View.extend({
                 limit: this.pageLimit
             }
         })
-        .done((results) => {
-            this._initResults = results;
-            this.render();
-        });
+            .done((results) => {
+                this._initResults = results;
+                this.render();
+            });
     },
 
     _calculateLength: function (results) {
@@ -77,7 +77,7 @@ var SearchResultsView = View.extend({
 
     render: function () {
         this.$el.html(SearchResultsTemplate({
-            query: this._query || null,
+            query: this._query || 'Undefined',
             length: this._calculateLength(this._initResults) || 0
         }));
 
@@ -94,7 +94,7 @@ var SearchResultsView = View.extend({
                     initResults: this._initResults[type],
                     sizeOneElement: this._sizeOneElement
                 })
-                .render();
+                    .render();
                 this._subviews[type].$el.appendTo(this.$('.g-search-results-container'));
             }
         });
@@ -126,7 +126,7 @@ var SearchResultsTypeView = View.extend({
         this._icon = settings.icon || 'icon-attention-alt';
         this._initResults = settings.initResults || [];
         this._pageLimit = settings.limit || 10;
-        this._sizeOneElement = settings.sizeOneElement || 35;
+        this._sizeOneElement = settings.sizeOneElement || 30;
 
         this._paginateWidget = new SearchPaginateWidget({
             parentView: this,
@@ -135,10 +135,10 @@ var SearchResultsTypeView = View.extend({
             mode: this._mode,
             limit: this._pageLimit
         })
-        .on('g:changed', () => {
-            this._results = this._paginateWidget.results;
-            this.render();
-        });
+            .on('g:changed', () => {
+                this._results = this._paginateWidget.results;
+                this.render();
+            });
 
         this._results = this._initResults;
     },
@@ -149,7 +149,7 @@ var SearchResultsTypeView = View.extend({
             'group': 'Groups',
             'user': 'Users',
             'folder': 'Folders',
-            'item': 'Items',
+            'item': 'Items'
         };
         return names[types];
     },

@@ -220,11 +220,10 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             var results = $('.g-quick-search-container li.g-search-result');
             expect(results.length).toBe(3);
+            expect(results.find('a[data-resource-type="folder"]').length).toBe(1);
+            expect(results.find('a[data-resource-type="user"]').length).toBe(1);
 
-            expect(results.find('a[resourcetype="folder"]').length).toBe(1);
-            expect(results.find('a[resourcetype="user"]').length).toBe(1);
-
-            results.find('a[resourcetype="user"]').click();
+            results.find('a[data-resource-type="user"]').click();
 
             expect(Backbone.history.fragment).toBe(
                 'user/' + girder.auth.getCurrentUser().get('_id'));
@@ -248,7 +247,6 @@ describe('Create a data hierarchy', function () {
                 .hasClass('open');
         }, 'search to return');
         runs(function () {
-            sendKeyDown(38, '.g-quick-search-container input.g-search-field');
             sendKeyDown(38, '.g-quick-search-container input.g-search-field');
             sendKeyDown(38, '.g-quick-search-container input.g-search-field');
             sendKeyDown(38, '.g-quick-search-container input.g-search-field');
@@ -591,10 +589,10 @@ describe('Create a data hierarchy', function () {
             var results = $('.g-quick-search-container li.g-search-result');
             expect(results.length).toBe(3);
 
-            expect(results.find('a[resourcetype="folder"]').length).toBe(1);
-            expect(results.find('a[resourcetype="user"]').length).toBe(1);
+            expect(results.find('a[data-resource-type="folder"]').length).toBe(1);
+            expect(results.find('a[data-resource-type="user"]').length).toBe(1);
 
-            results.find('a[resourcetype="user"]').click();
+            results.find('a[data-resource-type="user"]').click();
         });
 
         var oldPicked;
