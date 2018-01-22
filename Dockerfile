@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -qy \
     libffi-dev \
     libsasl2-dev \
     libldap2-dev \
-    libpython-dev && \
+    libpython2.7-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
@@ -28,7 +28,7 @@ COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 
-RUN pip install -e .[plugins]
+RUN pip install --upgrade --editable .[plugins]
 RUN girder-install web --all-plugins
 
 ENTRYPOINT ["python2", "-m", "girder"]
