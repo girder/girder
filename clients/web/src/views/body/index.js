@@ -17,21 +17,21 @@ import UserView from './UserView';
 import UsersView from './UsersView';
 
 export {
-  AdminView,
-  AssetstoresView,
-  CollectionView,
-  CollectionsView,
-  FilesystemImportView,
-  FolderView,
-  FrontPageView,
-  GroupView,
-  GroupsView,
-  ItemView,
-  PluginsView,
-  S3ImportView,
-  SearchResultsView,
-  SystemConfigurationView,
-  UserAccountView,
-  UserView,
-  UsersView
+    AdminView,
+    AssetstoresView,
+    CollectionView,
+    CollectionsView,
+    FilesystemImportView,
+    FolderView,
+    FrontPageView,
+    GroupView,
+    GroupsView,
+    ItemView,
+    PluginsView,
+    S3ImportView,
+    SearchResultsView,
+    SystemConfigurationView,
+    UserAccountView,
+    UserView,
+    UsersView
 };
