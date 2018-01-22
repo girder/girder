@@ -386,7 +386,7 @@ module.exports = function (grunt) {
                         rules: []
                     },
                     output: {
-                        path: path.join(paths.web_built, 'plugins', plugin),
+                        path: path.join(grunt.config.get('builtPath'), 'plugins', plugin),
                         filename: `${output}.min.js`,
                         library: `girder_plugin_${plugin}`
                     },
@@ -415,7 +415,7 @@ module.exports = function (grunt) {
                         // downstream bundles can share its modules at runtime rather
                         // than copying them in statically.
                         new webpack.DllPlugin({
-                            path: path.join(paths.web_built, 'plugins', plugin, `${output}-manifest.json`),
+                            path: path.join(grunt.config.get('builtPath'), 'plugins', plugin, `${output}-manifest.json`),
                             name: `girder_plugin_${plugin}`
                         }),
                         // DllBootstrapPlugin allows the same plugin bundle to also
@@ -428,7 +428,7 @@ module.exports = function (grunt) {
                         // core library bundle.
                         new webpack.DllReferencePlugin({
                             context: '.',
-                            manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                            manifest: path.join(grunt.config.get('builtPath'), 'girder_lib-manifest.json')
                         }),
                         // This plugin pulls the CSS out of the bundle and into a separate file.
                         new ExtractTextPlugin({
@@ -440,7 +440,7 @@ module.exports = function (grunt) {
                         // dependencies' bundles so they can share code.
                         return new webpack.DllReferencePlugin({
                             context: '.',
-                            manifest: path.join(paths.web_built, 'plugins', dep, 'plugin-manifest.json')
+                            manifest: path.join(grunt.config.get('builtPath'), 'plugins', dep, 'plugin-manifest.json')
                         });
                     }))
                 };

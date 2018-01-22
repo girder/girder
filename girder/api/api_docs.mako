@@ -60,7 +60,7 @@
     <script src="${staticRoot}/built/swagger/lib/highlight.9.1.0.pack_extended.js"></script>
     <script src='${staticRoot}/built/swagger/lib/jsoneditor.min.js'></script>
     <script src='${staticRoot}/built/swagger/lib/marked.js'></script>
-    <script src="${staticRoot}/girder-swagger.js"></script>
+    <script src="${staticRoot}/built/swagger/girder-swagger.js"></script>
     % if mode == 'testing':
     <script src="${staticRoot}/built/testing/testing.min.js"></script>
     % endif

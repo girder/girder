@@ -18,10 +18,10 @@ const fs = require('fs');
 const path = require('path');
 const process = require('process');
 
-const archivePath = 'clients/web/static/built/fontello.zip';
 const srcUrl = 'https://data.kitware.com/api/v1/file/57c5d1fc8d777f10f269dece/download';
 
 module.exports = function (grunt) {
+    const archivePath = path.resolve(grunt.config.get('builtPath'), 'fontello.zip');
     const localArchive = process.env.GIRDER_LOCAL_FONTELLO_ARCHIVE;
     let fetchTask;
     if (localArchive) {
@@ -57,7 +57,7 @@ module.exports = function (grunt) {
         unzip: {
             fontello: {
                 src: archivePath,
-                dest: 'clients/web/static/built/fontello/',
+                dest: path.resolve(grunt.config.get('builtPath'), 'fontello/'),
                 router: function (file) {
                     // remove the first path component
                     return file.split(path.sep).slice(1).join(path.sep);

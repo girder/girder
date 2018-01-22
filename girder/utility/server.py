@@ -242,8 +242,7 @@ def setup(test=False, plugins=None, curConfig=None):
     cherrypy.tree.mount(None, routeTable[constants.GIRDER_STATIC_ROUTE_ID],
                         {'/':
                          {'tools.staticdir.on': True,
-                          'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR,
-                                                              'clients/web/static'),
+                          'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR),
                           'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
                           'response.headers.server': 'Girder %s' % __version__,
                           'error_page.default': _errorDefault}})

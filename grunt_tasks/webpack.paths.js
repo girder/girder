@@ -15,11 +15,10 @@
  */
 
 var path = require('path');
+var girderPath = path.resolve('node_modules', 'girder');
 
 module.exports = {
-    clients_web: path.resolve(__dirname, '../clients/web'),
-    node_modules: path.resolve(__dirname, '../node_modules'),
-    web_src: path.resolve(__dirname, '../clients/web/src'),
-    web_built: path.resolve(__dirname, '../clients/web/static/built/'),
-    plugins: path.resolve(__dirname, '../plugins')
+    node_modules: path.resolve('node_modules'),
+    web_src: girderPath,
+    plugins: path.resolve(__dirname, 'plugins')
 };

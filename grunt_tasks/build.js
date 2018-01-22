@@ -143,12 +143,13 @@ module.exports = function (grunt) {
                     girder_lib: [paths.web_src]
                 },
                 output: {
-                    library: '[name]'
+                    library: '[name]',
+                    path: grunt.config.get('builtPath')
                 },
                 plugins: [
                     // Remove this if it turns out we don't want to use it for every bundle target.
                     new webpack.DllPlugin({
-                        path: path.join(paths.web_built, '[name]-manifest.json'),
+                        path: path.join(grunt.config.get('builtPath'), '[name]-manifest.json'),
                         name: '[name]'
                     }),
                     new ExtractTextPlugin({
@@ -168,10 +169,13 @@ module.exports = function (grunt) {
                 entry: {
                     girder_app: [path.join(paths.web_src, 'main.js')]
                 },
+                output: {
+                    path: grunt.config.get('builtPath')
+                },
                 plugins: [
                     new webpack.DllReferencePlugin({
                         context: '.',
-                        manifest: path.join(paths.web_built, 'girder_lib-manifest.json')
+                        manifest: path.join(grunt.config.get('builtPath'), 'girder_lib-manifest.json')
                     }),
                     new ExtractTextPlugin({
                         filename: '[name].min.css',
@@ -181,9 +185,7 @@ module.exports = function (grunt) {
             }
         },
         default: {
-            build: {
-                dependencies: ['version-info']
-            }
+            build: {}
         }
     });
 

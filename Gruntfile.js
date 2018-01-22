@@ -15,6 +15,7 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 
 require('colors');
 const toposort = require('toposort');
@@ -61,7 +62,8 @@ module.exports = function (grunt) {
         environment: environment,
         pkg: grunt.file.readJSON('package.json'),
         pluginDir: 'plugins',
-        staticDir: 'clients/web/static',
+        staticDir: '.',
+        builtPath: path.resolve(grunt.option('static-path') || '.', 'built'),
         isSourceBuild: isSourceBuild,
         default: {}
     });
@@ -76,7 +78,7 @@ module.exports = function (grunt) {
 
     // Ensure our build directory exists
     try {
-        fs.mkdirSync('clients/web/static/built');
+        fs.mkdirSync('built');
     } catch (e) {
         if (e.code !== 'EEXIST') {
             throw e;

@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
+const path = require('path');
+
 /**
  * Define tasks that copy and configure swagger API/doc files.
  */
 module.exports = function (grunt) {
+    const builtPath = path.resolve(grunt.config.get('builtPath'), 'swagger');
     grunt.config.merge({
         copy: {
             swagger: {
@@ -25,7 +28,14 @@ module.exports = function (grunt) {
                     expand: true,
                     cwd: 'node_modules/swagger-ui/dist',
                     src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
-                    dest: 'clients/web/static/built/swagger'
+                    dest: builtPath
+                }]
+            },
+            'girder-swagger': {
+                files: [{
+                    expand: true,
+                    src: ['girder-swagger.js'],
+                    dest: builtPath
                 }]
             }
         },
@@ -33,8 +43,8 @@ module.exports = function (grunt) {
         stylus: {
             swagger: {
                 files: {
-                    'clients/web/static/built/swagger/docs.css': [
-                        'clients/web/src/stylesheets/apidocs/*.styl'
+                    [path.resolve(builtPath, 'docs.css')]: [
+                        'node_modules/girder/stylesheets/apidocs/*.styl'
                     ]
                 }
             }
@@ -42,6 +52,7 @@ module.exports = function (grunt) {
 
         default: {
             'copy:swagger': {},
+            'copy:girder-swagger': {},
             'stylus:swagger': {}
         }
     });

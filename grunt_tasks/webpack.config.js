@@ -24,7 +24,6 @@ var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-var paths = require('./webpack.paths.js');
 // Resolving the Babel presets here is required to support symlinking plugin directories from
 // outside Girder's file tree
 const babelPresets = require.resolve('babel-preset-env');
@@ -39,13 +38,12 @@ function fileLoader() {
     };
 }
 
-var loaderPaths = [path.resolve('clients', 'web', 'src')];
+var loaderPaths = [path.resolve('node_modules', 'girder')];
 var loaderPathsNodeModules = loaderPaths.concat([path.resolve('node_modules')]);
 
 module.exports = {
     output: {
-        filename: '[name].min.js',
-        path: paths.web_built
+        filename: '[name].min.js'
         // publicPath must be set to Girder's externally-served static path for built outputs
         // (typically '/static/built/'). This will be done at runtime with
         // '__webpack_public_path__', since it's not always known at build-time.
@@ -201,9 +199,6 @@ module.exports = {
         ]
     },
     resolve: {
-        alias: {
-            'girder': paths.web_src
-        },
         extensions: ['.js'],
         symlinks: false
     },

@@ -22,11 +22,11 @@ Constants should be defined here.
 """
 import os
 import json
+import sys
 
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
 LOG_ROOT = os.path.join(os.path.expanduser('~'), '.girder', 'logs')
-ROOT_PLUGINS_PACKAGE = 'girder.plugins'
 MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
 LOG_BACKUP_COUNT = 5
 ACCESS_FLAGS = {}
@@ -55,10 +55,7 @@ except IOError:
     pass
 
 #: The local directory containing the static content.
-#: Should contain ``clients/web/static``.
-STATIC_ROOT_DIR = ROOT_DIR
-if not os.path.exists(os.path.join(STATIC_ROOT_DIR, 'clients')):
-    STATIC_ROOT_DIR = PACKAGE_DIR
+STATIC_ROOT_DIR = os.path.join(sys.prefix, 'share', 'girder', 'web', 'static')
 
 
 def registerAccessFlag(key, name, description=None, admin=False):

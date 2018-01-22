@@ -7,7 +7,6 @@ import * as models from './models';
 import * as rest from './rest';
 import * as server from './server';
 import * as utilities from './utilities';
-import * as version from './version';
 import * as views from './views';
 import events from './events';
 import router from './router';
@@ -28,6 +27,5 @@ export {
     router,
     server,
     utilities,
-    version,
     views
 };
