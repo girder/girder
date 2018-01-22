@@ -1,4 +1,4 @@
-FROM node:6
+FROM node:8-stretch
 MAINTAINER Kitware, Inc. <kitware@kitware.com>
 
 EXPOSE 8080
@@ -31,4 +31,4 @@ COPY README.rst /girder/README.rst
 RUN pip install -e .[plugins]
 RUN girder-install web --all-plugins
 
-ENTRYPOINT ["python", "-m", "girder"]
+ENTRYPOINT ["python2", "-m", "girder"]

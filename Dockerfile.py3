@@ -1,4 +1,4 @@
-FROM node:6
+FROM node:8-stretch
 MAINTAINER Kitware, Inc. <kitware@kitware.com>
 
 EXPOSE 8080
