@@ -6,8 +6,7 @@ EXPOSE 8080
 RUN mkdir /girder
 RUN mkdir /girder/logs
 
-RUN apt-get update && apt-get install -qy software-properties-common python-software-properties && \
-  apt-get update && apt-get install -qy \
+RUN apt-get update && apt-get install -qy \
     build-essential \
     git \
     libffi-dev \
