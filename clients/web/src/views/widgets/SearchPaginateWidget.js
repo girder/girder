@@ -61,9 +61,10 @@ var SearchPaginateWidget = View.extend({
     _updateHasPreviousPage: function (update = false) {
         if (this._currentPage) {
             if (update) {
-                return this._fetchPreviousPage(update).done(_.bind(function () {
+                return this._fetchPreviousPage(update)
+                .done(() => {
                     return this._fetchPreviousPage();
-                }, this));
+                });
             } else {
                 return this._fetchPreviousPage();
             }
@@ -74,9 +75,10 @@ var SearchPaginateWidget = View.extend({
 
     _updateHasNextPage: function (update = false) {
         if (update) {
-            return this._fetchNextPage(update).done(_.bind(function () {
+            return this._fetchNextPage(update)
+            .done(() => {
                 return this._fetchNextPage();
-            }, this));
+            });
         } else {
             return this._fetchNextPage();
         }
@@ -88,7 +90,8 @@ var SearchPaginateWidget = View.extend({
             this._hasPreviousPage = false;
             this.render();
         } else {
-            return this._fetch(offset).done(_.bind(function (results) {
+            return this._fetch(offset)
+            .done((results) => {
                 var result = results[this._type];
                 if (result.length) {
                     this._hasPreviousPage = true;
@@ -102,13 +105,14 @@ var SearchPaginateWidget = View.extend({
                     this._hasPreviousPage = false;
                 }
                 this.render();
-            }, this));
+            });
         }
     },
 
     _fetchNextPage: function (update = false) {
         var offset = this._limit * (this._currentPage + 1);
-        return this._fetch(offset).done(_.bind(function (results) {
+        return this._fetch(offset)
+        .done((results) => {
             var result = results[this._type];
             if (result.length) {
                 this._hasNextPage = true;
@@ -122,7 +126,7 @@ var SearchPaginateWidget = View.extend({
                 this._hasNextPage = false;
             }
             this.render();
-        }, this));
+        });
     },
 
     _fetch: function (offset) {

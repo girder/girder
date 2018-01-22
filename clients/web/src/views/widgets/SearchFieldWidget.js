@@ -12,7 +12,6 @@ import SearchFieldTemplate from 'girder/templates/widgets/searchField.pug';
 import SearchHelpTemplate from 'girder/templates/widgets/searchHelp.pug';
 import SearchModeSelectTemplate from 'girder/templates/widgets/searchModeSelect.pug';
 import SearchResultsTemplate from 'girder/templates/widgets/searchResults.pug';
-
 import 'girder/stylesheets/widgets/searchFieldWidget.styl';
 
 /**
@@ -97,7 +96,6 @@ var SearchFieldWidget = View.extend({
         this.ajaxLock = false;
         this.pending = null;
         this.noResourceSelected = true;
-        this.results = [];
         this.placeholder = settings.placeholder || 'Search...';
         this.getInfoCallback = settings.getInfoCallback || null;
         /* The order of settings.types give the order of the display of the elements :
@@ -134,20 +132,19 @@ var SearchFieldWidget = View.extend({
     },
 
     _goToResultPage: function (query, mode) {
-        // TODO : URL encode query
         this.resetState();
         router.navigate(`#search/results?query=${query}&mode=${mode}`, {trigger: true});
     },
 
     _resultClicked: function (link) {
-        if (link.attr('resourcetype') === 'resultPage') {
+        if (link.data('resourceType') === 'resultPage') {
             this._goToResultPage(this.$('.g-search-field').val(), this.currentMode);
         } else {
             this.trigger('g:resultClicked', {
-                type: link.attr('resourcetype'),
-                id: link.attr('resourceid'),
+                type: link.data('resourceType'),
+                id: link.data('resourceId'),
                 text: link.text().trim(),
-                icon: link.attr('g-icon')
+                icon: link.data('resourceIcon')
             });
         }
     },
@@ -283,16 +280,9 @@ var SearchFieldWidget = View.extend({
                         });
                     }, this);
                 }, this);
-                for (var k = 0; k < resources.length; k++) {
-                    if (k >= 6) {
-                        break;
-                    }
-                    this.results.push(resources[k]);
-                }
                 list.html(SearchResultsTemplate({
-                    results: this.results
+                    results: resources.slice(0, 6)
                 }));
-                this.results = [];
                 this.$('.dropdown').addClass('open');
             }
         }, this));

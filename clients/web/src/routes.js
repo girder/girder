@@ -238,5 +238,5 @@ router.route('search/results', 'SearchResults', function (params) {
     events.trigger('g:navigateTo', SearchResultsView, {
         query: params.query,
         mode: params.mode
-    } || {});
+    });
 });
