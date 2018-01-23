@@ -55,7 +55,6 @@ if(RUN_CORE_TESTS)
   add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
   set_property(TEST server_upload PROPERTY LABELS girder_integration)
   add_python_test(user)
-  add_python_test(path_utilities)
   add_python_test(setup_database)
 
   add_python_test(py_client.cli BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
