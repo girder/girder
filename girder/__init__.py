@@ -226,8 +226,8 @@ def _setupLogger():
 logger = _setupLogger()
 
 
-def logStdoutStderr():
-    if _originalStdOut == sys.stdout:
+def logStdoutStderr(force=False):
+    if _originalStdOut == sys.stdout or force:
         sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
         sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
 
