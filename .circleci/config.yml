@@ -11,7 +11,9 @@ jobs:
         # is likely a free (and poorly documented) analogue to the enterprise-only "inMemory"
         # storage engine. We can pass alternate options to "mongod" by overwriting the default "CMD"
         # used to start the Docker image: https://github.com/circleci/circleci-images/blob/master/mongo/resources/Dockerfile-ram.template
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
+        command: |
+          /bin/bash -c "mkdir -p /dev/shm/mongo &&
+          mongod --storageEngine ephemeralForTest --dbpath /dev/shm/mongo"
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -113,7 +115,9 @@ jobs:
       - image: girder/girder_test:latest-py3
       # Use the latest MongoDB
       - image: circleci/mongo:3.6-ram
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
+        command: |
+          /bin/bash -c "mkdir -p /dev/shm/mongo &&
+          mongod --storageEngine ephemeralForTest --dbpath /dev/shm/mongo"
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -150,7 +154,9 @@ jobs:
     docker:
       - image: girder/girder_test:latest-py3
       - image: circleci/mongo:3.6-ram
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
+        command: |
+          /bin/bash -c "mkdir -p /dev/shm/mongo &&
+          mongod --storageEngine ephemeralForTest --dbpath /dev/shm/mongo"
 
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
 
@@ -273,7 +279,9 @@ jobs:
     docker:
       - image: girder/girder_test:latest-py2
       - image: circleci/mongo:3.2-ram
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
+        command: |
+          /bin/bash -c "mkdir -p /dev/shm/mongo &&
+          mongod --storageEngine ephemeralForTest --dbpath /dev/shm/mongo"
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
       - attach_workspace:
@@ -382,7 +390,9 @@ jobs:
     docker:
       - image: girder/girder_test:latest-py3
       - image: circleci/mongo:3.6-ram
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
+        command: |
+          /bin/bash -c "mkdir -p /dev/shm/mongo &&
+          mongod --storageEngine ephemeralForTest --dbpath /dev/shm/mongo"
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
       - attach_workspace:
