@@ -4,7 +4,8 @@ import os
 import time
 
 from girder_worker.app import app
-from girder_worker.describe import argument, types
+from girder_worker_utils import types
+from girder_worker_utils.decorators import argument
 
 from girder.constants import AccessType
 from girder.models.file import File
@@ -731,7 +732,7 @@ class TasksTest(base.TestCase):
             name='temp', creator=self.admin, folder=self.privateFolder)
 
         app.tasks['task'] = lambda n: None
-        with mock.patch('girder.plugins.item_tasks.celery_tasks.describe.describe_function',
+        with mock.patch('girder.plugins.item_tasks.celery_tasks.decorators.describe_function',
                         return_value=spec):
             resp = self.request(
                 '/item/%s/item_task_celery' % item['_id'],
@@ -809,7 +810,7 @@ class TasksTest(base.TestCase):
 
         app.tasks['task'] = lambda n: None
         with mock.patch(
-            'girder.plugins.item_tasks.celery_tasks.describe.describe_function',
+            'girder.plugins.item_tasks.celery_tasks.decorators.describe_function',
                 return_value=spec):
 
             with mock.patch(

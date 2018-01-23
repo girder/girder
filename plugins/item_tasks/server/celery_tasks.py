@@ -2,7 +2,7 @@ import six
 
 from girder_worker.app import app
 from girder_worker.entrypoint import import_all_includes, get_extension_tasks, get_extensions
-from girder_worker import describe
+from girder_worker_utils import decorators
 
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
@@ -65,7 +65,7 @@ def celeryTaskDescriptionForFolder(self, folder, extension, params):
     itemModel = self.model('item')
     items = []
     for name, func in six.iteritems(tasks):
-        desc = describe.describe_function(func)
+        desc = decorators.describe_function(func)
         item = itemModel.createItem(
             name=desc['name'],
             creator=user,
@@ -81,7 +81,7 @@ def celeryTaskDescriptionForFolder(self, folder, extension, params):
 @boundHandler
 def describeItemTaskFromFunction(self, func, item, importName, setName=True, setDescription=True):
     try:
-        description = describe.describe_function(func)
+        description = decorators.describe_function(func)
     except Exception:
         raise RestException('Could not get a task description')
 
@@ -113,13 +113,13 @@ def runCeleryTask(taskName, inputs, outputs={}):
 
     task = tasks[taskName]
     try:
-        describe.describe_function(task.run)
-    except describe.MissingDescriptionException:
+        decorators.describe_function(task.run)
+    except decorators.MissingDescriptionException:
         raise RestException('"%s" is not a girder_worker decorated task' % taskName)
 
     try:
-        args, kwargs = describe.parse_inputs(task.run, inputs)
-    except describe.MissingInputException as e:
+        args, kwargs = decorators.parse_inputs(task.run, inputs)
+    except decorators.MissingInputException as e:
         raise RestException(str(e))
 
     try:
