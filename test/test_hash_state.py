@@ -20,29 +20,46 @@
 from girder.utility import hash_state
 import hashlib
 import pytest
-import sys
-import this
-
-testData = this.s.encode('utf8')
-chunkSize = len(testData) // 6
-chunks = [testData[i:i + chunkSize] for i in range(0, len(testData), chunkSize)]
-algorithms = hashlib.algorithms if sys.version_info <= (3, 2) else hashlib.algorithms_guaranteed
 
 
-@pytest.mark.parametrize('alg', algorithms)
-def testSimpleHashing(alg):
-    canonical = hashlib.new(alg)
-    state = hash_state.serializeHex(hashlib.new(alg))
+@pytest.fixture
+def iterableBytes():
+    chunkSize = 256
+    chunkCount = 6
+    # A one-time iterable, with elements:
+    #  b'0000...'
+    #  b'1111...'
+    #  ...
+    iterable = (
+        str(chunkNum).encode('utf8') * chunkSize
+        for chunkNum in range(chunkCount)
+    )
 
-    for chunk in chunks:
-        checksum = hash_state.restoreHex(state, alg)
-        assert canonical.hexdigest() == checksum.hexdigest()
-        assert canonical.digest() == checksum.digest()
+    yield iterable
 
-        canonical.update(chunk)
-        checksum.update(chunk)
-        state = hash_state.serializeHex(checksum)
 
-    checksum = hash_state.restoreHex(state, alg)
-    assert canonical.hexdigest() == checksum.hexdigest()
-    assert canonical.digest() == checksum.digest()
+@pytest.mark.parametrize('algorithmName', [
+    'md5',
+    'sha1',
+    'sha224',
+    'sha256',
+    'sha384',
+    'sha512'
+])
+def testSimpleHashing(iterableBytes, algorithmName):
+    canonicalHash = hashlib.new(algorithmName)
+    runningHash = hashlib.new(algorithmName)
+    runningState = hash_state.serializeHex(runningHash)
+
+    for chunk in iterableBytes:
+        runningHash = hash_state.restoreHex(runningState, algorithmName)
+        assert canonicalHash.hexdigest() == runningHash.hexdigest()
+        assert canonicalHash.digest() == runningHash.digest()
+
+        canonicalHash.update(chunk)
+        runningHash.update(chunk)
+        runningState = hash_state.serializeHex(runningHash)
+
+    runningHash = hash_state.restoreHex(runningState, algorithmName)
+    assert canonicalHash.hexdigest() == runningHash.hexdigest()
+    assert canonicalHash.digest() == runningHash.digest()
