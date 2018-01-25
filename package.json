@@ -46,6 +46,7 @@
         "stylus-loader": "^3.0.1",
         "swagger-ui": "~2.2.10",
         "toposort": "^1.0.3",
+        "uglifyjs-webpack-plugin": "^1.1.6",
         "underscore": "^1.8.3",
         "webpack": "^2.7.0"
     },
