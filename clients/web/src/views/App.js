@@ -31,19 +31,6 @@ import 'girder/stylesheets/layout/global.styl';
 import 'girder/stylesheets/layout/layout.styl';
 
 var App = View.extend({
-    events: {
-        'click a': (evt) => {
-            if (!evt.isDefaultPrevented()) {
-                var elem = $(evt.target),
-                    href = elem.attr('href');
-                if (elem.is('a') && href && href.substr(0, 1) === '#') {
-                    router.navigate(href.substr(1), {trigger: true});
-                    evt.preventDefault();
-                }
-            }
-        }
-    },
-
     /**
      * @param {object} [settings]
      * @param {bool} [settings.start=true] Run start after initialization
