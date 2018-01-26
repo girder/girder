@@ -10,9 +10,6 @@
   .g-user-dropdown-link
     display inline-block
     max-width calc(100vw - 300px)
-    overflow hidden
-    text-overflow ellipsis
-    white-space nowrap
 
     i
       margin-left 2px
@@ -28,3 +25,32 @@
   .dropdown-menu
     right 0
     left auto
+
+/* User header responsive */
+@media (min-width: $smallWidth)
+  .g-user-text
+
+    .g-user-dropdown-link-fade
+      display none
+
+    .g-non-user-fade
+      display none
+
+@media (max-width: $smallWidth)
+  .g-user-text
+    .g-user-dropdown-link
+      display none
+
+    .g-user-dropdown-link-fade
+      display inline-block
+
+    .g-non-user-fade
+      display inline-block
+
+      #g-non-user-action-menu > ul
+        min-width 100px
+        left auto
+        right 0
+
+    .g-non-user
+      display none

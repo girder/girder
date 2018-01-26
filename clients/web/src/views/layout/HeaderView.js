@@ -16,6 +16,7 @@ var LayoutHeaderView = View.extend({
     events: {
         'click .g-app-title': function () {
             router.navigate('', {trigger: true});
+            this.parentView.globalNavView.deactivateAll();
         }
     },
 
@@ -26,6 +27,9 @@ var LayoutHeaderView = View.extend({
         this.userView = new LayoutHeaderUserView({
             parentView: this,
             registrationPolicy: settings.registrationPolicy
+        });
+        this.userViewFade = new LayoutHeaderUserView({
+            parentView: this
         });
 
         /*
@@ -50,6 +54,7 @@ var LayoutHeaderView = View.extend({
             bannerColor: this.bannerColor,
             textColor: textColor
         }));
+
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
 
