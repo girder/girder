@@ -8,7 +8,7 @@ import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 import { cancelRestRequests } from 'girder/rest';
-import { formatDate, formatSize, renderMarkdown, DATE_MINUTE } from 'girder/misc';
+import { formatDate, formatShortDate, formatSize, renderMarkdown, DATE_MINUTE } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
 import CollectionListTemplate from 'girder/templates/body/collectionList.pug';
@@ -72,6 +72,7 @@ var CollectionsView = View.extend({
             collections: this.collection.toArray(),
             getCurrentUser: getCurrentUser,
             formatDate: formatDate,
+            formatShortDate: formatShortDate,
             DATE_MINUTE: DATE_MINUTE,
             formatSize: formatSize
         }));

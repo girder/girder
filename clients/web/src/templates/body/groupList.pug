@@ -25,8 +25,9 @@
       .g-group-right-column
         .g-group-created
           i.icon-clock
-          | Created on
-          span.g-group-created-date  #{formatDate(group.get('created'), DATE_DAY)}
+          span.g-list-right-column-description= 'Created on'
+          span.g-list-created-date  #{formatDate(group.get('created'), DATE_DAY)}
+          span.g-list-created-short-date #{formatShortDate(group.get('created'), DATE_DAY)}
       .g-clear-right
 
   .g-group-list-footer

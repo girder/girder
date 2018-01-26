@@ -9,7 +9,7 @@ import UserCollection from 'girder/collections/UserCollection';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
 import { cancelRestRequests } from 'girder/rest';
-import { formatDate, formatSize, DATE_DAY } from 'girder/misc';
+import { formatDate, formatShortDate, formatSize, DATE_DAY } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
 import UserListTemplate from 'girder/templates/body/userList.pug';
@@ -83,6 +83,7 @@ var UsersView = View.extend({
             currentUser: getCurrentUser(),
             usersCount: this.usersCount,
             formatDate: formatDate,
+            formatShortDate: formatShortDate,
             formatSize: formatSize,
             DATE_DAY: DATE_DAY
         }));
