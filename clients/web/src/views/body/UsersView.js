@@ -87,7 +87,10 @@ var UsersView = View.extend({
             DATE_DAY: DATE_DAY
         }));
 
-        this.paginateWidget.setElement(this.$('.g-user-pagination')).render();
+        const userList = this.paginateWidget.collection;
+        if (userList.hasNextPage() || userList.hasPreviousPage()) {
+            this.paginateWidget.setElement(this.$('.g-user-pagination')).render();
+        }
         this.sortCollectionWidget.setElement(this.$('.g-user-sort')).render();
         this.searchWidget.setElement(this.$('.g-users-search-container')).render();
 
