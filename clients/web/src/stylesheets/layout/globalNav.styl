@@ -1,24 +1,20 @@
 @import "layoutVars"
 
 ul.g-global-nav
+  display flex
+  justify-content center
+  align-items center
+  flex-wrap wrap
   padding-left 0
-
-  .g-nav-link
-    display block
-    line-height 52px
-    vertical-align middle
-    font-size 14px
-    color $lightColor
-    i
-      margin-right 16px
-      font-size 24px
+  margin 0
 
   >li
     list-style-type none
     text-decoration none
     text-transform uppercase
     font-weight 600
-    padding-left 20px
+    height $headerHeight
+    padding 0 2%
 
   >li:hover:not(.g-active)
     .g-nav-link
@@ -31,20 +27,24 @@ ul.g-global-nav
     .g-nav-link
       color $baseColor
 
-@media (max-width: 720px)
+  .g-home
+    display none
+
   .g-nav-link
-    display inline-block
-    padding 0 10px 0 6px
-    line-height 1.9
+    line-height $headerHeight
+    font-size 14px
+    color $lightColor
 
+    i
+      margin-right 5px
+      font-size 24px
+
+@media (max-width: $smallWidth)
   ul.g-global-nav
-    width 100%
-    >li
-      display inline-block
-      padding 4px 5px
+    justify-content space-evenly
 
-@media (max-width: 720px)
-  .g-global-nav-main
-    padding 0
-    background-image none
-    min-height 0
+    .g-home
+      display block
+
+  .g-nav-link > span
+    display none

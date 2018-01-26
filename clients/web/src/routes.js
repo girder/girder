@@ -83,6 +83,7 @@ router.route('folder/:id', 'folder', function (id, params) {
 import FrontPageView from 'girder/views/body/FrontPageView';
 router.route('', 'index', function () {
     events.trigger('g:navigateTo', FrontPageView);
+    events.trigger('g:highlightItem', 'HomeView');
 });
 
 /**
