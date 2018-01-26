@@ -59,22 +59,4 @@
 
 @media (min-width: 721px)
   #g-app-body-container.g-default-layout
-    margin (10px + $headerHeight) 20px 10px (20px + $navWidth)
-
-  #g-global-nav-container
-    width $navWidth
-    padding-top 10px
-    position fixed
-    top $headerHeight
-    bottom 0
-    box-sizing border-box
-
-@media (max-width: 720px)
-  #g-global-nav-container
-    width 100%
-    position static
-    margin-top $headerHeight
-
-  #g-app-body-container.g-default-layout
-    margin-left 0
-    padding 10px
+    min-height $minHeightSmallScreen

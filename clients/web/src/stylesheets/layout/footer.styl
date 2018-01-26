@@ -3,7 +3,6 @@
 #g-app-footer-container
   border-top $border
   text-align center
-  margin 20px 20px 20px $navWidth + 20px
 
 .g-quick-search-form
   >.form-group
@@ -20,6 +19,16 @@
   a
     margin 0 10px
 
-@media (max-width: 720px)
+    >i
+      display none
+      font-size 15px
+
+@media (max-width: $smallWidth)
   #g-app-footer-container
     margin 20px
+
+  .g-footer-links > a
+    span
+      display none
+    i
+      display inline
