@@ -76,7 +76,10 @@ var CollectionsView = View.extend({
             formatSize: formatSize
         }));
 
-        this.paginateWidget.setElement(this.$('.g-collection-pagination')).render();
+        const collectionList = this.paginateWidget.collection;
+        if (collectionList.hasNextPage() || collectionList.hasPreviousPage()) {
+            this.paginateWidget.setElement(this.$('.g-collection-pagination')).render();
+        }
         this.searchWidget.setElement(this.$('.g-collections-search-container')).render();
 
         if (this.create) {
@@ -101,15 +104,17 @@ var CollectionsView = View.extend({
         const link = $(e.currentTarget);
         const cid = link.attr('cid');
         const dest = this.$(`.g-collection-description[cid="${cid}"]`);
-
+        const topLevelListTitle = this.$(`.g-collection-link[g-collection-cid="${cid}"]`).parent().parent();
         if (link.attr('state') === 'hidden') {
             renderMarkdown(this.collection.get(cid).get('description'), dest);
             dest.removeClass('hide');
+            topLevelListTitle.css('flex', '0.4');
             link.attr('state', 'visible');
             link.find('i').removeClass('icon-down-dir').addClass('icon-up-dir');
             link.find('span').text('Hide description');
         } else {
             dest.addClass('hide');
+            topLevelListTitle.css('flex', '1');
             link.attr('state', 'hidden');
             link.find('i').removeClass('icon-up-dir').addClass('icon-down-dir');
             link.find('span').text('Show description');
