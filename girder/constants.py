@@ -55,7 +55,8 @@ except IOError:
     pass
 
 #: The local directory containing the static content.
-STATIC_ROOT_DIR = os.path.join(sys.prefix, 'share', 'girder', 'web', 'static')
+STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
+STATIC_ROOT_DIR = os.path.join(STATIC_PREFIX, 'static')
 
 
 def registerAccessFlag(key, name, description=None, admin=False):

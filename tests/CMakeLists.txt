@@ -33,7 +33,6 @@ if(RUN_CORE_TESTS)
   add_python_test(filter_logging)
   add_python_test(folder)
   add_python_test(group)
-  add_python_test(install)
   add_python_test(item)
   add_python_test(model_singleton)
   # The mount tests need to be able to mount FUSE
