@@ -20,6 +20,7 @@ This module defines functions for registering, loading, and querying girder plug
 
 import distutils
 from functools import wraps
+import os
 from pkg_resources import iter_entry_points
 import traceback
 
@@ -116,10 +117,45 @@ class GirderPlugin(object):
 
                 import rest  # register new rest endpoints, etc.
     """
+    #: The name of the web client package on npm.
+    NPM_PACKAGE_NAME = None
+
+    #: The version of the web client package to use.  Accepts any npm version identifier.
+    NPM_PACKAGE_VERSION = '*'
+
+    #: The path of the plugin's web client source code.  This path is given relative to the python
+    #: package.  This property is used to link the web client source into the staging area while
+    #: building in development mode.  In production environments, the package is always fetched
+    #: from npm.
+    CLIENT_SOURCE_PATH = 'web_client'
+
     def __init__(self, entrypoint):
         self._name = entrypoint.name
         self._loaded = False
-        self._metadata = _readPackageMetadata(entrypoint.dist)
+        self._dist = entrypoint.dist
+        self._metadata = _readPackageMetadata(self._dist)
+
+    def npmPackages(self):
+        """Return a dictionary of npm packages -> versions for building the plugin client.
+
+        By default, this dictionary will be assembled from the class properties, but plugins can
+        customize the behaivor for advanced usage.  For development, this function will replace the
+        version string with a ``file:...`` reference so npm will use the local source.
+        """
+        if not self.NPM_PACKAGE_NAME:
+            return {}
+
+        version = self.NPM_PACKAGE_VERSION
+        clientDir = os.path.abspath(os.path.join(self._dist.location, self.CLIENT_SOURCE_PATH))
+
+        # There isn't a great way to determine if this is an editable install of the python
+        # package.  As an alternative, we check if the web source directory exists.  This will
+        # also make it possible for plugins to include their client source in the python package
+        # if desired; however, it is unclear if that should be a recommended pattern.
+        if os.path.isdir(clientDir):
+            version = 'file:%s' % clientDir
+
+        return {self.NPM_PACKAGE_NAME: version}
 
     @property
     def name(self):

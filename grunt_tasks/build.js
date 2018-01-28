@@ -24,6 +24,8 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
+const webpackPlugins = require('./webpack.plugins.js');
+
 const isTrue = (str) => !!str && !['false', 'off', '0'].includes(str.toString().toLowerCase());
 
 module.exports = function (grunt) {
@@ -50,6 +52,7 @@ module.exports = function (grunt) {
         }),
         webpackConfig
     );
+    const plugins = grunt.config.get('pkg.girder.plugins') || [];
 
     // Extend the global webpack config options with environment-specific changes
     if (isDev) {
@@ -189,10 +192,53 @@ module.exports = function (grunt) {
         }
     });
 
+    // Get a list of entry points for each installed plugin.
+    // TODO: Find a way to get information from the plugins' package.json files.
+    // As is this is *very* hacky.  Ultimately, we will probably want to refactor
+    // the entire client build process.
+    const pluginTargets = [];
+    plugins.forEach(function (plugin) {
+        const name = plugin.replace('@girder/', '');
+        grunt.config.set(`webpack.plugin_${name}`, {
+            entry: {
+                [`plugins/${name}/plugin`]: [`${plugin}/main.js`]
+            },
+            output: {
+                path: path.resolve(grunt.config.get('builtPath'), 'plugins', name),
+                filename: 'plugin.min.js',
+                library: `girder_plugin_${name}`
+            },
+            plugins: [
+                new webpack.DllPlugin({
+                    path: path.join(grunt.config.get('builtPath'), 'plugins', name, 'plugin-manifest.json'),
+                    name: `girder_plugin_${plugin}`
+                }),
+                // DllBootstrapPlugin allows the same plugin bundle to also
+                // execute an entry point at load time instead of just exposing symbols
+                // as a library.
+                new webpackPlugins.DllBootstrapPlugin({
+                    [`plugins/${name}/plugins`]: `${plugin}/main.js`
+                }),
+                // This plugin allows this bundle to dynamically link against girder's
+                // core library bundle.
+                new webpack.DllReferencePlugin({
+                    context: '.',
+                    manifest: path.join(grunt.config.get('builtPath'), 'girder_lib-manifest.json')
+                }),
+                // This plugin pulls the CSS out of the bundle and into a separate file.
+                new ExtractTextPlugin({
+                    filename: 'plugin.min.css',
+                    allChunks: true
+                })
+            ]
+        });
+        pluginTargets.push(`webpack:plugin_${name}`);
+    });
+
     // Need an alias that can be used as a dependency (for testing). It will then trigger dev or
     // prod based on options passed
     grunt.registerTask('build', 'Build the web client.', [
         'webpack:core_lib',
         'webpack:core_app'
-    ]);
+    ].concat(pluginTargets));
 };

@@ -38,7 +38,7 @@ function fileLoader() {
     };
 }
 
-var loaderPaths = [path.resolve('node_modules', 'girder')];
+var loaderPaths = [path.resolve('node_modules/girder'), path.resolve('node_modules/@girder')];
 var loaderPathsNodeModules = loaderPaths.concat([path.resolve('node_modules')]);
 
 module.exports = {

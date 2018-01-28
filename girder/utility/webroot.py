@@ -126,7 +126,7 @@ class Webroot(WebrootBase):
         self.vars['plugins'] = server.getPlugins()
         self.vars['pluginCss'] = []
         self.vars['pluginJs'] = []
-        builtDir = os.path.join(constants.STATIC_ROOT_DIR)
+        builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'built', 'plugins')
         for plugin in self.vars['plugins']:
             if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.css')):
                 self.vars['pluginCss'].append(plugin)

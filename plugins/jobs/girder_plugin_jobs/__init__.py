@@ -46,6 +46,8 @@ def scheduleLocal(event):
 
 
 class JobsPlugin(GirderPlugin):
+    NPM_PACKAGE_NAME = '@girder/jobs'
+
     def load(self, info):
         info['apiRoot'].job = job_rest.Job()
         events.bind('jobs.schedule', 'jobs', scheduleLocal)

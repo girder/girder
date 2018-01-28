@@ -18,6 +18,7 @@ const fs = require('fs');
 const path = require('path');
 
 require('colors');
+const mkdirp = require('mkdirp');
 const toposort = require('toposort');
 const _ = require('underscore');
 
@@ -37,15 +38,6 @@ function sortTasks(obj) {
         .flatten(true)
         .value();
     var sorted = toposort.array(nodes, edges);
-
-    // We need to ensure that the npm install task is run first.
-    // This is currently necessary because some external plugins
-    // don't specify any external tasks as dependencies.
-    var installIndex = _.indexOf(sorted, 'npm-install-plugins');
-    if (installIndex >= 0) {
-        sorted.splice(installIndex, 1);
-        sorted.splice(0, 0, 'npm-install-plugins');
-    }
     return sorted;
 }
 
@@ -61,7 +53,6 @@ module.exports = function (grunt) {
     grunt.config.init({
         environment: environment,
         pkg: grunt.file.readJSON('package.json'),
-        pluginDir: 'plugins',
         staticDir: '.',
         builtPath: path.resolve(grunt.option('static-path') || '.', 'built'),
         isSourceBuild: isSourceBuild,
@@ -78,7 +69,7 @@ module.exports = function (grunt) {
 
     // Ensure our build directory exists
     try {
-        fs.mkdirSync('built');
+        mkdirp(grunt.config.get('builtPath'));
     } catch (e) {
         if (e.code !== 'EEXIST') {
             throw e;
@@ -99,16 +90,6 @@ module.exports = function (grunt) {
      * Load task modules inside `grunt_tasks`.
      */
     grunt.loadTasks('grunt_tasks');
-
-    /**
-     * This task is noop that exists for backwards compatibility in case any plugins rely
-     * on its existence.
-     * @deprecated: remove in v3
-     */
-    grunt.registerTask('init', 'This task is deprecated, in favor of "default".', _.constant(true));
-    grunt.config.merge({
-        default: grunt.config.get('init')
-    });
 
     /**
      * Load `default` target by topologically sorting the tasks given by keys the config object.

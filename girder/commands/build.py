@@ -24,6 +24,7 @@ from subprocess import check_call
 import click
 
 from girder.constants import STATIC_PREFIX, STATIC_ROOT_DIR
+from girder.plugin import allPlugins, getPlugin
 
 _GIRDER_STAGING_MARKER = '.girder-staging'
 
@@ -40,7 +41,8 @@ def build(staging):
     _generateStagingArea(staging)
 
     check_call(['npm', 'install'], cwd=staging)
-    check_call(['npx', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR], cwd=staging)
+    check_call(['npx', '-n', '--preserve-symlinks', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR],
+               cwd=staging)
 
 
 def _checkStagingPath(staging):
@@ -74,6 +76,14 @@ def _generateStagingArea(staging):
     os.symlink(source, target)
 
 
+def _collectPluginDependencies():
+    packages = {}
+    for pluginName in allPlugins():
+        plugin = getPlugin(pluginName)
+        packages.update(plugin.npmPackages())
+    return packages
+
+
 def _generatePackageJSON(staging, source):
     # TODO: use a template string
     with open(source, 'r') as f:
@@ -81,6 +91,11 @@ def _generatePackageJSON(staging, source):
     deps = sourceJSON['dependencies']
     deps['girder'] = 'file:%s' % os.path.join(
         _GIRDER_BUILD_ASSETS_PATH, 'clients', 'web', 'src')
+    plugins = _collectPluginDependencies()
+    deps.update(plugins)
+    sourceJSON['girder'] = {
+        'plugins': list(plugins.keys())
+    }
     with open(os.path.join(staging, 'package.json'), 'w') as f:
         json.dump(sourceJSON, f)
 

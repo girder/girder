@@ -38,6 +38,7 @@
         "grunt-shell": "^2.1.0",
         "grunt-webpack": "^3.0.2",
         "grunt-zip": "^0.17.1",
+        "mkdirp": "^0.5.1",
         "nib": "^1.1.2",
         "pug": "^2.0.0-rc.3",
         "pug-loader": "^2.3.0",
