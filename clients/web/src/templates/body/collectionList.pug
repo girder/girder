@@ -1,11 +1,12 @@
-.g-collection-list-header
-  form.g-collection-search-form.form-inline(role="form")
-    .form-group.g-collections-search-container
+.g-body-view-container
+  .g-collection-list-header
+    form.g-collection-search-form.form-inline(role="form")
+      .form-group.g-collections-search-container
 
-  if getCurrentUser()
-    button.g-collection-create-button.btn.btn-sm.btn-success
-      i.icon-plus-squared
-      span= "Create collection"
+    if getCurrentUser()
+      button.g-collection-create-button.btn.btn-sm.btn-success
+        i.icon-plus-squared
+        span= "Create collection"
 
 each collection in collections
   .g-collection-list-entry.g-top-level-list-entry(public=(collection.get('public') ? "true" : "false"))
@@ -37,5 +38,5 @@ each collection in collections
           span.g-user-space-used  #{formatSize(collection.get('size'))}
     .g-clear-right
 
-.g-collection-list-footer
-  .g-collection-pagination
+  .g-collection-list-footer
+    .g-collection-pagination

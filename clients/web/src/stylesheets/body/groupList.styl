@@ -1,5 +1,11 @@
 @import "../layout/layoutVars"
 
+/* Global */
+.g-groups-list-body
+  max-width $maxWidth
+  margin-left auto
+  margin-right auto
+
 /* Header */
 .g-groups-list-header
   display flex
@@ -10,10 +16,6 @@
 
   .g-group-search-form
     flex 1
-
-@media (max-width: $smallWidth)
-  .g-group-create-button >span
-    display none
 
 /* Body */
 .g-group-list-entry

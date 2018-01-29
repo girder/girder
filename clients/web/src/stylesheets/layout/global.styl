@@ -27,6 +27,18 @@ b
 .g-clear-right
   clear right
 
+/* Apply on each classic body view */
+.g-body-view-container
+  max-width $maxWidth
+  margin-left auto
+  margin-right auto
+
+@media (max-width: $smallWidth)
+  .g-body-view-container
+    max-width inherit
+    margin-left inherit
+    margin-right inherit
+
 ul.dropdown-menu
   >li.dropdown-header
     padding 3px 20px 3px 8px

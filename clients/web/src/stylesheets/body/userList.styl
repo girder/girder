@@ -36,10 +36,6 @@
       left 72%
       top 55%
 
-@media (max-width: $smallWidth)
-  .g-user-create-button >span
-    display none
-
 /* Body */
 .g-user-list-entry
   // These shouldn't be needed when the user list entry divs also have g-top-level-list-entry
@@ -86,3 +82,8 @@
     .pagination>li>a
       line-height 1.5
       padding 7px 12px
+
+@media (max-width: $smallWidth)
+  /* Header */
+  .g-user-create-button >span
+    display none
