@@ -169,6 +169,8 @@ setup(
             'girder-shell = girder.utility.shell:main',
             'girder = girder.cli:main'
         ],
-        'girder.cli_plugins': []
+        'girder.cli_plugins': [
+            'serve = girder.__main__:main'
+        ]
     }
 )
