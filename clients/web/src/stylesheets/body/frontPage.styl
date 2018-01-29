@@ -1,20 +1,11 @@
 @import "../layout/layoutVars"
 
+/* Header */
 .g-frontpage-header
-  padding 5px
-
-  .g-frontpage-title-container
-    display inline-block
-    margin-left 12px
-
-    .g-frontpage-title
-      font-weight 600
-      font-size 34px
-      color $baseColor
-
-    .g-frontpage-subtitle
-      font-size 18px
-      margin-left 2px
+  display flex
+  justify-content center
+  background-color $secondaryBackgroundColor
+  padding ($headerHeight / 2) 0
 
   .g-frontpage-logo-container
     position relative
@@ -33,15 +24,62 @@
       top 50%
       transform translate(-50%, -50%)
 
+  .g-frontpage-title-container
+    display inline-block
+    margin-left 12px
+
+    .g-frontpage-title
+      font-weight 600
+      font-size 40px
+      color $baseColor
+
+    .g-frontpage-subtitle
+      font-size 20px
+      margin-left 2px
+      border-top $border
+
+/* Body */
 .g-frontpage-body
-  padding 12px 12px 0
-  margin-top 10px
-  max-width 800px
-  border-radius 2px
-  background-color $secondaryBackgroundColor
-  border $border
+  display flex
+  justify-content center
 
   .g-frontpage-paragraph
-    margin-top 0
-    margin-bottom 18px
-    font-size 14px
+    line-height 2
+    max-width 800px
+    padding 12px
+
+  .g-frontpage-welcome-text
+    font-size 20px
+
+  .g-frontpage-content
+    display flex
+    justify-content space-around
+    flex-direction column
+
+  .g-frontpage-nav
+    display flex
+    justify-content center
+
+    a
+      margin 0 5%
+      text-decoration-color none
+      display flex
+      flex-direction column
+      justify-content center
+      align-items center
+
+    i
+      flex 1
+      font-size 24px
+
+
+@media (max-width: $smallWidth)
+  /* Header */
+  .g-frontpage-header
+      display none
+
+  /* Body */
+  .g-frontpage-body
+    .g-frontpage-nav
+      span
+        display none
