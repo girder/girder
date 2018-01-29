@@ -22,6 +22,7 @@ function _goToCollection(collection) {
         waitsFor(function () {
             return $('.g-collection-actions-button:visible').is(':enabled');
         }, 'collection actions link to appear');
+
         girderTest.waitForLoad();
     }
 }
@@ -69,10 +70,10 @@ function _makeCollectionPublic(collection) {
         $('#g-dialog-container input.g-search-field').trigger('input');
     });
     waitsFor(function () {
-        return $('.g-search-result').length === 1;
+        return $('.g-search-result').length === 2;
     }, 'user1 to be listed');
     runs(function () {
-        $('.g-search-result a').click();
+        $('a.g-search-result-element').click();
     });
     waitsFor(function () {
         return $('.g-user-access-entry').length === 2;

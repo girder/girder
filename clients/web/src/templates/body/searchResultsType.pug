@@ -1,0 +1,14 @@
+.g-search-result-type-header-container
+  i.g-search-result-type-header.g-search-result-type-icon(class=`icon-${icon}`)
+  .g-search-result-type-header.g-search-results-type-title
+    | #{collectionName}
+ul.g-search-results-type
+  each element in results
+    li.g-search-result
+      if type === 'user'
+        a(data-resource-id=element._id, data-resource-type=type, data-resource-icon=icon, tabindex="-1")
+          | #{element.firstName} #{element.lastName} (#{element.login})
+      else
+        a(data-resource-id=element._id, data-resource-type=type, data-resource-icon=icon, tabindex="-1")
+          | #{element.name}
+.g-search-results-paginate(id=`${type}Paginate`)
