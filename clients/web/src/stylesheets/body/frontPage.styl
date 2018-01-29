@@ -1,3 +1,5 @@
+@import "../layout/layoutVars"
+
 .g-frontpage-header
   padding 5px
 
@@ -6,15 +8,15 @@
     margin-left 12px
 
     .g-frontpage-title
-      font-weight bold
+      font-weight 600
       font-size 34px
-      color #222
+      color $baseColor
 
     .g-frontpage-subtitle
       font-size 18px
-      color #707070
+      color $normalColor
       margin-left 2px
-      border-top 1px solid #eee
+      border-top $border
 
   .g-frontpage-logo-container
     position relative
@@ -36,11 +38,11 @@
 .g-frontpage-body
   padding 12px 12px 0
   margin-top 10px
-
+  max-width 800px
   border-radius 2px
-  background-color #f8f8f8
-  border 1px solid #e5e5e5
-  color #555
+  background-color $secondaryBackgroundColor
+  border $border
+  color $normalColor
 
   .g-frontpage-paragraph
     margin-top 0

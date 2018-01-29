@@ -12,7 +12,7 @@
 
 #g-app-body-container.g-empty-layout
   margin 0
-  padding 0
+  padding 20px
 
 #g-alerts-container
   position fixed
@@ -54,15 +54,21 @@
   overflow hidden
   text-overflow ellipsis
 
+#g-global-nav-container
+  background-color $secondaryBackgroundColor
+
 @media (min-width: 721px)
   #g-app-body-container.g-default-layout
-    padding 10px + $headerHeight 10px 10px 10px
-    margin-left $navWidth + 1px
+    margin (10px + $headerHeight) 20px 10px (20px + $navWidth)
 
   #g-global-nav-container
+    width $navWidth
+    padding 10px 20px
     position fixed
     top $headerHeight
-    width $navWidth
+    bottom 0
+    box-sizing border-box
+    border-right $border
 
 @media (max-width: 720px)
   #g-global-nav-container

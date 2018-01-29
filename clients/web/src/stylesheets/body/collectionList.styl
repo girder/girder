@@ -1,22 +1,26 @@
+@import "../layout/layoutVars"
+
 .g-collection-list-entry
 
   .g-collection-title
-    font-size 17px
+    font-size $resourceTitleSize
 
   .g-collection-right-column
-    border-left 1px solid #ddd
     padding-left 8px
     display inline
-    width 290px
+    width 320px
     font-size 14px
     float right
-    color #909090
+    color $lightColor
 
   .g-collection-description
     background-color white
     padding 8px 12px
     border-radius 3px
-    border 1px solid #dedede
+    border $border
+
+  .g-collection-created-date, .g-user-space-used
+    color $normalColor
 
 .g-collection-list-header
   padding-bottom 10px
