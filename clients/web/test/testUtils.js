@@ -1280,6 +1280,21 @@ girderTest.startApp = function () {
                 parentView: null,
                 start: false
             });
+            /* Add a handler to allow tests to use
+             *   $(<a element with href>).click()
+             * to test clicking on links. */
+            girder.app.events = girder.app.events || {};
+            girder.app.events['click a'] = function (evt) {
+                if (!evt.isDefaultPrevented()) {
+                    var elem = $(evt.target),
+                        href = elem.attr('href');
+                    if (elem.is('a') && href && href.substr(0, 1) === '#') {
+                        girder.router.navigate(href.substr(1), {trigger: true});
+                        evt.preventDefault();
+                    }
+                }
+            };
+            girder.app.delegateEvents();
             return girder.app.start();
         })
         .then(function () {

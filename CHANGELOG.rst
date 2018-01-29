@@ -48,6 +48,11 @@ Changes
 * Exceptions are now all accessible in the ``exceptions`` module and are descended from the ``GirderBaseException`` class.
 * Require npm 5.2+ (with npm 5.6+ strongly recommended) to build the web client
 
+Web Client
+^^^^^^^^^^
+* Use ``href`` properties for navigation links in addition to JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
+* Change instances of ``.g-server-config`` to ``.g-server-config a`` to enable adding of ``href`` properties to those links
+
 Deprecations
 ------------
 * Server side tests should be written using the new ``pytest`` infrastructure.

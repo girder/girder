@@ -6,11 +6,11 @@
     #g-user-action-menu.dropdown
       ul.dropdown-menu(role="menu")
         li(role="presentation")
-          a.g-my-folders
+          a.g-my-folders(href=`#user/${user.id}`)
             i.icon-folder
             | My folders
         li(role="presentation")
-          a.g-my-settings
+          a.g-my-settings(href=`#useraccount/${user.id}/info`)
             i.icon-cog
             | My account
         li.divider(role="presentation")
