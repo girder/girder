@@ -11,15 +11,15 @@ import Model from './Model';
 import UserModel from './UserModel';
 
 export {
-  AccessControlledModel,
-  ApiKeyModel,
-  AssetstoreModel,
-  CollectionModel,
-  FileModel,
-  FolderModel,
-  GroupModel,
-  ItemModel,
-  MetadataMixin,
-  Model,
-  UserModel
+    AccessControlledModel,
+    ApiKeyModel,
+    AssetstoreModel,
+    CollectionModel,
+    FileModel,
+    FolderModel,
+    GroupModel,
+    ItemModel,
+    MetadataMixin,
+    Model,
+    UserModel
 };

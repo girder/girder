@@ -19,15 +19,12 @@
 
 import bson.json_util
 import dateutil.parser
-try:
-    from inspect import signature, Parameter
-except ImportError:
-    from funcsigs import signature, Parameter
 import inspect
 import jsonschema
 import os
 import six
 import cherrypy
+from collections import OrderedDict
 
 from girder import constants, events, logprint
 from girder.api.rest import getCurrentUser, getBodyJson
@@ -40,6 +37,11 @@ from girder.utility.webroot import WebrootBase
 from girder.utility.resource import _apiRouteMap
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
+
+if six.PY3:
+    from inspect import signature, Parameter
+else:
+    from funcsigs import signature, Parameter
 
 """
 Whenever we add new return values or new options we should increment the
@@ -135,7 +137,17 @@ class Description(object):
             resp['consumes'] = self._consumes
 
         if self._produces:
-            resp['produces'] = self._produces
+            # swagger has a bug where not all appropriate mime types are
+            # considered to be binary (see
+            # https://github.com/swagger-api/swagger-ui/issues/1605).  If we
+            # have specified zip format, replace it with
+            # application/octet-stream
+            #   Reduce the list of produces values to unique values,
+            # maintaining the order.
+            produces = list(OrderedDict.fromkeys([
+                'application/octet-stream' if item in ('application/zip', )
+                else item for item in self._produces]))
+            resp['produces'] = produces
 
         if self._deprecated:
             resp['deprecated'] = True
@@ -462,8 +474,10 @@ class ApiDocs(WebrootBase):
             'mode': mode
         }
 
+        events.unbind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE)
         events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
                     self._onSettingSave)
+        events.unbind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE)
         events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
                     self._onSettingRemove)
 

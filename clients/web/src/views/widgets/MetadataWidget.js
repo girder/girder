@@ -66,9 +66,7 @@ var MetadatumWidget = View.extend({
 
     // @todo too much duplication with editMetadata
     toggleEditor: function (event, newEditorMode, existingEditor, overrides) {
-        var fromEditorMode =
-                (existingEditor instanceof JsonMetadatumEditWidget)
-                    ? 'json' : 'simple';
+        var fromEditorMode = (existingEditor instanceof JsonMetadatumEditWidget) ? 'json' : 'simple';
         var newValue = (overrides || {}).value || existingEditor.$el.attr('g-value');
         if (!this._validate(fromEditorMode, newEditorMode, newValue)) {
             return;

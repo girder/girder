@@ -89,7 +89,7 @@ export default function (el, settings = {}) {
                     },
                     multiple: false,
                     check_callback: false,
-                    worker: true  // use webworkers (false is helpful for debugging)
+                    worker: true // use webworkers (false is helpful for debugging)
                 },
                 types: _.defaults(icons, {
                     folder: {

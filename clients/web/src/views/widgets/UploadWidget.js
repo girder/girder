@@ -269,8 +269,7 @@ var UploadWidget = View.extend({
             return;
         }
 
-        this.currentFile = this.parentType === 'file'
-                ? this.parent : new FileModel();
+        this.currentFile = this.parentType === 'file' ? this.parent : new FileModel();
 
         this.currentFile.on('g:upload.complete', function () {
             this.files[this.currentIndex].id = this.currentFile.id;

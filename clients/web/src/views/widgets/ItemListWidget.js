@@ -14,6 +14,7 @@ import ItemListTemplate from 'girder/templates/widgets/itemList.pug';
 var ItemListWidget = View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
+            event.preventDefault();
             var cid = $(event.currentTarget).attr('g-item-cid');
             this.trigger('g:itemClicked', this.collection.get(cid), event);
         },
@@ -39,11 +40,11 @@ var ItemListWidget = View.extend({
         this.checked = [];
         this._checkboxes = settings.checkboxes;
         this._downloadLinks = (
-          _.has(settings, 'downloadLinks') ? settings.downloadLinks : true);
+            _.has(settings, 'downloadLinks') ? settings.downloadLinks : true);
         this._viewLinks = (
-          _.has(settings, 'viewLinks') ? settings.viewLinks : true);
+            _.has(settings, 'viewLinks') ? settings.viewLinks : true);
         this._showSizes = (
-          _.has(settings, 'showSizes') ? settings.showSizes : true);
+            _.has(settings, 'showSizes') ? settings.showSizes : true);
         this.accessLevel = settings.accessLevel;
         this.public = settings.public;
 

@@ -17,7 +17,7 @@ function EventStream(settings) {
     var defaults = {
         timeout: null,
         streamPath: '/notification/stream',
-        _heartbeatTimeout: 5000  // in milliseconds
+        _heartbeatTimeout: 5000 // in milliseconds
     };
 
     this.settings = _.extend(defaults, settings);

@@ -91,7 +91,7 @@ example, we have the following:
 .. code-block:: ini
 
     [global]
-    server.socket_host = "0.0.0.0"
+    server.socket_host = "127.0.0.1"
     server.socket_port = 9000
     tools.proxy.on = True
 
@@ -244,7 +244,7 @@ Elastic Beanstalk
 
 Girder comes with pre-packaged configurations for deploying onto Elastic Beanstalk's
 `Python platform <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/concepts.platforms.html#concepts.platforms.python>`_
-(both 2.7 and 3.4).
+(both 2.7 and 3.6).
 
 The configurations live within ``devops/beanstalk`` and are designed to be copied into your working Girder directory
 at deploy time.

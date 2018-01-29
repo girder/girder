@@ -3,7 +3,7 @@ import JobListWidget from './JobListWidget';
 import CheckBoxMenu from './CheckBoxMenu';
 
 export {
-  JobDetailsWidget,
-  JobListWidget,
-  CheckBoxMenu
+    JobDetailsWidget,
+    JobListWidget,
+    CheckBoxMenu
 };

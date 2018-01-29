@@ -40,11 +40,14 @@ def main():
                         action="store_true")
     parser.add_argument("-d", "--database",
                         help="to what database url should Girder connect")
+    parser.add_argument("-H", "--host", help="on what host should Girder serve")
     parser.add_argument("-p", "--port",
                         help="on what port should Girder serve")
     args = parser.parse_args()
     if args.database:
         cherrypy.config['database']['uri'] = args.database
+    if args.host:
+        cherrypy.config['server.socket_host'] = args.host
     if args.port:
         cherrypy.config['server.socket_port'] = int(args.port)
     server.setup(args.testing)

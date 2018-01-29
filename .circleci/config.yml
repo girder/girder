@@ -298,7 +298,7 @@ jobs:
           command: pip install codecov
       - run:
           name: Upload coverage
-          command: codecov --disable search pycov gcov --file girder/build/test/coverage/py_coverage.xml
+          command: codecov --disable search pycov gcov --root girder --file girder/build/test/coverage/py_coverage.xml
 
   py3_integrationTests:
     machine: true
@@ -413,7 +413,7 @@ jobs:
           command: pip install codecov
       - run:
           name: Upload coverage
-          command: codecov --disable search pycov gcov --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
+          command: codecov --disable search pycov gcov --root girder --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
   deploy:
     docker:
       - image: girder/girder_test:latest-py3

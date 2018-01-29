@@ -30,7 +30,10 @@ from girder.models.user import User
 def setUpModule():
     os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
     config.loadConfig()
-    base.mockPluginDir(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'test_plugins'))
+    testPluginPath = os.path.normpath(os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), '..', '..', 'test', 'test_plugins'
+    ))
+    base.mockPluginDir(testPluginPath)
     base.enabledPlugins = ['test_plugin']
 
     base.startServer(mock=False)

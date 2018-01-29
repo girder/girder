@@ -35,7 +35,7 @@ function valueAndUnitsToSize(sizeValue, sizeUnits) {
             new RegExp('^\\s*[0-9.]+\\s*([' + suffixes + '])', 'i'));
         if (match && match.length > 1) {
             for (sizeUnits = 0; sizeUnits < suffixes.length;
-                 sizeUnits += 1) {
+                sizeUnits += 1) {
                 if (match[1].toLowerCase() ===
                         suffixes[sizeUnits].toLowerCase()) {
                     break;

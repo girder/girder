@@ -16,18 +16,18 @@ import router from './router';
 var plugins = {};
 
 export {
-  auth,
-  collections,
-  constants,
-  dialog,
-  events,
-  misc,
-  models,
-  plugins,
-  rest,
-  router,
-  server,
-  utilities,
-  version,
-  views
+    auth,
+    collections,
+    constants,
+    dialog,
+    events,
+    misc,
+    models,
+    plugins,
+    rest,
+    router,
+    server,
+    utilities,
+    version,
+    views
 };

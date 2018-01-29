@@ -52,10 +52,10 @@ describe('Create a data hierarchy', function () {
 
     it('register a user',
         girderTest.createUser('johndoe',
-                              'john.doe@email.com',
-                              'John',
-                              'Doe',
-                              'password!'));
+            'john.doe@email.com',
+            'John',
+            'Doe',
+            'password!'));
 
     it('create a folder', function () {
         runs(function () {
@@ -353,9 +353,9 @@ describe('Create a data hierarchy', function () {
             expect(widget.redirectViaForm).toHaveBeenCalled();
             expect(redirect.method).toBe('POST');
             expect(/^http:\/\/localhost:.*\/api\/v1\/resource\/download.*/
-                   .test(redirect.url)).toBe(true);
+                .test(redirect.url)).toBe(true);
             expect(/{"folder":.*,"item":.*}/.test(redirect.data.resources))
-                   .toBe(true);
+                .toBe(true);
         });
     });
 
@@ -570,10 +570,10 @@ describe('Create a data hierarchy', function () {
 
     it('register a second user',
         girderTest.createUser('janedoe',
-                              'jane.doe@email.com',
-                              'Jane',
-                              'Doe',
-                              'password!'));
+            'jane.doe@email.com',
+            'Jane',
+            'Doe',
+            'password!'));
 
     it('test copy permissions', function () {
         // navigate back to John Doe's Public folder
@@ -827,10 +827,10 @@ describe('Test FileModel static upload functions', function () {
     var folder, item;
 
     it('test prep - register a user', girderTest.createUser('dbowman',
-                                                            'dbowman@nasa.gov',
-                                                            'David',
-                                                            'Bowman',
-                                                            'jupiter'));
+        'dbowman@nasa.gov',
+        'David',
+        'Bowman',
+        'jupiter'));
 
     it('test prep - create top level folder', function () {
         runs(function () {

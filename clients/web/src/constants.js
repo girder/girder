@@ -25,9 +25,9 @@ var Layout = {
 };
 
 export {
-  SORT_ASC, SORT_DESC,
-  MONTHS,
-  AccessType,
-  AssetstoreType,
-  Layout
+    SORT_ASC, SORT_DESC,
+    MONTHS,
+    AccessType,
+    AssetstoreType,
+    Layout
 };

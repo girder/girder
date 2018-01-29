@@ -18,7 +18,7 @@ wrap(EditItemWidget, 'render', function (render) {
             currentLicense = this.item.get('license');
         }
 
-        var selectLicenseWidget = new SelectLicenseWidget({ // eslint-disable-line new-cap
+        var selectLicenseWidget = new SelectLicenseWidget({
             licenses: this.parentView.licenses,
             currentLicense: currentLicense,
             parentView: this

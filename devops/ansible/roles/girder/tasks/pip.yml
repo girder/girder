@@ -1,10 +1,13 @@
 - block:
     - name: Update Pip
       pip:
-        name: pip
+        name: "{{ item }}"
         state: latest
         virtualenv: "{{ girder_virtualenv }}"
         virtualenv_python: "{{ girder_python | default(ansible_python.executable) }}"
+      with_items:
+        - pip
+        - setuptools
 
     - name: Install Girder and plugin requirements
       pip:
@@ -21,9 +24,12 @@
 - block:
     - name: Update Pip
       pip:
-        name: pip
+        name: "{{ item }}"
         state: latest
         executable: "{{ girder_pip | default(omit) }}"
+      with_items:
+        - pip
+        - setuptools
 
     - name: Install Girder and plugin requirements
       pip:

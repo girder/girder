@@ -111,28 +111,28 @@ function _addItemToFolder(folder) {
 describe('Test item creation, editing, and deletion', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-                              'admin@email.com',
-                              'Admin',
-                              'Admin',
-                              'adminpassword!'));
+            'admin@email.com',
+            'Admin',
+            'Admin',
+            'adminpassword!'));
 
     it('logout', girderTest.logout());
 
     it('register another user',
         girderTest.createUser('seconduser',
-                              'seconduser@email.com',
-                              'Second',
-                              'User',
-                              'password!'));
+            'seconduser@email.com',
+            'Second',
+            'User',
+            'password!'));
 
     it('logout', girderTest.logout());
 
     it('register a third user',
         girderTest.createUser('nonadmin',
-                              'nonadmin@email.com',
-                              'Not',
-                              'Admin',
-                              'password!'));
+            'nonadmin@email.com',
+            'Not',
+            'Admin',
+            'password!'));
 
     it('go to users page', girderTest.goToUsersPage());
 

@@ -151,8 +151,7 @@ var QuotaPoliciesWidget = View.extend({
             quotaPolicy: this.model.get('quotaPolicy'),
             sizeValue: sizeInfo.sizeValue,
             sizeUnits: sizeInfo.sizeUnits,
-            assetstoreList: (currentUser.get('admin')
-                ? this.model.get('assetstoreList').models : undefined),
+            assetstoreList: currentUser.get('admin') ? this.model.get('assetstoreList').models : undefined,
             capacityString: ' ' + this.capacityString(),
             defaultQuotaString: defaultQuotaString
         })).girderModal(this).on('shown.bs.modal', () => {

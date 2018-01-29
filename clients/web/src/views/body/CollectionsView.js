@@ -63,7 +63,7 @@ var CollectionsView = View.extend({
             parentView: this
         }).on('g:saved', function (collection) {
             router.navigate('collection/' + collection.get('_id'),
-                                   {trigger: true});
+                {trigger: true});
         }, this).render();
     },
 
