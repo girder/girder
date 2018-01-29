@@ -65,7 +65,7 @@ def testRouteTableValidationSuccess(value):
     })
 
 
-@pytest.mark.testPlugins(['has_webroot'])
+@pytest.mark.testPlugin('has_webroot')
 def testRouteTableBehavior(server, admin):
     Setting().set(SettingKey.ROUTE_TABLE, {
         GIRDER_ROUTE_ID: '/',

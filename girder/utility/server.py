@@ -93,8 +93,8 @@ def configureServer(test=False, plugins=None, curConfig=None):
     :param test: Set to True when running in the tests.
     :type test: bool
     :param plugins: If you wish to start the server with a custom set of
-                    plugins, pass this as a list of plugins to load. Otherwise,
-                    will use the PLUGINS_ENABLED setting value from the db.
+        plugins, pass this as a list of plugins to load. Otherwise,
+        will use the PLUGINS_ENABLED setting value from the db.
     :param curConfig: The configuration dictionary to update.
     """
     if curConfig is None:
@@ -170,6 +170,8 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
     _configureStaticRoutes(root, plugins)
 
+    # Must unbind this handler so that this method is idempotent
+    girder.events.unbind('model.setting.save.after', '_updateStaticRoutesIfModified')
     girder.events.bind('model.setting.save.after', '_updateStaticRoutesIfModified',
                        functools.partial(_configureStaticRoutes, root, plugins))
 
@@ -230,8 +232,8 @@ def setup(test=False, plugins=None, curConfig=None):
     routeTable = loadRouteTable(reconcileRoutes=True)
 
     # Mount Girder
-    application = cherrypy.tree.mount(girderWebroot,
-                                      str(routeTable[constants.GIRDER_ROUTE_ID]), appconf)
+    application = cherrypy.tree.mount(
+        girderWebroot, str(routeTable[constants.GIRDER_ROUTE_ID]), appconf)
 
     # Mount static files
     cherrypy.tree.mount(None, routeTable[constants.GIRDER_STATIC_ROUTE_ID],
@@ -248,7 +250,7 @@ def setup(test=False, plugins=None, curConfig=None):
     cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
 
     # Mount everything else in the routeTable
-    for (name, route) in six.viewitems(routeTable):
+    for name, route in six.viewitems(routeTable):
         if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
             cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 
@@ -266,8 +268,7 @@ class _StaticFileRoute(object):
         self.contentType = contentType
 
     def GET(self):
-        return cherrypy.lib.static.serve_file(self.path,
-                                              content_type=self.contentType)
+        return cherrypy.lib.static.serve_file(self.path, content_type=self.contentType)
 
 
 def staticFile(path, contentType=None):

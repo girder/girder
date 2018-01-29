@@ -14,6 +14,7 @@ import ItemListTemplate from 'girder/templates/widgets/itemList.pug';
 var ItemListWidget = View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
+            event.preventDefault();
             var cid = $(event.currentTarget).attr('g-item-cid');
             this.trigger('g:itemClicked', this.collection.get(cid), event);
         },

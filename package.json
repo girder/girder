@@ -46,6 +46,7 @@
         "stylus-loader": "^3.0.1",
         "swagger-ui": "~2.2.10",
         "toposort": "^1.0.3",
+        "uglifyjs-webpack-plugin": "^1.1.6",
         "underscore": "^1.8.3",
         "webpack": "^2.7.0"
     },
@@ -81,5 +82,218 @@
         "Gruntfile.js",
         "clients/web/static/",
         "grunt_tasks/"
-    ]
+    ],
+    "esdoc": {
+        "source": "clients/web/src",
+        "destination": "build/docs/web",
+        "index": "README.rst",
+        "plugins": [
+            {
+                "name": "esdoc-standard-plugin",
+                "option": {
+                    "brand": {
+                        "title": "Girder",
+                        "description": "Web-based data management platform",
+                        "repository": "https://github.com/girder/girder",
+                        "author": "Kitware, Inc.",
+                        "image": "clients/web/src/assets/Girder_Mark.png"
+                    }
+                }
+            }
+        ]
+    },
+    "eslintConfig": {
+        "extends": "girder",
+        "rules": {
+            "for-direction": "error",
+            "getter-return": "error",
+            "multiline-ternary": [
+                "error",
+                "always-multiline"
+            ],
+            "no-alert": "error",
+            "switch-colon-spacing": "error",
+            "import/exports-last": "error",
+            "promise/no-native": "error",
+            "promise/no-return-in-finally": "error",
+            "promise/no-return-wrap": "error"
+        },
+        "overrides": [
+            {
+                "files": [
+                    "clients/web/test/**",
+                    "plugins/*/plugin_tests/**"
+                ],
+                "globals": {
+                    "Backbone": true,
+                    "_": true,
+                    "girderTest": true,
+                    "girder": true,
+                    "moment": true
+                },
+                "env": {
+                    "jasmine": true
+                }
+            }
+        ],
+        "root": true
+    },
+    "eslintIgnore": [
+        "build/",
+        "clients/web/static/built/",
+        "clients/web/test/lib/",
+        "docs/_build/",
+        "plugins/*/web_client/extra/"
+    ],
+    "nyc": {
+        "reporter": [
+            "cobertura",
+            "html",
+            "text-summary"
+        ],
+        "report-dir": "build/test/artifacts/web_coverage",
+        "temp-directory": "build/test/coverage/web_temp"
+    },
+    "pugLintConfig": {
+        "disallowAttributeInterpolation": true,
+        "disallowClassAttributeWithStaticValue": true,
+        "disallowClassLiteralsBeforeIdLiterals": true,
+        "disallowDuplicateAttributes": true,
+        "disallowHtmlText": true,
+        "disallowIdAttributeWithStaticValue": true,
+        "disallowLegacyMixinCall": true,
+        "disallowMultipleLineBreaks": true,
+        "disallowSpacesInsideAttributeBrackets": true,
+        "disallowStringConcatenation": "aggressive",
+        "requireClassLiteralsBeforeAttributes": true,
+        "requireIdLiteralsBeforeAttributes": true,
+        "requireLineFeedAtFileEnd": true,
+        "requireLowerCaseAttributes": true,
+        "requireLowerCaseTags": true,
+        "requireSpaceAfterCodeOperator": true,
+        "requireStrictEqualityOperators": true,
+        "validateAttributeSeparator": {
+            "separator": ", ",
+            "multiLineSeparator": ",\n    "
+        },
+        "validateDivTags": true,
+        "validateIndentation": 2,
+        "validateLineBreaks": "LF",
+        "validateSelfClosingTags": true,
+        "validateTemplateString": true
+    },
+    "stylintrc": {
+        "blocks": false,
+        "brackets": {
+            "expect": "never",
+            "error": true
+        },
+        "colons": {
+            "expect": "never",
+            "error": true
+        },
+        "colors": false,
+        "commaSpace": {
+            "expect": "always",
+            "error": true
+        },
+        "commentSpace": {
+            "expect": "always",
+            "error": true
+        },
+        "cssLiteral": {
+            "expect": "never",
+            "error": true
+        },
+        "depthLimit": false,
+        "duplicates": {
+            "expect": true,
+            "error": true
+        },
+        "efficient": {
+            "expect": "always",
+            "error": true
+        },
+        "exclude": [
+            "node_modules/**/*"
+        ],
+        "extendPref": "@extend",
+        "globalDupe": false,
+        "groupOutputByFile": {
+            "expect": true,
+            "error": true
+        },
+        "indentPref": {
+            "expect": 2,
+            "error": true
+        },
+        "leadingZero": {
+            "expect": "always",
+            "error": true
+        },
+        "maxErrors": false,
+        "maxWarnings": false,
+        "mixed": false,
+        "mixins": [],
+        "namingConvention": false,
+        "namingConventionStrict": false,
+        "none": {
+            "expect": "always",
+            "error": true
+        },
+        "noImportant": false,
+        "parenSpace": {
+            "expect": "never",
+            "error": true
+        },
+        "placeholders": false,
+        "prefixVarsWithDollar": {
+            "expect": "always",
+            "error": true
+        },
+        "quotePref": {
+            "expect": "double",
+            "error": true
+        },
+        "reporterOptions": {
+            "columns": [
+                "lineData",
+                "severity",
+                "description",
+                "rule"
+            ],
+            "columnSplitter": "  ",
+            "showHeaders": false,
+            "truncate": true
+        },
+        "semicolons": {
+            "expect": "never",
+            "error": true
+        },
+        "sortOrder": false,
+        "stackedProperties": {
+            "expect": "never",
+            "error": true
+        },
+        "trailingWhitespace": {
+            "expect": "never",
+            "error": true
+        },
+        "universal": {
+            "expect": "never",
+            "error": true
+        },
+        "valid": {
+            "expect": true,
+            "error": true
+        },
+        "zeroUnits": {
+            "expect": "never",
+            "error": true
+        },
+        "zIndexNormalize": {
+            "expect": 5,
+            "error": true
+        }
+    }
 }

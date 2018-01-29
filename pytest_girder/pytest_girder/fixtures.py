@@ -9,6 +9,13 @@ import shutil
 from .utils import MockSmtpReceiver, request as restRequest
 
 
+def _uid(node):
+    """
+    Generate a unique name from a pytest request node object.
+    """
+    return '_'.join((node.module.__name__, node.cls.__name__ if node.cls else '', node.name))
+
+
 @pytest.fixture(autouse=True)
 def bcrypt():
     """
@@ -29,12 +36,12 @@ def db(request):
     behavior is modified by the --keep-db option.
     """
     from girder.models import _dbClients, getDbConnection, pymongo
-    from girder.models.model_base import _modelSingletons
+    from girder.models import model_base
     from girder.external import mongodb_proxy
 
     mockDb = request.config.getoption('--mock-db')
     dbUri = request.config.getoption('--mongo-uri')
-    dbName = 'girder_test_%s' % hashlib.md5(request.node.name.encode('utf8')).hexdigest()
+    dbName = 'girder_test_%s' % hashlib.md5(_uid(request.node).encode('utf8')).hexdigest()
     keepDb = request.config.getoption('--keep-db')
     executable_methods = mongodb_proxy.EXECUTABLE_MONGO_METHODS
     realMongoClient = pymongo.MongoClient
@@ -50,8 +57,8 @@ def db(request):
 
     connection.drop_database(dbName)
 
-    for model in _modelSingletons:
-        model.reconnect()
+    # Since some models bind to events during initialize(), we force reinitialization
+    model_base._modelSingletons = []
 
     yield connection
 
@@ -78,7 +85,8 @@ def server(db, request):
     # effect on import. We have to hack around this by creating a unique event daemon
     # each time we startup the server and assigning it to the global.
     import girder.events
-    from girder.constants import ROOT_DIR, SettingKey
+    from girder.api import docs
+    from girder.constants import SettingKey
     from girder.models.setting import Setting
     from girder.utility import plugin_utilities
     from girder.utility.server import setup as setupServer
@@ -87,17 +95,22 @@ def server(db, request):
 
     girder.events.daemon = girder.events.AsyncEventsThread()
 
-    if request.node.get_marker('testPlugins'):
-        # Load plugins from the test path
-        path = os.path.join(ROOT_DIR, 'tests', 'test_plugins')
+    enabledPlugins = []
+    testPluginMarkers = request.node.get_marker('testPlugin')
+    if testPluginMarkers is not None:
+        for testPluginMarker in testPluginMarkers:
+            pluginName = testPluginMarker.args[0]
+            enabledPlugins.append(pluginName)
 
-        plugin_utilities.getPluginDir = mock.Mock(return_value=path)
-        plugins = request.node.get_marker('testPlugins').args[0]
-        Setting().set(SettingKey.PLUGINS_ENABLED, plugins)
-    else:
-        plugins = []
+        # testFilePath is a py.path.local object that we *assume* lives in 'test/',
+        # with 'test/test_plugins' nearby
+        testFilePath = request.node.fspath
+        testPluginsPath = testFilePath.dirpath('test_plugins').strpath
+        plugin_utilities.getPluginDir = mock.Mock(return_value=testPluginsPath)
 
-    server = setupServer(test=True, plugins=plugins)
+        Setting().set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
+
+    server = setupServer(test=True, plugins=enabledPlugins)
     server.request = restRequest
 
     cherrypy.server.unsubscribe()
@@ -114,6 +127,9 @@ def server(db, request):
     cherrypy.engine.exit()
     cherrypy.tree.apps = {}
     plugin_utilities.getPluginDir = oldPluginDir
+    plugin_utilities.getPluginWebroots().clear()
+    plugin_utilities.getPluginFailureInfo().clear()
+    docs.routes.clear()
 
 
 @pytest.fixture
@@ -181,11 +197,7 @@ def fsAssetstore(db, request):
     from girder.constants import ROOT_DIR
     from girder.models.assetstore import Assetstore
 
-    name = '_'.join((
-        request.node.module.__name__,
-        request.node.cls.__name__ if request.node.cls else '',
-        request.node.name))
-
+    name = _uid(request.node)
     path = os.path.join(ROOT_DIR, 'tests', 'assetstore', name)
 
     if os.path.isdir(path):

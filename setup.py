@@ -66,7 +66,7 @@ installReqs = [
     'CherryPy<11.1',
     'click',
     'filelock',
-    'funcsigs ; python_version < \'3.5\'',
+    'funcsigs ; python_version < \'3\'',
     'jsonschema',
     'Mako',
     'pymongo>=3.5',
@@ -75,7 +75,7 @@ installReqs = [
     'python-dateutil',
     'pytz',
     'requests',
-    'shutilwhich ; python_version < \'3.3\'',
+    'shutilwhich ; python_version < \'3\'',
     'six>=1.9',
 ]
 
@@ -137,7 +137,7 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4'
+        'Programming Language :: Python :: 3.5'
     ],
     packages=find_packages(
         exclude=('girder.test', 'tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
@@ -152,6 +152,7 @@ setup(
             'api/api_docs.mako'
         ]
     },
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     install_requires=installReqs,
     extras_require=extrasReqs,
     zip_safe=False,

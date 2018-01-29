@@ -33,19 +33,6 @@ set_property(TEST packaging_generate
 )
 
 add_test(
-  NAME packaging_verify_contents
-  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-  COMMAND "${PYTHON_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tests/packaging/test_package_contents.py"
-)
-
-set_property(TEST packaging_verify_contents
-  PROPERTY LABELS girder_package
-)
-set_property(TEST packaging_verify_contents
-  PROPERTY DEPENDS packaging_generate
-)
-
-add_test(
   NAME packaging_install
   WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
   COMMAND "${PROJECT_SOURCE_DIR}/tests/packaging/pip_install_girder.sh"

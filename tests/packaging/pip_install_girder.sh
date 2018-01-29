@@ -24,13 +24,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Make sure extra data files were installed correctly
-ls "${virtualenv_dir}"/lib/python*/site-packages/girder/mail_templates/_header.mako
-if [ $? -ne 0 ]; then
-    echo "Error: mail templates were not installed"
-    exit 1
-fi
-
 # Install some standalone plugins the registers themselves against the
 # girder.plugin entrypoint
 "${virtualenv_pip}" install -e "${PROJECT_SOURCE_DIR}/tests/packaging/entry_point_plugin"

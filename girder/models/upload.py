@@ -21,7 +21,7 @@ import datetime
 import six
 from bson.objectid import ObjectId
 
-from girder import events
+from girder import events, logger
 from girder.api import rest
 from girder.constants import SettingKey
 from .model_base import Model
@@ -242,6 +242,9 @@ class Upload(Model):
         events.trigger('model.file.finalizeUpload.after', event_document)
         if '_id' in upload:
             self.remove(upload)
+
+        logger.info('Upload complete. Upload=%s File=%s User=%s' % (
+            upload['_id'], file['_id'], upload['userId']))
 
         # Add an async event for handlers that wish to process this file.
         eventParams = {

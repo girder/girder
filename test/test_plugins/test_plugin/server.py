@@ -60,7 +60,7 @@ class CustomAppRoot(object):
     exposed = True
 
     def GET(self):
-        return "hello world"
+        return "hello world from test_plugin"
 
 
 class Other(Resource):

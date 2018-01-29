@@ -5,7 +5,7 @@ flake8-blind-except
 flake8-docstrings>=1.3
 httmock
 mock
-mongomock
+git+https://github.com/mongomock/mongomock.git@5fb1af64a82b83e9713c6bdd8f22cbd665a0cc6e#egg=mongomock
 moto[server]
 pytest
 pytest-cov

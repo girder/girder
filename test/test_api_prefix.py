@@ -2,7 +2,7 @@ import pytest
 from pytest_girder.assertions import assertStatusOk
 
 
-@pytest.mark.testPlugins(['has_api_prefix'])
+@pytest.mark.testPlugin('has_api_prefix')
 @pytest.mark.parametrize('route', [
     '/prefix/resourceful',
     '/prefix/sibling'
