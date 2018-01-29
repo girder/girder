@@ -42,7 +42,7 @@ def _launchShell(context):
         return code.interact(banner=header, local=context)
 
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']))
+@click.command('shell', short_help='Run a Girder shell.', help='Run a Girder shell.')
 @click.option('--plugins', default=None, help='Comma separated list of plugins to import.')
 def main(plugins):
     if plugins is not None:
