@@ -133,7 +133,7 @@ var UserAccountView = View.extend({
 
         _.each($('.g-account-tabs>li>a'), function (el) {
             var tabLink = $(el);
-            tabLink.tab().on('shown.bs.tab', _.bind(function (e) {
+            tabLink.tab().on('shown.bs.tab', (e) => {
                 this.tab = $(e.currentTarget).attr('name');
                 router.navigate('useraccount/' + this.model.id + '/' + this.tab);
 
@@ -141,7 +141,7 @@ var UserAccountView = View.extend({
                     this.apiKeyListWidget.setElement(
                         this.$('.g-api-keys-list-container')).render();
                 }
-            }, this));
+            });
 
             if (tabLink.attr('name') === this.tab) {
                 tabLink.tab('show');
@@ -172,7 +172,7 @@ var UserAccountView = View.extend({
             method: 'GET',
             data: {token: token},
             error: null
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             resp.user.token = resp.authToken.token;
             eventStream.close();
             setCurrentUser(new UserModel(resp.user));
@@ -183,9 +183,9 @@ var UserAccountView = View.extend({
                 tab: 'password',
                 temporary: token
             });
-        }, this)).fail(_.bind(function () {
+        }).fail(() => {
             router.navigate('users', {trigger: true});
-        }, this));
+        });
     }
 });
 

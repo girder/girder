@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 
@@ -48,12 +46,12 @@ var CreateThumbnailView = View.extend({
                 attachToId: this.attachToId,
                 attachToType: this.attachToType
             }).on('g:saved', function () {
-                this.$el.on('hidden.bs.modal', _.bind(function () {
+                this.$el.on('hidden.bs.modal', () => {
                     this.trigger('g:created', {
                         attachedToType: this.attachToType,
                         attachedToId: this.attachToId
                     });
-                }, this)).modal('hide');
+                }).modal('hide');
             }, this).on('g:error', function (resp) {
                 this.$('.g-submit-create-thumbnail').girderEnable(true);
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);

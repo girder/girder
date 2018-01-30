@@ -69,12 +69,12 @@ var Model = Backbone.Model.extend({
             method: type,
             data: data,
             error: null // don't do default error behavior (validation may fail)
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.set(resp);
             this.trigger('g:saved');
-        }, this)).fail(_.bind(function (err) {
+        }).fail((err) => {
             this.trigger('g:error', err);
-        }, this));
+        });
     },
 
     /**
@@ -165,14 +165,14 @@ var Model = Backbone.Model.extend({
             args.error = null;
         }
 
-        return restRequest(args).done(_.bind(function () {
+        return restRequest(args).done(() => {
             if (this.collection) {
                 this.collection.remove(this);
             }
             this.trigger('g:deleted');
-        }, this)).fail(_.bind(function (err) {
+        }).fail((err) => {
             this.trigger('g:error', err);
-        }, this));
+        });
     },
 
     /**

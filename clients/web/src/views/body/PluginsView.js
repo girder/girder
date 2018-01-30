@@ -197,14 +197,14 @@ var PluginsView = View.extend({
             data: {
                 plugins: JSON.stringify(this.enabled)
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.enabled = resp.value;
 
             _.each(this.enabled, function (plugin) {
                 this.$('.g-plugin-switch[key="' + plugin + '"]')
                     .attr('checked', 'checked').bootstrapSwitch('state', true, true);
             }, this);
-        }, this)); // TODO acknowledge?
+        }); // TODO acknowledge?
     }
 });
 

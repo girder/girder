@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import events from 'girder/events';
@@ -26,12 +24,12 @@ var ConfigView = View.extend({
             data: {
                 list: JSON.stringify(['provenance.resources'])
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.render();
             this.$('#g-provenance-resources').val(
                 resp['provenance.resources']
             );
-        }, this));
+        });
     },
 
     render: function () {
@@ -56,18 +54,18 @@ var ConfigView = View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).fail(_.bind(function (resp) {
+        }).fail((resp) => {
             this.$('#g-provenance-error-message').text(
                 resp.responseJSON.message
             );
-        }, this));
+        });
     }
 });
 

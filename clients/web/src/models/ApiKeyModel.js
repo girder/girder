@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import AccessControlledModel from 'girder/models/AccessControlledModel';
 import { restRequest } from 'girder/rest';
 
@@ -13,10 +11,10 @@ var ApiKeyModel = AccessControlledModel.extend({
             data: {
                 active: active
             }
-        }).done(_.bind(function () {
+        }).done(() => {
             this.set({active: active});
             this.trigger('g:setActive');
-        }, this));
+        });
     },
 
     save: function () {

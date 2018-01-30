@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
@@ -38,12 +36,12 @@ var ConfigView = View.extend({
                     'celery_jobs.celery_user_id'
                 ])
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.render();
             this.$('#g-celery-jobs-broker').val(resp['celery_jobs.broker_url']);
             this.$('#g-celery-jobs-app-main').val(resp['celery_jobs.app_main']);
             this.$('#g-celery-jobs-user-id').val(resp['celery_jobs.celery_user_id']);
-        }, this));
+        });
     },
 
     render: function () {
@@ -80,17 +78,17 @@ var ConfigView = View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).fail(_.bind(function (resp) {
+        }).fail((resp) => {
             this.$('#g-celery-jobs-error-message').text(
                 resp.responseJSON.message);
-        }, this));
+        });
     }
 });
 

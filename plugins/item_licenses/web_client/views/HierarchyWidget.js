@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import { restRequest } from 'girder/rest';
 import { wrap } from 'girder/utilities/PluginUtils';
@@ -11,10 +9,10 @@ wrap(HierarchyWidget, 'uploadDialog', function (uploadDialog) {
     restRequest({
         method: 'GET',
         url: 'item/licenses'
-    }).done(_.bind(function (resp) {
+    }).done((resp) => {
         this.licenses = resp;
         uploadDialog.call(this);
-    }, this));
+    });
 
     return this;
 });
@@ -26,10 +24,10 @@ wrap(HierarchyWidget, 'createItemDialog', function (createItemDialog) {
     restRequest({
         method: 'GET',
         url: 'item/licenses'
-    }).done(_.bind(function (resp) {
+    }).done((resp) => {
         this.licenses = resp;
         createItemDialog.call(this);
-    }, this));
+    });
 
     return this;
 });

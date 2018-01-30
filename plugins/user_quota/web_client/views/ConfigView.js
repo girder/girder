@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import events from 'girder/events';
@@ -36,10 +34,10 @@ var ConfigView = View.extend({
                     'user_quota.default_collection_quota'
                 ])
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.settings = resp;
             this.render();
-        }, this));
+        });
     },
 
     render: function () {
@@ -80,18 +78,18 @@ var ConfigView = View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).fail(_.bind(function (resp) {
+        }).fail((resp) => {
             this.$('#g-user-quota-error-message').text(
                 resp.responseJSON.message
             );
-        }, this));
+        });
     }
 });
 

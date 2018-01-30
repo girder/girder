@@ -21,13 +21,13 @@ var UserModel = Model.extend({
      */
     current: function () {
         fetchCurrentUser()
-            .done(_.bind(function (user) {
+            .done((user) => {
                 if (user) {
                     this.set(user);
                 } else {
                     this.clear();
                 }
-            }, this));
+            });
     },
 
     name: function () {
@@ -95,11 +95,11 @@ var UserModel = Model.extend({
             },
             method: 'PUT',
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             this.trigger('g:passwordChanged');
-        }, this)).fail(_.bind(function (err) {
+        }).fail((err) => {
             this.trigger('g:error', err);
-        }, this));
+        });
     },
 
     /**
@@ -113,11 +113,11 @@ var UserModel = Model.extend({
             },
             method: 'PUT',
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             this.trigger('g:passwordChanged');
-        }, this)).fail(_.bind(function (err) {
+        }).fail((err) => {
             this.trigger('g:error', err);
-        }, this));
+        });
     }
 });
 

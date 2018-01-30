@@ -1,7 +1,5 @@
 /* eslint-disable import/first */
 
-import _ from 'underscore';
-
 import router from 'girder/router';
 import events from 'girder/events';
 import eventStream from 'girder/utilities/EventStream';
@@ -153,7 +151,7 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
         method: 'GET',
         data: {token: token},
         error: null
-    }).done(_.bind(function (resp) {
+    }).done((resp) => {
         resp.user.token = resp.authToken.token;
         eventStream.close();
         setCurrentUser(new UserModel(resp.user));
@@ -164,9 +162,9 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
             tab: 'password',
             temporary: token
         });
-    }, this)).fail(_.bind(function () {
+    }).fail(() => {
         router.navigate('users', {trigger: true});
-    }, this));
+    });
 });
 
 router.route('useraccount/:id/verification/:token', 'accountVerify', function (id, token) {
@@ -175,7 +173,7 @@ router.route('useraccount/:id/verification/:token', 'accountVerify', function (i
         method: 'PUT',
         data: {token: token},
         error: null
-    }).done(_.bind(function (resp) {
+    }).done((resp) => {
         if (resp.authToken) {
             resp.user.token = resp.authToken.token;
             eventStream.close();
@@ -190,7 +188,7 @@ router.route('useraccount/:id/verification/:token', 'accountVerify', function (i
             type: 'success',
             timeout: 4000
         });
-    }, this)).fail(_.bind(function () {
+    }).fail(() => {
         events.trigger('g:navigateTo', FrontPageView);
         events.trigger('g:alert', {
             icon: 'cancel',
@@ -198,7 +196,7 @@ router.route('useraccount/:id/verification/:token', 'accountVerify', function (i
             type: 'danger',
             timeout: 4000
         });
-    }, this));
+    });
 });
 
 /**
