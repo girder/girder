@@ -46,10 +46,6 @@ var SearchResultsView = View.extend({
         return length;
     },
 
-    _parseResults: function (results) {
-        return _.values(results)[0];
-    },
-
     _getIcon: function (type) {
         const icons = {
             'user': 'user',
@@ -86,7 +82,6 @@ var SearchResultsView = View.extend({
             if (this._initResults[type].length) {
                 this._subviews[type] = new SearchResultsTypeView({
                     parentView: this,
-                    name: `${type}ResultsView`,
                     query: this._query,
                     mode: this._mode,
                     type: type,
@@ -114,7 +109,6 @@ var SearchResultsTypeView = View.extend({
     className: 'g-search-results-type-container',
 
     initialize: function (settings) {
-        this._name = settings.name;
         this._query = settings.query;
         this._mode = settings.mode;
         this._type = settings.type;
