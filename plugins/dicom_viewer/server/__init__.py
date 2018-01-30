@@ -18,6 +18,7 @@
 ###############################################################################
 
 import dicom
+import json
 import six
 from dicom.sequence import Sequence
 from dicom.valuerep import PersonName3
@@ -206,11 +207,13 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
     """
     if types != ['item']:
         raise RestException('The dicom search is only able to search in Item.')
+    if not isinstance(query, six.string_types):
+        raise RestException('The search query must be a string.')
 
     jsQuery = """
         function() {
-            var queryKey = '%(queryKey)s'.toLowerCase();
-            var queryValue = '%(queryValue)s'.toLowerCase();
+            var queryKey = %(query)s.toLowerCase();
+            var queryValue = queryKey;
             var dicomMeta = obj.dicom.meta;
             return Object.keys(dicomMeta).some(
                 function(key) {
@@ -218,7 +221,10 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
                         dicomMeta[key].toString().toLowerCase().indexOf(queryValue) !== -1;
                 })
             }
-        """ % {'queryKey': query, 'queryValue': query}
+    """ % {
+        # This could eventually be a separately-defined key and value
+        'query': json.dumps(query)
+    }
 
     # Sort the documents inside MongoDB
     cursor = Item().find({'dicom': {'$exists': True}, '$where': jsQuery})
