@@ -31,6 +31,7 @@ from girder.exceptions import RestException
 from girder.models.item import Item
 from girder.models.file import File
 from girder.utility import search
+from girder.utility.progress import setResponseTimeLimit
 
 
 class DicomItem(Resource):
@@ -62,6 +63,8 @@ class DicomItem(Resource):
                 if metadataReference is None else
                 _removeUniqueMetadata(metadataReference, dicomMeta)
             )
+
+            setResponseTimeLimit()
 
         if dicomFiles:
             # Sort the dicom files
