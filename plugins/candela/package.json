@@ -2,10 +2,6 @@
     "name": "candela-plugin",
     "version": "0.1.0",
     "dependencies": {
-        "vega": "3.0.9",
-        "vega-scenegraph": "2.1",
-        "vega-wordcloud": "2.0.2",
-
         "candela": "~0.16.0",
         "datalib": "~1.7"
     }
