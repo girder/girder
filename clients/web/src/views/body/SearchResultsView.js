@@ -15,15 +15,13 @@ import 'girder/stylesheets/body/searchResultsList.styl';
  */
 var SearchResultsView = View.extend({
     initialize: function (settings) {
-        this._query = settings.query;
+        this._query = settings.query || '';
         this._mode = settings.mode || 'text';
-        this._subviews = {};
-        this._initResults = {};
 
         this._sizeOneElement = 28;
         this.pageLimit = 10;
 
-        restRequest({
+        this._request = restRequest({
             url: 'resource/search',
             data: {
                 q: this._query,
@@ -31,57 +29,57 @@ var SearchResultsView = View.extend({
                 types: JSON.stringify(SearchFieldWidget.getModeTypes(this._mode)),
                 limit: this.pageLimit
             }
-        })
-            .done((results) => {
-                this._initResults = results;
-                this.render();
-            });
-    },
-
-    _calculateLength: function (results) {
-        let length = 0;
-        _.each(results, (result) => {
-            length += result.length;
         });
-        return length;
+        this.render();
     },
 
     /**
      * Return a consistent and semantically-meaningful type ordering.
      */
-    _getTypeOrdering: function () {
+    _getTypeOrdering: function (resultTypes) {
         // This ordering places hopefully-more relevant types first
         const builtinOrdering = ['collection', 'folder', 'item', 'group', 'user'];
-        const returnedTypes = _.keys(this._initResults);
 
         // _.intersection will use the ordering of its first argument
-        const orderedKnownTypes = _.intersection(builtinOrdering, returnedTypes);
-        const orderedUnknownTypes =  _.difference(returnedTypes, builtinOrdering).sort();
+        const orderedKnownTypes = _.intersection(builtinOrdering, resultTypes);
+        const orderedUnknownTypes =  _.difference(resultTypes, builtinOrdering).sort();
 
         return orderedKnownTypes.concat(orderedUnknownTypes);
     },
 
     render: function () {
         this.$el.html(SearchResultsTemplate({
-            query: this._query || 'Undefined',
-            length: this._calculateLength(this._initResults) || 0
+            query: this._query
         }));
+        this._subviews = {};
 
-        _.each(this._getTypeOrdering(), (type) => {
-            if (this._initResults[type].length) {
-                this._subviews[type] = new SearchResultsTypeView({
-                    parentView: this,
-                    query: this._query,
-                    mode: this._mode,
-                    type: type,
-                    limit: this.pageLimit,
-                    initResults: this._initResults[type],
-                    sizeOneElement: this._sizeOneElement
-                })
-                    .render();
-                this._subviews[type].$el.appendTo(this.$('.g-search-results-container'));
-            }
-        });
+        this._request
+            .done((results) => {
+                this.$('.g-search-pending').hide();
+
+                const resultTypes =  _.keys(results);
+                const orderedTypes = this._getTypeOrdering(resultTypes);
+                _.each(orderedTypes, (type) => {
+                    if (results[type].length) {
+                        this._subviews[type] = new SearchResultsTypeView({
+                            parentView: this,
+                            query: this._query,
+                            mode: this._mode,
+                            type: type,
+                            limit: this.pageLimit,
+                            initResults: results[type],
+                            sizeOneElement: this._sizeOneElement
+                        })
+                            .render();
+                        this._subviews[type].$el
+                            .appendTo(this.$('.g-search-results-container'));
+                    }
+                });
+
+                if (_.isEmpty(this._subviews)) {
+                    this.$('.g-search-no-results').show();
+                }
+            });
 
         return this;
     }
