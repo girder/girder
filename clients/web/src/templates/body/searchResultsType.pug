@@ -5,10 +5,9 @@
 ul.g-search-results-type
   each element in results
     li.g-search-result
-      if type === 'user'
-        a(data-resource-id=element._id, data-resource-type=type, data-resource-icon=icon, tabindex="-1")
+      a(href=`#${type}/${element._id}`)
+        if type === 'user'
           | #{element.firstName} #{element.lastName} (#{element.login})
-      else
-        a(data-resource-id=element._id, data-resource-type=type, data-resource-icon=icon, tabindex="-1")
+        else
           | #{element.name}
 .g-search-results-paginate(id=`${type}Paginate`)

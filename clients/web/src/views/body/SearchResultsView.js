@@ -1,9 +1,7 @@
-import $ from 'jquery';
 import _ from 'underscore';
 
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
-import router from 'girder/router';
 import SearchPaginateWidget from 'girder/views/widgets/SearchPaginateWidget';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 
@@ -16,13 +14,6 @@ import 'girder/stylesheets/body/searchResultsList.styl';
  * per each type found.
  */
 var SearchResultsView = View.extend({
-    events: {
-        'click .g-search-result>a': function (e) {
-            var result = $(e.currentTarget);
-            this._resultClicked(result.data('resourceType'), result.data('resourceId'));
-        }
-    },
-
     initialize: function (settings) {
         this._query = settings.query;
         this._mode = settings.mode || 'text';
@@ -110,12 +101,6 @@ var SearchResultsView = View.extend({
         });
 
         return this;
-    },
-
-    _resultClicked: function (type, id) {
-        router.navigate(`${type}/${id}`, {
-            trigger: true
-        });
     }
 });
 
