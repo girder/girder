@@ -106,4 +106,10 @@ class ModelImporter(object):
         :param instance: The model singleton instance.
         :type instance: subclass of Model
         """
+        if plugin not in _modelInstances:
+            _modelInstances[plugin] = {}
         _modelInstances[plugin][model] = instance
+
+    @staticmethod
+    def unregisterModel(model, plugin='_core'):
+        del _modelInstances[plugin][model]

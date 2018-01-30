@@ -272,7 +272,8 @@ class File(acl_mixin.AccessControlMixin, Model):
         }, field='size', amount=sizeIncrement, multi=False)
 
     def createFile(self, creator, item, name, size, assetstore, mimeType=None,
-                   saveFile=True, reuseExisting=False):
+                   saveFile=True, reuseExisting=False, assetstoreModel=None,
+                   assetstoreModelPlugin=None):
         """
         Create a new file record in the database.
 
@@ -290,6 +291,12 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param reuseExisting: If a file with the same name already exists in
             this location, return it rather than creating a new file.
         :type reuseExisting: bool
+        :param assetstoreModel: If a model other than assetstore will be used to
+            initialize the assetstore adapter for this file, use its string name here.
+        :type assetstoreModel: str
+        :param assetstoreModelPlugin: If using an ``assetstoreModel`` that is within
+            a plugin, set the plugin name here.
+        :type assetstoreModelPlugin: str
         """
         if reuseExisting:
             existing = self.findOne({
@@ -308,6 +315,10 @@ class File(acl_mixin.AccessControlMixin, Model):
             'size': size,
             'itemId': item['_id'] if item else None
         }
+
+        if assetstoreModel:
+            file['assetstoreModel'] = assetstoreModel
+            file['assetstoreModelPlugin'] = assetstoreModelPlugin
 
         if saveFile:
             return self.save(file)
@@ -356,7 +367,12 @@ class File(acl_mixin.AccessControlMixin, Model):
         from .assetstore import Assetstore
         from girder.utility import assetstore_utilities
 
-        assetstore = Assetstore().load(file['assetstoreId'])
+        if file.get('assetstoreModel'):
+            model = self.model(file['assetstoreModel'], plugin=file.get('assetstoreModelPlugin'))
+        else:
+            model = Assetstore()
+
+        assetstore = model.load(file['assetstoreId'])
         return assetstore_utilities.getAssetstoreAdapter(assetstore)
 
     def copyFile(self, srcFile, creator, item=None):

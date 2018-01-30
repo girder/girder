@@ -74,6 +74,10 @@ def setAssetstoreAdapter(storeType, cls):
     _assetstoreTable[storeType] = cls
 
 
+def removeAssetstoreAdapter(storeType):
+    del _assetstoreTable[storeType]
+
+
 def fileIndexFields():
     """
     This will return a set of all required index fields from all of the
