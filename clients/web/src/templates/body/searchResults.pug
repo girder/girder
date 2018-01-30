@@ -1,16 +1,15 @@
 .g-search-results-header-container
   .g-search-results-title-container
     i.g-search-results-title-element.icon-search
-    if length === 1
-      span.g-search-results-title.g-search-results-title-element Result : #{query}
-    else
-      span.g-search-results-title.g-search-results-title-element Results : #{query}
+    span.g-search-results-title.g-search-results-title-element Results : #{query}
   .g-search-results-header
     .g-search-results-advance-search
 
 .g-search-results-container
 
-if !length
-  .g-search-no-results.disabled
-    i.icon-block
-    |  No results found
+.g-search-pending
+  i.icon-spin4.animate-spin
+
+.g-search-no-results(style='display: none;')
+  i.icon-block
+  |  No results found

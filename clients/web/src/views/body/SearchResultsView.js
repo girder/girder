@@ -1,9 +1,7 @@
-import $ from 'jquery';
 import _ from 'underscore';
 
 import View from 'girder/views/View';
 import { restRequest } from 'girder/rest';
-import router from 'girder/router';
 import SearchPaginateWidget from 'girder/views/widgets/SearchPaginateWidget';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 
@@ -16,96 +14,74 @@ import 'girder/stylesheets/body/searchResultsList.styl';
  * per each type found.
  */
 var SearchResultsView = View.extend({
-    events: {
-        'click .g-search-result>a': function (e) {
-            var result = $(e.currentTarget);
-            this._resultClicked(result.data('resourceType'), result.data('resourceId'));
-        }
-    },
-
     initialize: function (settings) {
-        this._query = settings.query;
+        this._query = settings.query || '';
         this._mode = settings.mode || 'text';
-        // Give the display order of each type on the result view
-        this._types = settings.types || ['collection', 'folder', 'item', 'group', 'user'];
-        this._subviews = {};
-        this._initResults = {};
 
         this._sizeOneElement = 28;
         this.pageLimit = 10;
 
-        restRequest({
+        this._request = restRequest({
             url: 'resource/search',
             data: {
                 q: this._query,
                 mode: this._mode,
-                types: JSON.stringify(_.intersection(
-                    this._types,
-                    SearchFieldWidget.getModeTypes(this._mode))
-                ),
+                types: JSON.stringify(SearchFieldWidget.getModeTypes(this._mode)),
                 limit: this.pageLimit
             }
-        })
-            .done((results) => {
-                this._initResults = results;
-                this.render();
-            });
-    },
-
-    _calculateLength: function (results) {
-        let length = 0;
-        _.each(results, (result) => {
-            length += result.length;
         });
-        return length;
+        this.render();
     },
 
-    _parseResults: function (results) {
-        return _.values(results)[0];
-    },
+    /**
+     * Return a consistent and semantically-meaningful type ordering.
+     */
+    _getTypeOrdering: function (resultTypes) {
+        // This ordering places hopefully-more relevant types first
+        const builtinOrdering = ['collection', 'folder', 'item', 'group', 'user'];
 
-    _getIcon: function (type) {
-        const icons = {
-            'user': 'user',
-            'group': 'users',
-            'collection': 'sitemap',
-            'folder': 'folder',
-            'item': 'doc-text-inv'
-        };
-        return icons[type];
+        // _.intersection will use the ordering of its first argument
+        const orderedKnownTypes = _.intersection(builtinOrdering, resultTypes);
+        const orderedUnknownTypes =  _.difference(resultTypes, builtinOrdering).sort();
+
+        return orderedKnownTypes.concat(orderedUnknownTypes);
     },
 
     render: function () {
         this.$el.html(SearchResultsTemplate({
-            query: this._query || 'Undefined',
-            length: this._calculateLength(this._initResults) || 0
+            query: this._query
         }));
+        this._subviews = {};
 
-        _.each(this._types, (type) => {
-            if (this._initResults[type].length) {
-                this._subviews[type] = new SearchResultsTypeView({
-                    parentView: this,
-                    name: `${type}ResultsView`,
-                    query: this._query,
-                    mode: this._mode,
-                    type: type,
-                    icon: this._getIcon(type),
-                    limit: this.pageLimit,
-                    initResults: this._initResults[type],
-                    sizeOneElement: this._sizeOneElement
-                })
-                    .render();
-                this._subviews[type].$el.appendTo(this.$('.g-search-results-container'));
-            }
-        });
+        this._request
+            .done((results) => {
+                this.$('.g-search-pending').hide();
+
+                const resultTypes =  _.keys(results);
+                const orderedTypes = this._getTypeOrdering(resultTypes);
+                _.each(orderedTypes, (type) => {
+                    if (results[type].length) {
+                        this._subviews[type] = new SearchResultsTypeView({
+                            parentView: this,
+                            query: this._query,
+                            mode: this._mode,
+                            type: type,
+                            limit: this.pageLimit,
+                            initResults: results[type],
+                            sizeOneElement: this._sizeOneElement
+                        })
+                            .render();
+                        this._subviews[type].$el
+                            .appendTo(this.$('.g-search-results-container'));
+                    }
+                });
+
+                if (_.isEmpty(this._subviews)) {
+                    this.$('.g-search-no-results').show();
+                }
+            });
 
         return this;
-    },
-
-    _resultClicked: function (type, id) {
-        router.navigate(`${type}/${id}`, {
-            trigger: true
-        });
     }
 });
 
@@ -115,15 +91,12 @@ var SearchResultsView = View.extend({
  * for iterating amongst pages of a list of search results.
  */
 var SearchResultsTypeView = View.extend({
-
     className: 'g-search-results-type-container',
 
     initialize: function (settings) {
-        this._name = settings.name;
         this._query = settings.query;
         this._mode = settings.mode;
         this._type = settings.type;
-        this._icon = settings.icon || 'icon-attention-alt';
         this._initResults = settings.initResults || [];
         this._pageLimit = settings.limit || 10;
         this._sizeOneElement = settings.sizeOneElement || 30;
@@ -143,7 +116,7 @@ var SearchResultsTypeView = View.extend({
         this._results = this._initResults;
     },
 
-    getCollectionName: function (types) {
+    _getTypeName: function (type) {
         const names = {
             'collection': 'Collections',
             'group': 'Groups',
@@ -151,15 +124,26 @@ var SearchResultsTypeView = View.extend({
             'folder': 'Folders',
             'item': 'Items'
         };
-        return names[types];
+        return names[type] || type;
+    },
+
+    _getTypeIcon: function (type) {
+        const icons = {
+            'user': 'user',
+            'group': 'users',
+            'collection': 'sitemap',
+            'folder': 'folder',
+            'item': 'doc-text-inv'
+        };
+        return icons[type] || 'icon-attention-alt';
     },
 
     render: function () {
         this.$el.html(SearchResultsTypeTemplate({
             results: this._results,
-            collectionName: this.getCollectionName(this._type),
+            collectionName: this._getTypeName(this._type),
             type: this._type,
-            icon: this._icon
+            icon: this._getTypeIcon(this._type)
         }));
 
         /* This size of the results list cannot be known until after the fetch completes. And we don't want to set
