@@ -46,17 +46,6 @@ var SearchResultsView = View.extend({
         return length;
     },
 
-    _getIcon: function (type) {
-        const icons = {
-            'user': 'user',
-            'group': 'users',
-            'collection': 'sitemap',
-            'folder': 'folder',
-            'item': 'doc-text-inv'
-        };
-        return icons[type];
-    },
-
     /**
      * Return a consistent and semantically-meaningful type ordering.
      */
@@ -85,7 +74,6 @@ var SearchResultsView = View.extend({
                     query: this._query,
                     mode: this._mode,
                     type: type,
-                    icon: this._getIcon(type),
                     limit: this.pageLimit,
                     initResults: this._initResults[type],
                     sizeOneElement: this._sizeOneElement
@@ -105,14 +93,12 @@ var SearchResultsView = View.extend({
  * for iterating amongst pages of a list of search results.
  */
 var SearchResultsTypeView = View.extend({
-
     className: 'g-search-results-type-container',
 
     initialize: function (settings) {
         this._query = settings.query;
         this._mode = settings.mode;
         this._type = settings.type;
-        this._icon = settings.icon || 'icon-attention-alt';
         this._initResults = settings.initResults || [];
         this._pageLimit = settings.limit || 10;
         this._sizeOneElement = settings.sizeOneElement || 30;
@@ -132,7 +118,7 @@ var SearchResultsTypeView = View.extend({
         this._results = this._initResults;
     },
 
-    getCollectionName: function (types) {
+    _getTypeName: function (type) {
         const names = {
             'collection': 'Collections',
             'group': 'Groups',
@@ -140,15 +126,26 @@ var SearchResultsTypeView = View.extend({
             'folder': 'Folders',
             'item': 'Items'
         };
-        return names[types];
+        return names[type] || type;
+    },
+
+    _getTypeIcon: function (type) {
+        const icons = {
+            'user': 'user',
+            'group': 'users',
+            'collection': 'sitemap',
+            'folder': 'folder',
+            'item': 'doc-text-inv'
+        };
+        return icons[type] || 'icon-attention-alt';
     },
 
     render: function () {
         this.$el.html(SearchResultsTypeTemplate({
             results: this._results,
-            collectionName: this.getCollectionName(this._type),
+            collectionName: this._getTypeName(this._type),
             type: this._type,
-            icon: this._icon
+            icon: this._getTypeIcon(this._type)
         }));
 
         /* This size of the results list cannot be known until after the fetch completes. And we don't want to set
