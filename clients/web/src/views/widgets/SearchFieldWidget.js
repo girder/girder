@@ -250,7 +250,13 @@ var SearchFieldWidget = View.extend({
             if (this.pending) {
                 this._doSearch(this.pending);
             } else {
-                var list = this.$('.g-search-results>ul');
+                if (!this.$('.g-search-field').val()) {
+                    // The search field is empty, so this widget probably had "this.resetState"
+                    // called while the search was pending. So, don't render the (now obsolete)
+                    // results.
+                    return;
+                }
+
                 var resources = [];
                 _.each(this.types, function (type) {
                     _.each(results[type] || [], function (result) {
@@ -292,7 +298,7 @@ var SearchFieldWidget = View.extend({
                         });
                     }, this);
                 }, this);
-                list.html(SearchResultsTemplate({
+                this.$('.g-search-results>ul').html(SearchResultsTemplate({
                     results: resources.slice(0, 6)
                 }));
                 this.$('.dropdown').addClass('open');
