@@ -26,8 +26,6 @@ var SearchResultsView = View.extend({
     initialize: function (settings) {
         this._query = settings.query;
         this._mode = settings.mode || 'text';
-        // Give the display order of each type on the result view
-        this._types = settings.types || ['collection', 'folder', 'item', 'group', 'user'];
         this._subviews = {};
         this._initResults = {};
 
@@ -39,10 +37,7 @@ var SearchResultsView = View.extend({
             data: {
                 q: this._query,
                 mode: this._mode,
-                types: JSON.stringify(_.intersection(
-                    this._types,
-                    SearchFieldWidget.getModeTypes(this._mode))
-                ),
+                types: JSON.stringify(SearchFieldWidget.getModeTypes(this._mode)),
                 limit: this.pageLimit
             }
         })
@@ -75,13 +70,28 @@ var SearchResultsView = View.extend({
         return icons[type];
     },
 
+    /**
+     * Return a consistent and semantically-meaningful type ordering.
+     */
+    _getTypeOrdering: function () {
+        // This ordering places hopefully-more relevant types first
+        const builtinOrdering = ['collection', 'folder', 'item', 'group', 'user'];
+        const returnedTypes = _.keys(this._initResults);
+
+        // _.intersection will use the ordering of its first argument
+        const orderedKnownTypes = _.intersection(builtinOrdering, returnedTypes);
+        const orderedUnknownTypes =  _.difference(returnedTypes, builtinOrdering).sort();
+
+        return orderedKnownTypes.concat(orderedUnknownTypes);
+    },
+
     render: function () {
         this.$el.html(SearchResultsTemplate({
             query: this._query || 'Undefined',
             length: this._calculateLength(this._initResults) || 0
         }));
 
-        _.each(this._types, (type) => {
+        _.each(this._getTypeOrdering(), (type) => {
             if (this._initResults[type].length) {
                 this._subviews[type] = new SearchResultsTypeView({
                     parentView: this,
