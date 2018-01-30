@@ -18,7 +18,7 @@ var SearchResultsView = View.extend({
         this._query = settings.query || '';
         this._mode = settings.mode || 'text';
 
-        this._sizeOneElement = 28;
+        this._sizeOneElement = 26;
         this.pageLimit = 10;
 
         this._request = restRequest({
