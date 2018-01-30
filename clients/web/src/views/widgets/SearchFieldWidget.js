@@ -112,6 +112,9 @@ var SearchFieldWidget = View.extend({
         }
 
         this.currentMode = this.modes[0];
+
+        // Do not change the icon for fast searches, to prevent jitter
+        this._animatePending = _.debounce(this._animatePending, 100);
     },
 
     search: function () {
@@ -218,9 +221,17 @@ var SearchFieldWidget = View.extend({
         return this.hideResults().clearText();
     },
 
+    _animatePending: function () {
+        const isPending = this.ajaxLock;
+        this.$('.g-search-state')
+            .toggleClass('icon-search', !isPending)
+            .toggleClass('icon-spin4 animate-spin', isPending);
+    },
+
     _doSearch: function (q) {
         this.ajaxLock = true;
         this.pending = null;
+        this._animatePending();
 
         restRequest({
             url: 'resource/search',
@@ -234,11 +245,18 @@ var SearchFieldWidget = View.extend({
             }
         }).done(_.bind(function (results) {
             this.ajaxLock = false;
+            this._animatePending();
 
             if (this.pending) {
                 this._doSearch(this.pending);
             } else {
-                var list = this.$('.g-search-results>ul');
+                if (!this.$('.g-search-field').val()) {
+                    // The search field is empty, so this widget probably had "this.resetState"
+                    // called while the search was pending. So, don't render the (now obsolete)
+                    // results.
+                    return;
+                }
+
                 var resources = [];
                 _.each(this.types, function (type) {
                     _.each(results[type] || [], function (result) {
@@ -280,7 +298,7 @@ var SearchFieldWidget = View.extend({
                         });
                     }, this);
                 }, this);
-                list.html(SearchResultsTemplate({
+                this.$('.g-search-results>ul').html(SearchResultsTemplate({
                     results: resources.slice(0, 6)
                 }));
                 this.$('.dropdown').addClass('open');
