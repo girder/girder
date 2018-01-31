@@ -23,10 +23,7 @@ class FakeAdapter(AbstractAssetstoreAdapter):
 def fakeModel(db):
     ModelImporter.registerModel('fake', Fake(), plugin='fake_plugin')
 
-    yield Fake().save({
-        'foo': 'bar',
-        'type': 'fake'
-    })
+    yield Fake
 
     ModelImporter.unregisterModel('fake', plugin='fake_plugin')
 
@@ -41,9 +38,14 @@ def fakeAdapter(db):
 
 
 def testAssetstoreModelOverride(fakeModel, fakeAdapter, admin):
+    fakeAssetstore = fakeModel().save({
+        'foo': 'bar',
+        'type': 'fake'
+    })
     file = File().createFile(
-        creator=admin, item=None, name='a.out', size=0, assetstore=fakeModel,
+        creator=admin, item=None, name='a.out', size=0, assetstore=fakeAssetstore,
         assetstoreModel='fake', assetstoreModelPlugin='fake_plugin')
 
     adapter = File().getAssetstoreAdapter(file)
-    assert adapter.the_assetstore == fakeModel
+    assert isinstance(adapter, FakeAdapter)
+    assert adapter.the_assetstore == fakeAssetstore
