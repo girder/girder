@@ -866,7 +866,7 @@ class TasksTest(base.TestCase):
         return_val = mock.Mock()
         return_val.job = {}
 
-        with mock.patch.object(echo_number, 'delay', return_value=return_val) as delay:
+        with mock.patch.object(echo_number, 'apply_async', return_value=return_val) as apply_async:
             resp = self.request(
                 '/item_task/%s/execution' % item['_id'],
                 method='POST',
@@ -874,4 +874,8 @@ class TasksTest(base.TestCase):
                 user=self.admin
             )
             self.assertStatusOk(resp)
-            delay.assert_called_with(n=10.0)
+            apply_async.assert_called_with(
+                args=[],
+                kwargs={'n': 10.0},
+                girder_job_title='task'
+            )

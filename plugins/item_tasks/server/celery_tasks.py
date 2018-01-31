@@ -123,7 +123,8 @@ def runCeleryTask(taskName, inputs, outputs={}):
         raise RestException(str(e))
 
     try:
-        result = task.delay(*args, **kwargs)
+        result = task.apply_async(args=args, kwargs=kwargs,
+                                  girder_job_title=taskName)
     except Exception as e:
         raise RestException(str(e))
 
