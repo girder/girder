@@ -1,12 +1,10 @@
-import _ from 'underscore';
-
 import ItemView from 'girder/views/body/ItemView';
 import { wrap } from 'girder/utilities/PluginUtils';
 
 import VegaWidget from './VegaWidget';
 
 wrap(ItemView, 'render', function (render) {
-    this.model.getAccessLevel(_.bind(function (accessLevel) {
+    this.model.getAccessLevel((accessLevel) => {
         // Because the passthrough call to render() also does an async call to
         // getAccessLevel(), wait until this one completes before invoking that
         // one.
@@ -21,7 +19,7 @@ wrap(ItemView, 'render', function (render) {
             accessLevel: accessLevel,
             parentView: this
         });
-    }, this));
+    });
 
     return this;
 });

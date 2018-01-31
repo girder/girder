@@ -194,14 +194,14 @@ var MetadatumEditWidget = View.extend({
                 _.escape(this.key) + '</b>?',
             escapedHtml: true,
             yesText: 'Delete',
-            confirmCallback: _.bind(function () {
+            confirmCallback: () => {
                 this.item.removeMetadata(this.key, function () {
                     metadataList.remove();
                 }, null, {
                     field: this.fieldName,
                     path: this.apiPath
                 });
-            }, this)
+            }
         };
         confirm(params);
     },
@@ -232,7 +232,7 @@ var MetadatumEditWidget = View.extend({
             return;
         }
 
-        var saveCallback = _.bind(function () {
+        var saveCallback = () => {
             this.key = tempKey;
             this.value = tempValue;
 
@@ -248,7 +248,7 @@ var MetadatumEditWidget = View.extend({
             this.parentView.render();
 
             this.newDatum = false;
-        }, this);
+        };
 
         var errorCallback = function (out) {
             events.trigger('g:alert', {

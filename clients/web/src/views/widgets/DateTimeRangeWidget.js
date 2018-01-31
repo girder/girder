@@ -69,14 +69,14 @@ var DateTimeRangeWidget = View.extend({
         options.defaultDate = this.defaultToDate;
         this.$('.g-datetime-widget-to').datetimepicker(options);
 
-        this.$('.g-datetime-widget-from').on('dp.change', _.bind(function (e) {
+        this.$('.g-datetime-widget-from').on('dp.change', (e) => {
             var picker = this._picker('.g-datetime-widget-to');
             picker.minDate(e.date);
-        }, this));
-        this.$('.g-datetime-widget-to').on('dp.change', _.bind(function (e) {
+        });
+        this.$('.g-datetime-widget-to').on('dp.change', (e) => {
             var picker = this._picker('.g-datetime-widget-from');
             picker.maxDate(e.date);
-        }, this));
+        });
 
         return this;
     },

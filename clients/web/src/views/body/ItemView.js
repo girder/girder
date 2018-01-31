@@ -110,7 +110,7 @@ var ItemView = View.extend({
         // Fetch the access level asynchronously and render once we have
         // it. TODO: load the page and adjust only the action menu once
         // the access level is fetched.
-        this.model.getAccessLevel(_.bind(function (accessLevel) {
+        this.model.getAccessLevel((accessLevel) => {
             this.accessLevel = accessLevel;
             this.$el.html(ItemPageTemplate({
                 item: this.model,
@@ -143,19 +143,19 @@ var ItemView = View.extend({
                 parentView: this
             });
 
-            this.model.getRootPath(_.bind(function (resp) {
+            this.model.getRootPath((resp) => {
                 this.breadcrumbWidget = new ItemBreadcrumbWidget({
                     el: this.$('.g-item-breadcrumb-container'),
                     parentChain: resp,
                     parentView: this
                 });
-            }, this));
+            });
 
             if (this.edit) {
                 this.editItem();
                 this.edit = false;
             }
-        }, this));
+        });
 
         return this;
     }

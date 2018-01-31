@@ -135,21 +135,21 @@ var JobDetailsWidget = View.extend({
             url: `job/${jobId}/cancel`,
             method: 'PUT',
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Job successfully canceled.',
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).fail(_.bind(function (err) {
+        }).fail((err) => {
             events.trigger('g:alert', {
                 icon: 'cancel',
                 text: err,
                 type: 'danger',
                 timeout: 4000
             });
-        }, this));
+        });
     }
 });
 

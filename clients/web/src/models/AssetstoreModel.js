@@ -24,11 +24,11 @@ var AssetstoreModel = Model.extend({
             method: 'POST',
             data: params,
             error: null
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.trigger('g:imported', resp);
-        }, this)).fail(_.bind(function (resp) {
+        }).fail((resp) => {
             this.trigger('g:error', resp);
-        }, this));
+        });
     },
 
     save: function () {

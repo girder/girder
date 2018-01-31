@@ -27,9 +27,9 @@ var SearchFieldWidget = View.extend({
             this.currentMode = $(e.target).val();
             this.hideResults().search();
 
-            window.setTimeout(_.bind(function () {
+            window.setTimeout(() => {
                 this.$('.g-search-mode-choose').popover('hide');
-            }, this), 250);
+            }, 250);
         },
 
         'click .g-search-result>a': function (e) {
@@ -166,12 +166,12 @@ var SearchFieldWidget = View.extend({
                 selector: 'body',
                 padding: 10
             },
-            content: _.bind(function () {
+            content: () => {
                 return SearchHelpTemplate({
                     mode: this.currentMode,
                     modeHelp: SearchFieldWidget.getModeHelp(this.currentMode)
                 });
-            }, this)
+            }
         }).click(function () {
             $(this).popover('toggle');
         });
@@ -183,13 +183,13 @@ var SearchFieldWidget = View.extend({
                 selector: 'body',
                 padding: 10
             },
-            content: _.bind(function () {
+            content: () => {
                 return SearchModeSelectTemplate({
                     modes: this.modes,
                     currentMode: this.currentMode,
                     getModeDescription: SearchFieldWidget.getModeDescription
                 });
-            }, this)
+            }
         }).click(function () {
             $(this).popover('toggle');
         });
@@ -243,7 +243,7 @@ var SearchFieldWidget = View.extend({
                     SearchFieldWidget.getModeTypes(this.currentMode))
                 )
             }
-        }).done(_.bind(function (results) {
+        }).done((results) => {
             this.ajaxLock = false;
             this._animatePending();
 
@@ -303,7 +303,7 @@ var SearchFieldWidget = View.extend({
                 }));
                 this.$('.dropdown').addClass('open');
             }
-        }, this));
+        });
     }
 }, {
     _allowedSearchMode: {},

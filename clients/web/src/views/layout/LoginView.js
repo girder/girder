@@ -47,11 +47,11 @@ var LoginView = View.extend({
                 method: 'POST',
                 data: {login: this.$('#g-login').val()},
                 error: null
-            }).done(_.bind(function (resp) {
+            }).done((resp) => {
                 this.$('.g-validation-failed-message').html(resp.message);
-            }, this)).fail(_.bind(function (err) {
+            }).fail((err) => {
                 this.$('.g-validation-failed-message').html(err.responseJSON.message);
-            }, this));
+            });
         },
 
         'click a.g-register-link': function () {

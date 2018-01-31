@@ -12,17 +12,17 @@ var MetadataMixin = {
             data: JSON.stringify(metadata),
             method: 'PUT',
             error: null
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.set(opts.field || 'meta', resp.meta);
             if (_.isFunction(successCallback)) {
                 successCallback();
             }
-        }, this)).fail(_.bind(function (err) {
+        }).fail((err) => {
             err.message = err.responseJSON.message;
             if (_.isFunction(errorCallback)) {
                 errorCallback(err);
             }
-        }, this));
+        });
     },
 
     addMetadata: function (key, value, successCallback, errorCallback, opts) {

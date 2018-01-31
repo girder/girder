@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import _ from 'underscore';
 
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import { getCurrentUser } from 'girder/auth';
@@ -25,11 +24,11 @@ wrap(HierarchyWidget, 'render', function (render) {
         } else {
             restRequest({
                 url: `folder/${this.parentModel.id}/curation`
-            }).done(_.bind(function (resp) {
+            }).done((resp) => {
                 if (resp.enabled) {
                     _addCurationButton();
                 }
-            }, this));
+            });
         }
     }
 
