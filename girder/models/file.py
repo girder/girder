@@ -161,6 +161,13 @@ class File(acl_mixin.AccessControlMixin, Model):
                 raise ValidationException(
                     'Linked file URL must start with http: or https:.',
                     'linkUrl')
+        if doc.get('assetstoreModel'):
+            # If assetstore model is overridden, make sure it's a valid model
+            try:
+                self.model(doc['assetstoreModel'], plugin=doc.get('assetstoreModelPlugin'))
+            except Exception:
+                raise ValidationException('Invalid assetstore model: %s (plugin=%s).' % (
+                    doc['assetstoreModel'], doc.get('assetstoreModelPlugin')))
         if 'name' not in doc or not doc['name']:
             raise ValidationException('File name must not be empty.', 'name')
 

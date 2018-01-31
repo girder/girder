@@ -1,4 +1,5 @@
 import pytest
+from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.model_base import Model
 from girder.utility import assetstore_utilities
@@ -49,3 +50,11 @@ def testAssetstoreModelOverride(fakeModel, fakeAdapter, admin):
     adapter = File().getAssetstoreAdapter(file)
     assert isinstance(adapter, FakeAdapter)
     assert adapter.the_assetstore == fakeAssetstore
+
+
+def testAssetstoreModelIsValidated(fakeModel, admin):
+    fake = fakeModel().save({})
+    with pytest.raises(ValidationException) as exc:
+        File().createFile(
+            creator=admin, item=None, name='foo', size=0, assetstore=fake, assetstoreModel='bad')
+    assert str(exc.value) == 'Invalid assetstore model: bad (plugin=None).'
