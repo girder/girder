@@ -253,6 +253,7 @@ describe('Auto-configure the JSON item task folder', function () {
 
         runs(function () {
             // loads specs.json
+            $('.modal-dialog .g-configure-json-tasks-tab > a').click();
             $('.modal-dialog .g-configure-docker-image').val('me/my_image:latest');
             $('.modal-dialog button.btn.btn-success[type="submit"]').click();
         });
@@ -427,6 +428,7 @@ describe('Auto-configure the demo JSON task', function () {
         girderTest.waitForDialog();
 
         runs(function () {
+            $('.modal-dialog .g-configure-json-tasks-tab > a').click();
             $('.modal-dialog .g-configure-docker-image').val('item-tasks-demo');
             $('.modal-dialog .g-configure-task-name').val('item_tasks widget types demo');
             $('.modal-dialog button.btn.btn-success[type="submit"]').click();
