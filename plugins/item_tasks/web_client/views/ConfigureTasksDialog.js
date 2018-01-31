@@ -193,9 +193,8 @@ var ConfigureTasksDialog = View.extend({
             // (for items) or collection (for folders) and the hierarchy view
             // would rerender automatically.  This seems to work for the item
             // view, but not the folder list view.
-            const fragment = Backbone.history.fragment;
             Backbone.history.fragment = null;
-            router.navigate(fragment, {trigger: true, replace: true});
+            router.navigate(`${this.resourceName}/${this.model.id}`, {trigger: true, replace: true});
         }).fail((resp) => {
             this.$('.g-validation-failed-message').text(resp.responseJSON.message);
         });
