@@ -63,7 +63,7 @@ class CustomJobStatus(object):
 
     # valid transitions for celery scheduled jobs
     # N.B. We have the extra worker input/output states defined here for when
-    # we are running girder_worker.run as a regualar celery task
+    # we are running girder_worker.run as a regular celery task
     valid_celery_transitions = {
         JobStatus.QUEUED: [JobStatus.INACTIVE],
         # Note celery tasks can jump straight from INACTIVE to RUNNING
