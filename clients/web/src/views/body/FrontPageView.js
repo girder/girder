@@ -1,6 +1,7 @@
 import $ from 'jquery';
 
-import versionInfo from 'girder/version';
+// TODO: redo version injection
+// import versionInfo from 'girder/version';
 import View from 'girder/views/View';
 import { cancelRestRequests, getApiRoot } from 'girder/rest';
 import events from 'girder/events';
@@ -36,7 +37,7 @@ var FrontPageView = View.extend({
         this.$el.html(FrontPageTemplate({
             apiRoot: getApiRoot(),
             currentUser: getCurrentUser(),
-            versionInfo: versionInfo,
+            versionInfo: {},
             brandName: this.brandName
         }));
 
