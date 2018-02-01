@@ -80,7 +80,6 @@ var PluginsView = View.extend({
 
             // Fetch the plugin list
             $.when(...promises).done((plugins, cherrypyServer) => {
-                console.log(JSON.stringify(plugins));
                 this.cherrypyServer = cherrypyServer;
                 this.enabled = plugins.enabled;
                 this.allPlugins = plugins.all;

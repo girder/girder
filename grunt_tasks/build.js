@@ -217,7 +217,7 @@ module.exports = function (grunt) {
                 // execute an entry point at load time instead of just exposing symbols
                 // as a library.
                 new webpackPlugins.DllBootstrapPlugin({
-                    [`plugins/${name}/plugins`]: `${plugin}/main.js`
+                    [`plugins/${name}/plugin`]: `${plugin}/main.js`
                 }),
                 // This plugin allows this bundle to dynamically link against girder's
                 // core library bundle.

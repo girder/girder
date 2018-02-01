@@ -156,8 +156,17 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def getPlugins(self):
+        def _pluginNameToResponse(name):
+            p = plugin.getPlugin(name)
+            return {
+                'name': p.name,
+                'description': p.description,
+                'url': p.url,
+                'version': p.version
+            }
+
         plugins = {
-            'all': plugin.allPlugins(),
+            'all': {name: _pluginNameToResponse(name) for name in plugin.allPlugins()},
             'enabled': plugin.loadedPlugins()
         }
         failureInfo = plugin.getPluginFailureInfo()
