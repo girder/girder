@@ -76,6 +76,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
         if not doc['name']:
             raise ValidationException('Item name must not be empty.', 'name')
 
+        folder = Folder().load(doc['folderId'], exc=True, force=True)
+        if folder.get('isVirtual'):
+            raise ValidationException('You cannot save an item underneath a virtual folder.')
+
         # Ensure unique name among sibling items and folders. If the desired
         # name collides with an existing item or folder, we will append (n)
         # onto the end of the name, incrementing n until the name is unique.
