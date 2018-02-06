@@ -26,8 +26,6 @@ def realFolder(admin):
     yield realParent
 
 
-
-
 def testCannotCreateUnderVirtualFolder(admin, vfolder):
     with pytest.raises(ValidationException) as exc:
         Item().createItem('x', creator=admin, folder=vfolder)
@@ -115,3 +113,11 @@ def testRestListingUsesVirtualQuery(admin, vfolder, realFolder, server):
         'folderId': vfolder['_id']
     })
     assert [i['name'] for i in resp.json] == ['item6', 'item7', 'item8', 'item9']
+
+
+def testSubtreeCountForVirtualFolder(vfolder, realFolder):
+    Folder().setVirtualFoldersQuery(vfolder, query={'description': 'foo'})
+    Folder().setVirtualItemsQuery(vfolder, query={'meta.someVal': {'$gt': 5}})
+
+    assert Folder().subtreeCount(realFolder) == 21
+    assert Folder().subtreeCount(vfolder) == 1
