@@ -161,19 +161,30 @@ class File(acl_mixin.AccessControlMixin, Model):
                 raise ValidationException(
                     'Linked file URL must start with http: or https:.',
                     'linkUrl')
-        if doc.get('assetstoreModel'):
+        if doc.get('assetstoreType'):
             # If assetstore model is overridden, make sure it's a valid model
-            try:
-                self.model(doc['assetstoreModel'], plugin=doc.get('assetstoreModelPlugin'))
-            except Exception:
-                raise ValidationException('Invalid assetstore model: %s (plugin=%s).' % (
-                    doc['assetstoreModel'], doc.get('assetstoreModelPlugin')))
+            self._getAssetstoreModel(doc)
         if 'name' not in doc or not doc['name']:
             raise ValidationException('File name must not be empty.', 'name')
 
         doc['exts'] = [ext.lower() for ext in doc['name'].split('.')[1:]]
 
         return doc
+
+    def _getAssetstoreModel(self, file):
+        from .assetstore import Assetstore
+
+        if file.get('assetstoreType'):
+            try:
+                if isinstance(file['assetstoreType'], six.string_types):
+                    return self.model(file['assetstoreType'])
+                else:
+                    return self.model(*file['assetstoreType'])
+            except Exception:
+                raise ValidationException(
+                    'Invalid assetstore type: %s.' % (file['assetstoreType'],))
+        else:
+            return Assetstore()
 
     def createLinkFile(self, name, parent, parentType, url, creator, size=None,
                        mimeType=None, reuseExisting=False):
@@ -279,8 +290,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         }, field='size', amount=sizeIncrement, multi=False)
 
     def createFile(self, creator, item, name, size, assetstore, mimeType=None,
-                   saveFile=True, reuseExisting=False, assetstoreModel=None,
-                   assetstoreModelPlugin=None):
+                   saveFile=True, reuseExisting=False, assetstoreType=None):
         """
         Create a new file record in the database.
 
@@ -298,12 +308,11 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param reuseExisting: If a file with the same name already exists in
             this location, return it rather than creating a new file.
         :type reuseExisting: bool
-        :param assetstoreModel: If a model other than assetstore will be used to
-            initialize the assetstore adapter for this file, use its string name here.
-        :type assetstoreModel: str
-        :param assetstoreModelPlugin: If using an ``assetstoreModel`` that is within
-            a plugin, set the plugin name here.
-        :type assetstoreModelPlugin: str
+        :param assetstoreType: If a model other than assetstore will be used to
+            initialize the assetstore adapter for this file, use this parameter to
+            specify it. If it's a core model, pass its string name. If it's a plugin
+            model, use a 2-tuple of the form (modelName, pluginName).
+        :type assetstoreType: str or tuple
         """
         if reuseExisting:
             existing = self.findOne({
@@ -323,9 +332,8 @@ class File(acl_mixin.AccessControlMixin, Model):
             'itemId': item['_id'] if item else None
         }
 
-        if assetstoreModel:
-            file['assetstoreModel'] = assetstoreModel
-            file['assetstoreModelPlugin'] = assetstoreModelPlugin
+        if assetstoreType:
+            file['assetstoreType'] = assetstoreType
 
         if saveFile:
             return self.save(file)
@@ -371,15 +379,9 @@ class File(acl_mixin.AccessControlMixin, Model):
         """
         Return the assetstore adapter for the given file.
         """
-        from .assetstore import Assetstore
         from girder.utility import assetstore_utilities
 
-        if file.get('assetstoreModel'):
-            model = self.model(file['assetstoreModel'], plugin=file.get('assetstoreModelPlugin'))
-        else:
-            model = Assetstore()
-
-        assetstore = model.load(file['assetstoreId'])
+        assetstore = self._getAssetstoreModel(file).load(file['assetstoreId'])
         return assetstore_utilities.getAssetstoreAdapter(assetstore)
 
     def copyFile(self, srcFile, creator, item=None):
