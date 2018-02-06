@@ -39,15 +39,14 @@ class WebrootBase(object):
     exposed = True
 
     def __init__(self, templatePath):
-        with open(templatePath) as templateFile:
-            # This may raise an IOError, but there's no way to recover
-            self.template = templateFile.read()
-
         # Rendering occurs lazily on the first GET request
         self.indexHtml = None
 
         self.vars = {}
         self.config = config.getConfig()
+
+        templateDir, self._templateFilename = os.path.split(templatePath)
+        self._templateLookup = mako.lookup.TemplateLookup(directories=[templateDir])
 
     def updateHtmlVars(self, vars):
         """
@@ -55,6 +54,25 @@ class WebrootBase(object):
         with the updated set of variables to render the template with.
         """
         self.vars.update(vars)
+        self.indexHtml = None
+
+    def addTemplateDirectory(self, templateDir):
+        """
+        Add a directory in which to search for templates.
+        """
+        self._templateLookup.directories.append(templateDir)
+
+    @property
+    def templateFilename(self):
+        """
+        The filename of the template to render. The file should be located in a
+        directory specified by addTemplateDirectory().
+        """
+        return self._templateFilename
+
+    @templateFilename.setter
+    def templateFilename(self, value):
+        self._templateFilename = value
         self.indexHtml = None
 
     @staticmethod
@@ -70,8 +88,8 @@ class WebrootBase(object):
         )
 
     def _renderHTML(self):
-        return mako.template.Template(self.template).render(
-            js=self._escapeJavascript, json=json.dumps, **self.vars)
+        template = self._templateLookup.get_template(self.templateFilename)
+        return template.render(js=self._escapeJavascript, json=json.dumps, **self.vars)
 
     def GET(self, **params):
         if self.indexHtml is None or self.config['server']['mode'] == 'development':
