@@ -4,7 +4,10 @@ ul.g-folder-list
       if checkboxes
         input.g-list-checkbox(type="checkbox", g-folder-cid=folder.cid)
       a.g-folder-list-link(g-folder-cid=folder.cid, href=`#folder/${folder.id}`)
-        i.icon-folder
+        if folder.get('isVirtual')
+          i.icon-folder-empty.g-virtual-folder-icon
+        else
+          i.icon-folder
         = folder.get('name')
         i.icon-right-dir
       .g-folder-privacy
