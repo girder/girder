@@ -10,7 +10,22 @@ from girder.models.item import Item
 def vfolder(admin):
     folder = Folder().createFolder(admin, 'virtual', parentType='user', virtual=True)
     yield folder
-    Folder().remove(folder)
+
+
+@pytest.fixture
+def realFolder(admin):
+    realParent = Folder().createFolder(admin, 'x', creator=admin, parentType='user')
+
+    for i in range(10):
+        subfolder = Folder().createFolder(realParent, str(i), creator=admin, description='foo')
+        item = Item().createItem('item' + str(i), creator=admin, folder=subfolder)
+        Item().setMetadata(item, {
+            'someVal': i
+        })
+
+    yield realParent
+
+
 
 
 def testCannotCreateUnderVirtualFolder(admin, vfolder):
@@ -44,16 +59,7 @@ def testCannotMakeFolderWithChildrenVirtual(admin):
     assert Folder().save(folder)['isVirtual'] is True
 
 
-def testVirtualFolderQuery(admin, vfolder):
-    realParent = Folder().createFolder(admin, 'x', creator=admin, parentType='user')
-
-    for i in range(10):
-        subfolder = Folder().createFolder(realParent, str(i), creator=admin, description='foo')
-        item = Item().createItem('item' + str(i), creator=admin, folder=subfolder)
-        Item().setMetadata(item, {
-            'someVal': i
-        })
-
+def testVirtualFolderQuery(admin, vfolder, realFolder):
     Folder().setVirtualItemsQuery(vfolder, query={
         'meta.someVal': {
             '$gt': 5
@@ -88,8 +94,24 @@ def testVirtualFolderQuery(admin, vfolder):
     Folder().remove(vfolder)
     assert Folder().load(vfolder['_id'], force=True) is None
 
-    subfolders = list(Folder().childFolders(realParent, user=admin))
+    subfolders = list(Folder().childFolders(realFolder, user=admin))
     assert [f['name'] for f in subfolders] == [str(i) for i in range(10)]
 
     for f in subfolders:
         assert [i['name'] for i in Folder().childItems(f)] == ['item%s' % f['name']]
+
+
+def testRestListingUsesVirtualQuery(admin, vfolder, realFolder, server):
+    Folder().setVirtualFoldersQuery(vfolder, query={'description': 'foo'})
+    Folder().setVirtualItemsQuery(vfolder, query={'meta.someVal': {'$gt': 5}})
+
+    resp = server.request('/folder', user=admin, params={
+        'parentType': 'folder',
+        'parentId': vfolder['_id']
+    })
+    assert [f['name'] for f in resp.json] == [str(i) for i in range(10)]
+
+    resp = server.request('/item', user=admin, params={
+        'folderId': vfolder['_id']
+    })
+    assert [i['name'] for i in resp.json] == ['item6', 'item7', 'item8', 'item9']
