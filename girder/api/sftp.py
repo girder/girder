@@ -273,7 +273,7 @@ class SftpServer(socketserver.ThreadingTCPServer):
               help='The port to bind to')
 def main(identity_file, port, host):  # pragma: no cover
     """
-    This is the entrypoint of the girder-sftpd program. It should not be
+    This is the entrypoint of the girder sftpd program. It should not be
     called from python code.
     """
     try:
