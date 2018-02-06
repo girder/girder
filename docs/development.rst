@@ -562,7 +562,7 @@ The process for releasing the python client is as follows:
         python setup.py sdist --dist-dir .
 
 3.  That should have created the package tarball as ``girder-client-<version>.tar.gz``.
-    Install it locally in a virtualenv and ensure that you can call the ``girder-cli``
+    Install it locally in a virtualenv and ensure that you can call the ``girder-client``
     executable.
 
     .. code-block:: bash
@@ -571,7 +571,7 @@ The process for releasing the python client is as follows:
         virtualenv release
         source release/bin/activate
         pip install ../girder-client-<version>.tar.gz
-        girder-cli
+        girder-client
 
 4.  Go back to the ``clients/python`` directory and upload the package to pypi:
 
