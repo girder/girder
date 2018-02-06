@@ -70,6 +70,10 @@ class Folder(AccessControlledModel):
         doc['lowerName'] = doc['name'].lower()
         doc['description'] = doc['description'].strip()
 
+        for key in ('foldersQuery', 'foldersSort', 'itemsQuery', 'itemsSort'):
+            if key in doc and not isinstance(doc[key], six.string_types):
+                doc[key] = json.dumps(doc[key])
+
         if not doc['name']:
             raise ValidationException('Folder name must not be empty.', 'name')
 
@@ -429,7 +433,7 @@ class Folder(AccessControlledModel):
         from .item import Item
 
         if folder.get('isVirtual') and 'itemsQuery' in folder:
-            q = folder['itemsQuery']
+            q = json.loads(folder['itemsQuery'])
         else:
             q = {
                 'folderId': folder['_id']
@@ -438,7 +442,7 @@ class Folder(AccessControlledModel):
         q.update(filters or {})
 
         if sort is None and folder.get('isVirtual') and 'itemsSort' in folder:
-            sort = folder['itemsSort']
+            sort = json.loads(folder['itemsSort'])
 
         return Item().find(q, limit=limit, offset=offset, sort=sort, **kwargs)
 
@@ -468,7 +472,7 @@ class Folder(AccessControlledModel):
             raise ValidationException('The parentType must be folder, collection, or user.')
 
         if parent.get('isVirtual') and 'foldersQuery' in parent:
-            q = parent['foldersQuery']
+            q = json.loads(parent['foldersQuery'])
         else:
             q = {
                 'parentId': parent['_id'],
@@ -477,7 +481,7 @@ class Folder(AccessControlledModel):
         q.update(filters)
 
         if sort is None and parent.get('isVirtual') and 'foldersSort' in parent:
-            sort = parent['foldersSort']
+            sort = json.loads(parent['foldersSort'])
 
         # Perform the find; we'll do access-based filtering of the result set afterward.
         cursor = self.find(q, sort=sort, **kwargs)
