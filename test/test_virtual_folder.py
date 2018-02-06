@@ -59,21 +59,37 @@ def testVirtualFolderQuery(admin, vfolder):
             '$gt': 5
         }
     }, sort=[('meta.someVal', SortDir.DESCENDING)])
-    items = Folder().childItems(vfolder)
+
+    # Ensure we must explicitly pass virtualQuery to override default behavior
+    assert list(Folder().childItems(vfolder)) == []
+    assert list(Folder().childFolders(vfolder, user=admin)) == []
+
+    items = Folder().childItems(vfolder, virtualQuery=True)
     assert [i['meta']['someVal'] for i in items] == [9, 8, 7, 6]
 
     # Keep default query, just change sort
     Folder().setVirtualFoldersQuery(vfolder, sort=[('name', SortDir.DESCENDING)])
-    assert list(Folder().childFolders(vfolder, user=admin)) == []
+    assert list(Folder().childFolders(vfolder, user=admin, virtualQuery=True)) == []
 
     # Now try with a custom query
     Folder().setVirtualFoldersQuery(vfolder, query={'description': 'foo'})
-    folders = Folder().childFolders(vfolder, user=admin)
+    folders = Folder().childFolders(vfolder, user=admin, virtualQuery=True)
     assert [f['name'] for f in folders] == [str(i) for i in reversed(range(10))]
 
     # Sort override at fetch time
-    items = Folder().childItems(vfolder, sort=[('name', SortDir.ASCENDING)])
+    items = Folder().childItems(vfolder, sort=[('name', SortDir.ASCENDING)], virtualQuery=True)
     assert [i['name'] for i in items] == ['item6', 'item7', 'item8', 'item9']
 
-    folders = Folder().childFolders(vfolder, sort=[('name', SortDir.ASCENDING)], user=admin)
+    folders = Folder().childFolders(
+        vfolder, sort=[('name', SortDir.ASCENDING)], user=admin, virtualQuery=True)
     assert [f['name'] for f in folders] == [str(i) for i in range(10)]
+
+    # Deleting the virtual folder should not delete any of the real data
+    Folder().remove(vfolder)
+    assert Folder().load(vfolder['_id'], force=True) is None
+
+    subfolders = list(Folder().childFolders(realParent, user=admin))
+    assert [f['name'] for f in subfolders] == [str(i) for i in range(10)]
+
+    for f in subfolders:
+        assert [i['name'] for i in Folder().childItems(f)] == ['item%s' % f['name']]

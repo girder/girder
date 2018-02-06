@@ -422,10 +422,9 @@ class Folder(AccessControlledModel):
         # Delete this folder
         AccessControlledModel.remove(self, folder, progress=progress, **kwargs)
         if progress:
-            progress.update(increment=1, message='Deleted folder %s' %
-                            folder['name'])
+            progress.update(increment=1, message='Deleted folder %s' % folder['name'])
 
-    def childItems(self, folder, limit=0, offset=0, sort=None, filters=None,
+    def childItems(self, folder, limit=0, offset=0, sort=None, filters=None, virtualQuery=False,
                    **kwargs):
         """
         Generator function that yields child items in a folder.  Passes any
@@ -436,10 +435,13 @@ class Folder(AccessControlledModel):
         :param offset: Result offset.
         :param sort: The sort structure to pass to pymongo.
         :param filters: Additional query operators.
+        :param virtualQuery: If this is a virtual folder, set this to True to use the
+            virtual query instead of the normal one.
+        :type virtualQuery: bool
         """
         from .item import Item
 
-        if folder.get('isVirtual') and 'itemsQuery' in folder:
+        if virtualQuery and folder.get('isVirtual') and 'itemsQuery' in folder:
             q = json.loads(folder['itemsQuery'])
         else:
             q = {
@@ -448,13 +450,13 @@ class Folder(AccessControlledModel):
 
         q.update(filters or {})
 
-        if sort is None and folder.get('isVirtual') and 'itemsSort' in folder:
+        if virtualQuery and sort is None and folder.get('isVirtual') and 'itemsSort' in folder:
             sort = json.loads(folder['itemsSort'])
 
         return Item().find(q, limit=limit, offset=offset, sort=sort, **kwargs)
 
     def childFolders(self, parent, parentType='folder', user=None, limit=0, offset=0,
-                     sort=None, filters=None, **kwargs):
+                     sort=None, filters=None, virtualQuery=False, **kwargs):
         """
         This generator will yield child folders of a user, collection, or
         folder, with access policy filtering.  Passes any kwargs to the find
@@ -470,6 +472,9 @@ class Folder(AccessControlledModel):
         :param offset: Result offset.
         :param sort: The sort structure to pass to pymongo.
         :param filters: Additional query operators.
+        :param virtualQuery: If the parent is a virtual folder, set this to True to use the
+            virtual query instead of the normal one.
+        :type virtualQuery: bool
         """
         if not filters:
             filters = {}
@@ -478,7 +483,7 @@ class Folder(AccessControlledModel):
         if parentType not in ('folder', 'user', 'collection'):
             raise ValidationException('The parentType must be folder, collection, or user.')
 
-        if parent.get('isVirtual') and 'foldersQuery' in parent:
+        if virtualQuery and parent.get('isVirtual') and 'foldersQuery' in parent:
             q = json.loads(parent['foldersQuery'])
         else:
             q = {
@@ -487,7 +492,7 @@ class Folder(AccessControlledModel):
             }
         q.update(filters)
 
-        if sort is None and parent.get('isVirtual') and 'foldersSort' in parent:
+        if virtualQuery and sort is None and parent.get('isVirtual') and 'foldersSort' in parent:
             sort = json.loads(parent['foldersSort'])
 
         # Perform the find; we'll do access-based filtering of the result set afterward.
