@@ -11,7 +11,7 @@ a single, stable, consistent web API, it is possible to write multiple
 interchangeable clients using different technologies.
 
 When a Girder instance is deployed, it typically also serves a page
-that uses `Swagger <https://helloreverb.com/developers/swagger>`_ to document
+that uses `Swagger <https://swagger.io>`_ to document
 all available RESTful endpoints in the web API and also provide an easy way
 for users to execute those endpoints with parameters of their choosing. In
 this way, the Swagger page is just the simplest and lightest client application
