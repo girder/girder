@@ -54,34 +54,12 @@ class Folder(AccessControlledModel):
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
             'baseParentType', 'baseParentId', 'isVirtual'))
 
-    def validate(self, doc, allowRename=False):
-        """
-        Validate the name and description of the folder, ensure that it is
-        associated with a valid parent and that it has a unique name.
-
-        :param doc: the folder document to validate.
-        :param allowRename: if True and a folder or item exists with the same
-                            name, rename the folder so that it is unique.
-        :returns: `the validated folder document`
-        """
+    def _validateVirtualFolderBehavior(self, doc):
         from .item import Item
-
-        doc['name'] = doc['name'].strip()
-        doc['lowerName'] = doc['name'].lower()
-        doc['description'] = doc['description'].strip()
 
         for key in ('foldersQuery', 'foldersSort', 'itemsQuery', 'itemsSort'):
             if key in doc and not isinstance(doc[key], six.string_types):
                 doc[key] = json.dumps(doc[key])
-
-        if not doc['name']:
-            raise ValidationException('Folder name must not be empty.', 'name')
-
-        if not doc['parentCollection'] in ('folder', 'user', 'collection'):
-            # Internal error; this shouldn't happen
-            raise GirderException('Invalid folder parent type: %s.' %
-                                  doc['parentCollection'],
-                                  'girder.models.folder.invalid-parent-type')
 
         # Make sure we aren't trying to save a folder underneath a virtual folder
         if doc['parentCollection'] == 'folder':
@@ -100,6 +78,35 @@ class Folder(AccessControlledModel):
             })
             if childFolder:
                 raise ValidationException('Virtual folders may not contain other folders.')
+
+        return doc
+
+    def validate(self, doc, allowRename=False):
+        """
+        Validate the name and description of the folder, ensure that it is
+        associated with a valid parent and that it has a unique name.
+
+        :param doc: the folder document to validate.
+        :param allowRename: if True and a folder or item exists with the same
+                            name, rename the folder so that it is unique.
+        :returns: `the validated folder document`
+        """
+        from .item import Item
+
+        doc['name'] = doc['name'].strip()
+        doc['lowerName'] = doc['name'].lower()
+        doc['description'] = doc['description'].strip()
+
+        if not doc['name']:
+            raise ValidationException('Folder name must not be empty.', 'name')
+
+        if not doc['parentCollection'] in ('folder', 'user', 'collection'):
+            # Internal error; this shouldn't happen
+            raise GirderException('Invalid folder parent type: %s.' %
+                                  doc['parentCollection'],
+                                  'girder.models.folder.invalid-parent-type')
+
+        doc = self._validateVirtualFolderBehavior(doc)
 
         name = doc['name']
         n = 0
