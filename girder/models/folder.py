@@ -442,7 +442,7 @@ class Folder(AccessControlledModel):
 
         return Item().find(q, limit=limit, offset=offset, sort=sort, **kwargs)
 
-    def childFolders(self, parent, parentType, user=None, limit=0, offset=0,
+    def childFolders(self, parent, parentType='folder', user=None, limit=0, offset=0,
                      sort=None, filters=None, **kwargs):
         """
         This generator will yield child folders of a user, collection, or
