@@ -24,6 +24,8 @@ Added Features
   IDEs. The ``eslint`` tool (including options such as ``--fix``) may now be invoked directly from
   the command line, without necessarily using a CMake test.
   (`#2550 <https://github.com/girder/girder/pull/2550>`_)
+* Plugins can customize the header and description on the Swagger page.
+  (`#2607 <https://github.com/girder/girder/pull/2607>`_)
 
 Web Client
 ^^^^^^^^^^
