@@ -17,12 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+import collections
 import itertools
 import six
 
-from ..models.model_base import Model
+from ..models.model_base import Model, AccessControlledModel, _permissionClauses
 from ..exceptions import AccessException
-from ..constants import AccessType
+from ..constants import AccessType, TEXT_SCORE_SORT_MAX
 
 
 class AccessControlMixin(object):
@@ -175,15 +176,22 @@ class AccessControlMixin(object):
 
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
                    sort=None, fields=None, level=AccessType.READ):
-        filters = filters or {}
-
-        cursor = Model.textSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
-        return self.filterResultsByPermission(
-            cursor, user=user, level=level, limit=limit, offset=offset)
+        filters, fields = self._textSearchFilters(query, filters, fields)
+        defaultSort = [('_textScore', {'$meta': 'textScore'})]
+        cursor = self.findWithPermissions(
+            filters, offset=offset, limit=limit, sort=sort, fields=fields,
+            user=user, level=level, aggregateSort=defaultSort)
+        if (sort is None and not getattr(cursor, 'fromAggregate', False) and
+                callable(getattr(cursor, 'count', None)) and
+                cursor.count() < TEXT_SCORE_SORT_MAX):
+            cursor = self.findWithPermissions(
+                filters, offset=offset, limit=limit, sort=defaultSort, fields=fields,
+                user=user, level=level)
+        return cursor
 
     def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                     sort=None, fields=None, level=AccessType.READ):
+                     sort=None, fields=None, level=AccessType.READ,
+                     prefixSearchFields=None):
         """
         Custom override of Model.prefixSearch to also force permission-based
         filtering. The parameters are the same as Model.prefixSearch.
@@ -193,9 +201,162 @@ class AccessControlMixin(object):
         :param level: The access level to require.
         :type level: girder.constants.AccessType
         """
-        filters = filters or {}
+        filters = self._prefixSearchFilters(query, filters, prefixSearchFields)
 
-        cursor = Model.prefixSearch(
-            self, query=query, filters=filters, sort=sort, fields=fields)
-        return self.filterResultsByPermission(
-            cursor, user=user, level=level, limit=limit, offset=offset)
+        return self.findWithPermissions(
+            filters, offset=offset, limit=limit, sort=sort, fields=fields,
+            user=user, level=level)
+
+    def permissionClauses(self, user=None, level=None, prefix=''):
+        return _permissionClauses(user, level, prefix)
+
+    def _findWithPermissionsFallback(self, query, offset, limit, timeout,
+                                     fields, sort, user, level, **kwargs):
+        """
+        See findWithPermissions.  This is called if Mongo doesn't support
+        appropriate aggregations or find is used on a model that uses an
+        acl-mixin model as its parent and therefore needs multiple steps to
+        reach the owner of the access control list.
+
+        See findWithPermissions for parameters and return.
+        """
+        removeKeys = ()
+        if (fields and any(fields[key] is True for key in fields) and
+                not fields.get(self.resourceParent)):
+            fields = fields.copy()
+            fields[self.resourceParent] = True
+            removeKeys = (self.resourceParent, )
+        cursor = self.find(query, timeout=timeout, fields=fields, sort=sort, **kwargs)
+        result = self.filterResultsByPermission(
+            cursor=cursor, user=user, level=level, limit=limit, offset=offset,
+            removeKeys=removeKeys)
+        if not hasattr(result, 'count'):
+            origResult, origSelf = result, self
+
+            class resultWithCount(object):
+                def count(self):
+                    cursor = origSelf.find(
+                        query, timeout=timeout, fields=fields, sort=sort, **kwargs)
+                    result = origSelf.filterResultsByPermission(
+                        cursor=cursor, user=user, level=level, limit=limit, offset=offset,
+                        removeKeys=removeKeys)
+                    return len(list(result))
+
+                def __iter__(self):
+                    return self
+
+                def __next__(self):
+                    return six.next(origResult)
+
+                next = __next__
+
+            result = resultWithCount()
+        return result
+
+    def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
+                            sort=None, user=None, level=AccessType.READ, aggregateSort=None,
+                            **kwargs):
+        """
+        Search the collection by a set of parameters, only returning results
+        that the combined user and level have permission to access. Passes any
+        extra kwargs through to the underlying pymongo.collection.find
+        function.
+
+        :param query: The search query (see general MongoDB docs for "find()")
+        :type query: dict
+        :param offset: The offset into the results
+        :type offset: int
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param timeout: Cursor timeout in ms. Default is no timeout.
+        :type timeout: int
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param user: The user to check policies against.
+        :type user: dict or None
+        :param level: The access level.  Explicitly passing None skips doing
+            permissions checks.
+        :type level: AccessType
+        :param aggregateSort: A sort order to use if `sort` is None and an
+            aggregation is used.
+        :type aggregateSort: List of (key, order) tuples.
+        :returns: A pymongo Cursor, CommandCursor, or an iterable.  If a
+            CommandCursor, it has been augmented with a count function.
+        """
+        # If no user is specified and greater than READ access is requested,
+        # we won't return anything.  So as to always return a cursor for
+        # consistency, we make a query that will return no results
+        if user is None and level is not None and level > AccessType.READ:
+            query = {'__matchnothing': 'nothing'}
+        elif level is not None and (not user or not user['admin']):
+            # If the resourceColl isn't an access controlled model that we
+            # know how to reach, fall back to performing the ordinary query and
+            # then filtering it by permission.  For instance, if a model uses
+            # the acl mixin to get acl from a model that itself uses the acl
+            # mixin, this will return the correct results, but without the
+            # utility of being able perform count().
+            #  Note, this also handles models which use attachedToType and
+            # attachedToId, since self.model(None) will not be an access
+            # controlled model.
+            #  This is also the fall-back for Mongo < 3.4, as those versions do
+            # not support the aggregation steps that are used.
+            if (not isinstance(self.model(self.resourceColl), AccessControlledModel) or
+                    not getattr(self, '_dbserver_version', None) or
+                    getattr(self, '_dbserver_version', None) < (3, 4)):
+                return self._findWithPermissionsFallback(
+                    query, offset, limit, timeout, fields, sort, user, level,
+                    **kwargs)
+
+            query = query or {}
+            initialPipeline = [
+                {'$match': query},
+                {'$lookup': {
+                    'from': self.resourceColl,
+                    'localField': self.resourceParent,
+                    'foreignField': '_id',
+                    'as': '_access'
+                }},
+                {'$match': self.permissionClauses(user, level, '_access.')},
+            ]
+            countPipeline = initialPipeline[:] + [
+                {'$count': 'count'},
+            ]
+            fullPipeline = initialPipeline[:] + [
+                {'$project': {'_access': False}},
+            ]
+            if sort is not None or aggregateSort is not None:
+                fullPipeline.append({'$sort': collections.OrderedDict(sort or aggregateSort)})
+            # limit should immediately follow sort for efficiency
+            if limit:
+                fullPipeline.append({'$limit': limit + (offset or 0)})
+            if offset:
+                fullPipeline.append({'$skip': offset})
+            if fields is not None:
+                if any([isinstance(v, bool) for v in fields.values()]):
+                    fullPipeline.append({'$project': fields})
+                else:
+                    fullPipeline.append({'$addFields': fields})
+            options = {
+                'allowDiskUse': True,
+                'cursor': {'batchSize': 0}
+            }
+            if timeout:
+                options['maxTimeMS'] = timeout
+            result = self.collection.aggregate(fullPipeline, **options)
+
+            def count():
+                try:
+                    return next(iter(self.collection.aggregate(countPipeline, **options)))['count']
+                except StopIteration:
+                    # If there are no values, this won't return the count, in
+                    # which case it is zero.
+                    return 0
+
+            result.count = count
+            result.fromAggregate = True
+            return result
+        return self.find(query, offset, limit, timeout, fields, sort, **kwargs)
