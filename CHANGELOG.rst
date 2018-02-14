@@ -24,6 +24,8 @@ Added Features
   IDEs. The ``eslint`` tool (including options such as ``--fix``) may now be invoked directly from
   the command line, without necessarily using a CMake test.
   (`#2550 <https://github.com/girder/girder/pull/2550>`_)
+* Integration with ``dogpile.cache`` for caching key value pairs via ``girder.utility._cache.cache`` and
+  ``girder.utility._cache.requestCache``. (`#2274 <https://github.com/girder/girder/pull/2274>`_)
 * Plugins can customize the header and description on the Swagger page.
   (`#2607 <https://github.com/girder/girder/pull/2607>`_)
 

@@ -21,14 +21,15 @@ import bson.json_util
 import dateutil.parser
 import inspect
 import jsonschema
+import mako
 import os
 import six
 import cherrypy
 from collections import OrderedDict
 
-from girder import constants, events, logprint
+from girder import constants, logprint
 from girder.api.rest import getCurrentUser, getBodyJson
-from girder.constants import CoreEventHandler, SettingKey, SortDir
+from girder.constants import SettingKey, SortDir
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.utility import config, toBool
@@ -470,26 +471,15 @@ class ApiDocs(WebrootBase):
         self.vars = {
             'apiRoot': '',
             'staticRoot': '',
-            'brandName': Setting().get(SettingKey.BRAND_NAME),
             'mode': mode
         }
 
-        events.unbind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE)
-        events.bind('model.setting.save.after', CoreEventHandler.WEBROOT_SETTING_CHANGE,
-                    self._onSettingSave)
-        events.unbind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE)
-        events.bind('model.setting.remove', CoreEventHandler.WEBROOT_SETTING_CHANGE,
-                    self._onSettingRemove)
-
-    def _onSettingSave(self, event):
-        settingDoc = event.info
-        if settingDoc['key'] == SettingKey.BRAND_NAME:
-            self.updateHtmlVars({'brandName': settingDoc['value']})
-
-    def _onSettingRemove(self, event):
-        settingDoc = event.info
-        if settingDoc['key'] == SettingKey.BRAND_NAME:
-            self.updateHtmlVars({'brandName': Setting().getDefault(SettingKey.BRAND_NAME)})
+    def _renderHTML(self):
+        from girder.utility import server
+        self.vars['apiRoot'] = server.getApiRoot()
+        self.vars['staticRoot'] = server.getApiStaticRoot()
+        self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
+        return mako.template.Template(self.template).render(**self.vars)
 
 
 class Describe(Resource):

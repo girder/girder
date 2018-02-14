@@ -28,8 +28,6 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from girder.utility import setting_utilities
 
-_cachedDefaultImage = None
-
 
 class PluginSettings(object):
     DEFAULT_IMAGE = 'gravatar.default_image'
@@ -41,12 +39,11 @@ def computeBaseUrl(user):
     current default image is cached in this URL. It is the caller's
     responsibility to save this value on the user document.
     """
-    global _cachedDefaultImage
-    if _cachedDefaultImage is None:
-        _cachedDefaultImage = Setting().get(PluginSettings.DEFAULT_IMAGE, default='identicon')
+    defaultImage = Setting().get(
+        PluginSettings.DEFAULT_IMAGE, default='identicon')
 
     md5 = hashlib.md5(user['email'].encode('utf8')).hexdigest()
-    return 'https://www.gravatar.com/avatar/%s?d=%s' % (md5, _cachedDefaultImage)
+    return 'https://www.gravatar.com/avatar/%s?d=%s' % (md5, defaultImage)
 
 
 @access.public
@@ -67,9 +64,7 @@ def getGravatar(user, size):
 @setting_utilities.validator(PluginSettings.DEFAULT_IMAGE)
 def _validateDefaultImage(doc):
     # TODO should we update user collection to remove gravatar_baseUrl vals?
-    # Invalidate cached default image since setting changed
-    global _cachedDefaultImage
-    _cachedDefaultImage = None
+    pass
 
 
 def _userUpdate(event):

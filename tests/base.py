@@ -36,6 +36,7 @@ import warnings
 from six import BytesIO
 from six.moves import urllib
 from girder.utility import model_importer, plugin_utilities
+from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
 from girder.models import getDbConnection
@@ -250,6 +251,10 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         # If "self.setUp" is overridden, "self.assetstoreType" may not be set
         if getattr(self, 'assetstoreType', None) in ('gridfsrs', 'gridfsshard'):
             mongo_replicaset.stopMongoReplicaSet(self.replicaSetConfig)
+
+        # Invalidate cache regions which persist across tests
+        cache.invalidate()
+        requestCache.invalidate()
 
     def mockPluginDir(self, path):
         self._oldPluginDirFn = mockPluginDir(path)
