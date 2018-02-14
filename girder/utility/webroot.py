@@ -42,8 +42,16 @@ class WebrootBase(object):
         self.vars = {}
         self.config = config.getConfig()
 
-        templateDir, self._templateFilename = os.path.split(templatePath)
-        self._templateLookup = mako.lookup.TemplateLookup(directories=[templateDir])
+        # Parse the default template directory and filename from the template path.
+        # To override the default template later:
+        # - add the new template's directory to the search path with addTemplateDirectory()
+        # - indicate the new template's filename by setting templateFilename
+        templateDir, templateFilename = os.path.split(templatePath)
+        self._templateDirs = [templateDir]
+        self.templateFilename = templateFilename
+
+        # Instantiated lazily on the first GET request
+        self._templateLookup = None
 
     def updateHtmlVars(self, vars):
         """
@@ -56,19 +64,11 @@ class WebrootBase(object):
         """
         Add a directory in which to search for templates.
         """
-        self._templateLookup.directories.append(templateDir)
+        self._templateDirs.append(templateDir)
 
-    @property
-    def templateFilename(self):
-        """
-        The filename of the template to render. The file should be located in a
-        directory specified by addTemplateDirectory().
-        """
-        return self._templateFilename
-
-    @templateFilename.setter
-    def templateFilename(self, value):
-        self._templateFilename = value
+        # Reset TemplateLookup instance so that the latest template directories
+        # are used for the next render
+        self._templateLookup = None
 
     @staticmethod
     def _escapeJavascript(string):
@@ -83,6 +83,9 @@ class WebrootBase(object):
         )
 
     def _renderHTML(self):
+        if self._templateLookup is None:
+            self._templateLookup = mako.lookup.TemplateLookup(directories=self._templateDirs)
+
         template = self._templateLookup.get_template(self.templateFilename)
         return template.render(js=self._escapeJavascript, json=json.dumps, **self.vars)
 
