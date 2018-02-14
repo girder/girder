@@ -39,9 +39,6 @@ class WebrootBase(object):
     exposed = True
 
     def __init__(self, templatePath):
-        # Rendering occurs lazily on the first GET request
-        self.indexHtml = None
-
         self.vars = {}
         self.config = config.getConfig()
 
@@ -54,7 +51,6 @@ class WebrootBase(object):
         with the updated set of variables to render the template with.
         """
         self.vars.update(vars)
-        self.indexHtml = None
 
     def addTemplateDirectory(self, templateDir):
         """
@@ -73,7 +69,6 @@ class WebrootBase(object):
     @templateFilename.setter
     def templateFilename(self, value):
         self._templateFilename = value
-        self.indexHtml = None
 
     @staticmethod
     def _escapeJavascript(string):
