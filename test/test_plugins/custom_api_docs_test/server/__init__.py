@@ -21,12 +21,11 @@ import os
 
 
 def load(info):
-    # Set base template filename variable
     info['apiRoot'].updateHtmlVars({
         'baseTemplateFilename': info['apiRoot'].templateFilename
     })
 
-    # Set custom API docs template
+    info['apiRoot'].templateFilename = 'custom_api_docs.mako'
+
     templateDir = os.path.join(info['pluginRootDir'], 'server')
     info['apiRoot'].addTemplateDirectory(templateDir)
-    info['apiRoot'].templateFilename = 'custom_api_docs.mako'

@@ -513,7 +513,8 @@ Customizing the Swagger page
 
 To customize text on the Swagger page, create a
 `Mako template <http://www.makotemplates.org/>`_ file that inherits from the
-base template and overrides one or more blocks:
+base template and overrides one or more blocks. For example,
+``plugins/cats/server/custom_api_docs.mako``:
 
 .. code-block:: html+mako
 
@@ -527,21 +528,30 @@ base template and overrides one or more blocks:
       <p>Manage your cats using the resources below.</p>
     </%block>
 
-Install the template by registering its directory and setting its filename on
-``apiRoot``:
+Install the custom template in the ``load`` function:
 
 .. code-block:: python
 
     def load(info):
-        # Set base template filename variable
+        # Initially, the value of info['apiRoot'].templateFilename is
+        # 'api_docs.mako'. Because custom_api_docs.mako inherits from this
+        # base template, pass 'api_docs.mako' in the variable that the
+        # <%inherit> directive references.
+        baseTemplateFilename = info['apiRoot'].templateFilename
         info['apiRoot'].updateHtmlVars({
-            'baseTemplateFilename': info['apiRoot'].templateFilename
+            'baseTemplateFilename': baseTemplateFilename
         })
 
-        # Set custom API docs template
+        # Set the custom template filename
+        info['apiRoot'].templateFilename = 'custom_api_docs.mako'
+
+        # Initially, the template search path contains only the directory of
+        # api_docs.mako. To ensure that custom_api_docs.mako can be
+        # located, also add its directory to the search path. The <%inherit>
+        # directive in the custom template will still locate the base template
+        # because the path to api_docs.mako remains in the search path.
         templateDir = os.path.join(info['pluginRootDir'], 'server')
         info['apiRoot'].addTemplateDirectory(templateDir)
-        info['apiRoot'].templateFilename = 'custom_api_docs.mako'
 
 .. _client-side-plugins:
 
