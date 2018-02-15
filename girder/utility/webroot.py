@@ -39,15 +39,11 @@ class WebrootBase(object):
     exposed = True
 
     def __init__(self, templatePath):
-        with open(templatePath) as templateFile:
-            # This may raise an IOError, but there's no way to recover
-            self.template = templateFile.read()
-
-        # Rendering occurs lazily on the first GET request
-        self.indexHtml = None
-
         self.vars = {}
         self.config = config.getConfig()
+
+        self._templateDirs = []
+        self.setTemplatePath(templatePath)
 
     def updateHtmlVars(self, vars):
         """
@@ -55,7 +51,26 @@ class WebrootBase(object):
         with the updated set of variables to render the template with.
         """
         self.vars.update(vars)
-        self.indexHtml = None
+
+    def setTemplatePath(self, templatePath):
+        """
+        Set the path to a template file to render instead of the default template.
+
+        The default template remains available so that custom templates can
+        inherit from it. To do so, save the default template filename from
+        the templateFilename attribute before calling this function, pass
+        it as a variable to the custom template using updateHtmlVars(), and
+        reference that variable in an <%inherit> directive like:
+
+            <%inherit file="${context.get('defaultTemplateFilename')}"/>
+        """
+        templateDir, templateFilename = os.path.split(templatePath)
+        self._templateDirs.append(templateDir)
+        self.templateFilename = templateFilename
+
+        # Reset TemplateLookup instance so that it will be instantiated lazily,
+        # with the latest template directories, on the next GET request
+        self._templateLookup = None
 
     @staticmethod
     def _escapeJavascript(string):
@@ -70,8 +85,11 @@ class WebrootBase(object):
         )
 
     def _renderHTML(self):
-        return mako.template.Template(self.template).render(
-            js=self._escapeJavascript, json=json.dumps, **self.vars)
+        if self._templateLookup is None:
+            self._templateLookup = mako.lookup.TemplateLookup(directories=self._templateDirs)
+
+        template = self._templateLookup.get_template(self.templateFilename)
+        return template.render(js=self._escapeJavascript, json=json.dumps, **self.vars)
 
     def GET(self, **params):
         return self._renderHTML()

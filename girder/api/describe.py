@@ -21,7 +21,6 @@ import bson.json_util
 import dateutil.parser
 import inspect
 import jsonschema
-import mako
 import os
 import six
 import cherrypy
@@ -479,7 +478,7 @@ class ApiDocs(WebrootBase):
         self.vars['apiRoot'] = server.getApiRoot()
         self.vars['staticRoot'] = server.getApiStaticRoot()
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
-        return mako.template.Template(self.template).render(**self.vars)
+        return super(ApiDocs, self)._renderHTML()
 
 
 class Describe(Resource):

@@ -508,6 +508,44 @@ login via a username and password. This allows alternative authentication
 modes to be used instead of core, or prior to attempting core authentication.
 The event info contains two keys, "login" and "password".
 
+Customizing the Swagger page
+****************************
+
+To customize text on the Swagger page, create a
+`Mako template <http://www.makotemplates.org/>`_ file that inherits from the
+base template and overrides one or more blocks. For example,
+``plugins/cats/server/custom_api_docs.mako``:
+
+.. code-block:: html+mako
+
+    <%inherit file="${context.get('baseTemplateFilename')}"/>
+
+    <%block name="docsHeader">
+      <span>Cat programming interface</span>
+    </%block>
+
+    <%block name="docsBody">
+      <p>Manage your cats using the resources below.</p>
+    </%block>
+
+Install the custom template in the ``load`` function:
+
+.. code-block:: python
+
+    def load(info):
+        # Initially, the value of info['apiRoot'].templateFilename is
+        # 'api_docs.mako'. Because custom_api_docs.mako inherits from this
+        # base template, pass 'api_docs.mako' in the variable that the
+        # <%inherit> directive references.
+        baseTemplateFilename = info['apiRoot'].templateFilename
+        info['apiRoot'].updateHtmlVars({
+            'baseTemplateFilename': baseTemplateFilename
+        })
+
+        # Set the path to the custom template
+        templatePath = os.path.join(info['pluginRootDir'], 'server', 'custom_api_docs.mako')
+        info['apiRoot'].setTemplatePath(templatePath)
+
 .. _client-side-plugins:
 
 Extending the Client-Side Application
