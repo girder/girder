@@ -25,7 +25,5 @@ def load(info):
         'baseTemplateFilename': info['apiRoot'].templateFilename
     })
 
-    info['apiRoot'].templateFilename = 'custom_api_docs.mako'
-
-    templateDir = os.path.join(info['pluginRootDir'], 'server')
-    info['apiRoot'].addTemplateDirectory(templateDir)
+    templatePath = os.path.join(info['pluginRootDir'], 'server', 'custom_api_docs.mako')
+    info['apiRoot'].setTemplatePath(templatePath)

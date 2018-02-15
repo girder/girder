@@ -42,16 +42,8 @@ class WebrootBase(object):
         self.vars = {}
         self.config = config.getConfig()
 
-        # Parse the default template directory and filename from the template path.
-        # To override the default template later:
-        # - add the new template's directory to the search path with addTemplateDirectory()
-        # - indicate the new template's filename by setting templateFilename
-        templateDir, templateFilename = os.path.split(templatePath)
-        self._templateDirs = [templateDir]
-        self.templateFilename = templateFilename
-
-        # Instantiated lazily on the first GET request
-        self._templateLookup = None
+        self._templateDirs = []
+        self.setTemplatePath(templatePath)
 
     def updateHtmlVars(self, vars):
         """
@@ -60,14 +52,24 @@ class WebrootBase(object):
         """
         self.vars.update(vars)
 
-    def addTemplateDirectory(self, templateDir):
+    def setTemplatePath(self, templatePath):
         """
-        Add a directory in which to search for templates.
-        """
-        self._templateDirs.append(templateDir)
+        Set the path to a template file to render instead of the default template.
 
-        # Reset TemplateLookup instance so that the latest template directories
-        # are used for the next render
+        The default template remains available so that custom templates can
+        inherit from it. To do so, save the default template filename from
+        the templateFilename attribute before calling this function, pass
+        it as a variable to the custom template using updateHtmlVars(), and
+        reference that variable in an <%inherit> directive like:
+
+            <%inherit file="${context.get('defaultTemplateFilename')}"/>
+        """
+        templateDir, templateFilename = os.path.split(templatePath)
+        self._templateDirs.append(templateDir)
+        self.templateFilename = templateFilename
+
+        # Reset TemplateLookup instance so that it will be instantiated lazily,
+        # with the latest template directories, on the next GET request
         self._templateLookup = None
 
     @staticmethod

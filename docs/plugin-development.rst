@@ -542,16 +542,9 @@ Install the custom template in the ``load`` function:
             'baseTemplateFilename': baseTemplateFilename
         })
 
-        # Set the custom template filename
-        info['apiRoot'].templateFilename = 'custom_api_docs.mako'
-
-        # Initially, the template search path contains only the directory of
-        # api_docs.mako. To ensure that custom_api_docs.mako can be
-        # located, also add its directory to the search path. The <%inherit>
-        # directive in the custom template will still locate the base template
-        # because the path to api_docs.mako remains in the search path.
-        templateDir = os.path.join(info['pluginRootDir'], 'server')
-        info['apiRoot'].addTemplateDirectory(templateDir)
+        # Set the path to the custom template
+        templatePath = os.path.join(info['pluginRootDir'], 'server', 'custom_api_docs.mako')
+        info['apiRoot'].setTemplatePath(templatePath)
 
 .. _client-side-plugins:
 

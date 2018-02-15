@@ -89,3 +89,14 @@ def testWebRootProperlyHandlesStaticRouteUrls(server, db):
     body = getResponseBody(resp)
 
     assert 'href="http://my-cdn-url.com/static/img/Girder_Favicon.png"' in body
+
+def testWebRootTemplateFilename():
+    """
+    Test WebrootBase.templateFilename attribute after initialization
+    and after setting a custom template path.
+    """
+    webroot = WebrootBase(templatePath='/girder/base_template.mako')
+    assert webroot.templateFilename == 'base_template.mako'
+
+    webroot.setTemplatePath('/plugin/custom_template.mako')
+    assert webroot.templateFilename == 'custom_template.mako'
