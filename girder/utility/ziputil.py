@@ -41,7 +41,7 @@ import time
 
 try:
     import zlib
-except ImportError:  # pragma: no cover
+except ImportError:
     zlib = None
 
 __all__ = ('STORE', 'DEFLATE', 'ZipGenerator')
@@ -84,7 +84,7 @@ class ZipInfo(object):
         self.timestamp = timestamp
         self.compressType = STORE
         if sys.platform == 'win32':
-            self.createSystem = 0  # pragma: no cover
+            self.createSystem = 0
         else:
             self.createSystem = 3
         self.createVersion = 20
@@ -127,7 +127,7 @@ class ZipGenerator(object):
         :type
         """
         if compression == DEFLATE and not zlib:
-            raise RuntimeError('Missing zlib module')  # pragma: no cover
+            raise RuntimeError('Missing zlib module')
 
         self.files = []
         self.compression = compression

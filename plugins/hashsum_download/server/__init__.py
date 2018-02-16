@@ -44,7 +44,7 @@ class PluginSettings(object):
 
 class HashedFile(File):
     @property
-    def supportedAlgorithms(self):  # pragma: no cover
+    def supportedAlgorithms(self):
         girder.logger.warning(
             'HashedFile.supportedAlgorithms is deprecated, use the module-level '
             'SUPPORTED_ALGORITHMS instead.')

@@ -239,6 +239,10 @@ The coverage data will be automatically generated. After the tests are run,
 you can find the HTML output from the coverage tool in the source directory
 under **build/test/artifacts/**.
 
+.. note:: Non-packaged third-party modules in the the ``girder/external`` directory are not included
+          in test coverage tracking.
+
+
 Client Side Testing
 -------------------
 
