@@ -18,7 +18,7 @@
 ###############################################################################
 
 import cherrypy  # pragma: no cover
-import argparse  # pragma: no cover
+import click
 import os  # pragma: no cover
 
 try:  # pragma: no cover
@@ -33,24 +33,22 @@ except ImportError:
     from girder.utility import server
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Girder: data management platform for the web.')
-    parser.add_argument("-t", "--testing", help="run in testing mode",
-                        action="store_true")
-    parser.add_argument("-d", "--database",
-                        help="to what database url should Girder connect")
-    parser.add_argument("-H", "--host", help="on what host should Girder serve")
-    parser.add_argument("-p", "--port",
-                        help="on what port should Girder serve")
-    args = parser.parse_args()
-    if args.database:
-        cherrypy.config['database']['uri'] = args.database
-    if args.host:
-        cherrypy.config['server.socket_host'] = args.host
-    if args.port:
-        cherrypy.config['server.socket_port'] = int(args.port)
-    server.setup(args.testing)
+@click.command(name='serve', short_help='Run the Girder server.', help='Run the Girder server.')
+@click.option('-t', '--testing', is_flag=True, help='Run in testing mode')
+@click.option('-d', '--database', default=cherrypy.config['database']['uri'],
+              show_default=True, help='The database URI to connect to')
+@click.option('-H', '--host', default=cherrypy.config['server.socket_host'],
+              show_default=True, help='The interface to bind to')
+@click.option('-p', '--port', type=int, default=cherrypy.config['server.socket_port'],
+              show_default=True, help='The port to bind to')
+def main(testing, database, host, port):
+    if database:
+        cherrypy.config['database']['uri'] = database
+    if host:
+        cherrypy.config['server.socket_host'] = host
+    if port:
+        cherrypy.config['server.socket_port'] = port
+    server.setup(testing)
 
     cherrypy.engine.start()
     cherrypy.engine.block()

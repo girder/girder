@@ -65,6 +65,7 @@ installReqs = [
     # https://github.com/cherrypy/cherrypy/issues/1662
     'CherryPy<11.1',
     'click',
+    'click-plugins',
     'dogpile.cache',
     'filelock',
     'funcsigs ; python_version < \'3\'',
@@ -164,8 +165,14 @@ setup(
         'console_scripts': [
             'girder-server = girder.__main__:main',
             'girder-install = girder.utility.install:main',
-            'girder-sftpd = girder.api.sftp:_main',
-            'girder-shell = girder.utility.shell:main'
+            'girder-sftpd = girder.api.sftp:main',
+            'girder-shell = girder.utility.shell:main',
+            'girder = girder.cli:main'
+        ],
+        'girder.cli_plugins': [
+            'serve = girder.__main__:main',
+            'shell = girder.utility.shell:main',
+            'sftpd = girder.api.sftp:main'
         ]
     }
 )

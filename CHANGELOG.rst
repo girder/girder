@@ -28,6 +28,8 @@ Added Features
   ``girder.utility._cache.requestCache``. (`#2274 <https://github.com/girder/girder/pull/2274>`_)
 * Plugins can customize the header and description on the Swagger page.
   (`#2607 <https://github.com/girder/girder/pull/2607>`_)
+* Common Girder operations can now be executed with a top level ``girder`` command.
+  (`#2596 <https://github.com/girder/girder/pull/2596>`_)
 
 Web Client
 ^^^^^^^^^^
