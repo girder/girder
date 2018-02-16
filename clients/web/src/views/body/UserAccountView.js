@@ -7,9 +7,8 @@ import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
 import events from 'girder/events';
-import eventStream from 'girder/utilities/EventStream';
-import { getCurrentUser, setCurrentUser } from 'girder/auth';
-import { restRequest, cancelRestRequests } from 'girder/rest';
+import { getCurrentUser } from 'girder/auth';
+import { cancelRestRequests } from 'girder/rest';
 
 import UserAccountTemplate from 'girder/templates/body/userAccount.pug';
 
@@ -164,28 +163,6 @@ var UserAccountView = View.extend({
         }, this).on('g:error', function () {
             router.navigate('users', {trigger: true});
         }, this).fetch();
-    },
-
-    temporaryPassword: function (id, token) {
-        restRequest({
-            url: `user/password/temporary/${id}`,
-            method: 'GET',
-            data: {token: token},
-            error: null
-        }).done((resp) => {
-            resp.user.token = resp.authToken.token;
-            eventStream.close();
-            setCurrentUser(new UserModel(resp.user));
-            eventStream.open();
-            events.trigger('g:login-changed');
-            events.trigger('g:navigateTo', UserAccountView, {
-                user: getCurrentUser(),
-                tab: 'password',
-                temporary: token
-            });
-        }).fail(() => {
-            router.navigate('users', {trigger: true});
-        });
     }
 });
 

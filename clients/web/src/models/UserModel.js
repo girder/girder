@@ -1,8 +1,10 @@
 import _ from 'underscore';
 
-import { fetchCurrentUser } from 'girder/auth';
+import { fetchCurrentUser, setCurrentUser } from 'girder/auth';
+import events from 'girder/events';
 import Model from 'girder/models/Model';
 import { restRequest } from 'girder/rest';
+import eventStream from 'girder/utilities/EventStream';
 
 var UserModel = Model.extend({
     resourceName: 'user',
@@ -117,6 +119,21 @@ var UserModel = Model.extend({
             this.trigger('g:passwordChanged');
         }).fail((err) => {
             this.trigger('g:error', err);
+        });
+    }
+}, {
+    fromTemporaryToken: function (userId, token) {
+        return restRequest({
+            url: `user/password/temporary/${userId}`,
+            method: 'GET',
+            data: {token: token},
+            error: null
+        }).done((resp) => {
+            resp.user.token = resp.authToken.token;
+            eventStream.close();
+            setCurrentUser(new UserModel(resp.user));
+            eventStream.open();
+            events.trigger('g:login-changed');
         });
     }
 });
