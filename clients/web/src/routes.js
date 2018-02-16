@@ -146,25 +146,16 @@ router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     UserAccountView.fetchAndInit(id, tab);
 });
 router.route('useraccount/:id/token/:token', 'accountToken', function (id, token) {
-    restRequest({
-        url: `user/password/temporary/${id}`,
-        method: 'GET',
-        data: {token: token},
-        error: null
-    }).done((resp) => {
-        resp.user.token = resp.authToken.token;
-        eventStream.close();
-        setCurrentUser(new UserModel(resp.user));
-        eventStream.open();
-        events.trigger('g:login-changed');
-        events.trigger('g:navigateTo', UserAccountView, {
-            user: getCurrentUser(),
-            tab: 'password',
-            temporary: token
+    UserModel.fromTemporaryToken(id, token)
+        .done(() => {
+            events.trigger('g:navigateTo', UserAccountView, {
+                user: getCurrentUser(),
+                tab: 'password',
+                temporary: token
+            });
+        }).fail(() => {
+            router.navigate('users', {trigger: true});
         });
-    }).fail(() => {
-        router.navigate('users', {trigger: true});
-    });
 });
 
 router.route('useraccount/:id/verification/:token', 'accountVerify', function (id, token) {
