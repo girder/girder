@@ -17,7 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
+import warnings
 from girder_client import cli  # pragma: no cover
 
-
-cli.main()  # pragma: no cover
+if __name__ == '__main__':
+    warnings.warn('Deprecation notice: Use "girder-client" to run the CLI.', DeprecationWarning)
+    cli.main()  # pragma: no cover

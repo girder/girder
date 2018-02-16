@@ -22,6 +22,7 @@ import os
 
 try:
     from girder.cli import serve
+    import girder
 except ImportError:
     # Update python path to ensure server respawning works. See #732
     source_root_dir = os.path.dirname(os.path.dirname(__file__))
@@ -30,7 +31,9 @@ except ImportError:
                         % source_root_dir)
     sys.path.append(source_root_dir)
     from girder.cli import serve
+    import girder
 
 
 if __name__ == '__main__':
+    girder.logger.warning('Deprecation notice: Use "girder serve" to start Girder.')
     serve.main()
