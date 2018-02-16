@@ -17,12 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy  # pragma: no cover
-import click
-import os  # pragma: no cover
+import cherrypy
+import os
 
-try:  # pragma: no cover
-    from girder.utility import server
+try:
+    from girder.cli import serve
 except ImportError:
     # Update python path to ensure server respawning works. See #732
     source_root_dir = os.path.dirname(os.path.dirname(__file__))
@@ -30,29 +29,8 @@ except ImportError:
     cherrypy.engine.log("[Girder] Appending source root dir to 'sys.path': %s"
                         % source_root_dir)
     sys.path.append(source_root_dir)
-    from girder.utility import server
+    from girder.cli import serve
 
 
-@click.command(name='serve', short_help='Run the Girder server.', help='Run the Girder server.')
-@click.option('-t', '--testing', is_flag=True, help='Run in testing mode')
-@click.option('-d', '--database', default=cherrypy.config['database']['uri'],
-              show_default=True, help='The database URI to connect to')
-@click.option('-H', '--host', default=cherrypy.config['server.socket_host'],
-              show_default=True, help='The interface to bind to')
-@click.option('-p', '--port', type=int, default=cherrypy.config['server.socket_port'],
-              show_default=True, help='The port to bind to')
-def main(testing, database, host, port):
-    if database:
-        cherrypy.config['database']['uri'] = database
-    if host:
-        cherrypy.config['server.socket_host'] = host
-    if port:
-        cherrypy.config['server.socket_port'] = port
-    server.setup(testing)
-
-    cherrypy.engine.start()
-    cherrypy.engine.block()
-
-
-if __name__ == '__main__':  # pragma: no cover
-    main()
+if __name__ == '__main__':
+    serve.main()

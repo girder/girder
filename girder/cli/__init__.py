@@ -7,9 +7,5 @@ import click
 @click.group(help='Girder: data management platform for the web.',
              context_settings=dict(help_option_names=['-h', '--help']))
 @click.version_option(message='%(version)s')
-def cli():
-    pass
-
-
 def main():
-    cli()
+    pass
