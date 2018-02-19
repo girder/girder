@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
+import FileCollection from 'girder/collections/FileCollection';
 import FolderModel from 'girder/models/FolderModel';
 import MetadataMixin from 'girder/models/MetadataMixin';
 import Model from 'girder/models/Model';
@@ -45,6 +46,21 @@ var ItemModel = Model.extend({
             url: `${this.resourceName}/${this.id}/rootpath`
         }).done((resp) => {
             callback(resp);
+        }).fail((err) => {
+            this.trigger('g:error', err);
+        });
+    },
+
+    /**
+     * Get the files within the item.
+     */
+    getFiles: function () {
+        return restRequest({
+            url: `${this.resourceName}/${this.id}/files`
+        }).then((resp) => {
+            let fileCollection = new FileCollection(resp);
+            this.trigger('g:files', fileCollection);
+            return fileCollection;
         }).fail((err) => {
             this.trigger('g:error', err);
         });

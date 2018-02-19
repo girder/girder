@@ -11,6 +11,20 @@ var FolderModel = AccessControlledModel.extend({
         return restRequest({
             url: `${this.resourceName}/${this.id}/rootpath`
         });
+    },
+
+    /**
+     * Remove the contents of the folder.
+     */
+    removeContents: function () {
+        return restRequest({
+            url: `${this.resourceName}/${this.id}/contents`,
+            method: 'DELETE'
+        }).done((resp) => {
+            this.trigger('g:success');
+        }).fail((err) => {
+            this.trigger('g:error', err);
+        });
     }
 });
 
