@@ -62,4 +62,6 @@ def getFuseFilePath(self, file):
 File.getFilePath = getFilePath
 File.getFuseFilePath = getFuseFilePath
 
-startFromConfig()
+
+def load(info):
+    startFromConfig()
