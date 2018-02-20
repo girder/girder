@@ -17,11 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-import dicom
+import pydicom
 import json
 import six
-from dicom.sequence import Sequence
-from dicom.valuerep import PersonName3
+from pydicom.sequence import Sequence
+from pydicom.valuerep import PersonName3
 
 from girder import events
 from girder.api import access
@@ -149,7 +149,7 @@ def _parseFile(f):
     try:
         # download file and try to parse dicom
         with File().open(f) as fp:
-            ds = dicom.read_file(
+            ds = pydicom.read_file(
                 fp,
                 # some dicom files don't have a valid header
                 # force=True,
@@ -171,7 +171,7 @@ def _parseFile(f):
                 value = _coerce(value.value)
                 if value is not None:
                     data[key] = value
-    except dicom.errors.InvalidDicomError:
+    except pydicom.errors.InvalidDicomError:
         # if this error occurs, probably not a dicom file
         return None
     return data
