@@ -3,12 +3,14 @@
 
 import datetime
 import fuse
+import mock
 import os
 import six
 import stat
 import tempfile
 import time
 
+import girder
 from girder import config
 from girder.constants import AccessType
 from girder.models.file import File
@@ -75,27 +77,34 @@ class ServerFuseTestCase(base.TestCase):
         Test the default mount point has access to all of the expected files.
         """
         mountpath = self.mainMountPath
+        # Check that the mount lists users and collections
         self.assertEqual(sorted(os.listdir(mountpath)), sorted(['user', 'collection']))
         # Check that all known paths exist and that arbitrary other paths don't
-        for fullpath in self.knownPaths:
-            self.assertTrue(os.path.exists(os.path.join(mountpath, fullpath)))
-            self.assertFalse(os.path.exists(os.path.join(mountpath, fullpath + '.other')))
-            size = os.path.getsize(os.path.join(mountpath, fullpath))
-            if self.knownPaths[fullpath]:
-                with open(os.path.join(mountpath, fullpath)) as file1:
-                    self.assertEqual(file1.read().strip(), self.knownPaths[fullpath])
+        for testpath, contents in six.iteritems(self.knownPaths):
+            localpath = os.path.join(mountpath, testpath)
+            # The path must exist
+            self.assertTrue(os.path.exists(localpath))
+            # The path plus an arbitrary string must not exist
+            self.assertFalse(os.path.exists(localpath + '.other'))
+            # If the path is a file, check that it equals the expected value
+            # and reports a non-zero size
+            if contents:
+                size = os.path.getsize(localpath)
+                with open(localpath) as file1:
+                    self.assertEqual(file1.read().strip(), contents)
                 self.assertGreater(size, 0)
-            stat = os.stat(os.path.join(mountpath, fullpath))
             # The mtime should be recent
+            stat = os.stat(localpath)
             self.assertGreater(stat.st_mtime, time.time() - 1e5)
-            path = fullpath
             # All parents should be folders and have zero size.
-            while '/' in path:
-                path = path.rsplit('/')[0]
-                self.assertTrue(os.path.isdir(os.path.join(mountpath, path)))
-                self.assertFalse(os.path.exists(os.path.join(mountpath, path + '.other')))
-                if '/' in path:
-                    self.assertEqual(os.path.getsize(os.path.join(mountpath, path)), 0)
+            subpath = testpath
+            while '/' in subpath:
+                subpath = subpath.rsplit('/')[0]
+                localpath = os.path.join(mountpath, subpath)
+                self.assertTrue(os.path.isdir(localpath))
+                self.assertEqual(os.path.getsize(localpath), 0)
+                # An arbitrary alternate file shjould not exist
+                self.assertFalse(os.path.exists(localpath + '.other'))
 
     def testUserMount(self):
         """
@@ -111,23 +120,35 @@ class ServerFuseTestCase(base.TestCase):
             self.extraMount, mountpath, level=AccessType.READ, user=self.user))
         # The OS can cache stat, so wait 1 second before using the mount.
         time.sleep(1)
+        # The admin's private are not visible
+        nonVisiblePattern = '/admin/Private'
+
+        # Check that the mount lists users and collections
         self.assertEqual(sorted(os.listdir(mountpath)), sorted(['user', 'collection']))
-        for fullpath in self.knownPaths:
-            canSee = not fullpath.startswith('user/admin')
-            self.assertEqual(os.path.exists(os.path.join(mountpath, fullpath)), canSee)
-            if canSee and self.knownPaths[fullpath]:
-                with open(os.path.join(mountpath, fullpath)) as file1:
-                    self.assertEqual(file1.read().strip(), self.knownPaths[fullpath])
-            elif self.knownPaths[fullpath]:
-                with self.assertRaises(IOError):
-                    with open(os.path.join(mountpath, fullpath)) as file1:
-                        pass
-            path = fullpath
-            # All parents should be folders and have zero size.
-            while '/' in path:
-                path = path.rsplit('/')[0]
-                self.assertEqual(os.path.isdir(os.path.join(mountpath, path)),
-                                 canSee or 'user/admin/Private' not in path)
+        # Check that all known paths exist and that arbitrary other paths don't
+        for testpath, contents in six.iteritems(self.knownPaths):
+            localpath = os.path.join(mountpath, testpath)
+            # We can see all path that aren't the admin's private paths
+            canSee = nonVisiblePattern not in testpath
+            self.assertEqual(os.path.exists(localpath), canSee)
+            # If the path is a file and we can see it, check that it equals the
+            # expected value, and raises an error if we can't see it.
+            if contents:
+                if canSee:
+                    with open(localpath) as file1:
+                        self.assertEqual(file1.read().strip(), contents)
+                else:
+                    with self.assertRaises(IOError):
+                        with open(localpath) as file1:
+                            pass
+            # All parents should be folders if they can seen and report at not
+            # if they can't.
+            subpath = testpath
+            while '/' in subpath:
+                subpath = subpath.rsplit('/')[0]
+                localpath = os.path.join(mountpath, subpath)
+                canSee = nonVisiblePattern not in subpath
+                self.assertEqual(os.path.isdir(localpath), canSee)
 
     def testSecondUserMount(self):
         """
@@ -141,35 +162,49 @@ class ServerFuseTestCase(base.TestCase):
             self.extraMount, mountpath, level=AccessType.READ, user=self.user2))
         # The OS can cache stat, so wait 1 second before using the mount.
         time.sleep(1)
+        # Neither the admin's nor the user's private paths are visible
+        nonVisiblePattern = '/Private'
+
+        # Check that the mount lists users and collections
         self.assertEqual(sorted(os.listdir(mountpath)), sorted(['user', 'collection']))
-        for fullpath in self.knownPaths:
-            canSee = 'Public' in fullpath
-            self.assertEqual(os.path.exists(os.path.join(mountpath, fullpath)), canSee)
-            if canSee:
-                with open(os.path.join(mountpath, fullpath)) as file1:
-                    self.assertEqual(file1.read().strip(), self.knownPaths[fullpath])
-            elif self.knownPaths[fullpath]:
-                with self.assertRaises(IOError):
-                    with open(os.path.join(mountpath, fullpath)) as file1:
-                        pass
-            path = fullpath
-            # All parents should be folders and have zero size.
-            while '/' in path:
-                path = path.rsplit('/')[0]
-                self.assertEqual(os.path.isdir(os.path.join(mountpath, path)),
-                                 'Private' not in path)
+        # Check that all known paths exist and that arbitrary other paths don't
+        for testpath, contents in six.iteritems(self.knownPaths):
+            localpath = os.path.join(mountpath, testpath)
+            # We can see all path that aren't the admin's private paths
+            canSee = nonVisiblePattern not in testpath
+            self.assertEqual(os.path.exists(localpath), canSee)
+            # If the path is a file and we can see it, check that it equals the
+            # expected value, and raises an error if we can't see it.
+            if contents:
+                if canSee:
+                    with open(localpath) as file1:
+                        self.assertEqual(file1.read().strip(), contents)
+                else:
+                    with self.assertRaises(IOError):
+                        with open(localpath) as file1:
+                            pass
+            # All parents should be folders if they can seen and report at not
+            # if they can't.
+            subpath = testpath
+            while '/' in subpath:
+                subpath = subpath.rsplit('/')[0]
+                localpath = os.path.join(mountpath, subpath)
+                canSee = nonVisiblePattern not in subpath
+                self.assertEqual(os.path.isdir(localpath), canSee)
 
     def testFilePath(self):
         """
         Test that all files report a FUSE path, and that this results in the
         same file as the non-fuse path.
         """
+        from girder.plugins import fuse as girder_fuse
+
         files = list(File().find())
         for file in files:
             adapter = File().getAssetstoreAdapter(file)
             filesystempath = adapter.fullPath(file)
-            filepath = File().getFilePath(file)
-            fusepath = File().getFuseFilePath(file)
+            filepath = girder_fuse.getFilePath(file)
+            fusepath = girder_fuse.getFuseFilePath(file)
             self.assertTrue(os.path.exists(filesystempath))
             self.assertTrue(os.path.exists(filepath))
             self.assertTrue(os.path.exists(fusepath))
@@ -189,14 +224,15 @@ class ServerFuseTestCase(base.TestCase):
         Test that if an assetstore adapter doesn't respond to fullPath, we
         always get the fuse path.
         """
+        from girder.plugins import fuse as girder_fuse
         from girder.utility.filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 
         file = File().findOne()
 
         origFullPath = FilesystemAssetstoreAdapter.fullPath
         FilesystemAssetstoreAdapter.fullPath = None
-        filepath = File().getFilePath(file)
-        fusepath = File().getFuseFilePath(file)
+        filepath = girder_fuse.getFilePath(file)
+        fusepath = girder_fuse.getFuseFilePath(file)
         FilesystemAssetstoreAdapter.fullPath = origFullPath
         self.assertTrue(os.path.exists(filepath))
         self.assertTrue(os.path.exists(fusepath))
@@ -228,7 +264,19 @@ class ServerFuseTestCase(base.TestCase):
         time.sleep(1)
         self.assertTrue(os.path.exists(publicFile))
         self.assertTrue(os.path.exists(privateFile))
-        # remount without any changes should work, too.
+
+    def testRemountWithoutChanges(self):
+        """
+        Test remounting with different credentials.
+        """
+        from girder.plugins.fuse import server_fuse
+
+        mountpath = self.extraMountPath
+        self.extraMount = 'remountWithoutChanges'
+        # remount with user
+        server_fuse.mountServerFuse(
+            self.extraMount, mountpath, level=AccessType.READ, user=self.user)
+        # remount without any changes should work
         self.assertTrue(server_fuse.isServerFuseMounted(
             self.extraMount, level=AccessType.READ, user=self.user))
         self.assertEqual(server_fuse.mountServerFuse(
@@ -238,23 +286,29 @@ class ServerFuseTestCase(base.TestCase):
     def testStartFromConfig(self):
         from girder.plugins import fuse as girder_fuse
 
+        girder.logger.error = mock.Mock(wraps=girder.logger.error)
         curConfig = config.getConfig()
         origdir = curConfig['server_fuse']['path']
         curConfig['server_fuse']['path'] = '/dev/null/nosuchpath'
         self.assertFalse(girder_fuse.startFromConfig())
+        self.assertEqual(girder.logger.error.call_count, 1)
+        self.assertIn('Can\'t mount resource fuse:', tuple(girder.logger.error.call_args)[0][0])
         fh, temppath = tempfile.mkstemp()
         os.write(fh, b'contents')
         curConfig['server_fuse']['path'] = temppath
         self.assertFalse(girder_fuse.startFromConfig())
+        self.assertEqual(girder.logger.error.call_count, 2)
+        self.assertIn('Can\'t mount resource fuse:', tuple(girder.logger.error.call_args)[0][0])
         os.close(fh)
         os.unlink(temppath)
         curConfig['server_fuse']['path'] = origdir
 
     def testGetServerFusePath(self):
+        from girder.plugins import fuse as girder_fuse
         from girder.plugins.fuse import MAIN_FUSE_KEY, server_fuse
 
         file = File().findOne()
-        fusepath = File().getFuseFilePath(file)
+        fusepath = girder_fuse.getFuseFilePath(file)
         sfpath = server_fuse.getServerFusePath(MAIN_FUSE_KEY, 'file', file)
         self.assertEqual(fusepath, sfpath)
         self.assertIsNone(server_fuse.getServerFusePath('unknown', 'file', file))
@@ -334,39 +388,39 @@ class ServerFuseTestCase(base.TestCase):
 
         op = server_fuse.ServerFuse()
         resource = op._getPath(os.path.dirname(self.publicFileName))
-        list = op._list(resource['document'], resource['model'])
-        self.assertIn(os.path.basename(self.publicFileName), list)
+        filelist = op._list(resource['document'], resource['model'])
+        self.assertIn(os.path.basename(self.publicFileName), filelist)
         resource2 = op._getPath(os.path.dirname(os.path.dirname(self.publicFileName)))
-        list = op._list(resource2['document'], resource2['model'])
-        self.assertIn(os.path.basename(os.path.dirname(self.publicFileName)), list)
+        filelist = op._list(resource2['document'], resource2['model'])
+        self.assertIn(os.path.basename(os.path.dirname(self.publicFileName)), filelist)
         resource3 = op._getPath(os.path.dirname(self.adminFileName))
-        list = op._list(resource3['document'], resource3['model'])
-        self.assertIn(os.path.basename(self.adminFileName), list)
+        filelist = op._list(resource3['document'], resource3['model'])
+        self.assertIn(os.path.basename(self.adminFileName), filelist)
         resource4 = op._getPath(os.path.dirname(os.path.dirname(self.adminFileName)))
-        list = op._list(resource4['document'], resource4['model'])
-        self.assertIn(os.path.basename(os.path.dirname(self.adminFileName)), list)
+        filelist = op._list(resource4['document'], resource4['model'])
+        self.assertIn(os.path.basename(os.path.dirname(self.adminFileName)), filelist)
         resource5 = op._getPath(os.path.dirname(os.path.dirname(
             os.path.dirname(self.adminFileName))))
-        list = op._list(resource5['document'], resource5['model'])
+        filelist = op._list(resource5['document'], resource5['model'])
         self.assertIn(os.path.basename(os.path.dirname(
-            os.path.dirname(self.adminFileName))), list)
+            os.path.dirname(self.adminFileName))), filelist)
 
         op = server_fuse.ServerFuse(user=self.user, force=False)
         resource6 = op._getPath(os.path.dirname(self.publicFileName))
-        list = op._list(resource6['document'], resource6['model'])
-        self.assertIn(os.path.basename(self.publicFileName), list)
+        filelist = op._list(resource6['document'], resource6['model'])
+        self.assertIn(os.path.basename(self.publicFileName), filelist)
         resource7 = op._getPath(os.path.dirname(os.path.dirname(self.publicFileName)))
-        list = op._list(resource7['document'], resource7['model'])
-        self.assertIn(os.path.basename(os.path.dirname(self.publicFileName)), list)
+        filelist = op._list(resource7['document'], resource7['model'])
+        self.assertIn(os.path.basename(os.path.dirname(self.publicFileName)), filelist)
         # If we somehow have a document that we aren't authorized for, it can
         # still list files and items, but not folders.
-        list = op._list(resource3['document'], resource3['model'])
-        self.assertIn(os.path.basename(self.adminFileName), list)
-        list = op._list(resource4['document'], resource4['model'])
-        self.assertIn(os.path.basename(os.path.dirname(self.adminFileName)), list)
-        list = op._list(resource5['document'], resource5['model'])
+        filelist = op._list(resource3['document'], resource3['model'])
+        self.assertIn(os.path.basename(self.adminFileName), filelist)
+        filelist = op._list(resource4['document'], resource4['model'])
+        self.assertIn(os.path.basename(os.path.dirname(self.adminFileName)), filelist)
+        filelist = op._list(resource5['document'], resource5['model'])
         self.assertNotIn(os.path.basename(os.path.dirname(
-            os.path.dirname(self.adminFileName))), list)
+            os.path.dirname(self.adminFileName))), filelist)
 
     def testFunctionAccess(self):
         from girder.plugins.fuse import server_fuse

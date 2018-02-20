@@ -31,7 +31,7 @@ def startFromConfig():
             return False
 
 
-def getFilePath(self, file):
+def getFilePath(file):
     """
     Given a file resource, return a path on the local file system.  For
     assetstores that have a fullPath method, this returns the results of that
@@ -40,13 +40,13 @@ def getFilePath(self, file):
     :param file: file resource document.
     :returns: a path on the local file system.
     """
-    adapter = self.getAssetstoreAdapter(file)
+    adapter = File().getAssetstoreAdapter(file)
     if callable(getattr(adapter, 'fullPath', None)):
         return adapter.fullPath(file)
     return server_fuse.getServerFusePath(MAIN_FUSE_KEY, 'file', file)
 
 
-def getFuseFilePath(self, file):
+def getFuseFilePath(file):
     """
     Given a file resource, return a path on the main FUSE file system.
 
@@ -54,13 +54,6 @@ def getFuseFilePath(self, file):
     :returns: a path on the local file system.
     """
     return server_fuse.getServerFusePath(MAIN_FUSE_KEY, 'file', file)
-
-
-# Add two methods to the file model.
-#  getFilePath returns a local file path, but not necessarily in the FUSE.
-#  getFuseFilePath returns a local file path within the main FUSE.
-File.getFilePath = getFilePath
-File.getFuseFilePath = getFuseFilePath
 
 
 def load(info):

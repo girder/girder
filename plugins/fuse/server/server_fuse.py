@@ -408,6 +408,22 @@ def unmountServerFuse(name):
                 pass
 
 
+class FUSELogError(fuse.FUSE):
+    def __init__(self, operations, mountpoint, *args, **kwargs):
+        """
+        This wraps fuse.FUSE so that errors are logged rather than raising a
+        RuntimeError exception.
+        """
+        try:
+            super(FUSELogError, self).__init__(operations, mountpoint, *args, **kwargs)
+        except RuntimeError:
+            logprint.error(
+                'Failed to mount FUSE.  Does the mountpoint (%r) exist and is '
+                'it empty?  Does the user have permission to create FUSE '
+                'mounts?  It could be another FUSE mount issue, too.' % (
+                    mountpoint, ))
+
+
 def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
     """
     Mount a FUSE at a specific path with authorization for a given user.
@@ -465,7 +481,7 @@ def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
             if sys.platform == 'darwin':
                 del options['auto_unmount']
             fuseThread = threading.Thread(
-                target=fuse.FUSE, args=(opClass, path), kwargs=options)
+                target=FUSELogError, args=(opClass, path), kwargs=options)
             fuseThread.daemon = True
             fuseThread.start()
             entry['thread'] = fuseThread
