@@ -17,11 +17,14 @@
 #  limitations under the License.
 ###############################################################################
 
-import pydicom
+import datetime
 import json
+
+import pydicom
+import pydicom.valuerep
+import pydicom.multival
+import pydicom.sequence
 import six
-from pydicom.sequence import Sequence
-from pydicom.valuerep import PersonName3
 
 from girder import events
 from girder.api import access
@@ -79,16 +82,16 @@ class DicomItem(Resource):
             Item().save(item)
 
 
-def _extractFileData(file, dicom):
+def _extractFileData(file, dicomMetadata):
     """
-    Extract the usefull data to be stored in the `item['dicom']['files']`.
+    Extract the useful data to be stored in the `item['dicom']['files']`.
     In this way it become simpler to sort them and store them.
     """
     return {
         'dicom': {
-            'SeriesNumber': dicom.get('SeriesNumber'),
-            'InstanceNumber': dicom.get('InstanceNumber'),
-            'SliceLocation': dicom.get('SliceLocation')
+            'SeriesNumber': dicomMetadata.get('SeriesNumber'),
+            'InstanceNumber': dicomMetadata.get('InstanceNumber'),
+            'SliceLocation': dicomMetadata.get('SliceLocation')
         },
         'name': file['name'],
         '_id': file['_id']
@@ -130,51 +133,79 @@ def _removeUniqueMetadata(dicomMeta, additionalMeta):
     )
 
 
-def _coerce(x):
-    if isinstance(x, Sequence):
-        return None
-    if isinstance(x, list):
-        return [_coerce(y) for y in x]
-    if isinstance(x, PersonName3):
-        return x.encode('utf-8')
-    try:
-        six.text_type(x)
-        return x
-    except Exception:
-        return None
+def _coerceValue(value):
+    # Many pydicom value types are subclasses of base types; to ensure the value can be serialized
+    # to MongoDB, cast the value back to its base type
+    for knownBaseType in {
+        int,
+        float,
+        six.binary_type,
+        six.text_type,
+        datetime.datetime,
+        datetime.date,
+        datetime.time,
+    }:
+        if isinstance(value, knownBaseType):
+            return knownBaseType(value)
+
+    # In Python3, pydicom does not treat the PersonName type as a subclass of a text type
+    if isinstance(value, pydicom.valuerep.PersonName3):
+        return value.encode('utf-8')
+
+    # Handle lists (MultiValue) recursively
+    if isinstance(value, pydicom.multival.MultiValue):
+        if isinstance(value, pydicom.sequence.Sequence):
+            # A pydicom Sequence is a nested list of Datasets, which is too complicated to flatten
+            # now
+            raise ValueError('Cannot coerce a Sequence')
+        return list(map(_coerceValue, value))
+
+    raise ValueError('Unknown type', type(value))
+
+
+def _coerceMetadata(dataset):
+    metadata = {}
+
+    # Use simple iteration instead of "dataset.iterall", to prevent recursing into Sequiences, which
+    # are too complicated to flatten now
+    for dataElement in dataset:
+        if dataElement.tag.element == 0:
+            # Skip Group Length tags, which are always element 0x0000
+            continue
+
+        # Use "keyword" instead of "name", as the keyword is a simpler and more uniform string
+        # See: http://dicom.nema.org/medical/dicom/current/output/html/part06.html#table_6-1
+        # For unknown / private tags, allow pydicom to create a string representation like
+        # "(0013, 1010)"
+        tagKey = dataElement.keyword \
+            if dataElement.keyword and not dataElement.tag.is_private else \
+            str(dataElement.tag)
+
+        try:
+            tagValue = _coerceValue(dataElement.value)
+        except ValueError:
+            # Omit tags where the value cannot be coerced to JSON-encodable types
+            continue
+
+        metadata[tagKey] = tagValue
+
+    return metadata
 
 
 def _parseFile(f):
-    data = {}
     try:
         # download file and try to parse dicom
         with File().open(f) as fp:
-            ds = pydicom.read_file(
+            dataset = pydicom.dcmread(
                 fp,
-                # some dicom files don't have a valid header
-                # force=True,
                 # don't read huge fields, esp. if this isn't even really dicom
                 defer_size=1024,
                 # don't read image data, just metadata
                 stop_before_pixels=True)
-            # does this look like a dicom file?
-            if (len(ds.dir()), len(ds.items())) == (0, 1):
-                return data
-            # human-readable keys
-            for key in ds.dir():
-                value = _coerce(ds.data_element(key).value)
-                if value is not None:
-                    data[key] = value
-            # hex keys
-            for key, value in ds.items():
-                key = 'x%04x%04x' % (key.group, key.element)
-                value = _coerce(value.value)
-                if value is not None:
-                    data[key] = value
+            return _coerceMetadata(dataset)
     except pydicom.errors.InvalidDicomError:
         # if this error occurs, probably not a dicom file
         return None
-    return data
 
 
 def _uploadHandler(event):
