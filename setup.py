@@ -113,7 +113,6 @@ extrasReqs['sftp'] = [
     'paramiko',
 ]
 
-
 init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
 with open(init) as fd:
     version = re.search(
