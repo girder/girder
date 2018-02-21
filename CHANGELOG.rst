@@ -76,6 +76,9 @@ Removals
   If external test infrastructure needs to override ESLint configuration,
   `it should be done using ESLint's built-in configuration cascading mechanisms<plugin-development.html#customizing-static-analysis-of-client-side-code>`_.
   Most typical external plugins will continue to work with their current configuration.
+* The deprecated ``DELETE /user/password`` endpoint is removed. The ``PUT /user/password/temporary``
+  endpoint should always be used to reset passwords, as it uses a secure, token-based password
+  mechanism.
 
 Girder 2.4.0
 ============
