@@ -28,7 +28,7 @@ from girder.constants import AccessType, SettingKey, TokenScope
 from girder.exceptions import RestException, AccessException
 from girder.models.password import Password
 from girder.models.setting import Setting
-from girder.models.token import genToken, Token
+from girder.models.token import Token
 from girder.models.user import User as UserModel
 from girder.utility import mail_utils
 
@@ -57,7 +57,6 @@ class User(Resource):
                    self.checkTemporaryPassword)
         self.route('PUT', ('password', 'temporary'),
                    self.generateTemporaryPassword)
-        self.route('DELETE', ('password',), self.resetPassword)
         self.route('PUT', (':id', 'verification'), self.verifyEmail)
         self.route('POST', ('verification',), self.sendVerificationEmail)
 
@@ -297,28 +296,6 @@ class User(Resource):
             Token().remove(token)
 
         return {'message': 'Password changed.'}
-
-    @access.public
-    @autoDescribeRoute(
-        Description('Reset a forgotten password via email.')
-        .param('email', 'Your email address.', strip=True)
-        .errorResponse('That email does not exist in the system.')
-    )
-    def resetPassword(self, email):
-        user = self._model.findOne({'email': email.lower()})
-        if user is None:
-            raise RestException('That email is not registered.')
-
-        randomPass = genToken(length=12)
-
-        html = mail_utils.renderTemplate('resetPassword.mako', {
-            'password': randomPass
-        })
-        mail_utils.sendEmail(
-            to=email, subject='%s: Password reset' % Setting().get(SettingKey.BRAND_NAME),
-            text=html)
-        self._model.setPassword(user, randomPass)
-        return {'message': 'Sent password reset email.'}
 
     @access.public
     @autoDescribeRoute(
