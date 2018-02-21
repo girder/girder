@@ -58,7 +58,7 @@ var SystemConfigurationView = View.extend({
                     list: JSON.stringify(settings)
                 },
                 error: null
-            }).done(_.bind(function () {
+            }).done(() => {
                 this.$('.g-submit-settings').girderEnable(true);
                 events.trigger('g:alert', {
                     icon: 'ok',
@@ -66,10 +66,10 @@ var SystemConfigurationView = View.extend({
                     type: 'success',
                     timeout: 4000
                 });
-            }, this)).fail(_.bind(function (resp) {
+            }).fail((resp) => {
                 this.$('.g-submit-settings').girderEnable(true);
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
-            }, this));
+            });
         },
         'click #g-restart-server': restartServerPrompt,
         'click #g-core-banner-default-color': function () {
@@ -114,7 +114,7 @@ var SystemConfigurationView = View.extend({
                 list: JSON.stringify(keys),
                 default: 'none'
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.settings = resp;
             restRequest({
                 url: 'system/setting',
@@ -123,11 +123,11 @@ var SystemConfigurationView = View.extend({
                     list: JSON.stringify(keys),
                     default: 'default'
                 }
-            }).done(_.bind(function (resp) {
+            }).done((resp) => {
                 this.defaults = resp;
                 this.render();
-            }, this));
-        }, this));
+            });
+        });
     },
 
     render: function () {

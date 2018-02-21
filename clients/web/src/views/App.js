@@ -72,7 +72,7 @@ var App = View.extend({
         });
 
         // define a function to be run after fetching the user model
-        var afterFetch = _.bind(function (user) {
+        var afterFetch = (user) => {
             this._createLayout();
 
             if (user) {
@@ -92,7 +92,7 @@ var App = View.extend({
                     pushState: false
                 });
             }
-        }, this);
+        };
 
         // If fetching the user from the server then we return the jqxhr object
         // from the request, otherwise just call the callback.

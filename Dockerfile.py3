@@ -31,4 +31,9 @@ COPY README.rst /girder/README.rst
 RUN pip install --upgrade --editable .[plugins]
 RUN girder-install web --all-plugins
 
-ENTRYPOINT ["python3", "-m", "girder"]
+# See http://click.pocoo.org/5/python3/#python-3-surrogate-handling for more detail on
+# why this is necessary.
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+ENTRYPOINT ["girder", "serve"]

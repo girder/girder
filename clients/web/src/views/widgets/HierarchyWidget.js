@@ -421,7 +421,7 @@ var HierarchyWidget = View.extend({
                   this.parentModel.escape('name') + '</b>?',
             escapedHtml: true,
             yesText: 'Delete',
-            confirmCallback: _.bind(function () {
+            confirmCallback: () => {
                 this.parentModel.on('g:deleted', function () {
                     if (type === 'collection') {
                         router.navigate('collections', {trigger: true});
@@ -433,7 +433,7 @@ var HierarchyWidget = View.extend({
                     throwError: true,
                     progress: true
                 });
-            }, this)
+            }
         };
         if (type === 'collection' &&
            (this.parentModel.get('nFolders') !== 0 || this.parentModel.get('size') !== 0)) {
@@ -474,7 +474,7 @@ var HierarchyWidget = View.extend({
     fetchAndShowChildCount: function () {
         this.$('.g-child-count-container').addClass('hide');
 
-        var showCounts = _.bind(function () {
+        var showCounts = () => {
             const folderCount = formatCount(this.parentModel.get('nFolders'));
             this.$('.g-child-count-container').removeClass('hide');
             this.$('.g-subfolder-count').text(folderCount);
@@ -486,7 +486,7 @@ var HierarchyWidget = View.extend({
                 const itemTooltip = itemCount === 1 ? `${itemCount} total item` : `${itemCount} total items`;
                 this.$('.g-item-count-container').attr('title', itemTooltip);
             }
-        }, this);
+        };
 
         if (this.parentModel.has('nFolders')) {
             showCounts();
@@ -857,10 +857,10 @@ var HierarchyWidget = View.extend({
                 parentId: this.parentModel.get('_id'),
                 progress: true
             }
-        }).done(_.bind(function () {
+        }).done(() => {
             this._incrementCounts(nFolders, nItems);
             this.setCurrentModel(this.parentModel, {setRoute: false});
-        }, this));
+        });
         this.clearPickedResources();
     },
 
@@ -880,10 +880,10 @@ var HierarchyWidget = View.extend({
                 parentId: this.parentModel.get('_id'),
                 progress: true
             }
-        }).done(_.bind(function () {
+        }).done(() => {
             this._incrementCounts(nFolders, nItems);
             this.setCurrentModel(this.parentModel, {setRoute: false});
-        }, this));
+        });
         this.clearPickedResources();
     },
 

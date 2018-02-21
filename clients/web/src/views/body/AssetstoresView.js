@@ -176,7 +176,7 @@ var AssetstoresView = View.extend({
                   'stored in it, and no data will be lost.',
             escapedHtml: true,
             yesText: 'Delete',
-            confirmCallback: _.bind(function () {
+            confirmCallback: () => {
                 assetstore.on('g:deleted', function () {
                     events.trigger('g:alert', {
                         icon: 'ok',
@@ -193,7 +193,7 @@ var AssetstoresView = View.extend({
                         timeout: 4000
                     });
                 }, this).destroy();
-            }, this)
+            }
         });
     },
 

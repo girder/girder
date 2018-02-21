@@ -31,4 +31,4 @@ COPY README.rst /girder/README.rst
 RUN pip install --upgrade --editable .[plugins]
 RUN girder-install web --all-plugins
 
-ENTRYPOINT ["python2", "-m", "girder"]
+ENTRYPOINT ["girder", "serve"]

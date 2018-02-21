@@ -146,7 +146,7 @@ var CollectionView = View.extend({
                   this.model.escape('name') + this.model.escape('nFolders') + '</b>?',
             yesText: 'Delete',
             escapedHtml: true,
-            confirmCallback: _.bind(function () {
+            confirmCallback: () => {
                 this.model.on('g:deleted', function () {
                     events.trigger('g:alert', {
                         icon: 'ok',
@@ -156,7 +156,7 @@ var CollectionView = View.extend({
                     });
                     router.navigate('collections', {trigger: true});
                 }).destroy();
-            }, this)
+            }
         };
         if (this.model.get('nFolders') !== 0 || this.model.get('size') !== 0) {
             params = _.extend({

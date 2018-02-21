@@ -18,6 +18,7 @@
 ###############################################################################
 
 import dicom
+import json
 import six
 from dicom.sequence import Sequence
 from dicom.valuerep import PersonName3
@@ -31,6 +32,7 @@ from girder.exceptions import RestException
 from girder.models.item import Item
 from girder.models.file import File
 from girder.utility import search
+from girder.utility.progress import setResponseTimeLimit
 
 
 class DicomItem(Resource):
@@ -62,6 +64,8 @@ class DicomItem(Resource):
                 if metadataReference is None else
                 _removeUniqueMetadata(metadataReference, dicomMeta)
             )
+
+            setResponseTimeLimit()
 
         if dicomFiles:
             # Sort the dicom files
@@ -203,11 +207,13 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
     """
     if types != ['item']:
         raise RestException('The dicom search is only able to search in Item.')
+    if not isinstance(query, six.string_types):
+        raise RestException('The search query must be a string.')
 
     jsQuery = """
         function() {
-            var queryKey = '%(queryKey)s'.toLowerCase();
-            var queryValue = '%(queryValue)s'.toLowerCase();
+            var queryKey = %(query)s.toLowerCase();
+            var queryValue = queryKey;
             var dicomMeta = obj.dicom.meta;
             return Object.keys(dicomMeta).some(
                 function(key) {
@@ -215,7 +221,10 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
                         dicomMeta[key].toString().toLowerCase().indexOf(queryValue) !== -1;
                 })
             }
-        """ % {'queryKey': query, 'queryValue': query}
+    """ % {
+        # This could eventually be a separately-defined key and value
+        'query': json.dumps(query)
+    }
 
     # Sort the documents inside MongoDB
     cursor = Item().find({'dicom': {'$exists': True}, '$where': jsQuery})

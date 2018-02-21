@@ -28,6 +28,7 @@ from .model_base import Model
 from girder import logprint
 from girder.exceptions import ValidationException
 from girder.utility import config, setting_utilities
+from girder.utility._cache import cache
 from bson.objectid import ObjectId
 
 
@@ -98,6 +99,14 @@ class Setting(Model):
 
         return doc
 
+    @cache.cache_on_arguments()
+    def _get(self, key):
+        """
+        This method is so built in caching decorators can be used without specifying
+        custom logic for dealing with the default kwarg of self.get.
+        """
+        return self.findOne({'key': key})
+
     def get(self, key, default='__default__'):
         """
         Retrieve a setting by its key.
@@ -107,7 +116,8 @@ class Setting(Model):
         :param default: If no such setting exists, returns this value instead.
         :returns: The value, or the default value if the key is not found.
         """
-        setting = self.findOne({'key': key})
+        setting = self._get(key)
+
         if setting is None:
             if default is '__default__':
                 default = self.getDefault(key)
@@ -134,7 +144,11 @@ class Setting(Model):
         else:
             setting['value'] = value
 
-        return self.save(setting)
+        setting = self.save(setting)
+
+        self._get.set(setting, self, key)
+
+        return setting
 
     def unset(self, key):
         """
@@ -144,6 +158,7 @@ class Setting(Model):
         :param key: The key identifying the setting to be removed.
         :type key: str
         """
+        self._get.invalidate(self, key)
         for setting in self.find({'key': key}):
             self.remove(setting)
 

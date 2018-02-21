@@ -33,11 +33,11 @@ var UserView = View.extend({
                       this.model.escape('login') + '</b>?',
                 yesText: 'Delete',
                 escapedHtml: true,
-                confirmCallback: _.bind(function () {
+                confirmCallback: () => {
                     this.model.on('g:deleted', function () {
                         router.navigate('users', {trigger: true});
                     }).destroy();
-                }, this)
+                }
             });
         },
 

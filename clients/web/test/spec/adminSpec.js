@@ -134,7 +134,7 @@ describe('Test the settings page', function () {
         }, 'search result to appear for a user');
 
         runs(function () {
-            $('.g-collection-create-policy-container .g-search-result>a').click();
+            $('.g-collection-create-policy-container .g-search-result-element').click();
         });
 
         waitsFor(function () {
@@ -150,7 +150,7 @@ describe('Test the settings page', function () {
         }, 'search result to appear for a group');
 
         runs(function () {
-            $('.g-collection-create-policy-container .g-search-result>a').click();
+            $('.g-collection-create-policy-container .g-search-result-element').click();
         });
 
         waitsFor(function () {

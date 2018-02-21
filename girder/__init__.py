@@ -28,6 +28,7 @@ import traceback
 
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor, VERSION
 from girder.utility import config, mkdir
+from girder.utility._cache import cache, requestCache
 
 __version__ = '2.4.0'
 __license__ = 'Apache 2.0'
@@ -226,8 +227,8 @@ def _setupLogger():
 logger = _setupLogger()
 
 
-def logStdoutStderr():
-    if _originalStdOut == sys.stdout:
+def logStdoutStderr(force=False):
+    if _originalStdOut == sys.stdout or force:
         sys.stdout = StreamToLogger(_originalStdOut, logger, logging.INFO)
         sys.stderr = StreamToLogger(_originalStdErr, logger, logging.ERROR)
 
@@ -260,6 +261,33 @@ def logprint(*args, **kwargs):
             data = getattr(TerminalColor, color)(data)
         _originalStdOut.write('%s\n' % data)
         _originalStdOut.flush()
+
+
+def _setupCache():
+    """
+    Setup caching based on configuration file.
+
+    Cache backends are forcibly replaced because Girder initially configures
+    the regions with the null backends.
+    """
+    curConfig = config.getConfig()
+
+    if curConfig['cache']['enabled']:
+        # Replace existing backend, this is necessary
+        # because they're initially configured with the null backend
+        cacheConfig = {
+            'cache.global.replace_existing_backend': True,
+            'cache.request.replace_existing_backend': True
+        }
+
+        curConfig['cache'].update(cacheConfig)
+
+        cache.configure_from_config(curConfig['cache'], 'cache.global.')
+        requestCache.configure_from_config(curConfig['cache'], 'cache.request.')
+    else:
+        # Reset caches back to null cache (in the case of server teardown)
+        cache.configure(backend='dogpile.cache.null', replace_existing_backend=True)
+        requestCache.configure(backend='dogpile.cache.null', replace_existing_backend=True)
 
 
 # Expose common logging levels and colors as methods of logprint.

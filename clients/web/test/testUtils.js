@@ -1220,7 +1220,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
 /*
  * Provide an alternate path to injecting a test spec as a url query parameter.
  *
- * To use, start girder in testing mode: `python -m girder --testing` and
+ * To use, start girder in testing mode: `girder serve --testing` and
  * browse to the test html with a spec provided:
  *
  *   http://localhost:8080/static/built/testing/testEnv.html?spec=%2Fclients%2Fweb%2Ftest%2Fspec%2FversionSpec.js
@@ -1280,6 +1280,21 @@ girderTest.startApp = function () {
                 parentView: null,
                 start: false
             });
+            /* Add a handler to allow tests to use
+             *   $(<a element with href>).click()
+             * to test clicking on links. */
+            girder.app.events = girder.app.events || {};
+            girder.app.events['click a'] = function (evt) {
+                if (!evt.isDefaultPrevented()) {
+                    var elem = $(evt.target),
+                        href = elem.attr('href');
+                    if (elem.is('a') && href && href.substr(0, 1) === '#') {
+                        girder.router.navigate(href.substr(1), {trigger: true});
+                        evt.preventDefault();
+                    }
+                }
+            };
+            girder.app.delegateEvents();
             return girder.app.start();
         })
         .then(function () {

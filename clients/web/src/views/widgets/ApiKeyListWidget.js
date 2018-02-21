@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import _ from 'underscore';
 import moment from 'moment';
 // Bootstrap tooltip is required by popover
 import 'bootstrap/js/tooltip';
@@ -18,11 +17,11 @@ var ApiKeyListWidget = View.extend({
     events: {
         'click .g-api-key-toggle-active': function (e) {
             var apiKey = this._getModelFromEvent(e);
-            var toggleActive = _.bind(function () {
+            var toggleActive = () => {
                 apiKey.once('g:setActive', function () {
                     this.render();
                 }, this).setActive(!apiKey.get('active'));
-            }, this);
+            };
 
             if (apiKey.get('active')) {
                 confirm({
@@ -57,7 +56,7 @@ var ApiKeyListWidget = View.extend({
                       'this key will no longer be able to authenticate.',
                 yesText: 'Delete',
                 escapedHtml: true,
-                confirmCallback: _.bind(function () {
+                confirmCallback: () => {
                     apiKey.on('g:deleted', function () {
                         events.trigger('g:alert', {
                             icon: 'ok',
@@ -67,7 +66,7 @@ var ApiKeyListWidget = View.extend({
                         });
                         this.render();
                     }, this).destroy();
-                }, this)
+                }
             });
         }
     },

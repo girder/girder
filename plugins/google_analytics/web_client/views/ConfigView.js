@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import events from 'girder/events';
@@ -27,12 +25,12 @@ var ConfigView = View.extend({
             data: {
                 list: JSON.stringify(['google_analytics.tracking_id'])
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.render();
             this.$('#g-google-analytics-tracking-id').val(
                 resp['google_analytics.tracking_id']
             );
-        }, this));
+        });
     },
 
     render: function () {
@@ -57,18 +55,18 @@ var ConfigView = View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).fail(_.bind(function (resp) {
+        }).fail((resp) => {
             this.$('#g-google_analytics-error-message').text(
                 resp.responseJSON.message
             );
-        }, this));
+        });
     }
 });
 

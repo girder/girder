@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import _ from 'underscore';
 
 import ItemView from 'girder/views/body/ItemView';
 import { restRequest } from 'girder/rest';
@@ -34,10 +33,10 @@ wrap(ItemView, 'editItem', function (editItem) {
     restRequest({
         method: 'GET',
         url: 'item/licenses'
-    }).done(_.bind(function (resp) {
+    }).done((resp) => {
         this.licenses = resp;
         editItem.call(this);
-    }, this));
+    });
 
     return this;
 });

@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import _ from 'underscore';
 
 import FileModel from 'girder/models/FileModel';
 import View from 'girder/views/View';
@@ -20,7 +19,7 @@ var FlowView = View.extend({
             confirm({
                 text: 'Are you sure you want to delete this thumbnail?',
                 yesText: 'Delete',
-                confirmCallback: _.bind(function () {
+                confirmCallback: () => {
                     file.on('g:deleted', function () {
                         container.remove();
                     }).on('g:error', function () {
@@ -31,7 +30,7 @@ var FlowView = View.extend({
                             timeout: 4000
                         });
                     }).destroy();
-                }, this)
+                }
             });
         },
 

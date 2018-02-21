@@ -43,11 +43,11 @@ var ItemModel = Model.extend({
     getRootPath: function (callback) {
         return restRequest({
             url: `${this.resourceName}/${this.id}/rootpath`
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             callback(resp);
-        }, this)).fail(_.bind(function (err) {
+        }).fail((err) => {
             this.trigger('g:error', err);
-        }, this));
+        });
     }
 });
 

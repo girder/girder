@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import events from 'girder/events';
@@ -29,10 +27,10 @@ var ConfigView = View.extend({
                 data: {
                     'default': true
                 }
-            }).done(_.bind(function (resp) {
+            }).done((resp) => {
                 this.licenses = resp;
                 this.render();
-            }, this));
+            });
         }
     },
 
@@ -43,10 +41,10 @@ var ConfigView = View.extend({
             data: {
                 list: JSON.stringify(['item_licenses.licenses'])
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.licenses = resp['item_licenses.licenses'];
             this.render();
-        }, this));
+        });
     },
 
     render: function () {
@@ -71,18 +69,18 @@ var ConfigView = View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function () {
+        }).done(() => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
                 timeout: 3000
             });
-        }, this)).fail(_.bind(function (resp) {
+        }).fail((resp) => {
             this.$('#g-item-licenses-error-message').text(
                 resp.responseJSON.message
             );
-        }, this));
+        });
     }
 });
 

@@ -1,5 +1,4 @@
 import $ from 'jquery';
-import _ from 'underscore';
 
 import EditFileWidget from 'girder/views/widgets/EditFileWidget';
 import FileCollection from 'girder/collections/FileCollection';
@@ -51,7 +50,7 @@ var FileListWidget = View.extend({
                       file.escape('name') + '</b>?',
                 yesText: 'Delete',
                 escapedHtml: true,
-                confirmCallback: _.bind(function () {
+                confirmCallback: () => {
                     file.once('g:deleted', function () {
                         events.trigger('g:alert', {
                             icon: 'ok',
@@ -69,7 +68,7 @@ var FileListWidget = View.extend({
                             timeout: 4000
                         });
                     }).destroy();
-                }, this)
+                }
             });
         }
     },

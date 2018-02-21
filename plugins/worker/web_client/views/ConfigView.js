@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
 import View from 'girder/views/View';
 import events from 'girder/events';
@@ -41,13 +39,13 @@ var ConfigView = View.extend({
                     'worker.direct_path'
                 ])
             }
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             this.render();
             this.$('#g-worker-api-url').val(resp['worker.api_url']);
             this.$('#g-worker-broker').val(resp['worker.broker']);
             this.$('#g-worker-backend').val(resp['worker.backend']);
             this.$('#g-worker-direct-path').prop('checked', resp['worker.direct_path']);
-        }, this));
+        });
     },
 
     render: function () {
@@ -74,17 +72,17 @@ var ConfigView = View.extend({
                 list: JSON.stringify(settings)
             },
             error: null
-        }).done(_.bind(function (resp) {
+        }).done((resp) => {
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
                 type: 'success',
                 timeout: 4000
             });
-        }, this)).fail(_.bind(function (resp) {
+        }).fail((resp) => {
             this.$('#g-worker-settings-error-message').text(
                 resp.responseJSON.message);
-        }, this));
+        });
     }
 });
 
