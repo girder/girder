@@ -36,7 +36,7 @@ def tearDownModule():
             os.rmdir(tempdir)
             break
         except OSError:
-            retries = 1
+            retries += 1
             time.sleep(0.1)
 
 
@@ -70,7 +70,14 @@ class ServerFuseTestCase(base.TestCase):
         super(ServerFuseTestCase, self).tearDown()
         if self.extraMount:
             server_fuse.unmountServerFuse(self.extraMount)
-        os.rmdir(self.extraMountPath)
+        retries = 0
+        while retries < 100:
+            try:
+                os.rmdir(self.extraMountPath)
+                break
+            except OSError:
+                retries += 1
+                time.sleep(0.1)
 
     def testMainMount(self):
         """
