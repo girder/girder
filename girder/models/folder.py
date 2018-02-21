@@ -52,7 +52,34 @@ class Folder(AccessControlledModel):
         self.exposeFields(level=AccessType.READ, fields=(
             '_id', 'name', 'public', 'publicFlags', 'description', 'created', 'updated',
             'size', 'meta', 'parentId', 'parentCollection', 'creatorId',
-            'baseParentType', 'baseParentId'))
+            'baseParentType', 'baseParentId', 'isVirtual'))
+
+    def _validateVirtualFolderBehavior(self, doc):
+        from .item import Item
+
+        for key in ('foldersQuery', 'foldersSort', 'itemsQuery', 'itemsSort'):
+            if key in doc and not isinstance(doc[key], six.string_types):
+                doc[key] = json.dumps(doc[key])
+
+        # Make sure we aren't trying to save a folder underneath a virtual folder
+        if doc['parentCollection'] == 'folder':
+            parent = self.load(doc['parentId'], exc=True, force=True)
+            if parent.get('isVirtual'):
+                raise ValidationException('You cannot save a folder underneath a virtual folder.')
+
+        # If we are saving a virtual folder, make sure it has no children
+        if '_id' in doc and doc.get('isVirtual'):
+            childItem = Item().findOne({'folderId': doc['_id']})
+            if childItem:
+                raise ValidationException('Virtual folders may not contain items.')
+            childFolder = self.findOne({
+                'parentId': doc['_id'],
+                'parentCollection': 'folder'
+            })
+            if childFolder:
+                raise ValidationException('Virtual folders may not contain other folders.')
+
+        return doc
 
     def validate(self, doc, allowRename=False):
         """
@@ -78,6 +105,9 @@ class Folder(AccessControlledModel):
             raise GirderException('Invalid folder parent type: %s.' %
                                   doc['parentCollection'],
                                   'girder.models.folder.invalid-parent-type')
+
+        doc = self._validateVirtualFolderBehavior(doc)
+
         name = doc['name']
         n = 0
         itemModel = Item()
@@ -109,6 +139,7 @@ class Folder(AccessControlledModel):
                                           'exists here.', 'name')
             n += 1
             name = '%s (%d)' % (doc['name'], n)
+
         return doc
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
@@ -391,10 +422,9 @@ class Folder(AccessControlledModel):
         # Delete this folder
         AccessControlledModel.remove(self, folder, progress=progress, **kwargs)
         if progress:
-            progress.update(increment=1, message='Deleted folder %s' %
-                            folder['name'])
+            progress.update(increment=1, message='Deleted folder %s' % folder['name'])
 
-    def childItems(self, folder, limit=0, offset=0, sort=None, filters=None,
+    def childItems(self, folder, limit=0, offset=0, sort=None, filters=None, virtualQuery=False,
                    **kwargs):
         """
         Generator function that yields child items in a folder.  Passes any
@@ -405,18 +435,28 @@ class Folder(AccessControlledModel):
         :param offset: Result offset.
         :param sort: The sort structure to pass to pymongo.
         :param filters: Additional query operators.
+        :param virtualQuery: If this is a virtual folder, set this to True to use the
+            virtual query instead of the normal one.
+        :type virtualQuery: bool
         """
         from .item import Item
 
-        q = {
-            'folderId': folder['_id']
-        }
+        if virtualQuery and folder.get('isVirtual') and 'itemsQuery' in folder:
+            q = json.loads(folder['itemsQuery'])
+        else:
+            q = {
+                'folderId': folder['_id']
+            }
+
         q.update(filters or {})
+
+        if virtualQuery and sort is None and folder.get('isVirtual') and 'itemsSort' in folder:
+            sort = json.loads(folder['itemsSort'])
 
         return Item().find(q, limit=limit, offset=offset, sort=sort, **kwargs)
 
-    def childFolders(self, parent, parentType, user=None, limit=0, offset=0,
-                     sort=None, filters=None, **kwargs):
+    def childFolders(self, parent, parentType='folder', user=None, limit=0, offset=0,
+                     sort=None, filters=None, virtualQuery=False, **kwargs):
         """
         This generator will yield child folders of a user, collection, or
         folder, with access policy filtering.  Passes any kwargs to the find
@@ -432,6 +472,9 @@ class Folder(AccessControlledModel):
         :param offset: Result offset.
         :param sort: The sort structure to pass to pymongo.
         :param filters: Additional query operators.
+        :param virtualQuery: If the parent is a virtual folder, set this to True to use the
+            virtual query instead of the normal one.
+        :type virtualQuery: bool
         """
         if not filters:
             filters = {}
@@ -440,21 +483,26 @@ class Folder(AccessControlledModel):
         if parentType not in ('folder', 'user', 'collection'):
             raise ValidationException('The parentType must be folder, collection, or user.')
 
-        q = {
-            'parentId': parent['_id'],
-            'parentCollection': parentType
-        }
+        if virtualQuery and parent.get('isVirtual') and 'foldersQuery' in parent:
+            q = json.loads(parent['foldersQuery'])
+        else:
+            q = {
+                'parentId': parent['_id'],
+                'parentCollection': parentType
+            }
         q.update(filters)
 
-        # Perform the find; we'll do access-based filtering of the result set
-        # afterward.
+        if virtualQuery and sort is None and parent.get('isVirtual') and 'foldersSort' in parent:
+            sort = json.loads(parent['foldersSort'])
+
+        # Perform the find; we'll do access-based filtering of the result set afterward.
         cursor = self.find(q, sort=sort, **kwargs)
 
         return self.filterResultsByPermission(
             cursor=cursor, user=user, level=AccessType.READ, limit=limit, offset=offset)
 
-    def createFolder(self, parent, name, description='', parentType='folder',
-                     public=None, creator=None, allowRename=False, reuseExisting=False):
+    def createFolder(self, parent, name, description='', parentType='folder', public=None,
+                     creator=None, allowRename=False, reuseExisting=False, virtual=False):
         """
         Create a new folder under the given parent.
 
@@ -479,6 +527,8 @@ class Folder(AccessControlledModel):
             under the given parent, return that folder rather than creating a
             new one.
         :type reuseExisting: bool
+        :param virtual: Whether this is a virtual folder or not.
+        :type virtual: bool
         :returns: The folder document that was created.
         """
         if reuseExisting:
@@ -522,15 +572,15 @@ class Folder(AccessControlledModel):
             'creatorId': creatorId,
             'created': now,
             'updated': now,
-            'size': 0
+            'size': 0,
+            'isVirtual': virtual
         }
 
         if parentType in ('folder', 'collection'):
             self.copyAccessPolicies(src=parent, dest=folder, save=False)
 
         if creator is not None:
-            self.setUserAccess(folder, user=creator, level=AccessType.ADMIN,
-                               save=False)
+            self.setUserAccess(folder, user=creator, level=AccessType.ADMIN, save=False)
 
         # Allow explicit public flag override if it's set.
         if public is not None and isinstance(public, bool):
@@ -541,6 +591,49 @@ class Folder(AccessControlledModel):
 
         # Now validate and save the folder.
         return self.save(folder)
+
+    def setVirtualFoldersQuery(self, folder, query=None, sort=None):
+        """
+        For a virtual folder, this can be used to update the query or sort value that will
+        be used to fetch its child folders. Note that filterResultsByPermission will still
+        be applied to the cursor.
+
+        :param folder: The virtual folder to update.
+        :type folder: dict
+        :param query: The query to use on the folder collection when fetching children.
+        :type query: dict
+        :param sort: The sort to use on the query.
+        :type sort: any valid pymongo sort value
+        :return: The modified folder document.
+        """
+        if query is not None:
+            folder['foldersQuery'] = query
+
+        if sort is not None:
+            folder['foldersSort'] = sort
+
+        return self.updateFolder(folder)
+
+    def setVirtualItemsQuery(self, folder, query=None, sort=None):
+        """
+        For a virtual folder, this can be used to update the query or sort value that will
+        be used to fetch its child items.
+
+        :param folder: The virtual folder to update.
+        :type folder: dict
+        :param query: The query to use on the item collection when fetching children.
+        :type query: dict
+        :param sort: The sort to use on the query.
+        :type sort: any valid pymongo sort value
+        :return: The modified folder document.
+        """
+        if query is not None:
+            folder['itemsQuery'] = query
+
+        if sort is not None:
+            folder['itemsSort'] = sort
+
+        return self.updateFolder(folder)
 
     def updateFolder(self, folder):
         """

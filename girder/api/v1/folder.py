@@ -96,7 +96,7 @@ class Folder(Resource):
 
             return list(self._model.childFolders(
                 parentType=parentType, parent=parent, user=user,
-                offset=offset, limit=limit, sort=sort, filters=filters))
+                offset=offset, limit=limit, sort=sort, filters=filters, virtualQuery=True))
         elif text:
             return list(self._model.textSearch(
                 text, user=user, limit=limit, offset=offset, sort=sort))

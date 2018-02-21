@@ -81,8 +81,7 @@ class Item(Resource):
         user = self.getCurrentUser()
 
         if folderId:
-            folder = Folder().load(
-                id=folderId, user=user, level=AccessType.READ, exc=True)
+            folder = Folder().load(id=folderId, user=user, level=AccessType.READ, exc=True)
             filters = {}
             if text:
                 filters['$text'] = {
@@ -92,7 +91,8 @@ class Item(Resource):
                 filters['name'] = name
 
             return list(Folder().childItems(
-                folder=folder, limit=limit, offset=offset, sort=sort, filters=filters))
+                folder=folder, limit=limit, offset=offset, sort=sort, filters=filters,
+                virtualQuery=True))
         elif text is not None:
             return list(self._model.textSearch(
                 text, user=user, limit=limit, offset=offset, sort=sort))
