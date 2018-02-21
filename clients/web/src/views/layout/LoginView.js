@@ -20,24 +20,27 @@ var LoginView = View.extend({
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
-            login(this.$('#g-login').val(), this.$('#g-password').val());
-
-            events.once('g:login.success', function () {
-                this.$el.modal('hide');
-            }, this);
-
-            events.once('g:login.error', function (status, err) {
-                this.$('.g-validation-failed-message').text(err.responseJSON.message);
-                this.$('#g-login-button').girderEnable(true);
-                if (err.responseJSON.extra === 'emailVerification') {
-                    var html = err.responseJSON.message +
-                        ' <a class="g-send-verification-email">Click here to send verification email.</a>';
-                    $('.g-validation-failed-message').html(html);
-                }
-            }, this);
-
             this.$('#g-login-button').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
+
+            const loginName = this.$('#g-login').val();
+            const password = this.$('#g-password').val();
+            login(loginName, password)
+                .done(() => {
+                    this.$el.modal('hide');
+                })
+                .fail((err) => {
+                    this.$('.g-validation-failed-message').text(err.responseJSON.message);
+
+                    if (err.responseJSON.extra === 'emailVerification') {
+                        var html = err.responseJSON.message +
+                            ' <a class="g-send-verification-email">Click here to send verification email.</a>';
+                        $('.g-validation-failed-message').html(html);
+                    }
+                })
+                .always(() => {
+                    this.$('#g-login-button').girderEnable(true);
+                });
         },
 
         'click .g-send-verification-email': function () {
