@@ -135,6 +135,17 @@ var UserModel = Model.extend({
             eventStream.open();
             events.trigger('g:login-changed');
         });
+    },
+
+    sendVerificationEmail: function (login) {
+        return restRequest({
+            url: 'user/verification',
+            method: 'POST',
+            data: {
+                login: login
+            },
+            error: null
+        });
     }
 });
 

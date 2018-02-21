@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import events from 'girder/events';
 import { handleClose, handleOpen } from 'girder/dialog';
 import { login } from 'girder/auth';
-import { restRequest } from 'girder/rest';
+import UserModel from 'girder/models/UserModel';
 
 import LoginDialogTemplate from 'girder/templates/layout/loginDialog.pug';
 
@@ -42,16 +42,14 @@ var LoginView = View.extend({
 
         'click .g-send-verification-email': function () {
             this.$('.g-validation-failed-message').html('');
-            restRequest({
-                url: 'user/verification',
-                method: 'POST',
-                data: {login: this.$('#g-login').val()},
-                error: null
-            }).done((resp) => {
-                this.$('.g-validation-failed-message').html(resp.message);
-            }).fail((err) => {
-                this.$('.g-validation-failed-message').html(err.responseJSON.message);
-            });
+
+            const loginName = this.$('#g-login').val();
+            UserModel.sendVerificationEmail(loginName)
+                .done((resp) => {
+                    this.$('.g-validation-failed-message').html(resp.message);
+                }).fail((err) => {
+                    this.$('.g-validation-failed-message').html(err.responseJSON.message);
+                });
         },
 
         'click a.g-register-link': function () {
