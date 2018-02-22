@@ -17,9 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
-import warnings
+import click
 from girder_client import cli
 
 if __name__ == '__main__':
-    warnings.warn('Deprecation notice: Use "girder-client" to run the CLI.', DeprecationWarning)
+    click.echo('Deprecation notice: Use "girder-client" to run the CLI.', err=True)
     cli.main()

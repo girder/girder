@@ -35,5 +35,5 @@ except ImportError:
 
 
 if __name__ == '__main__':
-    girder.logger.warning('Deprecation notice: Use "girder serve" to start Girder.')
+    girder.logprint.warning('Deprecation notice: Use "girder serve" to start Girder.')
     serve.main()

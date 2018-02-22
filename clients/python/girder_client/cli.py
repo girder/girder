@@ -20,7 +20,6 @@ import click
 import requests
 import sys
 import types
-import warnings
 from girder_client import GirderClient, __version__
 
 
@@ -325,5 +324,5 @@ def _upload(gc, parent_type, parent_id, local_folder,
 
 
 if __name__ == '__main__':
-    warnings.warn('Deprecation notice: Use "girder-client" to run the CLI.', DeprecationWarning)
+    click.echo('Deprecation notice: Use "girder-client" to run the CLI.', err=True)
     main()
