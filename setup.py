@@ -119,7 +119,6 @@ with open(init) as fd:
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
         fd.read(), re.MULTILINE).group(1)
 
-# perform the install
 setup(
     name='girder',
     version=version,
