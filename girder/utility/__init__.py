@@ -35,7 +35,7 @@ try:
     from random import SystemRandom
     random = SystemRandom()
     random.random()  # potentially raises NotImplementedError
-except NotImplementedError:  # pragma: no cover
+except NotImplementedError:
     girder.logprint.warning(
         'WARNING: using non-cryptographically secure PRNG.')
     import random

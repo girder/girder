@@ -63,7 +63,7 @@ def _safeMakedirs(path):
         os.makedirs(path)
     except OSError as exception:
         if exception.errno != errno.EEXIST:
-            raise  # pragma: no cover
+            raise
 
 
 class AuthenticationError(RuntimeError):

@@ -423,7 +423,7 @@ class ResourceExt(Resource):
         # We should have marked the new object already when it was first
         # created.  If not, exit
         if 'provenance' not in newObj:
-            pass  # pragma: no cover
+            pass
         if 'provenance' in srcObj:
             newProv = newObj['provenance'][-1]
             newObj['provenance'] = copy.deepcopy(srcObj['provenance'])

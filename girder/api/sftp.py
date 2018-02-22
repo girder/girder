@@ -17,17 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-from __future__ import print_function
-
-import click
-import os
 import paramiko
 import six
 import stat
-import sys
 import time
 
-from girder import logger, logprint
+from girder import logger
 from girder.exceptions import AccessException, ValidationException, ResourcePathNotFound
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -37,7 +32,6 @@ from girder.utility.path import lookUpPath
 from girder.utility.model_importer import ModelImporter
 from six.moves import socketserver
 
-DEFAULT_PORT = 8022
 MAX_BUF_LEN = 10 * 1024 * 1024
 
 
@@ -260,37 +254,3 @@ class SftpServer(socketserver.ThreadingTCPServer):
 
     def shutdown_request(self, request):
         pass
-
-
-@click.command(name='sftpd', short_help='Run the Girder SFTP service.',
-               help='Run the Girder SFTP service.')
-@click.option('-i', '--identity-file', show_default=True,
-              default=os.path.expanduser(os.path.join('~', '.ssh', 'id_rsa')),
-              help='The identity (private key) file to use')
-@click.option('-H', '--host', show_default=True, default='localhost',
-              help='The interface to bind to')
-@click.option('-p', '--port', show_default=True, default=DEFAULT_PORT, type=int,
-              help='The port to bind to')
-def main(identity_file, port, host):  # pragma: no cover
-    """
-    This is the entrypoint of the girder sftpd program. It should not be
-    called from python code.
-    """
-    try:
-        hostKey = paramiko.RSAKey.from_private_key_file(identity_file)
-    except paramiko.ssh_exception.PasswordRequiredException:
-        logprint.error(
-            'Error: encrypted key files are not supported (%s).' % identity_file, file=sys.stderr)
-        sys.exit(1)
-
-    server = SftpServer((host, port), hostKey)
-    logprint.info('Girder SFTP service listening on %s:%d.' % (host, port))
-
-    try:
-        server.serve_forever()
-    except (SystemExit, KeyboardInterrupt):
-        server.server_close()
-
-
-if __name__ == '__main__':  # pragma: no cover
-    main()

@@ -51,7 +51,7 @@ VERSION = {  # Set defaults in case girder-version.json doesn't exist
 try:
     with open(os.path.join(PACKAGE_DIR, 'girder-version.json')) as f:
         VERSION.update(json.load(f))
-except IOError:  # pragma: no cover
+except IOError:
     pass
 
 #: The local directory containing the static content.

@@ -135,7 +135,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 'Failed to get disk usage of %s' % self.assetstore['root'])
         # If psutil.disk_usage fails or we can't query the assetstore's root
         # directory, just report nothing regarding disk capacity
-        return {  # pragma: no cover
+        return {
             'free': None,
             'total': None
         }

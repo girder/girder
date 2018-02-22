@@ -54,7 +54,3 @@ def main(plugins):
         'webroot': webroot,
         'appconf': appconf
     })
-
-
-if __name__ == '__main__':
-    main()
