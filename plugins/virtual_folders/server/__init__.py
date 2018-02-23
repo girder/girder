@@ -20,9 +20,9 @@ def _validateFolder(event):
             raise ValidationException(
                 'Virtual folders may not contain child items.', field='isVirtual')
         if list(Folder().find({
-                    'parentId': doc['_id'],
-                    'parentCollection': 'folder'
-                }, limit=1)):
+            'parentId': doc['_id'],
+            'parentCollection': 'folder'
+        }, limit=1)):
             raise ValidationException(
                 'Virtual folders may not contain child folders.', field='isVirtual')
     if doc['parentCollection'] == 'folder':
