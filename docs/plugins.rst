@@ -681,11 +681,11 @@ Server FUSE
 ----------- 
 
 When this plugin is enabled *and* the appropriate configuration option is set,
-it mounts a user-space filesystem that allows reading any file in Girder as if
-it were a physical file.  This allows external libraries that require file
-access to read Girder files, regardless of which assetstore they are stored on.
-It also uses the underlying operating system's caching to improve reading these
-files.
+it mounts a real-only user-space filesystem that allows reading any file in
+Girder as if it were a physical file.  This allows external libraries that
+require file access to read Girder files, regardless of which assetstore they
+are stored on.  It also uses the underlying operating system's caching to
+improve reading these files.
 
 For example, some C extensions cannot read a Python file-like object, but
 require reading an actual file.  Others expect multiple files in the same item

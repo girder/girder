@@ -30,6 +30,8 @@ Added Features
   (`#2607 <https://github.com/girder/girder/pull/2607>`_)
 * Common Girder operations can now be executed with a top level ``girder`` command.
   (`#2596 <https://github.com/girder/girder/pull/2596>`_)
+* Added the server FUSE plugin that mounts Girder files in a read-only
+  user-space filesystem. (`#2521 <https://github.com/girder/girder/pull/2521>`_)
 
 Web Client
 ^^^^^^^^^^

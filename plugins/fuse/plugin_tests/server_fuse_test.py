@@ -110,7 +110,7 @@ class ServerFuseTestCase(base.TestCase):
                 localpath = os.path.join(mountpath, subpath)
                 self.assertTrue(os.path.isdir(localpath))
                 self.assertEqual(os.path.getsize(localpath), 0)
-                # An arbitrary alternate file shjould not exist
+                # An arbitrary alternate file should not exist
                 self.assertFalse(os.path.exists(localpath + '.other'))
 
     def testUserMount(self):
