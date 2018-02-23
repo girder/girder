@@ -676,3 +676,34 @@ The Vega plugin uses the `Vega library <http://trifacta.github.io/vega>`_ to ren
 JSON objects directly in the Girder application. To use it, simply upload the JSON file as an item,
 and then set a "vega: true" metadata field on the item. The visualization will then be rendered
 directly in the item view.
+
+Server FUSE
+----------- 
+
+When this plugin is enabled *and* the appropriate configuration option is set,
+it mounts a real-only user-space filesystem that allows reading any file in
+Girder as if it were a physical file.  This allows external libraries that
+require file access to read Girder files, regardless of which assetstore they
+are stored on.  It also uses the underlying operating system's caching to
+improve reading these files.
+
+For example, some C extensions cannot read a Python file-like object, but
+require reading an actual file.  Others expect multiple files in the same item
+to be stored in the same directory and with specific file extensions.  When a
+FUSE mount is available, these will work -- instead of passing the Girder file
+object, call `girder.plugins.fuse.getFuseFilePath(girderFile)` to get a path to
+the file.
+
+To enable a FUSE mount, add the base path to the Girder configation file::
+
+    [server_fuse]
+    path = '/tmp/fuse'
+
+The path can be any location on the local file system where Girder has
+permission to create a file.  If the path already exists, it must be an empty
+directory.
+
+.. note:: If Girder is `SIGKILL`ed with open file handles on the FUSE, it may
+   not be possible to fully clean up the open file system, and defunct 
+   processes may linger.  This is a limitation of libfuse, and may require a
+   reboot to clear the lingering mount.
