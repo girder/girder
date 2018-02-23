@@ -198,7 +198,8 @@ module.exports = function (grunt) {
     // the entire client build process.
     const pluginTargets = [];
     plugins.forEach(function (plugin) {
-        const name = plugin.replace('@girder/', '');
+        const pluginDef = require(path.join(plugin, '/package.json'))['girder-plugin'];
+        const name = pluginDef.name;
         grunt.config.set(`webpack.plugin_${name}`, {
             entry: {
                 [`plugins/${name}/plugin`]: [`${plugin}/main.js`]

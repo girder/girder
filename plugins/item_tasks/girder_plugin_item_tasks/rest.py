@@ -9,8 +9,8 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import ValidationException
 from girder.models.item import Item
 from girder.models.token import Token
-from girder.plugins.jobs.models.job import Job
-from girder.plugins.worker import utils
+from girder_plugin_jobs.models.job import Job
+from girder_plugin_worker import utils
 from . import constants
 from .json_tasks import createItemTasksFromJson, runJsonTasksDescriptionForFolder
 from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, runSlicerCliTasksDescriptionForItem

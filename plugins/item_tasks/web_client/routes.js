@@ -7,7 +7,7 @@ import router from 'girder/router';
 import events from 'girder/events';
 
 import ItemModel from 'girder/models/ItemModel';
-import JobModel from 'girder_plugins/jobs/models/JobModel';
+import JobModel from '@girder/jobs/models/JobModel';
 
 import TaskListView from './views/TaskListView';
 import TaskRunView from './views/TaskRunView';

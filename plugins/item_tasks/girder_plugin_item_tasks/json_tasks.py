@@ -7,8 +7,8 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.token import Token
 from girder.models.user import User
-from girder.plugins.jobs.models.job import Job
-from girder.plugins.worker import utils
+from girder_plugin_jobs.models.job import Job
+from girder_plugin_worker import utils
 from . import constants
 
 

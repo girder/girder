@@ -1,8 +1,8 @@
 import _ from 'underscore';
 
-import WidgetModel from 'girder_plugins/item_tasks/models/WidgetModel';
-import WidgetCollection from 'girder_plugins/item_tasks/collections/WidgetCollection';
-import ControlsPanel from 'girder_plugins/item_tasks/views/ControlsPanel';
+import WidgetModel from '@girder/item_tasks/models/WidgetModel';
+import WidgetCollection from '@girder/item_tasks/collections/WidgetCollection';
+import ControlsPanel from '@girder/item_tasks/views/ControlsPanel';
 import View from 'girder/views/View';
 
 import template from '../templates/candelaParameters.pug';

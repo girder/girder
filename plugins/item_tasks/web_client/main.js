@@ -9,8 +9,8 @@ import GlobalNavView from 'girder/views/layout/GlobalNavView';
 import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
 import ItemView from 'girder/views/body/ItemView';
 import { registerPluginNamespace } from 'girder/pluginUtils';
-import JobModel from 'girder_plugins/jobs/models/JobModel';
-import * as itemTasks from 'girder_plugins/item_tasks';
+import JobModel from '@girder/jobs/models/JobModel';
+import * as itemTasks from './index';
 import router from 'girder/router';
 
 import './routes';
@@ -100,7 +100,7 @@ HierarchyWidget.prototype.events['click .g-create-docker-tasks'] = function () {
 };
 
 // Show task inputs and outputs on job details view
-import JobDetailsWidget from 'girder_plugins/jobs/views/JobDetailsWidget';
+import JobDetailsWidget from '@girder/jobs/views/JobDetailsWidget';
 import JobDetailsInfoView from './views/JobDetailsInfoView';
 wrap(JobDetailsWidget, 'render', function (render) {
     render.call(this);
