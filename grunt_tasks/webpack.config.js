@@ -43,6 +43,7 @@ var loaderPathsNodeModules = loaderPaths.concat([path.resolve('node_modules')]);
 
 module.exports = {
     output: {
+        // pathinfo: true,  // for debugging
         filename: '[name].min.js'
         // publicPath must be set to Girder's externally-served static path for built outputs
         // (typically '/static/built/'). This will be done at runtime with

@@ -18,6 +18,7 @@
     },
     "girder-plugin": {
         "name": "candela",
-        "main": "./web_client/main.js"
+        "main": "./web_client/main.js",
+        "dependencies": ["item_tasks"]
     }
 }

@@ -24,6 +24,7 @@
     "main": "./index.js",
     "girder-plugin": {
         "name": "item_tasks",
-        "main": "./main.js"
+        "main": "./main.js",
+        "dependencies": ["worker", "jobs"]
     }
 }

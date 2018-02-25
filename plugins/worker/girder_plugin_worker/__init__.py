@@ -27,6 +27,8 @@ from . import event_handlers
 
 
 class WorkerPlugin(GirderPlugin):
+    NPM_PACKAGE_NAME = '@girder/worker'
+
     def load(self, info):
         getPlugin('jobs').load(info)
 

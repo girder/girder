@@ -19,6 +19,7 @@
     },
     "girder-plugin": {
         "name": "worker",
-        "main": "./main.js"
+        "main": "./main.js",
+        "dependencies": ["jobs"]
     }
 }

@@ -193,10 +193,6 @@ module.exports = function (grunt) {
     });
 
     // Get a list of entry points for each installed plugin.
-    // TODO: Find a way to get information from the plugins' package.json files.
-    // As is this is *very* hacky.  Ultimately, we will probably want to refactor
-    // the entire client build process.
-    const pluginTargets = [];
     plugins.forEach(function (plugin) {
         const pluginDef = require(path.join(plugin, '/package.json'))['girder-plugin'];
         const name = pluginDef.name;
@@ -212,7 +208,7 @@ module.exports = function (grunt) {
             plugins: [
                 new webpack.DllPlugin({
                     path: path.join(grunt.config.get('builtPath'), 'plugins', name, 'plugin-manifest.json'),
-                    name: `girder_plugin_${plugin}`
+                    name: `girder_plugin_${name}`
                 }),
                 // DllBootstrapPlugin allows the same plugin bundle to also
                 // execute an entry point at load time instead of just exposing symbols
@@ -231,9 +227,17 @@ module.exports = function (grunt) {
                     filename: 'plugin.min.css',
                     allChunks: true
                 })
-            ]
+            ].concat(_.map(pluginDef.dependencies || [], (dep) => {
+                return new webpack.DllReferencePlugin({
+                    context: '.',
+                    manifest: path.join(grunt.config.get('builtPath'), 'plugins', dep, 'plugin-manifest.json')
+                });
+            }))
         });
-        pluginTargets.push(`webpack:plugin_${name}`);
+        // Make dependent plugins build before this one to create the DLL manifest.
+        grunt.config.set(`default.webpack:plugin_${name}`, {
+            dependencies: _.map(pluginDef.dependencies, (dep) => `webpack:plugin_${dep}`)
+        });
     });
 
     // Need an alias that can be used as a dependency (for testing). It will then trigger dev or
@@ -241,5 +245,5 @@ module.exports = function (grunt) {
     grunt.registerTask('build', 'Build the web client.', [
         'webpack:core_lib',
         'webpack:core_app'
-    ].concat(pluginTargets));
+    ]);
 };
