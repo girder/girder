@@ -12,12 +12,9 @@
         "url": "https://github.com/girder/girder.git"
     },
     "dependencies": {
-        "backbone": "*",
         "bootstrap-colorpicker": "^2.5.2",
         "bootstrap-slider": "^10.0.0",
-        "jquery": "*",
-        "tinycolor2": "^1.4.1",
-        "underscore": "*"
+        "tinycolor2": "^1.4.1"
     },
     "peerDependencies": {
         "girder": "*",

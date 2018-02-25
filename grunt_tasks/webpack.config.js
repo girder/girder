@@ -200,7 +200,8 @@ module.exports = {
     },
     resolve: {
         extensions: ['.js'],
-        symlinks: false
+        symlinks: false,
+        modules: [path.resolve('node_modules', 'girder', 'node_modules'), 'node_modules']
     },
     node: {
         canvas: 'empty',
