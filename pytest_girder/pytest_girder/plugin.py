@@ -21,12 +21,7 @@ def _makeCoverageDirs(config):
 
 def _addCustomMarkers(config):
     markerDocs = [
-        ('testPlugin(pluginName): load and enable a test plugin from girder/test/test_plugins.  '
-         'this marker can be provided multiple times to enable more than one test plugin, '
-         'and is incompatible with "@pytest.mark.plugin".'),
-        ('plugin(pluginName): enable an installed plugin.  this marker cannot be used with '
-         'this marker can be provided multiple times to enable more than one installed plugin, '
-         'and is incompatible with "@pytest.mark.testPlugin".'),
+        'plugin(pluginName, [pluginClass]): load a plugin (may be marked multiple times)',
     ]
     for markerDoc in markerDocs:
         config.addinivalue_line('markers', markerDoc)

@@ -76,7 +76,7 @@ if(RUN_CORE_TESTS)
   endif()
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/clients/web/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/clients/web/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
-    PLUGIN_DIR "${PROJECT_SOURCE_DIR}/test/test_plugins"
+    PLUGIN_DIR "${PROJECT_SOURCE_DIR}/tests/test_plugins"
     ENABLEDPLUGINS "bad_server"
     RESOURCE_LOCKS replicaset
     )
@@ -100,7 +100,7 @@ if(RUN_CORE_TESTS)
   add_web_client_test(utilities "${PROJECT_SOURCE_DIR}/clients/web/test/spec/utilitiesSpec.js")
 
   # Add tests for the local TestData module
-  add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/test/test_plugins/has_external_data")
+  add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
   add_python_test(external_data_core
     EXTERNAL_DATA "test_file.txt"
   )

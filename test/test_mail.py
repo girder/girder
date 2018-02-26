@@ -17,11 +17,23 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
 import pytest
+
 from girder.constants import SettingKey
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.utility import mail_utils
+from girder.plugin import GirderPlugin
+
+
+class MailPlugin(GirderPlugin):
+    def load(self, info):
+        mail_utils.addTemplateDirectory(
+            os.path.join(os.path.dirname(__file__), 'data', 'mail_templates'),
+            prepend=True
+        )
 
 
 def testEmailAdmins(smtp):
@@ -64,7 +76,7 @@ def testEmailAdmins(smtp):
         mail_utils.sendEmail(text='hello', to=None)
 
 
-@pytest.mark.testPlugin('mail_test')
+@pytest.mark.plugin('mail_test', MailPlugin)
 def testPluginTemplates(server):
     val = 'OVERRIDE CORE FOOTER'
     assert mail_utils.renderTemplate('_footer.mako').strip() == val

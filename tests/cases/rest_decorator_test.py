@@ -32,7 +32,7 @@ def setUpModule():
     os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
     config.loadConfig()
     testPluginPath = os.path.normpath(os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), '..', '..', 'test', 'test_plugins'
+        os.path.dirname(os.path.abspath(__file__)), '..', 'test_plugins'
     ))
     base.mockPluginDir(testPluginPath)
     base.enabledPlugins = ['test_plugin']

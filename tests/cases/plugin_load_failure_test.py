@@ -31,7 +31,7 @@ class PluginLoadFailureTestCase(base.TestCase):
 
     def setUp(self):
         testPluginPath = os.path.normpath(os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), '..', '..', 'test', 'test_plugins'
+            os.path.dirname(os.path.abspath(__file__)), '..', 'test_plugins'
         ))
         self.mockPluginDir(testPluginPath)
         base.enabledPlugins.append('bad_server')

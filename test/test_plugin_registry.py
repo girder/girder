@@ -14,13 +14,15 @@
 #  limitations under the License.
 ###############################################################################
 
-import distutils
+import os
+import tempfile
 
 import mock
 import pytest
-import six
+from pytest_girder.plugin_registry import PluginRegistry
 
 from girder import plugin
+from girder.plugin import GirderPlugin
 
 
 @pytest.fixture
@@ -29,224 +31,189 @@ def logprint():
         yield logprintMock
 
 
-def mockPluginGenerator(deps, side_effect=None):
-    class MockedPlugin(plugin.GirderPlugin):
-
-        def __init__(self, *args, **kwargs):
-            self._mockLoad = mock.Mock()
-            super(MockedPlugin, self).__init__(*args, **kwargs)
-
-        def load(self, *args, **kwargs):
-            for dep in deps:
-                plugin.getPlugin(dep).load(dep)
-
-            self._mockLoad(*args, **kwargs)
-            if side_effect:
-                raise side_effect
-
-    return MockedPlugin
-
-
-class MockDistribution(object):
-    def __init__(self, name, version, description='', url=''):
-        self.PKG_INFO = 'PKG_INFO'
-        self.version = version
-        self._metadata = self.generateMetadata(name, version, description, url)
-
-    def get_metadata(self, *args, **kwargs):
-        return self._metadata
-
-    def generateMetadata(self, name, version, description, url):
-        meta = distutils.dist.DistributionMetadata()
-        meta.name = name
-        meta.version = version
-        meta.description = description
-        meta.url = url
-        pkgInfo = six.StringIO()
-        meta.write_pkg_file(pkgInfo)
-        return pkgInfo.getvalue()
-
-
-class MockEntryPoint(object):
-    def __init__(self, name, version, description, url, pluginClass):
-        self.name = name
-        self.description = description
-        self.url = url
-        self.dist = MockDistribution(name, version, description, url)
-        self.load = mock.Mock(return_value=pluginClass)
-        self.pluginClass = pluginClass
-
-
-def mockEntryPointGenerator(name, version='0.1.0', deps=None, side_effect=None):
-    if deps is None:
-        deps = []
-
-    url = 'url for %s' % name
-    doc = 'doc for %s' % name
-    pluginClass = mockPluginGenerator(deps, side_effect)
-    return MockEntryPoint(name, version, doc, url, pluginClass)
-
-
 @pytest.fixture
-def pluginRegistry():
-    yield plugin._pluginRegistry
-    plugin._pluginRegistry = None
-    plugin._pluginFailureInfo = {}
-    plugin._pluginLoadOrder = []
+def registry(request):
+    testPluginMarkers = request.node.get_marker('plugin')
+    pluginRegistry = PluginRegistry(include_installed_plugins=False)
+    if testPluginMarkers is not None:
+        for testPluginMarker in testPluginMarkers:
+            if len(testPluginMarker.args) > 1:
+                pluginRegistry.registerTestPlugin(
+                    *testPluginMarker.args, **testPluginMarker.kwargs
+                )
+    with pluginRegistry():
+        yield
 
 
-@pytest.fixture
-def registerPlugin(pluginRegistry):
-    entry_points = []
-
-    def iter_entry_points(*args, **kwargs):
-        for ep in entry_points:
-            yield ep
-
-    def register(*args):
-        entry_points.extend(args)
-
-    with mock.patch.object(plugin, 'iter_entry_points', side_effect=iter_entry_points):
-        yield register
+class InvalidPlugin(GirderPlugin):
+    pass
 
 
-validPluginTree = [
-    mockEntryPointGenerator('withdeps4', deps=['withdeps3']),
-    mockEntryPointGenerator('withdeps1', deps=['leaf1']),
-    mockEntryPointGenerator('leaf1'),
-    mockEntryPointGenerator('leaf2'),
-    mockEntryPointGenerator('leaf3'),
-    mockEntryPointGenerator('leaf4'),
-    mockEntryPointGenerator('withdeps2', deps=['withdeps1', 'leaf1', 'leaf2']),
-    mockEntryPointGenerator('withdeps3', deps=['withdeps2', 'withdeps1'])
-]
-validPluginList = [
-    [],
-    [mockEntryPointGenerator('nodeps')],
-    [
-        mockEntryPointGenerator('nodeps1'),
-        mockEntryPointGenerator('nodeps2')
-    ],
-    [
-        mockEntryPointGenerator('withdeps', '1.0.0', ['depa', 'depb']),
-        mockEntryPointGenerator('depa'),
-        mockEntryPointGenerator('depb')
-    ],
-    [
-        mockEntryPointGenerator('withwebdeps'),
-        mockEntryPointGenerator('depa'),
-        mockEntryPointGenerator('depb')
-    ],
-    [
-        mockEntryPointGenerator('withmultideps', deps=['depa', 'depb']),
-        mockEntryPointGenerator('depa'),
-        mockEntryPointGenerator('depb'),
-        mockEntryPointGenerator('depc')
-    ],
-    validPluginTree
-]
-pluginTreeWithLoadFailure = [
-    mockEntryPointGenerator('loadfailurea', side_effect=Exception('failure a')),
-    mockEntryPointGenerator('loadfailureb', side_effect=Exception('failure b')),
-    mockEntryPointGenerator('dependsonfailure', deps=['loadfailurea']),
-    mockEntryPointGenerator('leafa'),
-    mockEntryPointGenerator('leafb'),
-    mockEntryPointGenerator('withdeps', deps=['leafa', 'leafb']),
-    mockEntryPointGenerator('multipledepends', deps=['leafa', 'loadfailureb']),
-    mockEntryPointGenerator('rootdepends', deps=['leafb', 'withdeps', 'dependsonfailure'])
-]
+class NoDeps(GirderPlugin):
+
+    def __init__(self, *args, **kwargs):
+        super(NoDeps, self).__init__(*args, **kwargs)
+        self._testLoadMock = mock.Mock()
+
+    def load(self, info):
+        self._testLoadMock(info)
 
 
-def testPluginWithNoLoadMethod(registerPlugin, logprint):
-    class InvalidPlugin(plugin.GirderPlugin):
-        pass
-    entrypoint = MockEntryPoint('invalid', '1.0.0', 'description', 'url', InvalidPlugin)
-    registerPlugin(entrypoint)
+class PluginWithNPM(NoDeps):
+    NPM_PACKAGE_NAME = '@girder/test_plugin'
+    NPM_PACKAGE_VERSION = '1.0.0'
+
+
+class DependsOnPlugin1(NoDeps):
+    def load(self, info):
+        plugin.getPlugin('plugin1').load(info)
+        super(DependsOnPlugin1, self).load(info)
+
+
+class DependsOnPlugin2(NoDeps):
+    def load(self, info):
+        plugin.getPlugin('plugin2').load(info)
+        super(DependsOnPlugin2, self).load(info)
+
+
+class DependsOnPlugin1and2(NoDeps):
+    def load(self, info):
+        plugin.getPlugin('plugin1').load(info)
+        plugin.getPlugin('plugin2').load(info)
+        super(DependsOnPlugin1and2, self).load(info)
+
+
+class ThrowsOnLoad(NoDeps):
+    def load(self, info):
+        super(DependsOnPlugin1and2, self).load(info)
+        raise Exception()
+
+
+@pytest.mark.plugin('invalid', InvalidPlugin)
+def testPluginWithNoLoadMethod(registry, logprint):
     with pytest.raises(NotImplementedError):
         plugin.getPlugin('invalid').load({})
     logprint.exception.assert_called_once_with('Failed to load plugin invalid')
 
 
-@pytest.mark.parametrize('pluginList', validPluginList)
-def testAllPlugins(registerPlugin, pluginList):
-    registerPlugin(*pluginList)
+@pytest.mark.plugin('nodeps', NoDeps, description='description', version='1.0.0', url='url')
+def testPluginMetadata(registry):
+    pluginDef = plugin.getPlugin('nodeps')
+    assert pluginDef.name == 'nodeps'
+    assert pluginDef.version == '1.0.0'
+    assert pluginDef.url == 'url'
+    assert pluginDef.description == 'description'
+    assert pluginDef.npmPackages() == {}
+
+
+@pytest.mark.plugin('client_plugin', PluginWithNPM)
+def testPluginWithNPMPackage(registry):
+    pluginDef = plugin.getPlugin('client_plugin')
+    assert pluginDef.npmPackages() == {'@girder/test_plugin': '1.0.0'}
+
+
+@pytest.mark.plugin('client_plugin', PluginWithNPM, location=tempfile.gettempdir())
+def testPluginWithDevInstall(registry):
+    with tempfile.TemporaryDirectory() as d:
+        pluginDef = plugin.getPlugin('client_plugin')
+        pluginDef.CLIENT_SOURCE_PATH = os.path.split(d)[-1]
+        assert pluginDef.npmPackages() == {'@girder/test_plugin': 'file:%s' % d}
+
+
+@pytest.mark.plugin('plugin1', NoDeps)
+@pytest.mark.plugin('plugin2', NoDeps)
+@pytest.mark.plugin('plugin3', NoDeps)
+@pytest.mark.plugin('plugin4', NoDeps)
+def testAllPlugins(registry):
     allPlugins = plugin.allPlugins()
-    assert len(allPlugins) == len(pluginList)
-    for pluginClass in pluginList:
-        assert pluginClass.name in allPlugins
+    assert sorted(allPlugins) == ['plugin1', 'plugin2', 'plugin3', 'plugin4']
 
 
-@pytest.mark.parametrize('pluginList', validPluginList)
-def testPluginGetMetadata(registerPlugin, pluginList):
-    registerPlugin(*pluginList)
-    for pluginEntryPoint in pluginList:
-        pluginDefinition = plugin.getPlugin(pluginEntryPoint.name)
-        assert pluginDefinition.name == pluginEntryPoint.name
-        assert pluginDefinition.version == pluginEntryPoint.dist.version
-        assert pluginDefinition.description == pluginEntryPoint.description
-        assert pluginDefinition.url == pluginEntryPoint.url
+@pytest.mark.plugin('plugin1', NoDeps)
+def testSinglePluginLoad(registry, logprint):
+    pluginDefinition = plugin.getPlugin('plugin1')
+    pluginDefinition.load({})
+    assert pluginDefinition.loaded is True
+    logprint.success.assert_any_call('Loaded plugin "plugin1"')
+
+    pluginDefinition.load({})
+    pluginDefinition._testLoadMock.assert_called_once()
 
 
-@pytest.mark.parametrize('pluginList', validPluginList)
-def testPluginLoad(registerPlugin, pluginList, logprint):
-    registerPlugin(*pluginList)
-    for pluginEntryPoint in pluginList:
-        pluginDefinition = plugin.getPlugin(pluginEntryPoint.name)
-        pluginDefinition.load({})
-        assert pluginDefinition.loaded is True
-        logprint.success.assert_any_call('Loaded plugin "%s"' % pluginEntryPoint.name)
+@pytest.mark.plugin('plugin1', NoDeps)
+@pytest.mark.plugin('plugin2', DependsOnPlugin1)
+@pytest.mark.plugin('plugin3', NoDeps)
+def testPluginLoadWithDeps(registry, logprint):
+    pluginDefinition = plugin.getPlugin('plugin2')
+    pluginDefinition.load({})
+    assert pluginDefinition.loaded is True
+    logprint.success.assert_any_call('Loaded plugin "plugin2"')
+
+    assert plugin.getPlugin('plugin1').loaded is True
+    logprint.success.assert_any_call('Loaded plugin "plugin1"')
+
+    assert plugin.getPlugin('plugin3').loaded is False
 
 
-def testPluginLoadOrder(registerPlugin, logprint):
-    registerPlugin(*validPluginTree)
-    plugin.getPlugin('withdeps3').load({})
-    assert plugin.loadedPlugins() == ['leaf1', 'withdeps1', 'leaf2', 'withdeps2', 'withdeps3']
+@pytest.mark.plugin('plugin0', DependsOnPlugin1and2)
+@pytest.mark.plugin('plugin1', NoDeps)
+@pytest.mark.plugin('plugin2', DependsOnPlugin1)
+@pytest.mark.plugin('plugin3', NoDeps)
+def testPluginLoadOrder(registry, logprint):
+    plugin.getPlugin('plugin0').load({})
+    assert plugin.loadedPlugins() == ['plugin1', 'plugin2', 'plugin0']
     logprint.success.assert_has_calls([
-        mock.call('Loaded plugin "leaf1"'),
-        mock.call('Loaded plugin "withdeps1"'),
-        mock.call('Loaded plugin "leaf2"'),
-        mock.call('Loaded plugin "withdeps2"'),
-        mock.call('Loaded plugin "withdeps3"')
+        mock.call('Loaded plugin "plugin1"'),
+        mock.call('Loaded plugin "plugin2"'),
+        mock.call('Loaded plugin "plugin0"')
     ])
 
 
-def testLoadPluginWithError(registerPlugin, logprint):
-    registerPlugin(*pluginTreeWithLoadFailure)
+@pytest.mark.plugin('throws', ThrowsOnLoad)
+def testLoadPluginWithError(registry, logprint):
     with pytest.raises(Exception) as exception1:
-        plugin.getPlugin('loadfailurea').load({})
+        plugin.getPlugin('throws').load({})
 
-    logprint.exception.assert_called_once_with('Failed to load plugin loadfailurea')
-    assert 'loadfailurea' in plugin.getPluginFailureInfo()
+    logprint.exception.assert_called_once_with('Failed to load plugin throws')
+    assert 'throws' in plugin.getPluginFailureInfo()
 
     with pytest.raises(Exception) as exception2:
-        plugin.getPlugin('loadfailurea').load({})
+        plugin.getPlugin('throws').load({})
 
     assert exception1.value == exception2.value
 
 
-def testLoadMultiplePluginsWithFailure(registerPlugin, logprint):
-    registerPlugin(*pluginTreeWithLoadFailure)
-    plugin.loadPlugins(['loadfailurea', 'leafa'], {})
+@pytest.mark.plugin('plugin1', ThrowsOnLoad)
+@pytest.mark.plugin('plugin2', NoDeps)
+def testLoadMultiplePluginsWithFailure(registry, logprint):
+    plugin.loadPlugins(['plugin1', 'plugin2'], {})
 
-    logprint.exception.assert_called_once_with('Failed to load plugin loadfailurea')
-    assert 'loadfailurea' in plugin.getPluginFailureInfo()
-    assert plugin.loadedPlugins() == ['leafa']
-
-
-def testLoadPluginTreeWithFailure(registerPlugin, logprint):
-    registerPlugin(*pluginTreeWithLoadFailure)
-    plugin.loadPlugins(['rootdepends'], {})
-    assert plugin.loadedPlugins() == ['leafb', 'leafa', 'withdeps']
     logprint.exception.assert_has_calls([
-        mock.call('Failed to load plugin loadfailurea'),
-        mock.call('Failed to load plugin dependsonfailure'),
-        mock.call('Failed to load plugin rootdepends')
+        mock.call('Failed to load plugin plugin1')
     ])
-    assert set(plugin.getPluginFailureInfo().keys()) == {'rootdepends', 'loadfailurea',
-                                                         'dependsonfailure'}
+    assert 'plugin1' in plugin.getPluginFailureInfo()
+    assert plugin.loadedPlugins() == ['plugin2']
 
 
-def testLoadMissingDependency(registerPlugin, logprint):
-    registerPlugin(*validPluginTree)
+@pytest.mark.plugin('plugin1', ThrowsOnLoad)
+@pytest.mark.plugin('plugin2', DependsOnPlugin1)
+@pytest.mark.plugin('plugin3', NoDeps)
+def testLoadTreeWithFailure(registry, logprint):
+    plugin.loadPlugins(['plugin2', 'plugin3'], {})
+
+    logprint.exception.assert_has_calls([
+        mock.call('Failed to load plugin plugin1'),
+        mock.call('Failed to load plugin plugin2')
+    ])
+    assert 'plugin1' in plugin.getPluginFailureInfo()
+    assert plugin.loadedPlugins() == ['plugin3']
+
+
+def testLoadMissingDependency(logprint):
     plugin.loadPlugins(['missing'], {})
     logprint.error.assert_called_once_with('Plugin missing is not installed')
+
+
+def testRegisterWebroot(registry):
+    plugin.registerPluginWebroot('webroot', 'plugin')
+    assert plugin.getPluginWebroots() == {'plugin': 'webroot'}
