@@ -1,4 +1,5 @@
 import json
+from bson import json_util
 from girder import events
 from girder.api import access, rest
 from girder.api.v1.folder import Folder as FolderResource
@@ -91,7 +92,7 @@ def _virtualChildItems(self, event):
         return  # Parent is not a virtual folder, proceed as normal
 
     limit, offset, sort = self.getPagingParameters(params, defaultSortField='name')
-    q = json.loads(folder['virtualItemsQuery'])
+    q = json.loads(folder['virtualItemsQuery'], object_hook=json_util.object_hook)
 
     if 'virtualItemsSort' in folder:
         sort = json.loads(folder['virtualItemsSort'])
