@@ -119,6 +119,15 @@ module.exports = function (grunt) {
         });
     }
 
+    // Define global constants
+    updateWebpackConfig({
+        plugins: [
+            new webpack.DefinePlugin({
+                'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+            })
+        ]
+    });
+
     // Add extra config options for grunt-webpack
     updateWebpackConfig({
         progress: progress
