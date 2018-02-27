@@ -79,9 +79,9 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
         # If we are adding a file and it exists on the local filesystem include
         # that location.  This can permit the user of the specification to
         # access the file directly instead of downloading the file.
-        adapter = File().getAssetstoreAdapter(resource)
-        if callable(getattr(adapter, 'fullPath', None)):
-            result['direct_path'] = adapter.fullPath(resource)
+        direct_path = File().getLocalFilePath(resource)
+        if direct_path is not None:
+            result['direct_path'] = direct_path
     return result
 
 

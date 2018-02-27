@@ -17,12 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
 import six
 
 from hachoir_core.error import HachoirError
 from hachoir_metadata import extractMetadata
 from hachoir_parser import createParser
+from girder.models.file import File
 from girder.models.item import Item
 
 
@@ -44,7 +44,8 @@ class MetadataExtractor(object):
         Extract metadata from file on client or server and attach to item on
         server.
         """
-        self._extractMetadata()
+        if self.path:
+            self._extractMetadata()
 
         if self.metadata is not None:
             self._setMetadata()
@@ -113,7 +114,7 @@ class ServerMetadataExtractor(MetadataExtractor):
         :param assetstore: asset store containing file
         :param uploadedFile: file from which to extract metadata
         """
-        path = os.path.join(assetstore['root'], uploadedFile['path'])
+        path = File().getLocalFilePath(uploadedFile)
         super(ServerMetadataExtractor, self).__init__(path, uploadedFile['itemId'])
         self.userId = uploadedFile['creatorId']
 

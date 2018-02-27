@@ -234,10 +234,13 @@ class ServerFuseTestCase(base.TestCase):
         from girder.plugins import fuse as girder_fuse
         from girder.utility.filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 
+        def altFullPath(self, file):
+            return None
+
         file = File().findOne()
 
         origFullPath = FilesystemAssetstoreAdapter.fullPath
-        FilesystemAssetstoreAdapter.fullPath = None
+        FilesystemAssetstoreAdapter.fullPath = altFullPath
         filepath = girder_fuse.getFilePath(file)
         fusepath = girder_fuse.getFuseFilePath(file)
         FilesystemAssetstoreAdapter.fullPath = origFullPath

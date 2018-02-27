@@ -18,13 +18,12 @@
 ###############################################################################
 
 from girder import events
-from girder.constants import AssetstoreType
 
 from . metadata_extractor import ServerMetadataExtractor
 
 
 def handler(event):
-    if event.info['assetstore']['type'] == AssetstoreType.FILESYSTEM:
+    if event.info['file'].get('itemId'):
         metadataExtractor = ServerMetadataExtractor(event.info['assetstore'],
                                                     event.info['file'])
         metadataExtractor.extractMetadata()

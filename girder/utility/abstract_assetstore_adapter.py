@@ -440,3 +440,13 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :rtype: FileHandle
         """
         return FileHandle(file, self)
+
+    def getLocalFilePath(self, file):
+        """
+        If an assetstore adapter supports it, return a path to the file on the
+        local file system.
+
+        :param file: The file document.
+        :returns: a local path to the file or None if no such path is known.
+        """
+        return None

@@ -473,3 +473,14 @@ class File(acl_mixin.AccessControlMixin, Model):
         :rtype: girder.utility.abstract_assetstore_adapter.FileHandle
         """
         return self.getAssetstoreAdapter(file).open(file)
+
+    def getLocalFilePath(self, file):
+        """
+        If an assetstore adapter supports it, return a path to the file on the
+        local file system.
+
+        :param file: The file document.
+        :returns: a local path to the file or None if no such path is known.
+        """
+        adapter = self.getAssetstoreAdapter(file)
+        return adapter.getLocalFilePath(file)
