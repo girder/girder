@@ -1,18 +1,17 @@
 @import "layoutVars"
 
 #g-app-header-container
-  position fixed
-  top 0
   width 100%
-  z-index $headerZ
-  height $headerHeight
+  max-height $headerHeight
 
 #g-app-body-container.g-default-layout
   min-height $minHeight
+  padding 0
+  margin 0 10px
 
 #g-app-body-container.g-empty-layout
   margin 0
-  padding 0
+  padding 20px
 
 #g-alerts-container
   position fixed
@@ -54,22 +53,7 @@
   overflow hidden
   text-overflow ellipsis
 
-@media (min-width: 721px)
+/* Header Responsive */
+@media (max-width: $smallWidth)
   #g-app-body-container.g-default-layout
-    padding 10px + $headerHeight 10px 10px 10px
-    margin-left $navWidth + 1px
-
-  #g-global-nav-container
-    position fixed
-    top $headerHeight
-    width $navWidth
-
-@media (max-width: 720px)
-  #g-global-nav-container
-    width 100%
-    position static
-    margin-top $headerHeight
-
-  #g-app-body-container.g-default-layout
-    margin-left 0
-    padding 10px
+    min-height $minHeightSmallScreen

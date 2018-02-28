@@ -40,6 +40,10 @@ var LayoutGlobalNavView = View.extend({
             this.navItems = settings.navItems;
         } else {
             this.defaultNavItems = [{
+                name: 'Home',
+                icon: 'icon-home',
+                target: ''
+            }, {
                 name: 'Collections',
                 icon: 'icon-sitemap',
                 target: 'collections'
@@ -53,6 +57,7 @@ var LayoutGlobalNavView = View.extend({
                 target: 'groups'
             }];
         }
+        this.parentView = settings.parentView;
     },
 
     render: function () {
@@ -75,9 +80,15 @@ var LayoutGlobalNavView = View.extend({
             navItems: navItems
         }));
 
+        // This need to be after the rendering of the global nav template
+        if (!this.navItems) {
+            this.$('.g-global-nav-li:first').addClass('g-home');
+        }
+
         if (Backbone.history.fragment) {
             this.$('[g-target="' + Backbone.history.fragment + '"]')
-                .parent().addClass('g-active');
+                .parent()
+                .addClass('g-active');
         }
 
         return this;

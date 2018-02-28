@@ -16,6 +16,7 @@ var LayoutHeaderView = View.extend({
     events: {
         'click .g-app-title': function () {
             router.navigate('', {trigger: true});
+            this.parentView.globalNavView.deactivateAll();
         }
     },
 
@@ -26,6 +27,9 @@ var LayoutHeaderView = View.extend({
         this.userView = new LayoutHeaderUserView({
             parentView: this,
             registrationPolicy: settings.registrationPolicy
+        });
+        this.userViewFade = new LayoutHeaderUserView({
+            parentView: this
         });
 
         /*
@@ -50,11 +54,8 @@ var LayoutHeaderView = View.extend({
             bannerColor: this.bannerColor,
             textColor: textColor
         }));
+
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
-        if (textColor !== '#ffffff') {
-            // We will lose the hover color by setting this, so only do that if necessary
-            this.userView.$('.g-user-text a').css('color', textColor);
-        }
         this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
 
         return this;
@@ -75,7 +76,7 @@ var LayoutHeaderView = View.extend({
         );
         const L = 0.2126 * linearRBG[0] + 0.7152 * linearRBG[1] + 0.0722 * linearRBG[2];
         return ((L + 0.05) / (0.0 + 0.05) > (1.0 + 0.05) / (L + 0.05))
-            ? '#000000'
+            ? 'inherit'
             : '#ffffff';
     }
 });

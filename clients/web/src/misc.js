@@ -41,6 +41,29 @@ function formatDate(datestr, resolution) {
     return output;
 }
 
+function formatShortDate(datestr, resolution) {
+    datestr = datestr.replace(' ', 'T'); // Cross-browser accepted date format
+    var date = new Date(datestr);
+    var output = ('0' + date.getMonth()).slice(-2);
+
+    resolution = resolution || DATE_MONTH;
+
+    if (resolution >= DATE_DAY) {
+        output += '/' + date.getDate() + '/';
+    }
+    output += date.getFullYear();
+
+    if (resolution >= DATE_MINUTE) {
+        output += ' at ' + date.getHours() + ':' +
+            ('0' + date.getMinutes()).slice(-2);
+    }
+    if (resolution >= DATE_SECOND) {
+        output += ':' + ('0' + date.getSeconds()).slice(-2);
+    }
+
+    return output;
+}
+
 /**
  * Format a size in bytes into a human-readable string with metric unit
  * prefixes.
@@ -245,6 +268,7 @@ export {
     DATE_MINUTE,
     DATE_SECOND,
     formatDate,
+    formatShortDate,
     formatSize,
     formatCount,
     localeComparator,

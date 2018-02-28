@@ -9,8 +9,8 @@ import 'girder/utilities/jquery/girderModal';
 import events from 'girder/events';
 import eventStream from 'girder/utilities/EventStream';
 import LayoutFooterView from 'girder/views/layout/FooterView';
-import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
 import LayoutHeaderView from 'girder/views/layout/HeaderView';
+import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
 import LoginView from 'girder/views/layout/LoginView';
 import ProgressListView from 'girder/views/layout/ProgressListView';
 import RegisterView from 'girder/views/layout/RegisterView';
@@ -157,12 +157,12 @@ var App = View.extend({
 
     _defaultLayout: {
         show: function () {
-            this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').show();
+            this.$('#g-app-header-container,#g-global-nav,#g-app-footer-container').show();
             this.$('#g-app-body-container').addClass('g-default-layout');
         },
 
         hide: function () {
-            this.$('#g-app-header-container,#g-global-nav-container,#g-app-footer-container').hide();
+            this.$('#g-app-header-container,#g-global-nav,#g-app-footer-container').hide();
             this.$('#g-app-body-container').removeClass('g-default-layout');
         }
     },
@@ -183,10 +183,10 @@ var App = View.extend({
         }
         this.$el.html(LayoutTemplate());
 
-        this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
         this.headerView.setElement(this.$('#g-app-header-container')).render();
         this.footerView.setElement(this.$('#g-app-footer-container')).render();
         this.progressListView.setElement(this.$('#g-app-progress-container')).render();
+        this.globalNavView.setElement(this.$('#g-global-nav')).render();
 
         return this;
     },

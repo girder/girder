@@ -2,11 +2,14 @@
  * Place global styles in this file.
  */
 
+@import "layoutVars"
+
 body
   // Override the default font from Bootstrap
   font-family "Open Sans", sans-serif !important
   padding 0
   word-wrap break-word
+  color $normalColor !important
 
 i
   font-smoothing antialiased
@@ -15,11 +18,26 @@ a
   cursor pointer
   text-decoration none !important
 
+b
+  font-weight 600 !important
+
 .g-clear-both
   clear both
 
 .g-clear-right
   clear right
+
+/* Apply on each classic body view */
+.g-body-view-container
+  max-width $maxWidth
+  margin-left auto
+  margin-right auto
+
+@media (max-width: $smallWidth)
+  .g-body-view-container
+    max-width inherit
+    margin-left inherit
+    margin-right inherit
 
 ul.dropdown-menu
   >li.dropdown-header
@@ -117,38 +135,53 @@ textarea
   display inline-block
   overflow hidden
   white-space nowrap
-  width calc(100% - 350px)
   position relative
+  min-width 20%
 
   .g-text-fade
+    display none
     height 30px
     width 45px
     position absolute
-    right 0
+    right ($bodyLayoutMargin + 1)
     background linear-gradient(left, rgba(250, 250, 252, 0), rgba(250, 250, 252, 1))
 
     &[public="false"]
       background linear-gradient(left, rgba(255, 249, 234, 0), rgba(255, 249, 234, 1))
 
 .g-list-public-status-icon
-  display inline-block
-  line-height 40px
-  vertical-align top
-  color #888
-  margin-right 10px
-  border-right 1px solid #dedede
   padding-right 5px
   font-size 18px
-  margin-left -5px
 
 .g-top-level-list-entry
   padding 11px 14px
-  margin 2px 0
-  border-radius 3px
-  background-color #fafafc
-  border 1px solid #eaeaea
-  box-shadow inset 0 0 2px 2px #f4f4f4
+  background-color white
+  border-bottom $border
+  border-left $border
+  border-right $border
 
   &[public="false"]
-    box-shadow inset 0 0 2px 2px #fff0e0
-    background-color #fff9ea
+    background-color $privateColor
+
+.g-top-level-list-entry:nth-child(2)
+  border-top $border
+
+/* Right column description for list (Collections, Groups, Users) */
+.g-list-right-column-description
+
+.g-list-created-date, .g-list-space-used
+  color $normalColor
+.g-list-created-short-date
+  display none
+  color $normalColor
+
+@media (max-width: $smallWidth)
+  .g-list-right-column-description
+    display none
+  .g-list-created-short-date
+    display inline
+  .g-list-created-date
+    display none
+
+  .g-top-level-list-title-container
+    min-width 40%

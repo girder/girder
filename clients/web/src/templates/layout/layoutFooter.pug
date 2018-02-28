@@ -1,9 +1,20 @@
 .g-footer-links
-  a#g-about-link(href="http://girder.readthedocs.org/en/latest/user-guide.html") About
+  a#g-about-link(href="http://girder.readthedocs.org/en/latest/user-guide.html")
+    i.icon-book-1
+    span= "About"
   if contactHref
-    a#g-contact-link(href=contactHref) Contact
-  a(href=apiRoot) Web API
-  a#g-bug-link(href="https://github.com/girder/girder/issues/new") Report a bug
-
+    a#g-contact-link(href=contactHref)
+      i.icon-mail
+      span= "Contact"
+  a(href=apiRoot)
+    i.icon-cog-alt
+    span= "Web API"
+  a#g-bug-link(href="https://github.com/girder/girder/issues/new")
+    i.icon-bug
+    span= "Report a bug"
+  if versionInfo.git
+    a.g-git-sha(target="_blank", href=`https://github.com/girder/girder/tree/${versionInfo.SHA}`)
+      i.icon-github
+      span= "Git version"
 .g-footer-info
   | &copy; Kitware, Inc.

@@ -1,39 +1,62 @@
+@import "../layout/layoutVars"
+
+/* Header */
+.g-collection-list-header
+  display flex
+  justify-content flex-start
+  align-items center
+  flex-wrap wrap
+  margin 10px 0
+
+  .g-collection-search-form
+    flex 1
+
+/* Body */
 .g-collection-list-entry
+  display flex
+  justify-content flex-start
 
   .g-collection-title
-    font-size 17px
+    font-size $resourceTitleSize
 
-  .g-collection-right-column
-    border-left 1px solid #ddd
-    padding-left 8px
-    display inline
-    width 290px
-    font-size 14px
-    float right
-    color #909090
+  .g-top-level-list-title-container
+    flex 1
 
   .g-collection-description
+    flex 1
     background-color white
     padding 8px 12px
-    border-radius 3px
-    border 1px solid #dedede
 
-.g-collection-list-header
-  padding-bottom 10px
+  .g-collection-right-column
+    overflow hidden
+    white-space nowrap
+    padding-left 8px
+    width $rightColumnWidth
+    font-size 14px
+    color $lightColor
+
+/* Footer */ // This code is the same for Collection list, User list and Group list
+.g-collection-list-footer
+  margin 15px 0
 
   .g-collection-pagination
-    display inline-block
-    >ul
-      margin 0 15px 0 0
 
     .pagination>li>a
-      float none
       line-height 1.5
       padding 7px 12px
 
-  .g-collection-search-form
-    display inline
-    margin-right 15px
+@media (max-width: $smallWidth)
+  /* Header */
+  .g-collection-create-button >span
+    display none
 
-    .form-group
-      display inline-block
+  /* Body */
+  .g-top-level-list-title-container
+    flex 1
+
+  .g-collection-subtitle
+    display none
+
+  .g-collection-description
+    display none
+

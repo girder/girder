@@ -1,5 +1,6 @@
 import View from 'girder/views/View';
 import { getApiRoot } from 'girder/rest';
+import versionInfo from 'girder/version';
 
 import LayoutFooterTemplate from 'girder/templates/layout/layoutFooter.pug';
 
@@ -18,6 +19,7 @@ var LayoutFooterView = View.extend({
     render: function () {
         this.$el.html(LayoutFooterTemplate({
             apiRoot: getApiRoot(),
+            versionInfo: versionInfo,
             contactHref: this.contactHref
         }));
         return this;

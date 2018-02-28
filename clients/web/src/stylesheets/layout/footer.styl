@@ -1,7 +1,8 @@
+@import "layoutVars"
+
 #g-app-footer-container
-  border-top 1px solid #eee
+  border-top $border
   text-align center
-  background-image linear-gradient(to bottom, #f6f6f6 0, #fff 5px)
 
 .g-quick-search-form
   >.form-group
@@ -11,9 +12,23 @@
     display inline !important
 
 .g-footer-info
-  margin-bottom 10px
+  margin-bottom 20px
 
 .g-footer-links
   margin 15px auto 10px
   a
     margin 0 10px
+
+    >i
+      display none
+      font-size 15px
+
+@media (max-width: $smallWidth)
+  #g-app-footer-container
+    margin 20px
+
+  .g-footer-links > a
+    span
+      display none
+    i
+      display inline

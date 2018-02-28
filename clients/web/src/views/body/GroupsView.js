@@ -8,7 +8,7 @@ import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
 import { cancelRestRequests } from 'girder/rest';
-import { formatDate, DATE_DAY } from 'girder/misc';
+import { formatDate, formatShortDate, DATE_DAY } from 'girder/misc';
 import { getCurrentUser } from 'girder/auth';
 
 import GroupListTemplate from 'girder/templates/body/groupList.pug';
@@ -58,10 +58,14 @@ var GroupsView = View.extend({
             groups: this.collection.toArray(),
             getCurrentUser: getCurrentUser,
             formatDate: formatDate,
+            formatShortDate: formatShortDate,
             DATE_DAY: DATE_DAY
         }));
 
-        this.paginateWidget.setElement(this.$('.g-group-pagination')).render();
+        const groupList = this.paginateWidget.collection;
+        if (groupList.hasNextPage() || groupList.hasPreviousPage()) {
+            this.paginateWidget.setElement(this.$('.g-group-pagination')).render();
+        }
         this.searchWidget.setElement(this.$('.g-groups-search-container')).render();
 
         if (this.create) {
