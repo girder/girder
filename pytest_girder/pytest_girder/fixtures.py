@@ -96,8 +96,20 @@ def server(db, request):
     girder.events.daemon = girder.events.AsyncEventsThread()
 
     enabledPlugins = []
+    installedPluginMarkers = request.node.get_marker('plugin')
     testPluginMarkers = request.node.get_marker('testPlugin')
-    if testPluginMarkers is not None:
+
+    if installedPluginMarkers is not None and testPluginMarkers is not None:
+        raise Exception(
+            'The "testPlugin" and "plugin" markers cannot both be used on a single test'
+        )
+
+    elif installedPluginMarkers is not None:
+        for installedPluginMarker in installedPluginMarkers:
+            pluginName = installedPluginMarker.args[0]
+            enabledPlugins.append(pluginName)
+
+    elif testPluginMarkers is not None:
         for testPluginMarker in testPluginMarkers:
             pluginName = testPluginMarker.args[0]
             enabledPlugins.append(pluginName)
