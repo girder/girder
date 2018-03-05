@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 ###############################################################################
-#  Copyright 2014 Kitware Inc.
+#  Copyright Kitware Inc.
 #
 #  Licensed under the Apache License, Version 2.0 ( the "License" );
 #  you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@ from girder.exceptions import AccessException
 from girder.models.folder import Folder
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
-def _createParentChain(admin):
+
+@pytest.fixture
+def parentChain(admin):
     # Create the parent chain
     F1 = Folder().createFolder(
         parent=admin, parentType='user', creator=admin,
@@ -38,100 +40,119 @@ def _createParentChain(admin):
     F4 = Folder().createFolder(
         parent=privateFolder, parentType='folder', creator=admin,
         name='F4', public=True)
-    return F1, F2, privateFolder, F4
+    yield {
+        'folder1': F1,
+        'folder2': F2,
+        'privateFolder': privateFolder,
+        'folder4': F4
+    }
+    # Delete de parent chain
+    Folder().remove(F1)
 
 
-def testParentsToRoot(admin, user):
+def testParentsToRootAdmin(parentChain, admin):
     """
     Demonstrate that parentsToRoot works even if the user has missing right access
     on one or more folder in the full path.
     This tests for a user with right access, a user without and a none user.
     """
-    # Create the parent chain
-    F1, F2, privateFolder, F4 = _createParentChain(admin)
-
     # Get the parent chain for a user who has access rights
-    parents = Folder().parentsToRoot(F4, user=admin)
-    for idx in range(1, 4):
-        assert parents[idx]['object']['name'] == 'F%i' % idx
+    parents = Folder().parentsToRoot(parentChain['folder4'], user=admin)
+    assert parents[1]['object']['name'] == 'F1'
+    assert parents[2]['object']['name'] == 'F2'
+    assert parents[3]['object']['name'] == 'F3'
 
+
+def testParentsToRootNoRights(parentChain, user):
     # Get the parent chain for a user who doesn't have access rights
     with pytest.raises(AccessException):
-        parents = Folder().parentsToRoot(F4, user=user)
-        for idx in range(1, 4):
-            if idx == 3:
-                assert parents[idx] is None
-            else:
-                assert parents[idx]['object']['name'] == 'F%i' % idx
+        parents = Folder().parentsToRoot(parentChain['folder4'], user=user)
+        assert parents[1]['object']['name'] == 'F1'
+        assert parents[2]['object']['name'] == 'F2'
+        assert parents[3] is None
 
+
+def testParentsToRootNoUsers(parentChain):
     # Get the parent chain for a none user
     with pytest.raises(AccessException):
-        parents = Folder().parentsToRoot(F4, user=None)
-        for idx in range(1, 4):
-            if idx == 3:
-                assert parents[idx] is None
-            else:
-                assert parents[idx]['object']['name'] == 'F%i' % idx
+        parents = Folder().parentsToRoot(parentChain['folder4'], user=None)
+        assert parents[1]['object']['name'] == 'F1'
+        assert parents[2]['object']['name'] == 'F2'
+        assert parents[3] is None
 
 
-def testGetResourceByPath(server, admin, user):
-    # Create the parent chain
-    F1, F2, privateFolder, F4 = _createParentChain(admin)
-    # Test access denied response for access 'hidden folder' for user with access rights,
-    # user without and none user
+def testGetResourceByPathForAdmin(server, parentChain, admin):
+    # Test access denied response for access 'hidden folder' for user with access rights
     resp = server.request(path='/resource/lookup',
                           method='GET', user=admin,
                           params={
                               'path': '/user/%s/%s/%s/%s/%s' % (
                                   admin['login'],
-                                  F1['name'],
-                                  F2['name'],
-                                  privateFolder['name'],
-                                  F4['name'])
+                                  parentChain['folder1']['name'],
+                                  parentChain['folder2']['name'],
+                                  parentChain['privateFolder']['name'],
+                                  parentChain['folder4']['name'])
                           })
     assertStatusOk(resp)
-    assert resp.json['name'] == F4['name']
-    assert ObjectId(resp.json['_id']) == F4['_id']
+    assert resp.json['name'] == parentChain['folder4']['name']
+    assert ObjectId(resp.json['_id']) == parentChain['folder4']['_id']
+
+
+def testGetResourceByPathForUser(server, parentChain, admin, user):
+    # Test access denied response for access 'hidden folder' for user without access rights
     resp = server.request(path='/resource/lookup',
                           method='GET', user=user,
                           params={
                               'path': '/user/%s/%s/%s/%s/%s' % (
                                   admin['login'],
-                                  F1['name'],
-                                  F2['name'],
-                                  privateFolder['name'],
-                                  F4['name'])
+                                  parentChain['folder1']['name'],
+                                  parentChain['folder2']['name'],
+                                  parentChain['privateFolder']['name'],
+                                  parentChain['folder4']['name'])
                           })
     assertStatus(resp, 400)
+
+
+def testGetResourceByPathForNoneUser(server, parentChain, admin):
+    # Test access denied response for access 'hidden folder' for a none user
     resp = server.request(path='/resource/lookup',
                           method='GET', user=None,
                           params={
                               'path': '/user/%s/%s/%s/%s/%s' % (
                                   admin['login'],
-                                  F1['name'],
-                                  F2['name'],
-                                  privateFolder['name'],
-                                  F4['name'])
+                                  parentChain['folder1']['name'],
+                                  parentChain['folder2']['name'],
+                                  parentChain['privateFolder']['name'],
+                                  parentChain['folder4']['name'])
                           })
     assertStatus(resp, 400)
 
 
-def testGetResourcePath(server, admin, user):
-    # Create the parent chain
-    F1, F2, privateFolder, F4 = _createParentChain(admin)
-    # Test access denied response for access 'hidden folder' for user with access rights,
-    # user without and none user
-    resp = server.request(path='/resource/%s/path' % F4['_id'],
+def testGetResourcePathForAdmin(server, parentChain, admin):
+    # Test access denied response for access 'hidden folder' for user with access rights
+    resp = server.request(path='/resource/%s/path' % parentChain['folder4']['_id'],
                           method='GET', user=admin,
                           params={'type': 'folder'})
     assertStatusOk(resp)
     assert resp.json == '/user/%s/%s/%s/%s/%s' % (
-        admin['login'], F1['name'], F2['name'], privateFolder['name'], F4['name'])
-    resp = server.request(path='/resource/%s/path' % F4['_id'],
+        admin['login'],
+        parentChain['folder1']['name'],
+        parentChain['folder2']['name'],
+        parentChain['privateFolder']['name'],
+        parentChain['folder4']['name'])
+
+
+def testGetResourcePathForUser(server, parentChain, user):
+    # Test access denied response for access 'hidden folder' for user without access rights
+    resp = server.request(path='/resource/%s/path' % parentChain['folder4']['_id'],
                           method='GET', user=user,
                           params={'type': 'folder'})
     assertStatus(resp, 403)
-    resp = server.request(path='/resource/%s/path' % F4['_id'],
+
+
+def testGetResourcePathForNoneUser(server, parentChain):
+    # Test access denied response for access 'hidden folder' for a none User
+    resp = server.request(path='/resource/%s/path' % parentChain['folder4']['_id'],
                           method='GET', user=None,
                           params={'type': 'folder'})
     assertStatus(resp, 401)
