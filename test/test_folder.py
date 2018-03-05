@@ -46,16 +46,11 @@ def parentChain(admin):
         'privateFolder': privateFolder,
         'folder4': F4
     }
-    # Delete de parent chain
+    # Delete the parent chain
     Folder().remove(F1)
 
 
 def testParentsToRootAdmin(parentChain, admin):
-    """
-    Demonstrate that parentsToRoot works even if the user has missing right access
-    on one or more folder in the full path.
-    This tests for a user with right access, a user without and a none user.
-    """
     # Get the parent chain for a user who has access rights
     parents = Folder().parentsToRoot(parentChain['folder4'], user=admin)
     assert parents[1]['object']['name'] == 'F1'
