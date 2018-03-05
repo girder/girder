@@ -68,7 +68,7 @@ installReqs = [
     'click-plugins',
     'dogpile.cache',
     'filelock',
-    'funcsigs ; python_version < \'3\'',
+    'funcsigs ; python_version < \'3.5\'',
     'jsonschema',
     'Mako',
     'pymongo>=3.5',
@@ -77,7 +77,7 @@ installReqs = [
     'python-dateutil',
     'pytz',
     'requests',
-    'shutilwhich ; python_version < \'3\'',
+    'shutilwhich ; python_version < \'3.3\'',
     'six>=1.9',
 ]
 

@@ -40,7 +40,7 @@ version = constants.VERSION['apiVersion']
 webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
 
 # monkey patch shutil for python < 3
-if not six.PY3:
+if sys.version_info[0] == 2:
     import shutilwhich  # noqa
 
 

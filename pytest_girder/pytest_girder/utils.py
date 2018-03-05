@@ -8,6 +8,7 @@ import os
 import six
 import smtpd
 import socket
+import sys
 import threading
 import time
 
@@ -23,7 +24,7 @@ class MockSmtpServer(smtpd.SMTPServer):
 
     def __init__(self, localaddr, remoteaddr, decode_data=False):
         kwargs = {}
-        if six.PY3:
+        if sys.version_info >= (3, 5):
             # Python 3.5+ prints a warning if 'decode_data' isn't explicitly
             # specified, but earlier versions don't accept the argument at all
             kwargs['decode_data'] = decode_data

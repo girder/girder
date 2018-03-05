@@ -18,7 +18,7 @@
 ###############################################################################
 
 import mock
-import six
+import sys
 import unittest
 
 from contextlib import contextmanager
@@ -114,7 +114,7 @@ class FindEntryPointPluginsTestCase(unittest.TestCase):
         self.assertIn('entry_point_plugin_bad_json', failures)
         self.assertIn('traceback', failures['entry_point_plugin_bad_json'])
         self.assertIn(
-            'JSONDecodeError' if six.PY3 else 'ValueError',
+            'JSONDecodeError' if sys.version_info >= (3, 5) else 'ValueError',
             failures['entry_point_plugin_bad_json']['traceback'])
 
     @mock.patch('pkg_resources.resource_stream')
