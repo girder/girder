@@ -146,9 +146,7 @@ def _ldapAuth(event):
 
             searchStr = '%s=%s' % (server['searchField'], login)
             # Add the searchStr to the attributes, keep local scope.
-            temp_attr = [server['searchField']]
-            temp_attr.extend(_LDAP_ATTRS)
-            lattr = tuple(temp_attr)
+            lattr = _LDAP_ATTRS + (server['searchField'],)
             results = conn.search_s(server['baseDn'], ldap.SCOPE_SUBTREE, searchStr, lattr)
             if results:
                 entry, attrs = results[0]
