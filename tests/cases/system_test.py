@@ -18,6 +18,7 @@
 ###############################################################################
 
 import json
+import mock
 import os
 import time
 import six
@@ -251,7 +252,8 @@ class SystemTestCase(base.TestCase):
             }, user=users[0])
             self.assertStatusOk(resp)
 
-    def testPlugins(self):
+    @mock.patch('girder.utility.plugin_utilities.logprint.exception')
+    def testPlugins(self, logprint):
         resp = self.request(path='/system/plugins', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertIn('all', resp.json)
@@ -294,7 +296,8 @@ class SystemTestCase(base.TestCase):
         self.assertTrue('plugin_yaml' in enabled)
         self.unmockPluginDir()
 
-    def testBadPlugin(self):
+    @mock.patch('girder.utility.plugin_utilities.logprint.exception')
+    def testBadPlugin(self, logprint):
         pluginRoot = os.path.normpath(os.path.join(
             os.path.dirname(os.path.abspath(__file__)), '..', '..', 'test', 'test_plugins'
         ))

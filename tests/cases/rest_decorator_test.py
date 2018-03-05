@@ -18,6 +18,7 @@
 ###############################################################################
 
 import json
+import mock
 import os
 import requests
 
@@ -36,7 +37,8 @@ def setUpModule():
     base.mockPluginDir(testPluginPath)
     base.enabledPlugins = ['test_plugin']
 
-    base.startServer(mock=False)
+    with mock.patch('girder.utility.plugin_utilities.logprint.exception'):
+        base.startServer(mock=False)
 
 
 def tearDownModule():
@@ -45,6 +47,10 @@ def tearDownModule():
 
 class TestEndpointDecoratorException(base.TestCase):
     """Tests the endpoint decorator exception handling."""
+
+    def setUp(self):
+        with mock.patch('girder.utility.plugin_utilities.logprint.exception'):
+            super(TestEndpointDecoratorException, self).setUp()
 
     @endpoint
     def pointlessEndpointAscii(self, path, params):
