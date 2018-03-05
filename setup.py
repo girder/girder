@@ -77,7 +77,7 @@ installReqs = [
     'python-dateutil',
     'pytz',
     'requests',
-    'shutilwhich ; python_version < \'3.3\'',
+    'shutilwhich ; python_version < \'3\'',
     'six>=1.9',
 ]
 
@@ -152,7 +152,7 @@ setup(
             'api/api_docs.mako'
         ]
     },
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*',
     install_requires=installReqs,
     extras_require=extrasReqs,
     zip_safe=False,
