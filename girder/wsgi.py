@@ -18,11 +18,13 @@
 ###############################################################################
 
 import cherrypy
-from girder.utility import server
+from girder.utility import config, server
 
+config.loadConfig()  # Read the config files first, so we can override some values
 cherrypy.config.update({'engine.autoreload.on': False,
                         'environment': 'embedded'})
-cherrypy.config['server'].update({'cherrypy_server': False})
+cherrypy.config['server'].update({'cherrypy_server': False,
+                                  'disable_event_daemon': True})
 
 # 'application' is the default callable object for WSGI implementations, see PEP 3333 for more.
 application = server.setup()

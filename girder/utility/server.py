@@ -162,6 +162,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
     root = webroot.Webroot()
     api_main.addApiToNode(root)
 
+    girder.events.setupDaemon()
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 

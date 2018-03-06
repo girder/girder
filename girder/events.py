@@ -45,9 +45,12 @@ import contextlib
 import girder
 import threading
 
-
 from girder.utility import config
 from six.moves import queue
+
+_deprecated = {}
+_mapping = {}
+daemon = None
 
 
 class Event(object):
@@ -315,10 +318,9 @@ def trigger(eventName, info=None, pre=None, async=False, daemon=False):
     return e
 
 
-_deprecated = {}
-_mapping = {}
-
-if config.getConfig()['server'].get('disable_event_daemon', False):
-    daemon = ForegroundEventsDaemon()
-else:
-    daemon = AsyncEventsThread()
+def setupDaemon():
+    global daemon
+    if config.getConfig()['server'].get('disable_event_daemon', False):
+        daemon = ForegroundEventsDaemon()
+    else:
+        daemon = AsyncEventsThread()
