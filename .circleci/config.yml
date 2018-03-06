@@ -52,7 +52,7 @@ jobs:
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e circleci-py27
+          command: tox -e circleci-py27,docs
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
@@ -137,7 +137,7 @@ jobs:
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e circleci-py35
+          command: tox -e circleci-py35,docs
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results

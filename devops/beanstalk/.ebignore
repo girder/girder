@@ -6,8 +6,6 @@
 # From .gitignore
 *.py[cod]
 node_modules
-docs/_build
-docs/_output
 girder.egg-info
 .DS_Store
 .*.swp

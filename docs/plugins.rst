@@ -678,7 +678,7 @@ and then set a "vega: true" metadata field on the item. The visualization will t
 directly in the item view.
 
 Server FUSE
------------ 
+-----------
 
 When this plugin is enabled *and* the appropriate configuration option is set,
 it mounts a read-only user-space filesystem that allows reading any file in
@@ -694,7 +694,9 @@ FUSE mount is available, these will work -- instead of passing the Girder file
 object, call `girder.plugins.fuse.getFuseFilePath(girderFile)` to get a path to
 the file.
 
-To enable a FUSE mount, add the base path to the Girder configation file::
+To enable a FUSE mount, add the base path to the Girder configuration file:
+
+.. code-block:: ini
 
     [server_fuse]
     path = '/tmp/fuse'
@@ -703,7 +705,7 @@ The path can be any location on the local file system where Girder has
 permission to create a file.  If the path already exists, it must be an empty
 directory.
 
-.. note:: If Girder is `SIGKILL`ed with open file handles on the FUSE, it may
-   not be possible to fully clean up the open file system, and defunct 
+.. note:: If Girder is sent `SIGKILL` with open file handles on the FUSE, it may
+   not be possible to fully clean up the open file system, and defunct
    processes may linger.  This is a limitation of libfuse, and may require a
    reboot to clear the lingering mount.

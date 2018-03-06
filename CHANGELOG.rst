@@ -69,14 +69,14 @@ Removals
 --------
 * The CMake options ``PYTHON_COVERAGE``, ``PYTHON_BRANCH_COVERAGE``, and ``PYTHON_COVERAGE_CONFIG`` are removed, and will have no effect if set.
   Python tests will always output coverage information, using a standardized configuration. If external test infrastructure needs to be run with
-  different options, it should invoke ``pytest -cov-config ...` or `coverage run --rcfile=...` directly.
+  different options, it should invoke ``pytest -cov-config ...`` or ``coverage run --rcfile=...`` directly.
   (`#2517 <https://github.com/girder/girder/pull/2517>`_)
 * The CMake options ``COVERAGE_MINIMUM_PASS`` and ``JS_COVERAGE_MINIMUM_PASS`` are removed, and will have no effect if set.
   If external test infrastructure needs to set a coverage threshold, it should be done with a Codecov (or similar service) configuration.
   (`#2545 <https://github.com/girder/girder/pull/2545>`_)
 * The CMake options ``ESLINT_CONFIG_FILE`` and ``ESLINT_IGNORE_FILE`` are removed, and will have no effect if set.
   If external test infrastructure needs to override ESLint configuration,
-  `it should be done using ESLint's built-in configuration cascading mechanisms<plugin-development.html#customizing-static-analysis-of-client-side-code>`_.
+  `it should be done using ESLint's built-in configuration cascading mechanisms <plugin-development.html#customizing-static-analysis-of-client-side-code>`_.
   Most typical external plugins will continue to work with their current configuration.
 * The deprecated ``DELETE /user/password`` endpoint is removed. The ``PUT /user/password/temporary``
   endpoint should always be used to reset passwords, as it uses a secure, token-based password
