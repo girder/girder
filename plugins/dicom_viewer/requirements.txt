@@ -1,1 +1,1 @@
-pydicom>=1.0.1rc1
+pydicom>=1.0.2
