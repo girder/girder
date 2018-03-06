@@ -48,10 +48,6 @@ import threading
 from girder.utility import config
 from six.moves import queue
 
-_deprecated = {}
-_mapping = {}
-daemon = None
-
 
 class Event(object):
     """
@@ -316,6 +312,11 @@ def trigger(eventName, info=None, pre=None, async=False, daemon=False):
             break
 
     return e
+
+
+_deprecated = {}
+_mapping = {}
+daemon = ForegroundEventsDaemon()
 
 
 def setupDaemon():
