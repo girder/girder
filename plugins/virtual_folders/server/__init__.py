@@ -92,7 +92,7 @@ def _virtualChildItems(self, event):
         return  # Parent is not a virtual folder, proceed as normal
 
     limit, offset, sort = self.getPagingParameters(params, defaultSortField='name')
-    q = json.loads(folder['virtualItemsQuery'], object_hook=json_util.object_hook)
+    q = json_util.loads(folder['virtualItemsQuery'])
 
     if 'virtualItemsSort' in folder:
         sort = json.loads(folder['virtualItemsSort'])
