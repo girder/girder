@@ -208,3 +208,4 @@ Removals
 --------
 
 * Remove the unmaintained external web client
+* Remove the unmaintained jQuery "girderBrowser" client, and associated "jquery_widgets" plugin
