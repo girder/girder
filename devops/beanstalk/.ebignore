@@ -21,7 +21,6 @@ __pycache__
 **/*.retry
 
 /clients/python
-/clients/jquery
 /clients/web-external
 /cmake
 /devops
