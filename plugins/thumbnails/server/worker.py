@@ -22,7 +22,7 @@ import functools
 import six
 import sys
 import traceback
-import dicom
+import pydicom
 import numpy as np
 
 from girder import events
@@ -171,7 +171,7 @@ def _getImage(mimeType, extension, data):
     """
     if (extension and extension[-1] == 'dcm') or mimeType == 'application/dicom':
         # Open the dicom image
-        dicomData = dicom.read_file(six.BytesIO(data))
+        dicomData = pydicom.dcmread(six.BytesIO(data))
         return scaleDicomLevels(dicomData)
     else:
         # Open other types of images

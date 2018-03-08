@@ -324,4 +324,5 @@ def _upload(gc, parent_type, parent_id, local_folder,
 
 
 if __name__ == '__main__':
-    main()  # pragma: no cover
+    click.echo('Deprecation notice: Use "girder-client" to run the CLI.', err=True)
+    main()

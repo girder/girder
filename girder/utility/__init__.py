@@ -35,7 +35,7 @@ try:
     from random import SystemRandom
     random = SystemRandom()
     random.random()  # potentially raises NotImplementedError
-except NotImplementedError:  # pragma: no cover
+except NotImplementedError:
     girder.logprint.warning(
         'WARNING: using non-cryptographically secure PRNG.')
     import random
@@ -199,6 +199,8 @@ def optionalArgumentDecorator(baseDecorator):
     be passed to the target decorator as additional arguments.
 
     For example, this may be used as:
+
+    .. code-block:: python
 
         @optionalArgumentDecorator
         def myDec(fun, someArg=None):

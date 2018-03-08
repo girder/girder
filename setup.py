@@ -119,7 +119,6 @@ with open(init) as fd:
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
         fd.read(), re.MULTILINE).group(1)
 
-# perform the install
 setup(
     name='girder',
     version=version,
@@ -162,16 +161,16 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'girder-server = girder.__main__:main',
+            'girder-server = girder.cli.serve:main',
             'girder-install = girder.utility.install:main',
-            'girder-sftpd = girder.api.sftp:main',
-            'girder-shell = girder.utility.shell:main',
+            'girder-sftpd = girder.cli.sftpd:main',
+            'girder-shell = girder.cli.shell:main',
             'girder = girder.cli:main'
         ],
         'girder.cli_plugins': [
-            'serve = girder.__main__:main',
-            'shell = girder.utility.shell:main',
-            'sftpd = girder.api.sftp:main'
+            'serve = girder.cli.serve:main',
+            'shell = girder.cli.shell:main',
+            'sftpd = girder.cli.sftpd:main'
         ]
     }
 )

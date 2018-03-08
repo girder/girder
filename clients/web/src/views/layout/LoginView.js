@@ -5,7 +5,7 @@ import View from 'girder/views/View';
 import events from 'girder/events';
 import { handleClose, handleOpen } from 'girder/dialog';
 import { login } from 'girder/auth';
-import { restRequest } from 'girder/rest';
+import UserModel from 'girder/models/UserModel';
 
 import LoginDialogTemplate from 'girder/templates/layout/loginDialog.pug';
 
@@ -20,38 +20,39 @@ var LoginView = View.extend({
         'submit #g-login-form': function (e) {
             e.preventDefault();
 
-            login(this.$('#g-login').val(), this.$('#g-password').val());
-
-            events.once('g:login.success', function () {
-                this.$el.modal('hide');
-            }, this);
-
-            events.once('g:login.error', function (status, err) {
-                this.$('.g-validation-failed-message').text(err.responseJSON.message);
-                this.$('#g-login-button').girderEnable(true);
-                if (err.responseJSON.extra === 'emailVerification') {
-                    var html = err.responseJSON.message +
-                        ' <a class="g-send-verification-email">Click here to send verification email.</a>';
-                    $('.g-validation-failed-message').html(html);
-                }
-            }, this);
-
             this.$('#g-login-button').girderEnable(false);
             this.$('.g-validation-failed-message').text('');
+
+            const loginName = this.$('#g-login').val();
+            const password = this.$('#g-password').val();
+            login(loginName, password)
+                .done(() => {
+                    this.$el.modal('hide');
+                })
+                .fail((err) => {
+                    this.$('.g-validation-failed-message').text(err.responseJSON.message);
+
+                    if (err.responseJSON.extra === 'emailVerification') {
+                        var html = err.responseJSON.message +
+                            ' <a class="g-send-verification-email">Click here to send verification email.</a>';
+                        $('.g-validation-failed-message').html(html);
+                    }
+                })
+                .always(() => {
+                    this.$('#g-login-button').girderEnable(true);
+                });
         },
 
         'click .g-send-verification-email': function () {
             this.$('.g-validation-failed-message').html('');
-            restRequest({
-                url: 'user/verification',
-                method: 'POST',
-                data: {login: this.$('#g-login').val()},
-                error: null
-            }).done((resp) => {
-                this.$('.g-validation-failed-message').html(resp.message);
-            }).fail((err) => {
-                this.$('.g-validation-failed-message').html(err.responseJSON.message);
-            });
+
+            const loginName = this.$('#g-login').val();
+            UserModel.sendVerificationEmail(loginName)
+                .done((resp) => {
+                    this.$('.g-validation-failed-message').html(resp.message);
+                }).fail((err) => {
+                    this.$('.g-validation-failed-message').html(err.responseJSON.message);
+                });
         },
 
         'click a.g-register-link': function () {

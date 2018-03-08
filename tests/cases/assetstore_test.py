@@ -496,7 +496,8 @@ class AssetstoreTestCase(base.TestCase):
     def testS3AssetstoreAdapter(self):
         # Delete the default assetstore
         Assetstore().remove(self.assetstore)
-        s3Regex = r'^https://s3.amazonaws.com(:443)?/bucketname/foo/bar'
+        s3Regex = (r'^(https://s3.amazonaws.com(:443)?/bucketname/foo/bar|'
+                   'https://bucketname.s3.amazonaws.com(:443)?/foo/bar)')
 
         params = {
             'name': 'S3 Assetstore',
@@ -675,7 +676,7 @@ class AssetstoreTestCase(base.TestCase):
         # Test download as part of a streaming zip
         @httmock.all_requests
         def s3_pipe_mock(url, request):
-            if url.netloc.startswith('s3.amazonaws.com') and url.scheme == 'https':
+            if 's3.amazonaws.com' in url.netloc and url.scheme == 'https':
                 return 'dummy file contents'
             else:
                 raise Exception('Unexpected url %s' % url)

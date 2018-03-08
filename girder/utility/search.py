@@ -30,8 +30,8 @@ def getSearchModeHandler(mode):
 
     :param mode: A search mode identifier.
     :type mode: str
-    :returns A search mode handler function, or None.
-    :rtype function or None
+    :returns: A search mode handler function, or None.
+    :rtype: function or None
     """
     return _allowedSearchMode.get(mode)
 
@@ -62,8 +62,8 @@ def removeSearchMode(mode):
 
     :param mode: A search mode identifier.
     :type mode: str
-    :returns Whether the search mode was actually removed.
-    :rtype bool
+    :returns: Whether the search mode was actually removed.
+    :rtype: bool
     """
     return _allowedSearchMode.pop(mode, None) is not None
 

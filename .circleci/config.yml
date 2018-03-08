@@ -52,7 +52,7 @@ jobs:
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e circleci-py27
+          command: tox -e circleci-py27,docs
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
@@ -137,7 +137,7 @@ jobs:
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e circleci-py35
+          command: tox -e circleci-py35,docs
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
@@ -210,6 +210,13 @@ jobs:
     steps:
       - checkout:
           path: girder
+      - run:
+          # Technically, we should add the circleci user to the fuse group, log
+          # out, and log back in for it to take effect.  This allows fuse to be
+          # available to all users without requiring them to be in the fuse
+          # group
+          name: Allow access to /etc/fuse.conf by all users
+          command: sudo chmod a+r /etc/fuse.conf
       - run:
           name: Get rid of existing versions of Mongo
           command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
@@ -307,6 +314,13 @@ jobs:
     steps:
       - checkout:
           path: girder
+      - run:
+          # Technically, we should add the circleci user to the fuse group, log
+          # out, and log back in for it to take effect.  This allows fuse to be
+          # available to all users without requiring them to be in the fuse
+          # group
+          name: Allow access to /etc/fuse.conf by all users
+          command: sudo chmod a+r /etc/fuse.conf
       - run:
           name: Get rid of existing versions of Mongo
           command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true

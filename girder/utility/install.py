@@ -375,7 +375,3 @@ def main():
 
     parsed = parser.parse_args()
     parsed.func(parsed)
-
-
-if __name__ == '__main__':
-    main()  # pragma: no cover

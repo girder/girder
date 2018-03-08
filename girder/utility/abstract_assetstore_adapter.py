@@ -171,7 +171,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :param upload: The upload document to optionally augment.
         :type upload: dict
         """
-        return upload  # pragma: no cover
+        return upload
 
     def uploadChunk(self, upload, chunk):
         """
@@ -184,7 +184,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :returns: Must return the upload document with any optional changes.
         """
         raise NotImplementedError('Must override processChunk in %s.' %
-                                  self.__class__.__name__)  # pragma: no cover
+                                  self.__class__.__name__)
 
     def finalizeUpload(self, upload, file):
         """
@@ -221,7 +221,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type file: dict
         """
         raise NotImplementedError('Must override deleteFile in %s.' %
-                                  self.__class__.__name__)  # pragma: no cover
+                                  self.__class__.__name__)
 
     def shouldImportFile(self, path, params):
         """
@@ -272,7 +272,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type extraParameters: str or None
         """
         raise NotImplementedError('Must override downloadFile in %s.' %
-                                  self.__class__.__name__)  # pragma: no cover
+                                  self.__class__.__name__)
 
     def findInvalidFiles(self, progress=progress.noProgress, filters=None,
                          checkSize=True, **kwargs):
@@ -291,7 +291,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :type checkSize: bool
         """
         raise NotImplementedError('Must override findInvalidFiles in %s.' %
-                                  self.__class__.__name__)  # pragma: no cover
+                                  self.__class__.__name__)
 
     def copyFile(self, srcFile, destFile):
         """
@@ -379,7 +379,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         information the assetstore contains.
         """
         raise NotImplementedError('Must override cancelUpload in %s.' %
-                                  self.__class__.__name__)  # pragma: no cover
+                                  self.__class__.__name__)
 
     def untrackedUploads(self, knownUploads=(), delete=False):
         """
@@ -415,7 +415,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         """
         raise NotImplementedError(
             'The %s assetstore type does not support importing existing data.'
-            % self.__class__.__name__)  # pragma: no cover
+            % self.__class__.__name__)
 
     def fileUpdated(self, file):
         """

@@ -515,7 +515,7 @@ def _createResponse(val):
     for accept in accepts:
         if accept.value == 'application/json':
             break
-        elif accept.value == 'text/html':  # pragma: no cover
+        elif accept.value == 'text/html':
             # Pretty-print and HTML-ify the response for the browser
             setResponseHeader('Content-Type', 'text/html')
             resp = cgi.escape(json.dumps(

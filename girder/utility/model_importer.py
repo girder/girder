@@ -39,7 +39,7 @@ def _loadModel(model, module, plugin):
 
     try:
         constructor = getattr(imported, className)
-    except AttributeError:  # pragma: no cover
+    except AttributeError:
         raise Exception('Incorrect model class name "%s" for model "%s".' % (
             className, module))
 

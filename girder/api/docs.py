@@ -77,7 +77,7 @@ def addRouteDocs(resource, route, method, info, handler):
     :param method: The HTTP method for this route, e.g. "POST"
     :type method: str
     :param info: The information representing the API documentation, typically
-    from ``girder.api.describe.Description.asDict``.
+                 from ``girder.api.describe.Description.asDict``.
     :type info: dict
     :param handler: The actual handler method for this route.
     :type handler: function

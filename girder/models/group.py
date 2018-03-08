@@ -409,7 +409,7 @@ class Group(AccessControlledModel):
             return level
 
     def setGroupAccess(self, doc, group, level, save=False):
-        raise Exception('Not implemented.')  # pragma: no cover
+        raise NotImplementedError('Not implemented.')
 
     def setUserAccess(self, doc, user, level, save=False):
         """

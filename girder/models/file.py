@@ -146,7 +146,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                             'endByte': endByte,
                             'redirect': False})
                 return stream
-        else:  # pragma: no cover
+        else:
             raise Exception('File has no known download mechanism.')
 
     def validate(self, doc):
