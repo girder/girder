@@ -18,5 +18,5 @@
 ###############################################################################
 
 
-class PluginSettings:
+class PluginSettings(object):
     LDAP_SERVERS = 'ldap.servers'
