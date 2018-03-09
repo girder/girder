@@ -18,11 +18,11 @@
 ###############################################################################
 
 
-class PluginSettings:
+class PluginSettings(object):
     LICENSES = 'item_licenses.licenses'
 
 
-class PluginSettingsDefaults:
+class PluginSettingsDefaults(object):
     defaults = {
         PluginSettings.LICENSES: [
             {

@@ -19,5 +19,5 @@
 
 
 # Constants representing the setting keys for this plugin
-class PluginSettings:
+class PluginSettings(object):
     PROVENANCE_RESOURCES = 'provenance.resources'

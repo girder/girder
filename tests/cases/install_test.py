@@ -34,7 +34,7 @@ pluginRoot = os.path.normpath(os.path.join(
 ))
 
 
-class PluginOpts():
+class PluginOpts(object):
     def __init__(self, plugin=None, force=False, symlink=False, dev=False, npm='npm',
                  skip_requirements=False, all_plugins=False, plugins=None, watch=False,
                  watch_plugin=None, plugin_prefix='plugin', no_plugins=False):
