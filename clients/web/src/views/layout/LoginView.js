@@ -25,7 +25,8 @@ var LoginView = View.extend({
 
             const loginName = this.$('#g-login').val();
             const password = this.$('#g-password').val();
-            login(loginName, password)
+            const otpToken = this.$('#g-login-otp').val() || null;
+            login(loginName, password, otpToken)
                 .done(() => {
                     this.$el.modal('hide');
                 })

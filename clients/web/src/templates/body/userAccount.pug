@@ -15,6 +15,10 @@ ul.g-account-tabs.nav.nav-tabs
     a(href="#g-account-tab-api-keys", data-toggle="tab", name="apikeys")
       i.icon-key-inv
       | API keys
+  li
+    a(href="#g-account-tab-otp", data-toggle="tab", name="otp")
+      i.icon-mobile
+      | Two-factor authentication
 
 .tab-content
   #g-account-tab-info.tab-pane.active
@@ -71,3 +75,9 @@ ul.g-account-tabs.nav.nav-tabs
         the default expiration for user login sessions will be used.
 
       .g-api-keys-list-container
+  #g-account-tab-otp.tab-pane
+    .g-user-settings-container
+      .g-account-otp-info-text.
+        Two factor authentication...
+
+      .g-account-otp-container

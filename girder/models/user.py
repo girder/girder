@@ -20,12 +20,15 @@
 import datetime
 import os
 import re
+from passlib.totp import TOTP, TokenError
 
 from .model_base import AccessControlledModel
+from .setting import Setting
 from girder import events
 from girder.constants import AccessType, CoreEventHandler, SettingKey, TokenScope
 from girder.exceptions import AccessException, ValidationException
 from girder.utility import config, mail_utils
+from girder.utility._cache import cache
 
 
 class User(AccessControlledModel):
@@ -52,6 +55,13 @@ class User(AccessControlledModel):
         self.exposeFields(level=AccessType.ADMIN, fields=(
             'size', 'email', 'groups', 'groupInvites', 'status',
             'emailVerified'))
+
+        # To ensure compatibility with authenticator apps, other defaults shouldn't be changed
+        self._TotpFactory = TOTP.using(
+            issuer=Setting().get(SettingKey.BRAND_NAME),
+            # TODO: Add an application secret here
+            wallet=None
+        )
 
         events.bind('model.user.save.created',
                     CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)
@@ -127,7 +137,7 @@ class User(AccessControlledModel):
 
         return doc
 
-    def authenticate(self, login, password):
+    def authenticate(self, login, password, otpToken=None):
         """
         Validate a user login via username and password. If authentication fails,
         a ``AccessException`` is raised.
@@ -158,6 +168,11 @@ class User(AccessControlledModel):
 
         if not Password().authenticate(user, password):
             raise AccessException('Login failed.')
+
+        if self.hasOtp(user):
+            self.verifyOtp(user, otpToken)
+        elif otpToken:
+            raise AccessException('The user has not enabled one-time passwords.')
 
         # This has the same behavior as User.canLogin, but returns more
         # detailed error messages
@@ -261,6 +276,47 @@ class User(AccessControlledModel):
 
         if save:
             self.save(user)
+
+    def initializeOtp(self, user):
+        """
+        Initialize the use of one-time passwords with this user.
+
+        This does not save the modified user model.
+
+        :param user: The user to modify.
+        :return: The new OTP key, in KeyUriFormat.
+        :rtype: str
+        """
+        totp = self._TotpFactory.new()
+
+        user['otp'] = {
+            'enabled': False,
+            'totp': totp.to_dict()
+        }
+
+        return totp.to_uri(label=user['login'])
+
+    def hasOtp(self, user):
+        return 'otp' in user and user['otp']['enabled']
+
+    def verifyOtp(self, user, otpToken):
+        counterCacheKey = 'girder.models.user.%s.otp.totp.counter' % user['_id']
+
+        # TODO: Should we create a new cache region?
+        lastCounter = cache.get(counterCacheKey) or None
+
+        try:
+            totpMatch = self._model._TotpFactory.verify(
+                otpToken, user['otp']['totp'], last_counter=lastCounter)
+        except TokenError as e:
+            # TODO: implement rate limiting
+            raise AccessException('One-time password validation failed: %s' % e)
+
+        # The totpMatch.cache_seconds tells us prospectively how long the counter needs to be cached
+        # for, but dogpile.cache expiration times work retrospectively (on "get"), so there's no
+        # point to using it (over-caching just wastes cache resources, but does not impact
+        # "totp.verify" security)
+        cache.set(counterCacheKey, totpMatch.counter)
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):

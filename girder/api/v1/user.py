@@ -57,6 +57,9 @@ class User(Resource):
                    self.checkTemporaryPassword)
         self.route('PUT', ('password', 'temporary'),
                    self.generateTemporaryPassword)
+        self.route('POST', (':id', 'otp'), self.initializeOtp)
+        self.route('PUT', (':id', 'otp'), self.finalizeOtp)
+        self.route('DELETE', (':id', 'otp'), self.removeOtp)
         self.route('PUT', (':id', 'verification'), self.verifyEmail)
         self.route('POST', ('verification',), self.sendVerificationEmail)
 
@@ -98,6 +101,8 @@ class User(Resource):
         Description('Log in to the system.')
         .notes('Pass your username and password using HTTP Basic Auth. Sends'
                ' a cookie that should be passed back in future requests.')
+        .param('Girder-OTP', 'A one-time-password for this user', paramType='header',
+               required=False)
         .errorResponse('Missing Authorization header.', 401)
         .errorResponse('Invalid login or password.', 403)
     )
@@ -125,7 +130,8 @@ class User(Resource):
                 raise RestException('Invalid HTTP Authorization header', 401)
 
             login, password = credentials.split(':', 1)
-            user = self._model.authenticate(login, password)
+            otpToken = cherrypy.request.headers.get('Girder-OTP')
+            user = self._model.authenticate(login, password, otpToken)
 
             setCurrentUser(user)
             token = self.sendAuthTokenCookie(user)
@@ -370,6 +376,62 @@ class User(Resource):
             'nFolders': self._model.countFolders(
                 user, filterUser=self.getCurrentUser(), level=AccessType.READ)
         }
+
+    @access.user
+    @autoDescribeRoute(
+        Description('Initiate the enablement of one-time passwords for this user.')
+        .modelParam('id', model=UserModel, level=AccessType.ADMIN)
+        .errorResponse()
+        .errorResponse('Admin access was denied on the user.', 403)
+    )
+    def initializeOtp(self, user):
+        if self._model.hasOtp(user):
+            raise RestException('The user has already enabled one-time passwords.')
+
+        otpUri = self._model.initializeOtp(user)
+        self._model.save(user)
+
+        return {
+            'otpUri': otpUri
+        }
+
+    @access.user
+    @autoDescribeRoute(
+        Description('Finalize the enablement of one-time passwords for this user.')
+        .modelParam('id', model=UserModel, level=AccessType.ADMIN)
+        .param('Girder-OTP', 'A one-time-password for this user', paramType='header')
+        .errorResponse()
+        .errorResponse('Admin access was denied on the user.', 403)
+    )
+    def finalizeOtp(self, user):
+        otpToken = cherrypy.request.headers.get('Girder-OTP')
+        if not otpToken:
+            raise RestException('The "Girder-OTP" header must be provided.')
+
+        if 'otp' not in user:
+            raise RestException('The user has not initialized one-time passwords.')
+        if self._model.hasOtp(user):
+            raise RestException('The user has already enabled one-time passwords.')
+
+        user['otp']['enabled'] = True
+        # This will raise an exception if the verification fails, so the user will not be saved
+        self._model.verifyOtp(user, otpToken)
+
+        self._model.save(user)
+
+    @access.user
+    @autoDescribeRoute(
+        Description('Disable one-time passwords for this user.')
+        .modelParam('id', model=UserModel, level=AccessType.ADMIN)
+        .errorResponse()
+        .errorResponse('Admin access was denied on the user.', 403)
+    )
+    def removeOtp(self, user):
+        if not self._model.hasOtp(user):
+            raise RestException('The user has not enabled one-time passwords.')
+
+        del self._model['otp']
+        self._model.save(user)
 
     @access.public
     @autoDescribeRoute(
