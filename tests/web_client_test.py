@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import mock
 import os
 import six
 import subprocess
@@ -39,33 +38,23 @@ from six.moves import range
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')
 config.loadConfig()  # Reload config to pick up correct port
 testServer = None
-logprintMock = None
 
 
 def setUpModule():
     global testServer
-    global logprintMock
     mockS3 = False
     if 's3' in os.environ['ASSETSTORE_TYPE']:
         mockS3 = True
-
-    pluginDir = os.environ.get('PLUGIN_DIR', '')
-
-    if pluginDir:
-        base.mockPluginDir(pluginDir)
 
     plugins = os.environ.get('ENABLED_PLUGINS', '')
     if plugins:
         base.enabledPlugins.extend(plugins.split())
 
-    logprintMock = mock.patch('girder.utility.plugin_utilities.logprint')
-    logprintMock.start()
     testServer = base.startServer(False, mockS3=mockS3)
 
 
 def tearDownModule():
     base.stopServer()
-    logprintMock.stop()
 
 
 class WebClientTestEndpoints(Resource):
@@ -173,7 +162,7 @@ class WebClientTestCase(base.TestCase):
                 imp.load_source('girder.web_test_setup%d' % i, script)
 
     def testWebClientSpec(self):
-        baseUrl = '/static/built/testing/testEnv.html'
+        baseUrl = '/static/built/testEnv.html'
         if os.environ.get('BASEURL', ''):
             baseUrl = os.environ['BASEURL']
 

@@ -18,35 +18,48 @@
  * Define tasks specific to development. These tasks are excluded from the
  * build system for installed girder packages.
  */
+var path = require('path');
+
 module.exports = function (grunt) {
     if (grunt.config.get('environment') !== 'dev') {
         return;
+    }
+
+    function resolveBuiltPath() {
+        var built = grunt.config.get('builtPath');
+        return path.resolve(...[built, ...arguments]);
+    }
+
+    function resolveTestPath() {
+        return path.resolve(...[
+            'test', ...arguments
+        ]);
     }
 
     grunt.config.merge({
         uglify: {
             test: {
                 files: {
-                    'clients/web/static/built/testing/testing.min.js': [
-                        'node_modules/core-js/client/shim.js',
-                        'node_modules/whatwg-fetch/fetch.js',
-                        'clients/web/test/lib/jasmine-1.3.1/jasmine.js',
-                        'clients/web/test/lib/jasmine-1.3.1/ConsoleReporter.js',
-                        'clients/web/test/testUtils.js'
+                    [resolveBuiltPath('testing.min.js')]: [
+                        require.resolve('core-js/client/shim'),
+                        require.resolve('whatwg-fetch/fetch.js'),
+                        resolveTestPath('lib/jasmine-1.3.1/jasmine.js'),
+                        resolveTestPath('lib/jasmine-1.3.1/ConsoleReporter.js'),
+                        resolveTestPath('testUtils.js')
                     ]
                 }
             }
         },
         copy: {
             test: {
-                src: 'clients/web/test/lib/jasmine-1.3.1/jasmine.css',
-                dest: 'clients/web/static/built/testing/testing.min.css'
+                src: resolveTestPath('lib/jasmine-1.3.1/jasmine.css'),
+                dest: resolveBuiltPath('testing.min.css')
             }
         },
         pug: {
             test: {
-                src: 'clients/web/test/testEnv.pug',
-                dest: 'clients/web/static/built/testing/testEnv.html',
+                src: resolveTestPath('testEnv.pug'),
+                dest: resolveBuiltPath('testEnv.html'),
                 options: {
                     data: {
                         cssFiles: [
@@ -58,7 +71,7 @@ module.exports = function (grunt) {
                         jsFiles: [
                             '/static/built/girder_lib.min.js',
                             '/static/built/girder_app.min.js',
-                            '/static/built/testing/testing.min.js'
+                            '/static/built/testing.min.js'
                         ],
                         staticRoot: '/static',
                         apiRoot: '/api/v1'

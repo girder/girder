@@ -37,12 +37,19 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.abspath(
 @click.option('--staging', type=click.Path(file_okay=False, writable=True, resolve_path=True),
               default=os.path.join(STATIC_PREFIX, 'staging'),
               help='Path to a staging area.')
-def build(staging):
-    _generateStagingArea(staging)
+@click.option('--dev/--no-dev', default=False,
+              help='Build girder client for development.')
+def build(staging, dev):
+    _generateStagingArea(staging, dev)
 
     check_call(['npm', 'install'], cwd=staging)
-    check_call(['npx', '-n', '--preserve-symlinks', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR],
-               cwd=staging)
+    buildCommand = [
+        'npx', '-n', '--preserve-symlinks', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR]
+    if dev:
+        buildCommand.append('--env=dev')
+    else:
+        buildCommand.append('--env=prod')
+    check_call(buildCommand, cwd=staging)
 
 
 def _checkStagingPath(staging):
@@ -58,7 +65,24 @@ def _checkStagingPath(staging):
         f.write('')
 
 
-def _generateStagingArea(staging):
+def _linkTestFiles(staging):
+    source = os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'clients', 'web', 'test')
+    target = os.path.join(staging, 'test')
+    if os.path.exists(target):
+        os.unlink(target)
+    os.symlink(source, target)
+
+
+def _npmInstallGirderSourcePath():
+    # TODO: This is a hack to make many of the cmake based runners, which run
+    # from girder's source tree to include necessary development npm libraries.
+    # In the future, we could either limit the number of dependencies are in the
+    # top-level girder repo, or move things like eslint checking and web client
+    # test running into the staging area.
+    check_call(['npm', 'install'], cwd=_GIRDER_BUILD_ASSETS_PATH)
+
+
+def _generateStagingArea(staging, dev):
     _checkStagingPath(staging)
     for baseName in ['grunt_tasks', 'Gruntfile.js']:
         target = os.path.join(staging, baseName)
@@ -67,13 +91,17 @@ def _generateStagingArea(staging):
         os.symlink(os.path.join(_GIRDER_BUILD_ASSETS_PATH, baseName), target)
     _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json'))
 
-    # copy swagger page source (TODO: make this better)
+    # copy swagger page source (TODO: make this better so it doesn't depend on the source dir)
     source = os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'clients', 'web', 'static',
                           'girder-swagger.js')
     target = os.path.join(staging, 'girder-swagger.js')
     if os.path.exists(target):
         os.unlink(target)
     os.symlink(source, target)
+
+    if dev:
+        _npmInstallGirderSourcePath()
+        _linkTestFiles(staging)
 
 
 def _collectPluginDependencies():
