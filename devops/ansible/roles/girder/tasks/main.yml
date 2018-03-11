@@ -56,12 +56,13 @@
 - include: daemon.yml
   when: girder_daemonize
 
-- name: Install Girder Plugins
-  command: "{{ girder_install_executable|default('girder-install') }} plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
-  with_items: "{{ girder_plugins }}"
+# TODO replace with a `pip install step`
+#- name: Install Girder Plugins
+#  command: "{{ girder_install_executable|default('girder-install') }} plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
+#  with_items: "{{ girder_plugins }}"
 
 - name: Build Girder (web)
-  command: "{{ girder_install_executable }} web {{ girder_web_extra_args }}"
+  command: "{{ girder_build_executable }} {{ girder_web_extra_args }}"
   args:
     chdir: "{{ girder_path }}"
   # ensure that the install is one that uses web assets and

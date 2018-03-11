@@ -213,6 +213,20 @@ jobs:
       - checkout:
           path: girder
       - run:
+          # TODO This should be done by ansible, but as a temporary fix we ensure
+          # that a recent enough node is installed for the --preserve-symlinks flag.
+          name: Use nvm
+          command: |
+            touch $BASH_ENV
+            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+            echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"' >> $BASH_ENV
+      - run:
+          name: Update nodejs
+          command: nvm install v6.3 && nvm alias default v6.3
+      - run:
+          name: Update npm
+          command: npm install -g npm
+      - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
           # available to all users without requiring them to be in the fuse
@@ -319,6 +333,20 @@ jobs:
     steps:
       - checkout:
           path: girder
+      - run:
+          # TODO This should be done by ansible, but as a temporary fix we ensure
+          # that a recent enough node is installed for the --preserve-symlinks flag.
+          name: Use nvm
+          command: |
+            touch $BASH_ENV
+            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+            echo '[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"' >> $BASH_ENV
+      - run:
+          name: Update nodejs
+          command: nvm install v6.3 && nvm alias default v6.3
+      - run:
+          name: Update npm
+          command: npm install -g npm
       - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be

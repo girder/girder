@@ -31,7 +31,7 @@ Role Variables
 | girder_daemonize           | no       | yes                                  | Whether to install the relevant service files (systemd or upstart). Disabling this can be useful inside of containers which might not have an init system.          |
 | girder_enabled             | no       | yes                                  | Whether to enable the installed service (requires `girder_daemonize`).                                                                                              |
 | girder_plugins             | no       | []                                   | List of paths to external plugins to install.                                                                                                                       |
-| girder_web_extra_args      | no       | none                                 | Any additional arguments to pass to `girder-install web`. Passing `--all-plugins` can be useful if your environment doesn't have access to Mongo at provision time. |
+| girder_web_extra_args      | no       | none                                 | Any additional arguments to pass to `girder-build`.                                                                                                                 |
 | girder_user                | no       | $SSH_USER                            | The (already existing) user to run Girder under, this defaults to `ansible_user_id` which is typically the user Ansible is running under.                           |
 
 Generated Facts
@@ -42,7 +42,7 @@ Generated Facts
 | girder_files_updated      | Whether or not the files installed for Girder changed during provisioning. This can be useful for determining if client side assets need to be rebuilt. |
 | girder_use_upstart        | Whether Girder decided to use upstart as the init system.                                                                                               |
 | girder_use_systemd        | Whether Girder decided to use systemd as the init system.                                                                                               |
-| girder_install_executable | The full path to the `girder-install` executable.                                                                                                       |
+| girder_build_executable | The full path to the `girder-build` executable.                                                                                                       |
 
 Examples
 --------

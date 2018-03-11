@@ -6,7 +6,7 @@
     girder_force: no
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
     girder_always_build_assets: yes
-    girder_web_extra_args: "--dev --all-plugins"
+    girder_web_extra_args: "--dev"
   pre_tasks:
     - name: Update package cache
       apt:

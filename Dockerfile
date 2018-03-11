@@ -28,6 +28,6 @@ COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 
 RUN pip install --upgrade --upgrade-strategy eager --editable .[plugins]
-RUN girder-install web --all-plugins
+RUN girder-build
 
 ENTRYPOINT ["girder", "serve"]

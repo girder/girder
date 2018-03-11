@@ -265,7 +265,7 @@ that will ask various questions about your setup (see above for supported platfo
 Build Girder and its client-side assets locally: ::
 
   $ pip install -e .[plugins]  # optionally build specific plugins
-  $ girder-install web --all-plugins  # optionally build specific plugins with --plugins
+  $ girder-build
 
 .. seealso::
 
