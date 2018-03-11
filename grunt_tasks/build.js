@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+const fs = require('fs');
 const path = require('path');
 const process = require('process');
 
@@ -41,6 +42,11 @@ module.exports = function (grunt) {
         // Babel will also fall back to using this if BABEL_ENV is not defined.
         process.env.NODE_ENV = isDev ? 'development' : 'production';
     }
+
+    // TODO: nyc will only instrument source files within it's cwd (it resolves symlinks).
+    // This will cause problems when we try to instrument plugins that are not present
+    // inside girder's source tree.
+    process.env.NYC_CWD = path.resolve(fs.realpathSync(__dirname), '..');
 
     // Load the global webpack config
     const webpackConfig = require('./webpack.config.js');

@@ -17,7 +17,7 @@ coverage:
         paths:
           - clients/python/girder_client
       web_client:
-        target: 80%
+        target: 75%
         paths:
           - clients/web/src
           - plugins/*/web_client
