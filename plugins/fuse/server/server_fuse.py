@@ -121,7 +121,8 @@ class ServerFuse(fuse.Operations, ModelImporter):
         except ValidationException:
             raise fuse.FuseOSError(errno.EROFS)
         except Exception:
-            self.log.exception('ServerFuse server internal error')
+            if self.log:
+                self.log.exception('ServerFuse server internal error')
             raise fuse.FuseOSError(errno.EROFS)
         return resource   # {model, document}
 
@@ -409,7 +410,7 @@ def unmountServerFuse(name):
 
 
 class FUSELogError(fuse.FUSE):
-    def __init__(self, operations, mountpoint, *args, **kwargs):
+    def __init__(self, name, operations, mountpoint, *args, **kwargs):
         """
         This wraps fuse.FUSE so that errors are logged rather than raising a
         RuntimeError exception.
@@ -422,6 +423,7 @@ class FUSELogError(fuse.FUSE):
                 'it empty?  Does the user have permission to create FUSE '
                 'mounts?  It could be another FUSE mount issue, too.' % (
                     mountpoint, ))
+            _fuseMounts.pop(name, None)
 
 
 def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
@@ -481,7 +483,7 @@ def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
             if sys.platform == 'darwin':
                 del options['auto_unmount']
             fuseThread = threading.Thread(
-                target=FUSELogError, args=(opClass, path), kwargs=options)
+                target=FUSELogError, args=(name, opClass, path), kwargs=options)
             fuseThread.daemon = True
             fuseThread.start()
             entry['thread'] = fuseThread

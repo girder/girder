@@ -199,6 +199,31 @@ class ServerFuseTestCase(base.TestCase):
                 canSee = nonVisiblePattern not in subpath
                 self.assertEqual(os.path.isdir(localpath), canSee)
 
+    def testBlockedMount(self):
+        """
+        Test that when a mount point is non-empty the mount fails, is reported,
+        and is not left in the list of mounts.
+        """
+        from girder.plugins.fuse import server_fuse
+
+        blockFile = os.path.join(self.extraMountPath, 'block')
+        open(blockFile, 'wb').close()
+        mountpath = self.extraMountPath
+        self.extraMount = 'test'
+        with mock.patch('girder.utility.plugin_utilities.logprint.error') as logprint:
+            server_fuse.mountServerFuse(
+                self.extraMount, mountpath, level=AccessType.READ, user=self.user)
+            # If can take a short amount of time to trigger an error, so wait
+            # for it
+            for iter in six.moves.range(50):
+                if logprint.call_count:
+                    break
+                time.sleep(0.1)
+            logprint.assert_called_once()
+        self.assertFalse(server_fuse.isServerFuseMounted(
+            self.extraMount, level=AccessType.READ, user=self.user))
+        os.unlink(blockFile)
+
     def testFilePath(self):
         """
         Test that all files report a FUSE path, and that this results in the
