@@ -321,6 +321,8 @@ daemon = ForegroundEventsDaemon()
 
 def setupDaemon():
     global daemon
+    daemon.stop()
+
     if config.getConfig()['server'].get('disable_event_daemon', False):
         daemon = ForegroundEventsDaemon()
     else:
