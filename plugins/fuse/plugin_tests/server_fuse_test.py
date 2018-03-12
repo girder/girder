@@ -226,21 +226,24 @@ class ServerFuseTestCase(base.TestCase):
                 with open(fusepath) as file1:
                     self.assertEqual(file1.read().strip(), self.knownPaths[subpath])
 
-    def testFilePathNoFullPath(self):
+    def testFilePathNoLocalPath(self):
         """
-        Test that if an assetstore adapter doesn't respond to fullPath, we
-        always get the fuse path.
+        Test that if an assetstore adapter doesn't respond to getLocalFilePath,
+        we always get the fuse path.
         """
         from girder.plugins import fuse as girder_fuse
         from girder.utility.filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 
+        def getLocalFilePath(self, file):
+            return super(FilesystemAssetstoreAdapter, self).getLocalFilePath(file)
+
         file = File().findOne()
 
-        origFullPath = FilesystemAssetstoreAdapter.fullPath
-        FilesystemAssetstoreAdapter.fullPath = None
+        origGetLocalFilePath = FilesystemAssetstoreAdapter.getLocalFilePath
+        FilesystemAssetstoreAdapter.getLocalFilePath = getLocalFilePath
         filepath = girder_fuse.getFilePath(file)
         fusepath = girder_fuse.getFuseFilePath(file)
-        FilesystemAssetstoreAdapter.fullPath = origFullPath
+        FilesystemAssetstoreAdapter.getLocalFilePath = origGetLocalFilePath
         self.assertTrue(os.path.exists(filepath))
         self.assertTrue(os.path.exists(fusepath))
         self.assertEqual(filepath, fusepath)

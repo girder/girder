@@ -77,3 +77,13 @@ class RestException(GirderBaseException):
         self.message = message
 
         super(RestException, self).__init__(message)
+
+
+class FilePathException(GirderException):
+    """
+    Thrown when a file path is requested and cannot be returned.
+    """
+    identifier = 'girder.utility.assetstore.file-path-not-available'
+
+    def __init__(self, message='No assetstore adapter', identifier=None):
+        super(FilePathException, self).__init__(message, identifier or self.identifier)

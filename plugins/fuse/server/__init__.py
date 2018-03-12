@@ -1,8 +1,9 @@
 import cherrypy
 
 from girder import logger
+from girder.exceptions import FilePathException
 from girder.models.file import File
-from girder.utility import config, mkdir
+from girder.utility import config, mkdir, abstract_assetstore_adapter
 
 from . import server_fuse
 
@@ -40,10 +41,7 @@ def getFilePath(file):
     :param file: file resource document.
     :returns: a path on the local file system.
     """
-    adapter = File().getAssetstoreAdapter(file)
-    if callable(getattr(adapter, 'fullPath', None)):
-        return adapter.fullPath(file)
-    return server_fuse.getServerFusePath(MAIN_FUSE_KEY, 'file', file)
+    return File().getLocalFilePath(file)
 
 
 def getFuseFilePath(file):
@@ -56,5 +54,35 @@ def getFuseFilePath(file):
     return server_fuse.getServerFusePath(MAIN_FUSE_KEY, 'file', file)
 
 
+def makeLocalFilePathMethod(func):
+    """
+    Return a method that if a FilePathException would be raised and a fuse file
+    exists, the fuse path is returned instead.
+    This wrapping function acts much like Python 3's functools.partialmethod.
+
+    :returns: the wrapped getLocalFilePath method.
+    """
+    def getLocalFilePath(self, file):
+        """
+        This replaces getLocalFilePath in the abstract assetstore adapter to
+        use the FUSE path if available.  For adapters that override that
+        method, this will do nothing.
+
+        :param file: file resource document.
+        :returns: a path on the local file system.
+        """
+        try:
+            return func(self, file)
+        except FilePathException:
+            path = getFuseFilePath(file)
+            if path:
+                return path
+            raise
+    return getLocalFilePath
+
+
 def load(info):
     startFromConfig()
+
+    adapter = abstract_assetstore_adapter.AbstractAssetstoreAdapter
+    adapter.getLocalFilePath = makeLocalFilePathMethod(adapter.getLocalFilePath)

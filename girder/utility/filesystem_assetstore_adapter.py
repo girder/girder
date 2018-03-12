@@ -476,3 +476,16 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                     'file': file,
                     'path': path
                 }
+
+    def getLocalFilePath(self, file):
+        """
+        Return a path to the file on the local file system.
+
+        :param file: The file document.
+        :returns: a local path to the file or None if no such path is known.
+        """
+        path = self.fullPath(file)
+        # If an imported file has moved, don't report the path
+        if path and os.path.exists(path):
+            return path
+        return super(FilesystemAssetstoreAdapter, self).getLocalFilePath(file)
