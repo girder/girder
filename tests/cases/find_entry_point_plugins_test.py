@@ -104,7 +104,9 @@ class FindEntryPointPluginsTestCase(unittest.TestCase):
         resource_stream.return_value = resource_stream_json_value()
 
         plugins = {}
-        findEntryPointPlugins(plugins)
+        with mock.patch('girder.utility.plugin_utilities.logprint.exception') as logprint:
+            findEntryPointPlugins(plugins)
+            logprint.assert_called_once()
 
         iter_entry_points.assert_called_once_with(group='girder.plugin')
 
@@ -159,7 +161,9 @@ class FindEntryPointPluginsTestCase(unittest.TestCase):
         resource_stream.return_value = resource_stream_yaml_value()
 
         plugins = {}
-        findEntryPointPlugins(plugins)
+        with mock.patch('girder.utility.plugin_utilities.logprint.exception') as logprint:
+            findEntryPointPlugins(plugins)
+            logprint.assert_called_once()
 
         iter_entry_points.assert_called_once_with(group='girder.plugin')
 
@@ -182,7 +186,9 @@ class FindEntryPointPluginsTestCase(unittest.TestCase):
         _clearPluginFailureInfo.return_value = None
 
         plugins = {}
-        findEntryPointPlugins(plugins)
+        with mock.patch('girder.utility.plugin_utilities.logprint.exception') as logprint:
+            findEntryPointPlugins(plugins)
+            logprint.assert_called_once()
 
         iter_entry_points.assert_called_once_with(group='girder.plugin')
 

@@ -200,6 +200,8 @@ def optionalArgumentDecorator(baseDecorator):
 
     For example, this may be used as:
 
+    .. code-block:: python
+
         @optionalArgumentDecorator
         def myDec(fun, someArg=None):
             ...

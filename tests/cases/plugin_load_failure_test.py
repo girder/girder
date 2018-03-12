@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import mock
 import os
 
 from .. import base
@@ -35,7 +36,8 @@ class PluginLoadFailureTestCase(base.TestCase):
         self.mockPluginDir(testPluginPath)
         base.enabledPlugins.append('bad_server')
 
-        base.startServer()
+        with mock.patch('girder.utility.plugin_utilities.logprint.exception'):
+            base.startServer()
 
     def tearDown(self):
         base.stopServer()

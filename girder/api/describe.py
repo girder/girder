@@ -558,6 +558,8 @@ class describeRoute(object):  # noqa: class name
         handler. Pass the Description object (or None) that you want to use to
         describe this route. It should be used like the following example:
 
+        .. code-block:: python
+
             @describeRoute(
                 Description('Do something')
                .param('foo', 'Some parameter', ...)

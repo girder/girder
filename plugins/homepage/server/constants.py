@@ -28,7 +28,7 @@ from girder.utility import setting_utilities
 COLLECTION_NAME = 'Homepage Assets'
 
 
-class PluginSettings:
+class PluginSettings(object):
     MARKDOWN = 'homepage.markdown'
 
     HEADER = 'homepage.header'

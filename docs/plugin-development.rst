@@ -1030,7 +1030,7 @@ Javascript code in the ``web_client`` and ``plugin_tests`` directories of a plug
 
 Additionally, plugin developers can choose to extend or even entirely override Girder's default
 static analysis rules, using
-`ESLint's built-in configuration cascading<https://eslint.org/docs/user-guide/configuring#configuration-cascading-and-hierarchy>`_
+`ESLint's built-in configuration cascading <https://eslint.org/docs/user-guide/configuring#configuration-cascading-and-hierarchy>`_
 (which is more fully documented in ESLint):
 
 1. To extend or override some of Girder's default static analysis rules, place an ``.eslintrc.json``
@@ -1038,7 +1038,7 @@ static analysis rules, using
 2. To completely override all of Girder's default static analysis rules (i.e. disabling
    cascading), add root ``"root": true`` to an ``.eslintrc.json``.
 3. To natively utilize Girder's default static analysis rules (from
-   `their published location<https://www.npmjs.com/package/eslint-config-girder>`_) within code
+   `their published location <https://www.npmjs.com/package/eslint-config-girder>`_) within code
    outside of Girder's ``plugins/`` directory structure, add ``"extends": "girder"`` to an
    ``.eslintrc.json``. However, this is not strictly necessary for an external Girder plugins that
    will be installed and tested under Girder's test framework (including the
@@ -1046,5 +1046,5 @@ static analysis rules, using
 
 Finally, Javascript files within plugins' ``web_client/extra/`` directory will automatically
 excluded from ESLint static analysis. To
-`exclude additional Javascript files<https://eslint.org/docs/user-guide/configuring#disabling-rules-with-inline-comments>`_,
+`exclude additional Javascript files <https://eslint.org/docs/user-guide/configuring#disabling-rules-with-inline-comments>`_,
 place an ``/* eslint-disable */`` block comment at the top of files to be excluded.

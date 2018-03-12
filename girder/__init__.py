@@ -78,7 +78,7 @@ class LogFormatter(logging.Formatter):
         return super(LogFormatter, self).format(record, *args, **kwargs)
 
 
-class StreamToLogger:
+class StreamToLogger(object):
     """
     Redirect a file-like stream to a logger.
     """
