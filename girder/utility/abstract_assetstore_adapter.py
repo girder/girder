@@ -21,7 +21,7 @@ import six
 
 from girder.api.rest import setResponseHeader, setContentDisposition
 from girder.constants import SettingKey
-from girder.exceptions import GirderException, ValidationException
+from girder.exceptions import GirderException, ValidationException, FilePathException
 from girder.models.setting import Setting
 from girder.utility import progress, RequestBodyStream
 from .model_importer import ModelImporter
@@ -444,9 +444,11 @@ class AbstractAssetstoreAdapter(ModelImporter):
     def getLocalFilePath(self, file):
         """
         If an assetstore adapter supports it, return a path to the file on the
-        local file system.
+        local file system.  Otherwise, raise an exception.
 
         :param file: The file document.
-        :returns: a local path to the file or None if no such path is known.
+        :type file: dict
+        :returns: a local path to the file.
+        :rtype: str
         """
-        return None
+        raise FilePathException('This assetstore does not expose file paths')

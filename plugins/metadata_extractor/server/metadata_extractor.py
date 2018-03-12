@@ -22,6 +22,7 @@ import six
 from hachoir_core.error import HachoirError
 from hachoir_metadata import extractMetadata
 from hachoir_parser import createParser
+from girder.exceptions import FilePathException
 from girder.models.file import File
 from girder.models.item import Item
 
@@ -114,7 +115,10 @@ class ServerMetadataExtractor(MetadataExtractor):
         :param assetstore: asset store containing file
         :param uploadedFile: file from which to extract metadata
         """
-        path = File().getLocalFilePath(uploadedFile)
+        try:
+            path = File().getLocalFilePath(uploadedFile)
+        except FilePathException:
+            path = None
         super(ServerMetadataExtractor, self).__init__(path, uploadedFile['itemId'])
         self.userId = uploadedFile['creatorId']
 
