@@ -200,6 +200,11 @@ class AsyncEventsThread(threading.Thread):
         self.queueNotEmpty.notify()
         self.queueNotEmpty.release()
 
+    def __del__(self):
+        # Make sure we stop this thread if it's getting GCed, i.e. daemon was reassigned
+        self.stop()
+        super(AsyncEventsThread, self).__del__()
+
 
 def bind(eventName, handlerName, handler):
     """
@@ -321,8 +326,6 @@ daemon = ForegroundEventsDaemon()
 
 def setupDaemon():
     global daemon
-    daemon.stop()
-
     if config.getConfig()['server'].get('disable_event_daemon', False):
         daemon = ForegroundEventsDaemon()
     else:
