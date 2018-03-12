@@ -1,7 +1,0 @@
-{
-    "grunt": {
-        "dependencies": {
-            "no-op": "^1.0.3"
-        }
-    }
-}

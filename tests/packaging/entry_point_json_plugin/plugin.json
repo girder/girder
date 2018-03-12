@@ -1,4 +1,0 @@
-{
-    "name": "Plugin using entry_point and a JSON file",
-    "description": "Set plugin information from a file rather than a decorator"
-}

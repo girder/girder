@@ -143,7 +143,8 @@
         "build/",
         "clients/web/static/built/",
         "clients/web/test/lib/",
-        "plugins/*/web_client/extra/"
+        "plugins/*/web_client/extra/",
+        "**/node_modules/"
     ],
     "nyc": {
         "reporter": [

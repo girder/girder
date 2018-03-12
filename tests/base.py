@@ -164,23 +164,6 @@ def dropFsAssetstore(path):
         shutil.rmtree(path)
 
 
-def mockPluginDir(path):
-    """
-    Modify the location that the server will search when loading plugins. Call this prior to
-    calling startServer. Returns the original un-mocked function.
-
-    :param path: The directory in which to search for plugins.
-    """
-    return lambda: ''
-
-
-def unmockPluginDir(oldFn):
-    """
-    Restore the getPluginDir function to its original un-mocked version.
-    """
-    pass
-
-
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
     """
     Test case base class for the application. Adds helpful utilities for
@@ -252,12 +235,6 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         # Invalidate cache regions which persist across tests
         cache.invalidate()
         requestCache.invalidate()
-
-    def mockPluginDir(self, path):
-        self._oldPluginDirFn = mockPluginDir(path)
-
-    def unmockPluginDir(self):
-        unmockPluginDir(self._oldPluginDirFn)
 
     def assertStatusOk(self, response):
         """

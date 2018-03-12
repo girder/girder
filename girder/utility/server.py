@@ -116,28 +116,6 @@ def configureServer(test=False, plugins=None, curConfig=None):
     mimetypes.add_type('application/x-font-ttf', '.ttf')
     mimetypes.add_type('application/font-woff', '.woff')
 
-    if test:
-        appconf['/src'] = {
-            'tools.staticdir.on': True,
-            'tools.staticdir.root': constants.STATIC_ROOT_DIR,
-            'tools.staticdir.dir': 'clients/web/src',
-        }
-        appconf['/test'] = {
-            'tools.staticdir.on': True,
-            'tools.staticdir.root': constants.STATIC_ROOT_DIR,
-            'tools.staticdir.dir': 'clients/web/test',
-        }
-        appconf['/clients'] = {
-            'tools.staticdir.on': True,
-            'tools.staticdir.root': constants.STATIC_ROOT_DIR,
-            'tools.staticdir.dir': 'clients'
-        }
-        appconf['/plugins'] = {
-            'tools.staticdir.on': True,
-            'tools.staticdir.root': constants.STATIC_ROOT_DIR,
-            'tools.staticdir.dir': 'plugins',
-        }
-
     curConfig.update(appconf)
 
     if test:
