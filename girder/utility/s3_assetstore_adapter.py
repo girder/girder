@@ -605,6 +605,10 @@ def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferC
         if not service.startswith('http://') and not service.startswith('https://'):
             service = 'https://' + service
         params['endpoint_url'] = service
+    else:
+        params['config'] = params['config'].merge(botocore.client.Config(s3={
+            'addressing_style': 'virtual'
+        }))
 
     return params
 
