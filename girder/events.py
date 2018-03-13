@@ -45,7 +45,6 @@ import contextlib
 import girder
 import threading
 
-
 from girder.utility import config
 from six.moves import queue
 
@@ -201,6 +200,11 @@ class AsyncEventsThread(threading.Thread):
         self.queueNotEmpty.notify()
         self.queueNotEmpty.release()
 
+    def __del__(self):
+        # Make sure we stop this thread if it's getting GCed, i.e. daemon was reassigned
+        self.stop()
+        super(AsyncEventsThread, self).__del__()
+
 
 def bind(eventName, handlerName, handler):
     """
@@ -317,9 +321,12 @@ def trigger(eventName, info=None, pre=None, async=False, daemon=False):
 
 _deprecated = {}
 _mapping = {}
+daemon = ForegroundEventsDaemon()
 
-# When in Sphinx, cherrypy may be mocked, so the config may not be accessible at import-time
-if config.getConfig().get('server', {}).get('disable_event_daemon', False):
-    daemon = ForegroundEventsDaemon()
-else:
-    daemon = AsyncEventsThread()
+
+def setupDaemon():
+    global daemon
+    if config.getConfig()['server'].get('disable_event_daemon', False):
+        daemon = ForegroundEventsDaemon()
+    else:
+        daemon = AsyncEventsThread()
