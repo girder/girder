@@ -183,6 +183,9 @@ jobs:
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
             JASMINE_TIMEOUT: 15000
           working_directory: girder_build
+      - store_artifacts:
+          # Failure screenshots from web tests
+          path: girder/build/test/artifacts
       - run:
           name: Reduce workspace size
           command: |
@@ -198,7 +201,6 @@ jobs:
           root: /home/circleci/project
           paths:
             - girder/node_modules
-            - girder/build/test/artifacts
             - girder/build/test/coverage
             - girder_build
             - girder_env
@@ -270,10 +272,12 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
+      - store_artifacts:
+          # Failure screenshots from web tests
+          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/build/test/artifacts
             - girder/build/test/coverage
 
   py2_coverage:
@@ -299,6 +303,7 @@ jobs:
             BUILD_JAVASCRIPT_TESTS: OFF
           working_directory: girder_build
       - store_artifacts:
+          # Human-readable coverage reports
           path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
@@ -386,10 +391,12 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
+      - store_artifacts:
+          # Failure screenshots from web tests
+          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/build/test/artifacts
             - girder/build/test/coverage
 
   py3_coverage:
@@ -421,6 +428,7 @@ jobs:
           # per-reporter configuration of output paths.
           command: mv girder/build/test/artifacts/web_coverage/cobertura-coverage.xml girder/build/test/coverage
       - store_artifacts:
+          # Human-readable coverage reports
           path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
