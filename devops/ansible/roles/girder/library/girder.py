@@ -257,9 +257,10 @@ options:
 
                    service:
                        required: false
-                       default: s3.amazonaws.com
+                       default: ''
                        description:
                            - The S3 service host (for S3 type)
+                           - Only set this if you're not using AWS S3.
                            - This can be used to specify a protocol and port
                              -  use the form [http[s]://](host domain)[:(port)]
                            - Do not include the bucket name here
@@ -1709,7 +1710,7 @@ class GirderClientModule(GirderClient):
 
     def assetstore(self, name, type, root=None, db=None, mongohost=None,
                    replicaset='', bucket=None, prefix='', accessKeyId=None,
-                   secret=None, service='s3.amazonaws.com', host=None,
+                   secret=None, service='', host=None,
                    port=None, path=None, user=None, webHdfsPort=None,
                    dbtype=None, dburi=None, readOnly=False, current=False,
                    region=DEFAULT_REGION, inferCredentials=False):
