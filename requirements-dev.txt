@@ -1,4 +1,8 @@
 -e pytest_girder
+-e plugins/jobs
+-e plugins/worker
+-e plugins/item_tasks
+-e plugins/candela
 backports.tempfile
 coverage
 flake8

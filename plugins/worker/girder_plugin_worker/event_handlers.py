@@ -14,6 +14,8 @@
 #  limitations under the License.
 ###############################################################################
 
+from __future__ import absolute_import
+
 from celery.result import AsyncResult
 
 from girder import logger

@@ -52,7 +52,6 @@ class InstallWithOptions(install):
         shutil.copy(os.path.join('clients', 'web', 'src', 'assets', 'fontello.config.json'),
                     os.path.join(dest, 'clients', 'web', 'src', 'assets'))
         self.mergeDir('grunt_tasks', dest)
-        self.mergeDir('plugins', dest)
 
 
 with open('README.rst') as f:
@@ -75,6 +74,7 @@ installReqs = [
     'pymongo>=3.5',
     'PyYAML',
     'psutil',
+    'pyOpenSSL',
     'python-dateutil<2.7',  # required for compatibility with botocore=1.9.8
     'pytz',
     'requests',

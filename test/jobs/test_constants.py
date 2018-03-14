@@ -16,8 +16,9 @@
 
 import pytest
 
+from girder_plugin_jobs import constants
+
 
 @pytest.mark.plugin('jobs')
 def testConstantsIsDefined(server):
-    from girder.plugins.jobs import constants
     assert constants.JobStatus.isValid(constants.JobStatus.SUCCESS) is True
