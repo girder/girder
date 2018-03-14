@@ -10,5 +10,6 @@ moto[server]
 pytest
 pytest-cov
 pytest-xdist
+python-dateutil<2.7 # required for botocore=1.9.8
 tox
 virtualenv
