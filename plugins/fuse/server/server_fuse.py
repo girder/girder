@@ -121,7 +121,8 @@ class ServerFuse(fuse.Operations, ModelImporter):
         except ValidationException:
             raise fuse.FuseOSError(errno.EROFS)
         except Exception:
-            self.log.exception('ServerFuse server internal error')
+            if self.log:
+                self.log.exception('ServerFuse server internal error')
             raise fuse.FuseOSError(errno.EROFS)
         return resource   # {model, document}
 
@@ -409,10 +410,14 @@ def unmountServerFuse(name):
 
 
 class FUSELogError(fuse.FUSE):
-    def __init__(self, operations, mountpoint, *args, **kwargs):
+    def __init__(self, name, onError, operations, mountpoint, *args, **kwargs):
         """
         This wraps fuse.FUSE so that errors are logged rather than raising a
         RuntimeError exception.
+
+        :param name: key for the mount point.
+        :param onError: a function that is called with `name` if initialization
+            fails.
         """
         try:
             super(FUSELogError, self).__init__(operations, mountpoint, *args, **kwargs)
@@ -422,6 +427,18 @@ class FUSELogError(fuse.FUSE):
                 'it empty?  Does the user have permission to create FUSE '
                 'mounts?  It could be another FUSE mount issue, too.' % (
                     mountpoint, ))
+            onError(name)
+
+
+def handleFuseMountFailure(name):
+    """
+    If a FUSE mount fails to initialize inside, remove it from the list of
+    mounts and clean up its thread.
+
+    :param name: key for the mount point.
+    """
+    with _fuseMountsLock:
+        _fuseMounts.pop(name, None)
 
 
 def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
@@ -480,12 +497,12 @@ def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
             }
             if sys.platform == 'darwin':
                 del options['auto_unmount']
-            fuseThread = threading.Thread(
-                target=FUSELogError, args=(opClass, path), kwargs=options)
-            fuseThread.daemon = True
-            fuseThread.start()
+            fuseThread = threading.Thread(target=FUSELogError, args=(
+                name, handleFuseMountFailure, opClass, path), kwargs=options)
             entry['thread'] = fuseThread
             _fuseMounts[name] = entry
+            fuseThread.daemon = True
+            fuseThread.start()
             logprint.info('Mounted %s at %s' % (name, path))
             events.trigger('server_fuse.mount', {'name': name})
             return True
