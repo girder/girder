@@ -42,6 +42,13 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.abspath(
 def build(staging, dev):
     _generateStagingArea(staging, dev)
 
+    # The autogeneration of package.json breaks how package-lock.json is
+    # intended to work.  If we don't delete it first, you will frequently
+    # get "file doesn't exist" errors.
+    npmLockFile = os.path.join(staging, 'package-lock.json')
+    if os.path.exists(npmLockFile):
+        os.unlink(npmLockFile)
+
     check_call(['npm', 'install'], cwd=staging)
     buildCommand = [
         'npx', '-n', '--preserve-symlinks', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR]

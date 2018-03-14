@@ -28,15 +28,13 @@ from girder.exceptions import ValidationException
 from girder.models.user import User
 from girder.models.token import Token
 
-JobStatus = None
+from girder_plugin_jobs.constants import JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
+from girder_plugin_jobs.models.job import Job
 
 
 def setUpModule():
     base.enabledPlugins.append('jobs')
     base.startServer()
-
-    global JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
-    from girder.plugins.jobs.constants import JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
 
 
 def tearDownModule():
@@ -51,7 +49,6 @@ class JobsTestCase(base.TestCase):
             'usr' + str(n), 'passwd', 'tst', 'usr', 'u%d@u.com' % n)
             for n in range(3)]
 
-        from girder.plugins.jobs.models.job import Job
         self.jobModel = Job()
 
     def testJobs(self):

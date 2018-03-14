@@ -72,7 +72,7 @@ module.exports = {
                 resource: {
                     test: /\.js$/,
                     include: loaderPaths,
-                    exclude: /girder\/node_modules/ // TODO: we will want to be more specific about babel paths
+                    exclude: /(girder\/node_modules|@girder\/[^/]*\/node_modules)/ // TODO: we will want to be more specific about babel paths
                 },
                 use: [
                     {

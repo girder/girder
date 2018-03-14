@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.plugins.jobs.models.job import Job
+from girder_plugin_jobs.models.job import Job
 
 
 def run(job):
