@@ -18,7 +18,7 @@
 This module defines functions for registering, loading, and querying girder plugins.
 """
 
-import distutils
+import distutils.dist
 from functools import wraps
 import os
 from pkg_resources import iter_entry_points
