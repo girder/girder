@@ -44,13 +44,13 @@ elif not os.path.exists(os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'Gruntfile.js'))
     raise Exception('Could not find girder client build assets')
 
 
-@click.command()
+@click.command(name='build', help='Build web client static assets.')
 @click.option('--staging', type=click.Path(file_okay=False, writable=True, resolve_path=True),
               default=os.path.join(STATIC_PREFIX, 'staging'),
               help='Path to a staging area.')
 @click.option('--dev/--no-dev', default=False,
               help='Build girder client for development.')
-def build(staging, dev):
+def main(staging, dev):
     _generateStagingArea(staging, dev)
 
     # The autogeneration of package.json breaks how package-lock.json is
@@ -144,7 +144,3 @@ def _generatePackageJSON(staging, source):
     }
     with open(os.path.join(staging, 'package.json'), 'w') as f:
         json.dump(sourceJSON, f)
-
-
-if __name__ == '__main__':
-    build()

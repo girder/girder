@@ -164,7 +164,7 @@ jobs:
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
           name: Build Girder web client
-          command: girder-build --dev | cat
+          command: girder build --dev | cat
           environment:
             - npm_config_cache: /home/circleci/project/npm_cache
       - save_cache:
@@ -269,7 +269,7 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Build Girder web client
-          command: girder-build --dev | cat
+          command: girder build --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
@@ -404,7 +404,7 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Build Girder web client
-          command: girder-build --dev | cat
+          command: girder build --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv

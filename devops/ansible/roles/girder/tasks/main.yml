@@ -62,7 +62,7 @@
 #  with_items: "{{ girder_plugins }}"
 
 - name: Build Girder (web)
-  command: "{{ girder_build_executable }} {{ girder_web_extra_args }}"
+  command: "{{ girder_build_executable }} build {{ girder_web_extra_args }}"
   args:
     chdir: "{{ girder_path }}"
   # ensure that the install is one that uses web assets and

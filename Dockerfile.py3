@@ -28,7 +28,7 @@ COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 
 RUN pip install --upgrade --upgrade-strategy eager --editable .[plugins]
-RUN girder-build
+RUN girder build
 
 # See http://click.pocoo.org/5/python3/#python-3-surrogate-handling for more detail on
 # why this is necessary.

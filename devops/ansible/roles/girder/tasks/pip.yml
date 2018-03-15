@@ -18,7 +18,7 @@
         virtualenv_python: "{{ girder_python | default(ansible_python.executable) }}"
 
     - set_fact:
-        girder_build_executable: "{{ girder_virtualenv }}/bin/girder-build"
+        girder_build_executable: "{{ girder_virtualenv }}/bin/girder"
   when: girder_virtualenv is defined
 
 - block:
@@ -46,8 +46,8 @@
         extra_args: "-e"
         executable: "{{ girder_pip | default(omit) }}"
 
-    - name: Find girder-build executable
-      shell: "which girder-build"
+    - name: Find girder executable
+      shell: "which girder"
       register: executable
       environment:
         PATH: "{{ ansible_env.PATH }}:/usr/local/bin"
