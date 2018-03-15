@@ -29,8 +29,19 @@ from girder.plugin import allPlugins, getPlugin
 _GIRDER_STAGING_MARKER = '.girder-staging'
 
 # TODO: add build assets to an npm package (or the python package)
+# For the moment, the static assets are in the repository root for
+# development installs and in `site-packages/girder/` for regular
+# installs.  There is no direct way to detect which environment we
+# are currently in.  For now, we just detect where the toplevel
+# Gruntfile.js is and use that as the root path.  In the future,
+# we may want to move these into the python package and specify it
+# as package_data, avoiding the custom setup.py install step entirely.
 _GIRDER_BUILD_ASSETS_PATH = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..', '..'))
+if os.path.exists(os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'girder', 'Gruntfile.js')):
+    _GIRDER_BUILD_ASSETS_PATH = os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'girder')
+elif not os.path.exists(os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'Gruntfile.js')):
+    raise Exception('Could not find girder client build assets')
 
 
 @click.command()
@@ -93,7 +104,7 @@ def _generateStagingArea(staging, dev):
     _checkStagingPath(staging)
     for baseName in ['grunt_tasks', 'Gruntfile.js']:
         target = os.path.join(staging, baseName)
-        if os.path.exists(target):
+        if os.path.exists(target) or os.path.islink(target):
             os.unlink(target)
         os.symlink(os.path.join(_GIRDER_BUILD_ASSETS_PATH, baseName), target)
     _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json'))
