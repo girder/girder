@@ -214,9 +214,10 @@ class ServerFuseTestCase(base.TestCase):
             server_fuse.mountServerFuse(
                 self.extraMount, mountpath, level=AccessType.READ, user=self.user)
             # If can take a short amount of time to trigger an error, so wait
-            # for it
+            # for it.  Also wait for the mount information to be cleaned up.
             for iter in six.moves.range(50):
-                if logprint.call_count:
+                if logprint.call_count and not server_fuse.isServerFuseMounted(
+                        self.extraMount, level=AccessType.READ, user=self.user):
                     break
                 time.sleep(0.1)
             logprint.assert_called_once()
