@@ -69,19 +69,19 @@ Web Client
 ^^^^^^^^^^
 * Added a new, more fully-featured view for search results.
   (`#2347 <https://github.com/girder/girder/pull/2347>`_)
-
 * For added safety, when deleting a collection a user will now be required to type the name of
   the collection into the confirmation dialog.
   (`#2473 <https://github.com/girder/girder/pull/2473>`_)
-
 * New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
-
 * Modal dialogs have a default maximum height and will have a scroll bar if needed.
   (`#2523 <https://github.com/girder/girder/pull/2523>`_)
-
 * We now use the webpack DefinePlugin to add a build-time definition of the environment. This can
   be used to allow for different build output in production vs. development.
   (`#2631 <https://github.com/girder/girder/pull/2631>`_)
+* Use ``href`` properties for navigation links in addition to JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
+  (`#2578 <https://github.com/girder/girder/pull/2578>`_)
+* Change instances of ``.g-server-config`` to ``.g-server-config a`` to enable adding of ``href`` properties to those links
+
 
 Swagger Client
 ^^^^^^^^^^^^^^
@@ -120,12 +120,6 @@ Changes
 * Disable the background event thread in WSGI mode. (`#2642 <https://github.com/girder/girder/pull/2642>`_)
 * Update imports of library from "dicom" to "pydicom". (`#2617 <https://github.com/girder/girder/pull/2617>`_)
 * A log message is now emitted whenever a file is uploaded. (`#2571 <https://github.com/girder/girder/pull/2571>`_)
-
-Web Client
-^^^^^^^^^^
-* Use ``href`` properties for navigation links in addition to JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
-  (`#2578 <https://github.com/girder/girder/pull/2578>`_)
-* Change instances of ``.g-server-config`` to ``.g-server-config a`` to enable adding of ``href`` properties to those links
 
 Deprecations
 ------------
