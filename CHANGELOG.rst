@@ -99,6 +99,8 @@ Server
   (`#2499 <https://github.com/girder/girder/pull/2499>`_)
 * When a plugin supplying an assetstore fails to load, other assetstores could not be listed.
   (`#2498 <https://github.com/girder/girder/pull/2498>`_)
+* Run pip installation of plugins using a subprocess rather than the pip module, for forward compatbility
+  with pip. (`#2669 <https://github.com/girder/girder/pull/2669>`_)
 
 Security Fixes
 --------------
@@ -113,6 +115,7 @@ Changes
 * Require MongoDB 3.2+ (`#2540 <https://github.com/girder/girder/pull/2540>`_)
 * Disable the background event thread in WSGI mode. (`#2642 <https://github.com/girder/girder/pull/2642>`_)
 * Update imports of library from "dicom" to "pydicom". (`#2617 <https://github.com/girder/girder/pull/2617>`_)
+* A log message is now emitted whenever a file is uploaded. (`#2571 <https://github.com/girder/girder/pull/2571>`_)
 
 Web Client
 ^^^^^^^^^^
