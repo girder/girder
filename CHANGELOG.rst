@@ -64,6 +64,10 @@ Web Client
 * Modal dialogs have a default maximum height and will have a scroll bar if needed.
   (`#2523 <https://github.com/girder/girder/pull/2523>`_)
 
+* We now use the webpack DefinePlugin to add a build-time definition of the environment. This can
+  be used to allow for different build output in production vs. development.
+  (`#2631 <https://github.com/girder/girder/pull/2631>`_)
+
 Swagger Client
 ^^^^^^^^^^^^^^
 * Swagger now expects zip files to be binary data, allowing them to be downloaded through the Web API.
