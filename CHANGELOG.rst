@@ -66,6 +66,10 @@ Web Client
 * Added a new, more fully-featured view for search results.
   (`#2347 <https://github.com/girder/girder/pull/2347>`_)
 
+* For added safety, when deleting a collection a user will now be required to type the name of
+  the collection into the confirmation dialog.
+  (`#2473 <https://github.com/girder/girder/pull/2473>`_)
+
 * New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
 
 * Modal dialogs have a default maximum height and will have a scroll bar if needed.
