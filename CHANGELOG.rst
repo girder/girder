@@ -61,6 +61,10 @@ Added Features
     * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
     * Added support for the ``mongomock`` package in the new ``pytest`` suite.
 
+Python Client
+^^^^^^^^^^^^^
+* Add a method to stream contents of a file download. (`#2476 <https://github.com/girder/girder/pull/2476>`_)
+
 Web Client
 ^^^^^^^^^^
 * Added a new, more fully-featured view for search results.
