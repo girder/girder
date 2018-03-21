@@ -49,6 +49,8 @@ Added Features
   (`#2487 <https://github.com/girder/girder/pull/2487>`_)
 * Only use new style Python 2 classes.
   (`#2656 <https://github.com/girder/girder/pull/2656>`_)
+* Allow cancellation of raw Celery tasks.
+  (`#2602 <https://github.com/girder/girder/pull/2602>`_)
 
 Web Client
 ^^^^^^^^^^
