@@ -125,7 +125,7 @@ Removals
   Most typical external plugins will continue to work with their current configuration.
 * The deprecated ``DELETE /user/password`` endpoint is removed. The ``PUT /user/password/temporary``
   endpoint should always be used to reset passwords, as it uses a secure, token-based password
-  mechanism.
+  mechanism. (`#2621 <https://github.com/girder/girder/pull/2621>`_)
 
 Girder 2.4.0
 ============
