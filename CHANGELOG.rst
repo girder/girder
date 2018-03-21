@@ -49,8 +49,6 @@ Added Features
   (`#2487 <https://github.com/girder/girder/pull/2487>`_)
 * Only use new style Python 2 classes.
   (`#2656 <https://github.com/girder/girder/pull/2656>`_)
-* Exceptions are now all defined in one place (``girder.exceptions``).
-  (`#2498 <https://github.com/girder/girder/pull/2498>`_)
 
 Web Client
 ^^^^^^^^^^
@@ -97,6 +95,7 @@ Security Fixes
 Changes
 -------
 * Exceptions are now all accessible in the ``exceptions`` module and are descended from the ``GirderBaseException`` class.
+  (`#2498 <https://github.com/girder/girder/pull/2498>`_)
 * Require npm 5.2+ (with npm 5.6+ strongly recommended) to build the web client
 
 Web Client
