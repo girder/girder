@@ -51,6 +51,9 @@ Added Features
   (`#2656 <https://github.com/girder/girder/pull/2656>`_)
 * Allow cancellation of raw Celery tasks.
   (`#2602 <https://github.com/girder/girder/pull/2602>`_)
+* Allow assetstore implementations from models besides the assetstore model itself. This enables
+  assetstore adapters in plugins to be managed by users who are not necessarily site administrators.
+  (`#2599 <https://github.com/girder/girder/pull/2599>`_)
 
 Web Client
 ^^^^^^^^^^
