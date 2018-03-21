@@ -56,6 +56,7 @@ Added Features
   (`#2599 <https://github.com/girder/girder/pull/2599>`_)
 * Add validation logic to rest endpoint paging parameters. (`#2462 <https://github.com/girder/girder/pull/2462>`_)
 * Add rest endpoint to send user validation email. (`#2622 <https://github.com/girder/girder/pull/2622>`_)
+* Add a search mode registry and a search mode for dicom metedata. (`#2450 <https://github.com/girder/girder/pull/2450>`_)
 
 Web Client
 ^^^^^^^^^^
