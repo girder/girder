@@ -81,7 +81,8 @@ Web Client
 * Use ``href`` properties for navigation links in addition to JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
   (`#2578 <https://github.com/girder/girder/pull/2578>`_)
 * Change instances of ``.g-server-config`` to ``.g-server-config a`` to enable adding of ``href`` properties to those links
-
+* Add new methods: ``folder.removeContents``, ``item.getFiles``, ``user.fromTemporaryToken``.
+  (`#2615 <https://github.com/girder/girder/pull/2615>`_)
 
 Swagger Client
 ^^^^^^^^^^^^^^
