@@ -37,6 +37,10 @@ Added Features
   setting the host. (`#2570 <https://github.com/girder/girder/pull/2570>`_)
 * Added support for running the Python test suite via the ``tox`` command.
   (`#2528 <https://github.com/girder/girder/pull/2528>`_)
+* Created a new "virtual folders" plugin. This plugin allows administrators to configure special
+  read-only folders whose list of child items comes from a custom, user-defined database query.
+  These folders act like database "views" into the item collection.
+  (`#2620 <https://github.com/girder/girder/pull/2620>`_)
 
 Web Client
 ^^^^^^^^^^
