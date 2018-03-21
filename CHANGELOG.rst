@@ -32,6 +32,7 @@ Added Features
   (`#2596 <https://github.com/girder/girder/pull/2596>`_)
 * Added the server FUSE plugin that mounts Girder files in a read-only
   user-space filesystem. (`#2521 <https://github.com/girder/girder/pull/2521>`_)
+* Plugins can be enabled for Pytest. (`#2634 <https://github.com/girder/girder/pull/2634>`_)
 
 Web Client
 ^^^^^^^^^^
