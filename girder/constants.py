@@ -51,7 +51,7 @@ VERSION = {  # Set defaults in case girder-version.json doesn't exist
 try:
     with open(os.path.join(PACKAGE_DIR, 'girder-version.json')) as f:
         VERSION.update(json.load(f))
-except IOError:  # pragma: no cover
+except IOError:
     pass
 
 #: The local directory containing the static content.
@@ -116,7 +116,7 @@ class TerminalColor(object):
         return TerminalColor._color(TerminalColor.INFO, text)
 
 
-class AssetstoreType:
+class AssetstoreType(object):
     """
     All possible assetstore implementation types.
     """
@@ -125,7 +125,7 @@ class AssetstoreType:
     S3 = 2
 
 
-class AccessType:
+class AccessType(object):
     """
     Represents the level of access granted to a user or group on an
     AccessControlledModel. Having a higher access level on a resource also
@@ -154,7 +154,7 @@ class AccessType:
             raise ValueError('Invalid AccessType: %d.' % level)
 
 
-class SettingKey:
+class SettingKey(object):
     """
     Core settings should be enumerated here by a set of constants corresponding
     to sensible strings.
@@ -187,7 +187,7 @@ class SettingKey:
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
 
 
-class SettingDefault:
+class SettingDefault(object):
     """
     Core settings that have a default should be enumerated here with the
     SettingKey.
@@ -230,7 +230,7 @@ class SortDir(object):
     DESCENDING = -1
 
 
-class TokenScope:
+class TokenScope(object):
     """
     Constants for core token scope strings. Token scopes must not contain
     spaces, since many services accept scope lists as a space-separated list

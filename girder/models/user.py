@@ -71,7 +71,7 @@ class User(AccessControlledModel):
 
         cur_config = config.getConfig()
 
-        if 'salt' not in doc:  # pragma: no cover
+        if 'salt' not in doc:
             # Internal error, this should not happen
             raise Exception('Tried to save user document with no salt.')
 

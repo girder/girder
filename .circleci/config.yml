@@ -52,7 +52,7 @@ jobs:
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e circleci-py27
+          command: tox -e circleci-py27,docs
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
@@ -137,7 +137,7 @@ jobs:
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e circleci-py35
+          command: tox -e circleci-py35,docs
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
@@ -183,6 +183,9 @@ jobs:
             VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
             JASMINE_TIMEOUT: 15000
           working_directory: girder_build
+      - store_artifacts:
+          # Failure screenshots from web tests
+          path: girder/build/test/artifacts
       - run:
           name: Reduce workspace size
           command: |
@@ -198,7 +201,6 @@ jobs:
           root: /home/circleci/project
           paths:
             - girder/node_modules
-            - girder/build/test/artifacts
             - girder/build/test/coverage
             - girder_build
             - girder_env
@@ -210,6 +212,13 @@ jobs:
     steps:
       - checkout:
           path: girder
+      - run:
+          # Technically, we should add the circleci user to the fuse group, log
+          # out, and log back in for it to take effect.  This allows fuse to be
+          # available to all users without requiring them to be in the fuse
+          # group
+          name: Allow access to /etc/fuse.conf by all users
+          command: sudo chmod a+r /etc/fuse.conf
       - run:
           name: Get rid of existing versions of Mongo
           command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
@@ -263,10 +272,12 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
+      - store_artifacts:
+          # Failure screenshots from web tests
+          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/build/test/artifacts
             - girder/build/test/coverage
 
   py2_coverage:
@@ -292,6 +303,7 @@ jobs:
             BUILD_JAVASCRIPT_TESTS: OFF
           working_directory: girder_build
       - store_artifacts:
+          # Human-readable coverage reports
           path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
@@ -307,6 +319,13 @@ jobs:
     steps:
       - checkout:
           path: girder
+      - run:
+          # Technically, we should add the circleci user to the fuse group, log
+          # out, and log back in for it to take effect.  This allows fuse to be
+          # available to all users without requiring them to be in the fuse
+          # group
+          name: Allow access to /etc/fuse.conf by all users
+          command: sudo chmod a+r /etc/fuse.conf
       - run:
           name: Get rid of existing versions of Mongo
           command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
@@ -372,10 +391,12 @@ jobs:
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
+      - store_artifacts:
+          # Failure screenshots from web tests
+          path: girder/build/test/artifacts
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/build/test/artifacts
             - girder/build/test/coverage
 
   py3_coverage:
@@ -407,6 +428,7 @@ jobs:
           # per-reporter configuration of output paths.
           command: mv girder/build/test/artifacts/web_coverage/cobertura-coverage.xml girder/build/test/coverage
       - store_artifacts:
+          # Human-readable coverage reports
           path: girder/build/test/artifacts
       - run:
           name: Install Codecov client

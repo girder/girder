@@ -65,6 +65,8 @@ installReqs = [
     # https://github.com/cherrypy/cherrypy/issues/1662
     'CherryPy<11.1',
     'click',
+    'click-plugins',
+    'dogpile.cache',
     'filelock',
     'funcsigs ; python_version < \'3\'',
     'jsonschema',
@@ -72,7 +74,7 @@ installReqs = [
     'pymongo>=3.5',
     'PyYAML',
     'psutil',
-    'python-dateutil',
+    'python-dateutil<2.7',  # required for compatibility with botocore=1.9.8
     'pytz',
     'requests',
     'shutilwhich ; python_version < \'3\'',
@@ -111,14 +113,12 @@ extrasReqs['sftp'] = [
     'paramiko',
 ]
 
-
 init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
 with open(init) as fd:
     version = re.search(
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
         fd.read(), re.MULTILINE).group(1)
 
-# perform the install
 setup(
     name='girder',
     version=version,
@@ -161,10 +161,16 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'girder-server = girder.__main__:main',
+            'girder-server = girder.cli.serve:main',
             'girder-install = girder.utility.install:main',
-            'girder-sftpd = girder.api.sftp:_main',
-            'girder-shell = girder.utility.shell:main'
+            'girder-sftpd = girder.cli.sftpd:main',
+            'girder-shell = girder.cli.shell:main',
+            'girder = girder.cli:main'
+        ],
+        'girder.cli_plugins': [
+            'serve = girder.cli.serve:main',
+            'shell = girder.cli.shell:main',
+            'sftpd = girder.cli.sftpd:main'
         ]
     }
 )

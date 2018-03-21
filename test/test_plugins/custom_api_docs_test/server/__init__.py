@@ -17,9 +17,13 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
 
 def load(info):
-    info['config']['/jquery'] = {
-        'tools.staticdir.on': True,
-        'tools.staticdir.dir': 'clients/jquery'
-    }
+    info['apiRoot'].updateHtmlVars({
+        'baseTemplateFilename': info['apiRoot'].templateFilename
+    })
+
+    templatePath = os.path.join(info['pluginRootDir'], 'server', 'custom_api_docs.mako')
+    info['apiRoot'].setTemplatePath(templatePath)

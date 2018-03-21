@@ -24,6 +24,14 @@ Added Features
   IDEs. The ``eslint`` tool (including options such as ``--fix``) may now be invoked directly from
   the command line, without necessarily using a CMake test.
   (`#2550 <https://github.com/girder/girder/pull/2550>`_)
+* Integration with ``dogpile.cache`` for caching key value pairs via ``girder.utility._cache.cache`` and
+  ``girder.utility._cache.requestCache``. (`#2274 <https://github.com/girder/girder/pull/2274>`_)
+* Plugins can customize the header and description on the Swagger page.
+  (`#2607 <https://github.com/girder/girder/pull/2607>`_)
+* Common Girder operations can now be executed with a top level ``girder`` command.
+  (`#2596 <https://github.com/girder/girder/pull/2596>`_)
+* Added the server FUSE plugin that mounts Girder files in a read-only
+  user-space filesystem. (`#2521 <https://github.com/girder/girder/pull/2521>`_)
 
 Web Client
 ^^^^^^^^^^
@@ -61,15 +69,18 @@ Removals
 --------
 * The CMake options ``PYTHON_COVERAGE``, ``PYTHON_BRANCH_COVERAGE``, and ``PYTHON_COVERAGE_CONFIG`` are removed, and will have no effect if set.
   Python tests will always output coverage information, using a standardized configuration. If external test infrastructure needs to be run with
-  different options, it should invoke ``pytest -cov-config ...` or `coverage run --rcfile=...` directly.
+  different options, it should invoke ``pytest -cov-config ...`` or ``coverage run --rcfile=...`` directly.
   (`#2517 <https://github.com/girder/girder/pull/2517>`_)
 * The CMake options ``COVERAGE_MINIMUM_PASS`` and ``JS_COVERAGE_MINIMUM_PASS`` are removed, and will have no effect if set.
   If external test infrastructure needs to set a coverage threshold, it should be done with a Codecov (or similar service) configuration.
   (`#2545 <https://github.com/girder/girder/pull/2545>`_)
 * The CMake options ``ESLINT_CONFIG_FILE`` and ``ESLINT_IGNORE_FILE`` are removed, and will have no effect if set.
   If external test infrastructure needs to override ESLint configuration,
-  `it should be done using ESLint's built-in configuration cascading mechanisms<plugin-development.html#customizing-static-analysis-of-client-side-code>`_.
+  `it should be done using ESLint's built-in configuration cascading mechanisms <plugin-development.html#customizing-static-analysis-of-client-side-code>`_.
   Most typical external plugins will continue to work with their current configuration.
+* The deprecated ``DELETE /user/password`` endpoint is removed. The ``PUT /user/password/temporary``
+  endpoint should always be used to reset passwords, as it uses a secure, token-based password
+  mechanism.
 
 Girder 2.4.0
 ============
@@ -197,3 +208,4 @@ Removals
 --------
 
 * Remove the unmaintained external web client
+* Remove the unmaintained jQuery "girderBrowser" client, and associated "jquery_widgets" plugin

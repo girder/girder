@@ -22,17 +22,17 @@ import io
 import json
 import os
 import six
+from six.moves import range, urllib
 import zipfile
 
 from .. import base
 
-import girder.utility.ziputil
 from girder.models.notification import Notification, ProgressState
 from girder.models.collection import Collection
 from girder.models.item import Item
 from girder.models.folder import Folder
 from girder.models.user import User
-from six.moves import range, urllib
+import girder.utility.ziputil
 
 
 def setUpModule():

@@ -151,7 +151,7 @@ To run the server, first make sure the Mongo daemon is running. To manually star
 
 Then to run Girder itself, just use the following command: ::
 
-    girder-server
+    girder serve
 
 Then open http://localhost:8080/ in your web browser, and you should see the application.
 

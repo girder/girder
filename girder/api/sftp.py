@@ -17,16 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-from __future__ import print_function
-
-import os
 import paramiko
 import six
 import stat
-import sys
 import time
 
-from girder import logger, logprint
+from girder import logger
 from girder.exceptions import AccessException, ValidationException, ResourcePathNotFound
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -36,7 +32,6 @@ from girder.utility.path import lookUpPath
 from girder.utility.model_importer import ModelImporter
 from six.moves import socketserver
 
-DEFAULT_PORT = 8022
 MAX_BUF_LEN = 10 * 1024 * 1024
 
 
@@ -259,40 +254,3 @@ class SftpServer(socketserver.ThreadingTCPServer):
 
     def shutdown_request(self, request):
         pass
-
-
-def _main():  # pragma: no cover
-    """
-    This is the entrypoint of the girder-sftpd program. It should not be
-    called from python code.
-    """
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        prog='girder-sftpd', description='Run the Girder SFTP service.')
-    parser.add_argument(
-        '-i', '--identity-file', required=False, help='path to identity (private key) file')
-    parser.add_argument('-p', '--port', required=False, default=DEFAULT_PORT, type=int)
-    parser.add_argument('-H', '--host', required=False, default='localhost')
-
-    args = parser.parse_args()
-
-    keyFile = args.identity_file or os.path.expanduser(os.path.join('~', '.ssh', 'id_rsa'))
-    try:
-        hostKey = paramiko.RSAKey.from_private_key_file(keyFile)
-    except paramiko.ssh_exception.PasswordRequiredException:
-        logprint.error(
-            'Error: encrypted key files are not supported (%s).' % keyFile, file=sys.stderr)
-        sys.exit(1)
-
-    server = SftpServer((args.host, args.port), hostKey)
-    logprint.info('Girder SFTP service listening on %s:%d.' % (args.host, args.port))
-
-    try:
-        server.serve_forever()
-    except (SystemExit, KeyboardInterrupt):
-        server.server_close()
-
-
-if __name__ == '__main__':  # pragma: no cover
-    _main()

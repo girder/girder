@@ -223,8 +223,8 @@ class Model(ModelImporter):
         :param doc: The document to validate before saving to the collection.
         :type doc: dict
         """
-        raise Exception('Must override validate() in %s model.'
-                        % self.__class__.__name__)  # pragma: no cover
+        raise NotImplementedError('Must override validate() in %s model.'
+                                  % self.__class__.__name__)
 
     def validateKeys(self, keys):
         """
@@ -251,8 +251,8 @@ class Model(ModelImporter):
         Subclasses should override this and set the name of the collection as
         self.name. Also, they should set any indexed fields that they require.
         """
-        raise Exception('Must override initialize() in %s model'
-                        % self.__class__.__name__)  # pragma: no cover
+        raise NotImplementedError('Must override initialize() in %s model'
+                                  % self.__class__.__name__)
 
     def find(self, query=None, offset=0, limit=0, timeout=None,
              fields=None, sort=None, **kwargs):

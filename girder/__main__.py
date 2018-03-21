@@ -17,12 +17,12 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy  # pragma: no cover
-import argparse  # pragma: no cover
-import os  # pragma: no cover
+import cherrypy
+import os
 
-try:  # pragma: no cover
-    from girder.utility import server
+try:
+    from girder.cli import serve
+    import girder
 except ImportError:
     # Update python path to ensure server respawning works. See #732
     source_root_dir = os.path.dirname(os.path.dirname(__file__))
@@ -30,31 +30,10 @@ except ImportError:
     cherrypy.engine.log("[Girder] Appending source root dir to 'sys.path': %s"
                         % source_root_dir)
     sys.path.append(source_root_dir)
-    from girder.utility import server
+    from girder.cli import serve
+    import girder
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='Girder: data management platform for the web.')
-    parser.add_argument("-t", "--testing", help="run in testing mode",
-                        action="store_true")
-    parser.add_argument("-d", "--database",
-                        help="to what database url should Girder connect")
-    parser.add_argument("-H", "--host", help="on what host should Girder serve")
-    parser.add_argument("-p", "--port",
-                        help="on what port should Girder serve")
-    args = parser.parse_args()
-    if args.database:
-        cherrypy.config['database']['uri'] = args.database
-    if args.host:
-        cherrypy.config['server.socket_host'] = args.host
-    if args.port:
-        cherrypy.config['server.socket_port'] = int(args.port)
-    server.setup(args.testing)
-
-    cherrypy.engine.start()
-    cherrypy.engine.block()
-
-
-if __name__ == '__main__':  # pragma: no cover
-    main()
+if __name__ == '__main__':
+    girder.logprint.warning('Deprecation notice: Use "girder serve" to start Girder.')
+    serve.main()

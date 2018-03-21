@@ -21,9 +21,7 @@ This module contains functions to install optional components
 into the current Girder installation.  Note that Girder must
 be restarted for these changes to take effect.
 """
-
 import os
-import pip
 import re
 import select
 import shutil
@@ -42,6 +40,16 @@ webRoot = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web')
 # monkey patch shutil for python < 3
 if not six.PY3:
     import shutilwhich  # noqa
+
+
+def _pipMain(*args):
+    """Run `pip *args` in a system independent way.
+
+    This replaces the old method of calling `pip.main` directly which
+    was broken by pip 9.0.2.
+    """
+    pipCommand = (sys.executable, '-m', 'pip') + args
+    subprocess.check_call(pipCommand)
 
 
 def print_version(parser):
@@ -222,20 +230,16 @@ def _install_plugin_reqs(pluginPath, name, dev=False):
     # Install plugin dependencies
     if os.path.isfile(setupPath):
         print(constants.TerminalColor.info('Installing %s as a package.' % name))
-        if pip.main(['install', '-e', pluginPath]) != 0:
-            raise Exception('Failed to install package at %s.' % pluginPath)
+        _pipMain('install', '-e', pluginPath)
     elif os.path.isfile(requirementsPath):
         print(constants.TerminalColor.info('Installing requirements.txt for %s.' % name))
-        if pip.main(['install', '-r', requirementsPath]) != 0:
-            raise Exception('Failed to install requirements file at %s.' % requirementsPath)
+        _pipMain('install', '-r', requirementsPath)
 
     # Install plugin development dependencies
     if dev and os.path.isfile(devRequirementsPath):
         print(constants.TerminalColor.info(
             'Installing requirements-dev.txt for %s.' % name))
-        if pip.main(['install', '-r', devRequirementsPath]) != 0:
-            raise Exception(
-                'Failed to install requirements file at %s.' % devRequirementsPath)
+        _pipMain('install', '-r', devRequirementsPath)
 
 
 def install_plugin(opts):
@@ -375,7 +379,3 @@ def main():
 
     parsed = parser.parse_args()
     parsed.func(parsed)
-
-
-if __name__ == '__main__':
-    main()  # pragma: no cover

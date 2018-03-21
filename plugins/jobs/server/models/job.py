@@ -264,10 +264,9 @@ class Job(AccessControlledModel):
         to the database. This will allow kwargs with $ and . characters in the
         keys.
         """
-        deserialized = job['kwargs']
         job['kwargs'] = json_util.dumps(job['kwargs'])
         job = AccessControlledModel.save(self, job, *args, **kwargs)
-        job['kwargs'] = deserialized
+        job['kwargs'] = json_util.loads(job['kwargs'])
         return job
 
     def find(self, *args, **kwargs):

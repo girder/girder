@@ -32,7 +32,7 @@ from .. import base, mock_s3
 from girder import events
 from girder.constants import SettingKey
 from girder.models import getDbConnection
-from girder.exceptions import AccessException, GirderException
+from girder.exceptions import AccessException, GirderException, FilePathException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -690,6 +690,10 @@ class FileTestCase(base.TestCase):
         self.assertEqual(os.stat(abspath).st_size, file['size'])
         self.assertEqual(os.stat(abspath).st_mode & 0o777, DEFAULT_PERMS)
 
+        # Make sure the file reports the same path as we have
+        self.assertEqual(File().getAssetstoreAdapter(file).fullPath(file), abspath)
+        self.assertEqual(File().getLocalFilePath(file), abspath)
+
         # Make sure access control is enforced on download
         resp = self.request(
             path='/file/%s/download' % file['_id'], method='GET')
@@ -835,6 +839,9 @@ class FileTestCase(base.TestCase):
         hash = sha512(chunkData).hexdigest()
         file = File().load(file['_id'], force=True)
         self.assertEqual(hash, file['sha512'])
+
+        # The file should have no local path
+        self.assertRaises(FilePathException, File().getLocalFilePath, file)
 
         # We should have two chunks in the database
         self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 2)

@@ -39,7 +39,7 @@ def _loadModel(model, module, plugin):
 
     try:
         constructor = getattr(imported, className)
-    except AttributeError:  # pragma: no cover
+    except AttributeError:
         raise Exception('Incorrect model class name "%s" for model "%s".' % (
             className, module))
 
@@ -106,4 +106,10 @@ class ModelImporter(object):
         :param instance: The model singleton instance.
         :type instance: subclass of Model
         """
+        if plugin not in _modelInstances:
+            _modelInstances[plugin] = {}
         _modelInstances[plugin][model] = instance
+
+    @staticmethod
+    def unregisterModel(model, plugin='_core'):
+        del _modelInstances[plugin][model]

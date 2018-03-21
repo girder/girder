@@ -19,7 +19,7 @@
 
 
 # Constants representing the setting keys for this plugin
-class PluginSettings:
+class PluginSettings(object):
     PROVIDERS_ENABLED = 'oauth.providers_enabled'
     IGNORE_REGISTRATION_POLICY = 'oauth.ignore_registration_policy'
 

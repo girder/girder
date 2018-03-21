@@ -209,7 +209,7 @@ class PythonCliTestCase(base.TestCase):
         self.assertNotEqual(ret['exitVal'], 0)
 
         ret = invokeCli(('-h',))
-        self.assertIn('Usage: girder-cli', ret['stdout'])
+        self.assertIn('Usage: girder-client', ret['stdout'])
         self.assertEqual(ret['exitVal'], 0)
 
     def testUploadDownload(self):

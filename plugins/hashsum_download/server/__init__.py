@@ -19,8 +19,8 @@
 
 import hashlib
 import six
-import warnings
 
+import girder
 from girder import events
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
@@ -44,10 +44,10 @@ class PluginSettings(object):
 
 class HashedFile(File):
     @property
-    def supportedAlgorithms(self):  # pragma: no cover
-        warnings.warn(
+    def supportedAlgorithms(self):
+        girder.logger.warning(
             'HashedFile.supportedAlgorithms is deprecated, use the module-level '
-            'SUPPORTED_ALGORITHMS instead.', DeprecationWarning)
+            'SUPPORTED_ALGORITHMS instead.')
         return SUPPORTED_ALGORITHMS
 
     def __init__(self, node):

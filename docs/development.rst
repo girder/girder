@@ -42,7 +42,7 @@ documentation on how to set this up, see `Developer Installation <dev-installati
 During Development
 ------------------
 
-Once Girder is started via ``girder-server``, the server
+Once Girder is started via ``girder serve``, the server
 will reload itself whenever a Python file is modified.
 
 If you are doing front-end development, it's much faster to use a *watch* process to perform
@@ -69,7 +69,7 @@ are actually bound but requests can still be performed via Python. Bootstrapping
 involves running ``girder.utility.server.configureServer`` with the plugins to be enabled.
 
 Girder provides a utility script for entering into a shell with the server preconfigured. Once
-Girder is installed the script can be run using ``girder-shell`` which optionally takes a comma
+Girder is installed the script can be run using ``girder shell`` which optionally takes a comma
 separated list of plugins to enable.
 
 Utilities
@@ -239,6 +239,10 @@ The coverage data will be automatically generated. After the tests are run,
 you can find the HTML output from the coverage tool in the source directory
 under **build/test/artifacts/**.
 
+.. note:: Non-packaged third-party modules in the the ``girder/external`` directory are not included
+          in test coverage tracking.
+
+
 Client Side Testing
 -------------------
 
@@ -340,7 +344,7 @@ you should point girder to an empty database ::
 
 You can browse the result in Girder by running ::
 
-    GIRDER_MONGO_URI='mongodb://127.0.0.1:27017/mytest' girder-server
+    GIRDER_MONGO_URI='mongodb://127.0.0.1:27017/mytest' girder serve
 
 .. note::
 
@@ -562,7 +566,7 @@ The process for releasing the python client is as follows:
         python setup.py sdist --dist-dir .
 
 3.  That should have created the package tarball as ``girder-client-<version>.tar.gz``.
-    Install it locally in a virtualenv and ensure that you can call the ``girder-cli``
+    Install it locally in a virtualenv and ensure that you can call the ``girder-client``
     executable.
 
     .. code-block:: bash
@@ -571,7 +575,7 @@ The process for releasing the python client is as follows:
         virtualenv release
         source release/bin/activate
         pip install ../girder-client-<version>.tar.gz
-        girder-cli
+        girder-client
 
 4.  Go back to the ``clients/python`` directory and upload the package to pypi:
 

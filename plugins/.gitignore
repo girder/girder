@@ -9,6 +9,7 @@
 !curation/
 !dicom_viewer/
 !download_statistics/
+!fuse/
 !geospatial/
 !google_analytics/
 !gravatar/
@@ -31,4 +32,5 @@
 !treeview/
 !user_quota/
 !vega/
+!virtual_folders/
 !worker/

@@ -1,1 +1,1 @@
-pydicom
+pydicom>=1.0.2

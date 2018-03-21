@@ -20,11 +20,14 @@
   </head>
   <body>
     <div class="docs-header">
+      <%block name="docsHeader">
       <span>${brandName | h} REST API Documentation</span>
       <i class="icon-book-alt right"></i>
       <div id="g-global-info-apiroot" style="display: none">${apiRoot}</div>
+      </%block>
     </div>
     <div class="docs-body">
+      <%block name="docsBody">
       <p>Below you will find the list of all of the resource types exposed by
       the ${brandName | h} RESTful Web API. Click any of the resource links to open up a
       list of all available endpoints related to each resource type.</p>
@@ -37,6 +40,7 @@
       this page are the same as calling the API with any other client, so
       update or delete calls that you make will affect the actual data on the
       server.</p>
+      </%block>
     </div>
     <div class="swagger-section">
       <div id="swagger-ui-container"
