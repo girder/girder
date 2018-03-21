@@ -126,6 +126,7 @@ Web Client
 Deprecations
 ------------
 * Server side tests should be written using the new ``pytest`` infrastructure.
+* Move CLI commands to a "cli" module and deprecate "python -m" methods for starting Girder servers. (`#2616 <https://github.com/girder/girder/pull/2616>`)
 
 Removals
 --------
