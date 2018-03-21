@@ -41,6 +41,16 @@ Added Features
   read-only folders whose list of child items comes from a custom, user-defined database query.
   These folders act like database "views" into the item collection.
   (`#2620 <https://github.com/girder/girder/pull/2620>`_)
+* Added a ``File().getLocalFilePath`` method.
+  (`#2633 <https://github.com/girder/girder/pull/2633>`_)
+* The stream logger handles more properties.
+  (`#2522 <https://github.com/girder/girder/pull/2522>`_)
+* Future-proof for CherryPy removal of response timeouts.
+  (`#2487 <https://github.com/girder/girder/pull/2487>`_)
+* Only use new style Python 2 classes.
+  (`#2656 <https://github.com/girder/girder/pull/2656>`_)
+* Exceptions are now all defined in one place (``girder.exceptions``).
+  (`#2498 <https://github.com/girder/girder/pull/2498>`_)
 
 Web Client
 ^^^^^^^^^^
@@ -51,11 +61,29 @@ Web Client
 
 * New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
 
+* Modal dialogs have a default maximum height and will have a scroll bar if needed.
+  (`#2523 <https://github.com/girder/girder/pull/2523>`_)
+
+Swagger Client
+^^^^^^^^^^^^^^
+* Swagger now expects zip files to be binary data, allowing them to be downloaded through the Web API.
+  (`#2562 <https://github.com/girder/girder/pull/2562>`_)
+
+Testing
+^^^^^^^
+* ``PYTHONPATH`` can be specified for client tests.
+  (`#2535 <https://github.com/girder/girder/pull/2535>`_)
+
+
 Bug fixes
 ---------
 Server
 ^^^^^^
-* Support range requests of S3 non-redirected data handling.  This fixes seeking on S3 assetstore files in the file context handler.
+* Support range requests of S3 non-redirected data handling.  This fixes seeking on S3 assetstore files in the file context handler.  (`#2468 <https://github.com/girder/girder/pull/2468>`_)
+* Pin to a specific version of CherryPy to work around upstream issues on OPTION endpoints.
+  (`#2499 <https://github.com/girder/girder/pull/2499>`_)
+* When a plugin supplying an assetstore fails to load, other assetstores could not be listed.
+  (`#2498 <https://github.com/girder/girder/pull/2498>`_)
 
 Security Fixes
 --------------
@@ -70,6 +98,7 @@ Changes
 Web Client
 ^^^^^^^^^^
 * Use ``href`` properties for navigation links in addition to JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
+  (`#2578 <https://github.com/girder/girder/pull/2578>`_)
 * Change instances of ``.g-server-config`` to ``.g-server-config a`` to enable adding of ``href`` properties to those links
 
 Deprecations
