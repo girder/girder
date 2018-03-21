@@ -61,6 +61,7 @@ Added Features
     * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
     * Added support for the ``mongomock`` package in the new ``pytest`` suite.
 * Allow creation of item_tasks tasks from girder_worker describe decorators. (`#2270 <https://github.com/girder/girder/pull/2270>`_)
+* New plugin to allow browsing of Girder data in a tree view. (`#2086 <https://github.com/girder/girder/pull/2086>`_)
 
 Python Client
 ^^^^^^^^^^^^^
