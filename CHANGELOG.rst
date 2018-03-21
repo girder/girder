@@ -103,6 +103,7 @@ Changes
   (`#2498 <https://github.com/girder/girder/pull/2498>`_)
 * Require npm 5.2+ (with npm 5.6+ strongly recommended) to build the web client
 * Require MongoDB 3.2+ (`#2540 <https://github.com/girder/girder/pull/2540>`_)
+* Disable the background event thread in WSGI mode. (`#2642 <https://github.com/girder/girder/pull/2642>`_)
 
 Web Client
 ^^^^^^^^^^
