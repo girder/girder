@@ -57,13 +57,14 @@ Added Features
 * Add validation logic to rest endpoint paging parameters. (`#2462 <https://github.com/girder/girder/pull/2462>`_)
 * Add rest endpoint to send user validation email. (`#2622 <https://github.com/girder/girder/pull/2622>`_)
 * Add a search mode registry and a search mode for dicom metedata. (`#2450 <https://github.com/girder/girder/pull/2450>`_)
+* Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
+    * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
+    * Added support for the ``mongomock`` package in the new ``pytest`` suite.
 
 Web Client
 ^^^^^^^^^^
-* Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
-
-  * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
-  * Added support for the ``mongomock`` package in the new ``pytest`` suite.
+* Added a new, more fully-featured view for search results.
+  (`#2347 <https://github.com/girder/girder/pull/2347>`_)
 
 * New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
 
