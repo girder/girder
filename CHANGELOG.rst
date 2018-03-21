@@ -108,6 +108,7 @@ Server
   (`#2498 <https://github.com/girder/girder/pull/2498>`_)
 * Run pip installation of plugins using a subprocess rather than the pip module, for forward compatbility
   with pip. (`#2669 <https://github.com/girder/girder/pull/2669>`_)
+* Correct complex plugin dependencies parsing. (`#2496 <https://github.com/girder/girder/pull/2496>`_)
 
 Security Fixes
 --------------
