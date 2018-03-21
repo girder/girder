@@ -33,6 +33,10 @@ Added Features
 * Added the server FUSE plugin that mounts Girder files in a read-only
   user-space filesystem. (`#2521 <https://github.com/girder/girder/pull/2521>`_)
 * Plugins can be enabled for Pytest. (`#2634 <https://github.com/girder/girder/pull/2634>`_)
+* Added support for the ``--host`` flag to ``girder serve`` to allow dynamically
+  setting the host. (`#2570 <https://github.com/girder/girder/pull/2570>`_)
+* Added support for running the Python test suite via the ``tox`` command.
+  (`#2528 <https://github.com/girder/girder/pull/2528>`_)
 
 Web Client
 ^^^^^^^^^^
@@ -51,6 +55,8 @@ Server
 
 Security Fixes
 --------------
+* The default Girder server now binds to localhost by default instead of 0.0.0.0.
+  (`#2565 <https://github.com/girder/girder/pull/2565>`_)
 
 Changes
 -------
