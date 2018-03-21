@@ -144,6 +144,7 @@ Removals
 * The deprecated ``DELETE /user/password`` endpoint is removed. The ``PUT /user/password/temporary``
   endpoint should always be used to reset passwords, as it uses a secure, token-based password
   mechanism. (`#2621 <https://github.com/girder/girder/pull/2621>`_)
+* Dropped support for Python3 < 3.5. (`#2572 <https://github.com/girder/girder/pull/2572>`_)
 
 Girder 2.4.0
 ============
