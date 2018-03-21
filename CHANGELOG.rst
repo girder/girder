@@ -54,6 +54,7 @@ Added Features
 * Allow assetstore implementations from models besides the assetstore model itself. This enables
   assetstore adapters in plugins to be managed by users who are not necessarily site administrators.
   (`#2599 <https://github.com/girder/girder/pull/2599>`_)
+* Add validation logic to rest endpoint paging parameters. (`#2462 <https://github.com/girder/girder/pull/2462>`_)
 
 Web Client
 ^^^^^^^^^^
