@@ -8,6 +8,9 @@ details, see the commit logs at https://github.com/girder/girder
 Unreleased
 ==========
 
+Girder 2.5.0
+============
+
 Added Features
 --------------
 
