@@ -1,3 +1,5 @@
+import Backbone from 'backbone';
+
 import { restRequest } from 'girder/rest';
 import router from 'girder/router';
 import View from 'girder/views/View';
@@ -17,10 +19,16 @@ var ConfigureTasksDialog = View.extend({
             e.preventDefault();
             this.$('.g-validation-failed-message').empty();
 
-            if (this.$('.g-configure-json-tasks-tab').hasClass('active')) {
+            const tabPane = this.$('.tab-pane.active').prop('id');
+            if (tabPane === 'g-configure-json-tasks-tab-content') {
                 this._submitJson();
-            } else {
+            } else if (tabPane === 'g-configure-slicer-cli-task-tab-content') {
                 this._submitSlicerCli();
+            } else if (tabPane === 'g-configure-celery-task-tab-content') {
+                this._submitCelery();
+            } else {
+                // This should never happen, just in case, we log it to the console.
+                throw new Error('Could not find active tab');
             }
         }
     },
@@ -35,6 +43,7 @@ var ConfigureTasksDialog = View.extend({
         let currentImage = null;
         let currentTaskName = null;
         let currentSlicerCliArgs = null;
+        let currentModulePath = null;
         if (!this.isFolder) {
             const meta = this.model.get('meta') || {};
 
@@ -49,16 +58,23 @@ var ConfigureTasksDialog = View.extend({
 
             currentImage = meta.itemTaskSpec && meta.itemTaskSpec.docker_image;
             currentTaskName = meta.itemTaskName;
+            currentModulePath = meta.itemTaskImport;
         }
 
-        this.$el.html(template({
-            model: this.model,
-            isFolder: this.isFolder,
-            currentImage: currentImage,
-            currentTaskName: currentTaskName,
-            currentSlicerCliArgs
-        })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('input:first').focus();
+        restRequest({
+            url: 'item_task/extensions'
+        }).done((extensions) => {
+            this.$el.html(template({
+                model: this.model,
+                isFolder: this.isFolder,
+                currentImage: currentImage,
+                currentTaskName: currentTaskName,
+                currentSlicerCliArgs,
+                currentModulePath,
+                extensions
+            })).girderModal(this).on('shown.bs.modal', () => {
+                this.$('input:first').focus();
+            });
         });
 
         // Clear validation error message when switching tabs
@@ -136,6 +152,49 @@ var ConfigureTasksDialog = View.extend({
             error: null
         }).done((job) => {
             router.navigate(`job/${job._id}`, {trigger: true});
+        }).fail((resp) => {
+            this.$('.g-validation-failed-message').text(resp.responseJSON.message);
+        });
+    },
+
+    _submitCelery: function () {
+        const extensionName = this.$('.g-worker-extension').val();
+        const modulePath = this.$('.g-celery-import-path').val();
+        const setNameElem = this.$('.g-configure-celery-use-name');
+        const setDescriptionElem = this.$('.g-configure-celery-use-description');
+        const data = {};
+
+        if (this.resourceName === 'item') {
+            if (!modulePath) {
+                this.$('.g-validation-failed-message').text('Please enter a valid import path');
+                return;
+            }
+            data.taskName = modulePath.trim();
+        } else {
+            data.extension = extensionName.trim();
+        }
+
+        if (setNameElem.length) {
+            data.setName = setNameElem.is(':checked');
+        }
+        if (setDescriptionElem.length) {
+            data.setDescription = setDescriptionElem.is(':checked');
+        }
+
+        restRequest({
+            url: `${this.resourceName}/${this.model.id}/item_task_celery`,
+            type: 'POST',
+            data: data,
+            error: null
+        }).done(() => {
+            // Here we want to reload the current view.  We have to unset the
+            // history fragment otherwise backbone router just returns as a
+            // no-op.  Ideally, we could just run fetch on the parent model
+            // (for items) or collection (for folders) and the hierarchy view
+            // would rerender automatically.  This seems to work for the item
+            // view, but not the folder list view.
+            Backbone.history.fragment = null;
+            router.navigate(`${this.resourceName}/${this.model.id}`, {trigger: true, replace: true});
         }).fail((resp) => {
             this.$('.g-validation-failed-message').text(resp.responseJSON.message);
         });
