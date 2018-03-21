@@ -60,6 +60,7 @@ Added Features
 * Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
     * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
     * Added support for the ``mongomock`` package in the new ``pytest`` suite.
+* Allow creation of item_tasks tasks from girder_worker describe decorators. (`#2270 <https://github.com/girder/girder/pull/2270>`_)
 
 Python Client
 ^^^^^^^^^^^^^
