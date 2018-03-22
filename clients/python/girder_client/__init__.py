@@ -1168,6 +1168,19 @@ class GirderClient(object):
         path = 'folder/' + folderId + '/metadata'
         obj = self.put(path, json=metadata)
         return obj
+    
+    def getMetadata(self, resourceType, Id):
+        """
+        Takes in a resource type and an id to get the metadata. 
+
+        :param resourceType: The type of resource being: 'collection', 'user',
+            'folder', 'file', or 'item'.
+        :type resourceType: str
+        :param id: resourceType associated ID.
+        :type id: int
+        """
+        path = resourceType + "/" + Id
+        return self.get(path)
 
     def transformFilename(self, name):
         """
