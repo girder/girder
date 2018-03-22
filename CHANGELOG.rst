@@ -8,6 +8,9 @@ details, see the commit logs at https://github.com/girder/girder
 Unreleased
 ==========
 
+Girder 2.5.0
+============
+
 Added Features
 --------------
 
@@ -17,13 +20,6 @@ Added Features
   (`#2438 <https://github.com/girder/girder/pull/2438>`_)
 * API endpoint in the hashsum_download plugin that returns a list of files matching a given hash sum.
   (`#2548 <https://github.com/girder/girder/pull/2458>`_)
-* Flake8 settings are now able to be automatically detected by many editors and IDEs. The ``flake8``
-  tool may now be invoked directly from the command line, without necessarily using a CMake test.
-  (`#2543 <https://github.com/girder/girder/pull/2543>`_)
-* ESLint settings for plugin tests are now able to be automatically detected by many editors and
-  IDEs. The ``eslint`` tool (including options such as ``--fix``) may now be invoked directly from
-  the command line, without necessarily using a CMake test.
-  (`#2550 <https://github.com/girder/girder/pull/2550>`_)
 * Integration with ``dogpile.cache`` for caching key value pairs via ``girder.utility._cache.cache`` and
   ``girder.utility._cache.requestCache``. (`#2274 <https://github.com/girder/girder/pull/2274>`_)
 * Plugins can customize the header and description on the Swagger page.
@@ -32,38 +28,110 @@ Added Features
   (`#2596 <https://github.com/girder/girder/pull/2596>`_)
 * Added the server FUSE plugin that mounts Girder files in a read-only
   user-space filesystem. (`#2521 <https://github.com/girder/girder/pull/2521>`_)
+* Added support for the ``--host`` flag to ``girder serve`` to allow dynamically
+  setting the host. (`#2570 <https://github.com/girder/girder/pull/2570>`_)
+* Added support for running the Python test suite via the ``tox`` command.
+  (`#2528 <https://github.com/girder/girder/pull/2528>`_)
+* Created a new "virtual folders" plugin. This plugin allows administrators to configure special
+  read-only folders whose list of child items comes from a custom, user-defined database query.
+  These folders act like database "views" into the item collection.
+  (`#2620 <https://github.com/girder/girder/pull/2620>`_)
+* Added a ``File().getLocalFilePath`` method.
+  (`#2633 <https://github.com/girder/girder/pull/2633>`_)
+* The stream logger handles more properties.
+  (`#2522 <https://github.com/girder/girder/pull/2522>`_)
+* Future-proof for CherryPy removal of response timeouts.
+  (`#2487 <https://github.com/girder/girder/pull/2487>`_)
+* Only use new style Python 2 classes.
+  (`#2656 <https://github.com/girder/girder/pull/2656>`_)
+* Allow cancellation of raw Celery tasks.
+  (`#2602 <https://github.com/girder/girder/pull/2602>`_)
+* Allow assetstore implementations from models besides the assetstore model itself. This enables
+  assetstore adapters in plugins to be managed by users who are not necessarily site administrators.
+  (`#2599 <https://github.com/girder/girder/pull/2599>`_)
+* Add validation logic to rest endpoint paging parameters. (`#2462 <https://github.com/girder/girder/pull/2462>`_)
+* Add rest endpoint to send user validation email. (`#2622 <https://github.com/girder/girder/pull/2622>`_)
+* Add a search mode registry and a search mode for dicom metedata. (`#2450 <https://github.com/girder/girder/pull/2450>`_)
+* Allow creation of item_tasks tasks from girder_worker describe decorators. (`#2270 <https://github.com/girder/girder/pull/2270>`_)
+* New plugin to allow browsing of Girder data in a tree view. (`#2086 <https://github.com/girder/girder/pull/2086>`_)
+
+Python Client
+^^^^^^^^^^^^^
+* Add a method to stream contents of a file download. (`#2476 <https://github.com/girder/girder/pull/2476>`_)
 
 Web Client
 ^^^^^^^^^^
-* Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
-
-  * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
-  * Added support for the ``mongomock`` package in the new ``pytest`` suite.
-
+* Added a new, more fully-featured view for search results.
+  (`#2347 <https://github.com/girder/girder/pull/2347>`_)
+* For added safety, when deleting a collection a user will now be required to type the name of
+  the collection into the confirmation dialog.
+  (`#2473 <https://github.com/girder/girder/pull/2473>`_)
 * New table_view plugin renders .csv and .tsv files as tables on the item page. (`#2480 <https://github.com/girder/girder/pull/2480>`_)
+* Modal dialogs have a default maximum height and will have a scroll bar if needed.
+  (`#2523 <https://github.com/girder/girder/pull/2523>`_)
+* We now use the webpack DefinePlugin to add a build-time definition of the environment. This can
+  be used to allow for different build output in production vs. development.
+  (`#2631 <https://github.com/girder/girder/pull/2631>`_)
+* Use ``href`` properties for navigation links in addition to JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
+  (`#2578 <https://github.com/girder/girder/pull/2578>`_)
+* Change instances of ``.g-server-config`` to ``.g-server-config a`` to enable adding of ``href`` properties to those links
+* Add new methods: ``folder.removeContents``, ``item.getFiles``, ``user.fromTemporaryToken``.
+  (`#2615 <https://github.com/girder/girder/pull/2615>`_)
+
+Swagger Client
+^^^^^^^^^^^^^^
+* Swagger now expects zip files to be binary data, allowing them to be downloaded through the Web API.
+  (`#2562 <https://github.com/girder/girder/pull/2562>`_)
+
+Testing
+^^^^^^^
+* ``PYTHONPATH`` can be specified for client tests.
+  (`#2535 <https://github.com/girder/girder/pull/2535>`_)
+* Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
+    * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
+    * Added support for the ``mongomock`` package in the new ``pytest`` suite.
+    * Plugins can be enabled for Pytest. (`#2634 <https://github.com/girder/girder/pull/2634>`_)
+* Flake8 settings are now able to be automatically detected by many editors and IDEs. The ``flake8``
+  tool may now be invoked directly from the command line, without necessarily using a CMake test.
+  (`#2543 <https://github.com/girder/girder/pull/2543>`_)
+* ESLint settings for plugin tests are now able to be automatically detected by many editors and
+  IDEs. The ``eslint`` tool (including options such as ``--fix``) may now be invoked directly from
+  the command line, without necessarily using a CMake test.
+  (`#2550 <https://github.com/girder/girder/pull/2550>`_)
+
 
 Bug fixes
 ---------
 Server
 ^^^^^^
-* Support range requests of S3 non-redirected data handling.  This fixes seeking on S3 assetstore files in the file context handler.
+* Support range requests of S3 non-redirected data handling.  This fixes seeking on S3 assetstore files in the file context handler.  (`#2468 <https://github.com/girder/girder/pull/2468>`_)
+* Pin to a specific version of CherryPy to work around upstream issues on OPTION endpoints.
+  (`#2499 <https://github.com/girder/girder/pull/2499>`_)
+* When a plugin supplying an assetstore fails to load, other assetstores could not be listed.
+  (`#2498 <https://github.com/girder/girder/pull/2498>`_)
+* Run pip installation of plugins using a subprocess rather than the pip module, for forward compatbility
+  with pip. (`#2669 <https://github.com/girder/girder/pull/2669>`_)
+* Correct complex plugin dependencies parsing. (`#2496 <https://github.com/girder/girder/pull/2496>`_)
 
 Security Fixes
 --------------
+* The default Girder server now binds to localhost by default instead of 0.0.0.0.
+  (`#2565 <https://github.com/girder/girder/pull/2565>`_)
 
 Changes
 -------
 * Exceptions are now all accessible in the ``exceptions`` module and are descended from the ``GirderBaseException`` class.
+  (`#2498 <https://github.com/girder/girder/pull/2498>`_)
 * Require npm 5.2+ (with npm 5.6+ strongly recommended) to build the web client
-
-Web Client
-^^^^^^^^^^
-* Use ``href`` properties for navigation links in addition to JavaScript onclick events. (`#2489 <https://github.com/girder/girder/pull/2489>`_)
-* Change instances of ``.g-server-config`` to ``.g-server-config a`` to enable adding of ``href`` properties to those links
+* Require MongoDB 3.2+ (`#2540 <https://github.com/girder/girder/pull/2540>`_)
+* Disable the background event thread in WSGI mode. (`#2642 <https://github.com/girder/girder/pull/2642>`_)
+* Update imports of library from "dicom" to "pydicom". (`#2617 <https://github.com/girder/girder/pull/2617>`_)
+* A log message is now emitted whenever a file is uploaded. (`#2571 <https://github.com/girder/girder/pull/2571>`_)
 
 Deprecations
 ------------
 * Server side tests should be written using the new ``pytest`` infrastructure.
+* Move CLI commands to a "cli" module and deprecate "python -m" methods for starting Girder servers. (`#2616 <https://github.com/girder/girder/pull/2616>`)
 
 Removals
 --------
@@ -80,7 +148,8 @@ Removals
   Most typical external plugins will continue to work with their current configuration.
 * The deprecated ``DELETE /user/password`` endpoint is removed. The ``PUT /user/password/temporary``
   endpoint should always be used to reset passwords, as it uses a secure, token-based password
-  mechanism.
+  mechanism. (`#2621 <https://github.com/girder/girder/pull/2621>`_)
+* Dropped support for Python3 < 3.5. (`#2572 <https://github.com/girder/girder/pull/2572>`_)
 
 Girder 2.4.0
 ============
