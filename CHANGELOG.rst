@@ -20,13 +20,6 @@ Added Features
   (`#2438 <https://github.com/girder/girder/pull/2438>`_)
 * API endpoint in the hashsum_download plugin that returns a list of files matching a given hash sum.
   (`#2548 <https://github.com/girder/girder/pull/2458>`_)
-* Flake8 settings are now able to be automatically detected by many editors and IDEs. The ``flake8``
-  tool may now be invoked directly from the command line, without necessarily using a CMake test.
-  (`#2543 <https://github.com/girder/girder/pull/2543>`_)
-* ESLint settings for plugin tests are now able to be automatically detected by many editors and
-  IDEs. The ``eslint`` tool (including options such as ``--fix``) may now be invoked directly from
-  the command line, without necessarily using a CMake test.
-  (`#2550 <https://github.com/girder/girder/pull/2550>`_)
 * Integration with ``dogpile.cache`` for caching key value pairs via ``girder.utility._cache.cache`` and
   ``girder.utility._cache.requestCache``. (`#2274 <https://github.com/girder/girder/pull/2274>`_)
 * Plugins can customize the header and description on the Swagger page.
@@ -35,7 +28,6 @@ Added Features
   (`#2596 <https://github.com/girder/girder/pull/2596>`_)
 * Added the server FUSE plugin that mounts Girder files in a read-only
   user-space filesystem. (`#2521 <https://github.com/girder/girder/pull/2521>`_)
-* Plugins can be enabled for Pytest. (`#2634 <https://github.com/girder/girder/pull/2634>`_)
 * Added support for the ``--host`` flag to ``girder serve`` to allow dynamically
   setting the host. (`#2570 <https://github.com/girder/girder/pull/2570>`_)
 * Added support for running the Python test suite via the ``tox`` command.
@@ -60,9 +52,6 @@ Added Features
 * Add validation logic to rest endpoint paging parameters. (`#2462 <https://github.com/girder/girder/pull/2462>`_)
 * Add rest endpoint to send user validation email. (`#2622 <https://github.com/girder/girder/pull/2622>`_)
 * Add a search mode registry and a search mode for dicom metedata. (`#2450 <https://github.com/girder/girder/pull/2450>`_)
-* Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
-    * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
-    * Added support for the ``mongomock`` package in the new ``pytest`` suite.
 * Allow creation of item_tasks tasks from girder_worker describe decorators. (`#2270 <https://github.com/girder/girder/pull/2270>`_)
 * New plugin to allow browsing of Girder data in a tree view. (`#2086 <https://github.com/girder/girder/pull/2086>`_)
 
@@ -98,6 +87,17 @@ Testing
 ^^^^^^^
 * ``PYTHONPATH`` can be specified for client tests.
   (`#2535 <https://github.com/girder/girder/pull/2535>`_)
+* Support for writing server-side tests using ``pytest``. (`#2412 <https://github.com/girder/girder/pull/2412>`_)
+    * Added the `pytest-girder <https://pypi.python.org/pypi/pytest-girder>`_ package for downstream packages.
+    * Added support for the ``mongomock`` package in the new ``pytest`` suite.
+    * Plugins can be enabled for Pytest. (`#2634 <https://github.com/girder/girder/pull/2634>`_)
+* Flake8 settings are now able to be automatically detected by many editors and IDEs. The ``flake8``
+  tool may now be invoked directly from the command line, without necessarily using a CMake test.
+  (`#2543 <https://github.com/girder/girder/pull/2543>`_)
+* ESLint settings for plugin tests are now able to be automatically detected by many editors and
+  IDEs. The ``eslint`` tool (including options such as ``--fix``) may now be invoked directly from
+  the command line, without necessarily using a CMake test.
+  (`#2550 <https://github.com/girder/girder/pull/2550>`_)
 
 
 Bug fixes
