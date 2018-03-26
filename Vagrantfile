@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
   ansible_example_name = ENV.fetch("GIRDER_EXAMPLE", "girder-dev-environment")
   is_testing = true?(ENV.fetch("ANSIBLE_TESTING", false))
   is_client_testing = true?(ENV.fetch("ANSIBLE_CLIENT_TESTING", false))
-  bind_node_modules = true?(ENV.fetch("BIND_NODE_MODULES", Vagrant::Util::Platform.windows?))
+  bind_node_modules = true?(ENV.fetch("BIND_NODE_MODULES", true))
 
   if Vagrant.has_plugin?("vagrant-cachier")
     config.cache.scope = :box
