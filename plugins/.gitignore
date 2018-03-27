@@ -25,6 +25,7 @@
 !metadata_extractor/
 !mongo_search/
 !oauth/
+!oauth_provider/
 !provenance/
 !table_view/
 !terms/
