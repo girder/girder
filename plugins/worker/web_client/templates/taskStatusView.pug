@@ -1,0 +1,67 @@
+h1.g-worker-task-status-header
+  | Global information about workers
+  if load
+    i.icon-spin4.icon-spin
+  else
+    button.g-worker-task-status-btn-reload
+      i.icon-arrows-cw
+
+if ! load
+  .g-worker-task-status-content
+    if workerList.length === 0
+      p.g-worker-task-status-no-worker-message
+        | No accessible workers.
+    else
+      table.g-worker-status-table
+        tr
+          th= "Name"
+          th= "Status"
+          th= "Accepted tasks"
+          th= "Running tasks"
+          th= "Completed tasks"
+          th= "Report"
+        each worker in workerList
+          tr.g-worker-task-status-link
+            td
+              | #{worker.name}
+            if worker.ping == "pong"
+              td= "Online"
+            else
+              td= "Offline"
+            td
+              | #{worker.stats}
+            td
+              | #{worker.active.length}
+            td
+              | #{worker.stats - worker.active.length}
+            td
+              | #{worker.report}
+
+      if activeTasks.length
+        h3.g-worker-task-status-header
+          | #{workerName}
+        table.g-worker-status-table
+          tr
+            th= "Name"
+            th= "ID"
+            th= "Type"
+            th= "Time Start"
+            th= "Arguments"
+            th= "KeyWord Arguments"
+            th= "Worker PID"
+          each task in activeTasks
+            tr
+              td
+                | #{task.name}
+              td
+                | #{task.id}
+              td
+                | #{task.type}
+              td
+                | #{task.time_start}
+              td
+                | #{task.args}
+              td
+                | #{task.kwargs}
+              td
+                | #{task.worker_pid}
