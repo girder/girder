@@ -118,7 +118,7 @@ class _ProgressBytesIO(six.BytesIO):
         self.reporter = kwargs.pop('reporter')
         six.BytesIO.__init__(self, *args, **kwargs)
 
-    def read(self, _size):
+    def read(self, _size=-1):
         _chunk = six.BytesIO.read(self, _size)
         self.reporter.update(len(_chunk))
         return _chunk
@@ -130,7 +130,7 @@ class _ProgressMultiPartEncoder(MultipartEncoder):
         self.reporter = kwargs.pop('reporter')
         MultipartEncoder.__init__(self, *args, **kwargs)
 
-    def read(self, _size):
+    def read(self, _size=-1):
         _chunk = MultipartEncoder.read(self, _size)
         self.reporter.update(len(_chunk))
         return _chunk
