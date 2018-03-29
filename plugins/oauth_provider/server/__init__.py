@@ -1,7 +1,10 @@
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
+from girder.models.token import Token
+from six.moves import urllib
 from .client import Client
+from .code import Code
 
 class OAuthClient(Resource):
     def __init__(self):
@@ -11,6 +14,8 @@ class OAuthClient(Resource):
         self.route('GET', (), self.listClients)
         self.route('GET', (':id',), self.getClient)
         self.route('POST', (), self.createClient)
+        self.route('POST', ('token',), self.createToken)
+        self.route('POST', (':id', 'authorization',), self.authorizeClient)
         self.route('PUT', (':id',), self.updateClient)
         self.route('DELETE', (':id',), self.deleteClient)
 
@@ -66,7 +71,6 @@ class OAuthClient(Resource):
 
         return Client().save(client)
 
-
     @access.admin
     @autoDescribeRoute(
         Description('Delete an OAuth client.')
@@ -75,6 +79,45 @@ class OAuthClient(Resource):
     def deleteClient(self, client):
         Client().remove(client)
 
+    @access.user
+    @autoDescribeRoute(
+        Description('Authorize an OAuth client.')
+        .modelParam('id', 'The ID of the client.', model=Client, destName='client')
+        .param('authorize', 'Whether or not to accept the authorization.', dataType='boolean')
+        .param('redirect', 'The redirect URI.')
+        .param('state', 'The state parameter to pass back to the client.', required=False)
+    )
+    def authorizeClient(self, authorize, client, redirect, state, scope):
+        def mkresp(params):
+            if state is not None:
+                params['state'] = state
+
+            return {'url': '%s?%s' % (redirect, urllib.parse.urlencode(params))}
+
+        if redirect not in client['authorizedRedirects']:
+            return mkresp({
+                'error': 'The redirect URI "%s" is not allowed by this client.' % redirect
+            })
+
+        if not authorize:
+            return mkresp({
+                'error': 'The user declined to authorize this client.'
+            })
+
+        return mkresp({
+            'code': Code.createCode(client, scope, self.getCurrentUser())['code']
+        })
+
+    @access.public
+    @autoDescribeRoute(
+        Description('Get an auth token from a client access code.')
+        .param('code', 'The client access code obtained from the authorization flow.')
+    )
+    def createToken(self, code):
+        return Code().createToken(code)
+
 
 def load(info):
     info['apiRoot'].oauth_client = OAuthClient()
+
+    Token().ensureIndex('oauthClientId')
