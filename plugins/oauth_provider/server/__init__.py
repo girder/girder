@@ -23,7 +23,7 @@ class OAuthClient(Resource):
     def listClients(self, limit, offset, sort):
         return list(Client().find(limit=limit, offset=offset, sort=sort))
 
-    @access.admin
+    @access.public
     @filtermodel(Client)
     @autoDescribeRoute(
         Description('Get information for an OAuth client.')

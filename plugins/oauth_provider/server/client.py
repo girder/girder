@@ -15,8 +15,9 @@ class Client(Model):
 
     def initialize(self):
         self.name = 'oauth_client'
+        self.exposeFields(level=AccessType.READ, fields={'_id', 'name'})
         self.exposeFields(level=AccessType.SITE_ADMIN, fields={
-            '_id', 'authorizedOrigins', 'authorizedRedirects', 'created', 'name', 'secret'
+            'authorizedOrigins', 'authorizedRedirects', 'created', 'secret'
         })
 
     def validate(self, doc):
