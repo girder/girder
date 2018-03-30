@@ -1,8 +1,10 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import View from 'girder/views/View';
-import { getCurrentUser } from 'girder/auth';
+import { getCurrentUser, setCurrentToken, setCurrentUser } from 'girder/auth';
 import { restRequest } from 'girder/rest';
+import UserModel from 'girder/models/UserModel';
+
 import consentTemplate from './consentTemplate.pug';
 import loginTemplate from './loginTemplate.pug';
 import './authorizeView.styl';
@@ -22,6 +24,29 @@ export default View.extend({
                 }
             }).then((resp) => {
                 window.location = resp.url;
+            });
+        },
+        'submit .g-login-form': function (e) {
+            e.preventDefault();
+            this.$('.g-login-button').girderEnable(false);
+
+            const username = this.$('#g-login').val();
+            const password = this.$('#g-password').val();
+            const auth = 'Basic ' + window.btoa(username + ':' + password);
+
+            restRequest({
+                url: '/user/authentication',
+                headers: {'Girder-Authorization': auth},
+                error: null
+            }).then((response) => {
+                setCurrentUser(new UserModel(response.user));
+                setCurrentToken(response.authToken.token);
+                this.mode = 'consent';
+                this.render();
+            }).fail((err) => {
+                this.$('.g-validation-failed-message').text(err.responseJSON.message);
+            }).always(() => {
+                this.$('.g-login-button').girderEnable(true);
             });
         }
     },
