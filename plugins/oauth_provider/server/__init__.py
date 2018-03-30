@@ -111,10 +111,14 @@ class OAuthClient(Resource):
     @access.public
     @autoDescribeRoute(
         Description('Get an auth token from a client access code.')
+        .modelParam('clientId', 'The ID of the client making this request.', model=Client,
+                    destName='client', paramType='formData')
         .param('code', 'The client access code obtained from the authorization flow.')
+        .param('redirect', 'The redirect URI of this client.')
+        .param('secret', 'The secret for this client.')
     )
-    def createToken(self, code):
-        return Code().createToken(code)
+    def createToken(self, code, client, redirect, secret):
+        return {'token': Code().createToken(code, client, redirect, secret)['_id']}
 
 
 def load(info):

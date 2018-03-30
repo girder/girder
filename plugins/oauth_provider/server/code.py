@@ -13,7 +13,7 @@ class Code(Model):
     def validate(self, doc):
         return doc
 
-    def createCode(self, client, scope, user, days=7):
+    def createCode(self, client, scope, user, days=1):
         now = datetime.datetime.utcnow()
 
         return self.save({
@@ -25,12 +25,27 @@ class Code(Model):
             'userId': user['_id'],
         })
 
-    def createToken(self, code):
+    def createToken(self, code, client, redirect, secret):
         doc = self.findOne({'code': code})
         if doc is None:
             raise ValidationException('Invalid access code.')
 
+        if doc['clientId'] != client['_id']:
+            raise ValidationException('OAuth client ID does not match.')
+
+        if secret != client['secret']:
+            raise ValidationException('OAuth client secret is incorrect.')
+
+        if redirect not in client['authorizedRedirects']:
+            raise ValidationException('Invalid redirect URI.')
+
         user = User().load(doc['userId'], force=True, exc=True)
-        token = Token().createToken(user, scope=doc['scope'].split())
+
+        # TODO we should record the clients that a user has authorized if we ever make
+        # these tokens longer term, i.e. for more than just identity lookup
+        token = Token().createToken(user, scope=doc['scope'].split(), days=1)
         token['oauthClientId'] = doc['clientId']
+
+        self.remove(doc)
+
         return Token().save(token)
