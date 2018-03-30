@@ -86,8 +86,9 @@ class OAuthClient(Resource):
         .param('authorize', 'Whether or not to accept the authorization.', dataType='boolean')
         .param('redirect', 'The redirect URI.')
         .param('state', 'The state parameter to pass back to the client.', required=False)
+        .param('scope', 'The scope of authorization as a space-separated list of scope IDs.')
     )
-    def authorizeClient(self, authorize, client, redirect, state, scope):
+    def authorizeClient(self, authorize, client, redirect, scope, state):
         def mkresp(params):
             if state is not None:
                 params['state'] = state
@@ -105,7 +106,7 @@ class OAuthClient(Resource):
             })
 
         return mkresp({
-            'code': Code.createCode(client, scope, self.getCurrentUser())['code']
+            'code': Code().createCode(client, scope, self.getCurrentUser())['code']
         })
 
     @access.public

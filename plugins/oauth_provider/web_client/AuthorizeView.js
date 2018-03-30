@@ -7,15 +7,25 @@ import consentTemplate from './consentTemplate.pug';
 import loginTemplate from './loginTemplate.pug';
 import './authorizeView.styl';
 
-const getScopeInfo = (id) => _.find
 
 export default View.extend({
     events: {
-
+        'click .g-oauth-client-consent': function (e) {
+            restRequest({
+                type: 'POST',
+                url: `oauth_client/${this.client._id}/authorization`,
+                data: {
+                    authorize: $(e.currentTarget).attr('value'),
+                    redirect: this.redirect,
+                    scope: this.scopes.join(' '),
+                    state: this.state
+                }
+            }).then((resp) => {
+                window.location = resp.url;
+            });
+        }
     },
     initialize(opts) {
-        // TODO present the name of the client app corresponding to this client ID
-        // once we have a consent screen;
         this.redirect = opts.redirect;
         this.state = opts.state;
         this.scopes = opts.scope.split(' ');
