@@ -1,0 +1,16 @@
+.g-consent-view-container
+  h3 Authorize OAuth application
+  p.g-authorize-text.
+    The application #[b= client.name] is requesting the following access to this Girder instance
+    on behalf of your user (#[b= user.get('login')]):
+
+  ul.g-scope-list
+    each scope in scopes
+      - var info = getScopeInfo(scope)
+      li
+        .g-scope-name= info.name
+        .g-scope-description= info.description
+
+  .g-consent-buttons
+    .btn.btn-lg.btn-danger Deny
+    .btn.btn-lg.btn-primary Allow

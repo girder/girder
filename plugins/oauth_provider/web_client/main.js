@@ -2,13 +2,14 @@ import events from 'girder/events';
 import router from 'girder/router';
 import { Layout } from 'girder/constants';
 
-import LoginView from './LoginView';
+import AuthorizeView from './AuthorizeView';
 
 
-router.route('oauth_provider/login', 'oauthProviderLogin', function (opts) {
-    events.trigger('g:navigateTo', LoginView, {
+router.route('oauth_provider/authorize', 'oauthProviderAuthorize', function (opts) {
+    events.trigger('g:navigateTo', AuthorizeView, {
         clientId: opts.clientId,
         redirect: opts.redirect,
+        scope: opts.scope,
         state: opts.state
     }, {
         layout: Layout.EMPTY
