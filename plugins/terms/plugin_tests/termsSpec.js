@@ -361,12 +361,14 @@ describe('Change the terms', function () {
         waitsFor(function () {
             return $('.g-collection-list-entry').length > 0;
         });
+        girderTest.waitForLoad();
         runs(function () {
             $('.g-collection-link:contains("Terms Collection")').click();
         });
         waitsFor(function () {
             return $('.g-collection-header').length > 0;
         });
+        girderTest.waitForLoad();
     });
 
     it('edit the collection terms', function () {
