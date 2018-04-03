@@ -207,7 +207,7 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         if assetstoreType == 'gridfs':
             # Name this as '_auto' to prevent conflict with assetstores created
             # within test methods
-            gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName
+            gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName.replace('.', '_')
             dropGridFSDatabase(gridfsDbName)
             self.assetstore = Assetstore().createGridFsAssetstore(name='Test', db=gridfsDbName)
         elif assetstoreType == 'gridfsrs':
