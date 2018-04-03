@@ -30,6 +30,7 @@ class Worker(Resource):
         super(Worker, self).__init__()
         self.resourceName = 'worker'
         self.route('GET', ('status',), self.getWorkerStatus)
+        self.route('GET', ('task',), self.runTask)
 
     @autoDescribeRoute(
         Description('Get workers status.')
@@ -48,3 +49,10 @@ class Worker(Resource):
         result['scheduled'] = status.scheduled()
         return result
 
+    @autoDescribeRoute(
+        Description('Get workers status.')
+    )
+    @access.user(scope=TokenScope.DATA_READ)
+    def runTask(self):
+        from ..task import add
+        add.delay(345, 35)
