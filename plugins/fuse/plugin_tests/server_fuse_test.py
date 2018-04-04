@@ -30,14 +30,7 @@ def tearDownModule():
     curConfig = config.getConfig()
     tempdir = curConfig['server_fuse']['path']
     base.stopServer()
-    retries = 0
-    while retries < 50:
-        try:
-            os.rmdir(tempdir)
-            break
-        except OSError:
-            retries += 1
-            time.sleep(0.1)
+    os.rmdir(tempdir)
 
 
 class ServerFuseTestCase(base.TestCase):
@@ -70,14 +63,7 @@ class ServerFuseTestCase(base.TestCase):
         super(ServerFuseTestCase, self).tearDown()
         if self.extraMount:
             server_fuse.unmountServerFuse(self.extraMount)
-        retries = 0
-        while retries < 100:
-            try:
-                os.rmdir(self.extraMountPath)
-                break
-            except OSError:
-                retries += 1
-                time.sleep(0.1)
+        os.rmdir(self.extraMountPath)
 
     def testMainMount(self):
         """
@@ -538,6 +524,7 @@ class ServerFuseTestCase(base.TestCase):
         fh = op.open(self.publicFileName, os.O_RDONLY)
         self.assertTrue(isinstance(fh, int))
         self.assertIn(fh, op.openFiles)
+        op.release(self.publicFileName, fh)
         path = os.path.dirname(self.publicFileName)
         fh = op.open(path, os.O_RDONLY)
         self.assertTrue(isinstance(fh, int))
