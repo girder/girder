@@ -645,10 +645,10 @@ def ensureTokenScopes(token, scope):
     :type scope: `str or list of str`
     """
     tokenModel = Token()
-    if token is not None and tokenModel.hasScope(token, TokenScope.USER_AUTH):
+    if tokenModel.hasScope(token, TokenScope.USER_AUTH):
         return
 
-    if token is None or not tokenModel.hasScope(token, scope):
+    if not tokenModel.hasScope(token, scope):
         setCurrentUser(None)
         if isinstance(scope, six.string_types):
             scope = (scope,)
