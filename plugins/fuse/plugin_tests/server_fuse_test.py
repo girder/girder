@@ -30,14 +30,7 @@ def tearDownModule():
     curConfig = config.getConfig()
     tempdir = curConfig['server_fuse']['path']
     base.stopServer()
-    retries = 0
-    while retries < 50:
-        try:
-            os.rmdir(tempdir)
-            break
-        except OSError:
-            retries += 1
-            time.sleep(0.1)
+    os.rmdir(tempdir)
 
 
 class ServerFuseTestCase(base.TestCase):
@@ -70,14 +63,7 @@ class ServerFuseTestCase(base.TestCase):
         super(ServerFuseTestCase, self).tearDown()
         if self.extraMount:
             server_fuse.unmountServerFuse(self.extraMount)
-        retries = 0
-        while retries < 100:
-            try:
-                os.rmdir(self.extraMountPath)
-                break
-            except OSError:
-                retries += 1
-                time.sleep(0.1)
+        os.rmdir(self.extraMountPath)
 
     def testMainMount(self):
         """
@@ -319,6 +305,27 @@ class ServerFuseTestCase(base.TestCase):
             self.extraMount, mountpath, level=AccessType.READ, user=self.user),
             'present')
 
+    def testUnmountWithOpenFiles(self):
+        """
+        Unmounting with open files will return a non-zero value.
+        """
+        from girder.plugins.fuse import server_fuse
+
+        mountpath = self.extraMountPath
+        self.extraMount = 'test'
+        self.assertTrue(server_fuse.mountServerFuse(
+            self.extraMount, mountpath, level=AccessType.READ, user=self.user))
+        # The OS can cache stat, so wait 1 second before using the mount.
+        time.sleep(1)
+        path = os.path.join(mountpath, self.publicFileName)
+        fh = open(path)
+        fh.read(1)
+        self.assertIsNotNone(server_fuse.unmountServerFuse(self.extraMount))
+        fh.read(1)
+        fh.close()
+        self.assertIsNone(server_fuse.unmountServerFuse(self.extraMount))
+        self.extraMount = None
+
     def testStartFromConfig(self):
         from girder.plugins import fuse as girder_fuse
 
@@ -538,6 +545,7 @@ class ServerFuseTestCase(base.TestCase):
         fh = op.open(self.publicFileName, os.O_RDONLY)
         self.assertTrue(isinstance(fh, int))
         self.assertIn(fh, op.openFiles)
+        op.release(self.publicFileName, fh)
         path = os.path.dirname(self.publicFileName)
         fh = op.open(path, os.O_RDONLY)
         self.assertTrue(isinstance(fh, int))

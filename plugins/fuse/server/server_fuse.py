@@ -387,17 +387,21 @@ def unmountServerFuse(name):
     mount.
 
     :param name: a key within the list of known mounts.
+    :return: None for success or an error number from the unmount process
     """
     with _fuseMountsLock:
-        entry = _fuseMounts.pop(name, None)
+        entry = _fuseMounts.get(name)
         if entry:
             events.trigger('server_fuse.unmount', {'name': name})
             path = entry['path']
             # Girder uses shutilwhich on Python < 3
             if shutil.which('fusermount'):
-                subprocess.call(['fusermount', '-u', os.path.realpath(path)])
+                result = subprocess.call(['fusermount', '-u', os.path.realpath(path)])
             else:
-                subprocess.call(['umount', os.path.realpath(path)])
+                result = subprocess.call(['umount', os.path.realpath(path)])
+            if result:
+                return result
+            _fuseMounts.pop(name)
             if entry['thread']:
                 entry['thread'].join(10)
             # clean up previous processes so there aren't any zombies
