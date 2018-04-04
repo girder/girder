@@ -1,6 +1,7 @@
 import atexit
 import errno
 import fuse
+import gc
 import os
 import shutil
 import six
@@ -388,6 +389,9 @@ def unmountServerFuse(name):
 
     :param name: a key within the list of known mounts.
     """
+    # Have python do a garbage collection.  This ensures any file handle that
+    # could be closed really is closed, and therefore won't block unmounting.
+    gc.collect()
     with _fuseMountsLock:
         entry = _fuseMounts.pop(name, None)
         if entry:
