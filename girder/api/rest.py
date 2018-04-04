@@ -656,7 +656,8 @@ def ensureTokenScopes(token, scope):
             'Invalid token scope.\n'
             'Required: %s.\n'
             'Allowed: %s' % (
-                ' '.join(scope), ' '.join(tokenModel.getAllowedScopes(token))))
+                ' '.join(scope),
+                '' if token is None else ' '.join(tokenModel.getAllowedScopes(token))))
 
 
 def _setCommonCORSHeaders():
