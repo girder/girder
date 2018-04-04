@@ -524,6 +524,7 @@ class ServerFuseTestCase(base.TestCase):
         fh = op.open(self.publicFileName, os.O_RDONLY)
         self.assertTrue(isinstance(fh, int))
         self.assertIn(fh, op.openFiles)
+        op.release(self.publicFileName, fh)
         path = os.path.dirname(self.publicFileName)
         fh = op.open(path, os.O_RDONLY)
         self.assertTrue(isinstance(fh, int))
