@@ -1,0 +1,59 @@
+.g-worker-task-status-header
+  margin 20px
+  font-size 30px
+
+.g-worker-status-table
+    border-collapse collapse
+    width 100%
+
+.g-worker-status-table td
+  padding 10px
+  border 1px solid #ddd
+
+.g-worker-task-status-link
+  cursor pointer
+
+.g-worker-status-table tr:nth-child(even)
+  background-color #c1e4be80
+
+.g-worker-status-table tr:hover
+  background-color #ddd9
+
+.g-worker-status-table th
+  padding 10px
+  text-align left
+  border 1px solid #ddd
+  background-color #a2c491
+  color white
+
+@keyframes spin
+  0%
+    transform rotate(0deg)
+  100%
+    transform rotate(360deg)
+
+.icon-spin
+  display inline-block
+  animation spin 2s infinite linear
+  margin-left 30px
+
+.g-worker-task-status-btn-reload
+  background-color #ffffff
+  margin-left 30px
+  padding 5px
+  font-size 20px
+  color #909090
+  border solid 1px #909090
+  border-radius 20%
+  vertical-align bottom
+
+.g-worker-task-status-btn-reload:hover
+  transition-duration 0.5s
+  background-color #b0b0b0
+  color #ffffff
+
+.g-worker-task-status-btn-reload:active
+  transition-duration 0.1s
+  background-color #a2c491
+  border-color #a2c491
+  color #ffffff
