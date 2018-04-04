@@ -89,6 +89,10 @@ class JobsTestCase(base.TestCase):
         resp = self.request(path, user=self.users[2], method='DELETE')
         self.assertStatus(resp, 403)
 
+        # If no user is specified, we should get a 401 error
+        resp = self.request(path, user=None)
+        self.assertStatus(resp, 401)
+
         # Make sure user who created the job can see it
         resp = self.request(path, user=self.users[1])
         self.assertStatusOk(resp)

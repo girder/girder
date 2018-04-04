@@ -645,10 +645,10 @@ def ensureTokenScopes(token, scope):
     :type scope: `str or list of str`
     """
     tokenModel = Token()
-    if tokenModel.hasScope(token, TokenScope.USER_AUTH):
+    if token is not None and tokenModel.hasScope(token, TokenScope.USER_AUTH):
         return
 
-    if not tokenModel.hasScope(token, scope):
+    if token is None or not tokenModel.hasScope(token, scope):
         setCurrentUser(None)
         if isinstance(scope, six.string_types):
             scope = (scope,)
@@ -656,7 +656,8 @@ def ensureTokenScopes(token, scope):
             'Invalid token scope.\n'
             'Required: %s.\n'
             'Allowed: %s' % (
-                ' '.join(scope), ' '.join(tokenModel.getAllowedScopes(token))))
+                ' '.join(scope),
+                '' if token is None else ' '.join(tokenModel.getAllowedScopes(token))))
 
 
 def _setCommonCORSHeaders():
