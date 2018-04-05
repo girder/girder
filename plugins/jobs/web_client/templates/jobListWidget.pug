@@ -10,6 +10,9 @@ if showPageSizeSelector
     .type
     .status
 
+button.q-worker-task-info.btn.btn-default(title="Task information", style={"margin-top": "10px"})
+  | Task information
+
 if showGraphs
   ul.g-jobs.nav.nav-tabs
     li(class=(currentView==='list' ? 'active' : ''))
