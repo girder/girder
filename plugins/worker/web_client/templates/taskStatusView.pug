@@ -24,7 +24,7 @@ if ! load
           tr.g-worker-task-status-link
             td
               | #{worker.name}
-            if worker.ping == "pong"
+            if worker.ping === "pong"
               td= "Online"
             else
               td= "Offline"

@@ -52,6 +52,7 @@ var taskStatusView = View.extend({
                 resp.stats,
                 resp.ping,
                 resp.active,
+                resp.queues,
                 resp.scheduled);
             this.render();
         });
@@ -59,7 +60,7 @@ var taskStatusView = View.extend({
         this.render();
     },
 
-    parseWorkerStatus: function (report, stats, ping, active, scheduled) {
+    parseWorkerStatus: function (report, stats, ping, active, queues, scheduled) {
         var workers = _.keys(report);
         var reportTmp = null;
         var statsTmp = null;
@@ -80,6 +81,7 @@ var taskStatusView = View.extend({
                 'stats': statsTmp | 0,
                 'ping': pingTmp,
                 'active': active[worker],
+                'queues': queues[worker],
                 'scheduled': scheduled[worker]
             });
         });
