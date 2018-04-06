@@ -16,6 +16,14 @@ Python Client
 * Added a ``--token`` option to the girder-client command line interface to allow users to specify
   a pre-created authentication token. (`#2689 <https://github.com/girder/girder/pull/2689>`_).
 
+Changes
+-------
+
+* The Server FUSE plugin has been refactored into the ``girder mount`` command.
+  Instead of setting a value in the configuration file and turning on a plugin,
+  run ``girder mount <mount path>`` before or after starting a Girder server.
+  (`#2691 <https://github.com/girder/girder/pull/2691>`_)
+
 Girder 2.5.0
 ============
 

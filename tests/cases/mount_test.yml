@@ -14,13 +14,13 @@ users:
           - name: 'Item 1'
             files:
               - name: 'File 1A'
-                path: 'test_files/file1a.txt'
+                path: 'mount_test_files/file1a.txt'
               - name: 'File 1B'
-                path: 'test_files/file1b.txt'
+                path: 'mount_test_files/file1b.txt'
           - name: 'Item 2'
             files:
               - name: 'File 2'
-                path: 'test_files/file2.txt'
+                path: 'mount_test_files/file2.txt'
           - name: 'Item Without File'
   - login: 'user'
     email: 'user@email.com'
@@ -36,14 +36,14 @@ users:
           - name: 'Item 3'
             files:
               - name: 'File 3'
-                path: 'test_files/file3.txt'
+                path: 'mount_test_files/file3.txt'
       - name: 'Private'
         public: false
         items:
           - name: 'Item 4'
             files:
               - name: 'File 4'
-                path: 'test_files/file4.txt'
+                path: 'mount_test_files/file4.txt'
         folders:
           - name: 'Folder'
             public: false
@@ -51,7 +51,7 @@ users:
               - name: 'Item 5'
                 files:
                   - name: 'File 5'
-                    path: 'test_files/file5.txt'
+                    path: 'mount_test_files/file5.txt'
   - login: 'second'
     email: 'second@email.com'
     firstName: 'Second'
@@ -71,5 +71,6 @@ collections:
           - name: 'Collection Item'
             files:
             - name: 'Collection File'
-              path: 'test_files/file1a.txt'
-
+              path: 'mount_test_files/file1a.txt'
+            - name: 'файл коллекции'
+              path: 'mount_test_files/file1a.txt'

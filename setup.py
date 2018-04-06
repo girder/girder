@@ -112,6 +112,9 @@ extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values
 extrasReqs['sftp'] = [
     'paramiko',
 ]
+extrasReqs['mount'] = [
+    'fusepy>=2.0.4',
+]
 
 init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
 with open(init) as fd:
@@ -169,6 +172,7 @@ setup(
         ],
         'girder.cli_plugins': [
             'serve = girder.cli.serve:main',
+            'mount = girder.cli.mount:main',
             'shell = girder.cli.shell:main',
             'sftpd = girder.cli.sftpd:main'
         ]

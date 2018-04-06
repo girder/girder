@@ -19,13 +19,16 @@
 
 import cherrypy
 import datetime
+import os
 import six
 
 from .model_base import Model, AccessControlledModel
 from girder import events
-from girder.constants import AccessType, CoreEventHandler
-from girder.exceptions import ValidationException
+from girder.constants import AccessType, CoreEventHandler, SettingKey
+from girder.exceptions import FilePathException, ValidationException
+from girder.models.setting import Setting
 from girder.utility import acl_mixin
+from girder.utility import path as path_util
 
 
 class File(acl_mixin.AccessControlMixin, Model):
@@ -474,6 +477,24 @@ class File(acl_mixin.AccessControlMixin, Model):
         """
         return self.getAssetstoreAdapter(file).open(file)
 
+    def getGirderMountFilePath(self, file, validate=True):
+        """
+        If possible, get the path of the file on a local girder mount.
+
+        :param file: The file document.
+        :param validate: if True, check if the path exists and raise an
+            exception if it does not.
+        :returns: a girder mount path to the file or None if no such path is
+            available.
+        """
+        mount = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        if mount:
+            path = mount['path'].rstrip('/') + path_util.getResourcePath('file', file, force=True)
+            if not validate or os.path.exists(path):
+                return path
+        if validate:
+            raise FilePathException('This file isn\'t accessible from a Girder mount.')
+
     def getLocalFilePath(self, file):
         """
         If an assetstore adapter supports it, return a path to the file on the
@@ -483,4 +504,13 @@ class File(acl_mixin.AccessControlMixin, Model):
         :returns: a local path to the file or None if no such path is known.
         """
         adapter = self.getAssetstoreAdapter(file)
-        return adapter.getLocalFilePath(file)
+        try:
+            return adapter.getLocalFilePath(file)
+        except FilePathException as exc:
+            try:
+                return self.getGirderMountFilePath(file, True)
+            except Exception:
+                # If getting a Girder mount path throws, raise the original
+                # exception
+                pass
+            raise exc

@@ -9,4 +9,5 @@ Administrator Documentation
    deploy
    configuration
    provisioning
+   mount
    sftp
