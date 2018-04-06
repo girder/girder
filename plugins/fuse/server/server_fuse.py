@@ -12,7 +12,7 @@ import time
 
 from girder import events, logger, logprint
 from girder.constants import AccessType
-from girder.exceptions import AccessException, ValidationException
+from girder.exceptions import AccessException, GirderException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
@@ -375,19 +375,21 @@ class ServerFuse(fuse.Operations, ModelImporter):
 @atexit.register
 def unmountAll():
     """
-    Unmount all mounted FUSE mounts.
+    Unmount all mounted FUSE mounts.  Ignore failues to unmount.
     """
     for name in list(_fuseMounts.keys()):
-        unmountServerFuse(name)
+        try:
+            unmountServerFuse(name)
+        except GirderException:
+            pass
 
 
 def unmountServerFuse(name):
     """
-    Unmount a mounted FUSE mount.  This may fail if there are open files on the
-    mount.
+    Unmount a mounted FUSE mount.  This may fail and raise an exception if
+    there are open files on the mount.
 
     :param name: a key within the list of known mounts.
-    :return: None for success or an error number from the unmount process
     """
     with _fuseMountsLock:
         entry = _fuseMounts.get(name)
@@ -400,7 +402,9 @@ def unmountServerFuse(name):
             else:
                 result = subprocess.call(['umount', os.path.realpath(path)])
             if result:
-                return result
+                raise GirderException(
+                    'Can\'t unmount %s: %s, return code: %r' % (name, path, result),
+                    'girder.fuse.unmount-failed')
             _fuseMounts.pop(name)
             if entry['thread']:
                 entry['thread'].join(10)

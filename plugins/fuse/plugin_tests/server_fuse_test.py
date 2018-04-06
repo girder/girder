@@ -13,6 +13,7 @@ import time
 import girder
 from girder import config
 from girder.constants import AccessType
+from girder.exceptions import GirderException
 from girder.models.file import File
 from girder.models.user import User
 from tests import base
@@ -30,7 +31,14 @@ def tearDownModule():
     curConfig = config.getConfig()
     tempdir = curConfig['server_fuse']['path']
     base.stopServer()
-    os.rmdir(tempdir)
+    retries = 0
+    while retries < 50:
+        try:
+            os.rmdir(tempdir)
+            break
+        except OSError:
+            retries += 1
+            time.sleep(0.1)
 
 
 class ServerFuseTestCase(base.TestCase):
@@ -62,7 +70,14 @@ class ServerFuseTestCase(base.TestCase):
 
         super(ServerFuseTestCase, self).tearDown()
         if self.extraMount:
-            server_fuse.unmountServerFuse(self.extraMount)
+            retries = 0
+            while retries < 100:
+                try:
+                    server_fuse.unmountServerFuse(self.extraMount)
+                    break
+                except GirderException:
+                    retries += 1
+                    time.sleep(0.1)
         os.rmdir(self.extraMountPath)
 
     def testMainMount(self):
@@ -320,10 +335,15 @@ class ServerFuseTestCase(base.TestCase):
         path = os.path.join(mountpath, self.publicFileName)
         fh = open(path)
         fh.read(1)
-        self.assertIsNotNone(server_fuse.unmountServerFuse(self.extraMount))
+        with six.assertRaisesRegex(self, GirderException, 'Can\'t unmount'):
+            server_fuse.unmountServerFuse(self.extraMount)
+        # unmount all should fail silently, but still not unmount
+        server_fuse.unmountAll()
+        # We should still be able to read from the file.
         fh.read(1)
         fh.close()
-        self.assertIsNone(server_fuse.unmountServerFuse(self.extraMount))
+        # Now we can unmount successefully
+        server_fuse.unmountServerFuse(self.extraMount)
         self.extraMount = None
 
     def testStartFromConfig(self):
