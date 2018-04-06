@@ -30,7 +30,7 @@ class GirderCli(GirderClient):
     """
 
     def __init__(self, username, password, host=None, port=None, apiRoot=None,
-                 scheme=None, apiUrl=None, apiKey=None, sslVerify=True):
+                 scheme=None, apiUrl=None, apiKey=None, sslVerify=True, token=None):
         """
         Initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance. Aside from username, password,
@@ -42,6 +42,7 @@ class GirderCli(GirderClient):
             this blank to be prompted.
         :param sslVerify: disable SSL verification or specify path to certfile on
             :class:`requests.Session` object.
+        :param token: An authentication token to use.
         """
         def _progressBar(*args, **kwargs):
             bar = click.progressbar(*args, **kwargs)
@@ -79,6 +80,9 @@ class GirderCli(GirderClient):
         interactive = password is None
 
         self.sslVerify = sslVerify
+
+        if token:
+            self.setToken(token)
 
         if apiKey:
             self.authenticate(apiKey=apiKey)
@@ -165,11 +169,15 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               show_default=True,
               cls=_AdvancedOption
               )
+@click.option('--token', default=None,
+              help='Authentication token to use',
+              show_default=True,
+              cls=_AdvancedOption)
 @click.version_option(version=__version__, prog_name='Girder command line interface')
 @click.pass_context
 def main(ctx, username, password,
          api_key, api_url, scheme, host, port, api_root,
-         no_ssl_verify, certificate):
+         no_ssl_verify, certificate, token):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -204,7 +212,7 @@ def main(ctx, username, password,
 
     ctx.obj = GirderCli(
         username, password, host=host, port=port, apiRoot=api_root,
-        scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify)
+        scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify, token=token)
 
     if certificate and ctx.obj.scheme != 'https':
         raise click.BadArgumentUsage(
