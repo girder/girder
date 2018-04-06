@@ -8,6 +8,14 @@ details, see the commit logs at https://github.com/girder/girder
 Unreleased
 ==========
 
+Added Features
+--------------
+
+Python Client
+^^^^^^^^^^^^^
+* Added a ``--token`` option to the girder-client command line interface to allow users to specify
+  a pre-created authentication token. (`#2689 <https://github.com/girder/girder/pull/2689>`_).
+
 Girder 2.5.0
 ============
 
