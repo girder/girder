@@ -7,7 +7,7 @@ import taskStatusViewTemplate from '../templates/taskStatusView.pug';
 
 var taskStatusView = View.extend({
     events: {
-        'click .g-worker-task-status-btn-reload': function () {
+        'click .g-worker-status-btn-reload': function () {
             this._fetchWorkerStatus();
         },
         'click .g-worker-task-status-link': function (e) {
@@ -17,6 +17,7 @@ var taskStatusView = View.extend({
                 if (worker['name'] === workerName) {
                     this.workerName = workerName;
                     this.activeTaskList = worker['active'];
+                    this.reservedTaskList = worker['reserved'];
                     this.render();
                 }
             });
@@ -32,7 +33,8 @@ var taskStatusView = View.extend({
             workerList: this.workers,
             load: this.load,
             workerName: this.workerName,
-            activeTasks: this.activeTaskList
+            activeTasks: this.activeTaskList,
+            reservedTasks: this.reservedTaskList
         }));
 
         return this;
@@ -41,6 +43,7 @@ var taskStatusView = View.extend({
     _fetchWorkerStatus: function () {
         this.workers = [];
         this.activeTaskList = [];
+        this.reservedTaskList = [];
         this.load = true;
         restRequest({
             method: 'GET',
@@ -52,18 +55,18 @@ var taskStatusView = View.extend({
                 resp.stats,
                 resp.ping,
                 resp.active,
-                resp.queues,
-                resp.scheduled);
+                resp.reserved);
             this.render();
         });
 
         this.render();
     },
 
-    parseWorkerStatus: function (report, stats, ping, active, queues, scheduled) {
+    parseWorkerStatus: function (report, stats, ping, active, reserved) {
         var workers = _.keys(report);
         var reportTmp = null;
         var statsTmp = null;
+        var concurrencyTmp = null;
         var pingTmp = null;
         _.each(workers, (worker) => {
             if (_.has(report[worker], 'ok')) {
@@ -72,6 +75,9 @@ var taskStatusView = View.extend({
             if (stats[worker]['total'] !== null) {
                 statsTmp = _.values(stats[worker]['total'])[0];
             }
+            if (stats[worker]['pool'] !== null) {
+                concurrencyTmp = stats[worker]['pool']['max-concurrency'];
+            }
             if (_.has(ping[worker], 'ok')) {
                 pingTmp = ping[worker]['ok'];
             }
@@ -79,10 +85,10 @@ var taskStatusView = View.extend({
                 'name': worker,
                 'report': reportTmp,
                 'stats': statsTmp | 0,
+                'concurrency': concurrencyTmp | 0,
                 'ping': pingTmp,
                 'active': active[worker],
-                'queues': queues[worker],
-                'scheduled': scheduled[worker]
+                'reserved': reserved[worker]
             });
         });
     }
