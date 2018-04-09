@@ -13,6 +13,7 @@ import time
 import girder
 from girder import config
 from girder.constants import AccessType
+from girder.exceptions import GirderException
 from girder.models.file import File
 from girder.models.user import User
 from tests import base
@@ -69,15 +70,15 @@ class ServerFuseTestCase(base.TestCase):
 
         super(ServerFuseTestCase, self).tearDown()
         if self.extraMount:
-            server_fuse.unmountServerFuse(self.extraMount)
-        retries = 0
-        while retries < 100:
-            try:
-                os.rmdir(self.extraMountPath)
-                break
-            except OSError:
-                retries += 1
-                time.sleep(0.1)
+            retries = 0
+            while retries < 100:
+                try:
+                    server_fuse.unmountServerFuse(self.extraMount)
+                    break
+                except GirderException:
+                    retries += 1
+                    time.sleep(0.1)
+        os.rmdir(self.extraMountPath)
 
     def testMainMount(self):
         """
@@ -319,6 +320,32 @@ class ServerFuseTestCase(base.TestCase):
             self.extraMount, mountpath, level=AccessType.READ, user=self.user),
             'present')
 
+    def testUnmountWithOpenFiles(self):
+        """
+        Unmounting with open files will return a non-zero value.
+        """
+        from girder.plugins.fuse import server_fuse
+
+        mountpath = self.extraMountPath
+        self.extraMount = 'test'
+        self.assertTrue(server_fuse.mountServerFuse(
+            self.extraMount, mountpath, level=AccessType.READ, user=self.user))
+        # The OS can cache stat, so wait 1 second before using the mount.
+        time.sleep(1)
+        path = os.path.join(mountpath, self.publicFileName)
+        fh = open(path)
+        fh.read(1)
+        with six.assertRaisesRegex(self, GirderException, 'Can\'t unmount'):
+            server_fuse.unmountServerFuse(self.extraMount)
+        # unmount all should fail silently, but still not unmount
+        server_fuse.unmountAll()
+        # We should still be able to read from the file.
+        fh.read(1)
+        fh.close()
+        # Now we can unmount successefully
+        server_fuse.unmountServerFuse(self.extraMount)
+        self.extraMount = None
+
     def testStartFromConfig(self):
         from girder.plugins import fuse as girder_fuse
 
@@ -538,6 +565,7 @@ class ServerFuseTestCase(base.TestCase):
         fh = op.open(self.publicFileName, os.O_RDONLY)
         self.assertTrue(isinstance(fh, int))
         self.assertIn(fh, op.openFiles)
+        op.release(self.publicFileName, fh)
         path = os.path.dirname(self.publicFileName)
         fh = op.open(path, os.O_RDONLY)
         self.assertTrue(isinstance(fh, int))

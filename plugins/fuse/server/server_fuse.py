@@ -12,7 +12,7 @@ import time
 
 from girder import events, logger, logprint
 from girder.constants import AccessType
-from girder.exceptions import AccessException, ValidationException
+from girder.exceptions import AccessException, GirderException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
@@ -375,29 +375,37 @@ class ServerFuse(fuse.Operations, ModelImporter):
 @atexit.register
 def unmountAll():
     """
-    Unmount all mounted FUSE mounts.
+    Unmount all mounted FUSE mounts.  Ignore failues to unmount.
     """
     for name in list(_fuseMounts.keys()):
-        unmountServerFuse(name)
+        try:
+            unmountServerFuse(name)
+        except GirderException:
+            pass
 
 
 def unmountServerFuse(name):
     """
-    Unmount a mounted FUSE mount.  This may fail if there are open files on the
-    mount.
+    Unmount a mounted FUSE mount.  This may fail and raise an exception if
+    there are open files on the mount.
 
     :param name: a key within the list of known mounts.
     """
     with _fuseMountsLock:
-        entry = _fuseMounts.pop(name, None)
+        entry = _fuseMounts.get(name)
         if entry:
             events.trigger('server_fuse.unmount', {'name': name})
             path = entry['path']
             # Girder uses shutilwhich on Python < 3
             if shutil.which('fusermount'):
-                subprocess.call(['fusermount', '-u', os.path.realpath(path)])
+                result = subprocess.call(['fusermount', '-u', os.path.realpath(path)])
             else:
-                subprocess.call(['umount', os.path.realpath(path)])
+                result = subprocess.call(['umount', os.path.realpath(path)])
+            if result:
+                raise GirderException(
+                    'Can\'t unmount %s: %s, return code: %r' % (name, path, result),
+                    'girder.fuse.unmount-failed')
+            _fuseMounts.pop(name)
             if entry['thread']:
                 entry['thread'].join(10)
             # clean up previous processes so there aren't any zombies
