@@ -68,5 +68,39 @@ $(function () {
             }, 'worker settings to change');
             girderTest.waitForLoad();
         });
+        it('Go to the worker status page', function () {
+            waitsFor(function () {
+                return $('a.g-nav-link[g-target="admin"]').length > 0;
+            }, 'admin console link to load');
+            runs(function () {
+                $('a.g-nav-link[g-target="admin"]').click();
+            });
+            waitsFor(function () {
+                return $('.g-plugins-config').length > 0;
+            }, 'the admin console to load');
+            runs(function () {
+                $('.g-plugins-config').click();
+            });
+            girderTest.waitForLoad();
+            waitsFor(function () {
+                return $('input.g-plugin-switch[key="worker"]').length > 0;
+            }, 'the plugins page to load');
+            runs(function () {
+                expect($('.g-plugin-config-link[g-route="plugins/worker/config"]').length > 0);
+                $('.g-plugin-config-link[g-route="plugins/worker/config"]').click();
+            });
+            girderTest.waitForLoad();
+            waitsFor(function () {
+                return $('#g-worker-settings-form input').length > 0;
+            }, 'worker settings to be shown');
+
+            runs(function () {
+                $('.q-worker-task-info').click();
+            });
+            girderTest.waitForLoad();
+            waitsFor(function () {
+                return $('.g-worker-status-header').length > 0;
+            }, 'the worker status page header to be shown');
+        });
     });
 });
