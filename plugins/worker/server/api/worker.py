@@ -46,8 +46,7 @@ class Worker(Resource):
         result['stats'] = status.stats()
         result['ping'] = status.ping()
         result['active'] = status.active()
-        result['queues'] = status.active_queues()
-        result['scheduled'] = status.scheduled()
+        result['reserved'] = status.reserved()
         return result
 
     @autoDescribeRoute(
