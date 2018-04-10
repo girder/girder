@@ -139,8 +139,7 @@ class ProviderBase(model_importer.ModelImporter):
             raise RestException('Non-JSON response: %s' % content, code=502)
 
     @classmethod
-    def _createOrReuseUser(cls, oauthId, email, firstName, lastName,
-                           userName=None):
+    def _createOrReuseUser(cls, oauthId, email, firstName, lastName, userName=None):
         providerName = cls.getProviderName()
 
         # Try finding by ID first, since a user can change their email address

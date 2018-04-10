@@ -23,6 +23,11 @@ class PluginSettings(object):
     PROVIDERS_ENABLED = 'oauth.providers_enabled'
     IGNORE_REGISTRATION_POLICY = 'oauth.ignore_registration_policy'
 
+    GIRDER_CLIENT_ID = 'oauth.girder_client_id'
+    GIRDER_CLIENT_SECRET = 'oauth.girder_client_secret'
+    GIRDER_API_URL = 'oauth.girder_api_url'
+    GIRDER_LOGIN_URL = 'oauth.girder_login_url'
+
     GOOGLE_CLIENT_ID = 'oauth.google_client_id'
     GOOGLE_CLIENT_SECRET = 'oauth.google_client_secret'
 
