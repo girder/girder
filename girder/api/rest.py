@@ -573,6 +573,22 @@ def _handleValidationException(e):
     return val
 
 
+def _triggerRestRequestEvent(path, params, response=None, stream=False):
+    try:
+        return events.trigger('rest.request', {
+            'route': (cherrypy.request.method.upper(), path),
+            'params': params,
+            'requestHeaders': cherrypy.request.headers,
+            'responseHeaders': cherrypy.response.headers,
+            'response': response,
+            'stream': stream,
+            'status': cherrypy.response.status,
+            'ip': cherrypy.request.remote.ip
+        })
+    except Exception:
+        logger.exception('Exception during rest request event handling.')
+
+
 def endpoint(fun):
     """
     REST HTTP method endpoints should use this decorator. It converts the return
@@ -586,11 +602,11 @@ def endpoint(fun):
     from the inner method.
     """
     @six.wraps(fun)
-    def endpointDecorator(self, *args, **kwargs):
+    def endpointDecorator(self, *path, **params):
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
         try:
-            val = fun(self, args, kwargs)
+            val = fun(self, path, params)
 
             # If this is a partial response, we set the status appropriately
             if 'Content-Range' in cherrypy.response.headers:
@@ -601,6 +617,7 @@ def endpoint(fun):
                 # lambda, functools.partial), we assume it's a generator
                 # function for a streaming response.
                 cherrypy.response.stream = True
+                _triggerRestRequestEvent(path, params, stream=True)
                 return val()
 
             if isinstance(val, cherrypy.lib.file_generator):
@@ -629,7 +646,10 @@ def endpoint(fun):
                 # Unless we are in production mode, send a traceback too
                 val['trace'] = traceback.extract_tb(tb)
 
-        return _createResponse(val)
+        resp = _createResponse(val)
+        _triggerRestRequestEvent(path, params, response=resp)
+
+        return resp
     return endpointDecorator
 
 
