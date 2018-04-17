@@ -28,7 +28,7 @@ COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
 
-RUN pip install --upgrade --editable .[plugins]
+RUN pip install --upgrade --upgrade-strategy eager --editable .[plugins]
 RUN girder-install web --all-plugins
 
 ENTRYPOINT ["girder", "serve"]

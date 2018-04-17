@@ -8,7 +8,7 @@ between major versions of Girder. Major version bumps contain breaking changes
 to the Girder core library, which are enumerated in this guide along with
 instructions on how to update your plugin code to work in the newer version.
 
-Existing installations may be upgraded by running ``pip install -U girder`` and
+Existing installations may be upgraded by running ``pip install --upgrade --upgrade-strategy eager girder`` and
 re-running ``girder-install web``. You may need to remove ``node_modules`` directory
 from the installed girder package if you encounter problems while re-running
 ``girder-install web``. Note that the prerequisites may have changed in the latest
