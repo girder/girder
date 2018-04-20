@@ -89,10 +89,10 @@ class GirderCli(GirderClient):
         elif username:
             self.authenticate(username, password, interactive=interactive)
 
-    def _requestFunc(self, *args, **kwargs):
+    def sendRestRequest(self, *args, **kwargs):
         with self.session() as session:
             session.verify = self.sslVerify
-            return super(GirderCli, self)._requestFunc(*args, **kwargs)
+            return super(GirderCli, self).sendRestRequest(*args, **kwargs)
 
 
 class _HiddenOption(click.Option):
