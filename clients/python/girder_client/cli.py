@@ -18,6 +18,7 @@
 ###############################################################################
 import click
 import requests
+from requests.adapters import HTTPAdapter
 import sys
 import types
 from girder_client import GirderClient, __version__
@@ -30,7 +31,8 @@ class GirderCli(GirderClient):
     """
 
     def __init__(self, username, password, host=None, port=None, apiRoot=None,
-                 scheme=None, apiUrl=None, apiKey=None, sslVerify=True, token=None):
+                 scheme=None, apiUrl=None, apiKey=None, sslVerify=True, token=None,
+                 retries=None):
         """
         Initialization function to create a GirderCli instance, will attempt
         to authenticate with the designated Girder instance. Aside from username, password,
@@ -80,6 +82,7 @@ class GirderCli(GirderClient):
         interactive = password is None
 
         self.sslVerify = sslVerify
+        self.retries = retries
 
         if token:
             self.setToken(token)
@@ -92,6 +95,8 @@ class GirderCli(GirderClient):
     def sendRestRequest(self, *args, **kwargs):
         with self.session() as session:
             session.verify = self.sslVerify
+            if self.retries:
+                session.mount(self.urlBase, HTTPAdapter(max_retries=self.retries))
             return super(GirderCli, self).sendRestRequest(*args, **kwargs)
 
 
@@ -173,11 +178,14 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               help='Authentication token to use',
               show_default=True,
               cls=_AdvancedOption)
+@click.option('--retries', default=None, type=click.INT,
+              help='Number of times to retry failed requests',
+              cls=_AdvancedOption)
 @click.version_option(version=__version__, prog_name='Girder command line interface')
 @click.pass_context
 def main(ctx, username, password,
          api_key, api_url, scheme, host, port, api_root,
-         no_ssl_verify, certificate, token):
+         no_ssl_verify, certificate, token, retries):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -212,7 +220,8 @@ def main(ctx, username, password,
 
     ctx.obj = GirderCli(
         username, password, host=host, port=port, apiRoot=api_root,
-        scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify, token=token)
+        scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify, token=token,
+        retries=retries)
 
     if certificate and ctx.obj.scheme != 'https':
         raise click.BadArgumentUsage(
