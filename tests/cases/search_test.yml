@@ -26,11 +26,17 @@ collections:
         public: true
         items:
           - name: 'Public object'
+            files:
+            - name: 'Public file'
+              path: 'search_test.yml'
 
       - name: 'Private test folder'
         public: false
         items:
           - name: 'Secret object'
+            files:
+            - name: 'Personal file'
+              path: 'search_test.yml'
 
   - name: 'Magic collection'
     description: 'private'

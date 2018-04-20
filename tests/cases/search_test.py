@@ -202,6 +202,40 @@ class SearchTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['assetstore']))
 
+    def testResourceFileSearch(self):
+        admin = User().findOne({'login': 'adminlogin'})
+
+        resp = self.request(path='/resource/search', params={
+            'q': 'public',
+            'types': '["file"]'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['file']), 1)
+        resp = self.request(path='/resource/search', params={
+            'q': 'personal',
+            'types': '["file"]'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['file']), 0)
+        resp = self.request(path='/resource/search', params={
+            'q': 'file',
+            'types': '["file"]'
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['file']), 1)
+        resp = self.request(path='/resource/search', params={
+            'q': 'personal',
+            'types': '["file"]'
+        }, user=admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['file']), 1)
+        resp = self.request(path='/resource/search', params={
+            'q': 'file',
+            'types': '["file"]'
+        }, user=admin)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json['file']), 2)
+
     def testSearchModeRegistry(self):
         def testSearchHandler(query, types, user, level, limit, offset):
             return {
