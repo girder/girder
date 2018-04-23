@@ -11,7 +11,7 @@ const timingHistoryChartConfig = {
                 {
                     'type': 'formula',
                     'field': 'adjElapsed',
-                    'expr': 'clamp(datum["elapsed"]/1000,-86400,86400)'
+                    'expr': 'clamp(datum.elapsed/1000,-86400,86400)'
                 }
             ]
         },

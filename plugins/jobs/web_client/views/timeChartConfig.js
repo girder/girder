@@ -12,6 +12,11 @@ const timeChartConfig = {
                     'test': 'datum.elapsed > 0'
                 },
                 {
+                    'type': 'formula',
+                    'field': 'elapsed',
+                    'expr': 'datum.elapsed/1000'
+                },
+                {
                     'type': 'aggregate',
                     'groupby': ['id', 'title', 'currentStatus'],
                     'summarize': [
@@ -104,10 +109,7 @@ const timeChartConfig = {
             'title': 'seconds',
             'properties': {
                 'labels': {
-                    'itemName': {
-                        'value': 'ylabel'
-                    },
-                    'text': { 'template': '{{datum.label|slice:0,-1}}' }
+                    'itemName': { 'value': 'ylabel' }
                 }
             }
         }
