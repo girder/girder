@@ -25,6 +25,7 @@ var taskStatusView = View.extend({
     },
 
     initialize: function () {
+        this.errorMsg = null;
         this._fetchWorkerStatus();
     },
 
@@ -34,7 +35,8 @@ var taskStatusView = View.extend({
             load: this.load,
             workerName: this.workerName,
             activeTasks: this.activeTaskList,
-            reservedTasks: this.reservedTaskList
+            reservedTasks: this.reservedTaskList,
+            errorMsg: this.errorMsg
         }));
 
         return this;
@@ -49,13 +51,18 @@ var taskStatusView = View.extend({
             method: 'GET',
             url: 'worker/status'
         }).done((resp) => {
+            if (resp === -1) {
+                this.errorMsg = 'The Broker is inaccessible.';
+            } else {
+                this.errorMsg = null;
+                this.parseWorkerStatus(
+                    resp.report,
+                    resp.stats,
+                    resp.ping,
+                    resp.active,
+                    resp.reserved);
+            }
             this.load = false;
-            this.parseWorkerStatus(
-                resp.report,
-                resp.stats,
-                resp.ping,
-                resp.active,
-                resp.reserved);
             this.render();
         });
 
@@ -91,6 +98,9 @@ var taskStatusView = View.extend({
                 'reserved': reserved[worker]
             });
         });
+        if (!this.workers.length) {
+            this.errorMsg = 'No task informations.';
+        }
     }
 });
 

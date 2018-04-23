@@ -8,9 +8,9 @@ h1.g-worker-status-header
 
 if ! load
   .g-worker-status-content
-    if workerList.length === 0
+    if errorMsg !== null
       p.g-worker-status-no-worker-message
-        | No task informations.
+        | #{errorMsg}
     else
       table.g-worker-status-table
         tr

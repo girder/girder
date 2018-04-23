@@ -16,6 +16,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+import celery
 
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
@@ -40,6 +41,12 @@ class Worker(Resource):
     def getWorkerStatus(self):
         app = getCeleryApp()
         result = {}
+
+        conn = app.connection_for_read()
+        try:
+            conn.ensure_connection(max_retries=1)
+        except celery.exceptions.OperationalError:
+            return -1
 
         status = app.control.inspect()
         result['report'] = status.report()
