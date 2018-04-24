@@ -31,17 +31,15 @@ class Worker(Resource):
         super(Worker, self).__init__()
         self.resourceName = 'worker'
         self.route('GET', ('status',), self.getWorkerStatus)
-        self.route('GET', ('task',), self.runTask)
 
     @autoDescribeRoute(
-        Description('Get workers status.')
-        .notes('Note')
+        Description('Get workers status and tasks information.')
+        .notes('Return -1 if the broker is inaccessible.')
     )
     @access.user(scope=TokenScope.DATA_READ)
     def getWorkerStatus(self):
         app = getCeleryApp()
         result = {}
-
         conn = app.connection_for_read()
         try:
             conn.ensure_connection(max_retries=1)
@@ -55,11 +53,3 @@ class Worker(Resource):
         result['active'] = status.active()
         result['reserved'] = status.reserved()
         return result
-
-    @autoDescribeRoute(
-        Description('Get workers status.')
-    )
-    @access.user(scope=TokenScope.DATA_READ)
-    def runTask(self):
-        from ..task import add
-        add.delay(345, 35)
