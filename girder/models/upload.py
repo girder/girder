@@ -90,7 +90,7 @@ class Upload(Model):
             parentType and parent).  This is intended for files that shouldn't
             appear as direct children of the parent, but are still associated
             with it.
-        :type attach: boolean
+        :type attachParent: boolean
         """
         upload = self.createUpload(
             user=user, name=name, parentType=parentType, parent=parent,
