@@ -22,7 +22,7 @@ import datetime
 import six
 
 from .model_base import Model, AccessControlledModel
-from girder import events
+from girder import auditLogger, events
 from girder.constants import AccessType, CoreEventHandler
 from girder.exceptions import ValidationException
 from girder.utility import acl_mixin
@@ -101,6 +101,12 @@ class File(acl_mixin.AccessControlMixin, Model):
             'file': file,
             'startByte': offset,
             'endByte': endByte})
+
+        auditLogger.info('file.download', extra={
+            'file': file,
+            'startByte': offset,
+            'endByte': endByte,
+            'extraParameters': extraParameters})
 
         if file.get('assetstoreId'):
             try:

@@ -31,10 +31,9 @@ import unicodedata
 
 from dogpile.cache.util import kwarg_function_key_generator
 from . import docs
-from girder import events, logger, logprint
+from girder import auditLogger, events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
-from girder.exceptions import AccessException, GirderException, ValidationException, \
-    RestException
+from girder.exceptions import AccessException, GirderException, ValidationException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
@@ -573,20 +572,17 @@ def _handleValidationException(e):
     return val
 
 
-def _triggerRestRequestEvent(path, params, response=None, stream=False):
-    try:
-        return events.trigger('rest.request', {
-            'route': (cherrypy.request.method.upper(), path),
-            'params': params,
-            'requestHeaders': cherrypy.request.headers,
-            'responseHeaders': cherrypy.response.headers,
-            'response': response,
-            'stream': stream,
-            'status': cherrypy.response.status,
-            'ip': cherrypy.request.remote.ip
-        })
-    except Exception:
-        logger.exception('Exception during rest request event handling.')
+def _logRestRequest(path, params, response=None, stream=False):
+    auditLogger.info('rest.request', extra={
+        'route': (cherrypy.request.method.upper(), path),
+        'params': params,
+        'requestHeaders': cherrypy.request.headers,
+        'responseHeaders': cherrypy.response.headers,
+        'response': response,
+        'stream': stream,
+        'status': cherrypy.response.status,
+        'ip': cherrypy.request.remote.ip
+    })
 
 
 def endpoint(fun):
@@ -617,7 +613,7 @@ def endpoint(fun):
                 # lambda, functools.partial), we assume it's a generator
                 # function for a streaming response.
                 cherrypy.response.stream = True
-                _triggerRestRequestEvent(path, params, stream=True)
+                _logRestRequest(path, params, stream=True)
                 return val()
 
             if isinstance(val, cherrypy.lib.file_generator):
@@ -647,7 +643,7 @@ def endpoint(fun):
                 val['trace'] = traceback.extract_tb(tb)
 
         resp = _createResponse(val)
-        _triggerRestRequestEvent(path, params, response=resp)
+        _logRestRequest(path, params, response=resp)
 
         return resp
     return endpointDecorator
