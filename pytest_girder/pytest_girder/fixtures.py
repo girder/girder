@@ -142,6 +142,7 @@ def server(db, request):
     plugin_utilities.getPluginWebroots().clear()
     plugin_utilities.getPluginFailureInfo().clear()
     docs.routes.clear()
+    girder.events.unbindAll()
 
 
 @pytest.fixture
