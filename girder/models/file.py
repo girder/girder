@@ -103,10 +103,13 @@ class File(acl_mixin.AccessControlMixin, Model):
             'endByte': endByte})
 
         auditLogger.info('file.download', extra={
-            'file': file,
-            'startByte': offset,
-            'endByte': endByte,
-            'extraParameters': extraParameters})
+            'details': {
+                'fileId': file['_id'],
+                'startByte': offset,
+                'endByte': endByte,
+                'extraParameters': extraParameters
+            }
+        })
 
         if file.get('assetstoreId'):
             try:

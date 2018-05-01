@@ -572,16 +572,14 @@ def _handleValidationException(e):
     return val
 
 
-def _logRestRequest(path, params, response=None, stream=False):
+def _logRestRequest(resource, path, params):
     auditLogger.info('rest.request', extra={
-        'route': (cherrypy.request.method.upper(), path),
-        'params': params,
-        'requestHeaders': cherrypy.request.headers,
-        'responseHeaders': cherrypy.response.headers,
-        'response': response,
-        'stream': stream,
-        'status': cherrypy.response.status,
-        'ip': cherrypy.request.remote.ip
+        'details': {
+            'method': cherrypy.request.method.upper(),
+            'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
+            'params': params,
+            'status': cherrypy.response.status or 200
+        }
     })
 
 
@@ -613,7 +611,7 @@ def endpoint(fun):
                 # lambda, functools.partial), we assume it's a generator
                 # function for a streaming response.
                 cherrypy.response.stream = True
-                _logRestRequest(path, params, stream=True)
+                _logRestRequest(self, path, params)
                 return val()
 
             if isinstance(val, cherrypy.lib.file_generator):
@@ -643,7 +641,7 @@ def endpoint(fun):
                 val['trace'] = traceback.extract_tb(tb)
 
         resp = _createResponse(val)
-        _logRestRequest(path, params, response=resp)
+        _logRestRequest(self, path, params)
 
         return resp
     return endpointDecorator
