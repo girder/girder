@@ -25,6 +25,8 @@ import sys
 import types
 from girder_client import GirderClient, __version__
 
+_logger = logging.getLogger('girder_client.cli')
+
 
 class GirderCli(GirderClient):
     """
@@ -235,8 +237,6 @@ def main(ctx, username, password,
 
 
 def _set_logging_level(verbosity):
-    logger = logging.getLogger()
-    logger.addHandler(logging.StreamHandler(sys.stderr))
     if not verbosity:
         level = logging.ERROR
     if verbosity == 1:
@@ -246,7 +246,12 @@ def _set_logging_level(verbosity):
     elif verbosity >= 3:
         HTTPConnection.debuglevel = 1
         level = logging.DEBUG
-    logger.setLevel(level)
+
+    requestsLogger = logging.getLogger('requests.packages.urllib3')
+    girderClientLogger = logging.getLogger('girder_client')
+    for logger in (requestsLogger, girderClientLogger):
+        logger.addHandler(logging.StreamHandler(sys.stderr))
+        logger.setLevel(level)
 
 
 def _lookup_parent_type(client, object_id):

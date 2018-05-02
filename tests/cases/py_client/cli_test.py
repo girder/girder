@@ -120,6 +120,9 @@ class PythonCliTestCase(base.TestCase):
         shutil.rmtree(self.downloadDir, ignore_errors=True)
 
     def tearDown(self):
+        logger = logging.getLogger('girder_client')
+        logger.setLevel(logging.ERROR)
+        logger.handlers = []
         shutil.rmtree(self.downloadDir, ignore_errors=True)
 
         base.TestCase.tearDown(self)
@@ -437,25 +440,25 @@ class PythonCliTestCase(base.TestCase):
         args = ['localsync', '--help']
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        self.assertEqual(logging.getLogger().level, logging.ERROR)
+        self.assertEqual(logging.getLogger('girder_client').level, logging.ERROR)
 
     def testVerboseLoggingLevel1(self):
         args = ['-v', 'localsync', '--help']
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        self.assertEqual(logging.getLogger().level, logging.WARNING)
+        self.assertEqual(logging.getLogger('girder_client').level, logging.WARNING)
 
     def testVerboseLoggingLevel2(self):
         args = ['-vv', 'localsync', '--help']
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        self.assertEqual(logging.getLogger().level, logging.INFO)
+        self.assertEqual(logging.getLogger('girder_client').level, logging.INFO)
 
     def testVerboseLoggingLevel3(self):
         args = ['-vvv', 'localsync', '--help']
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        self.assertEqual(logging.getLogger().level, logging.DEBUG)
+        self.assertEqual(logging.getLogger('girder_client').level, logging.DEBUG)
         self.assertEqual(HTTPConnection.debuglevel, 1)
 
     def testRetryUpload(self):
