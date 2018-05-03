@@ -1,4 +1,5 @@
 import cherrypy
+import datetime
 import logging
 from girder import auditLogger
 from girder.models.model_base import Model
@@ -20,7 +21,8 @@ class AuditLogHandler(logging.Handler):
             'type': record.msg,
             'details': record.details,
             'ip': cherrypy.request.remote.ip,
-            'userId': user and user['_id']
+            'userId': user and user['_id'],
+            'when': datetime.datetime.utcnow()
         })
 
 
