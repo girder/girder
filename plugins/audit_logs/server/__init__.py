@@ -14,7 +14,7 @@ class Record(Model):
         return doc
 
 
-class AuditLogHandler(logging.Handler):
+class _AuditLogDatabaseHandler(logging.Handler):
     def handle(self, record):
         user = getCurrentUser()
         Record().save({
@@ -27,4 +27,4 @@ class AuditLogHandler(logging.Handler):
 
 
 def load(info):
-    auditLogger.addHandler(AuditLogHandler())
+    auditLogger.addHandler(_AuditLogDatabaseHandler())
