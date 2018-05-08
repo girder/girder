@@ -9,7 +9,7 @@
 
 - name: NodeJS | Add PPA
   apt_repository:
-    repo: "deb https://deb.nodesource.com/node_6.x {{ ansible_distribution_release }} main"
+    repo: "deb https://deb.nodesource.com/node_8.x {{ ansible_distribution_release }} main"
   become: yes
   become_user: root
 

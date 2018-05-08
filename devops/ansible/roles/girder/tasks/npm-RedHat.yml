@@ -4,7 +4,7 @@
   yum_repository:
     name: nodesource
     description: Node.js Packages for Enterprise Linux 7 - $basearch
-    baseurl: https://rpm.nodesource.com/pub_6.x/el/7/$basearch
+    baseurl: https://rpm.nodesource.com/pub_8.x/el/7/$basearch
     gpgcheck: yes
     gpgkey: https://rpm.nodesource.com/pub/el/NODESOURCE-GPG-SIGNING-KEY-EL
     enabled: yes
