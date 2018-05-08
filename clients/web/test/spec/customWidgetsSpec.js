@@ -640,6 +640,29 @@ describe('Test access widget with non-standard options', function () {
                 widget.$('.g-recursive-container').length === 0 &&
                 widget.$('.g-user-access-entry select').length === 0;
         }, 'check if all component are hidden');
+
+        runs(function () {
+            widget.$('.g-search-field').val('First').trigger('input');
+        });
+        waitsFor(function () {
+            return widget.$('.g-search-result-element').length > 0;
+        });
+        runs(function () {
+            // this should do nothing
+            var e = $.Event('keydown');
+            e.which = 13;
+            widget.$('.g-search-field').trigger(e);
+            // this should add the user to the access list
+            widget.$('.g-search-result-element').eq(0).click();
+        });
+        waitsFor(function () {
+            return widget.getAccessList().users.length > 0;
+        });
+        runs(function () {
+            expect(widget.getAccessList().users[0].login).toBe('mylogin');
+            // the level should be zero
+            expect(widget.getAccessList().users[0].level).toBe(0);
+        });
     });
 });
 
