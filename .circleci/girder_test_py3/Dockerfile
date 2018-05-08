@@ -5,7 +5,7 @@ MAINTAINER Kitware, Inc. <kitware@kitware.com>
 USER root
 
 # Install Node.js 8
-RUN curl --silent --location https://deb.nodesource.com/setup_8.x | bash - \
+RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash - \
   && apt-get install --assume-yes nodejs \
   && npm install --global npm
 
