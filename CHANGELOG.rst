@@ -8,6 +8,12 @@ details, see the commit logs at https://github.com/girder/girder
 Unreleased
 ==========
 
+Changes
+-------
+
+* Move minimum node version to 8.x due to upstream packages using newer ES features.
+  (`#2707 <https://github.com/girder/girder/pull/2707>`_).
+
 Added Features
 --------------
 
