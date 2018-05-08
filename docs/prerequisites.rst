@@ -6,7 +6,7 @@ The following software packages are required to be installed on your system:
 * `Python 2.7 or 3.5+ <https://www.python.org>`_
 * `pip <https://pypi.python.org/pypi/pi>`_
 * `MongoDB 3.2+ <http://www.mongodb.org/>`_
-* `Node.js 6.5+ <http://nodejs.org/>`_
+* `Node.js 8+ <http://nodejs.org/>`_
 * `curl <http://curl.haxx.se/>`_
 * `zlib <http://www.zlib.net/>`_
 * `libjpeg <http://libjpeg.sourceforge.net/>`_
@@ -96,7 +96,7 @@ and start it with: ::
 
 Enable the Node.js APT repository: ::
 
-    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 
 Install Node.js and NPM using APT: ::
 
@@ -136,7 +136,7 @@ Install MongoDB server using YUM: ::
 
 Enable the Node.js YUM repository: ::
 
-    curl --silent --location https://rpm.nodesource.com/setup_6.x | bash -
+    curl --silent --location https://rpm.nodesource.com/setup_8.x | bash -
 
 Install Node.js and NPM using YUM: ::
 
