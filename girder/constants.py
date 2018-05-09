@@ -173,6 +173,7 @@ class SettingKey(object):
     EMAIL_HOST = 'core.email_host'
     EMAIL_VERIFICATION = 'core.email_verification'
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
+    GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
     PLUGINS_ENABLED = 'core.plugins_enabled'
     REGISTRATION_POLICY = 'core.registration_policy'
     ROUTE_TABLE = 'core.route_table'

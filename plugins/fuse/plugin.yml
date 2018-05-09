@@ -1,3 +1,0 @@
-name: Server FUSE
-description: Allow server access to all files via a user file-system.
-version: 0.1.0

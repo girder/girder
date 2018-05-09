@@ -24,6 +24,14 @@ Python Client
 * Added a ``--retry`` option to the girder-client command line interface to retry connection and
   certain error responses (`#2697 <https://github.com/girder/girder/pull/2697>`_).
 
+Changes
+-------
+
+* The Server FUSE plugin has been refactored into the ``girder mount`` command.
+  Instead of setting a value in the configuration file and turning on a plugin,
+  run ``girder mount <mount path>`` before or after starting a Girder server.
+  (`#2691 <https://github.com/girder/girder/pull/2691>`_)
+
 Girder 2.5.0
 ============
 

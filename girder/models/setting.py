@@ -446,3 +446,11 @@ class Setting(Model):
         if doc['value'] not in ('public_private', 'none'):
             raise ValidationException(
                 'User default folders must be either "public_private" or "none".', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.GIRDER_MOUNT_INFORMATION)
+    def validateCoreGirderMountInformation(doc):
+        value = doc['value']
+        if not isinstance(value, dict) or 'path' not in value:
+            raise ValidationException(
+                'Girder mount information must be a dict with the "path" key.')
