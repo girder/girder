@@ -23,10 +23,12 @@ const UserOtpManagementWidget = View.extend({
             this.model.finializeOtp(otpToken)
                 .done(() => {
                     // TODO: show confirmation
+                    console.log('Confirm success');
                     this.render();
                 })
                 .fail((err) => {
                     // TODO: render error message
+                    console.log('Finalize failed');
                 });
         },
         'click #g-user-otp-cancel': function () {
@@ -40,6 +42,7 @@ const UserOtpManagementWidget = View.extend({
                 })
                 .fail((err) => {
                     // TODO: render error message
+                    console.log('Remove failed');
                 });
         }
     },
@@ -96,6 +99,8 @@ const UserOtpManagementWidget = View.extend({
 
     _renderDisable: function () {
         // When OTP is enabled
+        // TODO: implement
+        console.log('TODO: Show disable view');
     }
 });
 
