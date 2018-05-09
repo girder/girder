@@ -23,6 +23,8 @@ Python Client
   a pre-created authentication token. (`#2689 <https://github.com/girder/girder/pull/2689>`_).
 * Added a ``--retry`` option to the girder-client command line interface to retry connection and
   certain error responses (`#2697 <https://github.com/girder/girder/pull/2697>`_).
+* Added a ``--verbose`` option to the girder-client command line interface to increase the verbosity
+  of information dumped to stderr (`#2699 <https://github.com/girder/girder/pull/2699>`_).
 
 Changes
 -------
