@@ -18,7 +18,7 @@ const UserOtpManagementWidget = View.extend({
                 });
         },
         'click #g-user-otp-finalize': function () {
-            const otpToken = this.$('#g-user-otp-token').value().trim();
+            const otpToken = this.$('#g-user-otp-token').val().trim();
 
             this.model.finializeOtp(otpToken)
                 .done(() => {
