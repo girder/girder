@@ -8,6 +8,12 @@ details, see the commit logs at https://github.com/girder/girder
 Unreleased
 ==========
 
+Changes
+-------
+
+* Move minimum node version to 8.x due to upstream packages using newer ES features.
+  (`#2707 <https://github.com/girder/girder/pull/2707>`_).
+
 Added Features
 --------------
 
@@ -15,6 +21,8 @@ Python Client
 ^^^^^^^^^^^^^
 * Added a ``--token`` option to the girder-client command line interface to allow users to specify
   a pre-created authentication token. (`#2689 <https://github.com/girder/girder/pull/2689>`_).
+* Added a ``--retry`` option to the girder-client command line interface to retry connection and
+  certain error responses (`#2697 <https://github.com/girder/girder/pull/2697>`_).
 
 Changes
 -------

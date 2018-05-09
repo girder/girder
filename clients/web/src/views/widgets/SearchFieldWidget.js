@@ -41,7 +41,7 @@ var SearchFieldWidget = View.extend({
             var list, pos;
             if (code === 13 && this.noResourceSelected) { /* enter without resource seleted */
                 e.preventDefault();
-                if (this.$('.g-search-field').val() !== '') {
+                if (this.$('.g-search-field').val() !== '' && !this.noResultsPage) {
                     this._goToResultPage(this.$('.g-search-field').val(), this.currentMode);
                 }
             } else if (code === 40 || code === 38) {
@@ -91,12 +91,15 @@ var SearchFieldWidget = View.extend({
      *        representing the allowed search modes. Supported modes: "text", "prefix".
      *        If multiple are allowed, users are able to select which one to use
      *        via a dropdown.
+     * @param [settings.noResultsPage=false] If truthy, don't jump to a results
+     *        page if enter is typed with a list of search results.
      */
     initialize: function (settings) {
         this.ajaxLock = false;
         this.pending = null;
         this.noResourceSelected = true;
         this.placeholder = settings.placeholder || 'Search...';
+        this.noResultsPage = settings.noResultsPage || false;
         this.getInfoCallback = settings.getInfoCallback || null;
         /* The order of settings.types give the order of the display of the elements :
          *     ['collection', 'folder', 'item'] will be render like this

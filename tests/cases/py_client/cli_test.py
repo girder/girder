@@ -32,6 +32,7 @@ from girder.models.api_key import ApiKey
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
+from girder_client.cli import GirderCli
 from tests import base
 from six import StringIO
 
@@ -429,3 +430,21 @@ class PythonCliTestCase(base.TestCase):
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         self.assertIn('File hello.txt already exists in parent Item', ret['stdout'])
+
+    def testRetryUpload(self):
+        gc = GirderCli('mylogin', 'password',
+                       host='localhost', port=os.environ['GIRDER_PORT'],
+                       retries=5)
+
+        def checkRetryHandler(*args, **kwargs):
+            session = gc._session
+            self.assertIsNotNone(session)
+            self.assertIn(gc.urlBase, session.adapters)
+            adapter = session.adapters[gc.urlBase]
+            self.assertEqual(adapter.max_retries.total, 5)
+
+        with mock.patch('girder_client.cli.GirderClient.sendRestRequest',
+                        side_effect=checkRetryHandler) as m:
+            gc.sendRestRequest('')
+
+        self.assertTrue(m.called)

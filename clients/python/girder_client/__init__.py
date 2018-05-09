@@ -337,16 +337,13 @@ class GirderClient(object):
             if username is None or password is None:
                 raise Exception('A user name and password are required')
 
-            url = self.urlBase + 'user/authentication'
-            authResponse = self._requestFunc('get')(url, auth=(username, password))
-
-            if authResponse.status_code in (401, 403):
-                raise AuthenticationError()
-            elif not authResponse.ok:
-                raise HttpError(authResponse.status_code, authResponse.text, url, 'GET',
-                                response=authResponse)
-
-            resp = authResponse.json()
+            try:
+                resp = self.sendRestRequest('get', 'user/authentication', auth=(username, password),
+                                            headers={'Girder-Token': None})
+            except HttpError as e:
+                if e.status in (401, 403):
+                    raise AuthenticationError()
+                raise
 
             self.setToken(resp['authToken']['token'])
 
@@ -428,7 +425,8 @@ class GirderClient(object):
             return getattr(requests, method.lower())
 
     def sendRestRequest(self, method, path, parameters=None,
-                        data=None, files=None, json=None, headers=None, jsonResp=True):
+                        data=None, files=None, json=None, headers=None, jsonResp=True,
+                        **kwargs):
         """
         This method looks up the appropriate method, constructs a request URL
         from the base URL, path, and parameters, and then sends the request. If
@@ -481,7 +479,8 @@ class GirderClient(object):
             _headers.update(headers)
 
         result = f(
-            url, params=parameters, data=data, files=files, json=json, headers=_headers)
+            url, params=parameters, data=data, files=files, json=json, headers=_headers,
+            **kwargs)
 
         # If success, return the json object. Otherwise throw an exception.
         if result.status_code in (200, 201):
@@ -1206,12 +1205,8 @@ class GirderClient(object):
         :returns: The request
         """
 
-        url = '%sfile/%s/download' % (self.urlBase, fileId)
-        req = self._requestFunc('get')(url, stream=True, headers={'Girder-Token': self.token})
-        if not req.ok:
-            raise HttpError(req.status_code, req.text, url, 'GET', response=req)
-
-        return req
+        path = 'file/%s/download' % fileId
+        return self.sendRestRequest('get', path, stream=True, jsonResp=False)
 
     def downloadFile(self, fileId, path, created=None):
         """
