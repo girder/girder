@@ -1,0 +1,62 @@
+#g-account-tab-otp
+// Included parent ID to avoid using !important for style overrides
+    .g-user-settings-container
+        background none
+        border none
+.g-account-otp-info-text
+    border-bottom 1px solid #cccccc
+    padding-bottom 25px
+.g-account-otp-container
+    padding-top 25px
+    h2
+        margin 0 20px 10px 0
+        display inline-block
+    h3
+        color #333
+        font-size 20px
+        font-weight bold
+        margin-bottom 5px
+    #g-user-otp-initialize
+        margin-top -12px
+    .g-account-otp-steps
+        background-color #fafafa
+        border 1px solid #e3e3e3
+        border-radius 4px
+        margin-top 10px
+        overflow visible
+        padding-right 25px
+        .g-account-otp-step
+            border-bottom 1px solid #e3e3e3
+            color #bbb
+            font-size 20px
+            font-weight 600
+            padding-bottom 25px
+            // clearfix
+            &:after
+                clear both
+                content ''
+                display table
+            div
+                color #333
+                font-size 14px
+                font-weight normal
+            // Styles for only step 2
+            &:nth-child(2)
+                div
+                    float left
+                    width 26%
+                    &:first-of-type
+                        margin-right 4%
+                        width 70%
+
+// Responsive Goodness
+@media screen and (max-width:960px)
+    .g-account-otp-container
+        .g-account-otp-steps
+            .g-account-otp-step
+                &:nth-child(2)
+                    div
+                        float none
+                        width 100%
+                        &.g-account-otp-scan-qr
+                            margin-right 0
