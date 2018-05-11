@@ -7,6 +7,7 @@ import events from 'girder/events';
 
 import UserOtpBeginTemplate from 'girder/templates/widgets/userOtpBegin.pug';
 import UserOtpConfirmationTemplate from 'girder/templates/widgets/userOtpConfirmation.pug';
+import 'girder/stylesheets/widgets/userOTPManagementWidget.styl';
 
 const UserOtpManagementWidget = View.extend({
     events: {
