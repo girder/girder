@@ -19,6 +19,7 @@
 
 import contextlib
 import girder_client.cli
+import logging
 import mock
 import os
 import requests
@@ -34,6 +35,7 @@ from girder.models.item import Item
 from girder.models.user import User
 from girder_client.cli import GirderCli
 from tests import base
+from six.moves.http_client import HTTPConnection
 from six import StringIO
 
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
@@ -118,6 +120,9 @@ class PythonCliTestCase(base.TestCase):
         shutil.rmtree(self.downloadDir, ignore_errors=True)
 
     def tearDown(self):
+        logger = logging.getLogger('girder_client')
+        logger.setLevel(logging.ERROR)
+        logger.handlers = []
         shutil.rmtree(self.downloadDir, ignore_errors=True)
 
         base.TestCase.tearDown(self)
@@ -430,6 +435,31 @@ class PythonCliTestCase(base.TestCase):
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
         self.assertIn('File hello.txt already exists in parent Item', ret['stdout'])
+
+    def testVerboseLoggingLevel0(self):
+        args = ['localsync', '--help']
+        ret = invokeCli(args, username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertEqual(logging.getLogger('girder_client').level, logging.ERROR)
+
+    def testVerboseLoggingLevel1(self):
+        args = ['-v', 'localsync', '--help']
+        ret = invokeCli(args, username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertEqual(logging.getLogger('girder_client').level, logging.WARNING)
+
+    def testVerboseLoggingLevel2(self):
+        args = ['-vv', 'localsync', '--help']
+        ret = invokeCli(args, username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertEqual(logging.getLogger('girder_client').level, logging.INFO)
+
+    def testVerboseLoggingLevel3(self):
+        args = ['-vvv', 'localsync', '--help']
+        ret = invokeCli(args, username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertEqual(logging.getLogger('girder_client').level, logging.DEBUG)
+        self.assertEqual(HTTPConnection.debuglevel, 1)
 
     def testRetryUpload(self):
         gc = GirderCli('mylogin', 'password',

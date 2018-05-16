@@ -17,11 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 import click
+import logging
 import requests
 from requests.adapters import HTTPAdapter
+from six.moves.http_client import HTTPConnection
 import sys
 import types
 from girder_client import GirderClient, __version__
+
+_logger = logging.getLogger('girder_client.cli')
 
 
 class GirderCli(GirderClient):
@@ -142,6 +146,8 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               help='[default: GIRDER_API_KEY env. variable]')
 @click.option('--username', default=None)
 @click.option('--password', default=None)
+@click.option('-v', '--verbose', count=True,
+              help='Enable verbose mode (use multiple to increase verbosity)')
 # Advanced options
 @click.option('--host', default=None,
               cls=_AdvancedOption,
@@ -185,7 +191,7 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def main(ctx, username, password,
          api_key, api_url, scheme, host, port, api_root,
-         no_ssl_verify, certificate, token, retries):
+         no_ssl_verify, certificate, token, retries, verbose):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -199,6 +205,8 @@ def main(ctx, username, password,
     ``username`` is specified, the client will prompt the user to interactively
     input his/her password.
     """
+    _set_logging_level(verbose)
+
     # --api-url and URL by part arguments are mutually exclusive
     url_part_options = ['host', 'scheme', 'port', 'api_root']
     has_api_url = ctx.params.get('api_url', None)
@@ -226,6 +234,24 @@ def main(ctx, username, password,
     if certificate and ctx.obj.scheme != 'https':
         raise click.BadArgumentUsage(
             'A URI scheme of "https" is required for option "--certificate"')
+
+
+def _set_logging_level(verbosity):
+    if not verbosity:
+        level = logging.ERROR
+    if verbosity == 1:
+        level = logging.WARNING
+    elif verbosity == 2:
+        level = logging.INFO
+    elif verbosity >= 3:
+        HTTPConnection.debuglevel = 1
+        level = logging.DEBUG
+
+    requestsLogger = logging.getLogger('requests.packages.urllib3')
+    girderClientLogger = logging.getLogger('girder_client')
+    for logger in (requestsLogger, girderClientLogger):
+        logger.addHandler(logging.StreamHandler(sys.stderr))
+        logger.setLevel(level)
 
 
 def _lookup_parent_type(client, object_id):

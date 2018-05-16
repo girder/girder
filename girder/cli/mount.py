@@ -1,54 +1,59 @@
-import atexit
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+###############################################################################
+#  Copyright Kitware Inc.
+#
+#  Licensed under the Apache License, Version 2.0 ( the "License" );
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+###############################################################################
+
+import cherrypy
+import click
 import errno
 import fuse
 import os
-import shutil
 import six
 import stat
 import sys
-import subprocess
 import threading
 import time
 
+import girder
 from girder import events, logger, logprint
-from girder.constants import AccessType
-from girder.exceptions import AccessException, GirderException, ValidationException
+from girder.constants import SettingKey
+from girder.exceptions import AccessException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
+from girder.models.setting import Setting
+from girder.utility import config
 from girder.utility.model_importer import ModelImporter
 from girder.utility import path as path_util
+from girder.utility.server import configureServer
 
 
-# There can be multiple FUSE mounts, each with different user permissions.  If
-# the mount needs to be exposed in some manner to something other than the
-# main server, this could be used to limit which resources are visible.  Since
-# the server can already access all resources, this is not of utility from
-# within the server itself.
-_fuseMounts = {}
-_fuseMountsLock = threading.RLock()
-
-
-class ServerFuse(fuse.Operations, ModelImporter):
+class ServerFuse(fuse.Operations):
     """
     This class handles FUSE operations that are non-default.  It exposes the
     Girder resources via the resource path in a read-only manner.  It could be
     extended to expose metadata and other resources by extending the available
     paths.  Files can also be reached via a path shortcut of /file/<id>.
     """
-    # Use Girder logging by default.
-    log = logger
-
-    def __init__(self, level=AccessType.ADMIN, user=None, force=True, stat=None):
+    def __init__(self, stat=None):
         """
         Instantiate the operations class.  This sets up tracking for open
         files and file descriptor numbers (handles).
 
-        :param level: access level for this mount point.
-        :param user: access user for this mount point.  If force is True, this
-            may be None for full-access.
-        :param force: if True, don't validate access permissions (level and
-            user are ignored).
         :param stat: the results of an os.stat call which should be used as
             default values for files in the FUSE.  Files in the FUSE will have
             the same uid, gid, and atime.  If the resource lacks both an
@@ -57,9 +62,6 @@ class ServerFuse(fuse.Operations, ModelImporter):
             process's home directory,
         """
         super(ServerFuse, self).__init__()
-        self.level = level
-        self.user = user
-        self.force = force
         if not stat:
             stat = os.stat(os.path.expanduser('~'))
         # we always set st_mode, st_size, st_ino, st_nlink, so we don't need
@@ -78,26 +80,23 @@ class ServerFuse(fuse.Operations, ModelImporter):
         :param path: path within the fuse (e.g., '', '/user', '/user/<name>',
             etc.).
         """
-        if self.log:
-            self.log.debug('-> %s %s %s', op, path, repr(args))
+        logger.debug('-> %s %s %s', op, path, repr(args))
         ret = '[exception]'
         try:
             ret = getattr(self, op)(path, *args, **kwargs)
             return ret
         except Exception as e:
             # Log all exceptions and then reraise them
-            if self.log:
-                if getattr(e, 'errno', None) in (errno.ENOENT, errno.EACCES):
-                    self.log.debug('-- %s %r', op, e)
-                else:
-                    self.log.exception('-- %s', op)
+            if getattr(e, 'errno', None) in (errno.ENOENT, errno.EACCES):
+                logger.debug('-- %s %r', op, e)
+            else:
+                logger.exception('-- %s', op)
             raise e
         finally:
-            if self.log:
-                if op != 'read':
-                    self.log.debug('<- %s %s', op, repr(ret))
-                else:
-                    self.log.debug('<- %s (length %d) %r', op, len(ret), ret[:16])
+            if op != 'read':
+                logger.debug('<- %s %s', op, repr(ret))
+            else:
+                logger.debug('<- %s (length %d) %r', op, len(ret), ret[:16])
 
     def _getPath(self, path):
         """
@@ -115,14 +114,13 @@ class ServerFuse(fuse.Operations, ModelImporter):
             # We can't filter the resource, since that removes files'
             # assetstore information and users' size information.
             resource = path_util.lookUpPath(
-                path.rstrip('/'), filter=False, user=self.user, force=self.force)
+                path.rstrip('/'), filter=False, force=True)
         except (path_util.NotFoundException, AccessException):
             raise fuse.FuseOSError(errno.ENOENT)
         except ValidationException:
             raise fuse.FuseOSError(errno.EROFS)
         except Exception:
-            if self.log:
-                self.log.exception('ServerFuse server internal error')
+            logger.exception('ServerFuse server internal error')
             raise fuse.FuseOSError(errno.EROFS)
         return resource   # {model, document}
 
@@ -183,14 +181,10 @@ class ServerFuse(fuse.Operations, ModelImporter):
         """
         entries = []
         if model in ('collection', 'user', 'folder'):
-            if self.force:
-                folderList = Folder().find({
-                    'parentId': doc['_id'],
-                    'parentCollection': model.lower()
-                })
-            else:
-                folderList = Folder().childFolders(
-                    parent=doc, parentType=model, user=self.user)
+            folderList = Folder().find({
+                'parentId': doc['_id'],
+                'parentCollection': model.lower()
+            })
             for folder in folderList:
                 entries.append(self._name(folder, 'folder'))
         if model == 'folder':
@@ -221,18 +215,6 @@ class ServerFuse(fuse.Operations, ModelImporter):
         if path.rstrip('/') in ('', '/user', '/collection'):
             return super(ServerFuse, self).access(path, mode)
         # mode is either F_OK or a bitfield of R_OK, W_OK, X_OK
-        # we need to validate if the resource can be accessed
-        resource = self._getPath(path)
-        if mode != os.F_OK and not self.force:
-            if (mode & os.R_OK):
-                self.model(resource['model']).requireAccess(
-                    resource['document'], self.user, level=AccessType.READ)
-            if (mode & os.W_OK):
-                self.model(resource['model']).requireAccess(
-                    resource['document'], self.user, level=AccessType.WRITE)
-            if (mode & os.X_OK):
-                self.model(resource['model']).requireAccess(
-                    resource['document'], self.user, level=AccessType.ADMIN)
         return 0
 
     def create(self, path, mode):
@@ -243,7 +225,7 @@ class ServerFuse(fuse.Operations, ModelImporter):
 
     def flush(self, path, fh=None):
         """
-        We may want to disallow flush, since his is a read-only system:
+        We may want to disallow flush, since this is a read-only system:
             raise fuse.FuseOSError(errno.EACCES)
         For now, always succeed.
         """
@@ -306,10 +288,7 @@ class ServerFuse(fuse.Operations, ModelImporter):
             result.extend([u'collection', u'user'])
         elif path in ('/user', '/collection'):
             model = path[1:]
-            if self.force:
-                docList = self.model(model).find({}, sort=None)
-            else:
-                docList = self.model(model).list(user=self.user)
+            docList = ModelImporter.model(model).find({}, sort=None)
             for doc in docList:
                 result.append(self._name(doc, model))
         else:
@@ -368,189 +347,168 @@ class ServerFuse(fuse.Operations, ModelImporter):
 
         :param path: always '/'.
         """
+        Setting().unset(SettingKey.GIRDER_MOUNT_INFORMATION)
         events.trigger('server_fuse.destroy')
         return super(ServerFuse, self).destroy(path)
 
 
-@atexit.register
-def unmountAll():
-    """
-    Unmount all mounted FUSE mounts.  Ignore failues to unmount.
-    """
-    for name in list(_fuseMounts.keys()):
-        try:
-            unmountServerFuse(name)
-        except GirderException:
-            pass
-
-
-def unmountServerFuse(name):
-    """
-    Unmount a mounted FUSE mount.  This may fail and raise an exception if
-    there are open files on the mount.
-
-    :param name: a key within the list of known mounts.
-    """
-    with _fuseMountsLock:
-        entry = _fuseMounts.get(name)
-        if entry:
-            events.trigger('server_fuse.unmount', {'name': name})
-            path = entry['path']
-            # Girder uses shutilwhich on Python < 3
-            if shutil.which('fusermount'):
-                result = subprocess.call(['fusermount', '-u', os.path.realpath(path)])
-            else:
-                result = subprocess.call(['umount', os.path.realpath(path)])
-            if result:
-                raise GirderException(
-                    'Can\'t unmount %s: %s, return code: %r' % (name, path, result),
-                    'girder.fuse.unmount-failed')
-            _fuseMounts.pop(name)
-            if entry['thread']:
-                entry['thread'].join(10)
-            # clean up previous processes so there aren't any zombies
-            try:
-                os.waitpid(-1, os.WNOHANG)
-            except OSError:
-                # Don't throw an error; sometimes we get an
-                # errno 10: no child processes
-                pass
-
-
 class FUSELogError(fuse.FUSE):
-    def __init__(self, name, onError, operations, mountpoint, *args, **kwargs):
+    def __init__(self, operations, mountpoint, *args, **kwargs):
         """
         This wraps fuse.FUSE so that errors are logged rather than raising a
         RuntimeError exception.
-
-        :param name: key for the mount point.
-        :param onError: a function that is called with `name` if initialization
-            fails.
         """
         try:
+            logger.debug('Mounting %s\n' % mountpoint)
             super(FUSELogError, self).__init__(operations, mountpoint, *args, **kwargs)
+            logger.debug('Mounted %s\n' % mountpoint)
         except RuntimeError:
             logprint.error(
                 'Failed to mount FUSE.  Does the mountpoint (%r) exist and is '
                 'it empty?  Does the user have permission to create FUSE '
                 'mounts?  It could be another FUSE mount issue, too.' % (
                     mountpoint, ))
-            onError(name)
+            Setting().unset(SettingKey.GIRDER_MOUNT_INFORMATION)
 
 
-def handleFuseMountFailure(name):
+def unmountServer(path, lazy=False, quiet=False):
     """
-    If a FUSE mount fails to initialize inside, remove it from the list of
-    mounts and clean up its thread.
+    Unmount a specified path, if possible.
 
-    :param name: key for the mount point.
+    :param path: the path to unmount.
+    :param lazy: True to pass the lazy flag to the unmount command.
+    :returns: the return code of the unmount program (0 for success).  A
+        non-zero code could mean that the unmount failed or was not needed.
     """
-    with _fuseMountsLock:
-        _fuseMounts.pop(name, None)
+    # We only import these for the unmount command
+    import shutil
+    import subprocess
+    # patch shutil.which for python < 3
+    if not six.PY3:
+        import shutilwhich  # noqa
+
+    if shutil.which('fusermount'):
+        cmd = ['fusermount', '-u']
+        if lazy:
+            cmd.append('-z')
+    else:
+        cmd = ['umount']
+        if lazy:
+            cmd.append('-l')
+    cmd.append(os.path.realpath(path))
+    if quiet:
+        with open(getattr(os, 'devnull', '/dev/null'), 'w') as devnull:
+            result = subprocess.call(cmd, stdout=devnull, stderr=devnull)
+    else:
+        result = subprocess.call(cmd)
+    return result
 
 
-def mountServerFuse(name, path, level=AccessType.ADMIN, user=None, force=False):
+@click.command(
+    'mount', short_help='Mount Girder files.',
+    help='Mount Girder files via a read-only FUSE.  Specify the path for the mountpoint.')
+@click.argument('path', type=click.Path(exists=True))
+@click.option(
+    '-d', '--database', default=cherrypy.config['database']['uri'],
+    show_default=True,
+    help='The database URI to connect to.  If this does not include a ://, '
+         'the default database will be used.')
+@click.option(
+    '-o', '--options', 'fuseOptions', default=None,
+    help='Comma separated list of additional FUSE mount options.  '
+         'ro and use_ino cannot be overridden.')
+@click.option(
+    '-q', '--quiet', is_flag=True, default=False,
+    help='Suppress Girder startup information or unmount output.')
+@click.option(
+    '-u', '--umount', '--unmount', 'unmount', is_flag=True, default=False,
+    help='Unmount a mounted FUSE filesystem.')
+@click.option(
+    '-l', '-z', '--lazy', 'lazy', is_flag=True, default=False,
+    help='Lazy unmount.')
+@click.option('--plugins', default=None, help='Comma separated list of plugins to import.')
+def main(path, database, fuseOptions, quiet, unmount, lazy, plugins):
+    if unmount or lazy:
+        result = unmountServer(path, lazy, quiet)
+        sys.exit(result)
+    mountServer(path=path, database=database, fuseOptions=fuseOptions,
+                quiet=quiet, plugins=plugins)
+
+
+def mountServer(path, database=None, fuseOptions=None, quiet=False, plugins=None):
     """
-    Mount a FUSE at a specific path with authorization for a given user.
+    Perform the mount.
 
-    :param name: a key for this mount mount.  Each mount point must have a
-        distinct key.
-    :param path: the location where this mount will be in the local filesystem.
-        This should be an empty directory.
-    :param level: access level used when checking which resources are available
-        within the FUSE.  This is ignored currently, but could be used if
-        non-readonly access is ever implemented.
-    :param user: the user used for authorizing resource access.
-    :param force: if True, all resources are available without checking the
-        user or level.
-    :returns: True if successful.  'present' if the mount is already present.
-        None on failure.
+    :param path: the mount location.
+    :param database: a database connection URI, if it contains '://'.
+        Otherwise, the default database is used.
+    :param fuseOptions: a comma-separated string of options to pass to the FUSE
+        mount.  A key without a value is taken as True.  Boolean values are
+        case insensitive.  For instance, 'foreground' or 'foreground=True' will
+        keep this program running until the SIGTERM or unmounted.
+    :param quiet: if True, suppress Girder logs.
+    :param plugins: an optional list of plugins to enable.  If None, use the
+        plugins that are configured.
     """
-    with _fuseMountsLock:
-        if name in _fuseMounts:
-            if (_fuseMounts[name]['level'] == level and
-                    _fuseMounts[name]['user'] == user and
-                    _fuseMounts[name]['force'] == force):
-                return 'present'
-            unmountServerFuse(name)
-        entry = {
-            'level': level,
-            'user': user,
-            'force': force,
-            'path': path,
-            'stat': dict((key, getattr(os.stat(path), key)) for key in (
-                'st_atime', 'st_ctime', 'st_gid', 'st_mode', 'st_mtime',
-                'st_nlink', 'st_size', 'st_uid')),
-            'thread': None
-        }
-        try:
-            # We run the file system in a thread, but as a foreground process.
-            # This allows multiple mounted fuses to play well together and stop
-            # when the program is stopped.
-            opClass = ServerFuse(level=level, user=user, force=force,
-                                 stat=os.stat(path))
-            options = {
-                # Running in a thread in the foreground makes it easier to
-                # clean up the process when we need to shut it down.
-                'foreground': True,
-                # Automatically unmount when python we try to mount again
-                'auto_unmount': True,
-                # Cache files if their size and timestamp haven't changed.
-                # This lets to OS buffer files efficiently.
-                'auto_cache': True,
-                # We aren't specifying our own inos
-                'use_ino': False,
-                # read-only file system
-                'ro': True,
-            }
-            if sys.platform == 'darwin':
-                del options['auto_unmount']
-            fuseThread = threading.Thread(target=FUSELogError, args=(
-                name, handleFuseMountFailure, opClass, path), kwargs=options)
-            entry['thread'] = fuseThread
-            _fuseMounts[name] = entry
-            fuseThread.daemon = True
-            fuseThread.start()
-            logprint.info('Mounted %s at %s' % (name, path))
-            events.trigger('server_fuse.mount', {'name': name})
-            return True
-        except Exception:
-            logger.exception('Failed to mount %s at %s' % (name, path))
+    if quiet:
+        curConfig = config.getConfig()
+        curConfig.setdefault('logging', {})['log_quiet'] = True
+        curConfig.setdefault('logging', {})['log_level'] = 'FATAL'
+        girder._setupLogger()
+    if database and '://' in database:
+        cherrypy.config['database']['uri'] = database
+    if plugins is not None:
+        plugins = plugins.split(',')
+    webroot, appconf = configureServer(plugins=plugins)
+    girder._setupCache()
+
+    opClass = ServerFuse(stat=os.stat(path))
+    options = {
+        # By default, we run in the background so the mount command returns
+        # immediately.  If we run in the foreground, a SIGTERM will shut it
+        # down
+        'foreground': False,
+        # Cache files if their size and timestamp haven't changed.
+        # This lets the OS buffer files efficiently.
+        'auto_cache': True,
+        # We aren't specifying our own inos
+        'use_ino': False,
+        # read-only file system
+        'ro': True,
+    }
+    if sys.platform != 'darwin':
+        # Automatically unmount when we try to mount again
+        options['auto_unmount'] = True
+    if fuseOptions:
+        for opt in fuseOptions.split(','):
+            if '=' in opt:
+                key, value = opt.split('=', 1)
+                value = (False if value.lower() == 'false' else
+                         True if value.lower() == 'true' else value)
+            else:
+                key, value = opt, True
+            if key in ('use_ino', 'ro', 'rw') and options.get(key) != value:
+                logprint.warning('Ignoring the %s=%r option' % (key, value))
+                continue
+            options[key] = value
+    Setting().set(SettingKey.GIRDER_MOUNT_INFORMATION,
+                  {'path': path, 'mounttime': time.time()})
+    FUSELogError(opClass, path, **options)
 
 
-def isServerFuseMounted(name, level=AccessType.ADMIN, user=None, force=False):
-    """
-    Check if a named FUSE is mounted with specific authorization.
-
-    :param name: a key for this mount mount.  Each mount point must have a
-        distinct key.
-    :param level: access level used when checking which resources are available
-        within the FUSE.  This is ignored currently, but could be used if
-        non-readonly access is ever implemented.
-    :param user: the user used for authorizing resource access.
-    :param force: if True, all resources are available without checking the
-        user or level.
-    :returns: True if mounted, False if not.
-    """
-    with _fuseMountsLock:
-        if name in _fuseMounts:
-            if (_fuseMounts[name]['level'] == level and
-                    _fuseMounts[name]['user'] == user and
-                    _fuseMounts[name]['force'] == force):
-                return True
-    return False
-
-
-def getServerFusePath(name, type, doc):
-    """
-    Given a fuse name and a resource, return the file path.
-
-    :param name: key used for the fuse mount.
-    :param type: the resource model type.
-    :param doc: the resource document.
-    :return: a path to the resource.
-    """
-    if name not in _fuseMounts:
-        return None
-    return _fuseMounts[name]['path'].rstrip('/') + path_util.getResourcePath(
-        type, doc, user=_fuseMounts[name]['user'], force=_fuseMounts[name]['force'])
+# You can add girder to the list of known filesystem types in linux.  For
+# instance, if you create an executable file at /sbin/mount.girder that
+# contains
+#   #!/usr/bin/env bash
+#   sudo -u <user that runs girder> girder mount -d "$@"
+# then the command
+#   mount -t girder <database uri> <path> -o <options>
+# will work.  If you specify a string that doesn't contain :// as the database
+# uri, then it will use the default girder configuration (e.g., use
+# "mount -t girder girder <path>").
+# If you have girder installed in a virtualenv, ifrequently prepending the
+# virtualenv's bin directory to the path is enough to use it, so the
+# mount.girder file becomes
+#   #!/usr/bin/env bash
+#   sudo -u <user that runs girder> bash -c 'PATH="<virtualenv
+#       path>:$PATH" ${0} ${1+"$@"}' girder mount -d "$@"

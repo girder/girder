@@ -22,6 +22,7 @@ import errno
 import getpass
 import glob
 import json
+import logging
 import mimetypes
 import os
 import re
@@ -40,6 +41,8 @@ DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
 
 _safeNameRegex = re.compile(r'^[/\\]+')
+
+_logger = logging.getLogger('girder_client.lib')
 
 
 def _compareDicts(x, y):
