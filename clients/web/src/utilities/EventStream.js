@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { getApiRoot } from 'girder/rest';
+import { getApiRoot, restRequest } from 'girder/rest';
 
 /**
  * The EventStream type wraps window.EventSource to listen to the unified
@@ -104,6 +104,23 @@ EventStream.prototype._start = function () {
         }
         EventStream.setLastTimestamp(obj._girderTime);
         this.trigger('g:event.' + obj.type, obj);
+    };
+    this._eventSource.onerror = () => {
+        // The EventSource.onerror API does not provide the HTTP status code of the error, so send an Ajax HEAD request
+        // to capture the status code.
+        restRequest({
+            url: this.settings.streamPath,
+            method: 'HEAD',
+            error: null
+        })
+            .fail((jqXHR) => {
+                if (jqXHR.status === 503) {
+                    // Notification stream is disabled, so close this EventStream
+                    this.close();
+                }
+            });
+        // In all other cases (HEAD doesn't fail, or fails with a non-503 code), assume this is a temporary outage and
+        // allow the EventStream to continue attempting to auto-connect
     };
 
     this._heartbeat();
