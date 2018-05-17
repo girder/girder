@@ -213,6 +213,18 @@ form.g-settings-form(role="form")
                 type="text", value=settings['core.upload_minimum_chunk_size'] || '',
                 placeholder=`Default: ${defaults['core.upload_minimum_chunk_size'] || 'none'}`,
                 title="For large files, the minimum size of all but the last chunk.")
+          .form-group
+            label Server Notification Stream
+            br
+            span Disabling this may improve server performance with many concurrent web client users.
+            .checkbox
+              label(for="g-core-notification-stream-enabled")
+                input#g-core-notification-stream-enabled(
+                type="checkbox", checked=(
+                  settings['core.notification_stream_enabled'] === null ?
+                  defaults['core.notification_stream_enabled'] :
+                  settings['core.notification_stream_enabled']))
+                | Enabled
           .g-settings-form-container
             h4 CORS
             p.

@@ -38,7 +38,14 @@ var SystemConfigurationView = View.extend({
                             return [$(el).data('webrootName'), $(el).val()];
                         }))
                     };
-                } else if (_.contains(['core.api_keys', 'core.enable_password_login'], key)) { // booleans via checkboxes
+                } else if (_.contains(
+                    [
+                        'core.api_keys',
+                        'core.enable_password_login',
+                        'core.notification_stream_enabled'
+                    ],
+                    key
+                )) { // booleans via checkboxes
                     return {
                         key,
                         value: element.is(':checked')
@@ -98,6 +105,7 @@ var SystemConfigurationView = View.extend({
             'core.smtp.username',
             'core.smtp.password',
             'core.upload_minimum_chunk_size',
+            'core.notification_stream_enabled',
             'core.cors.allow_origin',
             'core.cors.allow_methods',
             'core.cors.allow_headers',
