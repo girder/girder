@@ -873,9 +873,6 @@ class GirderClient(object):
         filepath = os.path.abspath(filepath)
         filesize = os.path.getsize(filepath)
 
-        if filesize == 0:
-            return
-
         # Check if the file already exists by name and size in the file.
         fileId, current = self.isFileCurrent(itemId, filename, filepath)
         if fileId is not None and current:
@@ -991,9 +988,6 @@ class GirderClient(object):
         filename = os.path.basename(filename)
         filepath = os.path.abspath(filepath)
         filesize = os.path.getsize(filepath)
-
-        if filesize == 0:
-            return
 
         if mimeType is None:
             # Attempt to guess MIME type if not passed explicitly
