@@ -127,13 +127,13 @@ const JobGraphWidget = View.extend({
             config.scales[4].domain = allStatus.map((status) => status.text);
             config.scales[4].range = allStatus.map((status) => status.color);
 
-            vg.parse.spec(config, (chart) => {
-                var view = chart({
-                    el: this.$('.g-jobs-graph').get(0),
-                    renderer: 'svg'
-                }).update();
-                view.on('click', openDetailView(view));
-            });
+            const runtime = parse(config);
+            const view = new VegaView(runtime)
+                .initialize(document.querySelector('.g-jobs-graph'))
+                .renderer('svg')
+                .hover()
+                .run();
+            view.addEventListener('click', openDetailView(view));
 
             let positiveTimings = _.clone(this.timingFilter);
             delete positiveTimings['Inactive'];

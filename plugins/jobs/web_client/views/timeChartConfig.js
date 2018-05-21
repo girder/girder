@@ -1,7 +1,7 @@
 const timeChartConfig = {
     'width': 894,
     'height': 673,
-    'padding': 'strict',
+    'autosize': 'fit',
     'data': [
         {
             'name': 'table',
@@ -9,23 +9,19 @@ const timeChartConfig = {
             'transform': [
                 {
                     'type': 'filter',
-                    'test': 'datum.elapsed > 0'
+                    'expr': 'datum.elapsed > 0'
                 },
                 {
                     'type': 'formula',
-                    'field': 'elapsed',
+                    'as': 'elapsed',
                     'expr': 'datum.elapsed/1000'
                 },
                 {
                     'type': 'aggregate',
                     'groupby': ['id', 'title', 'currentStatus'],
-                    'summarize': [
-                        {
-                            'field': 'elapsed',
-                            'ops': ['sum'],
-                            'as': ['sum_y']
-                        }
-                    ]
+                    'fields': ['elapsed'],
+                    'ops': ['sum'],
+                    'as': ['sum_y']
                 }
             ]
         }
@@ -33,7 +29,7 @@ const timeChartConfig = {
     'scales': [
         {
             'name': 'x',
-            'type': 'ordinal',
+            'type': 'band',
             'points': true,
             'range': 'width',
             'domain': {
@@ -75,39 +71,40 @@ const timeChartConfig = {
     ],
     'axes': [
         {
-            'type': 'x',
             'scale': 'x',
             'orient': 'top',
-            'properties': {
+            'encode': {
                 'labels': {
-                    'text': { 'scale': 'xlabels2' },
-                    'angle': { 'value': -50 },
-                    'align': { 'value': 'left' },
-                    'itemName': { 'value': 'xlabel2' }
+                    'update': {
+                        'text': { 'field': 'value', 'scale': 'xlabels2' },
+                        'angle': { 'value': -50 },
+                        'align': { 'value': 'left' },
+                        'itemName': { 'value': 'xlabel2' }
+                    }
                 }
             },
             'offset': 10
         },
         {
-            'type': 'x',
             'scale': 'x',
             'orient': 'bottom',
-            'subdivide': 3,
-            'properties': {
+            'encode': {
                 'labels': {
-                    'text': { 'scale': 'xlabels' },
-                    'angle': { 'value': 50 },
-                    'align': { 'value': 'left' },
-                    'itemName': { 'value': 'xlabel' }
+                    'update': {
+                        'text': { 'field': 'value', 'scale': 'xlabels' },
+                        'angle': { 'value': 50 },
+                        'align': { 'value': 'left' },
+                        'itemName': { 'value': 'xlabel' }
+                    }
                 }
             }
         },
         {
-            'type': 'y',
+            'orient': 'left',
             'scale': 'y',
             'format': 's',
             'title': 'seconds',
-            'properties': {
+            'encode': {
                 'labels': {
                     'itemName': { 'value': 'ylabel' }
                 }
@@ -117,40 +114,40 @@ const timeChartConfig = {
     'signals': [
         {
             'name': 'hover',
-            'init': {
+            'value': {
                 'pos': {},
                 'datum': {}
             },
-            'streams': [
+            'on': [
                 {
-                    'type': '@circle:mousemove',
-                    'expr': '{ pos: {x: eventX(), y: eventY()}, datum:datum}'
+                    'events': '@circle:mousemove',
+                    'update': '{ pos: {x: x(), y: y()}, datum:datum}'
                 },
                 {
-                    'type': '@circle:mouseout',
-                    'expr': '{pos:{},datum:{}}'
+                    'events': '@circle:mouseout',
+                    'update': '{pos:{},datum:{}}'
                 }
             ]
         },
         {
             'name': 'tt0',
-            'init': {},
-            'expr': '{ title:hover.datum.title, sum_y:hover.datum["sum_y"] }'
+            'value': {},
+            'update': '{ title:hover.datum.title, sum_y:hover.datum["sum_y"] }'
         },
         {
             'name': 'tt1',
-            'init': {},
-            'expr': '{ sum_y:!tt0.sum_y?"":timeFormat(tt0.sum_y>3600000? "%H:%M:%S.%Ls":(tt0.sum_y>60000?"%M:%S.%Ls":"%S.%Ls"), datetime(0,0,0,0,0,0,tt0.sum_y)) }'
+            'value': {},
+            'update': '{ sum_y:!tt0.sum_y?"":timeFormat(datetime(0,0,0,0,0,tt0.sum_y,0), tt0.sum_y>3600? "%H:%M:%S.%Ls":(tt0.sum_y>60?"%M:%S.%Ls":"%S.%Ls")) }'
         },
         {
             'name': 'tt2',
-            'init': {},
-            'expr': '{ width:!tt0.title?0:max(tt0.title.length, tt1.sum_y.length)*7 }'
+            'value': {},
+            'update': '{ width:!tt0.title?0:max(tt0.title.length, tt1.sum_y.length)*7 }'
         },
         {
             'name': 'tooltip',
-            'init': {},
-            'expr': '{ y:hover.pos.y+30, x:(hover.pos.x>width-tt2.width+5?hover.pos.x-tt2.width-5:hover.pos.x+5), width:tt2.width, title:tt0.title, sum_y:tt1.sum_y }'
+            'value': {},
+            'update': '{ y:hover.pos.y+30, x:(hover.pos.x>width-tt2.width+5?hover.pos.x-tt2.width-5:hover.pos.x+5), width:tt2.width, title:tt0.title, sum_y:tt1.sum_y }'
         }
     ],
     'marks': [
@@ -160,7 +157,7 @@ const timeChartConfig = {
             'from': {
                 'data': 'table'
             },
-            'properties': {
+            'encode': {
                 'enter': {
                     'x': {
                         'scale': 'x',
@@ -196,7 +193,7 @@ const timeChartConfig = {
             'from': {
                 'data': 'table'
             },
-            'properties': {
+            'encode': {
                 'enter': {
                     'x': {
                         'scale': 'x',
@@ -228,7 +225,7 @@ const timeChartConfig = {
         },
         {
             'type': 'group',
-            'properties': {
+            'encode': {
                 'update': {
                     'x': { 'signal': 'tooltip.x' },
                     'y': { 'signal': 'tooltip.y' },
@@ -244,7 +241,7 @@ const timeChartConfig = {
                 {
                     'name': 'title',
                     'type': 'text',
-                    'properties': {
+                    'encode': {
                         'update': {
                             'x': { 'value': 6 },
                             'y': { 'value': 14 },
@@ -256,7 +253,7 @@ const timeChartConfig = {
                 {
                     'name': 'elapsed',
                     'type': 'text',
-                    'properties': {
+                    'encode': {
                         'update': {
                             'x': { 'value': 6 },
                             'y': { 'value': 30 },
@@ -274,7 +271,7 @@ const timeChartConfig = {
             'fill': 'timing',
             'title': 'Status',
             'offset': -3,
-            'properties': {
+            'encode': {
                 'title': {
                     'dx': { 'value': 13 },
                     'fontSize': { 'value': 12 }
