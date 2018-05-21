@@ -20,16 +20,16 @@ ol.g-account-otp-steps
         tr
           th Service
           td
-            code= otpInfo.issuer
+            code= totpInfo.issuer
         tr
           th Account
           td
-            code= otpInfo.account
+            code= totpInfo.account
         tr
           th Key
           td
             // Split into 4-character chunks for human readability
-            code= otpInfo.key.match(/.{1,4}/g).join('-')
+            code= totpInfo.key.match(/.{1,4}/g).join('-')
         tr
           th Type
           td

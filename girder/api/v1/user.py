@@ -388,12 +388,10 @@ class User(Resource):
         if self._model.hasOtp(user):
             raise RestException('The user has already enabled one-time passwords.')
 
-        otpUri = self._model.initializeOtp(user)
+        otpUris = self._model.initializeOtp(user)
         self._model.save(user)
 
-        return {
-            'otpUri': otpUri
-        }
+        return otpUris
 
     @access.user
     @autoDescribeRoute(

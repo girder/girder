@@ -13,8 +13,8 @@ const UserOtpManagementWidget = View.extend({
     events: {
         'click #g-user-otp-initialize': function () {
             this.model.initializeOtp()
-                .done((otpUri) => {
-                    this.otpUri = otpUri;
+                .done((totpUri) => {
+                    this.totpUri = totpUri;
                     this.render();
                 });
         },
@@ -33,7 +33,7 @@ const UserOtpManagementWidget = View.extend({
                 });
         },
         'click #g-user-otp-cancel': function () {
-            this.otpUri = undefined;
+            this.totpUri = undefined;
             this.render();
         },
         'click #g-user-otp-remove': function () {
@@ -60,7 +60,7 @@ const UserOtpManagementWidget = View.extend({
     render: function () {
         if (!this.model.has('otp')) {
             // OTP not set up
-            if (!this.otpUri) {
+            if (!this.totpUri) {
                 // Enablement has not started
                 this._renderBegin();
             } else {
@@ -82,16 +82,16 @@ const UserOtpManagementWidget = View.extend({
 
     _renderConfirmation: function () {
         // The OTP URI format is defined at https://github.com/google/google-authenticator/wiki/Key-Uri-Format
-        const otpInfo = OTPAuth.parse(this.otpUri);
+        const totpInfo = OTPAuth.parse(this.totpUri);
 
         this.$el.html(UserOtpConfirmationTemplate({
-            otpInfo: otpInfo
+            totpInfo: totpInfo
         }));
 
         // Render the OTP as a QR code
         QRCode.toCanvas(
             this.$('#g-user-otp-qr')[0],
-            this.otpUri,
+            this.totpUri,
             {
                 errorCorrectionLevel: 'H',
             }

@@ -284,8 +284,8 @@ class User(AccessControlledModel):
         This does not save the modified user model.
 
         :param user: The user to modify.
-        :return: The new OTP key, in KeyUriFormat.
-        :rtype: str
+        :return: The new OTP keys, each in KeyUriFormat.
+        :rtype: dict
         """
         totp = self._TotpFactory.new()
 
@@ -294,7 +294,9 @@ class User(AccessControlledModel):
             'totp': totp.to_dict()
         }
 
-        return totp.to_uri(label=user['login'])
+        return {
+            'totpUri': totp.to_uri(label=user['login'])
+        }
 
     def hasOtp(self, user):
         return 'otp' in user and user['otp']['enabled']

@@ -129,7 +129,7 @@ var UserModel = Model.extend({
             error: null
         })
             .then((resp) => {
-                return resp.otpUri;
+                return resp.totpUri;
             });
     },
 
