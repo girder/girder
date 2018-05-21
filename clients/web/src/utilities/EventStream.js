@@ -20,50 +20,22 @@ function EventStream(settings) {
 
     // User-provided settings from initialization
     this.settings = _.extend(defaults, settings);
-    // Whether this is opened
-    this._opened = false;
+    // Possible states are 'closed', 'stopped', 'started'
+    this._state = 'closed';
     // Whether this is started (if so, holds the EventSource instance)
     this._eventSource = null;
-    // The identifier for the next heartbeat check
-    this._animationRequestID = null;
-    // The identifier for the next dead man's switch check
-    this._timeoutID = null;
+
+    // Store this context binding, so it can be referenced when unbinding events
+    this._onVisibilityStateChange = _.bind(this._onVisibilityStateChange, this);
 
     return _.extend(this, Backbone.Events);
 }
 
-/*
- * This method is used to stop the event stream socket when the Girder tab is not visible.
- *
- * It creates a dead man switch to close the frame after _heartbeatTimeout milliseconds (default of 5 seconds) if
- * requestAnimationFrame is not called in that time.
- */
-EventStream.prototype._heartbeat = function () {
-    // This has been called because it's the next animation frame or from an explicit startup
-
-    if (!this._opened) {
-        // This should never happen
-        console.warn('EventStream._heartbeat called on a closed stream.');
-        return;
-    }
-
-    // If _heartbeat was called from a place other than an animation frame, ensure there are no pending calls queued
-    window.cancelAnimationFrame(this._animationRequestID);
-    // Schedule the next heartbeat check
-    // FIXME: This is a recursive call, which is growing the stack on every animation frame!
-    this._animationRequestID = window.requestAnimationFrame(_.bind(this._heartbeat, this));
-
-    // Reset the dead man's switch
-    window.clearTimeout(this._timeoutID);
-    this._timeoutID = window.setTimeout(() => {
-        // If the dead man's switch fires, stop the event stream, but leave it open
-        this._stop();
-        // Note, there is still a pending heartbeat call whenever the page is rendered next
-    }, this.settings._heartbeatTimeout);
-
-    if (!this._eventSource) {
-        // EventStream is open but stopped
+EventStream.prototype._onVisibilityStateChange = function () {
+    if (document.visibilityState === 'visible' && this._state === 'stopped') {
         this._start();
+    } else if (document.visibilityState === 'hidden' && this._state === 'started') {
+        this._stop();
     }
 };
 
@@ -72,12 +44,23 @@ EventStream.prototype.open = function () {
         console.error('EventSource is not supported on this platform.');
         return;
     }
+    if (this._state !== 'closed') {
+        console.warn('EventStream should be closed.');
+        return;
+    }
 
-    this._opened = true;
+    this._state = 'stopped';
     this._start();
+
+    document.addEventListener('visibilitychange', this._onVisibilityStateChange);
 };
 
 EventStream.prototype._start = function () {
+    if (this._state !== 'stopped') {
+        console.warn('EventStream should be stopped');
+        return;
+    }
+
     const params = {};
 
     if (this.settings.timeout) {
@@ -123,23 +106,36 @@ EventStream.prototype._start = function () {
         // allow the EventStream to continue attempting to auto-connect
     };
 
-    this._heartbeat();
+    this.state = 'started';
     this.trigger('g:eventStream.start');
 };
 
 EventStream.prototype._stop = function () {
-    if (this._eventSource) {
-        this._eventSource.close();
-        this._eventSource = null;
+    if (this._state !== 'started') {
+        console.warn('EventStream should be started');
+        return;
     }
+
+    this._eventSource.close();
+    this._eventSource = null;
+
+    this.state = 'stopped';
     this.trigger('g:eventStream.stop');
 };
 
 EventStream.prototype.close = function () {
-    this._opened = false;
-    this._stop();
-    window.cancelAnimationFrame(this._animationRequestID);
-    window.clearTimeout(this._timeoutID);
+    if (this._state === 'closed') {
+        console.warn('EventStream should not be closed');
+        return;
+    }
+
+    document.removeEventListener('visibilitychange', this._onVisibilityStateChange);
+
+    if (this._state === 'started') {
+        this._stop();
+    }
+
+    this.state = 'closed';
     this.trigger('g:eventStream.close');
 };
 
