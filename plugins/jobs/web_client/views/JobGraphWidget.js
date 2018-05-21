@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import $ from 'jquery';
-import vg from 'vega';
+import { parse,
+         View as VegaView } from 'vega';
 import moment from 'moment';
 
 import View from 'girder/views/View';
@@ -67,7 +68,7 @@ const JobGraphWidget = View.extend({
             let withForEachJob = width / numberOfJobs;
             // if the width for each job is less than 20px, remove axe labels
             if (withForEachJob < 20) {
-                config.axes[0].properties.labels.opacity = { value: 0 };
+                config.axes[0].encode.labels.opacity = { value: 0 };
             }
             config.width = width;
             config.height = this.$('.g-jobs-graph').height();
@@ -79,13 +80,13 @@ const JobGraphWidget = View.extend({
             config.scales[3].domain = this.collection.pluck('_id');
             config.scales[3].range = this.collection.pluck('title');
 
-            vg.parse.spec(config, (chart) => {
-                var view = chart({
-                    el: this.$('.g-jobs-graph').get(0),
-                    renderer: 'svg'
-                }).update();
-                view.on('click', openDetailView(view));
-            });
+            const runtime = parse(config);
+            const view = new VegaView(runtime)
+                .initialize(document.querySelector('.g-jobs-graph'))
+                .renderer('svg')
+                .hover()
+                .run();
+            view.addEventListener('click', openDetailView(view));
 
             let positiveTimings = _.clone(this.timingFilter);
             this.timingFilterWidget.setItems(positiveTimings);
@@ -103,7 +104,7 @@ const JobGraphWidget = View.extend({
             // if the width for each job is less than 20px, remove date axe and axe labels
             if (withForEachJob < 20) {
                 config.axes.splice(0, 1);
-                config.axes[0].properties.labels.opacity = { value: 0 };
+                config.axes[0].encode.labels.opacity = { value: 0 };
             }
             config.width = width;
             config.height = this.$('.g-jobs-graph').height();
