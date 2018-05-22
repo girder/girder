@@ -16,56 +16,17 @@ const timingHistoryChartConfig = {
             ]
         },
         {
-            'name': 'positive',
-            'source': 'table',
-            'transform': [
-                {
-                    'type': 'filter',
-                    'expr': 'datum.adjElapsed > 0'
-                }
-            ]
+            'name': 'min_y',
+            'values': []
         },
         {
-            'name': 'positiveStacked',
-            'source': 'positive',
+            'name': 'stacked',
+            'source': 'table',
             'transform': [
                 {
                   'type': 'stack',
                   'groupby': ['id'],
                   'field': 'adjElapsed'
-                }
-            ]
-        },
-        {
-            'name': 'negative',
-            'source': 'table',
-            'transform': [
-                {
-                    'type': 'filter',
-                    'expr': 'datum.adjElapsed < 0'
-                }
-            ]
-        },
-        {
-            'name': 'negativeStacked',
-            'source': 'negative',
-            'transform': [
-                {
-                  'type': 'stack',
-                  'groupby': ['id'],
-                  'field': 'adjElapsed'
-                }
-            ]
-        },
-        {
-            'name': 'status2',
-            'source': 'table',
-            'transform': [
-                {
-                    'type': 'aggregate',
-                    'fields': ['adjElapsed'],
-                    'ops': ['min'],
-                    'as': ['min_y']
                 }
             ]
         },
@@ -83,7 +44,7 @@ const timingHistoryChartConfig = {
                 {
                     'type': 'formula',
                     'as': 'min_y',
-                    'expr': 'data("status2")[0].min_y'
+                    'expr': 'data("min_y")[0].data'
                 }
             ]
         }
@@ -220,7 +181,7 @@ const timingHistoryChartConfig = {
             'type': 'rect',
             'name': 'timing',
             'from': {
-                'data': 'positiveStacked'
+                'data': 'stacked'
             },
             'encode': {
                 'enter': {
@@ -239,19 +200,19 @@ const timingHistoryChartConfig = {
             }
         },
         {
+            'name': 'statusmarkbase',
             'type': 'rect',
-            'name': 'neg_timing',
             'from': {
-                'data': 'negativeStacked'
+                'data': 'stats'
             },
             'encode': {
                 'enter': {
-                    'x': { 'scale': 'x', 'field': 'id' },
-                    'width': { 'scale': 'x', 'band': true, 'offset': -2 },
-                    'y': { 'scale': 'y', 'field': 'y0' },
-                    'y2': { 'scale': 'y', 'field': 'y1' },
-                    'fill': { 'scale': 'color', 'field': 'status' },
-                    'itemName': { 'value': 'bar' }
+                    'width': { 'scale': 'x', 'band': true, 'offset': -4 },
+                    'height': { 'value': 6 },
+                    'x': { 'scale': 'x', 'field': 'id', 'offset': 1 },
+                    'y': { 'scale': 'y', 'field': 'min_y', 'offset': 9 },
+                    'fill': { 'value': 'rgb(204,204,204)' },
+                    'itemName': { 'value': 'status' }
                 },
                 'update': { 'fillOpacity': { 'value': 1 } },
                 'hover': {

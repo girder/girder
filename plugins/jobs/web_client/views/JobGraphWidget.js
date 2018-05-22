@@ -73,6 +73,10 @@ const JobGraphWidget = View.extend({
             config.width = width;
             config.height = this.$('.g-jobs-graph').height();
             config.data[0].values = vegaData;
+
+            const minval = Math.min(0, Math.min.apply(this, vegaData.map(d => d.elapsed === undefined ? 10 : d.elapsed)) / 1000);
+            config.data[1].values = [minval < -86400 ? -86400 : minval];
+
             config.scales[1].type = this.yScale;
             let allStatus = JobStatus.getAll().filter((status) => this.timingFilter ? this.timingFilter[status.text] : true);
             config.scales[2].domain = allStatus.map((status) => status.text);
