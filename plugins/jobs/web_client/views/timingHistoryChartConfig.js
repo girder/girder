@@ -59,7 +59,7 @@ const timingHistoryChartConfig = {
         },
         {
             'name': 'status2',
-            'source': 'negative',
+            'source': 'table',
             'transform': [
                 {
                     'type': 'aggregate',
