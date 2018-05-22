@@ -67,7 +67,12 @@ class AccessControlMixin(object):
             else:
                 loadType = doc.get('attachedToType')
                 loadId = doc.get('attachedToId')
-            self.model(loadType).load(loadId, level=level, user=user, exc=exc)
+            if isinstance(loadType, six.string_types):
+                self.model(loadType).load(loadId, level=level, user=user, exc=exc)
+            elif isinstance(loadType, list) and len(loadType) == 2:
+                self.model(*loadType).load(loadId, level=level, user=user, exc=exc)
+            else:
+                raise Exception('Invalid model type: %s' % str(loadType))
 
             self._removeSupplementalFields(doc, fields)
 
