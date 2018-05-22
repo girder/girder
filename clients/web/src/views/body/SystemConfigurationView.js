@@ -42,7 +42,7 @@ var SystemConfigurationView = View.extend({
                     [
                         'core.api_keys',
                         'core.enable_password_login',
-                        'core.notification_stream_enabled'
+                        'core.enable_notification_stream'
                     ],
                     key
                 )) { // booleans via checkboxes
@@ -105,7 +105,7 @@ var SystemConfigurationView = View.extend({
             'core.smtp.username',
             'core.smtp.password',
             'core.upload_minimum_chunk_size',
-            'core.notification_stream_enabled',
+            'core.enable_notification_stream',
             'core.cors.allow_origin',
             'core.cors.allow_methods',
             'core.cors.allow_headers',

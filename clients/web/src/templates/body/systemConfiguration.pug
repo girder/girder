@@ -221,9 +221,9 @@ form.g-settings-form(role="form")
               label(for="g-core-notification-stream-enabled")
                 input#g-core-notification-stream-enabled(
                 type="checkbox", checked=(
-                  settings['core.notification_stream_enabled'] === null ?
-                  defaults['core.notification_stream_enabled'] :
-                  settings['core.notification_stream_enabled']))
+                  settings['core.enable_notification_stream'] === null ?
+                  defaults['core.enable_notification_stream'] :
+                  settings['core.enable_notification_stream']))
                 | Enabled
           .g-settings-form-container
             h4 CORS

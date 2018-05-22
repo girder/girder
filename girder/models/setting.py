@@ -456,8 +456,8 @@ class Setting(Model):
                 'Girder mount information must be a dict with the "path" key.')
 
     @staticmethod
-    @setting_utilities.validator(SettingKey.NOTIFICATION_STREAM_ENABLED)
-    def validateNotificationStreamEnabled(doc):
+    @setting_utilities.validator(SettingKey.ENABLE_NOTIFICATION_STREAM)
+    def validateEnableNotificationStream(doc):
         if not isinstance(doc['value'], bool):
             raise ValidationException(
-                'Notification stream enabled option must be boolean.', 'value')
+                'Enable notification stream option must be boolean.', 'value')

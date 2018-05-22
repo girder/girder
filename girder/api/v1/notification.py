@@ -77,7 +77,7 @@ class Notification(Resource):
         .errorResponse('The notification stream is not enabled.', 503)
     )
     def stream(self, timeout, params):
-        if not Setting().get(SettingKey.NOTIFICATION_STREAM_ENABLED):
+        if not Setting().get(SettingKey.ENABLE_NOTIFICATION_STREAM):
             raise RestException('The notification stream is not enabled.', code=503)
 
         user, token = self.getCurrentUser(returnToken=True)

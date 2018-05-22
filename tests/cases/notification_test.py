@@ -61,12 +61,12 @@ class NotificationTestCase(base.TestCase):
         self.assertEqual(self.getBody(resp), '')
 
         # Should not work when disabled
-        Setting().set(SettingKey.NOTIFICATION_STREAM_ENABLED, False)
+        Setting().set(SettingKey.ENABLE_NOTIFICATION_STREAM, False)
         resp = self.request(path='/notification/stream', method='GET',
                             user=user, token=token, isJson=False,
                             params={'timeout': 0})
         self.assertStatus(resp, 503)
-        Setting().set(SettingKey.NOTIFICATION_STREAM_ENABLED, True)
+        Setting().set(SettingKey.ENABLE_NOTIFICATION_STREAM, True)
 
         # Use a very high rate-limit interval so that we don't fail on slow
         # build boxes
