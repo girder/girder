@@ -32,8 +32,6 @@ describe('Test widgets that are not covered elsewhere', function () {
             'adminpassword!'));
 
     it('test task progress widget', function () {
-        var errorCalled = 0, onmessageSpy, stream;
-
         runs(function () {
             expect($('#g-app-progress-container:visible').length).toBe(0);
             _setProgress('success', 0, null, null);
@@ -55,34 +53,39 @@ describe('Test widgets that are not covered elsewhere', function () {
             return $('.g-task-progress-message:last').text() === 'Error: Progress error test.';
         }, 'progress to report an error');
 
+        var onErrorEvent;
+        var onProgressEvent;
         runs(function () {
-            onmessageSpy = spyOn(girder.utilities.eventStream._eventSource, 'onmessage').andCallFake(function (e) {
-                try {
-                    onmessageSpy.originalValue(e);
-                } catch (err) {
-                    onmessageSpy.errorCount += 1;
-                }
-            });
-            onmessageSpy.errorCount = 0;
+            onErrorEvent = jasmine.createSpy('onErrorEvent');
+            girder.utilities.eventStream.on('g:error', onErrorEvent);
+            onProgressEvent = jasmine.createSpy('onErrorEvent');
+            girder.utilities.eventStream.on('g:event.progress', onProgressEvent);
+        }, 'setup EventStream event testing');
 
-            stream = girder.events._events['g:navigateTo'][0].ctx.progressListView.eventStream;
-            stream.on('g:error', function () { errorCalled += 1; });
-            stream.on('g:event.progress', function () {
-                throw new Error('intentional error');
-            });
+        runs(function () {
+            onProgressEvent.reset();
+            onErrorEvent.reset();
+
             _setProgress('success', 0, null, null);
-        });
+        }, 'cause a progress notification');
         waitsFor(function () {
-            return onmessageSpy.errorCount === 1;
-        }, 'bad progress callback to be tried');
+            return onProgressEvent.wasCalled;
+        }, 'progress event to be triggered');
         runs(function () {
+            expect(onErrorEvent).not.toHaveBeenCalled();
+        });
+
+        runs(function () {
+            onProgressEvent.reset();
+            onErrorEvent.reset();
+
             _setProgress('error', 0, null, null);
-        });
+        }, 'cause an error notification');
         waitsFor(function () {
-            return onmessageSpy.errorCount === 2;
-        }, 'bad progress callback to be tried again');
+            return onProgressEvent.wasCalled;
+        }, 'progress event to be triggered');
         runs(function () {
-            expect(errorCalled).toBe(0);
+            expect(onErrorEvent).not.toHaveBeenCalled();
         });
 
         runs(function () {
@@ -122,24 +125,23 @@ describe('Test widgets that are not covered elsewhere', function () {
         }, 'at least the first progress to be hidden');
 
         runs(function () {
-            girder.utilities.eventStream.settings._heartbeatTimeout = 1;
-        }, 'ask event stream to stop');
+            girder.utilities.eventStream.close();
+        }, 'close the EventStream');
         waitsFor(function () {
             return $('.g-progress-widget-container').length === 0;
         }, 'Progress to clear.');
 
         runs(function () {
-            girder.utilities.eventStream.settings._heartbeatTimeout = 5000;
+            girder.utilities.eventStream.open();
             girder.rest.restRequest({
                 url: 'webclienttest/progress/stop',
                 method: 'PUT',
                 async: false
             });
-        });
-        runs(function () {
-            stream.off('g:error');
-            stream.off('g:event.progress');
-        }, 'turn off stream events');
+
+            girder.utilities.eventStream.off('g:error', onErrorEvent);
+            girder.utilities.eventStream.off('g:event.progress', onProgressEvent);
+        }, 'clean up testing changes');
     });
 });
 
