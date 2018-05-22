@@ -24,9 +24,9 @@ const timingHistoryChartConfig = {
             'source': 'table',
             'transform': [
                 {
-                  'type': 'stack',
-                  'groupby': ['id'],
-                  'field': 'adjElapsed'
+                    'type': 'stack',
+                    'groupby': ['id'],
+                    'field': 'adjElapsed'
                 }
             ]
         },

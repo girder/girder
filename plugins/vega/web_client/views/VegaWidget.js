@@ -1,7 +1,7 @@
 import $ from 'jquery';
 
 import { parse,
-         View as VegaView } from 'vega';
+    View as VegaView } from 'vega';
 
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
@@ -33,8 +33,8 @@ var VegaWidget = View.extend({
                     let runtime = parse(spec);
                     let view = new VegaView(runtime)
                         .initialize(document.querySelector('.g-item-vega-vis'))
-                        .renderer('svg')
-                        .run();
+                        .renderer('svg');
+                    view.run();
                 });
         } else {
             $('.g-item-vega')
