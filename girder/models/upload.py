@@ -68,7 +68,8 @@ class Upload(Model):
 
         :param obj: The object representing the content to upload.
         :type obj: file-like
-        :param size: The total size of
+        :param size: The total size of the file.
+        :type size: int
         :param name: The name of the file to create.
         :type name: str
         :param parentType: The type of the parent: "folder" or "item".
