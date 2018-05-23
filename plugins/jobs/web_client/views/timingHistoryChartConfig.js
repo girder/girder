@@ -117,11 +117,11 @@ const timingHistoryChartConfig = {
             'value': { 'pos': {}, 'datum': {} },
             'on': [
                 {
-                    'events': 'rect:mousemove',
+                    'events': '@timing:mousemove',
                     'update': '{ pos: {x: x(), y: y()}, datum:datum}'
                 },
                 {
-                    'events': 'rect:mouseout',
+                    'events': '@timing:mouseout',
                     'update': '{pos:{},datum:{}}'
                 }
             ]
@@ -151,11 +151,11 @@ const timingHistoryChartConfig = {
             'value': { 'pos': {}, 'datum': {} },
             'on': [
                 {
-                    'events': '@status:mousemove',
-                    'update': '{ pos: {x: x(), y: y()}, datum:datum}'
+                    'events': '@statusmark:mousemove',
+                    'update': 'warn(datum, { pos: {x: x(), y: y()}, datum:datum})'
                 },
                 {
-                    'events': '@status:mouseout',
+                    'events': '@statusmark:mouseout',
                     'update': '{pos:{},datum:{}}'
                 }
             ]
@@ -163,7 +163,7 @@ const timingHistoryChartConfig = {
         {
             'name': 'stt0',
             'value': {},
-            'update': '{ status:sHover.datum.b?sHover.datum.b.currentStatus:"" }'
+            'update': '{ status:sHover.datum?sHover.datum.currentStatus:"" }'
         },
         {
             'name': 'stt1',
@@ -173,7 +173,7 @@ const timingHistoryChartConfig = {
         {
             'name': 'sTooltip',
             'value': {},
-            'update': '{ y:sHover.pos.y+30, x:(sHover.pos.x>width-stt1.width+5?sHover.pos.x-stt1.width-5:sHover.pos.x+5), width:stt1.width, status:stt0.status }'
+            'update': '{ y:sHover.pos.y+30, x:(sHover.pos.x>width-stt1.width-7?sHover.pos.x-stt1.width-5:sHover.pos.x+5), width:stt1.width, status:stt0.status }'
         }
     ],
     'marks': [
