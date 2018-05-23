@@ -134,7 +134,7 @@ const timingHistoryChartConfig = {
         {
             'name': 'tt1',
             'value': {},
-            'update': 'warn(tt0.elapsed, { elapsed:!tt0.elapsed?"":timeFormat(datetime(0,0,0,0,0,0,tt0.elapsed), tt0.elapsed>3600000? "%H:%M:%S.%Ls":(tt0.elapsed>60000?"%M:%S.%Ls":"%S.%Ls")) })'
+            'update': '{ elapsed:!tt0.elapsed?"":timeFormat(datetime(0,0,0,0,0,0,tt0.elapsed), tt0.elapsed>3600000? "%H:%M:%S.%Ls":(tt0.elapsed>60000?"%M:%S.%Ls":"%S.%Ls")) }'
         },
         {
             'name': 'tt2',
