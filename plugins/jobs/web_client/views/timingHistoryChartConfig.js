@@ -144,7 +144,7 @@ const timingHistoryChartConfig = {
         {
             'name': 'tooltip',
             'value': {},
-            'update': '{ y:hover.pos.y+30, x:(hover.pos.x>width-tt2.width+5?hover.pos.x-tt2.width-5:hover.pos.x+5), width:tt2.width, title:tt0.title, updated:tt0.updated, status:tt0.status, elapsed:tt1.elapsed }'
+            'update': '{ y:hover.pos.y+30, x:(hover.pos.x>width-tt2.width-5?hover.pos.x-tt2.width-5:hover.pos.x+5), width:tt2.width, title:tt0.title, updated:tt0.updated, status:tt0.status, elapsed:tt1.elapsed }'
         },
         {
             'name': 'sHover',
@@ -345,17 +345,22 @@ const timingHistoryChartConfig = {
         {
             'fill': 'color',
             'title': 'Selected Phases',
-            'offset': -3,
+            'offset': 20,
             'encode': {
                 'title': {
-                    'dx': { 'value': 10 },
-                    'fontSize': { 'value': 12 }
+                    'update': {
+                        'fontSize': { 'value': 12 }
+                    }
                 },
                 'symbols': {
-                    'shape': { 'value': 'square' }
+                    'update': {
+                        'shape': { 'value': 'square' }
+                    }
                 },
                 'labels': {
-                    'fontSize': { 'value': 12 }
+                    'update': {
+                        'fontSize': { 'value': 12 }
+                    }
                 }
             }
         }

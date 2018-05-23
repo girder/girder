@@ -270,7 +270,7 @@ const timeChartConfig = {
         {
             'fill': 'timing',
             'title': 'Status',
-            'offset': -3,
+            'offset': 20,
             'encode': {
                 'title': {
                     'dx': { 'value': 13 },
