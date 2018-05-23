@@ -1,7 +1,7 @@
 import $ from 'jquery';
 
 import { parse,
-    View as VegaView } from 'vega';
+    View as VegaView } from 'vega-lib';
 
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';

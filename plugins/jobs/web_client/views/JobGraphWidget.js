@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import $ from 'jquery';
 import { parse,
-    View as VegaView } from 'vega';
+    View as VegaView } from 'vega-lib';
 import moment from 'moment';
 
 import View from 'girder/views/View';

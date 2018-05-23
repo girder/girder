@@ -5,7 +5,7 @@
     "version": "2.0.0",
     "npm": {
         "dependencies": {
-            "vega": "^3.3.1"
+            "vega-lib": "^3.3.1"
         }
     }
 }
