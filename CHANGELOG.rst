@@ -14,6 +14,15 @@ Changes
 * Move minimum node version to 8.x due to upstream packages using newer ES features.
   (`#2707 <https://github.com/girder/girder/pull/2707>`_).
 
+Bug Fixes
+---------
+
+Python Client
+^^^^^^^^^^^^^
+
+* Added support for uploading empty files.
+  (`#2714 <https://github.com/girder/girder/pull/2714>`_).
+
 Added Features
 --------------
 
