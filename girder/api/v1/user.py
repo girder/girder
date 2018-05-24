@@ -235,11 +235,11 @@ class User(Resource):
         user['email'] = email
 
         # Only admins can change admin state
-        if admin is True:
+        if admin in (True, False):
             if self.getCurrentUser()['admin']:
                 user['admin'] = admin
-            elif not user['admin']:
-                raise AccessException('Only admins may enable admin state.')
+            elif user['admin'] != admin:
+                raise AccessException('Only admins may change admin status.')
 
         # Only admins can change status
         if status is not None and status != user.get('status', 'enabled'):
