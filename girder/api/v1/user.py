@@ -235,7 +235,7 @@ class User(Resource):
         user['email'] = email
 
         # Only admins can change admin state
-        if admin in (True, False):
+        if admin in {True, False}:
             if self.getCurrentUser()['admin']:
                 user['admin'] = admin
             elif user['admin'] != admin:
