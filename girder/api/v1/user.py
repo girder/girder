@@ -238,7 +238,7 @@ class User(Resource):
         if admin in {True, False}:
             if self.getCurrentUser()['admin']:
                 user['admin'] = admin
-            elif user['admin'] != admin:
+            elif user['admin'] is not admin:
                 raise AccessException('Only admins may change admin status.')
 
         # Only admins can change status
