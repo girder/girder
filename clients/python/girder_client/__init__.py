@@ -836,8 +836,7 @@ class GirderClient(object):
         :param filename: name of file to look for under the parent item.
         :param filepath: path to file on disk.
         """
-        path = 'item/' + itemId + '/files'
-        itemFiles = self.get(path)
+        itemFiles = self.listFile(itemId)
         for itemFile in itemFiles:
             if filename == itemFile['name']:
                 file_id = itemFile['_id']
