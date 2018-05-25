@@ -17,6 +17,9 @@ Changes
 Added Features
 --------------
 
+* Added a setting to disable the notification stream. This may improve Girder's performance in runtime environments with
+  fewer threads (`#2712 <https://github.com/girder/girder/pull/2712>`_).
+
 Python Client
 ^^^^^^^^^^^^^
 * Added a ``--token`` option to the girder-client command line interface to allow users to specify
