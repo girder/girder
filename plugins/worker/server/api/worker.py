@@ -33,7 +33,7 @@ class Worker(Resource):
         self.route('GET', ('status',), self.getWorkerStatus)
 
     @autoDescribeRoute(
-        Description('Get workers status and tasks information.')
+        Description('Get worker status and task information.')
         .notes('Return -1 if the broker is inaccessible.')
     )
     @access.user(scope=TokenScope.DATA_READ)

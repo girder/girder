@@ -99,7 +99,7 @@ var taskStatusView = View.extend({
             });
         });
         if (!this.workers.length) {
-            this.errorMsg = 'No task informations.';
+            this.errorMsg = 'No task information.';
         }
     }
 });
