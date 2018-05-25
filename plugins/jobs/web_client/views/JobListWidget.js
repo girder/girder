@@ -52,6 +52,9 @@ var JobListWidget = View.extend({
         },
         'click .check-menu-dropdown a.g-jobs-list-cancel': function (e) {
             this._cancelJobs();
+        },
+        'click .g-job-worker-task-info': function (event) {
+            router.navigate('#plugins/worker/task/status', {trigger: true});
         }
     },
 

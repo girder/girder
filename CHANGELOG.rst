@@ -26,6 +26,10 @@ Python Client
 Added Features
 --------------
 
+* Added a task information panel that shows remote worker status.  This is accessible from the jobs
+  list when the remote worker plugin is enabled and also from the worker plugin configuration page.
+  (`#2678 <https://github.com/girder/girder/pull/2678>`_)
+
 Python Client
 ^^^^^^^^^^^^^
 * Added a ``--token`` option to the girder-client command line interface to allow users to specify

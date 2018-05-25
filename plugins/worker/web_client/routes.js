@@ -10,3 +10,8 @@ import ConfigView from './views/ConfigView';
 router.route('plugins/worker/config', 'workerConfig', function () {
     events.trigger('g:navigateTo', ConfigView);
 });
+
+import taskStatusView from './views/taskStatusView';
+router.route('plugins/worker/task/status', 'workerTaskStatus', function () {
+    events.trigger('g:navigateTo', taskStatusView);
+});
