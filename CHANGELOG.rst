@@ -14,11 +14,23 @@ Changes
 * Move minimum node version to 8.x due to upstream packages using newer ES features.
   (`#2707 <https://github.com/girder/girder/pull/2707>`_).
 
+Bug Fixes
+---------
+
+Python Client
+^^^^^^^^^^^^^
+
+* Added support for uploading empty files.
+  (`#2714 <https://github.com/girder/girder/pull/2714>`_).
+
 Added Features
 --------------
-
 * Added a setting to disable the notification stream. This may improve Girder's performance in runtime environments with
   fewer threads (`#2712 <https://github.com/girder/girder/pull/2712>`_).
+
+* Added a task information panel that shows remote worker status.  This is accessible from the jobs
+  list when the remote worker plugin is enabled and also from the worker plugin configuration page.
+  (`#2678 <https://github.com/girder/girder/pull/2678>`_)
 
 Python Client
 ^^^^^^^^^^^^^

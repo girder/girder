@@ -17,7 +17,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import celery
 from celery.result import AsyncResult
 
 from girder import events, logger
@@ -25,13 +24,11 @@ from girder.constants import AccessType
 from girder.exceptions import ValidationException
 from girder.plugins.jobs.constants import JobStatus
 from girder.plugins.jobs.models.job import Job
-from girder.models.setting import Setting
 from girder.utility import setting_utilities
 
 from .constants import PluginSettings
-from .utils import getWorkerApiUrl, jobInfoSpec
-
-_celeryapp = None
+from .utils import getWorkerApiUrl, jobInfoSpec, getCeleryApp
+from .api.worker import Worker
 
 
 class CustomJobStatus(object):
@@ -101,19 +98,6 @@ class CustomJobStatus(object):
         return cls.valid_celery_transitions.get(status)
 
 
-def getCeleryApp():
-    """
-    Lazy loader for the celery app. Reloads anytime the settings are updated.
-    """
-    global _celeryapp
-
-    if _celeryapp is None:
-        backend = Setting().get(PluginSettings.BACKEND) or 'amqp://guest@localhost/'
-        broker = Setting().get(PluginSettings.BROKER) or 'amqp://guest@localhost/'
-        _celeryapp = celery.Celery('girder_worker', backend=backend, broker=broker)
-    return _celeryapp
-
-
 def schedule(event):
     """
     This is bound to the "jobs.schedule" event, and will be triggered any time
@@ -173,20 +157,6 @@ def cancel(event):
 
 
 @setting_utilities.validator({
-    PluginSettings.BROKER,
-    PluginSettings.BACKEND
-})
-def validateSettings(doc):
-    """
-    Handle plugin-specific system settings. Right now we don't do any
-    validation for the broker or backend URL settings, but we do reinitialize
-    the celery app object with the new values.
-    """
-    global _celeryapp
-    _celeryapp = None
-
-
-@setting_utilities.validator({
     PluginSettings.API_URL
 })
 def validateApiUrl(doc):
@@ -236,6 +206,8 @@ def attachJobInfoSpec(event):
 
 
 def load(info):
+    info['apiRoot'].worker = Worker()
+
     events.bind('jobs.schedule', 'worker', schedule)
     events.bind('jobs.status.validate', 'worker', validateJobStatus)
     events.bind('jobs.status.validTransitions', 'worker', validTransitions)
