@@ -170,6 +170,10 @@ class User(AccessControlledModel):
             raise AccessException('Login failed.')
 
         if self.hasOtp(user):
+            if not otpToken:
+                raise AccessException(
+                    'User authentication must include a one-time password '
+                    '(typically in the "Girder-OTP" header).')
             self.verifyOtp(user, otpToken)
         elif otpToken:
             raise AccessException('The user has not enabled one-time passwords.')
@@ -305,10 +309,11 @@ class User(AccessControlledModel):
         counterCacheKey = 'girder.models.user.%s.otp.totp.counter' % user['_id']
 
         # TODO: Should we create a new cache region?
+        # The last successfully-authenticated key (which is blacklisted from reuse)
         lastCounter = cache.get(counterCacheKey) or None
 
         try:
-            totpMatch = self._model._TotpFactory.verify(
+            totpMatch = self._TotpFactory.verify(
                 otpToken, user['otp']['totp'], last_counter=lastCounter)
         except TokenError as e:
             # TODO: implement rate limiting
