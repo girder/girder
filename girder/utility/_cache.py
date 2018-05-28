@@ -29,3 +29,8 @@ register_backend('cherrypy_request', 'girder.utility._cache', 'CherrypyRequestBa
 # doesn't occur when using Girder as a library.
 cache = make_region(name='girder.cache').configure(backend='dogpile.cache.null')
 requestCache = make_region(name='girder.request').configure(backend='dogpile.cache.null')
+
+# This cache is not configurable by the user, and will always be configured when the server is.
+# It holds data for rate limiting, which is ephemeral, but must be persisted (i.e. it's not optional
+# or best-effort).
+rateLimitBuffer = make_region(name='girder.rate_limit')

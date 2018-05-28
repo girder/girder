@@ -66,7 +66,7 @@ def _tokenFromTotpUri(totpUri, valid=True):
     return otpToken
 
 
-def testVerifyOtp(user):
+def testVerifyOtp(server, user):
     # Enable OTP
     otpUris = User().initializeOtp(user)
     user['otp']['enabled'] = True
@@ -83,6 +83,7 @@ def testVerifyOtp(user):
     User().verifyOtp(user, otpToken)
 
     # Re-verify the same token, which should fail
+    # The "server" fixture is necessary for this to work
     with pytest.raises(AccessException):
         User().verifyOtp(user, otpToken)
 
@@ -172,6 +173,11 @@ def testOtpApiWorkflow(server, user):
         path='/user/%s/otp' % user['_id'], method='PUT', user=user,
         additionalHeaders=[('Girder-OTP', _tokenFromTotpUri(totpUri))])
     assertStatusOk(resp)
+
+    # The valid token from this time period was used to finalize OTP; to prevent having to wait for
+    # the next time period, flush the rateLimitBuffer
+    from girder.utility._cache import rateLimitBuffer
+    rateLimitBuffer.invalidate()
 
     # Login without an OTP
     resp = server.request(path='/user/authentication', method='GET', basicAuth='user:password')

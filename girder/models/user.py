@@ -29,7 +29,7 @@ from girder import events
 from girder.constants import AccessType, CoreEventHandler, SettingKey, TokenScope
 from girder.exceptions import AccessException, ValidationException
 from girder.utility import config, mail_utils
-from girder.utility._cache import cache
+from girder.utility._cache import rateLimitBuffer
 
 
 class User(AccessControlledModel):
@@ -334,11 +334,10 @@ class User(AccessControlledModel):
         return 'otp' in user and user['otp']['enabled']
 
     def verifyOtp(self, user, otpToken):
-        counterCacheKey = 'girder.models.user.%s.otp.totp.counter' % user['_id']
+        lastCounterKey = 'girder.models.user.%s.otp.totp.counter' % user['_id']
 
-        # TODO: Should we create a new cache region?
         # The last successfully-authenticated key (which is blacklisted from reuse)
-        lastCounter = cache.get(counterCacheKey) or None
+        lastCounter = rateLimitBuffer.get(lastCounterKey) or None
 
         try:
             totpMatch = self._TotpFactory.verify(
@@ -351,7 +350,7 @@ class User(AccessControlledModel):
         # for, but dogpile.cache expiration times work retrospectively (on "get"), so there's no
         # point to using it (over-caching just wastes cache resources, but does not impact
         # "totp.verify" security)
-        cache.set(counterCacheKey, totpMatch.counter)
+        rateLimitBuffer.set(lastCounterKey, totpMatch.counter)
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):
