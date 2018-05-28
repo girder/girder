@@ -25,6 +25,8 @@ Python Client
 
 Added Features
 --------------
+* Added a setting to disable the notification stream. This may improve Girder's performance in runtime environments with
+  fewer threads (`#2712 <https://github.com/girder/girder/pull/2712>`_).
 
 * Added a task information panel that shows remote worker status.  This is accessible from the jobs
   list when the remote worker plugin is enabled and also from the worker plugin configuration page.

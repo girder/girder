@@ -1,45 +1,76 @@
 girderTest.startApp();
 
 describe('Test EventStream', function () {
-    it('test heartbeat', function () {
-        var es = girder.utilities.eventStream,
-            start = 0,
-            stop = 0,
-            close = 0;
+    var onEventStreamStart;
+    var onEventStreamStop;
+    var onEventStreamClose;
+    var onVisibilityStateChangeSpy;
+
+    it('test EventStream creation', function () {
         runs(function () {
-            es.on('g:eventStream.stop', function () {
-                stop += 1;
-            });
-            es.on('g:eventStream.start', function () {
-                start += 1;
-            });
-            es.on('g:eventStream.close', function () {
-                close += 1;
-            });
-            es.settings._heartbeatTimeout = 1;
-            start = stop = close = 0;
-            es.open();
-        }, 'start event stream and set it to have a short timeout');
+            onEventStreamStart = jasmine.createSpy('onEventStreamStart');
+            girder.utilities.eventStream.on('g:eventStream.start', onEventStreamStart);
+
+            onEventStreamStop = jasmine.createSpy('onEventStreamStop');
+            girder.utilities.eventStream.on('g:eventStream.stop', onEventStreamStop);
+
+            onEventStreamClose = jasmine.createSpy('onEventStreamClose');
+            girder.utilities.eventStream.on('g:eventStream.close', onEventStreamClose);
+
+            onVisibilityStateChangeSpy = spyOn(girder.utilities.eventStream, '_onVisibilityStateChange');
+        }, 'spy on EventStream');
+        runs(girderTest.createUser('johndoe', 'john.doe@email.com', 'John', 'Doe', 'password!'),
+            'login with a user');
         waitsFor(function () {
-            return stop >= 1;
-        }, 'event stream heartbest to stop');
+            return onEventStreamStart.wasCalled;
+        }, 'EventStream to trigger start event');
+    });
+
+    afterEach(function () {
+        // Spy behaviors will automatically be removed after each
+        onVisibilityStateChangeSpy.andCallThrough();
+
+        onEventStreamStart.reset();
+        onEventStreamStop.reset();
+        onEventStreamClose.reset();
+    });
+
+    // "document.visibilityState" cannot be mocked, so stop / start on page hide cannot be tested directly
+    it('test EventStream auto-stop', function () {
         runs(function () {
-            expect(stop).toBeGreaterThan(0);
-            es.settings._heartbeatTimeout = 5000;
-        }, 'restart heartbeat');
+            onVisibilityStateChangeSpy.andCallFake(function () {
+                girder.utilities.eventStream._stop();
+            });
+
+            document.dispatchEvent(new CustomEvent('visibilitychange'));
+        }, 'simulate hiding the page');
         waitsFor(function () {
-            // once for the initial start, once for the restart
-            return start >= 2;
-        }, 'restart to occur');
+            return onEventStreamStop.wasCalled;
+        }, 'EventStream to trigger stop event');
         runs(function () {
-            expect(start).toBeGreaterThan(0);
-            es.close();
-        }, 'close stream');
+            expect(onEventStreamClose).not.toHaveBeenCalled();
+        }, 'EventStream should not be closed');
+    });
+
+    it('test EventStream auto-start', function () {
+        runs(function () {
+            onVisibilityStateChangeSpy.andCallFake(function () {
+                girder.utilities.eventStream._start();
+            });
+
+            document.dispatchEvent(new CustomEvent('visibilitychange'));
+        }, 'simulate showing the page');
         waitsFor(function () {
-            return close >= 1;
-        }, 'close to occur');
+            return onEventStreamStart.wasCalled;
+        }, 'EventStream to trigger start event');
+    });
+
+    it('test EventStream shutdown', function () {
         runs(function () {
-            expect(close).toBeGreaterThan(0);
-        }, 'check if close was triggered');
+            girder.utilities.eventStream.close();
+        }, 'close EventStream');
+        waitsFor(function () {
+            return onEventStreamStop.wasCalled && onEventStreamClose.wasCalled;
+        }, 'EventStream to trigger stop and close events');
     });
 });

@@ -454,3 +454,10 @@ class Setting(Model):
         if not isinstance(value, dict) or 'path' not in value:
             raise ValidationException(
                 'Girder mount information must be a dict with the "path" key.')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.ENABLE_NOTIFICATION_STREAM)
+    def validateEnableNotificationStream(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException(
+                'Enable notification stream option must be boolean.', 'value')

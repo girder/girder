@@ -21,8 +21,10 @@ import time
 
 from .. import base
 
+from girder.constants import SettingKey
 from girder.exceptions import ValidationException
 from girder.models.notification import ProgressState
+from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
 from girder.utility.progress import ProgressContext
@@ -57,6 +59,14 @@ class NotificationTestCase(base.TestCase):
                             params={'timeout': 0})
         self.assertStatusOk(resp)
         self.assertEqual(self.getBody(resp), '')
+
+        # Should not work when disabled
+        Setting().set(SettingKey.ENABLE_NOTIFICATION_STREAM, False)
+        resp = self.request(path='/notification/stream', method='GET',
+                            user=user, token=token, isJson=False,
+                            params={'timeout': 0})
+        self.assertStatus(resp, 503)
+        Setting().set(SettingKey.ENABLE_NOTIFICATION_STREAM, True)
 
         # Use a very high rate-limit interval so that we don't fail on slow
         # build boxes
