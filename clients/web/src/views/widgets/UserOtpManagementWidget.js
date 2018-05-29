@@ -2,11 +2,10 @@ import QRCode from 'qrcode';
 import OTPAuth from 'url-otpauth';
 
 import View from 'girder/views/View';
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
 
 import UserOtpBeginTemplate from 'girder/templates/widgets/userOtpBegin.pug';
 import UserOtpConfirmationTemplate from 'girder/templates/widgets/userOtpConfirmation.pug';
+import UserOtpDisableTemplate from 'girder/templates/widgets/userOtpDisable.pug';
 import 'girder/stylesheets/widgets/userOtpManagementWidget.styl';
 
 const UserOtpManagementWidget = View.extend({
@@ -25,11 +24,12 @@ const UserOtpManagementWidget = View.extend({
                 .done(() => {
                     // TODO: show confirmation
                     console.log('Confirm success');
+                    this.totpUri = undefined;
                     this.render();
                 })
                 .fail((err) => {
                     // TODO: render error message
-                    console.log('Finalize failed');
+                    console.log('Finalize failed', err);
                 });
         },
         'click #g-user-otp-cancel': function () {
@@ -43,7 +43,7 @@ const UserOtpManagementWidget = View.extend({
                 })
                 .fail((err) => {
                     // TODO: render error message
-                    console.log('Remove failed');
+                    console.log('Remove failed', err);
                 });
         }
     },
@@ -58,7 +58,7 @@ const UserOtpManagementWidget = View.extend({
     },
 
     render: function () {
-        if (!this.model.has('otp')) {
+        if (!this.model.get('otp')) {
             // OTP not set up
             if (!this.totpUri) {
                 // Enablement has not started
@@ -76,8 +76,7 @@ const UserOtpManagementWidget = View.extend({
     },
 
     _renderBegin: function () {
-        this.$el.html(UserOtpBeginTemplate({
-        }));
+        this.$el.html(UserOtpBeginTemplate());
     },
 
     _renderConfirmation: function () {
@@ -93,15 +92,13 @@ const UserOtpManagementWidget = View.extend({
             this.$('#g-user-otp-qr')[0],
             this.totpUri,
             {
-                errorCorrectionLevel: 'H',
+                errorCorrectionLevel: 'H'
             }
         );
     },
 
     _renderDisable: function () {
-        // When OTP is enabled
-        // TODO: implement
-        console.log('TODO: Show disable view');
+        this.$el.html(UserOtpDisableTemplate());
     }
 });
 

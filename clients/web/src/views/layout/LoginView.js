@@ -25,12 +25,20 @@ var LoginView = View.extend({
 
             const loginName = this.$('#g-login').val();
             const password = this.$('#g-password').val();
-            const otpToken = this.$('#g-login-otp').val() || null;
-            login(loginName, password, otpToken)
+            const otpToken = this.$('#g-login-otp-group').hasClass('hidden') ? null : this.$('#g-login-otp').val();
+            login(loginName, password, undefined, otpToken)
                 .done(() => {
                     this.$el.modal('hide');
                 })
                 .fail((err) => {
+                    if (err.responseJSON.message.indexOf('Girder-OTP') !== -1 &&
+                        this.$('#g-login-otp-group').hasClass('hidden')
+                    ) {
+                        this.$('#g-login-otp-group').removeClass('hidden');
+                        this.$('#g-login-otp').focus();
+                        return;
+                    }
+
                     this.$('.g-validation-failed-message').text(err.responseJSON.message);
 
                     if (err.responseJSON.extra === 'emailVerification') {
@@ -73,7 +81,8 @@ var LoginView = View.extend({
     render: function () {
         this.$el.html(LoginDialogTemplate({
             registrationPolicy: this.registrationPolicy,
-            enablePasswordLogin: this.enablePasswordLogin
+            enablePasswordLogin: this.enablePasswordLogin,
+            showOtp: true
         })).girderModal(this)
             .on('shown.bs.modal', () => {
                 this.$('#g-login').focus();

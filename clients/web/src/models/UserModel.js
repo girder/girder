@@ -143,7 +143,7 @@ var UserModel = Model.extend({
             error: null
         })
             .done(() => {
-                // TODO: update user model
+                this.set('otp', true);
             });
     },
 
@@ -154,7 +154,7 @@ var UserModel = Model.extend({
             error: null
         })
             .done(() => {
-                // TODO: update user model
+                this.set('otp', false);
             });
     }
 }, {
