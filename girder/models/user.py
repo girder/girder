@@ -138,6 +138,15 @@ class User(AccessControlledModel):
 
         return doc
 
+    def filter(self, doc, user, additionalKeys=None):
+        filteredDoc = super(User, self).filter(doc, user, additionalKeys)
+
+        level = self.getAccessLevel(doc, user)
+        if level >= AccessType.ADMIN:
+            filteredDoc['otp'] = doc.get('otp', {}).get('enabled', False)
+
+        return filteredDoc
+
     def authenticate(self, login, password, otpToken=None):
         """
         Validate a user login via username and password. If authentication fails,
