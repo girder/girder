@@ -17,6 +17,9 @@ Changes
 Bug Fixes
 ---------
 
+* Fixed a bug where removing admin status from a user via the REST API did not work.
+  (`#2720 <https://github.com/girder/girder/pull/2720>`_).
+
 Python Client
 ^^^^^^^^^^^^^
 

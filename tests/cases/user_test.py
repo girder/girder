@@ -301,6 +301,21 @@ class UserTestCase(base.TestCase):
         self._verifyUserDocument(resp.json)
         self.assertEqual(resp.json['admin'], True)
 
+        # test removal of admin flag
+        user = User().load(user['_id'], force=True)
+        self.assertEqual(user['admin'], True)
+        params = {
+            'email': 'valid@email.com',
+            'firstName': 'NewFirst ',
+            'lastName': ' New Last ',
+            'admin': 'false'
+        }
+        resp = self.request(path='/user/%s' % user['_id'], method='PUT',
+                            user=user, params=params)
+        self.assertStatusOk(resp)
+        user = User().load(resp.json['_id'], force=True)
+        self.assertEqual(user['admin'], False)
+
         # test admin flag as non-admin
         params['admin'] = 'true'
         resp = self.request(path='/user/%s' % nonAdminUser['_id'],
