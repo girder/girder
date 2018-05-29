@@ -101,7 +101,7 @@ class User(Resource):
         Description('Log in to the system.')
         .notes('Pass your username and password using HTTP Basic Auth. Sends'
                ' a cookie that should be passed back in future requests.')
-        .param('Girder-OTP', 'A one-time-password for this user', paramType='header',
+        .param('Girder-OTP', 'A one-time password for this user', paramType='header',
                required=False)
         .errorResponse('Missing Authorization header.', 401)
         .errorResponse('Invalid login or password.', 403)
@@ -397,7 +397,7 @@ class User(Resource):
     @autoDescribeRoute(
         Description('Finalize the enablement of one-time passwords for this user.')
         .modelParam('id', model=UserModel, level=AccessType.ADMIN)
-        .param('Girder-OTP', 'A one-time-password for this user', paramType='header')
+        .param('Girder-OTP', 'A one-time password for this user', paramType='header')
         .errorResponse()
         .errorResponse('Admin access was denied on the user.', 403)
     )
@@ -428,7 +428,7 @@ class User(Resource):
         if not self._model.hasOtp(user):
             raise RestException('The user has not enabled one-time passwords.')
 
-        del self._model['otp']
+        del user['otp']
         self._model.save(user)
 
     @access.public

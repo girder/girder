@@ -23,3 +23,6 @@ not pass an explicit path to an RSA private key file, the service will look for 
 
 You can control the port on which the server binds by passing a ``-p <port>`` argument to the
 server CLI. The default port is 8022.
+
+.. note:: If SFTP clients are logging in as a user with two-factor authentication (one-time passwords) enabled, they
+   must append the one-time authentication code to the user's basic password.

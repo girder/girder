@@ -108,7 +108,27 @@ def testAuthenticateWithOtp(user):
     User().authenticate('user', 'password', otpToken)
 
 
-def testOtpAPIWorkflow(server, user):
+def testAuthenticateWithOtpConcatenated(user):
+    # Non-OTP-user authentication should still succeed with "otpToken=True"
+    User().authenticate('user', 'password', True)
+
+    # Enable OTP and save user
+    otpUris = User().initializeOtp(user)
+    user['otp']['enabled'] = True
+    User().save(user)
+
+    # Authentication should now fail
+    with pytest.raises(AccessException):
+        User().authenticate('user', 'password', True)
+
+    # Generate a valid token
+    otpToken = _tokenFromTotpUri(otpUris['totpUri'])
+
+    # Authenticate successfully with the valid token
+    User().authenticate('user', 'password' + otpToken, True)
+
+
+def testOtpApiWorkflow(server, user):
     # Try to finalize OTP before it's been initialized
     resp = server.request(
         path='/user/%s/otp' % user['_id'], method='PUT', user=user,
@@ -116,6 +136,12 @@ def testOtpAPIWorkflow(server, user):
     # This should fail cleanly
     assertStatus(resp, 400)
     assert 'not initialized' in resp.json['message']
+
+    # Try to disable OTP before it's been enabled
+    resp = server.request(path='/user/%s/otp' % user['_id'], method='DELETE', user=user)
+    # This should fail cleanly
+    assertStatus(resp, 400)
+    assert 'not enabled' in resp.json['message']
 
     # Initialize OTP
     resp = server.request(path='/user/%s/otp' % user['_id'], method='POST', user=user)
@@ -157,10 +183,14 @@ def testOtpAPIWorkflow(server, user):
         path='/user/authentication', method='GET', basicAuth='user:password',
         additionalHeaders=[('Girder-OTP', _tokenFromTotpUri(totpUri, False))])
     assertStatus(resp, 401)
-    assert 'validation failed' in resp.json['message']
+    assert 'Login failed' in resp.json['message']
 
     # Login with a valid OTP
     resp = server.request(
         path='/user/authentication', method='GET', basicAuth='user:password',
         additionalHeaders=[('Girder-OTP', _tokenFromTotpUri(totpUri))])
+    assertStatusOk(resp)
+
+    # Disable OTP
+    resp = server.request(path='/user/%s/otp' % user['_id'], method='DELETE', user=user)
     assertStatusOk(resp)

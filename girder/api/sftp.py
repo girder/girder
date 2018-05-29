@@ -228,8 +228,7 @@ class _ServerAdapter(paramiko.ServerInterface):
             return paramiko.AUTH_SUCCESSFUL
 
         try:
-            # TODO: otp
-            self.girderUser = User().authenticate(username, password)
+            self.girderUser = User().authenticate(username, password, otpToken=True)
             return paramiko.AUTH_SUCCESSFUL
         except AccessException:
             return paramiko.AUTH_FAILED

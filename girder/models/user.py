@@ -21,6 +21,7 @@ import datetime
 import os
 import re
 from passlib.totp import TOTP, TokenError
+import six
 
 from .model_base import AccessControlledModel
 from .setting import Setting
@@ -146,6 +147,9 @@ class User(AccessControlledModel):
         :type login: str
         :param password: The user's password.
         :type password: str
+        :param otpToken: A one-time password for the user. If "True", then the one-time password
+                         (if required) is assumed to be concatenated to the password.
+        :type otpToken: str or bool or None
         :returns: The corresponding user if the login was successful.
         :rtype: dict
         """
@@ -166,17 +170,32 @@ class User(AccessControlledModel):
         if user is None:
             raise AccessException('Login failed.')
 
-        if not Password().authenticate(user, password):
-            raise AccessException('Login failed.')
-
+        # Validate OTP preconditions
         if self.hasOtp(user):
-            if not otpToken:
+            if otpToken is None:
                 raise AccessException(
                     'User authentication must include a one-time password '
                     '(typically in the "Girder-OTP" header).')
-            self.verifyOtp(user, otpToken)
-        elif otpToken:
+            if otpToken is True:
+                # Assume the last (typically 6) characters are the OTP, so split at that point
+                otpTokenLength = self._TotpFactory.digits
+                otpToken = password[-otpTokenLength:]
+                password = password[:-otpTokenLength]
+        elif isinstance(otpToken, six.string_types):
             raise AccessException('The user has not enabled one-time passwords.')
+
+        # Verify password
+        if not Password().authenticate(user, password):
+            raise AccessException('Login failed.')
+
+        # Verify OTP
+        if self.hasOtp(user):
+            try:
+                self.verifyOtp(user, otpToken)
+            except AccessException:
+                # For security, simplify the error message, so it's indistinguishable from a failed
+                # password
+                raise AccessException('Login failed.')
 
         # This has the same behavior as User.canLogin, but returns more
         # detailed error messages
