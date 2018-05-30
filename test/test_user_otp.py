@@ -189,7 +189,7 @@ def testOtpApiWorkflow(server, user):
         path='/user/authentication', method='GET', basicAuth='user:password',
         additionalHeaders=[('Girder-OTP', _tokenFromTotpUri(totpUri, False))])
     assertStatus(resp, 401)
-    assert 'Login failed' in resp.json['message']
+    assert 'Token did not match' in resp.json['message']
 
     # Login with a valid OTP
     resp = server.request(

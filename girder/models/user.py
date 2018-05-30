@@ -179,19 +179,12 @@ class User(AccessControlledModel):
         if user is None:
             raise AccessException('Login failed.')
 
-        # Validate OTP preconditions
-        if self.hasOtp(user):
-            if otpToken is None:
-                raise AccessException(
-                    'User authentication must include a one-time password '
-                    '(typically in the "Girder-OTP" header).')
-            if otpToken is True:
-                # Assume the last (typically 6) characters are the OTP, so split at that point
-                otpTokenLength = self._TotpFactory.digits
-                otpToken = password[-otpTokenLength:]
-                password = password[:-otpTokenLength]
-        elif isinstance(otpToken, six.string_types):
-            raise AccessException('The user has not enabled one-time passwords.')
+        # Handle OTP token concatenation
+        if otpToken is True and self.hasOtp(user):
+            # Assume the last (typically 6) characters are the OTP, so split at that point
+            otpTokenLength = self._TotpFactory.digits
+            otpToken = password[-otpTokenLength:]
+            password = password[:-otpTokenLength]
 
         # Verify password
         if not Password().authenticate(user, password):
@@ -199,12 +192,13 @@ class User(AccessControlledModel):
 
         # Verify OTP
         if self.hasOtp(user):
-            try:
-                self.verifyOtp(user, otpToken)
-            except AccessException:
-                # For security, simplify the error message, so it's indistinguishable from a failed
-                # password
-                raise AccessException('Login failed.')
+            if otpToken is None:
+                raise AccessException(
+                    'User authentication must include a one-time password '
+                    '(typically in the "Girder-OTP" header).')
+            self.verifyOtp(user, otpToken)
+        elif isinstance(otpToken, six.string_types):
+            raise AccessException('The user has not enabled one-time passwords.')
 
         # This has the same behavior as User.canLogin, but returns more
         # detailed error messages
