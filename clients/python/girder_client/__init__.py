@@ -22,6 +22,7 @@ import errno
 import getpass
 import glob
 import json
+import logging
 import mimetypes
 import os
 import re
@@ -40,6 +41,8 @@ DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
 
 _safeNameRegex = re.compile(r'^[/\\]+')
+
+_logger = logging.getLogger('girder_client.lib')
 
 
 def _compareDicts(x, y):
@@ -833,8 +836,7 @@ class GirderClient(object):
         :param filename: name of file to look for under the parent item.
         :param filepath: path to file on disk.
         """
-        path = 'item/' + itemId + '/files'
-        itemFiles = self.get(path)
+        itemFiles = self.listFile(itemId)
         for itemFile in itemFiles:
             if filename == itemFile['name']:
                 file_id = itemFile['_id']
@@ -869,9 +871,6 @@ class GirderClient(object):
         filename = os.path.basename(filename)
         filepath = os.path.abspath(filepath)
         filesize = os.path.getsize(filepath)
-
-        if filesize == 0:
-            return
 
         # Check if the file already exists by name and size in the file.
         fileId, current = self.isFileCurrent(itemId, filename, filepath)
@@ -988,9 +987,6 @@ class GirderClient(object):
         filename = os.path.basename(filename)
         filepath = os.path.abspath(filepath)
         filesize = os.path.getsize(filepath)
-
-        if filesize == 0:
-            return
 
         if mimeType is None:
             # Attempt to guess MIME type if not passed explicitly

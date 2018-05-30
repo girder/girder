@@ -292,3 +292,34 @@ class WorkerTestCase(base.TestCase):
             'value': 'false'
         }, user=self.admin)
         self.assertStatusOk(resp)
+
+    def testWorkerStatusEndpoint(self):
+        # Create a job to be handled by the worker plugin
+        from girder.plugins.jobs.models.job import Job
+        job = Job().createJob(
+            title='title', type='foo', handler='worker_handler',
+            user=self.admin, public=False, args=(), kwargs={})
+
+        job['kwargs'] = {
+            'jobInfo': utils.jobInfoSpec(job),
+            'inputs': [
+                utils.girderInputSpec(self.adminFolder, resourceType='folder')
+            ],
+            'outputs': [
+                utils.girderOutputSpec(self.adminFolder, token=self.adminToken)
+            ]
+        }
+        job = Job().save(job)
+        self.assertEqual(job['status'], JobStatus.INACTIVE)
+
+        # Schedule the job
+        with mock.patch('celery.Celery') as celeryMock:
+            instance = celeryMock.return_value
+            instance.send_task.return_value = FakeAsyncResult()
+
+            Job().scheduleJob(job)
+
+        # Call the worker status endpoint
+        resp = self.request('/worker/status', method='GET', user=self.admin)
+        self.assertStatusOk(resp)
+        self.assertHasKeys(resp.json, ['report', 'stats', 'ping', 'active', 'reserved'])

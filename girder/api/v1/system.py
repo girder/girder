@@ -493,7 +493,7 @@ class System(Resource):
     @access.admin
     @autoDescribeRoute(
         Description('Get access of content creation policy.')
-        .notes('Get result in the same structure as the access endpoints'
+        .notes('Get result in the same structure as the access endpoints '
                'of collection, file, and group')
     )
     def getCollectionCreationPolicyAccess(self):

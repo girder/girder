@@ -689,6 +689,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                         self._passArg(fun, kwargs, name, val)
                     else:
                         self._passArg(fun, kwargs, name, cherrypy.request.body)
+                elif descParam['in'] == 'header':
+                    continue  # For now, do nothing with header params
                 elif 'default' in descParam:
                     self._passArg(fun, kwargs, name, descParam['default'])
                 elif descParam['required']:

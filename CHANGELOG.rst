@@ -14,8 +14,26 @@ Changes
 * Move minimum node version to 8.x due to upstream packages using newer ES features.
   (`#2707 <https://github.com/girder/girder/pull/2707>`_).
 
+Bug Fixes
+---------
+
+* Fixed a bug where removing admin status from a user via the REST API did not work.
+  (`#2720 <https://github.com/girder/girder/pull/2720>`_).
+
+Python Client
+^^^^^^^^^^^^^
+
+* Added support for uploading empty files.
+  (`#2714 <https://github.com/girder/girder/pull/2714>`_).
+
 Added Features
 --------------
+* Added a setting to disable the notification stream. This may improve Girder's performance in runtime environments with
+  fewer threads (`#2712 <https://github.com/girder/girder/pull/2712>`_).
+
+* Added a task information panel that shows remote worker status.  This is accessible from the jobs
+  list when the remote worker plugin is enabled and also from the worker plugin configuration page.
+  (`#2678 <https://github.com/girder/girder/pull/2678>`_)
 
 Python Client
 ^^^^^^^^^^^^^
@@ -23,6 +41,8 @@ Python Client
   a pre-created authentication token. (`#2689 <https://github.com/girder/girder/pull/2689>`_).
 * Added a ``--retry`` option to the girder-client command line interface to retry connection and
   certain error responses (`#2697 <https://github.com/girder/girder/pull/2697>`_).
+* Added a ``--verbose`` option to the girder-client command line interface to increase the verbosity
+  of information dumped to stderr (`#2699 <https://github.com/girder/girder/pull/2699>`_).
 
 Changes
 -------

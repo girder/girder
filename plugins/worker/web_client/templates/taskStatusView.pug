@@ -1,0 +1,102 @@
+h1.g-worker-status-header
+  | Global information about workers
+  if load
+    i.icon-spin4.icon-spin
+  else
+    button.g-worker-status-btn-reload
+      i.icon-arrows-cw
+
+if ! load
+  .g-worker-status-content
+    if errorMsg !== null
+      p.g-worker-status-no-worker-message
+        | #{errorMsg}
+    else
+      table.g-worker-status-table
+        tr
+          th= "Name"
+          th= "Status"
+          th= "Max Concurrency"
+          th= "Accepted tasks"
+          th= "Running tasks"
+          th= "Completed tasks"
+          th= "Report"
+        each worker in workerList
+          tr.g-worker-task-status-link
+            td
+              | #{worker.name}
+            if worker.ping === "pong"
+              td= "Online"
+            else
+              td= "Offline"
+            td
+              | #{worker.concurrency}
+            td
+              | #{worker.stats}
+            td
+              | #{worker.active.length}
+            td
+              | #{worker.stats - worker.active.length}
+            td
+              | #{worker.report}
+
+      if activeTasks.length || reservedTasks.length
+        .g-worker-task-status
+          h2.g-worker-status-header
+            | #{workerName}
+          if activeTasks.length
+            h3.g-worker-status-header
+              | Running Tasks
+            table.g-worker-task-status-table
+              tr
+                th= "Name"
+                th= "ID"
+                th= "Type"
+                th= "Time Start"
+                th= "Arguments"
+                th= "KeyWord Arguments"
+                th= "Worker PID"
+              each task in activeTasks
+                tr
+                  td
+                    | #{task.name}
+                  td
+                    | #{task.id}
+                  td
+                    | #{task.type}
+                  td
+                    | #{task.time_start}
+                  td
+                    | #{task.args}
+                  td
+                    | #{task.kwargs}
+                  td
+                    | #{task.worker_pid}
+          if reservedTasks.length
+            h3.g-worker-status-header
+              | Queued Tasks
+            table.g-worker-task-status-table
+              tr
+                th= "Name"
+                th= "ID"
+                th= "Type"
+                th= "Arguments"
+                th= "KeyWord Arguments"
+                th= "Priority"
+                th= "Redelivered"
+              each task in reservedTasks
+                tr
+                  td
+                    | #{task.name}
+                  td
+                    | #{task.id}
+                  td
+                    | #{task.type}
+                  td
+                    | #{task.args}
+                  td
+                    | #{task.kwargs}
+                  td
+                    | #{task.delivery_info.priority}
+                  td
+                    | #{task.delivery_info.redelivered}
