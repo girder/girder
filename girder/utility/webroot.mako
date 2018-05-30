@@ -24,6 +24,7 @@
                 el: 'body',
                 parentView: null,
                 contactEmail: '${contactEmail | js}',
+                privacyNoticeHref: '${privacyNoticeHref | js}',
                 brandName: '${brandName | js}',
                 bannerColor: '${bannerColor | js}',
                 registrationPolicy: '${registrationPolicy | js}',

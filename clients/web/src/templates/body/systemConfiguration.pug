@@ -23,6 +23,12 @@ form.g-settings-form(role="form")
         button#g-core-banner-default-color.form-control.input-sm(
             type="button", title="Default color") default
   .form-group
+    label(for="g-core-privacy-notice") Privacy Notice Link
+    input#g-core-privacy-notice.form-control.input-sm(
+        type="text", value=settings['core.privacy_notice'] || '',
+        placeholder=`Default: ${defaults['core.privacy_notice'] || 'none'}`,
+        title="The privacy notice link.")
+  .form-group
     label(for="g-core-cookie-lifetime") Cookie duration (days)
     input#g-core-cookie-lifetime.form-control.input-sm(
         type="text", value=settings['core.cookie_lifetime'] || '',
