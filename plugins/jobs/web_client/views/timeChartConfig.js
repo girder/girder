@@ -12,16 +12,16 @@ const timeChartConfig = {
                     'expr': 'datum.elapsed > 0'
                 },
                 {
-                    'type': 'formula',
-                    'as': 'elapsed',
-                    'expr': 'datum.elapsed/1000'
-                },
-                {
                     'type': 'aggregate',
                     'groupby': ['id', 'title', 'currentStatus'],
                     'fields': ['elapsed'],
                     'ops': ['sum'],
                     'as': ['sum_y']
+                },
+                {
+                    'type': 'formula',
+                    'as': 'adjSum_y',
+                    'expr': 'datum.sum_y/1000'
                 }
             ]
         }
@@ -45,7 +45,7 @@ const timeChartConfig = {
                 'fields': [
                     {
                         'data': 'table',
-                        'field': 'sum_y'
+                        'field': 'adjSum_y'
                     }
                 ]
             }
@@ -137,7 +137,7 @@ const timeChartConfig = {
         {
             'name': 'tt1',
             'value': {},
-            'update': '{ sum_y:!tt0.sum_y?"":timeFormat(datetime(0,0,0,0,0,tt0.sum_y,0), tt0.sum_y>3600? "%H:%M:%S.%Ls":(tt0.sum_y>60?"%M:%S.%Ls":"%S.%Ls")) }'
+            'update': '{ sum_y:!tt0.sum_y?"":timeFormat(datetime(0,0,0,0,0,0,tt0.sum_y), tt0.sum_y>3600000? "%H:%M:%S.%Ls":(tt0.sum_y>60000?"%M:%S.%Ls":"%S.%Ls")) }'
         },
         {
             'name': 'tt2',
@@ -165,7 +165,7 @@ const timeChartConfig = {
                     },
                     'y': {
                         'scale': 'y',
-                        'field': 'sum_y'
+                        'field': 'adjSum_y'
                     },
                     'itemName': {
                         'value': 'line'
@@ -201,7 +201,7 @@ const timeChartConfig = {
                     },
                     'y': {
                         'scale': 'y',
-                        'field': 'sum_y'
+                        'field': 'adjSum_y'
                     },
                     'itemName': {
                         'value': 'circle'
