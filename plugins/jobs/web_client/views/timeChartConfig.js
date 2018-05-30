@@ -29,7 +29,7 @@ const timeChartConfig = {
     'scales': [
         {
             'name': 'x',
-            'type': 'band',
+            'type': 'point',
             'points': true,
             'range': 'width',
             'domain': {
