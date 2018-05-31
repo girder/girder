@@ -497,11 +497,11 @@ describe('Unit test the job list widget.', function () {
         });
         waitsFor(function () {
             // Charts will render asynchronously with Vega
-            return widget.$('.g-jobs-graph svg .mark-rect.timing rect').length;
+            return widget.$('.g-jobs-graph svg .mark-rect.timing path').length;
         }, 'timing history graph to render');
 
         runs(function () {
-            expect(widget.$('.g-jobs-graph svg .mark-rect.timing rect').length).toBe(6);
+            expect(widget.$('.g-jobs-graph svg .mark-rect.timing path').length).toBe(9);
             $('.g-jobs.nav.nav-tabs li a[name="time"]').tab('show');
         });
         waitsFor(function () {
