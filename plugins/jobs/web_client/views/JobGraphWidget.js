@@ -65,9 +65,9 @@ const JobGraphWidget = View.extend({
             // the minimum width needed for each job is 10px
             let numberOfJobs = Math.min(this.collection.size(), Math.floor(width / 10));
             let vegaData = this._prepareDataForChart(numberOfJobs);
-            let withForEachJob = width / numberOfJobs;
+            let widthForEachJob = width / numberOfJobs;
             // if the width for each job is less than 20px, remove axe labels
-            if (withForEachJob < 20) {
+            if (widthForEachJob < 20) {
                 config.axes[0].encode.labels.opacity = { value: 0 };
             }
             config.width = width;
@@ -104,9 +104,9 @@ const JobGraphWidget = View.extend({
             // the minimum width needed for each job is 6px
             let numberOfJobs = Math.min(this.collection.size(), Math.floor(width / 6));
             let vegaData = this._prepareDataForChart(numberOfJobs);
-            let withForEachJob = width / numberOfJobs;
+            let widthForEachJob = width / numberOfJobs;
             // if the width for each job is less than 20px, remove date axe and axe labels
-            if (withForEachJob < 20) {
+            if (widthForEachJob < 20) {
                 config.axes.splice(0, 1);
                 config.axes[0].encode.labels.opacity = { value: 0 };
             }
