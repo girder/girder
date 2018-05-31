@@ -17,11 +17,11 @@
 #  limitations under the License.
 ###############################################################################
 
-import re
-
 import pytest
 
+from girder.constants import SettingKey
 from girder.exceptions import AccessException
+from girder.models.setting import Setting
 from girder.models.user import User
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
@@ -30,7 +30,9 @@ def testInitializeOtp(user):
     otpUris = User().initializeOtp(user)
 
     # A URI for TOTP should be returned
-    assert re.match(r'', otpUris['totpUri'])
+    assert otpUris['totpUri'].startswith('otpauth://')
+    assert user['login'] in otpUris['totpUri']
+    assert Setting().get(SettingKey.BRAND_NAME) in otpUris['totpUri']
 
     # OTP should not be enabled yet, since it's not finalized
     assert user['otp']['enabled'] is False
