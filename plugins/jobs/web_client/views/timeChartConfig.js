@@ -30,7 +30,6 @@ const timeChartConfig = {
         {
             'name': 'x',
             'type': 'point',
-            'points': true,
             'range': 'width',
             'domain': {
                 'data': 'table',
