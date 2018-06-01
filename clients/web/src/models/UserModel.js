@@ -122,7 +122,7 @@ var UserModel = Model.extend({
         });
     },
 
-    initializeOtp: function () {
+    initializeEnableOtp: function () {
         return restRequest({
             url: `user/${this.id}/otp`,
             method: 'POST',
@@ -133,7 +133,7 @@ var UserModel = Model.extend({
             });
     },
 
-    finializeOtp: function (otpToken) {
+    finializeEnableOtp: function (otpToken) {
         return restRequest({
             url: `user/${this.id}/otp`,
             method: 'PUT',
@@ -147,7 +147,7 @@ var UserModel = Model.extend({
             });
     },
 
-    removeOtp: function () {
+    disableOtp: function () {
         return restRequest({
             url: `user/${this.id}/otp`,
             method: 'DELETE',

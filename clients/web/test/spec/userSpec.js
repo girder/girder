@@ -374,7 +374,7 @@ describe('test the API key management tab', function () {
 
     it('begin activation of 2FA', function () {
         runs(function () {
-            $('#g-user-otp-initialize').click();
+            $('#g-user-otp-initialize-enable').click();
         });
         waitsFor(function () {
             return $('.g-account-otp-enter-manual').length > 0;

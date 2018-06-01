@@ -4,23 +4,23 @@ import OTPAuth from 'url-otpauth';
 import View from 'girder/views/View';
 
 import UserOtpBeginTemplate from 'girder/templates/widgets/userOtpBegin.pug';
-import UserOtpConfirmationTemplate from 'girder/templates/widgets/userOtpConfirmation.pug';
+import UserOtpEnableTemplate from 'girder/templates/widgets/userOtpEnable.pug';
 import UserOtpDisableTemplate from 'girder/templates/widgets/userOtpDisable.pug';
 import 'girder/stylesheets/widgets/userOtpManagementWidget.styl';
 
 const UserOtpManagementWidget = View.extend({
     events: {
-        'click #g-user-otp-initialize': function () {
-            this.model.initializeOtp()
+        'click #g-user-otp-initialize-enable': function () {
+            this.model.initializeEnableOtp()
                 .done((totpUri) => {
                     this.totpUri = totpUri;
                     this.render();
                 });
         },
-        'click #g-user-otp-finalize': function () {
+        'click #g-user-otp-finalize-enable': function () {
             const otpToken = this.$('#g-user-otp-token').val().trim();
 
-            this.model.finializeOtp(otpToken)
+            this.model.finializeEnableOtp(otpToken)
                 .done(() => {
                     // TODO: show confirmation
                     console.log('Confirm success');
@@ -32,12 +32,12 @@ const UserOtpManagementWidget = View.extend({
                     console.log('Finalize failed', err);
                 });
         },
-        'click #g-user-otp-cancel': function () {
+        'click #g-user-otp-cancel-enable': function () {
             this.totpUri = undefined;
             this.render();
         },
-        'click #g-user-otp-remove': function () {
-            this.model.removeOtp()
+        'click #g-user-otp-disable': function () {
+            this.model.disableOtp()
                 .done(() => {
                     this.render();
                 })
@@ -83,7 +83,7 @@ const UserOtpManagementWidget = View.extend({
         // The OTP URI format is defined at https://github.com/google/google-authenticator/wiki/Key-Uri-Format
         const totpInfo = OTPAuth.parse(this.totpUri);
 
-        this.$el.html(UserOtpConfirmationTemplate({
+        this.$el.html(UserOtpEnableTemplate({
             totpInfo: totpInfo
         }));
 
