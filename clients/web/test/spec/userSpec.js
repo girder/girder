@@ -362,6 +362,29 @@ describe('test the API key management tab', function () {
     });
 });
 
+describe('test the API key management tab', function () {
+    it('go to the two-factor authentication tab', function () {
+        runs(function () {
+            $('.g-account-tabs li>a[name="otp"]').click();
+        });
+        waitsFor(function () {
+            return $('.g-account-otp-info-text').length > 0;
+        }, 'tab to display');
+    });
+
+    it('begin activation of 2FA', function () {
+        runs(function () {
+            $('#g-user-otp-initialize').click();
+        });
+        waitsFor(function () {
+            return $('.g-account-otp-enter-manual').length > 0;
+        }, 'OTP key parameters to display');
+    });
+
+    // Further client testing requires a Javascript TOTP implementation, which is too difficult to provide in the
+    // current testing environment
+});
+
 describe('test email verification', function () {
     it('Turn on email verification', function () {
         girderTest.logout()();
