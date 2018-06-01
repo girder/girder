@@ -385,7 +385,7 @@ class User(Resource):
         .errorResponse('Admin access was denied on the user.', 403)
     )
     def initializeOtp(self, user):
-        if self._model.hasOtp(user):
+        if self._model.hasOtpEnabled(user):
             raise RestException('The user has already enabled one-time passwords.')
 
         otpUris = self._model.initializeOtp(user)
@@ -408,7 +408,7 @@ class User(Resource):
 
         if 'otp' not in user:
             raise RestException('The user has not initialized one-time passwords.')
-        if self._model.hasOtp(user):
+        if self._model.hasOtpEnabled(user):
             raise RestException('The user has already enabled one-time passwords.')
 
         user['otp']['enabled'] = True
@@ -425,7 +425,7 @@ class User(Resource):
         .errorResponse('Admin access was denied on the user.', 403)
     )
     def removeOtp(self, user):
-        if not self._model.hasOtp(user):
+        if not self._model.hasOtpEnabled(user):
             raise RestException('The user has not enabled one-time passwords.')
 
         del user['otp']

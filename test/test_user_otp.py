@@ -40,17 +40,17 @@ def testInitializeOtp(user):
     assert 'totp' in user['otp']
 
 
-def testHasOtp(user):
-    assert User().hasOtp(user) is False
+def testHasOtpEnabled(user):
+    assert User().hasOtpEnabled(user) is False
 
     User().initializeOtp(user)
 
     # OTP is not yet enabled
-    assert User().hasOtp(user) is False
+    assert User().hasOtpEnabled(user) is False
 
     user['otp']['enabled'] = True
 
-    assert User().hasOtp(user) is True
+    assert User().hasOtpEnabled(user) is True
 
 
 def _tokenFromTotpUri(totpUri, valid=True):

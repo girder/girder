@@ -180,7 +180,7 @@ class User(AccessControlledModel):
             raise AccessException('Login failed.')
 
         # Handle OTP token concatenation
-        if otpToken is True and self.hasOtp(user):
+        if otpToken is True and self.hasOtpEnabled(user):
             # Assume the last (typically 6) characters are the OTP, so split at that point
             otpTokenLength = self._TotpFactory.digits
             otpToken = password[-otpTokenLength:]
@@ -191,7 +191,7 @@ class User(AccessControlledModel):
             raise AccessException('Login failed.')
 
         # Verify OTP
-        if self.hasOtp(user):
+        if self.hasOtpEnabled(user):
             if otpToken is None:
                 raise AccessException(
                     'User authentication must include a one-time password '
@@ -324,7 +324,7 @@ class User(AccessControlledModel):
             'totpUri': totp.to_uri(label=user['login'])
         }
 
-    def hasOtp(self, user):
+    def hasOtpEnabled(self, user):
         return 'otp' in user and user['otp']['enabled']
 
     def verifyOtp(self, user, otpToken):
