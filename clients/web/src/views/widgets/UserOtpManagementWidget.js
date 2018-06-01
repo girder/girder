@@ -20,16 +20,20 @@ const UserOtpManagementWidget = View.extend({
         'click #g-user-otp-finalize-enable': function () {
             const otpToken = this.$('#g-user-otp-token').val().trim();
 
+            if (otpToken.length !== 6) {
+                this.$('#g-account-otp-error').text('Enter a 6-digit token.');
+                return;
+            } else {
+                this.$('#g-account-otp-error').text('');
+            }
+
             this.model.finializeEnableOtp(otpToken)
                 .done(() => {
-                    // TODO: show confirmation
-                    console.log('Confirm success');
                     this.totpUri = undefined;
                     this.render();
                 })
                 .fail((err) => {
-                    // TODO: render error message
-                    console.log('Finalize failed', err);
+                    this.$('#g-account-otp-error').text(err.responseJSON.message);
                 });
         },
         'click #g-user-otp-cancel-enable': function () {
@@ -40,10 +44,6 @@ const UserOtpManagementWidget = View.extend({
             this.model.disableOtp()
                 .done(() => {
                     this.render();
-                })
-                .fail((err) => {
-                    // TODO: render error message
-                    console.log('Remove failed', err);
                 });
         }
     },
