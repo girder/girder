@@ -59,8 +59,7 @@ class User(AccessControlledModel):
 
         # To ensure compatibility with authenticator apps, other defaults shouldn't be changed
         self._TotpFactory = TOTP.using(
-            issuer=Setting().get(SettingKey.BRAND_NAME),
-            # TODO: Add an application secret here
+            # An application secret could be set here, if it existed
             wallet=None
         )
 
@@ -320,8 +319,23 @@ class User(AccessControlledModel):
             'totp': totp.to_dict()
         }
 
+        # Use the brand name as the OTP issuer if it's non-default (since that's prettier and more
+        # meaningful for users), but fallback to the site hostname if the brand name isn't set
+        # (to disambiguate otherwise identical "Girder" issuers)
+        # Prevent circular import
+        from girder.api.rest import getUrlParts
+        brandName = Setting().get(SettingKey.BRAND_NAME)
+        defaultBrandName = Setting().getDefault(SettingKey.BRAND_NAME)
+        # OTP URIs ( https://github.com/google/google-authenticator/wiki/Key-Uri-Format ) do not
+        # allow colons, so use only the hostname component
+        serverHostname = getUrlParts().netloc.partition(':')[0]
+        # Normally, the issuer would be set when "self._TotpFactory" is instantiated, but that
+        # happens during model initialization, when there's no current request, so the server
+        # hostname is not known then
+        otpIssuer = brandName if brandName != defaultBrandName else serverHostname
+
         return {
-            'totpUri': totp.to_uri(label=user['login'])
+            'totpUri': totp.to_uri(label=user['login'], issuer=otpIssuer)
         }
 
     def hasOtpEnabled(self, user):

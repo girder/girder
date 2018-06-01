@@ -27,12 +27,16 @@ from pytest_girder.assertions import assertStatus, assertStatusOk
 
 
 def testInitializeOtp(user):
+    # The logic for the server hostname as the issuer cannot be tested here, since there is no
+    # current request, but that logic is explicitly tested in testOtpApiWorkflow
+    Setting().set(SettingKey.BRAND_NAME, 'Branded Girder')
+
     otpUris = User().initializeOtp(user)
 
     # A URI for TOTP should be returned
     assert otpUris['totpUri'].startswith('otpauth://')
     assert user['login'] in otpUris['totpUri']
-    assert Setting().get(SettingKey.BRAND_NAME) in otpUris['totpUri']
+    assert 'issuer=Branded%20Girder' in otpUris['totpUri']
 
     # OTP should not be enabled yet, since it's not finalized
     assert user['otp']['enabled'] is False
@@ -151,6 +155,9 @@ def testOtpApiWorkflow(server, user):
     assertStatusOk(resp)
     # Save the URI
     totpUri = resp.json['totpUri']
+
+    # Test the logic for server hostname as OTP URI issuer
+    assert 'issuer=127.0.0.1' in totpUri
 
     # Login without an OTP
     resp = server.request(path='/user/authentication', method='GET', basicAuth='user:password')
