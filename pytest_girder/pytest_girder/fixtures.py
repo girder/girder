@@ -58,7 +58,8 @@ def db(request):
     connection.drop_database(dbName)
 
     # Since some models bind to events during initialize(), we force reinitialization
-    model_base._modelSingletons = []
+    for model in model_base._modelSingletons:
+        model.reconnect()
 
     yield connection
 
