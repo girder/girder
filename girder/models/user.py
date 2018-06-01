@@ -351,7 +351,6 @@ class User(AccessControlledModel):
             totpMatch = self._TotpFactory.verify(
                 otpToken, user['otp']['totp'], last_counter=lastCounter)
         except TokenError as e:
-            # TODO: implement rate limiting
             raise AccessException('One-time password validation failed: %s' % e)
 
         # The totpMatch.cache_seconds tells us prospectively how long the counter needs to be cached
