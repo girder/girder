@@ -3,7 +3,6 @@
 -e plugins/worker
 -e plugins/item_tasks
 -e plugins/candela
-backports.tempfile
 coverage
 flake8
 flake8-blind-except

@@ -15,11 +15,6 @@
 ###############################################################################
 
 import os
-import tempfile
-try:
-    from tempfile import TemporaryDirectory
-except ImportError:
-    from backports.tempfile import TemporaryDirectory
 
 import mock
 import pytest
@@ -116,12 +111,13 @@ def testPluginWithNPMPackage(registry):
     assert pluginDef.npmPackages() == {'@girder/test_plugin': '1.0.0'}
 
 
-@pytest.mark.plugin('client_plugin', PluginWithNPM, location=tempfile.gettempdir())
+@pytest.mark.plugin('client_plugin', PluginWithNPM)
 def testPluginWithDevInstall(registry):
-    with TemporaryDirectory() as d:
-        pluginDef = plugin.getPlugin('client_plugin')
-        pluginDef.CLIENT_SOURCE_PATH = os.path.split(d)[-1]
-        assert pluginDef.npmPackages() == {'@girder/test_plugin': 'file:%s' % d}
+    pluginDef = plugin.getPlugin('client_plugin')
+    currentPath = os.path.abspath(os.path.dirname(__file__))
+    with mock.patch('os.path.isdir',  return_value=True):
+        assert pluginDef.npmPackages() == \
+            {'@girder/test_plugin': 'file:%s/web_client' % currentPath}
 
 
 @pytest.mark.plugin('plugin1', NoDeps)

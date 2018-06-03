@@ -40,7 +40,10 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5'
     ],
-    packages=find_packages(),
+    package_data={
+        '': ['web_client/**']
+    },
+    packages=find_packages(exclude=['plugin_tests']),
     install_requires=['girder', 'girder-plugin-jobs', 'celery>=4,<4.2'],
     entry_points={
         'girder.plugin': [

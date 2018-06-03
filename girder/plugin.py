@@ -21,7 +21,7 @@ This module defines functions for registering, loading, and querying girder plug
 import distutils.dist
 from functools import wraps
 import os
-from pkg_resources import iter_entry_points
+from pkg_resources import iter_entry_points, resource_filename
 import traceback
 
 import six
@@ -125,8 +125,7 @@ class GirderPlugin(object):
 
     #: The path of the plugin's web client source code.  This path is given relative to the python
     #: package.  This property is used to link the web client source into the staging area while
-    #: building in development mode.  In production environments, the package is always fetched
-    #: from npm.
+    #: building in development mode.
     CLIENT_SOURCE_PATH = 'web_client'
 
     def __init__(self, entrypoint):
@@ -146,12 +145,9 @@ class GirderPlugin(object):
             return {}
 
         version = self.NPM_PACKAGE_VERSION
-        clientDir = os.path.abspath(os.path.join(self._dist.location, self.CLIENT_SOURCE_PATH))
 
-        # There isn't a great way to determine if this is an editable install of the python
-        # package.  As an alternative, we check if the web source directory exists.  This will
-        # also make it possible for plugins to include their client source in the python package
-        # if desired; however, it is unclear if that should be a recommended pattern.
+        # check if the web client sources are included in the python distribution
+        clientDir = resource_filename(self.__module__, self.CLIENT_SOURCE_PATH)
         if os.path.isdir(clientDir):
             version = 'file:%s' % clientDir
 

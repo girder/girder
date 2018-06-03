@@ -40,7 +40,11 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5'
     ],
-    packages=find_packages(),
+    package_data={
+        '': ['web_client/**']
+    },
+    packages=find_packages(exclude=['plugin_tests']),
+    zip_save=False,
     install_requires=['girder'],
     entry_points={
         'girder.plugin': [
