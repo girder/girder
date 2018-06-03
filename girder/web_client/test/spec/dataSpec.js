@@ -155,7 +155,7 @@ describe('Create a data hierarchy', function () {
     });
 
     it('upload a file into the current folder', function () {
-        girderTest.testUpload('clients/web/test/testFile.txt');
+        girderTest.testUpload('girder/web_client/test/testFile.txt');
 
         waitsFor(function () {
             return $('.g-child-count-container .g-item-count').text() === '1';
@@ -272,7 +272,7 @@ describe('Create a data hierarchy', function () {
             return $('.g-loading-block').length === 0;
         }, 'for all blocks to load');
 
-        girderTest.testUpload('clients/web/test/testFile2');
+        girderTest.testUpload('girder/web_client/test/testFile2');
     });
 
     it('upload another file by size', function () {

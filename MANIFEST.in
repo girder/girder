@@ -7,11 +7,11 @@ include README.rst
 include girder/conf/girder.dist.cfg
 recursive-exclude test *
 recursive-exclude tests *
-recursive-include clients/web *
+recursive-include girder/web_client *
 recursive-include girder/mail_templates *
-recursive-include grunt_tasks *
 recursive-include plugins *
 global-exclude *.pyc *.pyo *.cmake
-prune clients/web/static/built
-prune clients/web/test
+prune girder/web_client/test
+prune girder/web_client/node_modules
 prune plugins/*/plugin_tests
+prune plugins/*/*/node_modules

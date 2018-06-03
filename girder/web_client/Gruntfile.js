@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-const fs = require('fs');
 const path = require('path');
 
 require('colors');
@@ -42,7 +41,6 @@ function sortTasks(obj) {
 }
 
 module.exports = function (grunt) {
-    var isSourceBuild = fs.existsSync('girder/__init__.py');
     var environment = grunt.option('env') || 'dev';
 
     if (['dev', 'prod'].indexOf(environment) === -1) {
@@ -55,17 +53,10 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON('package.json'),
         staticDir: '.',
         builtPath: path.resolve(grunt.option('static-path') || '.', 'built'),
-        isSourceBuild: isSourceBuild,
         default: {}
     });
 
-    if (isSourceBuild) {
-        // We are in a source tree
-        grunt.config.set('girderDir', 'girder');
-    } else {
-        // We are in an installed package
-        grunt.config.set('girderDir', '.');
-    }
+    grunt.config.set('girderDir', path.resolve('..'));
 
     // Ensure our build directory exists
     try {

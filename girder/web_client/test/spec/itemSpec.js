@@ -218,7 +218,7 @@ describe('Test item creation, editing, and deletion', function () {
         runs(function () {
             girderTest._prepareTestUpload();
             girderTest._uploadDataExtra = 0;
-            girderTest.sendFile('clients/web/test/testFile.txt');
+            girderTest.sendFile('girder/web_client/test/testFile.txt');
         });
 
         waitsFor(function () {

@@ -19,39 +19,9 @@
 
 import os
 import re
-import shutil
 import itertools
 
 from setuptools import setup, find_packages
-from setuptools.command.install import install
-from distutils.dir_util import copy_tree
-
-
-class InstallWithOptions(install):
-    def mergeDir(self, path, dest):
-        """
-        We don't want to delete the old dir, since it might contain third
-        party plugin content from previous installations; we simply want to
-        merge the existing directory with the new one.
-        """
-        copy_tree(path, os.path.join(dest, path), preserve_symlinks=True)
-
-    def run(self, *arg, **kw):
-        """
-        We override the default install command in order to copy our required
-        package data underneath the package directory; in the egg, it is
-        adjacent to the package dir.
-        """
-        install.run(self, *arg, **kw)
-
-        dest = os.path.join(self.install_lib, 'girder')
-        shutil.copy('Gruntfile.js', dest)
-        shutil.copy('package.json', dest)
-        self.mergeDir(os.path.join('clients', 'web', 'src'), dest)
-        self.mergeDir(os.path.join('clients', 'web', 'static'), dest)
-        shutil.copy(os.path.join('clients', 'web', 'src', 'assets', 'fontello.config.json'),
-                    os.path.join(dest, 'clients', 'web', 'src', 'assets'))
-        self.mergeDir('grunt_tasks', dest)
 
 
 with open('README.rst') as f:
@@ -160,9 +130,6 @@ setup(
     install_requires=installReqs,
     extras_require=extrasReqs,
     zip_safe=False,
-    cmdclass={
-        'install': InstallWithOptions
-    },
     entry_points={
         'console_scripts': [
             'girder-server = girder.cli.serve:main',

@@ -3,7 +3,7 @@
  *
  * This is the PhantomJS runtime script that invokes the Girder app in test
  * mode. The test mode page is built with grunt and lives at:
- * clients/web/static/built/testing/testEnv.html. It then executes a Jasmine spec within
+ * girder/web_client/static/built/testing/testEnv.html. It then executes a Jasmine spec within
  * the context of that test application, and afterwards runs our custom coverage
  * handler on the coverage data.
  */

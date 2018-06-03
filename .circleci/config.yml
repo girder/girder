@@ -163,6 +163,12 @@ jobs:
       - restore_cache:
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
+          name: Install @girder/lint for javascript linting
+          command: npm ci
+          environment:
+            - npm_config_cache: /home/circleci/project/npm_cache
+          working_directory: girder
+      - run:
           name: Build Girder web client
           command: girder build --dev | cat
           environment:

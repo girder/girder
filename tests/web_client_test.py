@@ -169,7 +169,7 @@ class WebClientTestCase(base.TestCase):
         cmd = (
             'npx', 'phantomjs',
             '--web-security=%s' % self.webSecurity,
-            os.path.join(ROOT_DIR, 'clients', 'web', 'test', 'specRunner.js'),
+            os.path.join(ROOT_DIR, 'girder', 'web_client', 'test', 'specRunner.js'),
             'http://localhost:%s%s' % (os.environ['GIRDER_PORT'], baseUrl),
             self.specFile,
             os.environ.get('JASMINE_TIMEOUT', ''),

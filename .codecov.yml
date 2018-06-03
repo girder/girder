@@ -8,7 +8,7 @@ coverage:
     project:
       default: false
       server:
-        target: 85%
+        target: 80%
         paths:
           - girder
           - plugins/*/server
@@ -19,5 +19,5 @@ coverage:
       web_client:
         target: 75%
         paths:
-          - clients/web/src
+          - girder/web_client/src
           - plugins/*/web_client

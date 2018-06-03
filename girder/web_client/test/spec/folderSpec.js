@@ -46,7 +46,7 @@ function _editFolder(button, buttonText, testValidation) {
 
         runs(function () {
             $('#g-name').val(oldval);
-            girderTest.sendFile('clients/web/test/testFile.txt',
+            girderTest.sendFile('girder/web_client/test/testFile.txt',
                 '.g-markdown-drop-zone .g-file-input');
         });
 
@@ -57,7 +57,7 @@ function _editFolder(button, buttonText, testValidation) {
         }, 'allowed extension message to show up');
 
         runs(function () {
-            girderTest.sendFile('clients/web/test/fake.jpg',
+            girderTest.sendFile('girder/web_client/test/fake.jpg',
                 '.g-markdown-drop-zone .g-file-input');
         });
 

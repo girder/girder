@@ -19,95 +19,63 @@
 
 import json
 import os
+from pkg_resources import resource_filename
 from subprocess import check_call
+import sys
 
 import click
 
-from girder.constants import STATIC_PREFIX, STATIC_ROOT_DIR
+from girder.constants import STATIC_ROOT_DIR
 from girder.plugin import allPlugins, getPlugin
 
-_GIRDER_STAGING_PATH = os.path.join(STATIC_PREFIX, 'staging')
-
-# TODO: add build assets to an npm package (or the python package)
-# For the moment, the static assets are in the repository root for
-# development installs and in `site-packages/girder/` for regular
-# installs.  There is no direct way to detect which environment we
-# are currently in.  For now, we just detect where the toplevel
-# Gruntfile.js is and use that as the root path.  In the future,
-# we may want to move these into the python package and specify it
-# as package_data, avoiding the custom setup.py install step entirely.
-_GIRDER_BUILD_ASSETS_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..', '..'))
-if os.path.exists(os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'girder', 'Gruntfile.js')):
-    _GIRDER_BUILD_ASSETS_PATH = os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'girder')
-elif not os.path.exists(os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'Gruntfile.js')):
-    raise Exception('Could not find girder client build assets')
+# _GIRDER_STAGING_PATH = os.path.join(STATIC_PREFIX, 'staging')
+_GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
 
 
 @click.command(name='build', help='Build web client static assets.')
 @click.option('--dev/--no-dev', default=False,
               help='Build girder client for development.')
-def main(dev):
-    staging = _GIRDER_STAGING_PATH
-    _generateStagingArea(staging, dev)
+@click.option('--watch', default=False, is_flag=True,
+              help='Build girder library bundle in watch mode (implies --dev --no-reinstall).')
+@click.option('--watch-plugin',
+              help='Build a girder plugin bundle in watch mode (implies --dev --no-reinstall).')
+@click.option('--reinstall/--no-reinstall', default=True,
+              help='Force regenerate node_modules exists.')
+def main(dev, watch, watch_plugin, reinstall):
+    if watch and watch_plugin:
+        raise click.UsageError('--watch and --watch-plugins cannot be used together')
+    if watch or watch_plugin:
+        dev = True
+        reinstall = False
 
-    # The autogeneration of package.json breaks how package-lock.json is
-    # intended to work.  If we don't delete it first, you will frequently
-    # get "file doesn't exist" errors.
-    npmLockFile = os.path.join(staging, 'package-lock.json')
-    if os.path.exists(npmLockFile):
-        os.unlink(npmLockFile)
+    staging = _GIRDER_BUILD_ASSETS_PATH
+    _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json.template'))
 
-    check_call(['npm', 'install'], cwd=staging)
+    if not os.path.isdir(os.path.join(staging, 'node_modules')) or reinstall:
+        # The autogeneration of package.json breaks how package-lock.json is
+        # intended to work.  If we don't delete it first, you will frequently
+        # get "file doesn't exist" errors.
+        npmLockFile = os.path.join(staging, 'package-lock.json')
+        if os.path.exists(npmLockFile):
+            os.unlink(npmLockFile)
+
+        check_call(['npm', 'install'], cwd=staging)
+
+    quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
-        'npx', '-n', '--preserve-symlinks', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR]
+        'npx', '-n', '--preserve-symlinks', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
+    if watch:
+        buildCommand.append('--watch')
+    if watch_plugin:
+        buildCommand.extend([
+            '--watch',
+            'webpack:plugin_%s' % watch_plugin
+        ])
     if dev:
         buildCommand.append('--env=dev')
     else:
         buildCommand.append('--env=prod')
     check_call(buildCommand, cwd=staging)
-
-
-def _linkTestFiles(staging):
-    source = os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'clients', 'web', 'test')
-    target = os.path.join(staging, 'test')
-    if os.path.exists(target):
-        os.unlink(target)
-    os.symlink(source, target)
-
-
-def _npmInstallGirderSourcePath():
-    # TODO: This is a hack to make many of the cmake based runners, which run
-    # from girder's source tree to include necessary development npm libraries.
-    # In the future, we could either limit the number of dependencies are in the
-    # top-level girder repo, or move things like eslint checking and web client
-    # test running into the staging area.
-    check_call(['npm', 'install'], cwd=_GIRDER_BUILD_ASSETS_PATH)
-
-
-def _generateStagingArea(staging, dev):
-    try:
-        os.makedirs(staging)
-    except OSError:  # directory already exists
-        pass
-    for baseName in ['grunt_tasks', 'Gruntfile.js']:
-        target = os.path.join(staging, baseName)
-        if os.path.exists(target) or os.path.islink(target):
-            os.unlink(target)
-        os.symlink(os.path.join(_GIRDER_BUILD_ASSETS_PATH, baseName), target)
-    _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json'))
-
-    # copy swagger page source (TODO: make this better so it doesn't depend on the source dir)
-    source = os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'clients', 'web', 'static',
-                          'girder-swagger.js')
-    target = os.path.join(staging, 'girder-swagger.js')
-    if os.path.exists(target):
-        os.unlink(target)
-    os.symlink(source, target)
-
-    if dev:
-        _npmInstallGirderSourcePath()
-        _linkTestFiles(staging)
 
 
 def _collectPluginDependencies():
@@ -119,12 +87,9 @@ def _collectPluginDependencies():
 
 
 def _generatePackageJSON(staging, source):
-    # TODO: use a template string
     with open(source, 'r') as f:
         sourceJSON = json.load(f)
     deps = sourceJSON['dependencies']
-    deps['girder'] = 'file:%s' % os.path.join(
-        _GIRDER_BUILD_ASSETS_PATH, 'clients', 'web', 'src')
     plugins = _collectPluginDependencies()
     deps.update(plugins)
     sourceJSON['girder'] = {

@@ -269,7 +269,7 @@ kill the process, and then try your tests again.
 Adding a New Client Side Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To add a new client side test, add a new spec file in ``/clients/web/test/spec/``, add a line
+To add a new client side test, add a new spec file in ``/girder/web_client/test/spec/``, add a line
 referencing your spec file to ``/girder/tests/CMakeLists.txt`` using the ``add_web_client_test`` function,
 and then run in your build directory ::
 
@@ -292,7 +292,7 @@ Here ``ENABLEDPLUGINS`` ensures that my_plugin *and* the jobs plugin are loaded,
 .. note:: Core functionality shouldn't depend on plugins being enabled, this test definition is more suitable for a plugin. Information for testing plugins can be found under :doc:`plugin-development`.
 
 You will find many useful methods for client side testing in the ``girderTest`` object
-defined at ``/clients/web/test/testUtils.js``.
+defined at ``/girder/web_client/test/testUtils.js``.
 
 
 Initializing the Database for a Test

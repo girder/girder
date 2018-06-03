@@ -24,6 +24,9 @@ var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+const webSrc = require('./webpack.paths').web_src;
+const nodeModules = require('./webpack.paths').node_modules;
+
 // Resolving the Babel presets here is required to support symlinking plugin directories from
 // outside Girder's file tree
 const babelPresets = require.resolve('babel-preset-env');
@@ -38,8 +41,8 @@ function fileLoader() {
     };
 }
 
-var loaderPaths = [path.resolve('node_modules/girder'), path.resolve('node_modules/@girder')];
-var loaderPathsNodeModules = loaderPaths.concat([path.resolve('node_modules')]);
+var loaderPaths = [webSrc];
+var loaderPathsNodeModules = loaderPaths.concat([nodeModules]);
 
 module.exports = {
     output: {
@@ -72,7 +75,7 @@ module.exports = {
                 resource: {
                     test: /\.js$/,
                     include: loaderPaths,
-                    exclude: /(girder\/node_modules|@girder\/[^/]*\/node_modules)/ // TODO: we will want to be more specific about babel paths
+                    exclude: /node_modules/
                 },
                 use: [
                     {
@@ -89,7 +92,7 @@ module.exports = {
             {
                 resource: {
                     test: /\.styl$/,
-                    include: loaderPaths
+                    include: loaderPathsNodeModules
                 },
                 use: ExtractTextPlugin.extract({
                     use: [
@@ -124,7 +127,7 @@ module.exports = {
             {
                 resource: {
                     test: /\.(pug|jade)$/,
-                    include: loaderPaths
+                    include: loaderPathsNodeModules
                 },
                 use: [
                     {
@@ -202,7 +205,9 @@ module.exports = {
     resolve: {
         extensions: ['.js'],
         symlinks: false,
-        modules: [path.resolve('node_modules', 'girder', 'node_modules'), 'node_modules']
+        alias: {
+            'girder': path.resolve('src')
+        }
     },
     node: {
         canvas: 'empty',
@@ -223,8 +228,5 @@ module.exports = {
         modules: false,
         reasons: false,
         timings: false
-    },
-    watchOptions: {
-        ignored: /node_modules/
     }
 };

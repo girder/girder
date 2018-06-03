@@ -36,6 +36,22 @@ module.exports = function (grunt) {
     const pollingWatch = isTrue(process.env.WATCH_USEPOLLING);
     const isDev = grunt.config.get('environment') === 'dev' || isWatch;
 
+    function injectIstanbulCoverage(config) {
+        if (!isDev) {
+            return;
+        }
+        const istanbulPlugin = require.resolve('babel-plugin-istanbul');
+        _.each(config.module.rules, (rule) => {
+            _.each(_.where(rule.use, {loader: 'babel-loader'}), (useEntry) => {
+                useEntry.options.plugins = [
+                    [istanbulPlugin, {
+                        exclude: ['**/*.pug', '**/*.jade']
+                    }]
+                ];
+            });
+        });
+    }
+
     // Set some environment variables
     if (!process.env.NODE_ENV) {
         // This is not explicitly used for anything in Girder, but some Npm packages may respect it.
@@ -45,8 +61,9 @@ module.exports = function (grunt) {
 
     // TODO: nyc will only instrument source files within it's cwd (it resolves symlinks).
     // This will cause problems when we try to instrument plugins that are not present
-    // inside girder's source tree.
-    process.env.NYC_CWD = path.resolve(fs.realpathSync(__dirname), '..');
+    // inside girder's source tree.  Here we set it to the root of the repository to
+    // resolve plugin sources.
+    process.env.NYC_CWD = path.resolve(fs.realpathSync(__dirname), '..', '..', '..');
 
     // Load the global webpack config
     const webpackConfig = require('./webpack.config.js');
@@ -71,18 +88,6 @@ module.exports = function (grunt) {
                     debug: true
                 })
             ]
-        });
-
-        // Add coverage support (via Istanbul) to Babel
-        const istanbulPlugin = require.resolve('babel-plugin-istanbul');
-        _.each(webpackConfig.module.rules, (rule) => {
-            _.each(_.where(rule.use, {loader: 'babel-loader'}), (useEntry) => {
-                useEntry.options.plugins = [
-                    [istanbulPlugin, {
-                        exclude: ['**/*.pug', '**/*.jade', 'node_modules/**/*']
-                    }]
-                ];
-            });
         });
 
         if (isWatch) {
@@ -144,6 +149,9 @@ module.exports = function (grunt) {
 
     const paths = require('./webpack.paths.js');
 
+    // add coverage to all babel loader rules when in dev mode
+    injectIstanbulCoverage(webpackConfig);
+
     grunt.config.merge({
         webpack: {
             options: webpackConfig,
@@ -202,7 +210,21 @@ module.exports = function (grunt) {
     plugins.forEach(function (plugin) {
         const pluginDef = require(path.join(plugin, '/package.json'))['girder-plugin'];
         const name = pluginDef.name;
-        grunt.config.set(`webpack.plugin_${name}`, {
+        const babelRule = {
+            resource: {
+                test: /\.js$/,
+                include: [path.resolve(`node_modules/${plugin}`)],
+                exclude: new RegExp(`node_modules/${plugin}/node_modules`)
+            },
+            use: [{
+                loader: 'babel-loader',
+                options: {
+                    presets: [require.resolve('babel-preset-env')],
+                    cacheDirectory: true
+                }
+            }]
+        };
+        const pluginWebpackConfig = {
             entry: {
                 [`plugins/${name}/plugin`]: [`${plugin}/main.js`]
             },
@@ -210,6 +232,9 @@ module.exports = function (grunt) {
                 path: path.resolve(grunt.config.get('builtPath'), 'plugins', name),
                 filename: 'plugin.min.js',
                 library: `girder_plugin_${name}`
+            },
+            module: {
+                rules: [babelRule]
             },
             plugins: [
                 new webpack.DllPlugin({
@@ -239,7 +264,10 @@ module.exports = function (grunt) {
                     manifest: path.join(grunt.config.get('builtPath'), 'plugins', dep, 'plugin-manifest.json')
                 });
             }))
-        });
+        };
+        injectIstanbulCoverage(pluginWebpackConfig);
+        grunt.config.set(`webpack.plugin_${name}`, pluginWebpackConfig);
+
         // Make dependent plugins build before this one to create the DLL manifest.
         grunt.config.set(`default.webpack:plugin_${name}`, {
             dependencies: _.map(pluginDef.dependencies, (dep) => `webpack:plugin_${dep}`)

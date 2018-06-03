@@ -16,6 +16,8 @@
 
 const path = require('path');
 
+const webSrc = require('./webpack.paths').web_src;
+
 /**
  * Define tasks that copy and configure swagger API/doc files.
  */
@@ -34,6 +36,7 @@ module.exports = function (grunt) {
             'girder-swagger': {
                 files: [{
                     expand: true,
+                    cwd: 'static',
                     src: ['girder-swagger.js'],
                     dest: builtPath
                 }]
@@ -44,7 +47,7 @@ module.exports = function (grunt) {
             swagger: {
                 files: {
                     [path.resolve(builtPath, 'docs.css')]: [
-                        'node_modules/girder/stylesheets/apidocs/*.styl'
+                        path.resolve(webSrc, 'stylesheets/apidocs/*.styl')
                     ]
                 }
             }
