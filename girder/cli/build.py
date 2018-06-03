@@ -26,7 +26,7 @@ import click
 from girder.constants import STATIC_PREFIX, STATIC_ROOT_DIR
 from girder.plugin import allPlugins, getPlugin
 
-_GIRDER_STAGING_MARKER = '.girder-staging'
+_GIRDER_STAGING_PATH = os.path.join(STATIC_PREFIX, 'staging')
 
 # TODO: add build assets to an npm package (or the python package)
 # For the moment, the static assets are in the repository root for
@@ -45,12 +45,10 @@ elif not os.path.exists(os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'Gruntfile.js'))
 
 
 @click.command(name='build', help='Build web client static assets.')
-@click.option('--staging', type=click.Path(file_okay=False, writable=True, resolve_path=True),
-              default=os.path.join(STATIC_PREFIX, 'staging'),
-              help='Path to a staging area.')
 @click.option('--dev/--no-dev', default=False,
               help='Build girder client for development.')
-def main(staging, dev):
+def main(dev):
+    staging = _GIRDER_STAGING_PATH
     _generateStagingArea(staging, dev)
 
     # The autogeneration of package.json breaks how package-lock.json is
@@ -68,19 +66,6 @@ def main(staging, dev):
     else:
         buildCommand.append('--env=prod')
     check_call(buildCommand, cwd=staging)
-
-
-def _checkStagingPath(staging):
-    try:
-        os.makedirs(staging)
-    except OSError:  # directory already exists
-        pass
-    listdir = os.listdir(staging)
-    if listdir and _GIRDER_STAGING_MARKER not in listdir:
-        raise Exception('Staging directory is not empty')
-
-    with open(os.path.join(staging, _GIRDER_STAGING_MARKER), 'w') as f:
-        f.write('')
 
 
 def _linkTestFiles(staging):
@@ -101,7 +86,10 @@ def _npmInstallGirderSourcePath():
 
 
 def _generateStagingArea(staging, dev):
-    _checkStagingPath(staging)
+    try:
+        os.makedirs(staging)
+    except OSError:  # directory already exists
+        pass
     for baseName in ['grunt_tasks', 'Gruntfile.js']:
         target = os.path.join(staging, baseName)
         if os.path.exists(target) or os.path.islink(target):
