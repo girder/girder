@@ -67,7 +67,7 @@ def _tokenFromTotpUri(totpUri, valid=True):
 
     if not valid:
         # Increment the token by 1 to invalidate it
-        otpToken = str((int(otpToken) + 1) % int(1e6))
+        otpToken = '%06d' % ((int(otpToken) + 1) % int(1e6))
 
     return otpToken
 
