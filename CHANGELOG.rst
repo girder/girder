@@ -35,6 +35,9 @@ Added Features
   list when the remote worker plugin is enabled and also from the worker plugin configuration page.
   (`#2678 <https://github.com/girder/girder/pull/2678>`_)
 
+* Allow users to login with two-factor authentication via TOTP on a mobile authenticator app.
+  (`#2655 <https://github.com/girder/girder/pull/2655>`_).
+
 Python Client
 ^^^^^^^^^^^^^
 * Added a ``--token`` option to the girder-client command line interface to allow users to specify

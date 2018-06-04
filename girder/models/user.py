@@ -20,12 +20,16 @@
 import datetime
 import os
 import re
+from passlib.totp import TOTP, TokenError
+import six
 
 from .model_base import AccessControlledModel
+from .setting import Setting
 from girder import events
 from girder.constants import AccessType, CoreEventHandler, SettingKey, TokenScope
 from girder.exceptions import AccessException, ValidationException
 from girder.utility import config, mail_utils
+from girder.utility._cache import rateLimitBuffer
 
 
 class User(AccessControlledModel):
@@ -52,6 +56,12 @@ class User(AccessControlledModel):
         self.exposeFields(level=AccessType.ADMIN, fields=(
             'size', 'email', 'groups', 'groupInvites', 'status',
             'emailVerified'))
+
+        # To ensure compatibility with authenticator apps, other defaults shouldn't be changed
+        self._TotpFactory = TOTP.using(
+            # An application secret could be set here, if it existed
+            wallet=None
+        )
 
         events.bind('model.user.save.created',
                     CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)
@@ -127,7 +137,16 @@ class User(AccessControlledModel):
 
         return doc
 
-    def authenticate(self, login, password):
+    def filter(self, doc, user, additionalKeys=None):
+        filteredDoc = super(User, self).filter(doc, user, additionalKeys)
+
+        level = self.getAccessLevel(doc, user)
+        if level >= AccessType.ADMIN:
+            filteredDoc['otp'] = doc.get('otp', {}).get('enabled', False)
+
+        return filteredDoc
+
+    def authenticate(self, login, password, otpToken=None):
         """
         Validate a user login via username and password. If authentication fails,
         a ``AccessException`` is raised.
@@ -136,6 +155,9 @@ class User(AccessControlledModel):
         :type login: str
         :param password: The user's password.
         :type password: str
+        :param otpToken: A one-time password for the user. If "True", then the one-time password
+                         (if required) is assumed to be concatenated to the password.
+        :type otpToken: str or bool or None
         :returns: The corresponding user if the login was successful.
         :rtype: dict
         """
@@ -156,8 +178,26 @@ class User(AccessControlledModel):
         if user is None:
             raise AccessException('Login failed.')
 
+        # Handle OTP token concatenation
+        if otpToken is True and self.hasOtpEnabled(user):
+            # Assume the last (typically 6) characters are the OTP, so split at that point
+            otpTokenLength = self._TotpFactory.digits
+            otpToken = password[-otpTokenLength:]
+            password = password[:-otpTokenLength]
+
+        # Verify password
         if not Password().authenticate(user, password):
             raise AccessException('Login failed.')
+
+        # Verify OTP
+        if self.hasOtpEnabled(user):
+            if otpToken is None:
+                raise AccessException(
+                    'User authentication must include a one-time password '
+                    '(typically in the "Girder-OTP" header).')
+            self.verifyOtp(user, otpToken)
+        elif isinstance(otpToken, six.string_types):
+            raise AccessException('The user has not enabled one-time passwords.')
 
         # This has the same behavior as User.canLogin, but returns more
         # detailed error messages
@@ -261,6 +301,63 @@ class User(AccessControlledModel):
 
         if save:
             self.save(user)
+
+    def initializeOtp(self, user):
+        """
+        Initialize the use of one-time passwords with this user.
+
+        This does not save the modified user model.
+
+        :param user: The user to modify.
+        :return: The new OTP keys, each in KeyUriFormat.
+        :rtype: dict
+        """
+        totp = self._TotpFactory.new()
+
+        user['otp'] = {
+            'enabled': False,
+            'totp': totp.to_dict()
+        }
+
+        # Use the brand name as the OTP issuer if it's non-default (since that's prettier and more
+        # meaningful for users), but fallback to the site hostname if the brand name isn't set
+        # (to disambiguate otherwise identical "Girder" issuers)
+        # Prevent circular import
+        from girder.api.rest import getUrlParts
+        brandName = Setting().get(SettingKey.BRAND_NAME)
+        defaultBrandName = Setting().getDefault(SettingKey.BRAND_NAME)
+        # OTP URIs ( https://github.com/google/google-authenticator/wiki/Key-Uri-Format ) do not
+        # allow colons, so use only the hostname component
+        serverHostname = getUrlParts().netloc.partition(':')[0]
+        # Normally, the issuer would be set when "self._TotpFactory" is instantiated, but that
+        # happens during model initialization, when there's no current request, so the server
+        # hostname is not known then
+        otpIssuer = brandName if brandName != defaultBrandName else serverHostname
+
+        return {
+            'totpUri': totp.to_uri(label=user['login'], issuer=otpIssuer)
+        }
+
+    def hasOtpEnabled(self, user):
+        return 'otp' in user and user['otp']['enabled']
+
+    def verifyOtp(self, user, otpToken):
+        lastCounterKey = 'girder.models.user.%s.otp.totp.counter' % user['_id']
+
+        # The last successfully-authenticated key (which is blacklisted from reuse)
+        lastCounter = rateLimitBuffer.get(lastCounterKey) or None
+
+        try:
+            totpMatch = self._TotpFactory.verify(
+                otpToken, user['otp']['totp'], last_counter=lastCounter)
+        except TokenError as e:
+            raise AccessException('One-time password validation failed: %s' % e)
+
+        # The totpMatch.cache_seconds tells us prospectively how long the counter needs to be cached
+        # for, but dogpile.cache expiration times work retrospectively (on "get"), so there's no
+        # point to using it (over-caching just wastes cache resources, but does not impact
+        # "totp.verify" security)
+        rateLimitBuffer.set(lastCounterKey, totpMatch.counter)
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):

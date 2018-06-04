@@ -120,6 +120,42 @@ var UserModel = Model.extend({
         }).fail((err) => {
             this.trigger('g:error', err);
         });
+    },
+
+    initializeEnableOtp: function () {
+        return restRequest({
+            url: `user/${this.id}/otp`,
+            method: 'POST',
+            error: null
+        })
+            .then((resp) => {
+                return resp.totpUri;
+            });
+    },
+
+    finializeEnableOtp: function (otpToken) {
+        return restRequest({
+            url: `user/${this.id}/otp`,
+            method: 'PUT',
+            headers: {
+                'Girder-OTP': otpToken
+            },
+            error: null
+        })
+            .done(() => {
+                this.set('otp', true);
+            });
+    },
+
+    disableOtp: function () {
+        return restRequest({
+            url: `user/${this.id}/otp`,
+            method: 'DELETE',
+            error: null
+        })
+            .done(() => {
+                this.set('otp', false);
+            });
     }
 }, {
     fromTemporaryToken: function (userId, token) {

@@ -78,19 +78,22 @@ function fetchCurrentUser() {
  * @param cors If the girder server is on a different origin, set this
  *        to "true" to save the auth cookie on the current domain. Alternatively,
  *        you may set the global option "girder.corsAuth = true".
+ * @param otpToken An optional one-time password to include with the login.
  */
-function login(username, password, cors) {
+function login(username, password, cors = corsAuth, otpToken = null) {
     var auth = 'Basic ' + window.btoa(username + ':' + password);
-    if (cors === undefined) {
-        cors = corsAuth;
-    }
 
+    const headers = {
+        'Girder-Authorization': auth
+    };
+    if (_.isString(otpToken)) {
+        // Use _.isString to send header with empty string
+        headers['Girder-OTP'] = otpToken;
+    }
     return restRequest({
         method: 'GET',
         url: '/user/authentication',
-        headers: {
-            'Girder-Authorization': auth
-        },
+        headers: headers,
         error: null
     }).then(function (response) {
         response.user.token = response.authToken;

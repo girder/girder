@@ -1,0 +1,44 @@
+h2 Enable Two-factor authentication
+
+ol.g-account-otp-steps
+  li.g-account-otp-step
+    h3 Install an authenticator app on your mobile device.
+    div.
+      There are many compatible apps, including, but not limited to
+      #[a(href='https://support.google.com/accounts/answer/1066447?hl=en', target='_blank', rel='noopener') Google Authenticator],
+      #[a(href='https://guide.duo.com/third-party-accounts', target='_blank', rel='noopener') Duo Mobile], and
+      #[a(href='https://freeotp.github.io/', target='_blank', rel='noopener') FreeOTP].
+  li.g-account-otp-step
+    h3 Enter your key into the authenticator app
+    .g-account-otp-scan-qr
+      h4 Scan with your mobile device's camera:
+      canvas#g-user-otp-qr
+    .g-account-otp-enter-manual
+      h4 Advanced Users:
+        span You may enter your information manually, instead:
+      table
+        tr
+          th Service
+          td
+            code= totpInfo.issuer
+        tr
+          th Account
+          td
+            code= totpInfo.account
+        tr
+          th Key
+          td
+            // Split into 4-character chunks for human readability
+            code= totpInfo.key.match(/.{1,4}/g).join('-')
+        tr
+          th Type
+          td
+            span #[code Time-based] / #[code TOTP]
+  li.g-account-otp-step
+    h3 Enter the authentication code from your app
+    input#g-user-otp-token(type='text', minlength=6, maxlength=6, placeholder='Your 6-digit code')
+    div
+      span#g-account-otp-error.g-validation-failed-message
+.g-user-otp-footer
+  a#g-user-otp-cancel-enable.btn.btn-default Cancel
+  button#g-user-otp-finalize-enable.btn.btn-primary.btn-success(type="submit") Enable Two-Factor

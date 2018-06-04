@@ -28,7 +28,7 @@ import traceback
 
 from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor, VERSION
 from girder.utility import config, mkdir
-from girder.utility._cache import cache, requestCache
+from girder.utility._cache import cache, requestCache, rateLimitBuffer
 
 __version__ = '2.5.0'
 __license__ = 'Apache 2.0'
@@ -288,6 +288,10 @@ def _setupCache():
         # Reset caches back to null cache (in the case of server teardown)
         cache.configure(backend='dogpile.cache.null', replace_existing_backend=True)
         requestCache.configure(backend='dogpile.cache.null', replace_existing_backend=True)
+
+    # Although the rateLimitBuffer has no pre-existing backend, this method may be called multiple
+    # times in testing (where caches were already configured)
+    rateLimitBuffer.configure(backend='dogpile.cache.memory', replace_existing_backend=True)
 
 
 # Expose common logging levels and colors as methods of logprint.

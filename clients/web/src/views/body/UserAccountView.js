@@ -2,6 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 
 import ApiKeyListWidget from 'girder/views/widgets/ApiKeyListWidget';
+import UserOtpManagementWidget from 'girder/views/widgets/UserOtpManagementWidget';
 import router from 'girder/router';
 import UserModel from 'girder/models/UserModel';
 import View from 'girder/views/View';
@@ -114,6 +115,11 @@ var UserAccountView = View.extend({
             parentView: this
         });
 
+        this.userOtpManagementWidget = new UserOtpManagementWidget({
+            user: this.user,
+            parentView: this
+        });
+
         this.render();
     },
 
@@ -139,6 +145,10 @@ var UserAccountView = View.extend({
                 if (this.tab === 'apikeys') {
                     this.apiKeyListWidget.setElement(
                         this.$('.g-api-keys-list-container')).render();
+                } else if (this.tab === 'otp') {
+                    this.userOtpManagementWidget
+                        .setElement(this.$('.g-account-otp-container'))
+                        .render();
                 }
             });
 

@@ -59,7 +59,6 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
-    'bcrypt',
     'boto3',
     # CherryPy version is restricted due to a bug in versions >=11.1
     # https://github.com/cherrypy/cherrypy/issues/1662
@@ -71,6 +70,7 @@ installReqs = [
     'funcsigs ; python_version < \'3\'',
     'jsonschema',
     'Mako',
+    'passlib [bcrypt,totp]',
     'pymongo>=3.5',
     'PyYAML',
     'psutil',
