@@ -57,7 +57,8 @@ def db(request):
 
     connection.drop_database(dbName)
 
-    # Since some models bind to events during initialize(), we force reinitialization
+    # Since models store a local reference to the current database, we need to force them all to
+    # reconnect
     for model in model_base._modelSingletons:
         model.reconnect()
 

@@ -54,6 +54,10 @@ class _ModelSingleton(type):
         if cls._instance is None:
             cls._instance = super(_ModelSingleton, cls).__call__(*args, **kwargs)
             _modelSingletons.append(cls._instance)
+            # It is not safe to ever set cls._instance back to None in an attempt to force singleton
+            # recreation, since some models have event bindings that will not be destroyed (so the
+            # old singletons will still have instance-bound methods that are event-bound to and fire
+            # on model-related events)
         return cls._instance
 
 
