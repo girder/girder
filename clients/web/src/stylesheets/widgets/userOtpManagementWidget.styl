@@ -12,13 +12,29 @@
   h2
     margin 0 20px 10px 0
     display inline-block
+    &.g-user-otp-heading-enable
+      background #EFFFF0
+      border 1px solid #4CAF50
+      border-radius 5px
+      color #4CAF50
+      font-size 26px
+      padding 20px 26px
+      &:before
+        display inline-block
+        content "\e830"
+        font-family "fontello"
+        margin-right 10px
   h3
     color #333
     font-size 20px
     font-weight bold
     margin 0 0 5px
+    &.g-user-otp-heading-disable
+      margin-bottom 5px
+      margin-top 25px
   #g-user-otp-initialize-enable
-    margin-top -12px
+    display block
+    margin-top 6px
   .g-account-otp-steps
     background-color #fafafa
     border 1px solid #e3e3e3
