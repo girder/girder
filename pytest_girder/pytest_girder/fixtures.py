@@ -183,8 +183,6 @@ def admin(db):
 
     yield u
 
-    User().remove(u)
-
 
 @pytest.fixture
 def user(db, admin):
@@ -199,8 +197,6 @@ def user(db, admin):
                           lastName='user', password='password', admin=False)
 
     yield u
-
-    User().remove(u)
 
 
 @pytest.fixture

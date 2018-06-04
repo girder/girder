@@ -46,8 +46,6 @@ def parentChain(admin):
         'privateFolder': privateFolder,
         'folder4': F4
     }
-    # Delete the parent chain
-    Folder().remove(F1)
 
 
 def testParentsToRootAdmin(parentChain, admin):
