@@ -289,7 +289,6 @@ def group(user):
         creator=user
     )
     yield g
-    Group().remove(g)
 
 
 @pytest.fixture
@@ -308,7 +307,6 @@ def documentWithGroup(group, admin, user, FakeAcModel):
     doc1 = FakeAcModel().setGroupAccess(doc1, group1, level=AccessType.WRITE)
     doc1 = FakeAcModel().save(doc1)
     yield doc1
-    FakeAcModel().remove(doc1)
 
 
 class TestAccessControlCleanup(object):
