@@ -57,8 +57,10 @@ def db(request):
 
     connection.drop_database(dbName)
 
-    # Since some models bind to events during initialize(), we force reinitialization
-    model_base._modelSingletons = []
+    # Since models store a local reference to the current database, we need to force them all to
+    # reconnect
+    for model in model_base._modelSingletons:
+        model.reconnect()
 
     yield connection
 
@@ -181,8 +183,6 @@ def admin(db):
 
     yield u
 
-    User().remove(u)
-
 
 @pytest.fixture
 def user(db, admin):
@@ -197,8 +197,6 @@ def user(db, admin):
                           lastName='user', password='password', admin=False)
 
     yield u
-
-    User().remove(u)
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 const timingHistoryChartConfig = {
     'width': 800,
     'height': 500,
-    'padding': 'strict',
+    'autosize': 'fit',
     'data': [
         {
             'name': 'table',
@@ -10,28 +10,23 @@ const timingHistoryChartConfig = {
             'transform': [
                 {
                     'type': 'formula',
-                    'field': 'adjElapsed',
+                    'as': 'adjElapsed',
                     'expr': 'clamp(datum.elapsed/1000,-86400,86400)'
                 }
             ]
         },
         {
-            'name': 'positive',
-            'source': 'table',
-            'transform': [
-                {
-                    'type': 'filter',
-                    'test': 'datum.adjElapsed > 0'
-                }
-            ]
+            'name': 'min_y',
+            'values': []
         },
         {
-            'name': 'negative',
+            'name': 'stacked',
             'source': 'table',
             'transform': [
                 {
-                    'type': 'filter',
-                    'test': 'datum.adjElapsed < 0'
+                    'type': 'stack',
+                    'groupby': ['id'],
+                    'field': 'adjElapsed'
                 }
             ]
         },
@@ -42,33 +37,14 @@ const timingHistoryChartConfig = {
                 {
                     'type': 'aggregate',
                     'groupby': ['id', 'title', 'currentStatus'],
-                    'summarize': [
-                        {
-                            'field': 'adjElapsed',
-                            'ops': ['sum'],
-                            'as': ['sum_y']
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            'name': 'status',
-            'source': 'negative',
-            'transform': [
-                {
-                    'type': 'aggregate',
-                    'summarize': [
-                        {
-                            'field': 'adjElapsed',
-                            'ops': ['min'],
-                            'as': ['min_y']
-                        }
-                    ]
+                    'fields': ['adjElapsed'],
+                    'ops': ['sum'],
+                    'as': ['sum_y']
                 },
                 {
-                    'type': 'cross',
-                    'with': 'stats'
+                    'type': 'formula',
+                    'as': 'min_y',
+                    'expr': 'data("min_y")[0].data'
                 }
             ]
         }
@@ -76,7 +52,7 @@ const timingHistoryChartConfig = {
     'scales': [
         {
             'name': 'x',
-            'type': 'ordinal',
+            'type': 'band',
             'range': 'width',
             'domain': { 'data': 'table', 'field': 'id' }
         },
@@ -107,30 +83,30 @@ const timingHistoryChartConfig = {
     ],
     'axes': [
         {
-            'type': 'x',
             'scale': 'x',
             'orient': 'bottom',
-            'ticks': 0,
-            'subdivide': 4,
-            'properties': {
+            'encode': {
                 'labels': {
-                    'text': { 'scale': 'xlabels' },
-                    'angle': { 'value': 50 },
-                    'align': { 'value': 'left' },
-                    'itemName': { 'value': 'xlabel' },
-                    'dy': { 'value': 5 },
-                    'dx': { 'value': 7 }
+                    'update': {
+                        'text': { 'field': 'value', 'scale': 'xlabels' },
+                        'angle': { 'value': 50 },
+                        'align': { 'value': 'left' },
+                        'dy': { 'value': 5 },
+                        'dx': { 'value': 7 }
+                    }
                 }
             }
         },
         {
-            'type': 'y',
+            'orient': 'left',
             'scale': 'y',
             'format': 's',
             'title': 'seconds',
-            'properties': {
+            'encode': {
                 'labels': {
-                    'itemName': { 'value': 'ylabel' }
+                    'update': {
+                        'itemName': { 'value': 'ylabel' }
+                    }
                 }
             }
         }
@@ -138,66 +114,66 @@ const timingHistoryChartConfig = {
     'signals': [
         {
             'name': 'hover',
-            'init': { 'pos': {}, 'datum': {} },
-            'streams': [
+            'value': { 'pos': {}, 'datum': {} },
+            'on': [
                 {
-                    'type': 'rect:mousemove',
-                    'expr': '{ pos: {x: eventX(), y: eventY()}, datum:datum}'
+                    'events': '@timing:mousemove',
+                    'update': '{ pos: {x: x(), y: y()}, datum:datum}'
                 },
                 {
-                    'type': 'rect:mouseout',
-                    'expr': '{pos:{},datum:{}}'
+                    'events': '@timing:mouseout',
+                    'update': '{pos:{},datum:{}}'
                 }
             ]
         },
         {
             'name': 'tt0',
-            'init': {},
-            'expr': '{ title:hover.datum.title, updated:hover.datum.updated, status:!hover.datum.status?"":hover.datum.status+":", elapsed:abs(hover.datum["elapsed"]) }'
+            'value': {},
+            'update': '{ title:hover.datum.title, updated:hover.datum.updated, status:!hover.datum.status?"":hover.datum.status+":", elapsed:abs(hover.datum["elapsed"]) }'
         },
         {
             'name': 'tt1',
-            'init': {},
-            'expr': '{ elapsed:!tt0.elapsed?"":timeFormat(tt0.elapsed>3600000? "%H:%M:%S.%Ls":(tt0.elapsed>60000?"%M:%S.%Ls":"%S.%Ls"), datetime(0,0,0,0,0,0,tt0.elapsed)) }'
+            'value': {},
+            'update': '{ elapsed:!tt0.elapsed?"":timeFormat(datetime(0,0,0,0,0,0,tt0.elapsed), tt0.elapsed>3600000? "%H:%M:%S.%Ls":(tt0.elapsed>60000?"%M:%S.%Ls":"%S.%Ls")) }'
         },
         {
             'name': 'tt2',
-            'init': {},
-            'expr': '{ width:!tt0.title?0:max(max(max(tt0.title.length,tt0.status.length),tt1.elapsed.length),tt0.updated.length)*7 }'
+            'value': {},
+            'update': '{ width:!tt0.title?0:max(max(max(tt0.title.length,tt0.status.length),tt1.elapsed.length),tt0.updated.length)*7 }'
         },
         {
             'name': 'tooltip',
-            'init': {},
-            'expr': '{ y:hover.pos.y+30, x:(hover.pos.x>width-tt2.width+5?hover.pos.x-tt2.width-5:hover.pos.x+5), width:tt2.width, title:tt0.title, updated:tt0.updated, status:tt0.status, elapsed:tt1.elapsed }'
+            'value': {},
+            'update': '{ y:hover.pos.y+30, x:(hover.pos.x>width-tt2.width-5?hover.pos.x-tt2.width-5:hover.pos.x+5), width:tt2.width, title:tt0.title, updated:tt0.updated, status:tt0.status, elapsed:tt1.elapsed }'
         },
         {
             'name': 'sHover',
-            'init': { 'pos': {}, 'datum': {} },
-            'streams': [
+            'value': { 'pos': {}, 'datum': {} },
+            'on': [
                 {
-                    'type': '@status:mousemove',
-                    'expr': '{ pos: {x: eventX(), y: eventY()}, datum:datum}'
+                    'events': '@statusmark:mousemove',
+                    'update': '{ pos: {x: x(), y: y()}, datum:datum}'
                 },
                 {
-                    'type': '@status:mouseout',
-                    'expr': '{pos:{},datum:{}}'
+                    'events': '@statusmark:mouseout',
+                    'update': '{pos:{},datum:{}}'
                 }
             ]
         },
         {
             'name': 'stt0',
-            'init': {},
-            'expr': '{ status:sHover.datum.b?sHover.datum.b.currentStatus:"" }'
+            'value': {},
+            'update': '{ status:sHover.datum?sHover.datum.currentStatus:"" }'
         },
         {
             'name': 'stt1',
-            'init': {},
-            'expr': '{ width:(stt0.status?stt0.status.length:0)*9 }'
+            'value': {},
+            'update': '{ width:(stt0.status?stt0.status.length:0)*9 }'
         },
         {
             'name': 'sTooltip',
-            'init': {},
-            'expr': '{ y:sHover.pos.y+30, x:(sHover.pos.x>width-stt1.width+5?sHover.pos.x-stt1.width-5:sHover.pos.x+5), width:stt1.width, status:stt0.status }'
+            'value': {},
+            'update': '{ y:sHover.pos.y+30, x:(sHover.pos.x>width-stt1.width-7?sHover.pos.x-stt1.width-5:sHover.pos.x+5), width:stt1.width, status:stt0.status }'
         }
     ],
     'marks': [
@@ -205,21 +181,14 @@ const timingHistoryChartConfig = {
             'type': 'rect',
             'name': 'timing',
             'from': {
-                'data': 'positive',
-                'transform': [
-                    {
-                        'type': 'stack',
-                        'groupby': ['id'],
-                        'field': 'adjElapsed'
-                    }
-                ]
+                'data': 'stacked'
             },
-            'properties': {
+            'encode': {
                 'enter': {
                     'x': { 'scale': 'x', 'field': 'id' },
                     'width': { 'scale': 'x', 'band': true, 'offset': -2 },
-                    'y': { 'scale': 'y', 'field': 'layout_start' },
-                    'y2': { 'scale': 'y', 'field': 'layout_end' },
+                    'y': { 'scale': 'y', 'field': 'y0' },
+                    'y2': { 'scale': 'y', 'field': 'y1' },
                     'fill': { 'scale': 'color', 'field': 'status' },
                     'itemName': { 'value': 'bar' },
                     'cursor': { 'value': 'pointer' }
@@ -231,26 +200,19 @@ const timingHistoryChartConfig = {
             }
         },
         {
+            'name': 'statusmarkbase',
             'type': 'rect',
-            'name': 'timing',
             'from': {
-                'data': 'negative',
-                'transform': [
-                    {
-                        'type': 'stack',
-                        'groupby': ['id'],
-                        'field': 'adjElapsed'
-                    }
-                ]
+                'data': 'stats'
             },
-            'properties': {
+            'encode': {
                 'enter': {
-                    'x': { 'scale': 'x', 'field': 'id' },
-                    'width': { 'scale': 'x', 'band': true, 'offset': -2 },
-                    'y': { 'scale': 'y', 'field': 'layout_start' },
-                    'y2': { 'scale': 'y', 'field': 'layout_end' },
-                    'fill': { 'scale': 'color', 'field': 'status' },
-                    'itemName': { 'value': 'bar' }
+                    'width': { 'scale': 'x', 'band': true, 'offset': -4 },
+                    'height': { 'value': 6 },
+                    'x': { 'scale': 'x', 'field': 'id', 'offset': 1 },
+                    'y': { 'scale': 'y', 'field': 'min_y', 'offset': 9 },
+                    'fill': { 'value': 'rgb(204,204,204)' },
+                    'itemName': { 'value': 'status' }
                 },
                 'update': { 'fillOpacity': { 'value': 1 } },
                 'hover': {
@@ -259,18 +221,18 @@ const timingHistoryChartConfig = {
             }
         },
         {
-            'name': 'status',
+            'name': 'statusmark',
             'type': 'rect',
             'from': {
-                'data': 'status'
+                'data': 'stats'
             },
-            'properties': {
+            'encode': {
                 'enter': {
                     'width': { 'scale': 'x', 'band': true, 'offset': -4 },
                     'height': { 'value': 6 },
-                    'x': { 'scale': 'x', 'field': 'b.id', 'offset': 1 },
-                    'y': { 'scale': 'y', 'field': 'a.min_y', 'offset': 9 },
-                    'fill': { 'scale': 'color', 'field': 'b.currentStatus' },
+                    'x': { 'scale': 'x', 'field': 'id', 'offset': 1 },
+                    'y': { 'scale': 'y', 'field': 'min_y', 'offset': 9 },
+                    'fill': { 'scale': 'color', 'field': 'currentStatus' },
                     'itemName': { 'value': 'status' }
                 },
                 'update': { 'fillOpacity': { 'value': 1 } },
@@ -282,7 +244,7 @@ const timingHistoryChartConfig = {
         {
             'name': 'timingTooltip',
             'type': 'group',
-            'properties': {
+            'encode': {
                 'update': {
                     'x': { 'signal': 'tooltip.x' },
                     'y': { 'signal': 'tooltip.y' },
@@ -298,7 +260,7 @@ const timingHistoryChartConfig = {
                 {
                     'name': 'title',
                     'type': 'text',
-                    'properties': {
+                    'encode': {
                         'update': {
                             'x': { 'value': 6 },
                             'y': { 'value': 14 },
@@ -308,9 +270,9 @@ const timingHistoryChartConfig = {
                     }
                 },
                 {
-                    'name': 'title',
+                    'name': 'updated',
                     'type': 'text',
-                    'properties': {
+                    'encode': {
                         'update': {
                             'x': { 'value': 6 },
                             'y': { 'value': 29 },
@@ -322,7 +284,7 @@ const timingHistoryChartConfig = {
                 {
                     'name': 'status',
                     'type': 'text',
-                    'properties': {
+                    'encode': {
                         'update': {
                             'x': { 'value': 6 },
                             'y': { 'value': 44 },
@@ -335,7 +297,7 @@ const timingHistoryChartConfig = {
                 {
                     'name': 'elapsed',
                     'type': 'text',
-                    'properties': {
+                    'encode': {
                         'update': {
                             'x': { 'value': 6 },
                             'y': { 'value': 59 },
@@ -350,7 +312,7 @@ const timingHistoryChartConfig = {
         {
             'name': 'statusTooltip',
             'type': 'group',
-            'properties': {
+            'encode': {
                 'update': {
                     'x': { 'signal': 'sTooltip.x' },
                     'y': { 'signal': 'sTooltip.y' },
@@ -366,7 +328,7 @@ const timingHistoryChartConfig = {
                 {
                     'name': 'status',
                     'type': 'text',
-                    'properties': {
+                    'encode': {
                         'update': {
                             'x': { 'value': 8 },
                             'y': { 'value': 16 },
@@ -383,17 +345,22 @@ const timingHistoryChartConfig = {
         {
             'fill': 'color',
             'title': 'Selected Phases',
-            'offset': -3,
-            'properties': {
+            'offset': 20,
+            'encode': {
                 'title': {
-                    'dx': { 'value': 10 },
-                    'fontSize': { 'value': 12 }
+                    'update': {
+                        'fontSize': { 'value': 12 }
+                    }
                 },
                 'symbols': {
-                    'shape': { 'value': 'square' }
+                    'update': {
+                        'shape': { 'value': 'square' }
+                    }
                 },
                 'labels': {
-                    'fontSize': { 'value': 12 }
+                    'update': {
+                        'fontSize': { 'value': 12 }
+                    }
                 }
             }
         }

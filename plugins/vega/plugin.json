@@ -2,10 +2,10 @@
     "name": "Vega Visualization",
     "description": "Render Vega visualizations in the item page.",
     "url": "http://girder.readthedocs.io/en/latest/plugins.html#vega-visualization",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "npm": {
         "dependencies": {
-            "vega": "^2.6.0"
+            "vega-lib": "^3.3.1"
         }
     }
 }

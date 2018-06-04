@@ -45,9 +45,6 @@ def hierarchy(admin, fsAssetstore):
 
     yield Hierarchy(collections=(c1, c2), folders=(f1, f2), items=(i1, i2), files=(file1, file2))
 
-    Collection().remove(c1)
-    Collection().remove(c2)
-
 
 def assertNodeSize(resource, model, size):
     __tracebackhide__ = True

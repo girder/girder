@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import $ from 'jquery';
-import vg from 'vega';
+import { parse,
+    View as VegaView } from 'vega-lib';
 import moment from 'moment';
 
 import View from 'girder/views/View';
@@ -64,14 +65,18 @@ const JobGraphWidget = View.extend({
             // the minimum width needed for each job is 10px
             let numberOfJobs = Math.min(this.collection.size(), Math.floor(width / 10));
             let vegaData = this._prepareDataForChart(numberOfJobs);
-            let withForEachJob = width / numberOfJobs;
+            let widthForEachJob = width / numberOfJobs;
             // if the width for each job is less than 20px, remove axe labels
-            if (withForEachJob < 20) {
-                config.axes[0].properties.labels.opacity = { value: 0 };
+            if (widthForEachJob < 20) {
+                config.axes[0].encode.labels.opacity = { value: 0 };
             }
             config.width = width;
             config.height = this.$('.g-jobs-graph').height();
             config.data[0].values = vegaData;
+
+            const minval = Math.min(0, Math.min.apply(this, vegaData.map((d) => d.elapsed === undefined ? 10 : d.elapsed)) / 1000);
+            config.data[1].values = [minval < -86400 ? -86400 : minval];
+
             config.scales[1].type = this.yScale;
             let allStatus = JobStatus.getAll().filter((status) => this.timingFilter ? this.timingFilter[status.text] : true);
             config.scales[2].domain = allStatus.map((status) => status.text);
@@ -79,13 +84,13 @@ const JobGraphWidget = View.extend({
             config.scales[3].domain = this.collection.pluck('_id');
             config.scales[3].range = this.collection.pluck('title');
 
-            vg.parse.spec(config, (chart) => {
-                var view = chart({
-                    el: this.$('.g-jobs-graph').get(0),
-                    renderer: 'svg'
-                }).update();
-                view.on('click', openDetailView(view));
-            });
+            const runtime = parse(config);
+            const view = new VegaView(runtime)
+                .initialize(document.querySelector('.g-jobs-graph'))
+                .renderer('svg')
+                .hover()
+                .run();
+            view.addEventListener('click', openDetailView(view));
 
             let positiveTimings = _.clone(this.timingFilter);
             this.timingFilterWidget.setItems(positiveTimings);
@@ -99,11 +104,11 @@ const JobGraphWidget = View.extend({
             // the minimum width needed for each job is 6px
             let numberOfJobs = Math.min(this.collection.size(), Math.floor(width / 6));
             let vegaData = this._prepareDataForChart(numberOfJobs);
-            let withForEachJob = width / numberOfJobs;
+            let widthForEachJob = width / numberOfJobs;
             // if the width for each job is less than 20px, remove date axe and axe labels
-            if (withForEachJob < 20) {
+            if (widthForEachJob < 20) {
                 config.axes.splice(0, 1);
-                config.axes[0].properties.labels.opacity = { value: 0 };
+                config.axes[0].encode.labels.opacity = { value: 0 };
             }
             config.width = width;
             config.height = this.$('.g-jobs-graph').height();
@@ -126,13 +131,13 @@ const JobGraphWidget = View.extend({
             config.scales[4].domain = allStatus.map((status) => status.text);
             config.scales[4].range = allStatus.map((status) => status.color);
 
-            vg.parse.spec(config, (chart) => {
-                var view = chart({
-                    el: this.$('.g-jobs-graph').get(0),
-                    renderer: 'svg'
-                }).update();
-                view.on('click', openDetailView(view));
-            });
+            const runtime = parse(config);
+            const view = new VegaView(runtime)
+                .initialize(document.querySelector('.g-jobs-graph'))
+                .renderer('svg')
+                .hover()
+                .run();
+            view.addEventListener('click', openDetailView(view));
 
             let positiveTimings = _.clone(this.timingFilter);
             delete positiveTimings['Inactive'];

@@ -1,6 +1,7 @@
 import $ from 'jquery';
 
-import vg from 'vega';
+import { parse,
+    View as VegaView } from 'vega-lib';
 
 import View from 'girder/views/View';
 import { AccessType } from 'girder/constants';
@@ -29,12 +30,11 @@ var VegaWidget = View.extend({
                 url: `item/${this.item.id}/download`
             })
                 .done(function (spec) {
-                    vg.parse.spec(spec, function (chart) {
-                        chart({
-                            el: '.g-item-vega-vis',
-                            renderer: 'svg'
-                        }).update();
-                    });
+                    let runtime = parse(spec);
+                    let view = new VegaView(runtime)
+                        .initialize(document.querySelector('.g-item-vega-vis'))
+                        .renderer('svg');
+                    view.run();
                 });
         } else {
             $('.g-item-vega')
