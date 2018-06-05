@@ -1,7 +1,6 @@
 import _ from 'underscore';
 
 import View from 'girder/views/View';
-import events from 'girder/events';
 
 import * as vega from '@candela/vega';
 import * as treeheatmap from '@candela/treeheatmap';
@@ -44,13 +43,13 @@ var CandelaWidget = View.extend({
 
     render: function () {
         let options = {
-          type: null
+            type: null
         };
         let name = this.item.get('name').toLowerCase();
         if (name.endsWith('.csv')) {
-          options.type = 'csv';
+            options.type = 'csv';
         } else if (name.endsWith('.tsv') || name.endsWith('.tab')) {
-          options.type = 'tsv';
+            options.type = 'tsv';
         } else {
             this.$('.g-item-candela').remove();
             return this;
@@ -89,6 +88,8 @@ var CandelaWidget = View.extend({
 
             this.parametersView.setData(data, columns);
             this.updateComponent();
+
+            return undefined;
         });
 
         return this;
