@@ -222,6 +222,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.BRAND_NAME: '',
             SettingKey.BANNER_COLOR: '',
             SettingKey.EMAIL_FROM_ADDRESS: '',
+            SettingKey.PRIVACY_NOTICE: '',
             SettingKey.CONTACT_EMAIL_ADDRESS: '',
             SettingKey.EMAIL_HOST: {},
             SettingKey.SMTP_HOST: '',

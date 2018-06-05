@@ -28,6 +28,9 @@ Python Client
 
 Added Features
 --------------
+* Added a privacy notice link to the footer which can be set on the Server Configuration view of the web client (
+  `#2728 <https://github.com/girder/girder/pull/2728>`_).
+
 * Added a setting to disable the notification stream. This may improve Girder's performance in runtime environments with
   fewer threads (`#2712 <https://github.com/girder/girder/pull/2712>`_).
 

@@ -39,6 +39,7 @@ var App = View.extend({
         this._started = false;
         settings = settings || {};
         this.contactEmail = settings.contactEmail || null;
+        this.privacyNoticeHref = settings.privacyNoticeHref || null;
         this.brandName = settings.brandName || null;
         this.bannerColor = settings.bannerColor || null;
         this.registrationPolicy = settings.registrationPolicy || null;
@@ -140,7 +141,8 @@ var App = View.extend({
 
         this.footerView = new LayoutFooterView({
             parentView: this,
-            contactEmail: this.contactEmail
+            contactEmail: this.contactEmail,
+            privacyNoticeHref: this.privacyNoticeHref
         });
 
         this.progressListView = new ProgressListView({
